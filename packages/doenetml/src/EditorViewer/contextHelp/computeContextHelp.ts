@@ -88,33 +88,81 @@ export function computeContextHelp(
     }
 
     const ctx = completer.getCompletionContext(offset);
+    if (ctx.cursorPos === "refName") {
+        return helpForRefName(completer, offset, ctx);
+    }
     if (ctx.cursorPos === "refMember") {
-        return helpForPropertyReference(completer, offset, ctx);
+        return helpForRefMember(completer, offset, ctx);
     }
 
     return NONE;
 }
 
-const IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
+// Mirrors the parser grammar (see `get-completion-context.ts`):
+//   SimpleIdent = [A-Za-z_][A-Za-z0-9_]*  — bare `$name`
+//   Ident       = [A-Za-z0-9_-]+          — parenthesized `$(foo-bar)`
+const SIMPLE_IDENT_CHAR_REGEX = /[A-Za-z0-9_]/;
+const MACRO_IDENT_CHAR_REGEX = /[A-Za-z0-9_-]/;
 
 /**
  * The completion context's `typedPrefix` only captures identifier chars BEFORE
  * the cursor. Walk forward from the cursor to also capture chars to the right
  * so that placing the cursor mid-word still resolves the full identifier.
+ *
+ * Pass `parenthesized: true` when the segment is inside `$(...)` so hyphens
+ * are preserved (`$(foo-bar)`). The left bound (`startOffset`) already
+ * reflects the right char class because `getCompletionContext` walked back
+ * with the macro regex for parenthesized contexts.
  */
 function fullIdentifierAtOffset(
     source: string,
     startOffset: number,
     cursorOffset: number,
+    parenthesized: boolean = false,
 ): string {
+    const charRegex = parenthesized
+        ? MACRO_IDENT_CHAR_REGEX
+        : SIMPLE_IDENT_CHAR_REGEX;
     let endOffset = cursorOffset;
     while (
         endOffset < source.length &&
-        IDENTIFIER_CHAR_REGEX.test(source.charAt(endOffset))
+        charRegex.test(source.charAt(endOffset))
     ) {
         endOffset++;
     }
     return source.slice(startOffset, endOffset);
+}
+
+/**
+ * Detect whether the segment under the cursor sits inside a `$(...)` macro,
+ * by checking whether the char immediately before `replaceFromOffset` is `(`.
+ * This is the same signal `getCompletionContext` uses to choose the macro
+ * char class for `replaceFromOffset` and `typedPrefix`.
+ */
+function isParenthesizedSegment(
+    source: string,
+    replaceFromOffset: number,
+): boolean {
+    return source.charAt(replaceFromOffset - 1) === "(";
+}
+
+const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
+
+/**
+ * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
+ * contains hyphens), mirroring the grammar that requires `$(foo-bar)` over
+ * `$foo-bar`. Trailing bracket-index suffixes are kept outside the parens
+ * (`rep[1]` stays as `rep[1]`, never `(rep[1])`). Used to format
+ * `displayPath` for the help-panel sentence so it renders the same syntax
+ * the author would type.
+ */
+function formatPathSegment(segment: string): string {
+    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
+    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
+    return SIMPLE_IDENT_REGEX.test(baseName)
+        ? segment
+        : `(${baseName})${bracketSuffix}`;
 }
 
 function helpForElement(
@@ -157,7 +205,7 @@ function helpForAttribute(
     };
 }
 
-function helpForPropertyReference(
+function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
     ctx: {
@@ -165,14 +213,16 @@ function helpForPropertyReference(
         replaceFromOffset: number;
         pathParts: string[];
         pathPartHasIndex: boolean[];
+        rawPathParts: string[];
     },
 ): HelpContent {
-    const propertyName = fullIdentifierAtOffset(
+    const memberName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
         offset,
+        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
-    if (!propertyName) return NONE;
+    if (!memberName) return NONE;
 
     const resolved = completer.resolveRefMemberContainerAtOffset(
         offset,
@@ -180,12 +230,12 @@ function helpForPropertyReference(
         ctx.pathPartHasIndex,
     );
 
-    // Fallback to pure-JS resolution for simple `$name.property` when no
-    // Rust resolver adapter is configured (browser-only setups). Restricted
-    // to length-2 chains because the JS path resolves only `pathParts[0]`
-    // and would otherwise look up the cursor identifier as a property of
-    // the root referent, producing wrong help for `$a.b.c`. Multi-part
-    // resolution is tracked in #1086.
+    // Fallback to pure-JS resolution for simple `$name.member` when no Rust
+    // resolver adapter is configured (browser-only setups). Restricted to
+    // length-2 chains because the JS path resolves only `pathParts[0]` and
+    // would otherwise look up the cursor identifier on the root referent,
+    // producing wrong help for `$a.b.c`. Multi-part resolution is tracked in
+    // #1086.
     let containerNode = resolved.node;
     if (!containerNode) {
         if (ctx.pathParts.length === 2) {
@@ -199,6 +249,34 @@ function helpForPropertyReference(
         }
     }
     if (!containerNode) return NONE;
+
+    // Match runtime ref-resolution precedence: a named descendant of the
+    // container shadows a same-named property. Try the descendant first;
+    // only fall back to property lookup when no descendant matches.
+    const descendantInfo = completer.resolveRefMemberDescendantHelp(
+        containerNode,
+        memberName,
+    );
+    if (descendantInfo) {
+        // Use `rawPathParts` for the prefix so authored bracket indices are
+        // preserved (`rep[1]` stays as `rep[1]`). Each segment — prefix and
+        // cursor — goes through `formatPathSegment` so hyphenated names get
+        // re-wrapped in parens (parens are stripped during normalization in
+        // `getCompletionContext`).
+        const displayPath = [
+            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
+            formatPathSegment(memberName),
+        ].join(".");
+        return {
+            kind: "refName",
+            refName: memberName,
+            displayPath,
+            targetElementName: descendantInfo.referent.name,
+            summary: descendantInfo.effectiveEntry?.summary ?? null,
+            line: descendantInfo.line,
+            docsSlug: descendantInfo.effectiveEntry?.docsSlug ?? null,
+        };
+    }
 
     const ownEntry = completer.findSchemaElement(containerNode.name);
     if (!ownEntry) return NONE;
@@ -215,7 +293,7 @@ function helpForPropertyReference(
         completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
         ownEntry;
 
-    const prop = findSchemaProperty(effectiveEntry, propertyName);
+    const prop = findSchemaProperty(effectiveEntry, memberName);
     if (!prop?.description) return NONE;
 
     const result: HelpContent = {
@@ -228,4 +306,44 @@ function helpForPropertyReference(
     };
     if (prop.type !== undefined) result.type = prop.type;
     return result;
+}
+
+/**
+ * Help for a bare `$name` cursor. Uses the AST-only parent-chain walk in
+ * `AutoCompleter.resolveRefNameForHelp`, which finds elements via a `name=`
+ * attribute up the parent chain. It does NOT see repeat-introduced names
+ * (`valueName`/`indexName`) — those need the Rust resolver, which is not
+ * wired into the editor's context-help instance. Cursor on a `name` segment
+ * inside a deeper chain like `$container.name.descendant` would likewise
+ * need resolver-backed multi-part walking. Both gaps are tracked in #1086.
+ */
+function helpForRefName(
+    completer: AutoCompleter,
+    offset: number,
+    ctx: {
+        typedPrefix: string;
+        replaceFromOffset: number;
+    },
+): HelpContent {
+    const refName = fullIdentifierAtOffset(
+        completer.source,
+        ctx.replaceFromOffset,
+        offset,
+        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
+    );
+    if (!refName) return NONE;
+
+    const resolved = completer.resolveRefNameForHelp(offset, refName);
+    if (!resolved) return NONE;
+
+    const { referent, line, effectiveEntry } = resolved;
+    return {
+        kind: "refName",
+        refName,
+        displayPath: formatPathSegment(refName),
+        targetElementName: referent.name,
+        summary: effectiveEntry?.summary ?? null,
+        line,
+        docsSlug: effectiveEntry?.docsSlug ?? null,
+    };
 }

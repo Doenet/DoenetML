@@ -84,6 +84,35 @@ export function ContextHelpPanel({
                 </div>
             );
 
+        case "refName": {
+            const { displayPath, targetElementName, summary, line, docsSlug } =
+                content;
+            return (
+                <div className="help-panel">
+                    <p className="help-ref-sentence">
+                        <code>{`$${displayPath}`}</code> references{" "}
+                        <code>{`<${targetElementName}>`}</code>
+                        {line !== undefined ? ` on line ${line}` : ""}.
+                    </p>
+                    {summary && (
+                        <p className="help-description">
+                            {renderInlineMarkdown(summary)}
+                        </p>
+                    )}
+                    {docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsBase}/reference/${docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
+                    )}
+                </div>
+            );
+        }
+
         case "attribute": {
             const {
                 elementName,

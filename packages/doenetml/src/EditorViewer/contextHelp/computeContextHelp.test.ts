@@ -175,6 +175,192 @@ describe("computeContextHelp — property reference (refMember)", () => {
     });
 });
 
+describe("computeContextHelp — bare ref ($name)", () => {
+    it("returns refName help when cursor is on a bare $name", () => {
+        const source = `<math name="m">x</math>\n$m`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            // For bare refs the displayed chain is just the ref name itself.
+            displayPath: "m",
+            targetElementName: "math",
+            docsSlug: "math",
+        });
+        if (help.kind === "refName") {
+            // <math> starts at offset 0 — line 1.
+            expect(help.line).toBe(1);
+            expect(help.summary).toBeTruthy();
+        }
+    });
+
+    it("returns refName help when cursor is mid-identifier on $myName", () => {
+        const source = `<math name="myName">x</math>\n$myName`;
+        // Cursor between 'y' and 'N' inside "myName" of the ref.
+        const offset = source.length - 4;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "myName",
+            targetElementName: "math",
+        });
+    });
+
+    it("returns refName help when cursor sits on the name segment of $name.descendant", () => {
+        const source = `<math name="m">x</math>\n$m.displayDecimals`;
+        // Cursor right after the 'm', before the '.'.
+        const offset = source.indexOf("$m") + 2;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+        });
+    });
+
+    it("returns none for a $name that doesn't resolve", () => {
+        const source = `<math>x</math>\n$nonexistent`;
+        expect(helpAt(source, source.length).kind).toBe("none");
+    });
+
+    it("uses the alias target's summary and docsSlug for $name inside <matrix>", () => {
+        // <row name="r"> inside <matrix> sugars to matrixRow. The bare-ref
+        // help should follow the same alias redirection as element/attribute/
+        // property help so the docs link lands on the matrixRow page.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "refName") {
+            expect.fail(`expected refName help, got ${help.kind}`);
+            return;
+        }
+        expect(help.refName).toBe("r");
+        expect(help.targetElementName).toBe("row");
+        expect(help.docsSlug).toBe("row_matrix");
+        expect(help.summary).toMatch(/matrix/i);
+    });
+
+    it("reports the line where the referent is defined", () => {
+        const source = `<p>intro</p>\n<p>more</p>\n<math name="m">x</math>\n$m`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "refName") {
+            expect.fail(`expected refName help, got ${help.kind}`);
+            return;
+        }
+        // <math> sits on line 3 in the authored source.
+        expect(help.line).toBe(3);
+    });
+});
+
+describe("computeContextHelp — refMember resolving to a named descendant", () => {
+    it("returns refName help when $sec.bi resolves to a named child element", () => {
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "bi",
+            displayPath: "sec.bi",
+            targetElementName: "booleanInput",
+            docsSlug: "booleanInput",
+        });
+        if (help.kind === "refName") {
+            expect(help.summary).toBeTruthy();
+        }
+    });
+
+    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", () => {
+        // The chain has three parts but the cursor sits on the middle
+        // segment, so the question is "what is $sec.bi?" — a 2-part chain.
+        // The booleanInput descendant of section answers it; the trailing
+        // ".fixed" is irrelevant to help at this cursor position.
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi.fixed`;
+        // Cursor right after the second 'i' in 'bi', before the '.'.
+        const offset = source.indexOf(".bi.fixed") + 3;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "bi",
+            displayPath: "sec.bi",
+            targetElementName: "booleanInput",
+        });
+    });
+
+    it("falls through to property help when no named descendant matches", () => {
+        // `displayDecimals` is a math property; <math> has no descendants
+        // named "displayDecimals", so the existing property branch handles
+        // it and we get property help, not refName help.
+        const source = `<math name="m">x</math>\n$m.displayDecimals`;
+        const help = helpAt(source, source.length);
+        expect(help.kind).toBe("property");
+    });
+
+    it("prefers a named descendant over a same-named property (descendants shadow properties)", () => {
+        // Construct a case where the property name is shadowed by a child
+        // element with the same name. <section> has a `hidden` property
+        // (inherited from base components); a child element named "hidden"
+        // shadows the property under runtime ref-resolution rules.
+        const source = `<section name="sec"><booleanInput name="hidden"/></section>\n$sec.hidden`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "hidden",
+            targetElementName: "booleanInput",
+        });
+    });
+});
+
+describe("computeContextHelp — hyphenated names in $(...) macros", () => {
+    it("resolves a hyphenated bare ref name with cursor mid-identifier", () => {
+        // The rightward identifier scan must use the macro char class
+        // (`[A-Za-z0-9_-]`) when the cursor sits inside `$(...)`, so a cursor
+        // between the `o` of "foo" and the `-` of "-bar" still captures the
+        // full "foo-bar" rather than truncating at `-`. The displayed path
+        // wraps the hyphenated segment in parens so the sentence reads
+        // `$(foo-bar) references <math> ...`.
+        const source = `<math name="foo-bar">x</math>\n$(foo-bar)`;
+        const offset = source.indexOf("foo-bar)") + 3; // between 'foo' and '-bar'
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "foo-bar",
+            displayPath: "(foo-bar)",
+            targetElementName: "math",
+        });
+    });
+
+    it("resolves a hyphenated descendant name in $(base).(my-p) with cursor mid-identifier", () => {
+        // `$(base).(my-p)` should resolve to the descendant `<p name="my-p"/>`,
+        // not truncate at the hyphen and fall through to property lookup.
+        // Only the hyphenated segment is wrapped in parens.
+        const source = `<section name="base"><p name="my-p"/></section>\n$(base).(my-p)`;
+        const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "my-p",
+            displayPath: "base.(my-p)",
+            targetElementName: "p",
+        });
+    });
+});
+
+describe("computeContextHelp — indexed path segments in displayPath", () => {
+    it("preserves a bracket index on the prefix segment of $rep[1].myMath", () => {
+        // The JS-only fallback in helpForRefMember ignores takesIndex
+        // semantics (tracked in #1086), so it incidentally resolves the
+        // descendant `<math name="myMath"/>` here. The rendered sentence
+        // should still match what the author wrote — preserving the `[1]` on
+        // the prefix segment — rather than dropping the index to "rep.myMath".
+        const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "myMath",
+            displayPath: "rep[1].myMath",
+            targetElementName: "math",
+        });
+    });
+});
+
 describe("computeContextHelp — childAliases (sugar redirection)", () => {
     it("redirects <row> inside <matrix> to matrixRow help", () => {
         const source = `<matrix>\n  <row>1 2 3</row>\n</matrix>`;

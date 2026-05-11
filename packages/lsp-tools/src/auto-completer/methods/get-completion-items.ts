@@ -600,34 +600,16 @@ export function getCompletionItems(
         };
         const referentInfoByName = new Map<string, ReferentInfo>();
         for (const name of filteredNames) {
-            const referent = this.sourceObj.getReferentAtOffset(offset, name);
-            if (!referent) continue;
-            const normalized = this.normalizeElementName(referent.name);
-            const ownEntry = this.schemaElementsByName[normalized];
-            const effective = this.resolveEffectiveSchemaElement(
-                ownEntry,
-                getParentName(this, referent),
-            );
-            // Recompute the line from the byte offset against the live
-            // source so the displayed number always matches CodeMirror's
-            // (1-indexed) gutter. Trusting `position.start.line` directly
-            // would surface stale or synthetic line numbers (e.g. sugar
-            // transformations stamp placeholder `{line:1, column:1}`
-            // positions on synthetic nodes — see
-            // `parser/src/lezer-to-dast/gobble-function-arguments.ts`).
-            const startOffset = referent.position?.start.offset;
-            const line =
-                startOffset != null &&
-                startOffset < this.sourceObj.source.length
-                    ? this.sourceObj.offsetToRowCol(startOffset).line
-                    : undefined;
+            const resolved = this.resolveRefNameForHelp(offset, name);
+            if (!resolved) continue;
+            const { referent, line, ownEntry, effectiveEntry } = resolved;
             const detail =
                 line !== undefined
                     ? `(<${referent.name}>, line ${line})`
                     : `(<${referent.name}>)`;
             const labelInfo: RefCompletionLabelInfo = { detail };
-            if (effective?.summary) {
-                labelInfo.documentation = effective.summary;
+            if (effectiveEntry?.summary) {
+                labelInfo.documentation = effectiveEntry.summary;
             }
             referentInfoByName.set(name, {
                 takesIndex: ownEntry?.takesIndex ?? false,

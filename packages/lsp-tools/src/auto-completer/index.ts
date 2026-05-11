@@ -99,6 +99,18 @@ export type ResolveRefMemberContainer = (
     args: ResolveRefMemberContainerArgs,
 ) => RefMemberContainerResolution | null;
 
+/**
+ * Bundle of resolution + schema data the help layer needs to describe a
+ * referent: which node the ref points at, where it lives in the source, and
+ * the alias-aware schema entries that provide its summary and docs link.
+ */
+export type RefHelpInfo = {
+    referent: DastElement;
+    line: number | undefined;
+    ownEntry: ElementSchema | undefined;
+    effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
+};
+
 export type AutoCompleterOptions = {
     sourceObj?: DoenetSourceObject;
     rustResolverAdapter?: RustResolverAdapter;
@@ -386,6 +398,73 @@ export class AutoCompleter {
         const aliasName = parentEntry?.childContextHelp?.[ownEntry.name];
         if (!aliasName) return ownEntry;
         return this.findAliasedSchemaElement(aliasName) ?? ownEntry;
+    }
+
+    /**
+     * Look up a bare ref `$name` at `offset` and return the data both the
+     * autocomplete dropdown and the context-help panel need: the referent
+     * node, the 1-indexed source line where it's defined, and the alias-aware
+     * schema entries for help text. Returns `null` when the name doesn't
+     * resolve from `offset`.
+     *
+     * Uses the AST-only parent-chain walk in `getReferentAtOffset`, so it
+     * finds elements with a `name` attribute but does not see repeat-introduced
+     * names (`valueName`/`indexName`); those require the Rust resolver.
+     */
+    resolveRefNameForHelp(offset: number, name: string): RefHelpInfo | null {
+        const referent = this.sourceObj.getReferentAtOffset(offset, name);
+        if (!referent) return null;
+        return this._buildRefHelpInfo(referent);
+    }
+
+    /**
+     * For a `$container.member` cursor whose container is already resolved,
+     * decide whether `memberName` matches a uniquely-addressable named
+     * descendant of `container`. Returns the help bundle when it does;
+     * otherwise `null` so the caller can fall back to property lookup.
+     *
+     * Mirrors runtime ref-resolution precedence (`getMacroReferentAtOffset`):
+     * a same-named descendant shadows a property on the container.
+     */
+    resolveRefMemberDescendantHelp(
+        container: DastElement,
+        memberName: string,
+    ): RefHelpInfo | null {
+        const descendant = this.sourceObj.getNamedDescendant(
+            container,
+            memberName,
+        );
+        if (!descendant) return null;
+        return this._buildRefHelpInfo(descendant);
+    }
+
+    /**
+     * Build the schema/line bundle the help panel needs from an
+     * already-resolved referent node. Shared between the bare-ref path
+     * (`resolveRefNameForHelp`) and the member-ref path that resolves a
+     * named descendant of a container.
+     */
+    _buildRefHelpInfo(referent: DastElement): RefHelpInfo {
+        // Recompute the line from the byte offset against the live source so
+        // the displayed number always matches CodeMirror's (1-indexed) gutter.
+        // Trusting `position.start.line` directly would surface stale or
+        // synthetic line numbers (e.g. sugar transformations stamp placeholder
+        // `{line:1, column:1}` positions on synthetic nodes — see
+        // `parser/src/lezer-to-dast/gobble-function-arguments.ts`).
+        const startOffset = referent.position?.start.offset;
+        const line =
+            startOffset != null && startOffset < this.sourceObj.source.length
+                ? this.sourceObj.offsetToRowCol(startOffset).line
+                : undefined;
+        const normalized = this.normalizeElementName(referent.name);
+        const ownEntry = this.schemaElementsByName[normalized];
+        const parent = this.sourceObj.getParent(referent);
+        const parentName = parent && "name" in parent ? parent.name : undefined;
+        const effectiveEntry = this.resolveEffectiveSchemaElement(
+            ownEntry,
+            parentName,
+        );
+        return { referent, line, ownEntry, effectiveEntry };
     }
 
     /**

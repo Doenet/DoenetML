@@ -32,6 +32,32 @@ export type HelpContent =
           type?: string;
           isArray: boolean;
       }
+    | {
+          kind: "refName";
+          /**
+           * The bare identifier under the cursor (no leading `$`).
+           *
+           * NOTE (2026-05-10): currently unused by `ContextHelpPanel` — the
+           * panel renders `displayPath` only. Tests assert this field but
+           * nothing else consumes it. Consider deleting if it remains unused.
+           */
+          refName: string;
+          /**
+           * Full chain prefix to render with the leading `$` in the panel.
+           * For a bare `$name`, equals `refName` (e.g. `"m"`). For a member
+           * ref whose cursor segment resolves to a named descendant
+           * (`$sec.bi`), this is the dotted chain (`"sec.bi"`).
+           */
+          displayPath: string;
+          /** Tag name of the referent element (e.g. `math`). */
+          targetElementName: string;
+          /** Component summary for the referent's element type, alias-aware. */
+          summary: string | null;
+          /** 1-indexed source line where the referent is defined. */
+          line: number | undefined;
+          /** Reference-page slug for the referent's element type. */
+          docsSlug: string | null;
+      }
     /**
      * Cursor is on a `$a.b.c…` chain that the JS-only resolver can't follow.
      * Issue #1086 tracks adding multi-part support; until then, surface a

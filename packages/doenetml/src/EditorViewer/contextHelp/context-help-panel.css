@@ -52,7 +52,12 @@
     margin: 0;
 }
 
-.editor-panel .help-description code {
+.editor-panel .help-ref-sentence {
+    margin: 0;
+}
+
+.editor-panel .help-description code,
+.editor-panel .help-ref-sentence code {
     background: var(--mainGray);
     padding: 0 0.25rem;
     border-radius: 0.2rem;
