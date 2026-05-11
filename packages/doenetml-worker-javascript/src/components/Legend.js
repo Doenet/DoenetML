@@ -17,7 +17,24 @@ export default class Legend extends GraphicalComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["upperRight", "upperLeft", "lowerRight", "lowerLeft"],
+            validValues: [
+                {
+                    value: "upperRight",
+                    description: "Place the legend in the upper-right corner.",
+                },
+                {
+                    value: "upperLeft",
+                    description: "Place the legend in the upper-left corner.",
+                },
+                {
+                    value: "lowerRight",
+                    description: "Place the legend in the lower-right corner.",
+                },
+                {
+                    value: "lowerLeft",
+                    description: "Place the legend in the lower-left corner.",
+                },
+            ],
         };
 
         attributes.displayClosedSwatches = {

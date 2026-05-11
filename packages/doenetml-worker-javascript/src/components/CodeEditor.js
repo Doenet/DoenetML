@@ -96,7 +96,22 @@ export default class CodeEditor extends BlockComponent {
             forRenderer: true,
             public: true,
             toLowerCase: true,
-            validValues: ["bottom", "left", "right"],
+            validValues: [
+                {
+                    value: "bottom",
+                    description: "Place the results panel below the editor.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the results panel to the left of the editor.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the results panel to the right of the editor.",
+                },
+            ],
         };
 
         attributes.readOnly = {

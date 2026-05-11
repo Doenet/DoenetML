@@ -101,11 +101,28 @@ export default class Vector extends GraphicalComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "displacement",
-                "headAndTail",
-                "headOnly",
-                "tailOnly",
-                "none",
+                {
+                    value: "displacement",
+                    description:
+                        "Show a control handle for translating the whole vector.",
+                },
+                {
+                    value: "headAndTail",
+                    description:
+                        "Show control handles for both the head and the tail.",
+                },
+                {
+                    value: "headOnly",
+                    description: "Show a control handle only at the head.",
+                },
+                {
+                    value: "tailOnly",
+                    description: "Show a control handle only at the tail.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
             ],
             valueForTrue: "displacement",
             valueForFalse: "none",

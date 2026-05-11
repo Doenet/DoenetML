@@ -20,7 +20,12 @@ export default class Split extends CompositeComponent {
             createStateVariable: "type",
             defaultPrimitiveValue: "text",
             toLowerCase: true,
-            validValues: ["text"],
+            validValues: [
+                {
+                    value: "text",
+                    description: "Split text values.",
+                },
+            ],
             description: "Type of value being split.",
         };
 
@@ -29,7 +34,20 @@ export default class Split extends CompositeComponent {
             createStateVariable: "splitBy",
             defaultValue: "letter",
             toLowerCase: true,
-            validValues: ["letter", "word", "comma"],
+            validValues: [
+                {
+                    value: "letter",
+                    description: "Split into individual characters.",
+                },
+                {
+                    value: "word",
+                    description: "Split into whitespace-separated words.",
+                },
+                {
+                    value: "comma",
+                    description: "Split on comma boundaries.",
+                },
+            ],
             description: "How to break the input string into pieces.",
         };
 

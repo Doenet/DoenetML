@@ -10,7 +10,6 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
@@ -924,9 +923,11 @@ export function getCompletionItems(
         const allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
-        // Prefer the `autocompleteValues` shape (per-value descriptions) when
-        // available; fall back to the plain validation `values` list when an
-        // attribute hasn't been migrated yet so completions still work.
+        // Prefer the `autocompleteValues` shape (per-value descriptions) so
+        // completions carry tooltips. Fall back to the plain validation
+        // `values` list for any attribute that exposes `values` without
+        // `autocompleteValues` — today the schema generator only emits this
+        // shape for boolean primitives, but the consumer stays agnostic.
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {
@@ -936,19 +937,17 @@ export function getCompletionItems(
         // otherwise, assume the user has already supplied the quote marks.
         const includeQuotes = prevNonWhitespaceChar === "=";
         const quote = includeQuotes ? '"' : "";
-        const entries: ValidValueEntry[] =
-            optionsWithDescriptions ??
-            (plainValues ?? []).map((value) => ({ value }));
-        return entries.map(({ value, description }) => {
-            const item: CompletionItem = {
+        if (optionsWithDescriptions) {
+            return optionsWithDescriptions.map(({ value, description }) => ({
                 label: `${quote}${value}${quote}`,
                 kind: CompletionItemKind.Value,
-            };
-            if (description) {
-                item.documentation = asMarkdown(description);
-            }
-            return item;
-        });
+                documentation: asMarkdown(description),
+            }));
+        }
+        return (plainValues ?? []).map((value) => ({
+            label: `${quote}${value}${quote}`,
+            kind: CompletionItemKind.Value,
+        }));
     }
     return [];
 }

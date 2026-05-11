@@ -57,7 +57,17 @@ export default class Polygon extends Polyline {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["center", "none"],
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a control handle for moving the polygon's center.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
             valueForTrue: "center",
             valueForFalse: "none",
         };

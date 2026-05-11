@@ -198,14 +198,12 @@ function helpForAttribute(
         // matching `helpForElement`. (E.g. `<row functionSymbols>` inside
         // `<matrix>` shows `matrixRow`'s description and links to its page.)
         docsSlug: effectiveEntry.docsSlug ?? null,
-        // Prefer `autocompleteValues` so boolean aliases (e.g. "true"/"false"
-        // injected alongside `validValues`) don't pollute the displayed list.
-        // When only the plain validation `values` is present (legacy or
-        // pre-migration schema), wrap each into `{value}` so the panel renders
-        // it uniformly without descriptions.
-        allowedValues:
-            schemaAttr.autocompleteValues ??
-            schemaAttr.values?.map((value) => ({ value })),
+        // Only declared `validValues` flow into `autocompleteValues` (with
+        // per-value descriptions); boolean primitives intentionally omit
+        // this row since their attribute description already conveys
+        // true/false. Boolean aliases injected via valueForTrue/valueForFalse
+        // are kept out of `autocompleteValues` by the schema generator.
+        allowedValues: schemaAttr.autocompleteValues,
         defaultValue: schemaAttr.defaultValue,
     };
 }

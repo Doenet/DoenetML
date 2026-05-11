@@ -50,7 +50,23 @@ export default class SampleRandomNumbers extends CompositeComponent {
             defaultValue: "uniform",
             public: true,
             toLowerCase: true,
-            validValues: ["uniform", "discreteUniform", "gaussian"],
+            validValues: [
+                {
+                    value: "uniform",
+                    description:
+                        "Continuous uniform distribution over `[from, to]`.",
+                },
+                {
+                    value: "discreteUniform",
+                    description:
+                        "Discrete uniform distribution over integers in `[from, to]`.",
+                },
+                {
+                    value: "gaussian",
+                    description:
+                        "Normal (Gaussian) distribution with the specified mean and standard deviation.",
+                },
+            ],
         };
 
         attributes.mean = {

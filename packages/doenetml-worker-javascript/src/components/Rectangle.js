@@ -32,10 +32,25 @@ export default class Rectangle extends Polygon {
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "center",
-                "widthAndHeight",
-                "centerWidthAndHeight",
-                "none",
+                {
+                    value: "center",
+                    description:
+                        "Show a single control handle for moving the rectangle's center.",
+                },
+                {
+                    value: "widthAndHeight",
+                    description:
+                        "Show control handles for resizing width and height.",
+                },
+                {
+                    value: "centerWidthAndHeight",
+                    description:
+                        "Show control handles for both moving the center and resizing.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
             ],
             valueForTrue: "centerWidthAndHeight",
             valueForFalse: "none",

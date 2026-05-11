@@ -30,12 +30,18 @@ const schema = {
                 {
                     name: "bar",
                     values: ["more", "less", "true", "false"],
-                    autocompleteValues: [{ value: "more" }, { value: "less" }],
+                    autocompleteValues: [
+                        { value: "more", description: "More." },
+                        { value: "less", description: "Less." },
+                    ],
                 },
                 {
                     name: "modeOneSided",
                     values: ["none", "full", "true"],
-                    autocompleteValues: [{ value: "none" }, { value: "full" }],
+                    autocompleteValues: [
+                        { value: "none", description: "None." },
+                        { value: "full", description: "Full." },
+                    ],
                 },
             ],
             top: false,
@@ -103,10 +109,18 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "documentation": {
+                    "kind": "markdown",
+                    "value": "More.",
+                  },
                   "kind": 12,
                   "label": ""more"",
                 },
                 {
+                  "documentation": {
+                    "kind": "markdown",
+                    "value": "Less.",
+                  },
                   "kind": 12,
                   "label": ""less"",
                 },

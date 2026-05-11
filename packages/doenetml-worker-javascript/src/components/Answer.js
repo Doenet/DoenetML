@@ -215,7 +215,25 @@ export default class Answer extends InlineComponent {
             createStateVariable: "type",
             defaultValue: null,
             toLowerCase: true,
-            validValues: ["math", "text", "boolean", "videoWatched"],
+            validValues: [
+                {
+                    value: "math",
+                    description: "Expect a math expression answer.",
+                },
+                {
+                    value: "text",
+                    description: "Expect a text answer.",
+                },
+                {
+                    value: "boolean",
+                    description: "Expect a boolean answer.",
+                },
+                {
+                    value: "videoWatched",
+                    description:
+                        "Mark correct when the associated video has been watched.",
+                },
+            ],
             description: "Type of input the answer expects.",
         };
 

@@ -38,7 +38,22 @@ export default class Angle extends GraphicalComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["never", "allowed", "always"],
+            validValues: [
+                {
+                    value: "never",
+                    description:
+                        "Always normalize to the non-reflex angle (less than 180°).",
+                },
+                {
+                    value: "allowed",
+                    description:
+                        "Use a reflex angle (greater than 180°) if it matches the input.",
+                },
+                {
+                    value: "always",
+                    description: "Always render the angle as a reflex angle.",
+                },
+            ],
             description: "How to handle reflex angles.",
         };
         attributes.inDegrees = {

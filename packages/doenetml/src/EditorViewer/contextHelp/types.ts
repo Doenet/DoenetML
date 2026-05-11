@@ -21,10 +21,11 @@ export type HelpContent =
            */
           docsSlug: string | null;
           /**
-           * Allowed values for this attribute, each with an optional
-           * per-value description rendered alongside the value in the
-           * help panel. Entries without a description render as bare
-           * values.
+           * Allowed values for this attribute, each with a per-value
+           * description rendered alongside the value in the help panel.
+           * Only populated for attributes that declare `validValues`;
+           * pure boolean primitives intentionally omit this row since
+           * their attribute description already conveys true/false.
            */
           allowedValues?: ValidValueEntry[];
           defaultValue?: unknown;

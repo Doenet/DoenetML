@@ -9,7 +9,22 @@ export function returnStandardSequenceAttributes() {
             createStateVariable: "type",
             defaultPrimitiveValue: "number",
             toLowerCase: true,
-            validValues: ["number", "math", "letters"],
+            validValues: [
+                {
+                    value: "number",
+                    description: "A sequence of numeric values.",
+                },
+                {
+                    value: "math",
+                    description:
+                        "A sequence of math expressions (allows symbolic from/to/step).",
+                },
+                {
+                    value: "letters",
+                    description:
+                        "A sequence of letters (single-letter or multi-letter labels).",
+                },
+            ],
             description: "The kind of values in the sequence.",
         },
         from: {

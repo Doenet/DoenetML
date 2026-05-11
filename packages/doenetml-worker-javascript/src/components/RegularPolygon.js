@@ -98,7 +98,27 @@ export default class RegularPolygon extends Polygon {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["center", "radius", "centerAndRadius", "none"],
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a control handle for moving the polygon's center.",
+                },
+                {
+                    value: "radius",
+                    description:
+                        "Show a control handle for resizing the polygon's radius.",
+                },
+                {
+                    value: "centerAndRadius",
+                    description:
+                        "Show control handles for both moving the center and resizing the radius.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
             valueForTrue: "centerAndRadius",
             valueForFalse: "none",
         };

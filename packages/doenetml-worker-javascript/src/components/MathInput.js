@@ -82,7 +82,16 @@ export default class MathInput extends Input {
             defaultValue: "text",
             public: true,
             toLowerCase: true,
-            validValues: ["text", "latex"],
+            validValues: [
+                {
+                    value: "text",
+                    description: "Plain-text math notation (e.g., `x^2 + 1`).",
+                },
+                {
+                    value: "latex",
+                    description: "LaTeX-formatted math (e.g., `x^{2} + 1`).",
+                },
+            ],
         };
         attributes.functionSymbols = {
             description: "Symbols treated as function names when parsing.",

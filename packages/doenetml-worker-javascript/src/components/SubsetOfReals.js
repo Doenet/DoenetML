@@ -39,7 +39,18 @@ export default class SubsetOfReals extends MathComponent {
             defaultValue: "intervals",
             public: true,
             toLowerCase: true,
-            validValues: ["intervals", "inequalities"],
+            validValues: [
+                {
+                    value: "intervals",
+                    description:
+                        "Display the subset using interval notation (e.g., `(0, 1]`).",
+                },
+                {
+                    value: "inequalities",
+                    description:
+                        "Display the subset using inequalities (e.g., `0 < x ≤ 1`).",
+                },
+            ],
         };
 
         return attributes;

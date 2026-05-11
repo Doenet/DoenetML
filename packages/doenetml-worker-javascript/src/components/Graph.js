@@ -74,7 +74,13 @@ export default class Graph extends BlockComponent {
             createStateVariable: "specifiedSize",
             defaultValue: "medium",
             toLowerCase: true,
-            validValues: sizePossibilities,
+            validValues: [
+                { value: "tiny", description: "About 1/12 the full width." },
+                { value: "small", description: "About 30% of the full width." },
+                { value: "medium", description: "About half the full width." },
+                { value: "large", description: "About 70% of the full width." },
+                { value: "full", description: "The full available width." },
+            ],
             description: "Named size preset for the graph.",
         };
         attributes.aspectRatio = {
@@ -86,7 +92,16 @@ export default class Graph extends BlockComponent {
             description: "How to size the graph.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
-            validValues: ["block", "inline"],
+            validValues: [
+                {
+                    value: "block",
+                    description: "Display as a block element on its own line.",
+                },
+                {
+                    value: "inline",
+                    description: "Render inline with surrounding text.",
+                },
+            ],
             defaultValue: "block",
             toLowerCase: true,
             forRenderer: true,
@@ -98,7 +113,20 @@ export default class Graph extends BlockComponent {
                 "Horizontal alignment of the graph within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
-            validValues: ["center", "left", "right"],
+            validValues: [
+                {
+                    value: "center",
+                    description: "Center the graph horizontally.",
+                },
+                {
+                    value: "left",
+                    description: "Align the graph to the left edge.",
+                },
+                {
+                    value: "right",
+                    description: "Align the graph to the right edge.",
+                },
+            ],
             defaultValue: "center",
             toLowerCase: true,
             forRenderer: true,
@@ -136,7 +164,24 @@ export default class Graph extends BlockComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            validValues: ["all", "slidersOnly", "inputsOnly", "none"],
+            validValues: [
+                {
+                    value: "all",
+                    description: "Render both sliders and input boxes.",
+                },
+                {
+                    value: "slidersOnly",
+                    description: "Render only slider controls.",
+                },
+                {
+                    value: "inputsOnly",
+                    description: "Render only input-box controls.",
+                },
+                {
+                    value: "none",
+                    description: "Render no interactive controls.",
+                },
+            ],
             valueForTrue: "all",
             valueForFalse: "none",
             forRenderer: true,
@@ -149,7 +194,24 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["bottom", "left", "right", "top"],
+            validValues: [
+                {
+                    value: "bottom",
+                    description: "Place controls below the graph.",
+                },
+                {
+                    value: "left",
+                    description: "Place controls to the left of the graph.",
+                },
+                {
+                    value: "right",
+                    description: "Place controls to the right of the graph.",
+                },
+                {
+                    value: "top",
+                    description: "Place controls above the graph.",
+                },
+            ],
         };
         attributes.displayXAxisTicks = {
             description: "Whether to display tick marks on the x axis.",
@@ -187,7 +249,18 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["right", "left"],
+            validValues: [
+                {
+                    value: "right",
+                    description:
+                        "Place the x-axis label at the right end of the axis.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the x-axis label at the left end of the axis.",
+                },
+            ],
         };
         attributes.xTickScaleFactor = {
             description: "Scale factor applied to x-axis tick spacing.",
@@ -205,7 +278,18 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["top", "bottom"],
+            validValues: [
+                {
+                    value: "top",
+                    description:
+                        "Place the y-axis label at the top of the axis.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the y-axis label at the bottom of the axis.",
+                },
+            ],
         };
         attributes.yLabelAlignment = {
             description: "Alignment of the y-axis label.",
@@ -215,7 +299,18 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["left", "right"],
+            validValues: [
+                {
+                    value: "left",
+                    description:
+                        "Align the y-axis label to the left of the axis.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Align the y-axis label to the right of the axis.",
+                },
+            ],
         };
         attributes.yTickScaleFactor = {
             description: "Scale factor applied to y-axis tick spacing.",
@@ -281,7 +376,18 @@ export default class Graph extends BlockComponent {
             description: "Which renderer to use for the graph.",
             createPrimitiveOfType: "string",
             createStateVariable: "renderer",
-            validValues: ["doenet", "prefigure"],
+            validValues: [
+                {
+                    value: "doenet",
+                    description:
+                        "Render using the built-in Doenet graph renderer.",
+                },
+                {
+                    value: "prefigure",
+                    description:
+                        "Render using the PreFigure SVG-based renderer.",
+                },
+            ],
             defaultValue: "doenet",
             public: true,
             toLowerCase: true,

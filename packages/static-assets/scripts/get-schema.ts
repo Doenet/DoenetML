@@ -6,7 +6,6 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
-import { normalizeValidValues } from "../../doenetml-worker-javascript/src/utils/validValues";
 import type { ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -85,7 +84,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: Array<string | ValidValueEntry>;
+    validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -530,8 +529,26 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
-                const normalized = normalizeValidValues(attrDef.validValues);
-                const validValueStrings = normalized.map((v) => v.value);
+                for (const entry of attrDef.validValues) {
+                    // Hard-fail if the type contract is bypassed (e.g. a bare
+                    // string sneaks through plain-JS component declarations).
+                    // Every enumerated value must ship with author-facing
+                    // help text.
+                    if (
+                        typeof entry !== "object" ||
+                        entry === null ||
+                        typeof entry.value !== "string" ||
+                        typeof entry.description !== "string" ||
+                        entry.description.trim() === ""
+                    ) {
+                        throw new Error(
+                            `Invalid validValues entry for \`${type}.${attrName}\`: every entry must be a {value, description} object with a non-empty description. Got: ${JSON.stringify(entry)}`,
+                        );
+                    }
+                }
+                const validValueStrings = attrDef.validValues.map(
+                    (v) => v.value,
+                );
                 attrSpec.values =
                     booleanAliasValues.length > 0
                         ? [
@@ -541,7 +558,7 @@ export function getSchema() {
                               ]),
                           ]
                         : validValueStrings;
-                attrSpec.autocompleteValues = normalized;
+                attrSpec.autocompleteValues = attrDef.validValues;
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"

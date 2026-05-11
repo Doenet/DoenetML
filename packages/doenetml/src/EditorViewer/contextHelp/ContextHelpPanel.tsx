@@ -159,11 +159,9 @@ export function ContextHelpPanel({
                                                 {formatValue(value)}
                                             </dt>
                                             <dd className="help-value-description">
-                                                {description
-                                                    ? renderInlineMarkdown(
-                                                          description,
-                                                      )
-                                                    : ""}
+                                                {renderInlineMarkdown(
+                                                    description,
+                                                )}
                                             </dd>
                                         </React.Fragment>
                                     ),

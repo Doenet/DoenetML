@@ -55,7 +55,22 @@ export default class SelectFromSequence extends Sequence {
             toLowerCase: true,
             valueForTrue: "increasing",
             valueForFalse: "unsorted",
-            validValues: ["unsorted", "increasing", "decreasing"],
+            validValues: [
+                {
+                    value: "unsorted",
+                    description: "Preserve the random selection order.",
+                },
+                {
+                    value: "increasing",
+                    description:
+                        "Sort the selected values in increasing order.",
+                },
+                {
+                    value: "decreasing",
+                    description:
+                        "Sort the selected values in decreasing order.",
+                },
+            ],
             description: "Whether and how to sort the selected values.",
         };
         attributes.excludeCombinations = {

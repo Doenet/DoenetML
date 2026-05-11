@@ -88,7 +88,22 @@ export default class Polyline extends GraphicalComponent {
             createComponentOfType: "text",
             createStateVariable: "rotateAround",
             toLowerCase: true,
-            validValues: ["centroid", "vertex", "point"],
+            validValues: [
+                {
+                    value: "centroid",
+                    description: "Rotate around the centroid of the shape.",
+                },
+                {
+                    value: "vertex",
+                    description:
+                        "Rotate around the vertex specified by `rotationVertex`.",
+                },
+                {
+                    value: "point",
+                    description:
+                        "Rotate around the explicit point given by `rotationCenter`.",
+                },
+            ],
             defaultValue: "centroid",
             description: "What point to rotate the shape around.",
         };

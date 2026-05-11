@@ -27,7 +27,18 @@ export default class Sort extends CompositeComponent {
             defaultValue: "displacement",
             public: true,
             toLowerCase: true,
-            validValues: ["displacement", "tail"],
+            validValues: [
+                {
+                    value: "displacement",
+                    description:
+                        "Sort vectors by their displacement components.",
+                },
+                {
+                    value: "tail",
+                    description:
+                        "Sort vectors by the position of their tail point.",
+                },
+            ],
         };
 
         attributes.sortByComponent = {

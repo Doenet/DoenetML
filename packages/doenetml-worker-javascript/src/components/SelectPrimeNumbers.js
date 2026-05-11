@@ -74,7 +74,22 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             toLowerCase: true,
             valueForTrue: "increasing",
             valueForFalse: "unsorted",
-            validValues: ["unsorted", "increasing", "decreasing"],
+            validValues: [
+                {
+                    value: "unsorted",
+                    description: "Preserve the random selection order.",
+                },
+                {
+                    value: "increasing",
+                    description:
+                        "Sort the selected primes in increasing order.",
+                },
+                {
+                    value: "decreasing",
+                    description:
+                        "Sort the selected primes in decreasing order.",
+                },
+            ],
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
