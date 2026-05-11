@@ -33,7 +33,18 @@ export default class Slider extends BaseComponent {
             createStateVariable: "type",
             defaultValue: "number",
             toLowerCase: true,
-            validValues: ["number", "text"],
+            validValues: [
+                {
+                    value: "number",
+                    description:
+                        "Slider produces numeric values between `from` and `to`.",
+                },
+                {
+                    value: "text",
+                    description:
+                        "Slider produces text values, one per child of the slider.",
+                },
+            ],
             description: "Type of value the slider produces.",
             forRenderer: true,
         };

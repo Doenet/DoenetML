@@ -6,6 +6,8 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+import { normalizeValidValues } from "../../doenetml-worker-javascript/src/utils/validValues";
+import type { ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -83,7 +85,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: unknown[];
+    validValues?: Array<string | ValidValueEntry>;
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -236,9 +238,14 @@ type PublicStateVariableDescription = {
 type SchemaAttribute = {
     name: string;
     /** Values accepted by validation/schema checks. */
-    values?: unknown[];
-    /** Optional author-facing subset used for autocomplete suggestions. */
-    autocompleteValues?: unknown[];
+    values?: string[];
+    /**
+     * Optional author-facing subset used for autocomplete suggestions. Each
+     * entry carries the literal value plus an optional human-readable
+     * description. Boolean aliases injected via `valueForTrue`/`valueForFalse`
+     * are intentionally kept out of this list and live only in `values`.
+     */
+    autocompleteValues?: ValidValueEntry[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description?: string;
     /** Default value for the attribute (if defined). */
@@ -523,17 +530,18 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
-                if (booleanAliasValues.length > 0) {
-                    attrSpec.values = [
-                        ...new Set([
-                            ...attrDef.validValues,
-                            ...booleanAliasValues,
-                        ]),
-                    ];
-                    attrSpec.autocompleteValues = attrDef.validValues;
-                } else {
-                    attrSpec.values = attrDef.validValues;
-                }
+                const normalized = normalizeValidValues(attrDef.validValues);
+                const validValueStrings = normalized.map((v) => v.value);
+                attrSpec.values =
+                    booleanAliasValues.length > 0
+                        ? [
+                              ...new Set([
+                                  ...validValueStrings,
+                                  ...booleanAliasValues,
+                              ]),
+                          ]
+                        : validValueStrings;
+                attrSpec.autocompleteValues = normalized;
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"

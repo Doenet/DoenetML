@@ -1,5 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
 import { DastAttribute, DastElement } from "@doenet/parser";
@@ -12,15 +13,18 @@ import {
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 /**
- * Per-attribute fields surfaced in autocomplete and the help panel. The
- * narrow autocomplete fields (`values`, `autocompleteValues`) coexist with
- * help-only fields (`defaultValue`); both come from the same JSON schema.
+ * Per-attribute fields surfaced in autocomplete and the help panel.
+ *
+ * `values` is the validation set (plain strings, may include boolean aliases
+ * like `"true"`/`"false"` injected by `valueForTrue`/`valueForFalse`).
+ * `autocompleteValues` is the author-facing list with per-value descriptions —
+ * boolean aliases are intentionally omitted so they don't pollute suggestions.
  */
 export type SchemaAttribute = {
     name: string;
     description?: string;
     values?: string[];
-    autocompleteValues?: string[];
+    autocompleteValues?: ValidValueEntry[];
     defaultValue?: unknown;
 };
 

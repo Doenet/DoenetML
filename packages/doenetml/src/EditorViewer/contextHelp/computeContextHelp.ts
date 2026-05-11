@@ -200,7 +200,12 @@ function helpForAttribute(
         docsSlug: effectiveEntry.docsSlug ?? null,
         // Prefer `autocompleteValues` so boolean aliases (e.g. "true"/"false"
         // injected alongside `validValues`) don't pollute the displayed list.
-        allowedValues: schemaAttr.autocompleteValues ?? schemaAttr.values,
+        // When only the plain validation `values` is present (legacy or
+        // pre-migration schema), wrap each into `{value}` so the panel renders
+        // it uniformly without descriptions.
+        allowedValues:
+            schemaAttr.autocompleteValues ??
+            schemaAttr.values?.map((value) => ({ value })),
         defaultValue: schemaAttr.defaultValue,
     };
 }

@@ -70,11 +70,31 @@ export default class Award extends BaseComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numbersPreserveOrder",
-                "normalizeOrder",
+                {
+                    value: "none",
+                    description:
+                        "No simplification is applied before comparing.",
+                },
+                {
+                    value: "full",
+                    description:
+                        "Fully simplify both expressions before comparing.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
             public: true,
             fallBackToParentStateVariable: "simplifyOnCompare",

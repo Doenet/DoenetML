@@ -94,9 +94,10 @@ describe("computeContextHelp — attribute help", () => {
             return;
         }
         expect(help.allowedValues).toBeDefined();
-        expect(help.allowedValues).toContain("none");
-        expect(help.allowedValues).not.toContain("true");
-        expect(help.allowedValues).not.toContain("false");
+        const allowedValueStrings = help.allowedValues?.map((v) => v.value);
+        expect(allowedValueStrings).toContain("none");
+        expect(allowedValueStrings).not.toContain("true");
+        expect(allowedValueStrings).not.toContain("false");
     });
 
     it("resolves attributes case-insensitively and displays the canonical name", () => {

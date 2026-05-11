@@ -1,3 +1,5 @@
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -18,7 +20,13 @@ export type HelpContent =
            * the `matrixRow` slug). `null` when intentionally undocumented.
            */
           docsSlug: string | null;
-          allowedValues?: unknown[];
+          /**
+           * Allowed values for this attribute, each with an optional
+           * per-value description rendered alongside the value in the
+           * help panel. Entries without a description render as bare
+           * values.
+           */
+          allowedValues?: ValidValueEntry[];
           defaultValue?: unknown;
       }
     | {

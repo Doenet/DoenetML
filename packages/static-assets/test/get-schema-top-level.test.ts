@@ -72,11 +72,13 @@ describe("generated schema top-level elements", () => {
                 "false",
             ]),
         );
-        expect(sortAttribute.autocompleteValues).toEqual([
-            "unsorted",
-            "increasing",
-            "decreasing",
-        ]);
+        // Compare value strings only — descriptions on enum entries are
+        // free to be added or rewritten without churning this assertion,
+        // since the contract being tested is "boolean aliases stay out of
+        // autocompleteValues", not exact description text.
+        expect(
+            sortAttribute.autocompleteValues?.map((entry) => entry.value),
+        ).toEqual(["unsorted", "increasing", "decreasing"]);
     });
 
     it("does not invent a missing false alias for one-sided attributes", () => {
