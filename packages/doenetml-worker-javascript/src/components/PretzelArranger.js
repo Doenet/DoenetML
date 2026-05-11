@@ -117,12 +117,12 @@ export default class PretzelArranger extends CompositeComponent {
                 {
                     value: "pretzel",
                     description:
-                        "Interleaved arrangement where each problem's answer feeds the next.",
+                        "Interleaved arrangement where each problem's answer feeds the next and one can start with any problem.",
                 },
                 {
                     value: "circuit",
                     description:
-                        "Linear circuit arrangement of the child problems.",
+                        "A variant of the pretzel where one must start with the first problem.",
                 },
             ],
         };
