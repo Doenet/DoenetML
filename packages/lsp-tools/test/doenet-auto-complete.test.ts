@@ -247,10 +247,15 @@ describe("AutoCompleter", () => {
             },
         });
         // The CodeMirror plugin reads this sentinel to set `filter: false`
-        // on the completion result and attach a live-update callback.
-        // Without it the cached `label` ("foo") goes stale the moment the
-        // user types another character and the menu closes mid-type.
-        expect(items[0].data).toMatchObject({ livePreviewQuoteWrap: true });
+        // on the result, attach a live-update callback, and anchor `from`
+        // at the bare-value start. Without the offset, `from` defaults to
+        // the cursor (one past the first typed character) because every
+        // option's apply text starts with `"` and the user has not typed
+        // one -- so the result would track "oo" instead of "foo".
+        const bareValueStart = source.indexOf("foo");
+        expect(items[0].data).toMatchObject({
+            livePreviewQuoteWrap: { bareValueStartOffset: bareValueStart },
+        });
     });
 
     it("Swallows whitespace between `=` and a bare free-text value into the quoted textEdit", () => {

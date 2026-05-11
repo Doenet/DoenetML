@@ -1035,13 +1035,19 @@ export function getCompletionItems(
                         },
                         // Marker telling the CodeMirror plugin to treat this
                         // option as a live preview: it must set `filter: false`
-                        // on the result and refresh the option's text from
-                        // the live document on every keystroke, otherwise the
-                        // cached `label`/`displayLabel` go stale (and CodeMirror
-                        // filters the option out the moment the typed prefix
-                        // exceeds the cached label length).
+                        // on the result, anchor `from` at `bareValueStartOffset`,
+                        // and refresh the option's text from the live document
+                        // on every keystroke. Without this, the cached
+                        // `label`/`displayLabel` go stale (CodeMirror filters
+                        // the option out the moment the typed prefix exceeds
+                        // the cached label length) and the plugin's default
+                        // `prefixMatch` anchors `from` past the first typed
+                        // character (because the apply text starts with `"`,
+                        // which the user has not actually typed).
                         data: {
-                            livePreviewQuoteWrap: true,
+                            livePreviewQuoteWrap: {
+                                bareValueStartOffset: typedValueStart,
+                            },
                         } satisfies CompletionSnippetCompletionItemData,
                     },
                 ];

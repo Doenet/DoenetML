@@ -55,8 +55,8 @@ import {
     startCompletion,
 } from "@codemirror/autocomplete";
 import {
+    getLivePreviewQuoteWrap,
     getSnippetCursorFromCompletionItemData,
-    hasLivePreviewQuoteWrap,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
 import {
@@ -502,16 +502,26 @@ export class LSPPlugin implements PluginValue {
         // to skip CodeMirror's fuzzy filter (the cached `label` is the typed
         // prefix at query time and would be rejected the moment the user
         // types one more character, closing the menu) and instead regenerate
-        // the option synchronously on every transaction via `update`. The
-        // mixed case -- a result that contains both a live-preview option
-        // and ordinary options -- doesn't occur today; the LSP returns the
-        // wrap-in-quotes hint by itself.
-        const livePreview = items.some((item) =>
-            hasLivePreviewQuoteWrap(item.data),
-        );
-        if (livePreview) {
+        // the option synchronously on every transaction via `update`.
+        //
+        // We also override `from` with the bare-value start offset supplied
+        // by the LSP. The plugin's default `pos` comes from `prefixMatch`,
+        // which builds its regex from `option.apply`. Since our apply text
+        // starts with a literal `"` and the user has not typed one, the
+        // regex match fails and `pos` defaults to `context.pos` -- which
+        // sits one past the first typed character. Anchoring `from` there
+        // would shift the result's view of the bare value by one slot, so
+        // subsequent typing reads "ello" instead of "hello".
+        //
+        // The mixed case -- a result that contains both a live-preview
+        // option and ordinary options -- doesn't occur today; the LSP
+        // returns the wrap-in-quotes hint by itself.
+        const livePreviewMarker = items
+            .map((item) => getLivePreviewQuoteWrap(item.data))
+            .find((m) => m !== undefined);
+        if (livePreviewMarker) {
             return {
-                from: pos,
+                from: livePreviewMarker.bareValueStartOffset,
                 options: finalOptions,
                 filter: false,
                 update: this._refreshLivePreview,
