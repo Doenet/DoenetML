@@ -3,7 +3,5 @@
     "version": "1.0.0",
     "name": "WebDriver Runtime Libraries",
     "description": "Installs shared libraries required by Chromium/WebDriver for in-container browser tests.",
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ]
+    "installsAfter": ["ghcr.io/devcontainers/features/common-utils"]
 }
