@@ -7,13 +7,17 @@
         },
         "ghcr.io/devcontainers/features/rust:1": {
             "version": "latest"
-        }
+        },
+        // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
+        "./features/webdriver-libs": {},
+        // Avoid erronious connections to the host's debug environment.
+        "./features/shell-init-rc": {}
     },
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
-    // Unset NODE_OPTIONS and VSCODE_INSPECTOR_OPTIONS to prevent a debugger from trying to auto-attach to the container in an invalid way.
-    "postCreateCommand": "unset NODE_OPTIONS VSCODE_INSPECTOR_OPTIONS && npm install && npm run build",
+    // Bootstrap workspace after shell rc files are initialized
+    "postCreateCommand": "npm install && npm run build",
     "customizations": {
         "vscode": {
             "extensions": [
