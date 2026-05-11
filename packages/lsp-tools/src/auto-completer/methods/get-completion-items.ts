@@ -15,6 +15,12 @@ import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
+// LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
+// supports one for "show this, filter on label". Our in-process LSP transport
+// preserves unknown fields, so we attach it as an optional extension and the
+// CodeMirror plugin forwards it through.
+type DoenetCompletionItem = CompletionItem & { displayLabel?: string };
+
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -522,7 +528,7 @@ export function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
-): CompletionItem[] {
+): DoenetCompletionItem[] {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
     }
@@ -882,7 +888,43 @@ export function getCompletionItems(
         );
     }
 
-    if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
+    // Detect "typing a bare value after =" (no opening quote), e.g.
+    // `<math simplify=ful`. Walk back over identifier chars and see if the
+    // char immediately before that run is `=` (with optional whitespace).
+    // We compute this before the openTag/attributeName branch because lezer
+    // often parses `=ful` as a new attribute name, which would otherwise
+    // route the request to attribute-name completions.
+    const source = this.sourceObj.source;
+    let typedValueStart = offset;
+    while (
+        typedValueStart > 0 &&
+        /[A-Za-z0-9_-]/.test(source.charAt(typedValueStart - 1))
+    ) {
+        typedValueStart--;
+    }
+    let equalsScan = typedValueStart - 1;
+    while (equalsScan >= 0 && /\s/.test(source.charAt(equalsScan))) {
+        equalsScan--;
+    }
+    const isBareValueAfterEquals =
+        equalsScan >= 0 &&
+        source.charAt(equalsScan) === "=" &&
+        typedValueStart < offset;
+    const typedValuePrefix = source.slice(typedValueStart, offset);
+
+    // The `!isBareValueAfterEquals && prevNonWhitespaceChar !== "="` guards
+    // cede those cases to the attribute-value branch below — otherwise an
+    // unquoted `name=ful` would route here as an attribute-name completion.
+    // The `prevNonWhitespaceChar !== "="` clause additionally covers the
+    // "cursor sits immediately after `=` with no bare value typed yet" case
+    // (`isBareValueAfterEquals` is false there since the prefix is empty);
+    // we want that case in the attribute-value branch too so `=` alone pops
+    // the value menu.
+    if (
+        (cursorPosition === "openTag" || cursorPosition === "attributeName") &&
+        !isBareValueAfterEquals &&
+        prevNonWhitespaceChar !== "="
+    ) {
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
@@ -912,17 +954,50 @@ export function getCompletionItems(
         });
     }
 
+    // Only fire the attribute-value branch when we are clearly inside an
+    // open tag (or already in an attribute value). Crucially we exclude
+    // cursorPosition === "body" so a literal `=` in body text doesn't get
+    // misread as an attribute-value anchor.
+    const isInOpenTagContext =
+        cursorPosition === "openTag" ||
+        cursorPosition === "attributeName" ||
+        cursorPosition === "attributeValue" ||
+        cursorPosition === "unknown";
     if (
         cursorPosition === "attributeValue" ||
-        (cursorPosition === "unknown" && prevNonWhitespaceChar === "=")
+        (isInOpenTagContext &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals))
     ) {
         const elmName = this.normalizeElementName(element.name);
         const allowedAttributes =
             this.schemaElementsByName[elmName]?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);
-        const allowedAttribute = allowedAttributes.find(
+        let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
+        // Fallback: when the user is typing a bare value after `=` the parser
+        // may not include the typed chars in any attribute's position range,
+        // so resolve the attribute name by walking back to the `=` and reading
+        // the identifier that precedes it.
+        if (!allowedAttribute && isBareValueAfterEquals) {
+            let nameEnd = equalsScan;
+            while (nameEnd > 0 && /\s/.test(source.charAt(nameEnd - 1))) {
+                nameEnd--;
+            }
+            let nameStart = nameEnd;
+            while (
+                nameStart > 0 &&
+                /[A-Za-z0-9_-]/.test(source.charAt(nameStart - 1))
+            ) {
+                nameStart--;
+            }
+            const attrName = source.slice(nameStart, nameEnd);
+            if (attrName) {
+                allowedAttribute = allowedAttributes.find(
+                    (a) => a.name === attrName,
+                );
+            }
+        }
         // Prefer the `autocompleteValues` shape (per-value descriptions) so
         // completions carry tooltips. Fall back to the plain validation
         // `values` list for any attribute that exposes `values` without
@@ -931,23 +1006,117 @@ export function getCompletionItems(
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {
-            return [{ label: '""', kind: CompletionItemKind.Value }];
+            // Free-text attribute: no enum to suggest. We still offer a single
+            // "wrap in quotes" hint *iff* the author has typed a bare value
+            // after `=` (e.g. `name=foo`). The hint's displayLabel previews
+            // the corrected form `"foo"`, and accepting the suggestion
+            // replaces the bare run with the quoted version. We deliberately
+            // skip the hint when:
+            //   * the cursor is right at `=` with no typed value yet
+            //     (`isBareValueAfterEquals` is false), and
+            //   * the cursor is already inside `"..."`
+            //     (`cursorPosition === "attributeValue"`),
+            // so an expert who reflexively types `"` after `=` never sees a
+            // flicker, and a bare `=` doesn't pop a useless menu.
+            if (
+                cursorPosition !== "attributeValue" &&
+                isBareValueAfterEquals &&
+                typedValuePrefix.length > 0
+            ) {
+                const range = createTextEditRange(
+                    this.sourceObj,
+                    equalsScan + 1,
+                    offset,
+                );
+                return [
+                    {
+                        label: typedValuePrefix,
+                        displayLabel: `"${typedValuePrefix}"`,
+                        kind: CompletionItemKind.Value,
+                        filterText: typedValuePrefix,
+                        textEdit: {
+                            range,
+                            newText: `"${typedValuePrefix}"`,
+                        },
+                        // Marker telling the CodeMirror plugin to treat this
+                        // option as a live preview: it must set `filter: false`
+                        // on the result, anchor `from` at `bareValueStartOffset`,
+                        // and refresh the option's text from the live document
+                        // on every keystroke. Without this, the cached
+                        // `label`/`displayLabel` go stale (CodeMirror filters
+                        // the option out the moment the typed prefix exceeds
+                        // the cached label length) and the plugin's default
+                        // `prefixMatch` anchors `from` past the first typed
+                        // character (because the apply text starts with `"`,
+                        // which the user has not actually typed).
+                        data: {
+                            livePreviewQuoteWrap: {
+                                bareValueStartOffset: typedValueStart,
+                            },
+                        } satisfies CompletionSnippetCompletionItemData,
+                    },
+                ];
+            }
+            return [];
         }
-        // If we are right after the =, we should include quotes in the completion,
-        // otherwise, assume the user has already supplied the quote marks.
-        const includeQuotes = prevNonWhitespaceChar === "=";
-        const quote = includeQuotes ? '"' : "";
+        // Quotes get added via `textEdit.newText` when the cursor is anchored
+        // to an `=` rather than already inside `"..."`. The display label and
+        // filter text always use the bare value. The replacement range starts
+        // right after `=` (rather than at the typed-value start) so any
+        // whitespace between `=` and the bare value is swallowed by the
+        // edit — `simplify=   ful` becomes `simplify="full"`, not
+        // `simplify=   "full"`.
+        const needsQuotes =
+            cursorPosition !== "attributeValue" &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals);
+        const quotedRange = needsQuotes
+            ? createTextEditRange(this.sourceObj, equalsScan + 1, offset)
+            : undefined;
+        const filterPrefix = typedValuePrefix.toLowerCase();
+        const matchesPrefix = (value: string) =>
+            !needsQuotes ||
+            !filterPrefix ||
+            value.toLowerCase().startsWith(filterPrefix);
+        // When we add quotes via textEdit, advertise the quoted form in
+        // `displayLabel` so the dropdown reads `"full"` instead of `full`.
+        // The bare `label` is still used by CodeMirror's fuzzy matcher, so
+        // typing `fu` still ranks `full` correctly. Inside `"..."` we omit
+        // `displayLabel` so the dropdown matches what actually gets inserted.
         if (optionsWithDescriptions) {
-            return optionsWithDescriptions.map(({ value, description }) => ({
-                label: `${quote}${value}${quote}`,
-                kind: CompletionItemKind.Value,
-                documentation: asMarkdown(description),
-            }));
+            return optionsWithDescriptions
+                .filter(({ value }) => matchesPrefix(value))
+                .map(({ value, description }) => ({
+                    label: value,
+                    kind: CompletionItemKind.Value,
+                    filterText: value,
+                    documentation: asMarkdown(description),
+                    ...(quotedRange
+                        ? {
+                              displayLabel: `"${value}"`,
+                              textEdit: {
+                                  range: quotedRange,
+                                  newText: `"${value}"`,
+                              },
+                          }
+                        : {}),
+                }));
         }
-        return (plainValues ?? []).map((value) => ({
-            label: `${quote}${value}${quote}`,
-            kind: CompletionItemKind.Value,
-        }));
+        return (plainValues ?? [])
+            .filter((value) => matchesPrefix(value))
+            .map((value) => ({
+                label: value,
+                kind: CompletionItemKind.Value,
+                filterText: value,
+                ...(quotedRange
+                    ? {
+                          displayLabel: `"${value}"`,
+                          textEdit: {
+                              range: quotedRange,
+                              newText: `"${value}"`,
+                          },
+                      }
+                    : {}),
+            }));
     }
     return [];
 }
