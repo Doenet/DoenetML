@@ -99,6 +99,46 @@
     font-size: 0.85rem;
 }
 
+/* Allowed-values row stacks label above the definition list. */
+.editor-panel .help-allowed-values {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/*
+ * Two-column definition list: monospace value pill in column 1, description in
+ * column 2. `margin: 0` overrides the browser default `<dl>` margin.
+ */
+.editor-panel .help-allowed-values-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.2rem;
+    margin: 0;
+    width: 100%;
+}
+
+.editor-panel .help-allowed-values-list dt {
+    /* Inherits .help-value-item styling for the pill background. */
+    align-self: start;
+    justify-self: start;
+}
+
+.editor-panel .help-allowed-values-list dd {
+    margin: 0;
+    color: #344054;
+    align-self: center;
+}
+
+.editor-panel .help-value-description code {
+    background: var(--mainGray);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
 .editor-panel .help-docs-link {
     color: var(--mainBlue);
     text-decoration: none;

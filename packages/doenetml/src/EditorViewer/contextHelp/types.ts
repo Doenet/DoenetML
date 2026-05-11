@@ -18,7 +18,13 @@ export type HelpContent =
            * the `matrixRow` slug). `null` when intentionally undocumented.
            */
           docsSlug: string | null;
-          allowedValues?: unknown[];
+          /**
+           * Allowed values for this attribute, each with an optional
+           * per-value description rendered alongside the value in the
+           * help panel. Entries without a description render as bare
+           * values (graceful degradation for unmigrated attributes).
+           */
+          allowedValues?: Array<{ value: unknown; description?: string }>;
           defaultValue?: unknown;
       }
     | {

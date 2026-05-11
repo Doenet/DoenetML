@@ -12,15 +12,27 @@ import {
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 /**
- * Per-attribute fields surfaced in autocomplete and the help panel. The
- * narrow autocomplete fields (`values`, `autocompleteValues`) coexist with
- * help-only fields (`defaultValue`); both come from the same JSON schema.
+ * One author-facing valid value for an attribute, paired with an optional
+ * human-readable description shown in autocomplete and the help panel.
+ */
+export type SchemaAttributeValueOption = {
+    value: string;
+    description?: string;
+};
+
+/**
+ * Per-attribute fields surfaced in autocomplete and the help panel.
+ *
+ * `values` is the validation set (plain strings, may include boolean aliases
+ * like `"true"`/`"false"` injected by `valueForTrue`/`valueForFalse`).
+ * `autocompleteValues` is the author-facing list with per-value descriptions —
+ * boolean aliases are intentionally omitted so they don't pollute suggestions.
  */
 export type SchemaAttribute = {
     name: string;
     description?: string;
     values?: string[];
-    autocompleteValues?: string[];
+    autocompleteValues?: SchemaAttributeValueOption[];
     defaultValue?: unknown;
 };
 

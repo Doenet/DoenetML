@@ -293,10 +293,19 @@ export type AttributeDefinition<T> = {
      * created from this attribute to values between the clamp limits
      */
     clamp?: [number, number];
-    /** A list of the valid values for this attribute */
-    validValues?: T[];
+    /**
+     * A list of the valid values for this attribute.
+     *
+     * Entries may be either bare values or `{value, description}` objects.
+     * The description is surfaced in editor autocomplete and the
+     * context-sensitive help panel. New declarations should use the object
+     * form; the string form remains accepted to allow gradual migration.
+     */
+    validValues?: Array<T | { value: T; description?: string }>;
     /** When the value of this attribute is changed, call the action `triggerActionOnChange`. */
     triggerActionOnChange?: string;
+    /** One-sentence description of the attribute, surfaced in editor help and docs. */
+    description?: string;
     /** If `true`, attribute values are converted to lower case */
     toLowerCase?: boolean;
     /** If `true`, leave the attribute serialized when the component is created */

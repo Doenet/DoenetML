@@ -83,7 +83,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: unknown[];
+    validValues?: Array<unknown | { value: unknown; description?: string }>;
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -233,17 +233,49 @@ type PublicStateVariableDescription = {
     fromAttribute?: boolean;
 };
 
+/**
+ * One author-facing valid value with optional per-value description.
+ * Descriptions are surfaced in editor autocomplete and the context-sensitive
+ * help panel; `value` carries the literal string a user would type.
+ */
+type SchemaAttributeValueOption = {
+    value: unknown;
+    description?: string;
+};
+
 type SchemaAttribute = {
     name: string;
     /** Values accepted by validation/schema checks. */
     values?: unknown[];
-    /** Optional author-facing subset used for autocomplete suggestions. */
-    autocompleteValues?: unknown[];
+    /**
+     * Optional author-facing subset used for autocomplete suggestions. Each
+     * entry carries the literal value plus an optional human-readable
+     * description. Boolean aliases injected via `valueForTrue`/`valueForFalse`
+     * are intentionally kept out of this list and live only in `values`.
+     */
+    autocompleteValues?: SchemaAttributeValueOption[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description?: string;
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
 };
+
+/**
+ * Normalize a raw `validValues` entry into `{value, description?}`. Bare
+ * strings (legacy shape) become objects with no description. Object entries
+ * pass through unchanged. Single source of truth for the shape transition —
+ * mirrors `normalizeValidValues` in the worker package.
+ */
+function normalizeValidValueEntry(entry: unknown): SchemaAttributeValueOption {
+    if (
+        entry !== null &&
+        typeof entry === "object" &&
+        "value" in (entry as object)
+    ) {
+        return entry as SchemaAttributeValueOption;
+    }
+    return { value: entry };
+}
 
 type SchemaElement = {
     /** The component type of this component */
@@ -523,16 +555,21 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
+                const normalized = attrDef.validValues.map(
+                    normalizeValidValueEntry,
+                );
+                const validValueStrings = normalized.map((v) => v.value);
                 if (booleanAliasValues.length > 0) {
                     attrSpec.values = [
                         ...new Set([
-                            ...attrDef.validValues,
+                            ...validValueStrings,
                             ...booleanAliasValues,
                         ]),
                     ];
-                    attrSpec.autocompleteValues = attrDef.validValues;
+                    attrSpec.autocompleteValues = normalized;
                 } else {
-                    attrSpec.values = attrDef.validValues;
+                    attrSpec.values = validValueStrings;
+                    attrSpec.autocompleteValues = normalized;
                 }
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||

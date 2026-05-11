@@ -1,6 +1,7 @@
 import type { ComponentIdx } from "@doenet/utils";
 import type Core from "../Core";
 import { preprocessAttributesObject } from "../utils/attributes";
+import { normalizeValidValues } from "../utils/validValues";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the
@@ -1480,7 +1481,10 @@ function validateAttributeValue({
     }
 
     if (attributeSpecification.validValues) {
-        if (!attributeSpecification.validValues.includes(value)) {
+        const allowed = normalizeValidValues(
+            attributeSpecification.validValues,
+        ).map((v) => v.value);
+        if (!allowed.includes(value)) {
             let defaultValue = attributeSpecification.defaultValue;
             if (defaultValue === undefined) {
                 if (attributeSpecification.createPrimitiveOfType) {

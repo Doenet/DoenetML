@@ -73,9 +73,9 @@ describe("generated schema top-level elements", () => {
             ]),
         );
         expect(sortAttribute.autocompleteValues).toEqual([
-            "unsorted",
-            "increasing",
-            "decreasing",
+            { value: "unsorted" },
+            { value: "increasing" },
+            { value: "decreasing" },
         ]);
     });
 

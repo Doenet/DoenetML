@@ -32,14 +32,30 @@ export function preprocessAttributesObject<T extends AttributesObject>(
                 ).toLowerCase();
             }
 
-            // Convert each entry in validValues array to lower case if specified
+            // Convert each entry in validValues array to lower case if specified.
+            // Entries may be bare values or `{value, description}` objects;
+            // descriptions are never lowercased.
             if (
                 Array.isArray(attrSpec.validValues) &&
                 attrSpec.validValues.length > 0
             ) {
-                attrSpec.validValues = attrSpec.validValues.map((value) =>
-                    String(value).toLowerCase(),
-                );
+                attrSpec.validValues = attrSpec.validValues.map((entry) => {
+                    if (
+                        entry !== null &&
+                        typeof entry === "object" &&
+                        "value" in (entry as object)
+                    ) {
+                        const obj = entry as {
+                            value: unknown;
+                            description?: string;
+                        };
+                        return {
+                            ...obj,
+                            value: String(obj.value).toLowerCase(),
+                        };
+                    }
+                    return String(entry).toLowerCase();
+                });
             }
 
             // Convert valueForTrue to lower case if specified

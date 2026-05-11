@@ -43,7 +43,13 @@ export default class Video extends BlockComponent {
             createStateVariable: "specifiedSize",
             defaultValue: "full",
             toLowerCase: true,
-            validValues: sizePossibilities,
+            validValues: [
+                { value: "tiny", description: "About 1/12 the full width." },
+                { value: "small", description: "About 30% of the full width." },
+                { value: "medium", description: "About half the full width." },
+                { value: "large", description: "About 70% of the full width." },
+                { value: "full", description: "The full available width." },
+            ],
             description: "Named size preset for the video player.",
         };
         attributes.aspectRatio = {
@@ -56,7 +62,16 @@ export default class Video extends BlockComponent {
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             toLowerCase: true,
-            validValues: ["block", "inline"],
+            validValues: [
+                {
+                    value: "block",
+                    description: "Display as a block element on its own line.",
+                },
+                {
+                    value: "inline",
+                    description: "Render inline with surrounding text.",
+                },
+            ],
             defaultValue: "block",
             forRenderer: true,
             public: true,
@@ -68,7 +83,20 @@ export default class Video extends BlockComponent {
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
             toLowerCase: true,
-            validValues: ["center", "left", "right"],
+            validValues: [
+                {
+                    value: "center",
+                    description: "Center the video horizontally.",
+                },
+                {
+                    value: "left",
+                    description: "Align the video to the left edge.",
+                },
+                {
+                    value: "right",
+                    description: "Align the video to the right edge.",
+                },
+            ],
             defaultValue: "center",
             forRenderer: true,
             public: true,

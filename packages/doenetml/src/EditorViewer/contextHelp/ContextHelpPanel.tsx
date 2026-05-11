@@ -147,17 +147,28 @@ export function ContextHelpPanel({
                         </div>
                     )}
                     {allowedValues && allowedValues.length > 0 && (
-                        <div className="help-detail">
+                        <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
                                 Allowed values:
                             </span>
-                            <div className="help-values-list">
-                                {allowedValues.map((val, idx) => (
-                                    <span key={idx} className="help-value-item">
-                                        {formatValue(val)}
-                                    </span>
-                                ))}
-                            </div>
+                            <dl className="help-allowed-values-list">
+                                {allowedValues.map(
+                                    ({ value, description }, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <dt className="help-value-item">
+                                                {formatValue(value)}
+                                            </dt>
+                                            <dd className="help-value-description">
+                                                {description
+                                                    ? renderInlineMarkdown(
+                                                          description,
+                                                      )
+                                                    : ""}
+                                            </dd>
+                                        </React.Fragment>
+                                    ),
+                                )}
+                            </dl>
                         </div>
                     )}
                     {docsSlug && (

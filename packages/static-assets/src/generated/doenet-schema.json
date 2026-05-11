@@ -436,6 +436,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -452,11 +460,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -607,6 +625,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -1714,6 +1761,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -2095,6 +2171,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -3853,6 +3958,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -5312,6 +5446,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -5679,6 +5842,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -6046,6 +6238,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -6278,6 +6499,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -6498,6 +6748,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -6859,6 +7138,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -7193,11 +7501,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -7543,11 +7861,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -7887,11 +8215,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -8231,11 +8569,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -8642,11 +8990,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -9053,11 +9411,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -9464,11 +9832,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -9878,6 +10256,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -9894,11 +10280,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -10049,6 +10445,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -10617,6 +11042,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -10633,11 +11066,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -10788,6 +11231,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -11356,6 +11828,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -11372,11 +11852,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -11527,6 +12017,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -12087,6 +12606,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -12103,11 +12630,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -12258,6 +12795,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -12818,6 +13384,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -12834,11 +13408,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -12989,6 +13573,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -13549,6 +14162,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -13565,11 +14186,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -13720,6 +14351,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -14268,6 +14928,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -14284,11 +14952,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -14431,6 +15109,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -14961,6 +15668,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -14977,11 +15692,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -15132,6 +15857,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -15668,6 +16422,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -15684,11 +16446,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -15839,6 +16611,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -16375,6 +17176,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -16391,11 +17200,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -16546,6 +17365,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -17082,6 +17930,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -17098,11 +17954,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -17253,6 +18119,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -17789,6 +18684,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -17805,11 +18708,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -17960,6 +18873,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -18528,6 +19470,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -18544,11 +19494,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -18699,6 +19659,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -19267,6 +20256,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -19283,11 +20280,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -19438,6 +20445,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -20022,6 +21058,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -20038,11 +21082,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -20193,6 +21247,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -20777,6 +21860,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -20793,11 +21884,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -20948,6 +22049,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -21516,6 +22646,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -21532,11 +22670,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -21687,6 +22835,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -22255,6 +23432,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -22271,11 +23456,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -22426,6 +23621,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -22994,6 +24218,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -23010,11 +24242,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -23165,6 +24407,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -23733,6 +25004,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -23749,11 +25028,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -23904,6 +25193,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -24472,6 +25790,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -24488,11 +25814,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -24643,6 +25979,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -25211,6 +26576,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -25227,11 +26600,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -25382,6 +26765,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -25394,6 +26806,23 @@
                         "functionArgument",
                         "numOperands",
                         "recursiveOperands"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "operand"
+                        },
+                        {
+                            "value": "function"
+                        },
+                        {
+                            "value": "functionArgument"
+                        },
+                        {
+                            "value": "numOperands"
+                        },
+                        {
+                            "value": "recursiveOperands"
+                        }
                     ]
                 },
                 {
@@ -25964,11 +27393,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -26033,6 +27472,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -26765,11 +28230,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -26834,6 +28309,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -27566,11 +29067,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -27635,6 +29146,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -28395,6 +29932,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -46043,6 +47609,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -46761,6 +48338,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -46785,10 +48388,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "both",
-                        "xOnly",
-                        "yOnly"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "both"
+                        },
+                        {
+                            "value": "xOnly"
+                        },
+                        {
+                            "value": "yOnly"
+                        }
                     ]
                 },
                 {
@@ -47346,6 +48957,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -47829,6 +49469,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -47884,6 +49550,14 @@
                     "values": [
                         "centripetal",
                         "uniform"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centripetal"
+                        },
+                        {
+                            "value": "uniform"
+                        }
                     ]
                 },
                 {
@@ -49290,6 +50964,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -49306,11 +50988,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -49461,6 +51153,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -51647,6 +53368,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -54343,6 +56093,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -54400,6 +56158,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -56004,6 +57770,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -57004,11 +58799,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -57538,6 +59343,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -57554,11 +59367,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -57709,6 +59532,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -59645,6 +61497,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -59669,10 +61547,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "both",
-                        "xOnly",
-                        "yOnly"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "both"
+                        },
+                        {
+                            "value": "xOnly"
+                        },
+                        {
+                            "value": "yOnly"
+                        }
                     ]
                 },
                 {
@@ -60104,6 +61990,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -60120,11 +62014,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -60266,6 +62170,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -60895,6 +62828,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 }
             ],
@@ -61276,8 +63238,12 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "endpoints",
-                        "none"
+                        {
+                            "value": "endpoints"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -61303,6 +63269,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -61673,6 +63668,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -62047,6 +64071,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -62521,6 +64556,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -62612,8 +64658,12 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "center",
-                        "none"
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -63069,6 +65119,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -63160,8 +65221,12 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "center",
-                        "none"
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -63617,6 +65682,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -63710,10 +65786,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "center",
-                        "widthAndHeight",
-                        "centerWidthAndHeight",
-                        "none"
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "widthAndHeight"
+                        },
+                        {
+                            "value": "centerWidthAndHeight"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -64185,6 +66269,17 @@
                         "centroid",
                         "vertex",
                         "point"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centroid"
+                        },
+                        {
+                            "value": "vertex"
+                        },
+                        {
+                            "value": "point"
+                        }
                     ]
                 },
                 {
@@ -64278,10 +66373,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "center",
-                        "radius",
-                        "centerAndRadius",
-                        "none"
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "radius"
+                        },
+                        {
+                            "value": "centerAndRadius"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -64846,6 +66949,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -64901,6 +67030,14 @@
                     "values": [
                         "centripetal",
                         "uniform"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centripetal"
+                        },
+                        {
+                            "value": "uniform"
+                        }
                     ]
                 },
                 {
@@ -64974,10 +67111,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "center",
-                        "radius",
-                        "centerAndRadius",
-                        "none"
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "radius"
+                        },
+                        {
+                            "value": "centerAndRadius"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -65502,6 +67647,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -65557,6 +67728,14 @@
                     "values": [
                         "centripetal",
                         "uniform"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centripetal"
+                        },
+                        {
+                            "value": "uniform"
+                        }
                     ]
                 },
                 {
@@ -66076,6 +68255,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -66131,6 +68336,14 @@
                     "values": [
                         "centripetal",
                         "uniform"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "centripetal"
+                        },
+                        {
+                            "value": "uniform"
+                        }
                     ]
                 },
                 {
@@ -67026,6 +69239,23 @@
                         "next",
                         "both",
                         "none"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "symmetric"
+                        },
+                        {
+                            "value": "previous"
+                        },
+                        {
+                            "value": "next"
+                        },
+                        {
+                            "value": "both"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -67341,11 +69571,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "displacement",
-                        "headAndTail",
-                        "headOnly",
-                        "tailOnly",
-                        "none"
+                        {
+                            "value": "displacement"
+                        },
+                        {
+                            "value": "headAndTail"
+                        },
+                        {
+                            "value": "headOnly"
+                        },
+                        {
+                            "value": "tailOnly"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -67362,6 +69602,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -67880,6 +70149,17 @@
                         "never",
                         "allowed",
                         "always"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "never"
+                        },
+                        {
+                            "value": "allowed"
+                        },
+                        {
+                            "value": "always"
+                        }
                     ]
                 },
                 {
@@ -68406,11 +70686,26 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none",
+                            "description": "No simplification is applied before comparing."
+                        },
+                        {
+                            "value": "full",
+                            "description": "Fully simplify both expressions before comparing."
+                        },
+                        {
+                            "value": "numbers",
+                            "description": "Simplify numeric subexpressions only, leaving symbolic structure intact."
+                        },
+                        {
+                            "value": "numbersPreserveOrder",
+                            "description": "Like `numbers`, but does not reorder commutative operands."
+                        },
+                        {
+                            "value": "normalizeOrder",
+                            "description": "Reorder commutative operands into a canonical form without simplifying values."
+                        }
                     ]
                 },
                 {
@@ -68505,6 +70800,20 @@
                         "text",
                         "boolean",
                         "videoWatched"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "boolean"
+                        },
+                        {
+                            "value": "videoWatched"
+                        }
                     ]
                 },
                 {
@@ -69248,11 +71557,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -69793,11 +72112,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -70212,6 +72541,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -70247,6 +72584,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -70849,6 +73194,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -70921,6 +73274,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -71323,6 +73705,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -71391,6 +73781,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -71618,6 +74037,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -72623,6 +75050,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -73036,6 +75492,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -73446,6 +75931,23 @@
                         "medium",
                         "large",
                         "full"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "tiny"
+                        },
+                        {
+                            "value": "small"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "large"
+                        },
+                        {
+                            "value": "full"
+                        }
                     ]
                 },
                 {
@@ -73459,6 +75961,14 @@
                     "values": [
                         "block",
                         "inline"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "block"
+                        },
+                        {
+                            "value": "inline"
+                        }
                     ]
                 },
                 {
@@ -73469,6 +75979,17 @@
                         "center",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -73511,10 +76032,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "all",
-                        "slidersOnly",
-                        "inputsOnly",
-                        "none"
+                        {
+                            "value": "all"
+                        },
+                        {
+                            "value": "slidersOnly"
+                        },
+                        {
+                            "value": "inputsOnly"
+                        },
+                        {
+                            "value": "none"
+                        }
                     ]
                 },
                 {
@@ -73526,6 +76055,20 @@
                         "left",
                         "right",
                         "top"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "top"
+                        }
                     ]
                 },
                 {
@@ -73571,6 +76114,14 @@
                     "values": [
                         "right",
                         "left"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "left"
+                        }
                     ]
                 },
                 {
@@ -73585,6 +76136,14 @@
                     "values": [
                         "top",
                         "bottom"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        }
                     ]
                 },
                 {
@@ -73594,6 +76153,14 @@
                     "values": [
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -73685,6 +76252,14 @@
                     "values": [
                         "doenet",
                         "prefigure"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "doenet"
+                        },
+                        {
+                            "value": "prefigure"
+                        }
                     ]
                 }
             ],
@@ -74505,11 +77080,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -74574,6 +77159,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -75208,11 +77819,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -75269,6 +77890,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -75937,6 +78584,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -75953,11 +78608,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -76099,6 +78764,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -76949,6 +79643,17 @@
                         "number",
                         "math",
                         "letters"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number"
+                        },
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "letters"
+                        }
                     ]
                 },
                 {
@@ -77167,6 +79872,16 @@
                     "values": [
                         "number",
                         "text"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Slider produces numeric values between `from` and `to`."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Slider produces text values, one per child of the slider."
+                        }
                     ]
                 },
                 {
@@ -78989,6 +81704,20 @@
                         "center",
                         "right",
                         "justify"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "justify"
+                        }
                     ]
                 },
                 {
@@ -78999,6 +81728,17 @@
                         "top",
                         "middle",
                         "bottom"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "middle"
+                        },
+                        {
+                            "value": "bottom"
+                        }
                     ]
                 },
                 {
@@ -79010,6 +81750,20 @@
                         "minor",
                         "medium",
                         "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "minor"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "major"
+                        }
                     ]
                 },
                 {
@@ -79021,6 +81775,20 @@
                         "minor",
                         "medium",
                         "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "minor"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "major"
+                        }
                     ]
                 },
                 {
@@ -79032,6 +81800,20 @@
                         "minor",
                         "medium",
                         "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "minor"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "major"
+                        }
                     ]
                 },
                 {
@@ -79043,6 +81825,20 @@
                         "minor",
                         "medium",
                         "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "minor"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "major"
+                        }
                     ]
                 }
             ],
@@ -80749,6 +83545,17 @@
                         "number",
                         "math",
                         "letters"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number"
+                        },
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "letters"
+                        }
                     ]
                 },
                 {
@@ -83586,6 +86393,17 @@
                         "number",
                         "math",
                         "letters"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number"
+                        },
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "letters"
+                        }
                     ]
                 },
                 {
@@ -83643,9 +86461,15 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "unsorted",
-                        "increasing",
-                        "decreasing"
+                        {
+                            "value": "unsorted"
+                        },
+                        {
+                            "value": "increasing"
+                        },
+                        {
+                            "value": "decreasing"
+                        }
                     ]
                 },
                 {
@@ -84298,6 +87122,17 @@
                         "number",
                         "math",
                         "letters"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number"
+                        },
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "letters"
+                        }
                     ]
                 },
                 {
@@ -84343,6 +87178,23 @@
                         "increase once",
                         "decrease once",
                         "oscillate"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "increase"
+                        },
+                        {
+                            "value": "decrease"
+                        },
+                        {
+                            "value": "increase once"
+                        },
+                        {
+                            "value": "decrease once"
+                        },
+                        {
+                            "value": "oscillate"
+                        }
                     ]
                 },
                 {
@@ -84537,6 +87389,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -84553,11 +87413,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -84709,6 +87579,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -85212,6 +88111,17 @@
                         "uniform",
                         "discreteUniform",
                         "gaussian"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "uniform"
+                        },
+                        {
+                            "value": "discreteUniform"
+                        },
+                        {
+                            "value": "gaussian"
+                        }
                     ]
                 },
                 {
@@ -85448,6 +88358,17 @@
                         "uniform",
                         "discreteUniform",
                         "gaussian"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "uniform"
+                        },
+                        {
+                            "value": "discreteUniform"
+                        },
+                        {
+                            "value": "gaussian"
+                        }
                     ]
                 },
                 {
@@ -85722,9 +88643,15 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "unsorted",
-                        "increasing",
-                        "decreasing"
+                        {
+                            "value": "unsorted"
+                        },
+                        {
+                            "value": "increasing"
+                        },
+                        {
+                            "value": "decreasing"
+                        }
                     ]
                 },
                 {
@@ -86295,6 +89222,14 @@
                     "values": [
                         "math",
                         "text"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "text"
+                        }
                     ]
                 },
                 {
@@ -86321,11 +89256,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -86557,6 +89502,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -86573,11 +89526,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -86728,6 +89691,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -87279,6 +90271,23 @@
                         "medium",
                         "large",
                         "full"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "tiny"
+                        },
+                        {
+                            "value": "small"
+                        },
+                        {
+                            "value": "medium"
+                        },
+                        {
+                            "value": "large"
+                        },
+                        {
+                            "value": "full"
+                        }
                     ]
                 },
                 {
@@ -87292,6 +90301,14 @@
                     "values": [
                         "block",
                         "inline"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "block"
+                        },
+                        {
+                            "value": "inline"
+                        }
                     ]
                 },
                 {
@@ -87302,6 +90319,17 @@
                         "center",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -87360,6 +90388,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -87611,6 +90668,28 @@
                         "medium",
                         "large",
                         "full"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "tiny",
+                            "description": "About 1/12 the full width."
+                        },
+                        {
+                            "value": "small",
+                            "description": "About 30% of the full width."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "About half the full width."
+                        },
+                        {
+                            "value": "large",
+                            "description": "About 70% of the full width."
+                        },
+                        {
+                            "value": "full",
+                            "description": "The full available width."
+                        }
                     ]
                 },
                 {
@@ -87624,6 +90703,16 @@
                     "values": [
                         "block",
                         "inline"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "block",
+                            "description": "Display as a block element on its own line."
+                        },
+                        {
+                            "value": "inline",
+                            "description": "Render inline with surrounding text."
+                        }
                     ]
                 },
                 {
@@ -87634,6 +90723,20 @@
                         "center",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "center",
+                            "description": "Center the video horizontally."
+                        },
+                        {
+                            "value": "left",
+                            "description": "Align the video to the left edge."
+                        },
+                        {
+                            "value": "right",
+                            "description": "Align the video to the right edge."
+                        }
                     ]
                 },
                 {
@@ -88359,6 +91462,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -88765,6 +91897,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -90322,6 +93483,20 @@
                         "number",
                         "boolean",
                         "text"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "math"
+                        },
+                        {
+                            "value": "number"
+                        },
+                        {
+                            "value": "boolean"
+                        },
+                        {
+                            "value": "text"
+                        }
                     ]
                 },
                 {
@@ -90355,6 +93530,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -90401,11 +93605,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 }
             ],
@@ -90624,6 +93838,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -90855,6 +94098,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -93131,6 +96403,32 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -93155,10 +96453,18 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "both",
-                        "xOnly",
-                        "yOnly"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "both"
+                        },
+                        {
+                            "value": "xOnly"
+                        },
+                        {
+                            "value": "yOnly"
+                        }
                     ]
                 },
                 {
@@ -93772,6 +97078,14 @@
                     "values": [
                         "displacement",
                         "tail"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "displacement"
+                        },
+                        {
+                            "value": "tail"
+                        }
                     ]
                 },
                 {
@@ -94576,6 +97890,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -94926,6 +98248,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -94942,11 +98272,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -95097,6 +98437,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -95114,6 +98483,14 @@
                     "values": [
                         "intervals",
                         "inequalities"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "intervals"
+                        },
+                        {
+                            "value": "inequalities"
+                        }
                     ]
                 }
             ],
@@ -95861,6 +99238,11 @@
                     "description": "Type of value being split.",
                     "values": [
                         "text"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        }
                     ]
                 },
                 {
@@ -95871,6 +99253,17 @@
                         "letter",
                         "word",
                         "comma"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "letter"
+                        },
+                        {
+                            "value": "word"
+                        },
+                        {
+                            "value": "comma"
+                        }
                     ]
                 },
                 {
@@ -96066,6 +99459,35 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "center"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -97360,6 +100782,17 @@
                         "bottom",
                         "left",
                         "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        }
                     ]
                 },
                 {
@@ -97697,11 +101130,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -98559,6 +102002,20 @@
                         "upperLeft",
                         "lowerRight",
                         "lowerLeft"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        }
                     ]
                 },
                 {
@@ -98921,6 +102378,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -99231,11 +102717,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -99656,6 +103152,14 @@
                     "values": [
                         "text",
                         "latex"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "text"
+                        },
+                        {
+                            "value": "latex"
+                        }
                     ]
                 },
                 {
@@ -99672,11 +103176,21 @@
                         "false"
                     ],
                     "autocompleteValues": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder"
+                        {
+                            "value": "none"
+                        },
+                        {
+                            "value": "full"
+                        },
+                        {
+                            "value": "numbers"
+                        },
+                        {
+                            "value": "numbersPreserveOrder"
+                        },
+                        {
+                            "value": "normalizeOrder"
+                        }
                     ]
                 },
                 {
@@ -99827,6 +103341,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 },
                 {
@@ -100754,6 +104297,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],
@@ -101776,6 +105348,14 @@
                     "values": [
                         "pretzel",
                         "circuit"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "pretzel"
+                        },
+                        {
+                            "value": "circuit"
+                        }
                     ]
                 }
             ],
@@ -102869,6 +106449,35 @@
                         "left",
                         "right",
                         "center"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "upperRight"
+                        },
+                        {
+                            "value": "upperLeft"
+                        },
+                        {
+                            "value": "lowerRight"
+                        },
+                        {
+                            "value": "lowerLeft"
+                        },
+                        {
+                            "value": "top"
+                        },
+                        {
+                            "value": "bottom"
+                        },
+                        {
+                            "value": "left"
+                        },
+                        {
+                            "value": "right"
+                        },
+                        {
+                            "value": "center"
+                        }
                     ]
                 }
             ],

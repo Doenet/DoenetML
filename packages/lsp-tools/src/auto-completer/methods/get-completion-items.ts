@@ -923,21 +923,31 @@ export function getCompletionItems(
         const allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
-        // Prefer explicit autocomplete values when provided; fall back to
-        // full validation values otherwise.
-        const allowedAttrValues =
-            allowedAttribute?.autocompleteValues ?? allowedAttribute?.values;
-        if (!allowedAttrValues) {
+        // Prefer the `autocompleteValues` shape (per-value descriptions) when
+        // available; fall back to the plain validation `values` list when an
+        // attribute hasn't been migrated yet so completions still work.
+        const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
+        const plainValues = allowedAttribute?.values;
+        if (!optionsWithDescriptions && !plainValues) {
             return [{ label: '""', kind: CompletionItemKind.Value }];
         }
         // If we are right after the =, we should include quotes in the completion,
         // otherwise, assume the user has already supplied the quote marks.
         const includeQuotes = prevNonWhitespaceChar === "=";
         const quote = includeQuotes ? '"' : "";
-        return allowedAttrValues.map((value) => ({
-            label: `${quote}${value}${quote}`,
-            kind: CompletionItemKind.Value,
-        }));
+        const entries: { value: string; description?: string }[] =
+            optionsWithDescriptions ??
+            (plainValues ?? []).map((value) => ({ value }));
+        return entries.map(({ value, description }) => {
+            const item: CompletionItem = {
+                label: `${quote}${value}${quote}`,
+                kind: CompletionItemKind.Value,
+            };
+            if (description) {
+                item.documentation = asMarkdown(description);
+            }
+            return item;
+        });
     }
     return [];
 }
