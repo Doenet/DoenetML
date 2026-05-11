@@ -8,6 +8,10 @@
         "ghcr.io/devcontainers/features/rust:1": {
             "version": "latest"
         },
+        // Install vim from apt using an existing community feature.
+        "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+            "packages": "vim"
+        },
         // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
         "./features/webdriver-libs": {},
         // Avoid erronious connections to the host's debug environment.
@@ -16,8 +20,8 @@
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
-    // Bootstrap workspace after shell rc files are initialized
-    "postCreateCommand": "npm install && npm run build",
+    // Use VIM as the command line git editor. Not everyone's preference, but oh well...
+    "postCreateCommand": "git config core.editor vim",
     "customizations": {
         "vscode": {
             "extensions": [
