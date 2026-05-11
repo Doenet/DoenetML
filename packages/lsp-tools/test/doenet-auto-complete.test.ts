@@ -191,10 +191,11 @@ describe("AutoCompleter", () => {
         expect(items).toEqual([]);
     });
 
-    it("Returns no completions for a free-text attribute when anchored at `=`", () => {
+    it("Returns no completions for a free-text attribute regardless of cursor anchor", () => {
         // `aa.x` has no `values` / `autocompleteValues`. The old fallback
-        // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`)
-        // and made the client flicker the menu on every keystroke.
+        // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`
+        // when anchored at `=`, `""""` when inside `"..."`) and made the
+        // client flicker the menu on every keystroke.
         const justAfterEquals = `<aa x=></aa>`;
         const acEmpty = new AutoCompleter(justAfterEquals, schema.elements);
         expect(
@@ -205,6 +206,20 @@ describe("AutoCompleter", () => {
         const acPrefix = new AutoCompleter(withBarePrefix, schema.elements);
         expect(
             acPrefix.getCompletionItems(withBarePrefix.indexOf("foo") + 3),
+        ).toEqual([]);
+
+        // Cursor between the quotes of `x=""`.
+        const emptyQuotes = `<aa x=""></aa>`;
+        const acQuotes = new AutoCompleter(emptyQuotes, schema.elements);
+        expect(
+            acQuotes.getCompletionItems(emptyQuotes.indexOf(`""`) + 1),
+        ).toEqual([]);
+
+        // Cursor in the middle of a partially typed quoted value `x="foo"`.
+        const partialQuoted = `<aa x="foo"></aa>`;
+        const acPartial = new AutoCompleter(partialQuoted, schema.elements);
+        expect(
+            acPartial.getCompletionItems(partialQuoted.indexOf("foo") + 3),
         ).toEqual([]);
     });
 
