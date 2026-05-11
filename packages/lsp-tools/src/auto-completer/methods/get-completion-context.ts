@@ -65,6 +65,14 @@ export type CompletionContext =
            * Example: `$rep[1].myMath.` -> pathPartHasIndex `[true, false, false]`.
            */
           pathPartHasIndex: boolean[];
+          /**
+           * The path parts as authored, with bracket indices preserved
+           * (`["rep[1]", "myMath", ""]`). Use this for display-only purposes
+           * (e.g. rendering the cursor's full path in a help sentence);
+           * resolution code should use the stripped `pathParts` and the
+           * `pathPartHasIndex` flag instead.
+           */
+          rawPathParts: string[];
       };
 
 /**
@@ -82,6 +90,7 @@ function makeRefMemberContext(
         replaceFromOffset,
         pathParts: parts,
         pathPartHasIndex,
+        rawPathParts,
     };
 }
 

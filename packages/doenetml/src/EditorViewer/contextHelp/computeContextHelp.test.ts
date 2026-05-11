@@ -343,6 +343,24 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
     });
 });
 
+describe("computeContextHelp — indexed path segments in displayPath", () => {
+    it("preserves a bracket index on the prefix segment of $rep[1].myMath", () => {
+        // The JS-only fallback in helpForRefMember ignores takesIndex
+        // semantics (tracked in #1086), so it incidentally resolves the
+        // descendant `<math name="myMath"/>` here. The rendered sentence
+        // should still match what the author wrote — preserving the `[1]` on
+        // the prefix segment — rather than dropping the index to "rep.myMath".
+        const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "myMath",
+            displayPath: "rep[1].myMath",
+            targetElementName: "math",
+        });
+    });
+});
+
 describe("computeContextHelp — childAliases (sugar redirection)", () => {
     it("redirects <row> inside <matrix> to matrixRow help", () => {
         const source = `<matrix>\n  <row>1 2 3</row>\n</matrix>`;

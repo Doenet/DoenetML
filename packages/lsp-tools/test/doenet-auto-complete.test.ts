@@ -423,6 +423,7 @@ describe("AutoCompleter", () => {
                 replaceFromOffset: source.indexOf(".") + 1,
                 pathParts: ["foo", ""],
                 pathPartHasIndex: [true, false],
+                rawPathParts: ["foo[1]", ""],
             });
         }
     });

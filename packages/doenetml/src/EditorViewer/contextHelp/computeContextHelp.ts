@@ -147,19 +147,22 @@ function isParenthesizedSegment(
 }
 
 const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
 
 /**
- * Wrap a path segment in parens if it isn't a SimpleIdent (e.g., contains
- * hyphens), mirroring the grammar that requires `$(foo-bar)` over `$foo-bar`.
- * Used to format `displayPath` for the help-panel sentence so it renders the
- * same syntax the author would type.
+ * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
+ * contains hyphens), mirroring the grammar that requires `$(foo-bar)` over
+ * `$foo-bar`. Trailing bracket-index suffixes are kept outside the parens
+ * (`rep[1]` stays as `rep[1]`, never `(rep[1])`). Used to format
+ * `displayPath` for the help-panel sentence so it renders the same syntax
+ * the author would type.
  */
 function formatPathSegment(segment: string): string {
-    return SIMPLE_IDENT_REGEX.test(segment) ? segment : `(${segment})`;
-}
-
-function formatDisplayPath(segments: string[]): string {
-    return segments.map(formatPathSegment).join(".");
+    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
+    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
+    return SIMPLE_IDENT_REGEX.test(baseName)
+        ? segment
+        : `(${baseName})${bracketSuffix}`;
 }
 
 function helpForElement(
@@ -210,6 +213,7 @@ function helpForRefMember(
         replaceFromOffset: number;
         pathParts: string[];
         pathPartHasIndex: boolean[];
+        rawPathParts: string[];
     },
 ): HelpContent {
     const memberName = fullIdentifierAtOffset(
@@ -254,10 +258,15 @@ function helpForRefMember(
         memberName,
     );
     if (descendantInfo) {
-        const displayPath = formatDisplayPath([
-            ...ctx.pathParts.slice(0, -1),
-            memberName,
-        ]);
+        // Use `rawPathParts` for the prefix so authored bracket indices are
+        // preserved (`rep[1]` stays as `rep[1]`). Each segment — prefix and
+        // cursor — goes through `formatPathSegment` so hyphenated names get
+        // re-wrapped in parens (parens are stripped during normalization in
+        // `getCompletionContext`).
+        const displayPath = [
+            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
+            formatPathSegment(memberName),
+        ].join(".");
         return {
             kind: "refName",
             refName: memberName,
