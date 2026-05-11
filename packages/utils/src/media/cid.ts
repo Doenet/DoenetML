@@ -7,8 +7,25 @@ export async function cidFromText(text: string) {
     return await cidFromArrayBuffer(data);
 }
 
-export async function cidFromArrayBuffer(data: ArrayBuffer) {
-    let hashBuffer = await crypto.subtle.digest("SHA-256", data);
+// Digest is set lazily. Since crpto.subtle is not available in `http` mode,
+// we fall back to a polyfill in that case
+let digest: typeof crypto.subtle.digest | null = null;
+
+export async function cidFromArrayBuffer(data: BufferSource) {
+    if (!digest) {
+        try {
+            await crypto.subtle.digest("SHA-256", new Uint8Array());
+            digest = (...args) => crypto.subtle.digest(...args);
+        } catch (e) {
+            // Fallback to a polyfill or alternative implementation if needed
+            const sha256 = (await import("sha256")).default;
+            digest = ((algorithm: string, data: Buffer) =>
+                sha256(data, {
+                    asBytes: true,
+                })) as unknown as typeof crypto.subtle.digest;
+        }
+    }
+    let hashBuffer = await digest("SHA-256", data);
 
     let cidArray = new Uint8Array(36);
 
