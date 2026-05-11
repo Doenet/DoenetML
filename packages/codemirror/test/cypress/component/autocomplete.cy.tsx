@@ -230,6 +230,93 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("not.contain.text", 'name=h"ello"');
     });
 
+    it("shows enumerated attribute values with quoted displayLabel when anchored to `=`", () => {
+        // When the cursor is at `=` (no opening `"` yet), the dropdown
+        // should preview the canonical quoted form (e.g. `"true"`) since
+        // accepting will insert the value wrapped in quotes. The existing
+        // `completes attribute values` test only exercises the
+        // inside-`"..."` path where the dropdown stays bare; without this
+        // test, regressing the displayLabel for the bare-`=` path would
+        // go undetected.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title hide=", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"true"')
+            .should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"true"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'hide="true"');
+    });
+
+    it("filters enumerated values as a bare prefix is typed past `=`", () => {
+        // Typing a bare prefix (no opening `"`) past `=` should narrow the
+        // dropdown and accept-with-quotes. Bare matching against the
+        // `label` while displaying the quoted form is the core "show this,
+        // filter on that" pair introduced in this PR.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title hide=tr", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"true"',
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").click();
+        cy.get(".cm-line").should("contain.text", 'hide="true"');
+    });
+
+    it("does not pop a menu when only `=` has been typed for a free-text attribute", () => {
+        // B' design: bare `=` must NOT pop the wrap-in-quotes hint -- an
+        // expert who reflexively types `"` right after `=` should never
+        // see a stray menu. The hint only fires once the author has typed
+        // at least one bare character.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math name=", { force: true });
+        // Wait past the LSP debounce so any (mis)triggered menu would
+        // have time to appear.
+        cy.wait(400);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("swallows whitespace between `=` and a bare value on accept", () => {
+        // The LSP-side textEdit range anchors at `=+1`, and the plugin's
+        // update-generated apply walks back over whitespace to the
+        // anchoring `=`. Either path must produce a clean `name="hello"`
+        // with no residual spaces. Vitest covers the LSP range; this
+        // covers the plugin's document edit end-to-end.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type("<math name=   hello", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"hello"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'name="hello"');
+        cy.get(".cm-line").should("not.contain.text", 'name=   "hello"');
+    });
+
     it("keeps cursor at end of completed reference when stale response arrives late", () => {
         cy.mount(
             <AutocompleteTestHarness
