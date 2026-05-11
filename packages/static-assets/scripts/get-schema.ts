@@ -87,7 +87,7 @@ type AttributeObject = {
     validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
-    description?: string;
+    description: string;
 };
 
 type ComponentClass = {
@@ -149,7 +149,7 @@ type ComponentClass = {
     /** Class-level help metadata. */
     componentDocs?: {
         /** A one-sentence summary of the component. */
-        summary?: string;
+        summary: string;
         /**
          * Reference-page slug for this component, used to link from editor help.
          * - Undefined → default to the component type (e.g. "abs" → /reference/abs).
@@ -185,7 +185,7 @@ type PropertyDescription = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
-    description?: string;
+    description: string;
     fromAttribute?: boolean;
 };
 
@@ -217,20 +217,24 @@ type StateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
-    description?: string;
+    description: string;
     fromAttribute?: boolean;
 };
 
 type PublicStateVariableDescription = {
     public: boolean;
-    createComponentOfType: string;
+    /** Some public state variables (mainly array slots) don't declare a
+     * `createComponentOfType` — kept optional to match the underlying
+     * `StateVariableDescription`. The ternary in `singlePropFromDescription`
+     * is load-bearing for these cases. */
+    createComponentOfType?: string;
     isArray: boolean;
     numDimensions?: number;
     schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
-    description?: string;
+    description: string;
     fromAttribute?: boolean;
 };
 
@@ -246,7 +250,7 @@ type SchemaAttribute = {
      */
     autocompleteValues?: ValidValueEntry[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
-    description?: string;
+    description: string;
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
 };
@@ -267,7 +271,7 @@ type SchemaElement = {
     /** Whether descendants are accessible only via index */
     takesIndex: boolean;
     /** One-sentence summary of the component, surfaced in editor help and docs. */
-    summary?: string;
+    summary: string;
     /**
      * Reference-page slug for this component, or `null` when no docs page
      * exists for it. The generator always emits this field — either a string
@@ -292,7 +296,7 @@ type SchemaElement = {
  */
 type AliasedSchemaElement = {
     name: string;
-    summary?: string;
+    summary: string;
     docsSlug: string | null;
     attributes: SchemaAttribute[];
     properties: PropertyDescription[];
@@ -323,9 +327,9 @@ type AliasedSchemaElement = {
  *          where each element represents a component type with its full schema definition
  *          including name, children, attributes, properties, and string acceptance
  */
-export function getSchema() {
-    const componentInfoObjects =
-        createComponentInfoObjects() as ComponentInfoObjects;
+export function getSchema(
+    componentInfoObjects: ComponentInfoObjects = createComponentInfoObjects() as ComponentInfoObjects,
+) {
     // Work on a shallow copy so the schema filtering doesn't mutate the
     // shared registry (`publicStateVariableInfo` reads classes lazily from
     // it, so deletions break later property lookups for excluded classes
@@ -514,8 +518,21 @@ export function getSchema() {
             const attrDef = attrObj[attrName];
             if (attrDef.excludeFromSchema) continue;
 
-            const attrSpec: SchemaAttribute = { name: attrName };
-            if (attrDef.description) attrSpec.description = attrDef.description;
+            // Hard-fail on missing description. Mirrors the validValues
+            // guard below and the per-component summary guard further on.
+            if (
+                typeof attrDef.description !== "string" ||
+                attrDef.description.trim() === ""
+            ) {
+                throw new Error(
+                    `Invalid description for attribute \`${type}.${attrName}\`: every non-excluded attribute must declare a non-empty \`description\`. Got: ${JSON.stringify(attrDef.description)}`,
+                );
+            }
+
+            const attrSpec: SchemaAttribute = {
+                name: attrName,
+                description: attrDef.description,
+            };
             if (attrDef.defaultValue !== undefined) {
                 attrSpec.defaultValue = encodeDefaultValueForJson(
                     attrDef.defaultValue,
@@ -574,6 +591,17 @@ export function getSchema() {
             excludedStateVariableNames,
         );
 
+        // Hard-fail on missing summary. Fires for every class that reaches
+        // the schema, plus alias targets promoted via `childAliases`
+        // (e.g. `<row>` → `<matrixRow>`) — those are `excludeFromSchema`
+        // but still emit help payloads here.
+        const summary = cClass.componentDocs?.summary;
+        if (typeof summary !== "string" || summary.trim() === "") {
+            throw new Error(
+                `Invalid componentDocs.summary for \`${type}\`: every component reaching the schema must declare a non-empty \`static componentDocs = { summary: "..." }\`. Got: ${JSON.stringify(summary)}`,
+            );
+        }
+
         const out: Pick<
             SchemaElement,
             "attributes" | "properties" | "summary" | "docsSlug"
@@ -581,9 +609,8 @@ export function getSchema() {
             attributes,
             properties,
             docsSlug: null,
+            summary,
         };
-        const summary = cClass.componentDocs?.summary;
-        if (summary) out.summary = summary;
 
         const declaredSlug = getDeclaredDocsSlug(cClass.componentDocs, type);
         if (declaredSlug !== null && getExistingDocSlugs().has(declaredSlug)) {
@@ -621,6 +648,7 @@ export function getSchema() {
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
+                    parentType: type,
                     varName,
                     description,
                     arrayEntryPrefixes,
@@ -652,6 +680,7 @@ export function getSchema() {
                 }
                 properties.push(
                     ...propFromDescription({
+                        parentType: type,
                         varName: aliasName,
                         description: aliasDescription,
                         arrayEntryPrefixes,
@@ -689,6 +718,7 @@ export function getSchema() {
 
                         properties.push(
                             ...propFromDescription({
+                                parentType: type,
                                 varName: aliasName,
                                 description: arrayEntryDescription,
                                 arrayEntryPrefixes,
@@ -723,8 +753,8 @@ export function getSchema() {
             acceptsStringChildren,
             takesIndex: cClass.takesIndex ?? false,
             docsSlug: helpPayload.docsSlug,
+            summary: helpPayload.summary,
         };
-        if (helpPayload.summary) element.summary = helpPayload.summary;
 
         elements.push(element);
     }
@@ -755,9 +785,7 @@ export function getSchema() {
                 attributes: payload.attributes,
                 properties: payload.properties,
                 docsSlug: payload.docsSlug,
-                ...(payload.summary !== undefined && {
-                    summary: payload.summary,
-                }),
+                summary: payload.summary,
             };
         }
     }
@@ -765,52 +793,14 @@ export function getSchema() {
     return { elements, aliasedElements };
 }
 
-/**
- * Print aggregate coverage counts to stdout for schema elements, attributes,
- * and properties with help (`summary`/`description`) authored. Informational
- * only — never fails the build. Helps track authoring progress as
- * descriptions are backfilled across the ~200+ component classes.
- */
-export function reportHelpCoverage(
-    elements: ReturnType<typeof getSchema>["elements"],
-) {
-    let elementsWithSummary = 0;
-    let attributesWithDescription = 0;
-    let propertiesWithDescription = 0;
-    let totalAttributes = 0;
-    let totalProperties = 0;
-
-    for (const element of elements) {
-        if (element.summary) {
-            elementsWithSummary++;
-        }
-        for (const attr of element.attributes) {
-            totalAttributes++;
-            if (attr.description) {
-                attributesWithDescription++;
-            }
-        }
-        for (const prop of element.properties) {
-            totalProperties++;
-            if (prop.description) {
-                propertiesWithDescription++;
-            }
-        }
-    }
-
-    console.log(
-        `Help coverage: ${elementsWithSummary}/${elements.length} elements have summary, ` +
-            `${attributesWithDescription}/${totalAttributes} attributes have description, ` +
-            `${propertiesWithDescription}/${totalProperties} properties have description`,
-    );
-}
-
 function propFromDescription({
+    parentType,
     varName,
     description,
     arrayEntryPrefixes,
     includeSchemaSubarrays,
 }: {
+    parentType: string;
     varName: string;
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
@@ -818,6 +808,7 @@ function propFromDescription({
 }): PropertyDescription[] {
     const props = [
         singlePropFromDescription({
+            parentType,
             varName,
             description,
             arrayEntryPrefixes,
@@ -850,6 +841,7 @@ function propFromDescription({
 
             props.push(
                 singlePropFromDescription({
+                    parentType,
                     varName: subarrayName,
                     description: {
                         ...description,
@@ -878,15 +870,30 @@ function propFromDescription({
 }
 
 function singlePropFromDescription({
+    parentType,
     varName,
     description,
     arrayEntryPrefixes,
 }: {
+    parentType: string;
     varName: string;
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
 }): PropertyDescription {
     const componentType = description.createComponentOfType;
+
+    // Hard-fail on missing description. Single choke point for direct
+    // state vars, aliases, and array-entry-prefix aliases — the existing
+    // fallback assembly (`aliasInfo.description ?? arrayStateVarDescription.description`)
+    // is preserved upstream, so this only fires when *every* candidate is empty.
+    if (
+        typeof description.description !== "string" ||
+        description.description.trim() === ""
+    ) {
+        throw new Error(
+            `Invalid description for property \`${parentType}.${varName}\` (createComponentOfType=${componentType}): every public state variable, alias, or array-entry property feeding the schema must have a non-empty \`description\`. Got: ${JSON.stringify(description.description)}`,
+        );
+    }
 
     const prop: PropertyDescription =
         componentType !== undefined
@@ -894,12 +901,13 @@ function singlePropFromDescription({
                   name: varName,
                   type: componentType,
                   isArray: description.isArray,
+                  description: description.description,
               }
-            : { name: varName, isArray: description.isArray };
-
-    if (description.description) {
-        prop.description = description.description;
-    }
+            : {
+                  name: varName,
+                  isArray: description.isArray,
+                  description: description.description,
+              };
 
     if (description.fromAttribute) {
         prop.fromAttribute = true;

@@ -307,7 +307,7 @@ export type AttributeDefinition<T> = {
     /** When the value of this attribute is changed, call the action `triggerActionOnChange`. */
     triggerActionOnChange?: string;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
-    description?: string;
+    description: string;
     /** If `true`, attribute values are converted to lower case */
     toLowerCase?: boolean;
     /** If `true`, leave the attribute serialized when the component is created */
