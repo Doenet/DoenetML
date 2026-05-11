@@ -529,6 +529,23 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
+                for (const entry of attrDef.validValues) {
+                    // Hard-fail if the type contract is bypassed (e.g. a bare
+                    // string sneaks through plain-JS component declarations).
+                    // Every enumerated value must ship with author-facing
+                    // help text.
+                    if (
+                        typeof entry !== "object" ||
+                        entry === null ||
+                        typeof entry.value !== "string" ||
+                        typeof entry.description !== "string" ||
+                        entry.description.trim() === ""
+                    ) {
+                        throw new Error(
+                            `Invalid validValues entry for \`${type}.${attrName}\`: every entry must be a {value, description} object with a non-empty description. Got: ${JSON.stringify(entry)}`,
+                        );
+                    }
+                }
                 const validValueStrings = attrDef.validValues.map(
                     (v) => v.value,
                 );
