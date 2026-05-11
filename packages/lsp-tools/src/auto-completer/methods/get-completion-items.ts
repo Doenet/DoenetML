@@ -882,7 +882,35 @@ export function getCompletionItems(
         );
     }
 
-    if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
+    // Detect "typing a bare value after =" (no opening quote), e.g.
+    // `<math simplify=ful`. Walk back over identifier chars and see if the
+    // char immediately before that run is `=` (with optional whitespace).
+    // We compute this before the openTag/attributeName branch because lezer
+    // often parses `=ful` as a new attribute name, which would otherwise
+    // route the request to attribute-name completions.
+    const source = this.sourceObj.source;
+    let typedValueStart = offset;
+    while (
+        typedValueStart > 0 &&
+        /[A-Za-z0-9_-]/.test(source.charAt(typedValueStart - 1))
+    ) {
+        typedValueStart--;
+    }
+    let equalsScan = typedValueStart - 1;
+    while (equalsScan >= 0 && /\s/.test(source.charAt(equalsScan))) {
+        equalsScan--;
+    }
+    const isBareValueAfterEquals =
+        equalsScan >= 0 &&
+        source.charAt(equalsScan) === "=" &&
+        typedValueStart < offset;
+    const typedValuePrefix = source.slice(typedValueStart, offset);
+
+    if (
+        (cursorPosition === "openTag" || cursorPosition === "attributeName") &&
+        !isBareValueAfterEquals &&
+        prevNonWhitespaceChar !== "="
+    ) {
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
@@ -912,17 +940,50 @@ export function getCompletionItems(
         });
     }
 
+    // Only fire the attribute-value branch when we are clearly inside an
+    // open tag (or already in an attribute value). Crucially we exclude
+    // cursorPosition === "body" so a literal `=` in body text doesn't get
+    // misread as an attribute-value anchor.
+    const isInOpenTagContext =
+        cursorPosition === "openTag" ||
+        cursorPosition === "attributeName" ||
+        cursorPosition === "attributeValue" ||
+        cursorPosition === "unknown";
     if (
         cursorPosition === "attributeValue" ||
-        (cursorPosition === "unknown" && prevNonWhitespaceChar === "=")
+        (isInOpenTagContext &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals))
     ) {
         const elmName = this.normalizeElementName(element.name);
         const allowedAttributes =
             this.schemaElementsByName[elmName]?.attributes || [];
-        const attribute = this._getAttributeContainsOffset(element, offset);
-        const allowedAttribute = allowedAttributes.find(
+        let attribute = this._getAttributeContainsOffset(element, offset);
+        let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
+        // Fallback: when the user is typing a bare value after `=` the parser
+        // may not include the typed chars in any attribute's position range,
+        // so resolve the attribute name by walking back to the `=` and reading
+        // the identifier that precedes it.
+        if (!allowedAttribute && isBareValueAfterEquals) {
+            let nameEnd = equalsScan;
+            while (nameEnd > 0 && /\s/.test(source.charAt(nameEnd - 1))) {
+                nameEnd--;
+            }
+            let nameStart = nameEnd;
+            while (
+                nameStart > 0 &&
+                /[A-Za-z0-9_-]/.test(source.charAt(nameStart - 1))
+            ) {
+                nameStart--;
+            }
+            const attrName = source.slice(nameStart, nameEnd);
+            if (attrName) {
+                allowedAttribute = allowedAttributes.find(
+                    (a) => a.name === attrName,
+                );
+            }
+        }
         // Prefer the `autocompleteValues` shape (per-value descriptions) so
         // completions carry tooltips. Fall back to the plain validation
         // `values` list for any attribute that exposes `values` without
@@ -933,21 +994,53 @@ export function getCompletionItems(
         if (!optionsWithDescriptions && !plainValues) {
             return [{ label: '""', kind: CompletionItemKind.Value }];
         }
-        // If we are right after the =, we should include quotes in the completion,
-        // otherwise, assume the user has already supplied the quote marks.
-        const includeQuotes = prevNonWhitespaceChar === "=";
-        const quote = includeQuotes ? '"' : "";
+        // Quotes get added via `textEdit.newText` when the cursor is anchored
+        // to an `=` rather than already inside `"..."`. The display label and
+        // filter text always use the bare value.
+        const needsQuotes =
+            cursorPosition !== "attributeValue" &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals);
+        const quotedRange = needsQuotes
+            ? createTextEditRange(this.sourceObj, typedValueStart, offset)
+            : undefined;
+        const filterPrefix = typedValuePrefix.toLowerCase();
+        const matchesPrefix = (value: string) =>
+            !needsQuotes ||
+            !filterPrefix ||
+            value.toLowerCase().startsWith(filterPrefix);
         if (optionsWithDescriptions) {
-            return optionsWithDescriptions.map(({ value, description }) => ({
-                label: `${quote}${value}${quote}`,
-                kind: CompletionItemKind.Value,
-                documentation: asMarkdown(description),
-            }));
+            return optionsWithDescriptions
+                .filter(({ value }) => matchesPrefix(value))
+                .map(({ value, description }) => ({
+                    label: value,
+                    kind: CompletionItemKind.Value,
+                    filterText: value,
+                    documentation: asMarkdown(description),
+                    ...(quotedRange
+                        ? {
+                              textEdit: {
+                                  range: quotedRange,
+                                  newText: `"${value}"`,
+                              },
+                          }
+                        : {}),
+                }));
         }
-        return (plainValues ?? []).map((value) => ({
-            label: `${quote}${value}${quote}`,
-            kind: CompletionItemKind.Value,
-        }));
+        return (plainValues ?? [])
+            .filter((value) => matchesPrefix(value))
+            .map((value) => ({
+                label: value,
+                kind: CompletionItemKind.Value,
+                filterText: value,
+                ...(quotedRange
+                    ? {
+                          textEdit: {
+                              range: quotedRange,
+                              newText: `"${value}"`,
+                          },
+                      }
+                    : {}),
+            }));
     }
     return [];
 }
