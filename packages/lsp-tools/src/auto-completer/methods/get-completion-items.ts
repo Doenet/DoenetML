@@ -925,8 +925,9 @@ export function getCompletionItems(
         );
         // Prefer the `autocompleteValues` shape (per-value descriptions) so
         // completions carry tooltips. Fall back to the plain validation
-        // `values` list for boolean primitives, which have a `values`
-        // synthesized by the schema generator but no per-value descriptions.
+        // `values` list for any attribute that exposes `values` without
+        // `autocompleteValues` — today the schema generator only emits this
+        // shape for boolean primitives, but the consumer stays agnostic.
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {

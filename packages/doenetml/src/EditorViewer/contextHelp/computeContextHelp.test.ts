@@ -100,6 +100,22 @@ describe("computeContextHelp — attribute help", () => {
         expect(allowedValueStrings).not.toContain("false");
     });
 
+    it("omits allowedValues for pure boolean primitives", () => {
+        // Boolean primitives have a synthesized `values: ["true","false"]`
+        // but no `autocompleteValues`. The help panel intentionally drops
+        // the "Allowed values" row here — the attribute description already
+        // conveys true/false. Regression guard against re-introducing a
+        // `?? values.map(...)` fallback in `computeContextHelp`.
+        const source = `<point draggable="true"/>`;
+        const offset = source.indexOf("draggable") + 3;
+        const help = helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.allowedValues).toBeUndefined();
+    });
+
     it("resolves attributes case-insensitively and displays the canonical name", () => {
         const source = `<point DrAgGaBlE="true"/>`;
         const offset = source.indexOf("DrAgGaBlE") + 3;

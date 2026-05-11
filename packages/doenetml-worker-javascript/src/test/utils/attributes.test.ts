@@ -76,4 +76,21 @@ describe("preprocessAttributesObject", () => {
             { value: "PascalCase", description: "Preserved Casing." },
         ]);
     });
+
+    it("throws when a validValues entry is a bare string (plain-JS bypass of the type contract)", () => {
+        const attrs: Record<string, AttributeDefinition<unknown>> = {
+            mode: {
+                // Cast — the type system forbids this, but a plain-JS
+                // component declaration could still slip through.
+                validValues: ["block"] as unknown as {
+                    value: string;
+                    description: string;
+                }[],
+            },
+        };
+
+        expect(() => preprocessAttributesObject(attrs)).toThrow(
+            /Invalid validValues entry for attribute `mode`/,
+        );
+    });
 });
