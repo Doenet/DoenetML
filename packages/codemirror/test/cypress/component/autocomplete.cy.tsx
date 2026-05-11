@@ -200,6 +200,36 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("contain.text", 'hide="true"');
     });
 
+    it("offers a wrap-in-quotes hint for a free-text attribute and preserves every typed character", () => {
+        // `name` on `<math>` is free-text (no enumerated values). Typing a
+        // bare prefix after `=` must pop a single hint whose display label
+        // previews the typed value wrapped in quotes -- and accepting it
+        // must wrap exactly what was typed, with no characters dropped.
+        //
+        // Regression: an earlier version anchored the result's `from` at
+        // the cursor (one past the first typed character) because the
+        // plugin's default `prefixMatch` regex required a literal `"` the
+        // user hadn't typed. The menu then read `"ello"` instead of
+        // `"hello"` and accepting yielded `name=h"ello"`.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math name=hello", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"hello"',
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"hello"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'name="hello"');
+        cy.get(".cm-line").should("not.contain.text", 'name=h"ello"');
+    });
+
     it("keeps cursor at end of completed reference when stale response arrives late", () => {
         cy.mount(
             <AutocompleteTestHarness
