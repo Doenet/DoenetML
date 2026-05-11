@@ -514,7 +514,7 @@ export class LSPPlugin implements PluginValue {
                 from: pos,
                 options: finalOptions,
                 filter: false,
-                update: this.refreshLivePreview,
+                update: this._refreshLivePreview,
             };
         }
 
@@ -532,7 +532,7 @@ export class LSPPlugin implements PluginValue {
     // the LSP. We re-attach the same callback on the new result so
     // subsequent keystrokes keep refreshing -- the autocomplete subsystem
     // only consults `update` on the active result, not the original one.
-    private refreshLivePreview = (
+    _refreshLivePreview = (
         _current: CompletionResult,
         from: number,
         to: number,
@@ -588,7 +588,7 @@ export class LSPPlugin implements PluginValue {
                 },
             ],
             filter: false,
-            update: this.refreshLivePreview,
+            update: this._refreshLivePreview,
         };
     };
 }
