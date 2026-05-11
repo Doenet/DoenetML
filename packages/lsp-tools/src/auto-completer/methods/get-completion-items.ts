@@ -15,6 +15,12 @@ import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
+// LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
+// supports one for "show this, filter on label". Our in-process LSP transport
+// preserves unknown fields, so we attach it as an optional extension and the
+// CodeMirror plugin forwards it through.
+type DoenetCompletionItem = CompletionItem & { displayLabel?: string };
+
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -522,7 +528,7 @@ export function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
-): CompletionItem[] {
+): DoenetCompletionItem[] {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
     }
@@ -995,11 +1001,41 @@ export function getCompletionItems(
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {
-            // Free-text attribute: nothing to suggest. Returning a bare `""`
-            // placeholder either corrupts the source on accept (`name=foo""`
-            // when anchored at `=`, or `name=""""` when inside `"..."`) or
-            // makes the client thrash the menu as it filters the empty
-            // label against the typed prefix.
+            // Free-text attribute: no enum to suggest. We still offer a single
+            // "wrap in quotes" hint *iff* the author has typed a bare value
+            // after `=` (e.g. `name=foo`). The hint's displayLabel previews
+            // the corrected form `"foo"`, and accepting the suggestion
+            // replaces the bare run with the quoted version. We deliberately
+            // skip the hint when:
+            //   * the cursor is right at `=` with no typed value yet
+            //     (`isBareValueAfterEquals` is false), and
+            //   * the cursor is already inside `"..."`
+            //     (`cursorPosition === "attributeValue"`),
+            // so an expert who reflexively types `"` after `=` never sees a
+            // flicker, and a bare `=` doesn't pop a useless menu.
+            if (
+                cursorPosition !== "attributeValue" &&
+                isBareValueAfterEquals &&
+                typedValuePrefix.length > 0
+            ) {
+                const range = createTextEditRange(
+                    this.sourceObj,
+                    equalsScan + 1,
+                    offset,
+                );
+                return [
+                    {
+                        label: typedValuePrefix,
+                        displayLabel: `"${typedValuePrefix}"`,
+                        kind: CompletionItemKind.Value,
+                        filterText: typedValuePrefix,
+                        textEdit: {
+                            range,
+                            newText: `"${typedValuePrefix}"`,
+                        },
+                    },
+                ];
+            }
             return [];
         }
         // Quotes get added via `textEdit.newText` when the cursor is anchored
@@ -1020,6 +1056,11 @@ export function getCompletionItems(
             !needsQuotes ||
             !filterPrefix ||
             value.toLowerCase().startsWith(filterPrefix);
+        // When we add quotes via textEdit, advertise the quoted form in
+        // `displayLabel` so the dropdown reads `"full"` instead of `full`.
+        // The bare `label` is still used by CodeMirror's fuzzy matcher, so
+        // typing `fu` still ranks `full` correctly. Inside `"..."` we omit
+        // `displayLabel` so the dropdown matches what actually gets inserted.
         if (optionsWithDescriptions) {
             return optionsWithDescriptions
                 .filter(({ value }) => matchesPrefix(value))
@@ -1030,6 +1071,7 @@ export function getCompletionItems(
                     documentation: asMarkdown(description),
                     ...(quotedRange
                         ? {
+                              displayLabel: `"${value}"`,
                               textEdit: {
                                   range: quotedRange,
                                   newText: `"${value}"`,
@@ -1046,6 +1088,7 @@ export function getCompletionItems(
                 filterText: value,
                 ...(quotedRange
                     ? {
+                          displayLabel: `"${value}"`,
                           textEdit: {
                               range: quotedRange,
                               newText: `"${value}"`,

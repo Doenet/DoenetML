@@ -353,8 +353,8 @@ export class LSPPlugin implements PluginValue {
 
         const items = "items" in result ? result.items : result;
 
-        let options = items.map(
-            ({
+        let options = items.map((rawItem) => {
+            const {
                 detail,
                 label,
                 kind,
@@ -363,30 +363,38 @@ export class LSPPlugin implements PluginValue {
                 sortText,
                 filterText,
                 data,
-            }) => {
-                const completion: ExtendedCompletion = {
-                    label,
-                    detail,
-                    apply: textEdit?.newText ?? label,
-                    type: kind && completionItemKindMap[kind].toLowerCase(),
-                    sortText: sortText ?? label,
-                    filterText: filterText ?? label,
-                };
-                if (documentation) {
-                    completion.info = renderDocumentation(documentation);
-                }
-                // Store range info if present for custom apply logic later
-                if (textEdit && "range" in textEdit) {
-                    completion._lspTextEditRange = textEdit.range;
-                }
-                const snippetCursor =
-                    getSnippetCursorFromCompletionItemData(data);
-                if (snippetCursor) {
-                    completion._snippetCursor = snippetCursor;
-                }
-                return completion;
-            },
-        );
+            } = rawItem;
+            // `displayLabel` is a CodeMirror-only field that LSP doesn't
+            // declare; the in-process LSP attaches it as an optional
+            // extension when we want the dropdown to render a different
+            // string than the value used for fuzzy matching (e.g. show
+            // `"full"` while still matching on `full`).
+            const displayLabel = (rawItem as { displayLabel?: string })
+                .displayLabel;
+            const completion: ExtendedCompletion = {
+                label,
+                detail,
+                apply: textEdit?.newText ?? label,
+                type: kind && completionItemKindMap[kind].toLowerCase(),
+                sortText: sortText ?? label,
+                filterText: filterText ?? label,
+            };
+            if (displayLabel) {
+                completion.displayLabel = displayLabel;
+            }
+            if (documentation) {
+                completion.info = renderDocumentation(documentation);
+            }
+            // Store range info if present for custom apply logic later
+            if (textEdit && "range" in textEdit) {
+                completion._lspTextEditRange = textEdit.range;
+            }
+            const snippetCursor = getSnippetCursorFromCompletionItemData(data);
+            if (snippetCursor) {
+                completion._snippetCursor = snippetCursor;
+            }
+            return completion;
+        });
 
         const [span, match] = prefixMatch(options);
         const token = context.matchBefore(match);

@@ -201,6 +201,72 @@ describe("AutoCompleter", () => {
         });
     });
 
+    it("Quotes the displayLabel for enumerated values when anchored to `=`", () => {
+        // Bare-after-`=`: dropdown should read `"more"` etc. while still
+        // matching/inserting via the bare `more` label.
+        const source = `<aa><b bar=mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        expect(items[0].displayLabel).toEqual(`"more"`);
+        expect(items[0].filterText).toEqual("more");
+    });
+
+    it('Omits displayLabel for enumerated values when cursor is already inside `"..."`', () => {
+        // Inside `"..."`: no quotes added by the textEdit (the surrounding
+        // quotes already exist), so the dropdown should match what gets
+        // inserted -- bare `more`, no `displayLabel`.
+        const source = `<aa><b bar="mo"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toContain("more");
+        const moreItem = items.find((item) => item.label === "more");
+        expect(moreItem?.displayLabel).toBeUndefined();
+    });
+
+    it('Offers a `"foo"` wrap-in-quotes hint for a free-text attribute with a bare typed prefix', () => {
+        // `aa.x` is free-text (no `values` / `autocompleteValues`). When the
+        // author types `<aa x=foo>`, the single completion previews the
+        // corrected form `"foo"` and accepting it replaces the bare run.
+        const source = `<aa x=foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toEqual("foo");
+        expect(items[0].displayLabel).toEqual(`"foo"`);
+        expect(items[0].filterText).toEqual("foo");
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Swallows whitespace between `=` and a bare free-text value into the quoted textEdit", () => {
+        // Same swallow behaviour as the enumerated branch: any whitespace
+        // between `=` and the bare value is replaced along with the bare
+        // run, so `x=   foo` accepts to `x="foo"`.
+        const source = `<aa x=   foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
     it("Returns no value completions when no enumerated value matches the bare prefix", () => {
         const source = `<aa><b foo=zz></b></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
@@ -209,21 +275,18 @@ describe("AutoCompleter", () => {
         expect(items).toEqual([]);
     });
 
-    it("Returns no completions for a free-text attribute regardless of cursor anchor", () => {
+    it("Returns no completions for a free-text attribute when there is no bare typed prefix", () => {
         // `aa.x` has no `values` / `autocompleteValues`. The old fallback
         // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`
         // when anchored at `=`, `""""` when inside `"..."`) and made the
-        // client flicker the menu on every keystroke.
+        // client flicker the menu on every keystroke. The B′ wrap-in-quotes
+        // hint only fires when the author has typed a bare value past `=`;
+        // these three contexts must stay empty so an expert who types `"`
+        // straight after `=` never sees a stray menu.
         const justAfterEquals = `<aa x=></aa>`;
         const acEmpty = new AutoCompleter(justAfterEquals, schema.elements);
         expect(
             acEmpty.getCompletionItems(justAfterEquals.indexOf("=") + 1),
-        ).toEqual([]);
-
-        const withBarePrefix = `<aa x=foo></aa>`;
-        const acPrefix = new AutoCompleter(withBarePrefix, schema.elements);
-        expect(
-            acPrefix.getCompletionItems(withBarePrefix.indexOf("foo") + 3),
         ).toEqual([]);
 
         // Cursor between the quotes of `x=""`.
