@@ -915,6 +915,11 @@ export function getCompletionItems(
     // The `!isBareValueAfterEquals && prevNonWhitespaceChar !== "="` guards
     // cede those cases to the attribute-value branch below — otherwise an
     // unquoted `name=ful` would route here as an attribute-name completion.
+    // The `prevNonWhitespaceChar !== "="` clause additionally covers the
+    // "cursor sits immediately after `=` with no bare value typed yet" case
+    // (`isBareValueAfterEquals` is false there since the prefix is empty);
+    // we want that case in the attribute-value branch too so `=` alone pops
+    // the value menu.
     if (
         (cursorPosition === "openTag" || cursorPosition === "attributeName") &&
         !isBareValueAfterEquals &&

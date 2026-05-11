@@ -43,6 +43,7 @@ const schema = {
                         { value: "full", description: "Full." },
                     ],
                 },
+                { name: "data-info", values: ["alpha", "beta"] },
             ],
             top: false,
             acceptsStringChildren: false,
@@ -85,6 +86,7 @@ describe("AutoCompleter", () => {
                 "foo",
                 "bar",
                 "modeOneSided",
+                "data-info",
             ]);
         }
         {
@@ -178,6 +180,26 @@ describe("AutoCompleter", () => {
             newText: `"more"`,
             range: {
                 start: { line: 0, character: offset - 2 },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Resolves a hyphenated attribute name when typing a bare value after `=`", () => {
+        // The bare-after-`=` branch walks back from the cursor over
+        // `[A-Za-z0-9_-]` to find the attribute name. A hyphen in the
+        // attribute name (e.g. `data-info`) is inside that character
+        // class, so the walk should land on the full `data-info` and
+        // resolve its enumerated values.
+        const source = `<aa><b data-info=al></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("al") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["alpha"]);
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"alpha"`,
+            range: {
+                start: { line: 0, character: source.indexOf("=") + 1 },
                 end: { line: 0, character: offset },
             },
         });

@@ -43,7 +43,7 @@ export function getLivePreviewQuoteWrap(
     ) {
         return undefined;
     }
-    return { bareValueStartOffset: marker.bareValueStartOffset };
+    return marker;
 }
 
 function isNonNegativeInteger(value: unknown): value is number {

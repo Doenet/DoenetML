@@ -68,10 +68,20 @@ import {
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import type {
+    CompletionItem as LSPCompletionItem,
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
 import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
+
+// LSP's `CompletionItem` doesn't declare `displayLabel`, but
+// @codemirror/autocomplete supports it as a "show this, filter on label"
+// override. Our in-process LSP transport preserves unknown fields, so
+// `get-completion-items.ts` attaches it as an optional extension and we
+// destructure it here through a single seam-level cast rather than per item.
+type LSPCompletionItemWithDisplayLabel = LSPCompletionItem & {
+    displayLabel?: string;
+};
 import "./tooltip.css";
 
 // Keep identifier policy aligned with macro parsing/completion rules.
@@ -357,7 +367,9 @@ export class LSPPlugin implements PluginValue {
             return null;
         }
 
-        const items = "items" in result ? result.items : result;
+        const items = (
+            "items" in result ? result.items : result
+        ) as LSPCompletionItemWithDisplayLabel[];
 
         let options = items.map((rawItem) => {
             const {
@@ -369,14 +381,8 @@ export class LSPPlugin implements PluginValue {
                 sortText,
                 filterText,
                 data,
+                displayLabel,
             } = rawItem;
-            // `displayLabel` is a CodeMirror-only field that LSP doesn't
-            // declare; the in-process LSP attaches it as an optional
-            // extension when we want the dropdown to render a different
-            // string than the value used for fuzzy matching (e.g. show
-            // `"full"` while still matching on `full`).
-            const displayLabel = (rawItem as { displayLabel?: string })
-                .displayLabel;
             const completion: ExtendedCompletion = {
                 label,
                 detail,

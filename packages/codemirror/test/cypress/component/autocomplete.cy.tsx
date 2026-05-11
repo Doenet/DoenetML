@@ -317,7 +317,18 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("not.contain.text", 'name=   "hello"');
     });
 
-    it("keeps cursor at end of completed reference when stale response arrives late", () => {
+    it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
+        // Smoke test for the end-to-end ref-completion accept flow when
+        // the first LSP response is slow. Originally named for a
+        // staleness-guard regression, but @codemirror/autocomplete
+        // coalesces source calls so only one LSP call fires for the
+        // whole `$my` typing burst — there is no second response to
+        // race against, so this test does not independently exercise
+        // the stale-response handling removed in 488a9b51. Kept as a
+        // smoke test that the apply-function's range merge (Math.min /
+        // Math.max with the LSP-side textEdit range) places the cursor
+        // at the end of the inserted ref even when the response arrives
+        // after the typing has moved past the original cursor position.
         cy.mount(
             <AutocompleteTestHarness
                 initialValue={'<section name="mySection" />\n'}
