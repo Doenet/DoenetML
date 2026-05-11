@@ -383,6 +383,18 @@ jobs:
             - name: Assert committed schema is up to date
               run: git diff --exit-code -- packages/static-assets/src/generated/
 
+            # `git diff` only catches tracked-file drift. If build:schema
+            # ever starts emitting a new generated artifact, it'd land
+            # here as untracked and silently pass the diff above.
+            - name: Assert no untracked generated files
+              run: |
+                  untracked=$(git ls-files --others --exclude-standard -- packages/static-assets/src/generated/)
+                  if [ -n "$untracked" ]; then
+                      echo "Untracked generated files:"
+                      echo "$untracked"
+                      exit 1
+                  fi
+
     check-docs-coverage:
         name: Check Reference Docs Coverage
         runs-on: ubuntu-latest

@@ -223,7 +223,11 @@ type StateVariableDescription = {
 
 type PublicStateVariableDescription = {
     public: boolean;
-    createComponentOfType: string;
+    /** Some public state variables (mainly array slots) don't declare a
+     * `createComponentOfType` — kept optional to match the underlying
+     * `StateVariableDescription`. The ternary in `singlePropFromDescription`
+     * is load-bearing for these cases. */
+    createComponentOfType?: string;
     isArray: boolean;
     numDimensions?: number;
     schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
