@@ -18,7 +18,7 @@ export type SchemaProperty = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: unknown[];
-    description?: string;
+    description: string;
     fromAttribute?: boolean;
 };
 

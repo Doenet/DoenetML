@@ -339,6 +339,62 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
+    schema-freshness:
+        name: Verify schema regenerated
+        runs-on: ubuntu-latest
+        needs: build
+
+        strategy:
+            matrix:
+                node-version: [24.x]
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            # build:schema imports componentInfoObjects from source, which
+            # transitively requires @doenet/utils (and friends) to be built.
+            # Matches the check-docs-coverage cached-build pattern.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:all-no-docs
+              env:
+                  WIREIT_CACHE: "local"
+
+            # Regenerates packages/static-assets/src/generated/* from
+            # componentInfoObjects (read by vite-node). build:schema is
+            # not wireit-wrapped, so a fresh run always executes.
+            # The runtime guards in get-schema.ts also throw here if any
+            # component/attribute/property/attribute-value description is
+            # missing.
+            - name: Regenerate schema
+              run: npm run build:schema -w packages/static-assets
+
+            - name: Assert committed schema is up to date
+              run: git diff --exit-code -- packages/static-assets/src/generated/
+
+            # `git diff` only catches tracked-file drift. If build:schema
+            # ever starts emitting a new generated artifact, it'd land
+            # here as untracked and silently pass the diff above.
+            - name: Assert no untracked generated files
+              run: |
+                  untracked=$(git ls-files --others --exclude-standard -- packages/static-assets/src/generated/)
+                  if [ -n "$untracked" ]; then
+                      echo "Untracked generated files:"
+                      echo "$untracked"
+                      exit 1
+                  fi
+
     check-docs-coverage:
         name: Check Reference Docs Coverage
         runs-on: ubuntu-latest
