@@ -1,15 +1,18 @@
 import type { AttributeDefinition } from "./dast/types";
+import { normalizeValidValues } from "./validValues";
 
 export type AttributesObject = Record<string, AttributeDefinition<unknown>>;
 
 /**
  * Preprocess an attributes object created by componentClass.createAttributesObject().
  *
- * This function modifies the attributes object if the property `toLowerCase` is true.
- * In that case:
- * 1. If the defaultValue property is specified, convert it to lower case
- * 2. If the validValues property is specified, convert each entry of the array to lower case
- * 3. If the valueForTrue or valueForFalse properties are specified, convert the values to lower case
+ * Two passes run unconditionally on every spec:
+ *  1. `validValues` is normalized to `{value, description?}` objects so
+ *     runtime consumers (e.g. `validateAttributeValue`) can read `.value`
+ *     directly without re-normalizing on each access.
+ *  2. If `toLowerCase` is `true`, `defaultValue`, each `validValues[].value`,
+ *     `valueForTrue`, and `valueForFalse` are lower-cased. Descriptions are
+ *     left untouched.
  *
  * @param attributesObject - The result of componentClass.createAttributesObject()
  * @returns The preprocessed attributes object
@@ -20,9 +23,14 @@ export function preprocessAttributesObject<T extends AttributesObject>(
     for (const attrName in attributesObject) {
         const attrSpec = attributesObject[attrName];
 
-        // Check if toLowerCase flag is set
+        if (
+            Array.isArray(attrSpec.validValues) &&
+            attrSpec.validValues.length > 0
+        ) {
+            attrSpec.validValues = normalizeValidValues(attrSpec.validValues);
+        }
+
         if (attrSpec.toLowerCase === true) {
-            // Convert defaultValue to lower case if specified
             if (
                 attrSpec.defaultValue !== undefined &&
                 attrSpec.defaultValue !== null
@@ -32,33 +40,19 @@ export function preprocessAttributesObject<T extends AttributesObject>(
                 ).toLowerCase();
             }
 
-            // Convert each entry in validValues array to lower case if specified.
-            // Entries may be bare values or `{value, description}` objects;
-            // descriptions are never lowercased.
-            if (
-                Array.isArray(attrSpec.validValues) &&
-                attrSpec.validValues.length > 0
-            ) {
-                attrSpec.validValues = attrSpec.validValues.map((entry) => {
-                    if (
-                        entry !== null &&
-                        typeof entry === "object" &&
-                        "value" in (entry as object)
-                    ) {
-                        const obj = entry as {
-                            value: unknown;
-                            description?: string;
-                        };
-                        return {
-                            ...obj,
-                            value: String(obj.value).toLowerCase(),
-                        };
-                    }
-                    return String(entry).toLowerCase();
-                });
+            if (Array.isArray(attrSpec.validValues)) {
+                // After the normalize pass above, every entry is an object.
+                attrSpec.validValues = (
+                    attrSpec.validValues as Array<{
+                        value: string;
+                        description?: string;
+                    }>
+                ).map((entry) => ({
+                    ...entry,
+                    value: entry.value.toLowerCase(),
+                }));
             }
 
-            // Convert valueForTrue to lower case if specified
             if (
                 attrSpec.valueForTrue !== undefined &&
                 attrSpec.valueForTrue !== null
@@ -68,7 +62,6 @@ export function preprocessAttributesObject<T extends AttributesObject>(
                 ).toLowerCase();
             }
 
-            // Convert valueForFalse to lower case if specified
             if (
                 attrSpec.valueForFalse !== undefined &&
                 attrSpec.valueForFalse !== null

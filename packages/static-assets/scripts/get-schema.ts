@@ -6,6 +6,7 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+import { normalizeValidValues } from "../../doenetml-worker-javascript/src/utils/validValues";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -83,7 +84,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: Array<unknown | { value: unknown; description?: string }>;
+    validValues?: Array<string | { value: string; description?: string }>;
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -239,14 +240,14 @@ type PublicStateVariableDescription = {
  * help panel; `value` carries the literal string a user would type.
  */
 type SchemaAttributeValueOption = {
-    value: unknown;
+    value: string;
     description?: string;
 };
 
 type SchemaAttribute = {
     name: string;
     /** Values accepted by validation/schema checks. */
-    values?: unknown[];
+    values?: string[];
     /**
      * Optional author-facing subset used for autocomplete suggestions. Each
      * entry carries the literal value plus an optional human-readable
@@ -259,23 +260,6 @@ type SchemaAttribute = {
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
 };
-
-/**
- * Normalize a raw `validValues` entry into `{value, description?}`. Bare
- * strings (legacy shape) become objects with no description. Object entries
- * pass through unchanged. Single source of truth for the shape transition —
- * mirrors `normalizeValidValues` in the worker package.
- */
-function normalizeValidValueEntry(entry: unknown): SchemaAttributeValueOption {
-    if (
-        entry !== null &&
-        typeof entry === "object" &&
-        "value" in (entry as object)
-    ) {
-        return entry as SchemaAttributeValueOption;
-    }
-    return { value: entry };
-}
 
 type SchemaElement = {
     /** The component type of this component */
@@ -555,22 +539,18 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
-                const normalized = attrDef.validValues.map(
-                    normalizeValidValueEntry,
-                );
+                const normalized = normalizeValidValues(attrDef.validValues);
                 const validValueStrings = normalized.map((v) => v.value);
-                if (booleanAliasValues.length > 0) {
-                    attrSpec.values = [
-                        ...new Set([
-                            ...validValueStrings,
-                            ...booleanAliasValues,
-                        ]),
-                    ];
-                    attrSpec.autocompleteValues = normalized;
-                } else {
-                    attrSpec.values = validValueStrings;
-                    attrSpec.autocompleteValues = normalized;
-                }
+                attrSpec.values =
+                    booleanAliasValues.length > 0
+                        ? [
+                              ...new Set([
+                                  ...validValueStrings,
+                                  ...booleanAliasValues,
+                              ]),
+                          ]
+                        : validValueStrings;
+                attrSpec.autocompleteValues = normalized;
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"

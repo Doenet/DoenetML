@@ -3,7 +3,7 @@ import { normalizeValidValues } from "../../utils/validValues";
 
 describe("normalizeValidValues", () => {
     it("returns an empty array when the input is undefined", () => {
-        expect(normalizeValidValues<string>(undefined)).toEqual([]);
+        expect(normalizeValidValues(undefined)).toEqual([]);
     });
 
     it("wraps bare string entries into {value}", () => {
@@ -23,7 +23,7 @@ describe("normalizeValidValues", () => {
 
     it("handles a mixed array of strings and objects", () => {
         expect(
-            normalizeValidValues<string>([
+            normalizeValidValues([
                 "tiny",
                 { value: "small", description: "30% of the width." },
                 "medium",
