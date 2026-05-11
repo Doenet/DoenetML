@@ -25,8 +25,10 @@ describe("generated schema help fields", () => {
     });
 
     it("populates element summary from static componentDocs", () => {
-        expect(sequence.summary).toBeTruthy();
-        expect(selectFromSequence.summary).toBeTruthy();
+        expect(typeof sequence.summary).toBe("string");
+        expect(sequence.summary.length).toBeGreaterThan(0);
+        expect(typeof selectFromSequence.summary).toBe("string");
+        expect(selectFromSequence.summary.length).toBeGreaterThan(0);
     });
 
     it("populates description on a component's own attribute", () => {

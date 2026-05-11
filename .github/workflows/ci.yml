@@ -339,6 +339,35 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
+    schema-freshness:
+        name: Verify schema regenerated
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [24.x]
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            # Regenerates packages/static-assets/src/generated/* from
+            # componentInfoObjects (read by vite-node). build:schema is
+            # not wireit-wrapped, so a fresh run always executes.
+            # The runtime guards in get-schema.ts also throw here if any
+            # component/attribute/property/attribute-value description is
+            # missing.
+            - name: Regenerate schema
+              run: npm run build:schema -w packages/static-assets
+
+            - name: Assert committed schema is up to date
+              run: git diff --exit-code -- packages/static-assets/src/generated/
+
     check-docs-coverage:
         name: Check Reference Docs Coverage
         runs-on: ubuntu-latest
