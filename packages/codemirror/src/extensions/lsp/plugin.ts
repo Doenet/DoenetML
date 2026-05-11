@@ -160,7 +160,6 @@ export class LSPPlugin implements PluginValue {
     uri: string = "";
     value: string = "";
     diagnostics: LSPDiagnostic[] = [];
-    completionRequestToken = 0;
     docVersion = 0;
     reopenLatch: ReopenLatch | null = null;
     view?: EditorView;
@@ -296,8 +295,6 @@ export class LSPPlugin implements PluginValue {
     }
     async getCompletions(context: CompletionContext) {
         let { state, pos, explicit } = context;
-        const requestToken = ++this.completionRequestToken;
-        const requestDocVersion = this.docVersion;
         const line = state.doc.lineAt(pos);
         let triggerKind: LSPCompletionTriggerKind =
             LSPCompletionTriggerKind.Invoked;
@@ -338,12 +335,15 @@ export class LSPPlugin implements PluginValue {
             },
         );
 
-        // Guard against out-of-order async responses from older completion requests.
-        if (
-            !this.view ||
-            requestToken !== this.completionRequestToken ||
-            this.docVersion !== requestDocVersion
-        ) {
+        // Don't bail by returning `null` if the user typed more characters
+        // while we were awaiting — @codemirror/autocomplete reads `null`
+        // as "this source has no completions" and closes the active list,
+        // producing a flicker mid-type. The autocomplete subsystem already
+        // tracks query staleness via `RunningQuery.context.aborted` and
+        // replays subsequent transactions through `ActiveResult.updateFor`
+        // to map result positions forward, so returning the (slightly
+        // older) result is safe and keeps the menu stable.
+        if (!this.view) {
             return null;
         }
 
