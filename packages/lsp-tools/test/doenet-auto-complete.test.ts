@@ -191,6 +191,23 @@ describe("AutoCompleter", () => {
         expect(items).toEqual([]);
     });
 
+    it("Returns no completions for a free-text attribute when anchored at `=`", () => {
+        // `aa.x` has no `values` / `autocompleteValues`. The old fallback
+        // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`)
+        // and made the client flicker the menu on every keystroke.
+        const justAfterEquals = `<aa x=></aa>`;
+        const acEmpty = new AutoCompleter(justAfterEquals, schema.elements);
+        expect(
+            acEmpty.getCompletionItems(justAfterEquals.indexOf("=") + 1),
+        ).toEqual([]);
+
+        const withBarePrefix = `<aa x=foo></aa>`;
+        const acPrefix = new AutoCompleter(withBarePrefix, schema.elements);
+        expect(
+            acPrefix.getCompletionItems(withBarePrefix.indexOf("foo") + 3),
+        ).toEqual([]);
+    });
+
     it("Does not offer attribute-value completions for a literal `=` in body text", () => {
         const source = `<aa>x=val</aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);

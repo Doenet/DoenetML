@@ -992,6 +992,16 @@ export function getCompletionItems(
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {
+            // For a free-text attribute, the `""` placeholder only makes
+            // sense when the cursor is already inside `"..."`. When anchored
+            // at `=` it would (a) corrupt the source on accept — typing
+            // `name=foo` and selecting `""` produces `name=foo""` — and
+            // (b) make the menu flicker, since the client filters the
+            // bare-`""` label against the typed prefix and re-anchors on
+            // every keystroke.
+            if (cursorPosition !== "attributeValue") {
+                return [];
+            }
             return [{ label: '""', kind: CompletionItemKind.Value }];
         }
         // Quotes get added via `textEdit.newText` when the cursor is anchored
