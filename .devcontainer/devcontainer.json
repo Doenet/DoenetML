@@ -10,9 +10,10 @@
         }
     },
     "containerEnv": {
-        "NODE_OPTIONS": "--max-old-space-size=6144"
+        "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
-    "postCreateCommand": "npm install && npm run build",
+    // Unset NODE_OPTIONS and VSCODE_INSPECTOR_OPTIONS to prevent a debugger from trying to auto-attach to the container in an invalid way.
+    "postCreateCommand": "unset NODE_OPTIONS VSCODE_INSPECTOR_OPTIONS && npm install && npm run build",
     "customizations": {
         "vscode": {
             "extensions": [
