@@ -107,7 +107,9 @@ describe("schema build enforcement", () => {
                 originalDescription;
         };
         expect(() => getSchema(infoObjects)).toThrow(
-            new RegExp(`Invalid description for property \`${varName}\``),
+            new RegExp(
+                `Invalid description for property \`point\\.${varName}\``,
+            ),
         );
     });
 });

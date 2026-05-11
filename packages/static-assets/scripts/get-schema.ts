@@ -87,7 +87,7 @@ type AttributeObject = {
     validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
-    description?: string;
+    description: string;
 };
 
 type ComponentClass = {
@@ -644,6 +644,7 @@ export function getSchema(
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
+                    parentType: type,
                     varName,
                     description,
                     arrayEntryPrefixes,
@@ -675,6 +676,7 @@ export function getSchema(
                 }
                 properties.push(
                     ...propFromDescription({
+                        parentType: type,
                         varName: aliasName,
                         description: aliasDescription,
                         arrayEntryPrefixes,
@@ -712,6 +714,7 @@ export function getSchema(
 
                         properties.push(
                             ...propFromDescription({
+                                parentType: type,
                                 varName: aliasName,
                                 description: arrayEntryDescription,
                                 arrayEntryPrefixes,
@@ -787,11 +790,13 @@ export function getSchema(
 }
 
 function propFromDescription({
+    parentType,
     varName,
     description,
     arrayEntryPrefixes,
     includeSchemaSubarrays,
 }: {
+    parentType: string;
     varName: string;
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
@@ -799,6 +804,7 @@ function propFromDescription({
 }): PropertyDescription[] {
     const props = [
         singlePropFromDescription({
+            parentType,
             varName,
             description,
             arrayEntryPrefixes,
@@ -831,6 +837,7 @@ function propFromDescription({
 
             props.push(
                 singlePropFromDescription({
+                    parentType,
                     varName: subarrayName,
                     description: {
                         ...description,
@@ -859,10 +866,12 @@ function propFromDescription({
 }
 
 function singlePropFromDescription({
+    parentType,
     varName,
     description,
     arrayEntryPrefixes,
 }: {
+    parentType: string;
     varName: string;
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
@@ -878,7 +887,7 @@ function singlePropFromDescription({
         description.description.trim() === ""
     ) {
         throw new Error(
-            `Invalid description for property \`${varName}\` (createComponentOfType=${componentType}): every public state variable, alias, or array-entry property feeding the schema must have a non-empty \`description\`. Got: ${JSON.stringify(description.description)}`,
+            `Invalid description for property \`${parentType}.${varName}\` (createComponentOfType=${componentType}): every public state variable, alias, or array-entry property feeding the schema must have a non-empty \`description\`. Got: ${JSON.stringify(description.description)}`,
         );
     }
 
