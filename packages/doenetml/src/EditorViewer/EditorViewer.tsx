@@ -63,6 +63,7 @@ type EditorViewerProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;
@@ -205,6 +206,10 @@ export const EditorViewer = React.forwardRef<
     );
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
+    // Snapshot of the DoenetML the viewer was rendering when it last reported
+    // diagnostics, captured at callback time so a later edit/save can't make
+    // the source disagree with the diagnostics it produced.
+    const [diagnosticsSource, setDiagnosticsSource] = useState(initialDoenetML);
     // Track whether we've received diagnostics from the viewer at least once.
     // This is used to gate when we call the diagnosticsSummaryCallback to avoid sending
     // just the initial diagnostics on load, which would be misleading since that
@@ -268,8 +273,12 @@ export const EditorViewer = React.forwardRef<
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
-    function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
+    function setDiagnosticsCallback(
+        newDiagnostics: DiagnosticRecord[],
+        source: string,
+    ) {
         setDiagnostics(newDiagnostics);
+        setDiagnosticsSource(source);
         setReceivedDiagnosticsFromViewer(true);
     }
 
@@ -321,16 +330,28 @@ export const EditorViewer = React.forwardRef<
             return;
         }
 
-        diagnosticsSummaryCallbackRef.current?.({
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        });
+        diagnosticsSummaryCallbackRef.current?.(
+            {
+                warningsCount,
+                errorsCount,
+                infosCount,
+                accessibilityLevel1Count,
+                accessibilityLevel2Count,
+            },
+            diagnosticsSource,
+        );
         // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
         // count change — the consumer should treat this as an event, not a memoized value.
-    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
+        // `diagnosticsSource` is the DoenetML the viewer was rendering when these
+        // diagnostics were produced; note that `initialDiagnostics` may have been
+        // computed by the parent against an earlier snapshot, so the source pairing
+        // is only authoritative for the viewer-generated portion.
+    }, [
+        diagnostics,
+        initialDiagnostics,
+        receivedDiagnosticsFromViewer,
+        diagnosticsSource,
+    ]);
 
     const [responses, setResponses] = useState<
         {

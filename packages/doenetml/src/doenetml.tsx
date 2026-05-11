@@ -119,7 +119,10 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    setDiagnosticsCallback?: (
+        diagnostics: DiagnosticRecord[],
+        source?: string,
+    ) => void;
     /**
      * @deprecated Use `setDiagnosticsCallback` instead.
      */
@@ -194,8 +197,8 @@ export function DoenetViewer({
     }, []);
 
     const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
-        ? (diagnostics: DiagnosticRecord[]) => {
-              setDiagnosticsCallback?.(diagnostics);
+        ? (diagnostics: DiagnosticRecord[], source: string) => {
+              setDiagnosticsCallback?.(diagnostics, source);
               setErrorsAndWarningsCallback({
                   errors: diagnostics.filter(isErrorRecord),
                   warnings: diagnostics.filter(isWarningRecord),
@@ -345,6 +348,7 @@ type DoenetEditorProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;
