@@ -56,6 +56,8 @@
     },
     "devDependencies": {
         "@types/color-name": "^2.0.0",
-        "@types/nearest-color": "^0.4.1"
+        "@types/nearest-color": "^0.4.1",
+        "@types/sha256": "^0.2.2",
+        "sha256": "^0.2.0"
     }
 }
