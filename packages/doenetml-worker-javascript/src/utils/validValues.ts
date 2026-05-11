@@ -1,11 +1,13 @@
-/**
- * A normalized `validValues` entry: always carries a `value` and an optional
- * `description`. Producer code may declare each entry as either a bare string
- * or a `{value, description}` object — consumers should always go through
- * `normalizeValidValues` to get a uniform shape.
- */
-export type ValidValueEntry = { value: string; description?: string };
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
 
+export type { ValidValueEntry };
+
+/**
+ * Normalize a raw `validValues` declaration — which may mix bare strings and
+ * `{value, description}` objects — into a uniform array of objects. All
+ * downstream consumers (validation, schema generation, autocomplete, help)
+ * read through this so they can always treat entries as objects.
+ */
 export function normalizeValidValues(
     raw: Array<string | ValidValueEntry> | undefined,
 ): ValidValueEntry[] {

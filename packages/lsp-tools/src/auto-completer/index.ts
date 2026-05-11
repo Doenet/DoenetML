@@ -1,5 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
 import { DastAttribute, DastElement } from "@doenet/parser";
@@ -10,15 +11,6 @@ import {
     type CompletionContext,
 } from "./methods/get-completion-context";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
-
-/**
- * One author-facing valid value for an attribute, paired with an optional
- * human-readable description shown in autocomplete and the help panel.
- */
-export type SchemaAttributeValueOption = {
-    value: string;
-    description?: string;
-};
 
 /**
  * Per-attribute fields surfaced in autocomplete and the help panel.
@@ -32,7 +24,7 @@ export type SchemaAttribute = {
     name: string;
     description?: string;
     values?: string[];
-    autocompleteValues?: SchemaAttributeValueOption[];
+    autocompleteValues?: ValidValueEntry[];
     defaultValue?: unknown;
 };
 

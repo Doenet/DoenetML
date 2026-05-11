@@ -1,6 +1,7 @@
 import type { ComponentIdx } from "@doenet/utils";
 import type Core from "../Core";
 import { preprocessAttributesObject } from "../utils/attributes";
+import type { ValidValueEntry } from "../utils/validValues";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the
@@ -1484,7 +1485,7 @@ function validateAttributeValue({
         // `{value, description?}` before this runs, so we can read
         // `.value` directly without re-normalizing.
         const allowed = (
-            attributeSpecification.validValues as Array<{ value: string }>
+            attributeSpecification.validValues as ValidValueEntry[]
         ).map((v) => v.value);
         if (!allowed.includes(value)) {
             let defaultValue = attributeSpecification.defaultValue;

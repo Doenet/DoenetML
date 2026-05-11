@@ -7,6 +7,7 @@ import {
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
 import { normalizeValidValues } from "../../doenetml-worker-javascript/src/utils/validValues";
+import type { ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -84,7 +85,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: Array<string | { value: string; description?: string }>;
+    validValues?: Array<string | ValidValueEntry>;
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -234,16 +235,6 @@ type PublicStateVariableDescription = {
     fromAttribute?: boolean;
 };
 
-/**
- * One author-facing valid value with optional per-value description.
- * Descriptions are surfaced in editor autocomplete and the context-sensitive
- * help panel; `value` carries the literal string a user would type.
- */
-type SchemaAttributeValueOption = {
-    value: string;
-    description?: string;
-};
-
 type SchemaAttribute = {
     name: string;
     /** Values accepted by validation/schema checks. */
@@ -254,7 +245,7 @@ type SchemaAttribute = {
      * description. Boolean aliases injected via `valueForTrue`/`valueForFalse`
      * are intentionally kept out of this list and live only in `values`.
      */
-    autocompleteValues?: SchemaAttributeValueOption[];
+    autocompleteValues?: ValidValueEntry[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description?: string;
     /** Default value for the attribute (if defined). */

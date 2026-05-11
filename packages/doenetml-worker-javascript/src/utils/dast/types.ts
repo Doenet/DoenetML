@@ -1,4 +1,5 @@
 import { Position, Source } from "@doenet/doenetml-worker";
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import {
     isUnflattenedComponent,
     UnflattenedComponent,
@@ -304,7 +305,7 @@ export type AttributeDefinition<T> = {
      * context-sensitive help panel. New declarations should use the object
      * form; the string form remains accepted to allow gradual migration.
      */
-    validValues?: Array<string | { value: string; description?: string }>;
+    validValues?: Array<string | ValidValueEntry>;
     /** When the value of this attribute is changed, call the action `triggerActionOnChange`. */
     triggerActionOnChange?: string;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */

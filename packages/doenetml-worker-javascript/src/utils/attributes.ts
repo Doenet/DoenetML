@@ -1,5 +1,5 @@
 import type { AttributeDefinition } from "./dast/types";
-import { normalizeValidValues } from "./validValues";
+import { normalizeValidValues, type ValidValueEntry } from "./validValues";
 
 export type AttributesObject = Record<string, AttributeDefinition<unknown>>;
 
@@ -43,10 +43,7 @@ export function preprocessAttributesObject<T extends AttributesObject>(
             if (Array.isArray(attrSpec.validValues)) {
                 // After the normalize pass above, every entry is an object.
                 attrSpec.validValues = (
-                    attrSpec.validValues as Array<{
-                        value: string;
-                        description?: string;
-                    }>
+                    attrSpec.validValues as ValidValueEntry[]
                 ).map((entry) => ({
                     ...entry,
                     value: entry.value.toLowerCase(),

@@ -10,6 +10,7 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
+import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
@@ -935,7 +936,7 @@ export function getCompletionItems(
         // otherwise, assume the user has already supplied the quote marks.
         const includeQuotes = prevNonWhitespaceChar === "=";
         const quote = includeQuotes ? '"' : "";
-        const entries: { value: string; description?: string }[] =
+        const entries: ValidValueEntry[] =
             optionsWithDescriptions ??
             (plainValues ?? []).map((value) => ({ value }));
         return entries.map(({ value, description }) => {
