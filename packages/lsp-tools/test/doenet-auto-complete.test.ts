@@ -183,6 +183,24 @@ describe("AutoCompleter", () => {
         });
     });
 
+    it("Swallows whitespace between `=` and a bare value into the quoted textEdit", () => {
+        const source = `<aa><b bar=   mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        // Range starts right after `=` so the three spaces are replaced
+        // along with `mo` and the result is `bar="more"` (no leftover space).
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
     it("Returns no value completions when no enumerated value matches the bare prefix", () => {
         const source = `<aa><b foo=zz></b></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);

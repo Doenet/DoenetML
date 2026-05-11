@@ -906,6 +906,9 @@ export function getCompletionItems(
         typedValueStart < offset;
     const typedValuePrefix = source.slice(typedValueStart, offset);
 
+    // The `!isBareValueAfterEquals && prevNonWhitespaceChar !== "="` guards
+    // cede those cases to the attribute-value branch below — otherwise an
+    // unquoted `name=ful` would route here as an attribute-name completion.
     if (
         (cursorPosition === "openTag" || cursorPosition === "attributeName") &&
         !isBareValueAfterEquals &&
@@ -957,7 +960,7 @@ export function getCompletionItems(
         const elmName = this.normalizeElementName(element.name);
         const allowedAttributes =
             this.schemaElementsByName[elmName]?.attributes || [];
-        let attribute = this._getAttributeContainsOffset(element, offset);
+        const attribute = this._getAttributeContainsOffset(element, offset);
         let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
@@ -1001,12 +1004,16 @@ export function getCompletionItems(
         }
         // Quotes get added via `textEdit.newText` when the cursor is anchored
         // to an `=` rather than already inside `"..."`. The display label and
-        // filter text always use the bare value.
+        // filter text always use the bare value. The replacement range starts
+        // right after `=` (rather than at the typed-value start) so any
+        // whitespace between `=` and the bare value is swallowed by the
+        // edit — `simplify=   ful` becomes `simplify="full"`, not
+        // `simplify=   "full"`.
         const needsQuotes =
             cursorPosition !== "attributeValue" &&
             (prevNonWhitespaceChar === "=" || isBareValueAfterEquals);
         const quotedRange = needsQuotes
-            ? createTextEditRange(this.sourceObj, typedValueStart, offset)
+            ? createTextEditRange(this.sourceObj, equalsScan + 1, offset)
             : undefined;
         const filterPrefix = typedValuePrefix.toLowerCase();
         const matchesPrefix = (value: string) =>
