@@ -340,18 +340,14 @@ export const EditorViewer = React.forwardRef<
             },
             diagnosticsSource,
         );
-        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
+        // Fire once per viewer-generated `diagnostics` change rather than per
         // count change — the consumer should treat this as an event, not a memoized value.
-        // `diagnosticsSource` is the DoenetML the viewer was rendering when these
-        // diagnostics were produced; note that `initialDiagnostics` may have been
-        // computed by the parent against an earlier snapshot, so the source pairing
-        // is only authoritative for the viewer-generated portion.
-    }, [
-        diagnostics,
-        initialDiagnostics,
-        receivedDiagnosticsFromViewer,
-        diagnosticsSource,
-    ]);
+        // `initialDiagnostics` is intentionally excluded from the deps: those are
+        // owned by the parent, which already knows the source they were computed
+        // against, so re-firing on their identity change would only emit a
+        // `diagnosticsSource` paired with viewer-generated diagnostics that didn't
+        // actually change.
+    }, [diagnostics, receivedDiagnosticsFromViewer, diagnosticsSource]);
 
     const [responses, setResponses] = useState<
         {

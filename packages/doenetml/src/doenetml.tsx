@@ -121,7 +121,7 @@ export function DoenetViewer({
     initializedCallback?: Function;
     setDiagnosticsCallback?: (
         diagnostics: DiagnosticRecord[],
-        source?: string,
+        source: string,
     ) => void;
     /**
      * @deprecated Use `setDiagnosticsCallback` instead.

@@ -156,7 +156,8 @@ describe(
         });
 
         it("diagnosticsSummaryCallback fires on each diagnostics update, including when counts are unchanged", () => {
-            postDoenetML(`<textInput /><text name="t">hello</text>`);
+            const sourceA = `<textInput /><text name="t">hello</text>`;
+            postDoenetML(sourceA);
 
             cy.get("#t").should("contain.text", "hello");
 
@@ -164,7 +165,8 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(1);
-                expect(calls[0].accessibilityLevel1Count).to.eq(1);
+                expect(calls[0].summary.accessibilityLevel1Count).to.eq(1);
+                expect(calls[0].doenetML).to.eq(sourceA);
             });
 
             // Type at the end of the editor and force a viewer update.
@@ -176,7 +178,8 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(2);
-                expect(calls[1].accessibilityLevel1Count).to.eq(1);
+                expect(calls[1].summary.accessibilityLevel1Count).to.eq(1);
+                expect(calls[1].doenetML).to.eq(sourceA + "abc");
             });
 
             // Add a second unlabeled input and update again.
@@ -189,8 +192,11 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(3);
-                expect(calls[2].accessibilityLevel1Count).to.be.greaterThan(
-                    calls[1].accessibilityLevel1Count,
+                expect(
+                    calls[2].summary.accessibilityLevel1Count,
+                ).to.be.greaterThan(calls[1].summary.accessibilityLevel1Count);
+                expect(calls[2].doenetML).to.eq(
+                    sourceA + "abc" + "<mathInput />",
                 );
             });
 
@@ -206,6 +212,44 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(3);
+            });
+        });
+
+        it("diagnosticsSummaryCallback's doenetML pairs with the source the viewer rendered, not the editor buffer", () => {
+            const sourceA = `<textInput /><text name="t">hello</text>`;
+            postDoenetML(sourceA);
+
+            cy.get("#t").should("contain.text", "hello");
+
+            // First call: viewer just rendered sourceA, so doenetML must be sourceA.
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(1);
+                expect(calls[0].doenetML).to.eq(sourceA);
+            });
+
+            // Type into the editor WITHOUT clicking the viewer update button.
+            // The viewer is still rendering sourceA, so any callback that fires
+            // now must report sourceA — not the (newer) editor buffer.
+            const appended = "<mathInput />";
+            cy.get(".cm-content")
+                .click()
+                .type("{ctrl+end}" + appended, { delay: 10 });
+            cy.wait(300);
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                for (const call of calls) {
+                    expect(call.doenetML).to.eq(sourceA);
+                }
+            });
+
+            // Now click the viewer update button: viewer re-renders with the
+            // buffer, and the next callback's doenetML must be the new source.
+            cy.get('[data-test="Viewer Update Button"]').click();
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                const last = calls[calls.length - 1];
+                expect(last.doenetML).to.eq(sourceA + appended);
             });
         });
 
