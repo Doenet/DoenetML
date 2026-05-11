@@ -43,6 +43,7 @@ const schema = {
                         { value: "full", description: "Full." },
                     ],
                 },
+                { name: "data-info", values: ["alpha", "beta"] },
             ],
             top: false,
             acceptsStringChildren: false,
@@ -85,6 +86,7 @@ describe("AutoCompleter", () => {
                 "foo",
                 "bar",
                 "modeOneSided",
+                "data-info",
             ]);
         }
         {
@@ -93,12 +95,14 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "true",
                   "kind": 12,
-                  "label": ""true"",
+                  "label": "true",
                 },
                 {
+                  "filterText": "false",
                   "kind": 12,
-                  "label": ""false"",
+                  "label": "false",
                 },
               ]
             `);
@@ -113,16 +117,18 @@ describe("AutoCompleter", () => {
                     "kind": "markdown",
                     "value": "More.",
                   },
+                  "filterText": "more",
                   "kind": 12,
-                  "label": ""more"",
+                  "label": "more",
                 },
                 {
                   "documentation": {
                     "kind": "markdown",
                     "value": "Less.",
                   },
+                  "filterText": "less",
                   "kind": 12,
-                  "label": ""less"",
+                  "label": "less",
                 },
               ]
             `);
@@ -133,16 +139,214 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "true",
                   "kind": 12,
                   "label": "true",
                 },
                 {
+                  "filterText": "false",
                   "kind": 12,
                   "label": "false",
                 },
               ]
             `);
         }
+    });
+
+    it("Adds quotes via textEdit when completing right after `=`", () => {
+        const source = `<aa><b foo=></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("=") + 1;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["true", "false"]);
+        const trueItem = items.find((item) => item.label === "true");
+        expect(trueItem?.textEdit).toMatchObject({ newText: `"true"` });
+        // Zero-length range right after the `=`
+        expect(trueItem?.textEdit).toMatchObject({
+            range: {
+                start: { line: 0, character: offset },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Filters and quotes a bare value typed after `=` without an opening quote", () => {
+        const source = `<aa><b bar=mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: offset - 2 },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Resolves a hyphenated attribute name when typing a bare value after `=`", () => {
+        // The bare-after-`=` branch walks back from the cursor over
+        // `[A-Za-z0-9_-]` to find the attribute name. A hyphen in the
+        // attribute name (e.g. `data-info`) is inside that character
+        // class, so the walk should land on the full `data-info` and
+        // resolve its enumerated values.
+        const source = `<aa><b data-info=al></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("al") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["alpha"]);
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"alpha"`,
+            range: {
+                start: { line: 0, character: source.indexOf("=") + 1 },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Swallows whitespace between `=` and a bare value into the quoted textEdit", () => {
+        const source = `<aa><b bar=   mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        // Range starts right after `=` so the three spaces are replaced
+        // along with `mo` and the result is `bar="more"` (no leftover space).
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Quotes the displayLabel for enumerated values when anchored to `=`", () => {
+        // Bare-after-`=`: dropdown should read `"more"` etc. while still
+        // matching/inserting via the bare `more` label.
+        const source = `<aa><b bar=mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        expect(items[0].displayLabel).toEqual(`"more"`);
+        expect(items[0].filterText).toEqual("more");
+    });
+
+    it('Omits displayLabel for enumerated values when cursor is already inside `"..."`', () => {
+        // Inside `"..."`: no quotes added by the textEdit (the surrounding
+        // quotes already exist), so the dropdown should match what gets
+        // inserted -- bare `more`, no `displayLabel`.
+        const source = `<aa><b bar="mo"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toContain("more");
+        const moreItem = items.find((item) => item.label === "more");
+        expect(moreItem?.displayLabel).toBeUndefined();
+    });
+
+    it('Offers a `"foo"` wrap-in-quotes hint for a free-text attribute with a bare typed prefix', () => {
+        // `aa.x` is free-text (no `values` / `autocompleteValues`). When the
+        // author types `<aa x=foo>`, the single completion previews the
+        // corrected form `"foo"` and accepting it replaces the bare run.
+        const source = `<aa x=foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toEqual("foo");
+        expect(items[0].displayLabel).toEqual(`"foo"`);
+        expect(items[0].filterText).toEqual("foo");
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+        // The CodeMirror plugin reads this sentinel to set `filter: false`
+        // on the result, attach a live-update callback, and anchor `from`
+        // at the bare-value start. Without the offset, `from` defaults to
+        // the cursor (one past the first typed character) because every
+        // option's apply text starts with `"` and the user has not typed
+        // one -- so the result would track "oo" instead of "foo".
+        const bareValueStart = source.indexOf("foo");
+        expect(items[0].data).toMatchObject({
+            livePreviewQuoteWrap: { bareValueStartOffset: bareValueStart },
+        });
+    });
+
+    it("Swallows whitespace between `=` and a bare free-text value into the quoted textEdit", () => {
+        // Same swallow behaviour as the enumerated branch: any whitespace
+        // between `=` and the bare value is replaced along with the bare
+        // run, so `x=   foo` accepts to `x="foo"`.
+        const source = `<aa x=   foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Returns no value completions when no enumerated value matches the bare prefix", () => {
+        const source = `<aa><b foo=zz></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("zz") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toEqual([]);
+    });
+
+    it("Returns no completions for a free-text attribute when there is no bare typed prefix", () => {
+        // `aa.x` has no `values` / `autocompleteValues`. The old fallback
+        // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`
+        // when anchored at `=`, `""""` when inside `"..."`) and made the
+        // client flicker the menu on every keystroke. The B′ wrap-in-quotes
+        // hint only fires when the author has typed a bare value past `=`;
+        // these three contexts must stay empty so an expert who types `"`
+        // straight after `=` never sees a stray menu.
+        const justAfterEquals = `<aa x=></aa>`;
+        const acEmpty = new AutoCompleter(justAfterEquals, schema.elements);
+        expect(
+            acEmpty.getCompletionItems(justAfterEquals.indexOf("=") + 1),
+        ).toEqual([]);
+
+        // Cursor between the quotes of `x=""`.
+        const emptyQuotes = `<aa x=""></aa>`;
+        const acQuotes = new AutoCompleter(emptyQuotes, schema.elements);
+        expect(
+            acQuotes.getCompletionItems(emptyQuotes.indexOf(`""`) + 1),
+        ).toEqual([]);
+
+        // Cursor in the middle of a partially typed quoted value `x="foo"`.
+        const partialQuoted = `<aa x="foo"></aa>`;
+        const acPartial = new AutoCompleter(partialQuoted, schema.elements);
+        expect(
+            acPartial.getCompletionItems(partialQuoted.indexOf("foo") + 3),
+        ).toEqual([]);
+    });
+
+    it("Does not offer attribute-value completions for a literal `=` in body text", () => {
+        const source = `<aa>x=val</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        // After the `=`
+        expect(
+            autoCompleter.getCompletionItems(source.indexOf("=") + 1),
+        ).toEqual([]);
+        // After `=val`
+        expect(
+            autoCompleter.getCompletionItems(source.indexOf("val") + 3),
+        ).toEqual([]);
     });
 
     it("Prefers autocompleteValues for attribute value completions", () => {
@@ -152,7 +356,7 @@ describe("AutoCompleter", () => {
 
         const values = autoCompleter
             .getCompletionItems(offset)
-            .map((item) => String(item.label).replace(/^"|"$/g, ""));
+            .map((item) => String(item.label));
 
         expect(values).toContain("more");
         expect(values).toContain("less");
@@ -167,7 +371,7 @@ describe("AutoCompleter", () => {
 
         const values = autoCompleter
             .getCompletionItems(offset)
-            .map((item) => String(item.label).replace(/^"|"$/g, ""));
+            .map((item) => String(item.label));
 
         expect(values).toContain("none");
         expect(values).toContain("full");
