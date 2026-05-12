@@ -65,8 +65,10 @@ export type DoenetEditorHandle = {
      *
      * Behavior mirrors the button:
      * - If the editor has unsaved edits, the viewer is re-rendered with the
-     *   current source and any pending `doenetmlChangeCallback` debounce is
-     *   flushed.
+     *   current source and the pending `doenetmlChangeCallback` debounce
+     *   timer is cancelled. (The callback still fires indirectly via the
+     *   viewer's normal change-reporting path once it parses the new
+     *   source.)
      * - If the source is unchanged but the document has been interacted with,
      *   the viewer is remounted (clearing answer/work state).
      * - If neither condition holds, the call is a no-op.
