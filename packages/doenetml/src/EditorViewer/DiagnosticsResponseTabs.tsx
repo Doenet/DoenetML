@@ -56,6 +56,23 @@ export type DoenetEditorHandle = {
     openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     /** Close the diagnostics/responses panel. */
     closeDiagnosticsPanel: () => void;
+    /**
+     * Programmatic equivalent of clicking the editor's "Update" button: flush
+     * any pending edits to the viewer so the next `diagnosticsSummaryCallback`
+     * reflects the current editor buffer rather than stale state.
+     *
+     * Behavior mirrors the button:
+     * - If the editor has unsaved edits, the viewer is re-rendered with the
+     *   current source and any pending `doenetmlChangeCallback` debounce is
+     *   flushed.
+     * - If the source is unchanged but the document has been interacted with,
+     *   the viewer is remounted (clearing answer/work state).
+     * - If neither condition holds, the call is a no-op.
+     *
+     * Ignored with a `console.warn` when `showViewer={false}` (no viewer to
+     * update).
+     */
+    updateRenderedView: () => void;
 };
 
 /** Human-readable label for diagnostic source line, when position exists. */

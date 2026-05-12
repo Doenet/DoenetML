@@ -250,6 +250,31 @@ export const EditorViewer = React.forwardRef<
         setInfoPanelIsOpen(true);
     }
 
+    // Shared between the "Update" button click and the imperative
+    // `updateRenderedView()` ref method. Mirrors the Ctrl/Cmd-S keyboard
+    // handler's defensive form (reads via refs, gates the viewer-reset on
+    // `documentInteractedRef`) so the programmatic call is a true no-op when
+    // there is nothing to update.
+    const updateViewer = useCallback(() => {
+        setDocumentInteracted(false);
+        setResponses([]);
+
+        if (codeChangedRef.current) {
+            setViewerDoenetML(editorDoenetMLRef.current);
+            window.clearTimeout(updateValueTimer.current ?? undefined);
+            if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
+                lastReportedDoenetML.current = editorDoenetMLRef.current;
+                if (!showViewer) {
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
+            }
+            setCodeChanged(false);
+            updateValueTimer.current = null;
+        } else if (documentInteractedRef.current) {
+            setViewerResetNum((n) => n + 1);
+        }
+    }, [showViewer, doenetmlChangeCallback]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -268,8 +293,17 @@ export const EditorViewer = React.forwardRef<
             closeDiagnosticsPanel() {
                 setInfoPanelIsOpen(false);
             },
+            updateRenderedView() {
+                if (!showViewer) {
+                    console.warn(
+                        "DoenetEditor: updateRenderedView() ignored — showViewer is false; nothing to update.",
+                    );
+                    return;
+                }
+                updateViewer();
+            },
         }),
-        [tabStore, showDiagnostics, showResponses],
+        [tabStore, showDiagnostics, showResponses, showViewer, updateViewer],
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
@@ -701,33 +735,7 @@ export const EditorViewer = React.forwardRef<
                 documentInteracted={documentInteracted}
                 platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
-                onUpdateViewer={() => {
-                    setDocumentInteracted(false);
-                    setResponses([]);
-
-                    if (!codeChanged) {
-                        setViewerResetNum((n) => n + 1);
-                    } else {
-                        setViewerDoenetML(editorDoenetMLRef.current);
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            if (!showViewer) {
-                                doenetmlChangeCallback?.(
-                                    editorDoenetMLRef.current,
-                                );
-                            }
-                        }
-                        setCodeChanged(false);
-                        updateValueTimer.current = null;
-                    }
-                }}
+                onUpdateViewer={updateViewer}
                 variants={variants}
                 setVariants={setVariants}
                 showDiagnostics={showDiagnostics}

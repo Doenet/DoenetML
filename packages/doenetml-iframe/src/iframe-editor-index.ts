@@ -61,6 +61,15 @@ ComlinkEditor.expose(
             }
             editorControlHandle.closeDiagnosticsPanel();
         },
+        updateRenderedView() {
+            if (!editorControlHandle) {
+                console.warn(
+                    "iframe DoenetEditor: updateRenderedView arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            editorControlHandle.updateRenderedView();
+        },
     },
     ComlinkEditor.windowEndpoint(globalThis.parent),
 );
