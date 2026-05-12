@@ -303,7 +303,9 @@ export const EditorViewer = React.forwardRef<
             if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
                 lastReportedDoenetML.current = editorDoenetMLRef.current;
                 if (!showViewer) {
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
                 }
             }
             setCodeChanged(false);
@@ -313,7 +315,7 @@ export const EditorViewer = React.forwardRef<
             // above excludes the both-false case).
             setViewerResetNum((n) => n + 1);
         }
-    }, [showViewer, doenetmlChangeCallback]);
+    }, [showViewer]);
 
     useImperativeHandle(
         ref,
@@ -387,13 +389,25 @@ export const EditorViewer = React.forwardRef<
         [initialDiagnostics, diagnostics],
     );
 
-    // Hold the latest `diagnosticsSummaryCallback` in a ref so inline callbacks
-    // (whose identity changes every parent render) don't retrigger the effect below
-    // and cause unbounded recursion when the consumer stores the summary in state.
+    // Hold consumer-supplied callbacks in refs so inline-callback identity
+    // churn (the common case) doesn't invalidate the `useCallback`/`useEffect`
+    // deps below — which would otherwise re-identify `useImperativeHandle`'s
+    // output on every parent render. Sync happens at render time (not in a
+    // `useEffect`) so `*Ref.current` always holds the latest prop, even if a
+    // callback fires from a parent `useLayoutEffect` between commit and
+    // effect flush; this also lets the unmount cleanup (empty-dep `useEffect`
+    // below) read the latest value rather than a stale closure.
     const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
-    useEffect(() => {
-        diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
-    }, [diagnosticsSummaryCallback]);
+    diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
+    const doenetmlChangeCallbackRef = useRef(doenetmlChangeCallback);
+    doenetmlChangeCallbackRef.current = doenetmlChangeCallback;
+    const immediateDoenetmlChangeCallbackRef = useRef(
+        immediateDoenetmlChangeCallback,
+    );
+    immediateDoenetmlChangeCallbackRef.current =
+        immediateDoenetmlChangeCallback;
+    const documentStructureCallbackRef = useRef(documentStructureCallback);
+    documentStructureCallbackRef.current = documentStructureCallback;
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
@@ -506,61 +520,50 @@ export const EditorViewer = React.forwardRef<
     // call documentStructure callback followed by doenetmlChangeCallback
     // so that one can have access to the document structure before a
     // save in response to doenetmlChangeCallback
-    const documentStructureThenChangeCallback = useCallback(
-        (obj: unknown) => {
-            documentStructureCallback?.(obj);
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-        },
-        [documentStructureCallback, doenetmlChangeCallback],
-    );
+    const documentStructureThenChangeCallback = useCallback((obj: unknown) => {
+        documentStructureCallbackRef.current?.(obj);
+        doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
+    }, []);
 
-    const onEditorChange = useCallback(
-        (value: string) => {
-            if (editorDoenetMLRef.current !== value) {
-                editorDoenetMLRef.current = value;
-                completerRef.current.setSource(value);
+    const onEditorChange = useCallback((value: string) => {
+        if (editorDoenetMLRef.current !== value) {
+            editorDoenetMLRef.current = value;
+            completerRef.current.setSource(value);
 
-                if (!codeChangedRef.current) {
-                    setCodeChanged(true);
-                    setUpdateWord("Update");
-                }
-
-                immediateDoenetmlChangeCallback?.(value);
-
-                // Debounce update value at 3 seconds
-                clearTimeout(updateValueTimer.current ?? undefined);
-
-                //TODO: when you try to leave the page before it saved you will lose work
-                //so prompt the user on page leave
-                updateValueTimer.current = window.setTimeout(function () {
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                    }
-                    updateValueTimer.current = null;
-                }, 3000); //3 seconds
+            if (!codeChangedRef.current) {
+                setCodeChanged(true);
+                setUpdateWord("Update");
             }
-        },
-        [immediateDoenetmlChangeCallback, doenetmlChangeCallback],
-    );
+
+            immediateDoenetmlChangeCallbackRef.current?.(value);
+
+            // Debounce update value at 3 seconds
+            clearTimeout(updateValueTimer.current ?? undefined);
+
+            //TODO: when you try to leave the page before it saved you will lose work
+            //so prompt the user on page leave
+            updateValueTimer.current = window.setTimeout(function () {
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
+                }
+                updateValueTimer.current = null;
+            }, 3000); //3 seconds
+        }
+    }, []);
 
     const onBlur = useCallback(() => {
         window.clearTimeout(updateValueTimer.current ?? undefined);
         if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
             lastReportedDoenetML.current = editorDoenetMLRef.current;
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+            doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
         }
         updateValueTimer.current = null;
-    }, [
-        doenetmlChangeCallback,
-        updateValueTimer,
-        lastReportedDoenetML,
-        editorDoenetMLRef,
-    ]);
+    }, []);
 
     const onCursorChange = useCallback((selection: EditorSelection) => {
         const offset = selection.main.head;
@@ -631,7 +634,13 @@ export const EditorViewer = React.forwardRef<
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    // Routed through the ref mirror so the *latest* callback
+                    // fires at unmount, not whichever one was passed on
+                    // initial render. (The empty dep array would otherwise
+                    // capture a stale closure.)
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
                 }
             }
             // Cancel pending help-debounce so its callback can't fire
