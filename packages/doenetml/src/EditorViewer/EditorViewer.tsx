@@ -283,11 +283,15 @@ export const EditorViewer = React.forwardRef<
 
     // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
     // shortcut, and the imperative `updateRenderedView()` ref method. Reads
-    // via refs and gates the viewer-reset on `documentInteractedRef` so the
-    // programmatic call is a true no-op when there is nothing to update.
-    // For the button this gating is invisible (the button is disabled when
-    // both `codeChanged` and `documentInteracted` are false).
+    // via refs and early-returns when nothing has changed so the programmatic
+    // call is a true no-op (no spurious `setResponses([])` re-render). For
+    // the button this guard is invisible (the button is disabled when both
+    // `codeChanged` and `documentInteracted` are false).
     const updateViewer = useCallback(() => {
+        if (!codeChangedRef.current && !documentInteractedRef.current) {
+            return;
+        }
+
         setDocumentInteracted(false);
         setResponses([]);
 
@@ -302,7 +306,9 @@ export const EditorViewer = React.forwardRef<
             }
             setCodeChanged(false);
             updateValueTimer.current = null;
-        } else if (documentInteractedRef.current) {
+        } else {
+            // documentInteractedRef.current is true here (the early-return
+            // above excludes the both-false case).
             setViewerResetNum((n) => n + 1);
         }
     }, [showViewer, doenetmlChangeCallback]);
