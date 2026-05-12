@@ -462,6 +462,10 @@ export default class Core {
 
         this.unmatchedChildren = {};
 
+        // No `infoDiagnostics` buffer: info diagnostics were already emitted
+        // and pushed into `preliminaryDiagnostics` during the earlier
+        // `returnAllPossibleVariants` call in `CoreWorker.initializeWorker`.
+        // Passing one here would duplicate those records.
         let numVariants = getNumVariants({
             serializedComponent: serializedComponents[0],
             componentInfoObjects: this.componentInfoObjects,

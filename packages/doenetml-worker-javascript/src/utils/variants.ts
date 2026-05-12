@@ -1,4 +1,5 @@
 import { numberToLetters, enumerateCombinations } from "@doenet/utils";
+import type { DiagnosticRecord } from "@doenet/utils";
 import seedrandom from "seedrandom";
 
 // getVariantsForDescendantsForUniqueVariants: only needed in worker
@@ -200,7 +201,11 @@ export function getNumVariants({
     serializedComponent,
     componentInfoObjects,
     infoDiagnostics,
-}: any): any {
+}: {
+    serializedComponent: any;
+    componentInfoObjects: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}): any {
     // get number of variants from document (or other sectioning component)
 
     if (!serializedComponent.variants) {
@@ -292,7 +297,7 @@ export function determineVariantsForSection({
     serializedComponent: any;
     componentInfoObjects: any;
     isDocument: boolean;
-    infoDiagnostics?: any[];
+    infoDiagnostics?: DiagnosticRecord[];
 }) {
     if (serializedComponent.variants === undefined) {
         serializedComponent.variants = {};
@@ -578,7 +583,7 @@ export function extractConstantSortAttribute(
     serializedComponent: any,
     componentName: string,
     numToSelect: number,
-    infoDiagnostics?: any[],
+    infoDiagnostics?: DiagnosticRecord[],
 ): { success: boolean; sort?: string } {
     let sort;
 
@@ -627,7 +632,7 @@ export function extractConstantSortAttribute(
  * drains it into `preliminaryDiagnostics` when it's constructed.
  */
 export function pushVariantInfo(
-    infoDiagnostics: any[] | undefined,
+    infoDiagnostics: DiagnosticRecord[] | undefined,
     message: string,
     serializedComponent: any,
 ) {

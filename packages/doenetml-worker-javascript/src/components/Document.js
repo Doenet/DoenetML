@@ -748,7 +748,7 @@ export default class Document extends BaseComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    core?.addDiagnostic({
+                    core.addDiagnostic({
                         type: "info",
                         message:
                             "Variant index " +
@@ -760,7 +760,7 @@ export default class Document extends BaseComponent {
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        core?.addDiagnostic({
+                        core.addDiagnostic({
                             type: "info",
                             message:
                                 "Variant index " +
