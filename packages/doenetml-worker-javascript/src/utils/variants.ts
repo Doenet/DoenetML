@@ -296,7 +296,7 @@ export function determineVariantsForSection({
 }: {
     serializedComponent: any;
     componentInfoObjects: any;
-    isDocument: boolean;
+    isDocument?: boolean;
     infoDiagnostics?: DiagnosticRecord[];
 }) {
     if (serializedComponent.variants === undefined) {

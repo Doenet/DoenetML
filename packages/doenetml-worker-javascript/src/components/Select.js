@@ -699,7 +699,7 @@ export default class Select extends CompositeComponent {
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
                     pushVariantInfo(
                         infoDiagnostics,
-                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
+                        `cannot determine unique variants of select as numToSelect isn't a non-negative integer.`,
                         serializedComponent,
                     );
                     return { success: false };
@@ -707,7 +707,7 @@ export default class Select extends CompositeComponent {
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
-                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
+                    `cannot determine unique variants of select as numToSelect isn't constant number.`,
                     serializedComponent,
                 );
                 return { success: false };
@@ -735,7 +735,7 @@ export default class Select extends CompositeComponent {
                 } else {
                     pushVariantInfo(
                         infoDiagnostics,
-                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
+                        `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
                         serializedComponent,
                     );
                     return { success: false };
@@ -743,7 +743,7 @@ export default class Select extends CompositeComponent {
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
-                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
+                    `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
                     serializedComponent,
                 );
                 return { success: false };
