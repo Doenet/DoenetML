@@ -822,6 +822,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let variantDeterminesSeed =
             serializedComponent.attributes.variantDeterminesSeed.primitive
@@ -833,6 +834,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
     }

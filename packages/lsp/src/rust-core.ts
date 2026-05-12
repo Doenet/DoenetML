@@ -49,7 +49,7 @@ function getNodeProcess(): NodeProcessLike | undefined {
 
 async function initWasmWithNodePathWorkaround(): Promise<void> {
     try {
-        await init(wasmBlobUrl);
+        await init({ module_or_path: wasmBlobUrl });
         return;
     } catch (error) {
         function stripQueryAndHash(value: string) {
@@ -109,7 +109,7 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         for (const wasmPath of candidatePaths) {
             try {
                 const wasmBytes = await fs.readFile(wasmPath);
-                await init(wasmBytes);
+                await init({ module_or_path: wasmBytes });
                 return;
             } catch {
                 // Try the next candidate path.

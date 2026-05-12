@@ -4,10 +4,12 @@ import { getNumVariants } from "./variants";
 export async function returnAllPossibleVariants(
     serializedDocument,
     componentInfoObjects,
+    infoDiagnostics,
 ) {
     let results = getNumVariants({
         serializedComponent: serializedDocument,
         componentInfoObjects,
+        infoDiagnostics,
     });
 
     let numVariants = results.numVariants;

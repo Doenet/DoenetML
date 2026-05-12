@@ -585,10 +585,9 @@ export class AutoCompleter {
                 snippet.element,
             );
             if (normalizedElement === "UNKNOWN_NAME") {
-                // Skip snippets for unknown elements
-                console.warn(
-                    `Skipping snippet "${key}": invalid element name "${snippet.element}".`,
-                );
+                // Skip snippets whose element isn't in the active schema.
+                // Tests intentionally supply reduced schemas, so unknown
+                // here is normal — not a misconfiguration.
                 return;
             }
 

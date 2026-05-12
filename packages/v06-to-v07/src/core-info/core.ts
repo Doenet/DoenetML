@@ -57,7 +57,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     const wasmBuffer = (
         await import("@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64")
     ).default;
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
 
     const rustCore = PublicDoenetMLCoreRust.new();
 

@@ -64,7 +64,7 @@ export async function createTestCore({
         ),
     );
 
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
 
     const rustCore = PublicDoenetMLCoreRust.new();
 

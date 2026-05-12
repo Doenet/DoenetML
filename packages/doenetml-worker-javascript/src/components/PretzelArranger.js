@@ -635,6 +635,7 @@ export default class PretzelArranger extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numProblems = 0;
         const mode = normalizePretzelMode(
@@ -677,6 +678,7 @@ export default class PretzelArranger extends CompositeComponent {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

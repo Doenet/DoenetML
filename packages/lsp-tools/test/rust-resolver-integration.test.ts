@@ -27,7 +27,7 @@ try {
         "../../doenetml-worker-rust/dist/lib_doenetml_worker_bg.wasm",
     );
     const wasmBytes = fs.readFileSync(wasmPath);
-    mod.initSync(wasmBytes);
+    mod.initSync({ module: wasmBytes });
     PublicDoenetMLCore = mod.PublicDoenetMLCore;
     wasmAvailable = true;
 } catch (e) {

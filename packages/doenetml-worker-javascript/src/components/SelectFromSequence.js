@@ -9,7 +9,10 @@ import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { textToMathFactory } from "../utils/math";
-import { extractConstantSortAttribute } from "../utils/variants";
+import {
+    extractConstantSortAttribute,
+    pushVariantInfo,
+} from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -396,7 +399,12 @@ export default class SelectFromSequence extends Sequence {
         return { replacementChanges: [], nComponents };
     }
 
-    static determineNumberOfUniqueVariants({ serializedComponent }) {
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        infoDiagnostics,
+    }) {
+        const info = (message) =>
+            pushVariantInfo(infoDiagnostics, message, serializedComponent);
         let numToSelect = 1,
             withReplacement = false;
 
@@ -414,13 +422,13 @@ export default class SelectFromSequence extends Sequence {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
                 );
                 return { success: false };
@@ -443,7 +451,7 @@ export default class SelectFromSequence extends Sequence {
                         .toLowerCase() === "false"
                 )
             ) {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as cannot determine coprime is always false.`,
                 );
                 return { success: false };
@@ -469,13 +477,13 @@ export default class SelectFromSequence extends Sequence {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
@@ -503,7 +511,7 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     from = Number(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of number type as from isn't a number.`,
                         );
                         return { success: false };
@@ -511,7 +519,7 @@ export default class SelectFromSequence extends Sequence {
                 } else if (sequenceType === "letters") {
                     from = lettersToNumber(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of letters type as from isn't a combination of letters.`,
                         );
                         return { success: false };
@@ -523,7 +531,7 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         from = fromText(fromComponent2.children[0]);
                     } catch (e) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of math type as from isn't a valid math expression.`,
                         );
                         return { success: false };
@@ -531,7 +539,7 @@ export default class SelectFromSequence extends Sequence {
                 }
                 sequencePars.from = from;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as from isn't a constant.`,
                 );
                 return { success: false };
@@ -552,7 +560,7 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     to = Number(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of number type as to isn't a number.`,
                         );
                         return { success: false };
@@ -560,7 +568,7 @@ export default class SelectFromSequence extends Sequence {
                 } else if (sequenceType === "letters") {
                     to = lettersToNumber(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of letters type as to isn't a combination of letters.`,
                         );
                         return { success: false };
@@ -572,7 +580,7 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         to = fromText(toComponent2.children[0]);
                     } catch (e) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of math type as to isn't a valid math expression.`,
                         );
                         return { success: false };
@@ -580,7 +588,7 @@ export default class SelectFromSequence extends Sequence {
                 }
                 sequencePars.to = to;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as to isn't a constant.`,
                 );
                 return { success: false };
@@ -599,7 +607,7 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isFinite(step)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of number type as step isn't a number.`,
                         );
                         return { success: false };
@@ -607,7 +615,7 @@ export default class SelectFromSequence extends Sequence {
                 } else if (sequenceType === "letters") {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isInteger(step)) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of letters type as step isn't an integer.`,
                         );
                         return { success: false };
@@ -619,7 +627,7 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         step = fromText(stepComponent.children[0]);
                     } catch (e) {
-                        console.log(
+                        info(
                             `cannot determine unique variants of selectFromSequence of math type as step isn't a valid math expression.`,
                         );
                         return { success: false };
@@ -627,7 +635,7 @@ export default class SelectFromSequence extends Sequence {
                 }
                 sequencePars.step = step;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as step isn't a constant.`,
                 );
                 return { success: false };
@@ -643,14 +651,14 @@ export default class SelectFromSequence extends Sequence {
             ) {
                 let length = Number(lengthComponent.children[0]);
                 if (!Number.isInteger(length)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectFromSequence as length isn't an integer.`,
                     );
                     return { success: false };
                 }
                 sequencePars.length = length;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectFromSequence as length isn't a constant.`,
                 );
                 return { success: false };
@@ -658,7 +666,7 @@ export default class SelectFromSequence extends Sequence {
         }
 
         if (serializedComponent.attributes.excludeCombinations) {
-            console.log(
+            info(
                 "have not implemented unique variants of a selectFromSequence with excludeCombinations",
             );
             return { success: false };
@@ -670,7 +678,7 @@ export default class SelectFromSequence extends Sequence {
             serializedComponent.attributes.exclude?.component;
         if (excludeComponent) {
             if (sequenceType === "math") {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectFromSequence of type math with exclude",
                 );
                 return { success: false };
@@ -682,7 +690,7 @@ export default class SelectFromSequence extends Sequence {
                         typeof x.children[0] === "string",
                 )
             ) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectFromSequence with non-constant exclude",
                 );
                 return { success: false };
@@ -698,7 +706,7 @@ export default class SelectFromSequence extends Sequence {
             }
 
             if (!excludes.every(Number.isFinite)) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectFromSequence with non-constant exclude",
                 );
                 return { success: false };
@@ -709,6 +717,7 @@ export default class SelectFromSequence extends Sequence {
             serializedComponent,
             "selectFromSequence",
             numToSelect,
+            infoDiagnostics,
         );
         if (!sortResult.success) {
             return { success: false };

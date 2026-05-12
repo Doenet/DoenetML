@@ -659,6 +659,7 @@ export default class RepeatForSequence extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -680,6 +681,7 @@ export default class RepeatForSequence extends CompositeComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };
