@@ -392,31 +392,22 @@ export const EditorViewer = React.forwardRef<
     // Hold consumer-supplied callbacks in refs so inline-callback identity
     // churn (the common case) doesn't invalidate the `useCallback`/`useEffect`
     // deps below — which would otherwise re-identify `useImperativeHandle`'s
-    // output on every parent render. Routing through `*Ref.current` also
-    // avoids stale-closure bugs in hooks with empty dep arrays (e.g. the
-    // unmount cleanup below).
+    // output on every parent render. Sync happens at render time (not in a
+    // `useEffect`) so `*Ref.current` always holds the latest prop, even if a
+    // callback fires from a parent `useLayoutEffect` between commit and
+    // effect flush; this also lets the unmount cleanup (empty-dep `useEffect`
+    // below) read the latest value rather than a stale closure.
     const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
-    useEffect(() => {
-        diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
-    }, [diagnosticsSummaryCallback]);
-
+    diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
     const doenetmlChangeCallbackRef = useRef(doenetmlChangeCallback);
-    useEffect(() => {
-        doenetmlChangeCallbackRef.current = doenetmlChangeCallback;
-    }, [doenetmlChangeCallback]);
-
+    doenetmlChangeCallbackRef.current = doenetmlChangeCallback;
     const immediateDoenetmlChangeCallbackRef = useRef(
         immediateDoenetmlChangeCallback,
     );
-    useEffect(() => {
-        immediateDoenetmlChangeCallbackRef.current =
-            immediateDoenetmlChangeCallback;
-    }, [immediateDoenetmlChangeCallback]);
-
+    immediateDoenetmlChangeCallbackRef.current =
+        immediateDoenetmlChangeCallback;
     const documentStructureCallbackRef = useRef(documentStructureCallback);
-    useEffect(() => {
-        documentStructureCallbackRef.current = documentStructureCallback;
-    }, [documentStructureCallback]);
+    documentStructureCallbackRef.current = documentStructureCallback;
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
