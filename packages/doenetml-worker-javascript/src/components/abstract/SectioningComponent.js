@@ -1153,6 +1153,7 @@ export class SectioningComponent extends BlockComponent {
         serializedComponent,
         sharedParameters,
         descendantVariantComponents,
+        core,
     }) {
         if (!serializedComponent.variants?.allPossibleVariants) {
             // no variant control child
@@ -1178,19 +1179,27 @@ export class SectioningComponent extends BlockComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    console.warn(
-                        "Variant index " +
+                    core?.addDiagnostic({
+                        type: "info",
+                        message:
+                            "Variant index " +
                             desiredVariant.index +
                             " must be a number",
-                    );
+                        position: serializedComponent.position,
+                        sourceDoc: serializedComponent.sourceDoc,
+                    });
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        console.warn(
-                            "Variant index " +
+                        core?.addDiagnostic({
+                            type: "info",
+                            message:
+                                "Variant index " +
                                 desiredVariant.index +
                                 " must be an integer",
-                        );
+                            position: serializedComponent.position,
+                            sourceDoc: serializedComponent.sourceDoc,
+                        });
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
                     let indexFrom0 = (desiredVariantIndex - 1) % numVariants;
@@ -1255,10 +1264,12 @@ export class SectioningComponent extends BlockComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         return determineVariantsForSection({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
     }
 
@@ -1301,8 +1312,6 @@ export class SectioningComponent extends BlockComponent {
         });
 
         if (!result.success) {
-            console.log("Failed to get unique variant for section.");
-
             return { success: false };
         }
 

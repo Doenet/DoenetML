@@ -735,6 +735,7 @@ export default class Document extends BaseComponent {
         serializedComponent,
         sharedParameters,
         descendantVariantComponents,
+        core,
     }) {
         // console.log("****Variant for document*****")
 
@@ -747,19 +748,27 @@ export default class Document extends BaseComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    console.warn(
-                        "Variant index " +
+                    core?.addDiagnostic({
+                        type: "info",
+                        message:
+                            "Variant index " +
                             desiredVariant.index +
                             " must be a number",
-                    );
+                        position: serializedComponent.position,
+                        sourceDoc: serializedComponent.sourceDoc,
+                    });
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        console.warn(
-                            "Variant index " +
+                        core?.addDiagnostic({
+                            type: "info",
+                            message:
+                                "Variant index " +
                                 desiredVariant.index +
                                 " must be an integer",
-                        );
+                            position: serializedComponent.position,
+                            sourceDoc: serializedComponent.sourceDoc,
+                        });
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
                     let indexFrom0 = (desiredVariantIndex - 1) % numVariants;
@@ -821,11 +830,13 @@ export default class Document extends BaseComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         return determineVariantsForSection({
             serializedComponent,
             componentInfoObjects,
             isDocument: true,
+            infoDiagnostics,
         });
     }
 
@@ -850,8 +861,6 @@ export default class Document extends BaseComponent {
         });
 
         if (!result.success) {
-            console.log("Failed to get unique variant for document.");
-
             return { success: false };
         }
 

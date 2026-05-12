@@ -462,6 +462,7 @@ export default class Shuffle extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numComponents = 0;
 
@@ -506,6 +507,7 @@ export default class Shuffle extends CompositeComponent {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

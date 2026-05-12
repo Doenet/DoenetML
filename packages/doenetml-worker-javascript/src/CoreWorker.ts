@@ -165,9 +165,14 @@ export class PublicDoenetMLCore {
 
         this.initialized = true;
 
+        // `returnAllPossibleVariants` walks the variant tree before Core
+        // exists, so any info-typed diagnostics emitted along the way are
+        // appended to the same `diagnostics` array that becomes
+        // `preliminaryDiagnostics` when Core is constructed.
         let allPossibleVariants = await returnAllPossibleVariants(
             this.coreBaseArgs.serializedDocument,
             this.coreBaseArgs.componentInfoObjects,
+            diagnostics,
         );
 
         // count the number of occurrences of each component type from the document's immediate children

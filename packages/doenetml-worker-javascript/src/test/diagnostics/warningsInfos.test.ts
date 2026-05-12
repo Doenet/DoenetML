@@ -854,4 +854,86 @@ describe("Warning Tests @group4", async () => {
             );
         }
     });
+
+    // The variant-time diagnostics below cover code paths that previously
+    // emitted raw console.log/console.warn. They are now routed through
+    // `preliminaryDiagnostics` (variant resolution) or `core.addDiagnostic`
+    // (`setUpVariant`), so they surface to the user as info records instead
+    // of polluting test output.
+    it("`selectWeight` on an option produces an info: unique variants disabled", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<select name="s">
+  <option selectWeight="1"><text>a</text></option>
+  <option selectWeight="2"><text>b</text></option>
+</select>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some((info) =>
+                info.message.includes(
+                    "Unique variants for select disabled if have an option with selectWeight or selectForVariants specified",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("non-integer `numToSelect` on selectFromSequence produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<selectFromSequence from="1" to="10" numToSelect="2.5" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some((info) =>
+                info.message.includes(
+                    "cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("non-integer requested variant index produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text>hi</text>`,
+            requestedVariantIndex: 2.5,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some(
+                (info) =>
+                    info.message.includes("Variant index") &&
+                    info.message.includes("must be an integer"),
+            ),
+        ).eq(true);
+    });
+
+    it("non-numeric requested variant index produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text>hi</text>`,
+            requestedVariantIndex: NaN,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some(
+                (info) =>
+                    info.message.includes("Variant index") &&
+                    info.message.includes("must be a number"),
+            ),
+        ).eq(true);
+    });
 });
