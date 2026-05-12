@@ -250,11 +250,12 @@ export const EditorViewer = React.forwardRef<
         setInfoPanelIsOpen(true);
     }
 
-    // Shared between the "Update" button click and the imperative
-    // `updateRenderedView()` ref method. Mirrors the Ctrl/Cmd-S keyboard
-    // handler's defensive form (reads via refs, gates the viewer-reset on
-    // `documentInteractedRef`) so the programmatic call is a true no-op when
-    // there is nothing to update.
+    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
+    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
+    // via refs and gates the viewer-reset on `documentInteractedRef` so the
+    // programmatic call is a true no-op when there is nothing to update.
+    // For the button this gating is invisible (the button is disabled when
+    // both `codeChanged` and `documentInteracted` are false).
     const updateViewer = useCallback(() => {
         setDocumentInteracted(false);
         setResponses([]);
@@ -563,29 +564,7 @@ export const EditorViewer = React.forwardRef<
             ) {
                 event.preventDefault();
                 event.stopPropagation();
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                updateValueTimer.current = null;
-
-                setDocumentInteracted(false);
-                setResponses([]);
-
-                if (codeChangedRef.current) {
-                    setViewerDoenetML(editorDoenetMLRef.current);
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        if (!showViewer) {
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                    }
-
-                    setCodeChanged(false);
-                } else if (documentInteractedRef.current) {
-                    setViewerResetNum((n) => n + 1);
-                }
+                updateViewer();
             }
         };
 
@@ -603,7 +582,7 @@ export const EditorViewer = React.forwardRef<
                 handleEditorKeyDown,
             );
         };
-    }, [showViewer, id]);
+    }, [showViewer, id, updateViewer]);
 
     useEffect(() => {
         return () => {

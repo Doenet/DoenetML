@@ -122,6 +122,11 @@ describe("DoenetEditor updateRenderedView ref method", () => {
     });
 
     it("warns and does not throw when showViewer is false", () => {
+        // Stub console.warn before mount: Cypress queues commands, so the
+        // `cy.window().then(...)` chain runs before `cy.mount(...)` and the
+        // component sees the stubbed warn from its first render onward. If
+        // anyone reorders these, the assertion below will silently miss the
+        // warn call.
         const warnSpy = cy.stub().as("consoleWarn");
         cy.window().then((win) => {
             cy.stub(win.console, "warn").callsFake(warnSpy);
