@@ -111,7 +111,9 @@ export function CypressTest() {
         testSettings.includeVariantSelector,
     );
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
-    const diagnosticsSummaryCallsRef = useRef<Record<string, number>[]>([]);
+    const diagnosticsSummaryCallsRef = useRef<
+        { summary: Record<string, number>; doenetML: string }[]
+    >([]);
 
     useEffect(() => {
         (window as any).returnDiagnosticsSummaryCallbackValue = (): Record<
@@ -120,10 +122,10 @@ export function CypressTest() {
         > | null => {
             return diagnosticsSummaryRef.current;
         };
-        (window as any).returnDiagnosticsSummaryCallbackCalls = (): Record<
-            string,
-            number
-        >[] => {
+        (window as any).returnDiagnosticsSummaryCallbackCalls = (): {
+            summary: Record<string, number>;
+            doenetML: string;
+        }[] => {
             return diagnosticsSummaryCallsRef.current.slice();
         };
         return () => {
@@ -605,11 +607,13 @@ export function CypressTest() {
                 readOnly={readOnly}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
+                    nextDoenetML: string,
                 ) => {
                     diagnosticsSummaryRef.current = nextDiagnosticsSummary;
-                    diagnosticsSummaryCallsRef.current.push(
-                        nextDiagnosticsSummary,
-                    );
+                    diagnosticsSummaryCallsRef.current.push({
+                        summary: nextDiagnosticsSummary,
+                        doenetML: nextDoenetML,
+                    });
                 }}
             />
         );
