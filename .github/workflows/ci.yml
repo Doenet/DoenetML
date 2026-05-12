@@ -250,6 +250,21 @@ jobs:
             - name: Run browser runtime check
               run: npm run test:browser-runtime -w @doenet/prefigure
 
+    test-doenetml-to-pretext-devcontainer:
+        name: Devcontainer Runs Tests
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Build and test in devcontainer
+              uses: devcontainers/ci@v0.3
+              with:
+                  runCmd: |
+                      npm ci
+                      # This package runs tests in a headless browser. If it can run, the other tests should too.
+                      npm run build -w packages/doenetml-to-pretext
+                      npm run test -w packages/doenetml-to-pretext
+
     lint:
         name: Lint Rust Code
         runs-on: ubuntu-latest
