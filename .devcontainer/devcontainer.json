@@ -7,13 +7,21 @@
         },
         "ghcr.io/devcontainers/features/rust:1": {
             "version": "latest"
-        }
+        },
+        // Install vim from apt using an existing community feature.
+        "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+            "packages": "vim"
+        },
+        // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
+        "./features/webdriver-libs": {},
+        // Avoid erronious connections to the host's debug environment.
+        "./features/shell-init-rc": {}
     },
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
-    // Unset NODE_OPTIONS and VSCODE_INSPECTOR_OPTIONS to prevent a debugger from trying to auto-attach to the container in an invalid way.
-    "postCreateCommand": "unset NODE_OPTIONS VSCODE_INSPECTOR_OPTIONS && npm install && npm run build",
+    // Use VIM as the command line git editor. Not everyone's preference, but oh well...
+    "postCreateCommand": "git config core.editor vim",
     "customizations": {
         "vscode": {
             "extensions": [
