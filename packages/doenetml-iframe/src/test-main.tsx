@@ -89,6 +89,9 @@ function App() {
                 >
                     Close panel
                 </button>
+                <button onClick={() => editorRef.current?.updateRenderedView()}>
+                    Update view
+                </button>
             </div>
             <DoenetEditor
                 ref={editorRef}

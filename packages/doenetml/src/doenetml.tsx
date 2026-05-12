@@ -20,14 +20,10 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
-export type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
+import type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+import type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
+export type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";

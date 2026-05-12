@@ -15,10 +15,7 @@ import {
     DiagnosticsResponseTabContents,
     DiagnosticsResponseTabstrip,
 } from "./DiagnosticsResponseTabs";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./DiagnosticsResponseTabs";
+import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
@@ -45,6 +42,42 @@ const HELP_NONE: HelpContent = { kind: "none" };
 // stable across renders. A parameter default `= []` would create a fresh array
 // each render, refiring every effect/memo that depends on `initialDiagnostics`.
 const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
+
+/**
+ * Imperative handle exposed on the ref of `<DoenetEditor>`. Provides
+ * programmatic access to editor actions that would otherwise require user
+ * interaction with the UI — switching the diagnostics/responses panel, and
+ * flushing pending edits to the rendered view.
+ */
+export type DoenetEditorHandle = {
+    /**
+     * Switch the diagnostics/responses panel to `tabId` and open it.
+     * If `tabId` references a tab disabled by `showDiagnostics={false}` or
+     * `showResponses={false}`, the call is ignored with a `console.warn`.
+     */
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    /** Close the diagnostics/responses panel. */
+    closeDiagnosticsPanel: () => void;
+    /**
+     * Programmatic equivalent of clicking the editor's "Update" button: flush
+     * any pending edits to the viewer so the next `diagnosticsSummaryCallback`
+     * reflects the current editor buffer rather than stale state.
+     *
+     * Behavior mirrors the button:
+     * - If the editor has unsaved edits, the viewer is re-rendered with the
+     *   current source and the pending `doenetmlChangeCallback` debounce
+     *   timer is cancelled. (The callback still fires indirectly via the
+     *   viewer's normal change-reporting path once it parses the new
+     *   source.)
+     * - If the source is unchanged but the document has been interacted with,
+     *   the viewer is remounted (clearing answer/work state).
+     * - If neither condition holds, the call is a no-op.
+     *
+     * Ignored with a `console.warn` when `showViewer={false}` (no viewer to
+     * update).
+     */
+    updateRenderedView: () => void;
+};
 
 type EditorViewerProps = {
     doenetML: string;
@@ -250,6 +283,38 @@ export const EditorViewer = React.forwardRef<
         setInfoPanelIsOpen(true);
     }
 
+    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
+    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
+    // via refs and early-returns when nothing has changed so the programmatic
+    // call is a true no-op (no spurious `setResponses([])` re-render). For
+    // the button this guard is invisible (the button is disabled when both
+    // `codeChanged` and `documentInteracted` are false).
+    const updateViewer = useCallback(() => {
+        if (!codeChangedRef.current && !documentInteractedRef.current) {
+            return;
+        }
+
+        setDocumentInteracted(false);
+        setResponses([]);
+
+        if (codeChangedRef.current) {
+            setViewerDoenetML(editorDoenetMLRef.current);
+            window.clearTimeout(updateValueTimer.current ?? undefined);
+            if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
+                lastReportedDoenetML.current = editorDoenetMLRef.current;
+                if (!showViewer) {
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
+            }
+            setCodeChanged(false);
+            updateValueTimer.current = null;
+        } else {
+            // documentInteractedRef.current is true here (the early-return
+            // above excludes the both-false case).
+            setViewerResetNum((n) => n + 1);
+        }
+    }, [showViewer, doenetmlChangeCallback]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -268,8 +333,17 @@ export const EditorViewer = React.forwardRef<
             closeDiagnosticsPanel() {
                 setInfoPanelIsOpen(false);
             },
+            updateRenderedView() {
+                if (!showViewer) {
+                    console.warn(
+                        "DoenetEditor: updateRenderedView() ignored — showViewer is false; nothing to update.",
+                    );
+                    return;
+                }
+                updateViewer();
+            },
         }),
-        [tabStore, showDiagnostics, showResponses],
+        [tabStore, showDiagnostics, showResponses, showViewer, updateViewer],
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
@@ -529,29 +603,7 @@ export const EditorViewer = React.forwardRef<
             ) {
                 event.preventDefault();
                 event.stopPropagation();
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                updateValueTimer.current = null;
-
-                setDocumentInteracted(false);
-                setResponses([]);
-
-                if (codeChangedRef.current) {
-                    setViewerDoenetML(editorDoenetMLRef.current);
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        if (!showViewer) {
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                    }
-
-                    setCodeChanged(false);
-                } else if (documentInteractedRef.current) {
-                    setViewerResetNum((n) => n + 1);
-                }
+                updateViewer();
             }
         };
 
@@ -569,7 +621,7 @@ export const EditorViewer = React.forwardRef<
                 handleEditorKeyDown,
             );
         };
-    }, [showViewer, id]);
+    }, [showViewer, id, updateViewer]);
 
     useEffect(() => {
         return () => {
@@ -701,33 +753,7 @@ export const EditorViewer = React.forwardRef<
                 documentInteracted={documentInteracted}
                 platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
-                onUpdateViewer={() => {
-                    setDocumentInteracted(false);
-                    setResponses([]);
-
-                    if (!codeChanged) {
-                        setViewerResetNum((n) => n + 1);
-                    } else {
-                        setViewerDoenetML(editorDoenetMLRef.current);
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            if (!showViewer) {
-                                doenetmlChangeCallback?.(
-                                    editorDoenetMLRef.current,
-                                );
-                            }
-                        }
-                        setCodeChanged(false);
-                        updateValueTimer.current = null;
-                    }
-                }}
+                onUpdateViewer={updateViewer}
                 variants={variants}
                 setVariants={setVariants}
                 showDiagnostics={showDiagnostics}

@@ -168,6 +168,13 @@ export function renderDoenetEditorToContainer(
                 pendingHandleActions.push((h) => h.closeDiagnosticsPanel());
             }
         },
+        updateRenderedView() {
+            if (mountedHandle) {
+                mountedHandle.updateRenderedView();
+            } else {
+                pendingHandleActions.push((h) => h.updateRenderedView());
+            }
+        },
     };
 }
 
