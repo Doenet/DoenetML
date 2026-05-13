@@ -1,6 +1,8 @@
 /**
  * This module provides re-exported functions and commands for converting DoenetML to PreTeXt XML.
  */
+import "./pretext-jsx-elements";
+
 export * from "./renderers/types";
 export * from "./renderers/pretext-xml";
 export * from "./renderers/renderers";

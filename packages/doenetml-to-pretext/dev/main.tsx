@@ -35,7 +35,14 @@ function App() {
                     <CodeMirror value={doenetMLstring} onChange={setSource} />
                 }
                 panelB={
-                    <div style={{ padding: "1em" }}>
+                    <div
+                        style={{
+                            padding: "1em",
+                            minWidth: "100%",
+                            minHeight: "100%",
+                            overflow: "auto",
+                        }}
+                    >
                         <h1>PreTeXt Output</h1>
                         {pretextOutput ? (
                             <pre className="pretext-output">

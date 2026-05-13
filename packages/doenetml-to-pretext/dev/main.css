@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     background-color: gainsboro;
 }
@@ -6,6 +10,9 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    & > div {
+        overflow: hidden;
+    }
 }
 .banner {
     padding: 3px;

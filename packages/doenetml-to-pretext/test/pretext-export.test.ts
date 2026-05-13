@@ -101,6 +101,54 @@ describe("Pretext export", async () => {
         `);
     });
 
+    // <br /> and <hr /> are removed when converting to PreTeXt
+    it("<br /> and <hr /> are removed when converting to PreTeXt", async () => {
+        source = `<p>Line 1<br />Line 2</p><hr /><p>After hr</p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <p>Line 1Line 2</p><p>After hr</p>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("source of an <m> gets rendered", async () => {
+        source = `<p>Here is some math: <m>\\frac{1}{2}</m></p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <p>Here is some math: <m>\\frac{1}{2}</m></p>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("renders mathInput nested inside answer", async () => {
+        source = `<answer><mathInput /><mathInput /></answer>`;
+        expect(await coreRunner.processToFlatDast(source)).toContain(
+            `<m><fillin characters="8"></fillin></m>`,
+        );
+    });
+
+    // <sideBySide> and <blockQuote> get rendered in lower case
+    it("<sideBySide> and <blockQuote> are rendered in lower case", async () => {
+        source = `<sideBySide><blockQuote>Quote text</blockQuote></sideBySide>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <sidebyside><blockquote>Quote text</blockquote></sidebyside>
+              </article>
+              </pretext>"
+            `);
+    });
+
     // TODO: un-skip when <division> tags are supported
     it.skip("expands <division> to pretext element", async () => {
         source = `

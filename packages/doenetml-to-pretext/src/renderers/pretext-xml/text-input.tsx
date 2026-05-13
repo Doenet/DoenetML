@@ -6,6 +6,7 @@ type TextInputData = { props: TextInputPropsInText };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const value = node.data.props.immediateValue;
+    const characters = Math.max(value.length || 0, 8);
 
-    return <em>{value}</em>;
+    return <fillin characters={characters} />;
 };

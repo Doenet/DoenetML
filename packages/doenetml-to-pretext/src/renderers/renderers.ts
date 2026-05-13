@@ -38,18 +38,44 @@ const NoProcessingConverter: ComponentWithPassthroughChildren = {
 };
 
 /**
+ * Pass through the element and all its children, but rename the tag. This can be used to change capitalization or spelling
+ * of tags between Doenet and Pretext.
+ */
+function passThroughWithRenamedTag(
+    newTagName: string,
+): ComponentWithPassthroughChildren {
+    return {
+        component: ({ ...args }) => {
+            const { node, ...rest } = args;
+            const newNode = {
+                ...node,
+                name: newTagName,
+            };
+            return PretextComponent._PassThroughWithTag({
+                node: newNode,
+                ...rest,
+            });
+        },
+        passthroughChildren: true,
+    };
+}
+
+/**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
  */
 export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
-    answer: { component: PretextComponent.Answer },
+    answer: {
+        component: PretextComponent.Answer,
+        passthroughChildren: true,
+    },
     choiceInput: { component: PretextComponent.ChoiceInput },
     p: { component: PretextComponent.P, passthroughChildren: true },
     document: {
         component: PretextComponent._PassThroughWithTag,
         passthroughChildren: true,
     },
-    m: { component: PretextComponent.M, passthroughChildren: true },
+    m: { component: PretextComponent.Math },
     math: { component: PretextComponent.Math },
     graph: { component: PretextComponent.Graph },
     point: { component: PretextComponent.PointInText },
@@ -59,6 +85,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         monitorVisibility: true,
     },
     textInput: { component: PretextComponent.TextInput },
+    mathInput: { component: PretextComponent.MathInput },
     text: { component: PretextComponent.Text },
     boolean: { component: PretextComponent.Boolean },
     title: { component: PretextComponent.Title, passthroughChildren: true },
@@ -86,11 +113,21 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     remark: TheoremLikeConverter,
     aside: TheoremLikeConverter,
     note: TheoremLikeConverter,
+    problem: TheoremLikeConverter,
 
     // Inline text formatting elements. These are the same in Doenet and Pretext
     em: NoProcessingConverter,
     c: NoProcessingConverter,
     q: NoProcessingConverter,
+    pre: NoProcessingConverter,
+    ellipsis: NoProcessingConverter,
+    mdash: NoProcessingConverter,
+    nbsp: NoProcessingConverter,
+    lq: NoProcessingConverter,
+    rq: NoProcessingConverter,
+    lsq: NoProcessingConverter,
+    rsq: NoProcessingConverter,
+    sq: NoProcessingConverter,
 
     // For PreTeXt compatibility
     pretext: {
@@ -105,6 +142,19 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
+
+    // Tags where only the capitalization changes
+    sideBySide: passThroughWithRenamedTag("sidebyside"),
+    blockQuote: passThroughWithRenamedTag("blockquote"),
+
+    // Tags with no representation in PreTeXt
+    br: {
+        component: PretextComponent._Omit,
+    },
+    hr: {
+        component: PretextComponent._Omit,
+    },
+
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.
     [FALLBACK_RENDERER_KEY]: {
