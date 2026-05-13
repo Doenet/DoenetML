@@ -3,7 +3,6 @@ import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import * as Xast from "xast";
-import "./pretext-jsx-elements";
 import "./index-inline-worker";
 import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
 import { toXml as xastToXml } from "xast-util-to-xml";
