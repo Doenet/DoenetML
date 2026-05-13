@@ -195,19 +195,48 @@ export class DoenetSourceObject extends LazyDataObject {
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
-                containingElm.cursorPosition !== "attributeValue")
+                containingElm.cursorPosition !== "attributeValue" &&
+                // `openTag` is reported once the cursor sits past an attribute
+                // name on the equals/quote boundary in some cases, and
+                // `unknown` is reported in others (e.g. cursor right after `=`
+                // on a partial attribute, before the value is opened). The
+                // position-containment check below still restricts the result
+                // to a real attribute range, so cursors between attrs
+                // (`<math foo |bar`) or on the tag name return null naturally.
+                containingElm.cursorPosition !== "openTag" &&
+                containingElm.cursorPosition !== "unknown")
         ) {
             return null;
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = Object.values(containingElm.node.attributes).find(
+        const attributes = Object.values(containingElm.node.attributes);
+        const attribute = attributes.find(
             (a) =>
                 a.position &&
                 a.position.start.offset! <= _offset &&
                 a.position.end.offset! >= _offset,
         );
-        return attribute || null;
+        if (!attribute) return null;
+
+        // Unquoted value spillover: `<math simplify=full>` parses as TWO
+        // attributes — `simplify` (with the `=` baked into its range) and
+        // `full` (a bogus attribute with no value). When the cursor lands
+        // in the bogus one and the char immediately before it is `=`, the
+        // user is mid-typing a value for the preceding attribute. Return
+        // the preceding attribute so help/lookup follow the user's intent.
+        const startOffset = attribute.position?.start.offset;
+        if (
+            startOffset != null &&
+            startOffset > 0 &&
+            this.source.charAt(startOffset - 1) === "="
+        ) {
+            const preceding = attributes.find(
+                (a) => a.position?.end.offset === startOffset,
+            );
+            if (preceding) return preceding;
+        }
+        return attribute;
     }
 
     /**

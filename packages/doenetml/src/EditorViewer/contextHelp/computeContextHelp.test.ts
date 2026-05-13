@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { computeContextHelp } from "./computeContextHelp";
+import {
+    computeContextHelp,
+    computeContextHelpForCompletion,
+    type ContextHelpCompletion,
+} from "./computeContextHelp";
 import type { HelpContent } from "./types";
 
 // Default `new AutoCompleter(source)` already binds the bundled doenetSchema
@@ -8,6 +12,18 @@ import type { HelpContent } from "./types";
 // are exercised against the same data the editor consumes at runtime.
 function helpAt(source: string, offset: number): HelpContent {
     return computeContextHelp(new AutoCompleter(source), offset);
+}
+
+function helpForCompletionAt(
+    source: string,
+    offset: number,
+    completion: ContextHelpCompletion,
+): HelpContent {
+    return computeContextHelpForCompletion(
+        new AutoCompleter(source),
+        offset,
+        completion,
+    );
 }
 
 describe("computeContextHelp — element help", () => {
@@ -80,6 +96,112 @@ describe("computeContextHelp — attribute help", () => {
             kind: "attribute",
             attributeName: "simplify",
         });
+    });
+
+    it("keeps attribute help when cursor sits right after `=` on a partial attribute", () => {
+        // Regression: lezer reports `cursorPosition: openTag` once the cursor
+        // crosses the `=` boundary on an incomplete attribute, but the cursor
+        // is still inside the attribute's position range — help should
+        // continue to show the attribute description.
+        const source = `<math simplify=`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("keeps attribute help right after the opening quote of an empty value", () => {
+        const source = `<math simplify="`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("keeps attribute help on an unquoted partial value (`simplify=f`)", () => {
+        // Parser tokenizes `simplify=f` as TWO attributes — `simplify` (with
+        // `=` baked in) and bogus `f`. `attributeAtOffset` detects the `=`
+        // spillover and returns the preceding `simplify`, so the help panel
+        // tracks the attribute the user is actually trying to value.
+        const source = `<math simplify=f`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("keeps attribute help on a longer unquoted partial value (`simplify=ff`)", () => {
+        const source = `<math simplify=ff`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("keeps attribute help on a complete unquoted value (`simplify=full`)", () => {
+        const source = `<math simplify=full`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("falls back to element help when cursor is in whitespace inside the open tag", () => {
+        // `<math |` — cursor in the open tag but not in any attribute. We
+        // previously returned NONE; now we return the element help so the
+        // panel doesn't blank out.
+        const source = `<math `;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("falls back to element help when cursor is on an unknown attribute name", () => {
+        // `<math bad` — `bad` isn't a math attribute. Rather than blanking
+        // the panel, show element help so the user can still see what
+        // `<math>` is.
+        const source = `<math bad`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("falls back to element help on an unknown attribute with an unquoted value (`bad=foo`)", () => {
+        const source = `<math bad=foo`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("shows element help across every cursor position in `<math bad=foo`", () => {
+        // Defends every offset inside the open tag against blanking, so
+        // moving the cursor around in an unknown-attribute context keeps
+        // the user oriented on the element.
+        const source = `<math bad=foo`;
+        // Start after `<math` (offset 5, the space) through end of source.
+        for (let offset = 5; offset <= source.length; offset++) {
+            const help = helpAt(source, offset);
+            expect(help.kind).toBe("element");
+            if (help.kind === "element") {
+                expect(help.elementName).toBe("math");
+            }
+        }
     });
 
     it("prefers autocompleteValues over values for boolean-aliased enums", () => {
@@ -528,5 +650,175 @@ describe("computeContextHelp — docsSlug propagation", () => {
             return;
         }
         expect(help.docsSlug).toBe("math");
+    });
+});
+
+describe("computeContextHelpForCompletion", () => {
+    it("returns element help for a `property`-kind completion when cursor is not in a refMember context", () => {
+        // `<a|` — author is typing an element name. The LSP layer tags
+        // element-schema completions with `kind: Property` (lowercased
+        // `"property"` in CodeMirror). The dispatcher should treat this
+        // as an element lookup.
+        const source = `<a`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "abs",
+            type: "property",
+        });
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "abs",
+        });
+    });
+
+    it("returns refMember property help for a `property`-kind completion inside a refMember context", () => {
+        // `$m.|` — element-property completions surface here with the same
+        // `property` kind; disambiguation comes from the cursor's completion
+        // context (refMember vs body).
+        const source = `<math name="m">x</math>\n$m.`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "displayDecimals",
+            type: "property",
+        });
+        expect(help).toMatchObject({
+            kind: "property",
+            elementName: "math",
+        });
+        if (help.kind === "property") {
+            expect(help.propertyName.toLowerCase()).toBe("displaydecimals");
+        }
+    });
+
+    it("returns attribute help for an `enum`-kind attribute-name completion", () => {
+        const source = `<math `;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "simplify",
+            type: "enum",
+        });
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("returns attribute help for a `value`-kind attribute-value completion (no per-value help)", () => {
+        const source = `<math simplify="`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "full",
+            type: "value",
+        });
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("falls back to element help for a `value`-kind completion on an unknown attribute (`<math bad=foo`)", () => {
+        // When the user types `<math bad=foo`, the autocomplete fires with
+        // a value-kind row (`"foo"`) highlighted. The cursor-driven path
+        // would show element help here; the completion path must agree
+        // rather than blanking out.
+        const source = `<math bad=foo`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: '"foo"',
+            type: "value",
+        });
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("falls back to element help for an `enum`-kind completion on an unknown attribute name", () => {
+        // Defensive: if a producer ever surfaces an unknown attribute label
+        // in an enum-kind completion, we shouldn't blank the panel.
+        const source = `<math `;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "definitelyNotARealAttribute",
+            type: "enum",
+        });
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("returns attribute help for a `value`-kind completion on an unquoted partial value", () => {
+        // Autocomplete fires for `<math simplify=f|` even though there's no
+        // opening quote — the help panel should still resolve back through
+        // the unquoted-spillover detection to show `simplify` help.
+        const source = `<math simplify=f`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "full",
+            type: "value",
+        });
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
+    it("returns refName help for a `reference`-kind completion", () => {
+        const source = `<math name="m">x</math>\n$`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "m",
+            type: "reference",
+        });
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+        });
+    });
+
+    it("strips a leading `$` from reference completion labels defensively", () => {
+        const source = `<math name="m">x</math>\n$`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "$m",
+            type: "reference",
+        });
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+        });
+    });
+
+    it("returns snippet help with description and template text for a snippet completion", () => {
+        // `answer-labeled` is a stable snippet in the bundled set (see
+        // packages/static-assets/src/generated/completion-snippets.json).
+        const source = ``;
+        const help = helpForCompletionAt(source, 0, {
+            label: "answer-labeled",
+            type: "snippet",
+        });
+        if (help.kind !== "snippet") {
+            expect.fail(`expected snippet help, got ${help.kind}`);
+            return;
+        }
+        expect(help.snippetKey).toBe("answer-labeled");
+        expect(help.elementName).toBe("answer");
+        expect(help.description).toBeTruthy();
+        expect(help.snippetText).toContain("<answer");
+        expect(help.snippetText).toContain("<label>");
+    });
+
+    it("returns NONE for an unknown completion label", () => {
+        const source = `<a`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "definitelyNotAnElement",
+            type: "property",
+        });
+        expect(help.kind).toBe("none");
+    });
+
+    it("returns NONE for a completion with no type", () => {
+        const source = `<a`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "abs",
+        });
+        expect(help.kind).toBe("none");
     });
 });

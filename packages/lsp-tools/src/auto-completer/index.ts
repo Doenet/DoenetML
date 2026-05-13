@@ -68,7 +68,7 @@ export type AliasedElementSchema = {
     properties?: SchemaProperty[];
 };
 
-type ProcessedSnippet = {
+export type ProcessedSnippet = {
     key: string;
     element: string;
     normalizedElement: string;
@@ -189,6 +189,13 @@ export class AutoCompleter {
      * Processed snippets indexed by element (normalized to schema capitalization) for quick lookup.
      */
     snippetsByNormalizedElement: Map<string, ProcessedSnippet[]> = new Map();
+    /**
+     * Processed snippets indexed by their key (the snippet's unique identifier,
+     * which is also the completion `label`). Used by the help layer to look up
+     * a snippet's description and template text from a highlighted autocomplete
+     * row.
+     */
+    snippetsByKey: Map<string, ProcessedSnippet> = new Map();
 
     constructor(
         source?: string,
@@ -576,6 +583,7 @@ export class AutoCompleter {
      */
     _initializeSnippets() {
         this.snippetsByNormalizedElement.clear();
+        this.snippetsByKey.clear();
 
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {
             const rawSnippet = snippet.snippet ?? "";
@@ -611,7 +619,17 @@ export class AutoCompleter {
             this.snippetsByNormalizedElement
                 .get(normalizedElement)!
                 .push(processed);
+            this.snippetsByKey.set(key, processed);
         });
+    }
+
+    /**
+     * Look up a processed snippet by its key (matches the completion `label`).
+     * Returns `undefined` when the key isn't registered — for example when the
+     * active schema doesn't include the snippet's root element.
+     */
+    findSnippet(key: string): ProcessedSnippet | undefined {
+        return this.snippetsByKey.get(key);
     }
 
     /**
