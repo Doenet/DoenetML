@@ -4,7 +4,7 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import { gatherVariantComponents } from "../utils/variants";
+import { gatherVariantComponents, pushVariantInfo } from "../utils/variants";
 import { createNewComponentIndices } from "../utils/componentIndices";
 
 export default class Select extends CompositeComponent {
@@ -674,6 +674,7 @@ export default class Select extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -696,14 +697,18 @@ export default class Select extends CompositeComponent {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    console.log(
-                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
+                    pushVariantInfo(
+                        infoDiagnostics,
+                        `cannot determine unique variants of select as numToSelect isn't a non-negative integer.`,
+                        serializedComponent,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
-                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
+                pushVariantInfo(
+                    infoDiagnostics,
+                    `cannot determine unique variants of select as numToSelect isn't constant number.`,
+                    serializedComponent,
                 );
                 return { success: false };
             }
@@ -728,14 +733,18 @@ export default class Select extends CompositeComponent {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    console.log(
-                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
+                    pushVariantInfo(
+                        infoDiagnostics,
+                        `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
+                        serializedComponent,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
-                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
+                pushVariantInfo(
+                    infoDiagnostics,
+                    `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
+                    serializedComponent,
                 );
                 return { success: false };
             }
@@ -747,8 +756,10 @@ export default class Select extends CompositeComponent {
                 child.attributes?.selectForVariants
             ) {
                 // uniqueVariants disabled if have a child with selectWeight or selectForVariants specified
-                console.log(
+                pushVariantInfo(
+                    infoDiagnostics,
                     `Unique variants for select disabled if have an option with selectWeight or selectForVariants specified`,
+                    serializedComponent,
                 );
                 return { success: false };
             }
@@ -775,6 +786,7 @@ export default class Select extends CompositeComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };

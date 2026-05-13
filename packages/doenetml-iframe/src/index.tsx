@@ -311,6 +311,7 @@ type EditorIframeRemote = Comlink.Remote<{
     renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
     openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     closeDiagnosticsPanel: () => void;
+    updateRenderedView: () => void;
 }>;
 
 // ComLink RPC calls return Promises, but the imperative handle methods are
@@ -372,6 +373,18 @@ export const DoenetEditor = React.forwardRef<
                     remote
                         .closeDiagnosticsPanel()
                         .catch(logComlinkError("closeDiagnosticsPanel"));
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
+            updateRenderedView() {
+                const action = (remote: EditorIframeRemote) => {
+                    remote
+                        .updateRenderedView()
+                        .catch(logComlinkError("updateRenderedView"));
                 };
                 if (editorIframeRef.current) {
                     action(editorIframeRef.current);

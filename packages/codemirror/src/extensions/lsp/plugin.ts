@@ -318,7 +318,37 @@ export class LSPPlugin implements PluginValue {
         const charBeforeCursor = line.text[pos - line.from - 1];
         const charBeforeParen =
             charBeforeCursor === "(" ? line.text[pos - line.from - 2] : "";
+        // A `"` or `'` is a server trigger because typing the *opening*
+        // quote of a value should open a value popup (e.g. `<math name="`).
+        // The *closing* quote of a value (e.g. `<math name="hello"`) is the
+        // same character but shouldn't pop attribute completions — that
+        // would be inconsistent with `<math `, which waits for a letter
+        // before suggesting. In a well-formed open tag, quotes of the same
+        // kind pair up after each `=`, so the parity of prior occurrences
+        // of the typed quote (between the last `<` and the typed quote)
+        // tells us whether we just typed an opener or a closer:
+        //   - even (0, 2, …) → opener → fire the trigger
+        //   - odd  (1, 3, …) → closer → suppress
+        // Counting (rather than scanning to a single matching quote) is
+        // what makes `<math name="hello" simplify="` correctly treat the
+        // second `"` as the opener of `simplify`'s value: two prior `"`
+        // chars from `name="hello"` make the count even. Stopping at `=`
+        // would seem simpler but breaks `<math foo="x=y"`, where the
+        // closing `"` of `foo` has a literal `=` inside its value.
+        let isClosingQuoteTrigger = false;
+        if (charBeforeCursor === '"' || charBeforeCursor === "'") {
+            const quote = charBeforeCursor;
+            const cursorCol = pos - line.from;
+            let quoteCount = 0;
+            for (let k = cursorCol - 2; k >= 0; k--) {
+                const c = line.text[k];
+                if (c === "<") break;
+                if (c === quote) quoteCount++;
+            }
+            isClosingQuoteTrigger = quoteCount % 2 === 1;
+        }
         const precedingServerTriggerCharacter =
+            !isClosingQuoteTrigger &&
             uniqueLanguageServerInstance.completionTriggers.includes(
                 charBeforeCursor,
             );
@@ -327,6 +357,26 @@ export class LSPPlugin implements PluginValue {
             charBeforeCursor === "." ||
             (charBeforeCursor === "(" &&
                 (charBeforeParen === "$" || charBeforeParen === "."));
+
+        // `<math simplify= ` and similar: when the cursor sits on whitespace
+        // that immediately follows `=`, we still want the LSP to suggest
+        // completions. Without this, the popup that opened on `=` flickers
+        // closed the moment the user types a space and only reopens on the
+        // next non-whitespace keystroke. Scoped to `=` only — other server
+        // triggers (`<`, `/`, `"`, `'`, `$`, `.`) shouldn't reopen the popup
+        // across whitespace: e.g. `<math name="hello" ` should not keep the
+        // popup that briefly opened on the closing `"`, matching the
+        // behaviour of `<math ` (where space after the tag name does not
+        // pop completions until a letter is typed).
+        let postWhitespaceTrigger = false;
+        if (charBeforeCursor && /\s/.test(charBeforeCursor)) {
+            const cursorCol = pos - line.from;
+            let i = cursorCol - 1;
+            while (i >= 0 && /\s/.test(line.text[i])) i--;
+            if (i >= 0 && line.text[i] === "=") {
+                postWhitespaceTrigger = true;
+            }
+        }
 
         if (!explicit && precedingServerTriggerCharacter) {
             triggerKind = LSPCompletionTriggerKind.TriggerCharacter;
@@ -337,6 +387,7 @@ export class LSPPlugin implements PluginValue {
             !context.matchBefore(MACRO_IDENTIFIER_SEGMENT_REGEX) &&
             !precedingServerTriggerCharacter &&
             !precedingLocalRefTriggerCharacter &&
+            !postWhitespaceTrigger &&
             !explicit
         ) {
             return null;

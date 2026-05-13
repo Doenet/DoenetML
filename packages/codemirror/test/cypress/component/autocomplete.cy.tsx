@@ -317,6 +317,91 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("not.contain.text", 'name=   "hello"');
     });
 
+    it("keeps the value popup open across whitespace between `=` and a bare value", () => {
+        // Regression: typing `<math simplify=` opens the value popup, then
+        // typing a single space used to close it (gate at `plugin.ts:335`
+        // returned `null` because space isn't a server trigger char and
+        // there's no preceding identifier), only to reopen on the next
+        // keystroke. The popup must stay open continuously while the user
+        // types ` full` after `=`.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math simplify=", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type(" ", { force: true });
+        // The flap: without the post-whitespace-trigger heuristic the popup
+        // would briefly close here.
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type("full", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"full"',
+        );
+    });
+
+    it("does not pop attribute completions on the closing quote of a value", () => {
+        // `"` and `'` are server trigger characters because typing the
+        // *opening* quote of a value should pop a value popup (e.g.
+        // `<math name="`). Typing the *closing* quote (e.g.
+        // `<math name="hello"`) used to also pop the popup — showing
+        // attribute names — because the gate only looked at the single
+        // char before the cursor. That is inconsistent with `<math `
+        // (which waits for a letter). The gate now counts prior
+        // occurrences of the typed quote between the last `<` and the
+        // cursor: an odd count means the typed quote is a closer, so
+        // the trigger is suppressed.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello"', { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+        // And a trailing space should keep it closed, matching `<math `.
+        cy.get(".cm-content").type(" ", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("pops the value popup on the opening quote of a *second* attribute on the same tag", () => {
+        // Regression guard for the closing-quote heuristic. An earlier
+        // walk-back-to-matching-quote implementation incorrectly classified
+        // the opening `"` of `simplify="` here as a closer because the
+        // scan found the closing `"` of `name="hello"`. The parity-based
+        // heuristic counts prior `"` chars (two, from `name="hello"`) and
+        // correctly identifies the typed quote as an opener, so the
+        // server trigger fires and value completions surface.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello" simplify="', { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        // The `simplify` attribute is boolean-like; expect at least one
+        // value completion (e.g. `full`) — anchoring on a specific label
+        // would couple the test to schema details, so we just assert the
+        // popup has some completion row.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.length.greaterThan",
+            0,
+        );
+    });
+
     it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
         // Smoke test for the end-to-end ref-completion accept flow when
         // the first LSP response is slow. Originally named for a

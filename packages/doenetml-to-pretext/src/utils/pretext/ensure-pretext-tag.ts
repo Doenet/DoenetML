@@ -40,9 +40,6 @@ export function ensurePretextTag(
         flatDast.children = [{ id, annotation: "original" }];
     }
 
-    if (!pretextElement.children) {
-        console.log("No children", pretextElement);
-    }
     // Ensure that a <book> or <article> tag is immediately inside the <pretext> tag
     // There may be a <docinfo> tag that is a sibling of the division tag.
     const hasDivisionTag = pretextElement.children.find(

@@ -79,11 +79,42 @@ export function computeContextHelp(
 
         if (
             cursorPosition === "attributeName" ||
-            cursorPosition === "attributeValue"
+            cursorPosition === "attributeValue" ||
+            cursorPosition === "openTag" ||
+            cursorPosition === "unknown"
         ) {
+            // `openTag` and `unknown` both come up at attribute boundary
+            // cases — cursor right after `=`, right after an opening
+            // quote, or on whitespace between attributes. Which one the
+            // parser reports varies with incremental-parse state, so we
+            // accept both rather than enumerating lezer-specific mappings.
+            // `attributeAtOffset` uses position-containment within an
+            // attribute's source range to decide whether the cursor is
+            // actually inside an attribute, returning the right thing for
+            // any of these cursor positions and `null` otherwise.
             const attr = completer.sourceObj.attributeAtOffset(offset);
-            if (!attr) return NONE;
-            return helpForAttribute(ownEntry, effectiveEntry, attr.name);
+            if (attr) {
+                const attrHelp = helpForAttribute(
+                    ownEntry,
+                    effectiveEntry,
+                    attr.name,
+                );
+                if (attrHelp.kind !== "none") return attrHelp;
+                // The cursor is inside an attribute the element doesn't know
+                // (e.g. typo / unknown attribute like `<math bad`). Fall back
+                // to element help so the panel keeps something useful on
+                // screen rather than going blank.
+                return helpForElement(ownEntry, effectiveEntry);
+            }
+            if (cursorPosition === "openTag") {
+                // Cursor is inside the open tag but not inside any attribute
+                // (e.g. `<math |` between attrs). Show element-level help so
+                // the panel doesn't blank out.
+                return helpForElement(ownEntry, effectiveEntry);
+            }
+            // `unknown` with no matching attribute can mean many things
+            // (e.g. cursor sitting on body text); fall through to the rest
+            // of the dispatch rather than guessing.
         }
     }
 
@@ -226,7 +257,25 @@ function helpForRefMember(
         isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!memberName) return NONE;
+    return helpForRefMemberByName(completer, offset, ctx, memberName);
+}
 
+/**
+ * Body of ref-member help, parameterized on the member name. The cursor-driven
+ * path derives the name from the source text via `fullIdentifierAtOffset`;
+ * the completion-driven path passes the autocomplete row's label directly so
+ * the help mirrors exactly what would be inserted.
+ */
+function helpForRefMemberByName(
+    completer: AutoCompleter,
+    offset: number,
+    ctx: {
+        pathParts: string[];
+        pathPartHasIndex: boolean[];
+        rawPathParts: string[];
+    },
+    memberName: string,
+): HelpContent {
     const resolved = completer.resolveRefMemberContainerAtOffset(
         offset,
         ctx.pathParts,
@@ -335,7 +384,18 @@ function helpForRefName(
         isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
+    return helpForRefNameByName(completer, offset, refName);
+}
 
+/**
+ * Body of refName help, parameterized on the name. The completion-driven path
+ * passes the autocomplete row's label directly (with any leading `$` stripped).
+ */
+function helpForRefNameByName(
+    completer: AutoCompleter,
+    offset: number,
+    refName: string,
+): HelpContent {
     const resolved = completer.resolveRefNameForHelp(offset, refName);
     if (!resolved) return NONE;
 
@@ -349,4 +409,143 @@ function helpForRefName(
         line,
         docsSlug: effectiveEntry?.docsSlug ?? null,
     };
+}
+
+/**
+ * Build help content for a snippet autocomplete row. Looked up by the
+ * completion `label`, which equals the snippet's key.
+ */
+function helpForSnippet(
+    completer: AutoCompleter,
+    snippetKey: string,
+): HelpContent {
+    const snippet = completer.findSnippet(snippetKey);
+    if (!snippet) return NONE;
+    return {
+        kind: "snippet",
+        snippetKey: snippet.key,
+        elementName: snippet.element,
+        description: snippet.description,
+        snippetText: snippet.snippet,
+    };
+}
+
+/**
+ * Minimal shape we need from a CodeMirror `Completion` — just `label` and
+ * `type`. Avoids a direct dep on `@codemirror/autocomplete` from this module
+ * (the EditorViewer is responsible for sourcing the completion object).
+ */
+export type ContextHelpCompletion = {
+    label: string;
+    type?: string;
+};
+
+/**
+ * Compute help for the currently-highlighted autocomplete row. Dispatched on
+ * `completion.type` (set by the CodeMirror LSP plugin from `CompletionItemKind`,
+ * lower-cased). The `"property"` kind is ambiguous (both element schema items
+ * and ref-member properties use it) and is disambiguated by inspecting the
+ * cursor's completion context.
+ */
+export function computeContextHelpForCompletion(
+    completer: AutoCompleter,
+    offset: number,
+    completion: ContextHelpCompletion,
+): HelpContent {
+    const rawLabel = completion.label;
+    if (!rawLabel) return NONE;
+    const type = completion.type;
+
+    if (type === "snippet") {
+        return helpForSnippet(completer, rawLabel);
+    }
+
+    if (type === "reference") {
+        // Strip a leading `$` defensively, then a trailing `[]` — the LSP
+        // layer emits an extra `name[]` row for `takesIndex` referents
+        // (repeat, select, …) that resolves to the same target as the bare
+        // `name` row.
+        let refName = rawLabel.startsWith("$") ? rawLabel.slice(1) : rawLabel;
+        if (refName.endsWith("[]")) {
+            refName = refName.slice(0, -2);
+        }
+        return helpForRefNameByName(completer, offset, refName);
+    }
+
+    if (type === "property") {
+        // Element schema items, ref-member properties, and close-tag rows
+        // all share `kind: Property` in the LSP layer.
+        const ctx = completer.getCompletionContext(offset);
+        if (ctx.cursorPos === "refMember") {
+            return helpForRefMemberByName(completer, offset, ctx, rawLabel);
+        }
+        if (rawLabel.startsWith("/")) {
+            // Close-tag completion (label like `/math>`): show help for the
+            // element being closed, which is the surrounding element under
+            // the cursor — matches what the cursor-driven `closeTagName`
+            // path returns.
+            const { node } =
+                completer.sourceObj.elementAtOffsetWithContext(offset);
+            if (!node) return NONE;
+            const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+                completer,
+                node,
+            );
+            return helpForElement(ownEntry, effectiveEntry);
+        }
+        // Element schema item.
+        const ownEntry = completer.findSchemaElement(rawLabel);
+        if (!ownEntry) return NONE;
+        // No reliable parent context at the autocomplete row level (the user
+        // hasn't yet inserted the element under any parent), so resolve the
+        // effective entry against itself.
+        const effectiveEntry =
+            completer.resolveEffectiveSchemaElement(ownEntry, undefined) ??
+            ownEntry;
+        return helpForElement(ownEntry, effectiveEntry);
+    }
+
+    if (type === "enum") {
+        // Attribute-name completion. Look up the surrounding element from the
+        // cursor and ask for help for the highlighted attribute.
+        const { node } = completer.sourceObj.elementAtOffsetWithContext(offset);
+        if (!node) return NONE;
+        const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+            completer,
+            node,
+        );
+        const attrHelp = helpForAttribute(ownEntry, effectiveEntry, rawLabel);
+        // If the highlighted attribute name isn't in the schema, fall back to
+        // element help so the panel stays anchored to the element rather than
+        // blanking out.
+        if (attrHelp.kind !== "none") return attrHelp;
+        return helpForElement(ownEntry, effectiveEntry);
+    }
+
+    if (type === "value") {
+        // Attribute-value completion — there's no per-value help, so fall
+        // back to the attribute's description. Use `attributeAtOffset` to
+        // find which attribute the value belongs to.
+        const { node } = completer.sourceObj.elementAtOffsetWithContext(offset);
+        if (!node) return NONE;
+        const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+            completer,
+            node,
+        );
+        const attr = completer.sourceObj.attributeAtOffset(offset);
+        if (attr) {
+            const attrHelp = helpForAttribute(
+                ownEntry,
+                effectiveEntry,
+                attr.name,
+            );
+            if (attrHelp.kind !== "none") return attrHelp;
+        }
+        // No matching attribute (or the matched attribute isn't in the
+        // schema — e.g. `<math bad=foo` where the value popup is driven by
+        // the bogus `bad` attribute). Fall back to element help.
+        return helpForElement(ownEntry, effectiveEntry);
+    }
+
+    return NONE;
 }

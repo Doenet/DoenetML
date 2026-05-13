@@ -20,14 +20,10 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
-export type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
+import type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+import type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
+export type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
@@ -119,7 +115,10 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    setDiagnosticsCallback?: (
+        diagnostics: DiagnosticRecord[],
+        source: string,
+    ) => void;
     /**
      * @deprecated Use `setDiagnosticsCallback` instead.
      */
@@ -194,8 +193,8 @@ export function DoenetViewer({
     }, []);
 
     const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
-        ? (diagnostics: DiagnosticRecord[]) => {
-              setDiagnosticsCallback?.(diagnostics);
+        ? (diagnostics: DiagnosticRecord[], source: string) => {
+              setDiagnosticsCallback?.(diagnostics, source);
               setErrorsAndWarningsCallback({
                   errors: diagnostics.filter(isErrorRecord),
                   warnings: diagnostics.filter(isWarningRecord),
@@ -345,6 +344,7 @@ type DoenetEditorProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;

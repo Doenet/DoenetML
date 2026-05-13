@@ -69,10 +69,19 @@ on first commit.
     document
         .querySelector("#close-panel")
         .addEventListener("click", () => handle.closeDiagnosticsPanel());
+    document
+        .querySelector("#update-viewer")
+        .addEventListener("click", () => handle.updateRenderedView());
 </script>
 ```
 
 Valid tab IDs: `"errors" | "warnings" | "info" | "accessibility" | "responses"`.
+
+`handle.updateRenderedView()` programmatically presses the editor's "Update"
+button: it flushes any pending edits to the viewer so the next
+`diagnosticsSummaryCallback` reflects the current editor buffer. It's a
+no-op when nothing has changed, and warns when there is no viewer
+(`showViewer={false}`).
 
 ## Development
 

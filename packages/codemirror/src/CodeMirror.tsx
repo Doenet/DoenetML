@@ -1,5 +1,6 @@
 import React from "react";
 import { EditorSelection, EditorState, Extension } from "@codemirror/state";
+import { selectedCompletion, type Completion } from "@codemirror/autocomplete";
 import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
@@ -17,6 +18,7 @@ const CodeMirror = React.memo(function CodeMirror({
     value,
     onChange,
     onCursorChange,
+    onSelectedCompletionChange,
     readOnly,
     onBlur,
     onFocus,
@@ -26,6 +28,12 @@ const CodeMirror = React.memo(function CodeMirror({
     value: string;
     onChange?: (str: string) => void;
     onCursorChange?: (selection: EditorSelection) => any;
+    /**
+     * Fires when the currently-highlighted autocomplete option changes,
+     * including transitions to/from `null` (popup opens/closes). Used to
+     * drive the context-sensitive help panel.
+     */
+    onSelectedCompletionChange?: (completion: Completion | null) => void;
     readOnly?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
@@ -106,6 +114,18 @@ const CodeMirror = React.memo(function CodeMirror({
                     for (const tr of viewUpdate.transactions) {
                         if (tr.selection && onCursorChange) {
                             onCursorChange(tr.selection);
+                        }
+                    }
+                    if (onSelectedCompletionChange) {
+                        const prev = selectedCompletion(viewUpdate.startState);
+                        const next = selectedCompletion(viewUpdate.state);
+                        // Identity compare: CodeMirror returns the same
+                        // Completion instance across renders of the same
+                        // active option. When the filter rebuilds (typing),
+                        // a new object may surface — the downstream handler
+                        // is idempotent, so re-firing is cheap.
+                        if (prev !== next) {
+                            onSelectedCompletionChange(next);
                         }
                     }
                 }}

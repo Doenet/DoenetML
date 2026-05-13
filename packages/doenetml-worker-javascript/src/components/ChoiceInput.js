@@ -1649,11 +1649,13 @@ export default class Choiceinput extends Input {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         if (!serializedComponent.attributes?.shuffleOrder?.primitive.value) {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
 
@@ -1705,6 +1707,7 @@ export default class Choiceinput extends Input {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

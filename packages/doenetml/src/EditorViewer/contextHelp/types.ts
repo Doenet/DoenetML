@@ -72,4 +72,21 @@ export type HelpContent =
      * Issue #1086 tracks adding multi-part support; until then, surface a
      * placeholder rather than silently rendering the empty state.
      */
-    | { kind: "unsupportedRefChain" };
+    | { kind: "unsupportedRefChain" }
+    /**
+     * Highlighted autocomplete row is a snippet (multi-line template). Carries
+     * the snippet's human-readable description and the raw template text so
+     * the panel can preview it before insertion. No `docsSlug` — snippets
+     * don't have reference pages.
+     */
+    | {
+          kind: "snippet";
+          /** Snippet identifier (also the autocomplete `label`). */
+          snippetKey: string;
+          /** Root element the snippet expands to. */
+          elementName: string;
+          /** Human-readable description from the snippet definition. */
+          description: string;
+          /** Raw snippet template (trimmed leading whitespace). */
+          snippetText: string;
+      };

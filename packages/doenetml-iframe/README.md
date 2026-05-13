@@ -49,6 +49,20 @@ Valid tab IDs: `"errors" | "warnings" | "info" | "accessibility" | "responses"`.
 See the `@doenet/doenetml` README for usage patterns including the lazy-mount
 "link in a different panel" scenario.
 
+### Programmatically updating the rendered view
+
+The handle also exposes `updateRenderedView()`, which forwards across the
+iframe to "press" the editor's Update button. Pair it with
+`diagnosticsSummaryCallback` (which receives the source the viewer
+rendered against as its second argument) to ensure diagnostics reflect the
+latest editor buffer:
+
+```tsx
+<button onClick={() => editorRef.current?.updateRenderedView()}>
+    Update viewer
+</button>
+```
+
 > **Note:** The handle methods are fire-and-forget across the iframe boundary.
 > Although they share the same `DoenetEditorHandle` type as the in-process
 > editor (so consumers can swap implementations), the iframe variant cannot

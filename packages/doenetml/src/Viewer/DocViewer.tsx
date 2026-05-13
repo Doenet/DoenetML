@@ -82,7 +82,10 @@ export function DocViewer({
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
     initialState?: Record<string, any> | null;
-    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    setDiagnosticsCallback?: (
+        diagnostics: DiagnosticRecord[],
+        source: string,
+    ) => void;
     reportScoreAndStateCallback?: (data: {
         score: number;
         state: unknown;
@@ -588,7 +591,9 @@ export function DocViewer({
         const actionResult =
             await coreWorker.current?.dispatchActionJavascript(actionArgs);
 
-        resolveAction(actionResult);
+        if (actionResult) {
+            resolveAction(actionResult);
+        }
     }
 
     function forceRendererState({
@@ -744,7 +749,7 @@ export function DocViewer({
     }) {
         if (newDiagnostics) {
             diagnostics.current = newDiagnostics;
-            setDiagnosticsCallback?.(diagnostics.current);
+            setDiagnosticsCallback?.(diagnostics.current, doenetML);
             if (
                 init &&
                 newDiagnostics.some((diagnostic) => diagnostic.type === "error")
@@ -1092,7 +1097,7 @@ export function DocViewer({
                 ) {
                     setHasInitialError(true);
                 }
-                setDiagnosticsCallback?.(diagnostics.current);
+                setDiagnosticsCallback?.(diagnostics.current, doenetML);
             }
         } else {
             setIsInErrorState?.(true);

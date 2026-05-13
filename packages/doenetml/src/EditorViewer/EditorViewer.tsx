@@ -15,10 +15,7 @@ import {
     DiagnosticsResponseTabContents,
     DiagnosticsResponseTabstrip,
 } from "./DiagnosticsResponseTabs";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./DiagnosticsResponseTabs";
+import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
@@ -35,9 +32,13 @@ import {
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { computeContextHelp } from "./contextHelp/computeContextHelp";
+import {
+    computeContextHelp,
+    computeContextHelpForCompletion,
+} from "./contextHelp/computeContextHelp";
 import type { HelpContent } from "./contextHelp/types";
 import { EditorSelection } from "@codemirror/state";
+import type { Completion } from "@codemirror/autocomplete";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -45,6 +46,42 @@ const HELP_NONE: HelpContent = { kind: "none" };
 // stable across renders. A parameter default `= []` would create a fresh array
 // each render, refiring every effect/memo that depends on `initialDiagnostics`.
 const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
+
+/**
+ * Imperative handle exposed on the ref of `<DoenetEditor>`. Provides
+ * programmatic access to editor actions that would otherwise require user
+ * interaction with the UI — switching the diagnostics/responses panel, and
+ * flushing pending edits to the rendered view.
+ */
+export type DoenetEditorHandle = {
+    /**
+     * Switch the diagnostics/responses panel to `tabId` and open it.
+     * If `tabId` references a tab disabled by `showDiagnostics={false}` or
+     * `showResponses={false}`, the call is ignored with a `console.warn`.
+     */
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    /** Close the diagnostics/responses panel. */
+    closeDiagnosticsPanel: () => void;
+    /**
+     * Programmatic equivalent of clicking the editor's "Update" button: flush
+     * any pending edits to the viewer so the next `diagnosticsSummaryCallback`
+     * reflects the current editor buffer rather than stale state.
+     *
+     * Behavior mirrors the button:
+     * - If the editor has unsaved edits, the viewer is re-rendered with the
+     *   current source and the pending `doenetmlChangeCallback` debounce
+     *   timer is cancelled. (The callback still fires indirectly via the
+     *   viewer's normal change-reporting path once it parses the new
+     *   source.)
+     * - If the source is unchanged but the document has been interacted with,
+     *   the viewer is remounted (clearing answer/work state).
+     * - If neither condition holds, the call is a no-op.
+     *
+     * Ignored with a `console.warn` when `showViewer={false}` (no viewer to
+     * update).
+     */
+    updateRenderedView: () => void;
+};
 
 type EditorViewerProps = {
     doenetML: string;
@@ -63,6 +100,7 @@ type EditorViewerProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;
@@ -205,6 +243,10 @@ export const EditorViewer = React.forwardRef<
     );
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
+    // Snapshot of the DoenetML the viewer was rendering when it last reported
+    // diagnostics, captured at callback time so a later edit/save can't make
+    // the source disagree with the diagnostics it produced.
+    const [diagnosticsSource, setDiagnosticsSource] = useState(initialDoenetML);
     // Track whether we've received diagnostics from the viewer at least once.
     // This is used to gate when we call the diagnosticsSummaryCallback to avoid sending
     // just the initial diagnostics on load, which would be misleading since that
@@ -224,6 +266,11 @@ export const EditorViewer = React.forwardRef<
     // the stable `onCursorChange` callback without re-binding it on every
     // visibility change.
     const helpIsVisibleRef = useRef(false);
+    // The currently-highlighted autocomplete row, mirrored from CodeMirror's
+    // `selectedCompletion(state)`. When non-null, the help panel reflects this
+    // row instead of the cursor position. Tracked as a ref (not state) so the
+    // stable cursor handler can early-return without re-binding.
+    const selectedCompletionRef = useRef<Completion | null>(null);
 
     const tabStore = useTabStore({
         defaultSelectedId:
@@ -245,6 +292,40 @@ export const EditorViewer = React.forwardRef<
         setInfoPanelIsOpen(true);
     }
 
+    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
+    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
+    // via refs and early-returns when nothing has changed so the programmatic
+    // call is a true no-op (no spurious `setResponses([])` re-render). For
+    // the button this guard is invisible (the button is disabled when both
+    // `codeChanged` and `documentInteracted` are false).
+    const updateViewer = useCallback(() => {
+        if (!codeChangedRef.current && !documentInteractedRef.current) {
+            return;
+        }
+
+        setDocumentInteracted(false);
+        setResponses([]);
+
+        if (codeChangedRef.current) {
+            setViewerDoenetML(editorDoenetMLRef.current);
+            window.clearTimeout(updateValueTimer.current ?? undefined);
+            if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
+                lastReportedDoenetML.current = editorDoenetMLRef.current;
+                if (!showViewer) {
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
+                }
+            }
+            setCodeChanged(false);
+            updateValueTimer.current = null;
+        } else {
+            // documentInteractedRef.current is true here (the early-return
+            // above excludes the both-false case).
+            setViewerResetNum((n) => n + 1);
+        }
+    }, [showViewer]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -263,13 +344,26 @@ export const EditorViewer = React.forwardRef<
             closeDiagnosticsPanel() {
                 setInfoPanelIsOpen(false);
             },
+            updateRenderedView() {
+                if (!showViewer) {
+                    console.warn(
+                        "DoenetEditor: updateRenderedView() ignored — showViewer is false; nothing to update.",
+                    );
+                    return;
+                }
+                updateViewer();
+            },
         }),
-        [tabStore, showDiagnostics, showResponses],
+        [tabStore, showDiagnostics, showResponses, showViewer, updateViewer],
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
-    function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
+    function setDiagnosticsCallback(
+        newDiagnostics: DiagnosticRecord[],
+        source: string,
+    ) {
         setDiagnostics(newDiagnostics);
+        setDiagnosticsSource(source);
         setReceivedDiagnosticsFromViewer(true);
     }
 
@@ -304,13 +398,25 @@ export const EditorViewer = React.forwardRef<
         [initialDiagnostics, diagnostics],
     );
 
-    // Hold the latest `diagnosticsSummaryCallback` in a ref so inline callbacks
-    // (whose identity changes every parent render) don't retrigger the effect below
-    // and cause unbounded recursion when the consumer stores the summary in state.
+    // Hold consumer-supplied callbacks in refs so inline-callback identity
+    // churn (the common case) doesn't invalidate the `useCallback`/`useEffect`
+    // deps below — which would otherwise re-identify `useImperativeHandle`'s
+    // output on every parent render. Sync happens at render time (not in a
+    // `useEffect`) so `*Ref.current` always holds the latest prop, even if a
+    // callback fires from a parent `useLayoutEffect` between commit and
+    // effect flush; this also lets the unmount cleanup (empty-dep `useEffect`
+    // below) read the latest value rather than a stale closure.
     const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
-    useEffect(() => {
-        diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
-    }, [diagnosticsSummaryCallback]);
+    diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
+    const doenetmlChangeCallbackRef = useRef(doenetmlChangeCallback);
+    doenetmlChangeCallbackRef.current = doenetmlChangeCallback;
+    const immediateDoenetmlChangeCallbackRef = useRef(
+        immediateDoenetmlChangeCallback,
+    );
+    immediateDoenetmlChangeCallbackRef.current =
+        immediateDoenetmlChangeCallback;
+    const documentStructureCallbackRef = useRef(documentStructureCallback);
+    documentStructureCallbackRef.current = documentStructureCallback;
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
@@ -321,16 +427,24 @@ export const EditorViewer = React.forwardRef<
             return;
         }
 
-        diagnosticsSummaryCallbackRef.current?.({
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        });
-        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
+        diagnosticsSummaryCallbackRef.current?.(
+            {
+                warningsCount,
+                errorsCount,
+                infosCount,
+                accessibilityLevel1Count,
+                accessibilityLevel2Count,
+            },
+            diagnosticsSource,
+        );
+        // Fire once per viewer-generated `diagnostics` change rather than per
         // count change — the consumer should treat this as an event, not a memoized value.
-    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
+        // `initialDiagnostics` is intentionally excluded from the deps: those are
+        // owned by the parent, which already knows the source they were computed
+        // against, so re-firing on their identity change would only emit a
+        // `diagnosticsSource` paired with viewer-generated diagnostics that didn't
+        // actually change.
+    }, [diagnostics, receivedDiagnosticsFromViewer, diagnosticsSource]);
 
     const [responses, setResponses] = useState<
         {
@@ -415,61 +529,50 @@ export const EditorViewer = React.forwardRef<
     // call documentStructure callback followed by doenetmlChangeCallback
     // so that one can have access to the document structure before a
     // save in response to doenetmlChangeCallback
-    const documentStructureThenChangeCallback = useCallback(
-        (obj: unknown) => {
-            documentStructureCallback?.(obj);
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-        },
-        [documentStructureCallback, doenetmlChangeCallback],
-    );
+    const documentStructureThenChangeCallback = useCallback((obj: unknown) => {
+        documentStructureCallbackRef.current?.(obj);
+        doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
+    }, []);
 
-    const onEditorChange = useCallback(
-        (value: string) => {
-            if (editorDoenetMLRef.current !== value) {
-                editorDoenetMLRef.current = value;
-                completerRef.current.setSource(value);
+    const onEditorChange = useCallback((value: string) => {
+        if (editorDoenetMLRef.current !== value) {
+            editorDoenetMLRef.current = value;
+            completerRef.current.setSource(value);
 
-                if (!codeChangedRef.current) {
-                    setCodeChanged(true);
-                    setUpdateWord("Update");
-                }
-
-                immediateDoenetmlChangeCallback?.(value);
-
-                // Debounce update value at 3 seconds
-                clearTimeout(updateValueTimer.current ?? undefined);
-
-                //TODO: when you try to leave the page before it saved you will lose work
-                //so prompt the user on page leave
-                updateValueTimer.current = window.setTimeout(function () {
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                    }
-                    updateValueTimer.current = null;
-                }, 3000); //3 seconds
+            if (!codeChangedRef.current) {
+                setCodeChanged(true);
+                setUpdateWord("Update");
             }
-        },
-        [immediateDoenetmlChangeCallback, doenetmlChangeCallback],
-    );
+
+            immediateDoenetmlChangeCallbackRef.current?.(value);
+
+            // Debounce update value at 3 seconds
+            clearTimeout(updateValueTimer.current ?? undefined);
+
+            //TODO: when you try to leave the page before it saved you will lose work
+            //so prompt the user on page leave
+            updateValueTimer.current = window.setTimeout(function () {
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
+                }
+                updateValueTimer.current = null;
+            }, 3000); //3 seconds
+        }
+    }, []);
 
     const onBlur = useCallback(() => {
         window.clearTimeout(updateValueTimer.current ?? undefined);
         if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
             lastReportedDoenetML.current = editorDoenetMLRef.current;
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+            doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
         }
         updateValueTimer.current = null;
-    }, [
-        doenetmlChangeCallback,
-        updateValueTimer,
-        lastReportedDoenetML,
-        editorDoenetMLRef,
-    ]);
+    }, []);
 
     const onCursorChange = useCallback((selection: EditorSelection) => {
         const offset = selection.main.head;
@@ -478,10 +581,47 @@ export const EditorViewer = React.forwardRef<
         // Skip the parse/schema walk when no one's looking — the help-becoming-
         // visible effect below will compute on demand for the current cursor.
         if (!helpIsVisibleRef.current) return;
+        // Completion-driven help wins while the autocomplete popup is open.
+        // The completion change handler is authoritative; don't overwrite or
+        // schedule a debounced overwrite from the cursor.
+        if (selectedCompletionRef.current) return;
         cursorDebounceTimer.current = window.setTimeout(() => {
             setHelpContent(computeContextHelp(completerRef.current, offset));
         }, 150);
     }, []);
+
+    // Fires when the highlighted autocomplete option changes (including
+    // popup open/close). Computes help synchronously — no debounce — so
+    // arrow-key navigation in the popup feels immediate.
+    const onSelectedCompletionChange = useCallback(
+        (completion: Completion | null) => {
+            selectedCompletionRef.current = completion;
+            if (!helpIsVisibleRef.current) return;
+            // Cancel any pending cursor-debounce so it doesn't fire after
+            // and clobber the completion-driven help.
+            window.clearTimeout(cursorDebounceTimer.current);
+            const offset = lastCursorOffsetRef.current;
+            if (completion) {
+                if (offset == null) return;
+                setHelpContent(
+                    computeContextHelpForCompletion(
+                        completerRef.current,
+                        offset,
+                        completion,
+                    ),
+                );
+            } else {
+                // Popup closed — revert to cursor-based help for the current
+                // position. No debounce: this is a discrete transition, not
+                // a stream of cursor moves.
+                if (offset == null) return;
+                setHelpContent(
+                    computeContextHelp(completerRef.current, offset),
+                );
+            }
+        },
+        [],
+    );
 
     // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
     // (b) compute help immediately when the tab becomes visible so the user
@@ -501,7 +641,18 @@ export const EditorViewer = React.forwardRef<
         }
         const offset = lastCursorOffsetRef.current;
         if (offset == null) return;
-        setHelpContent(computeContextHelp(completerRef.current, offset));
+        const completion = selectedCompletionRef.current;
+        if (completion) {
+            setHelpContent(
+                computeContextHelpForCompletion(
+                    completerRef.current,
+                    offset,
+                    completion,
+                ),
+            );
+        } else {
+            setHelpContent(computeContextHelp(completerRef.current, offset));
+        }
     }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {
@@ -512,29 +663,7 @@ export const EditorViewer = React.forwardRef<
             ) {
                 event.preventDefault();
                 event.stopPropagation();
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                updateValueTimer.current = null;
-
-                setDocumentInteracted(false);
-                setResponses([]);
-
-                if (codeChangedRef.current) {
-                    setViewerDoenetML(editorDoenetMLRef.current);
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        if (!showViewer) {
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                    }
-
-                    setCodeChanged(false);
-                } else if (documentInteractedRef.current) {
-                    setViewerResetNum((n) => n + 1);
-                }
+                updateViewer();
             }
         };
 
@@ -552,7 +681,7 @@ export const EditorViewer = React.forwardRef<
                 handleEditorKeyDown,
             );
         };
-    }, [showViewer, id]);
+    }, [showViewer, id, updateViewer]);
 
     useEffect(() => {
         return () => {
@@ -562,7 +691,13 @@ export const EditorViewer = React.forwardRef<
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    // Routed through the ref mirror so the *latest* callback
+                    // fires at unmount, not whichever one was passed on
+                    // initial render. (The empty dep array would otherwise
+                    // capture a stale closure.)
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
                 }
             }
             // Cancel pending help-debounce so its callback can't fire
@@ -578,6 +713,7 @@ export const EditorViewer = React.forwardRef<
             onBlur={onBlur}
             onChange={onEditorChange}
             onCursorChange={onCursorChange}
+            onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
         />
     );
@@ -684,33 +820,7 @@ export const EditorViewer = React.forwardRef<
                 documentInteracted={documentInteracted}
                 platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
-                onUpdateViewer={() => {
-                    setDocumentInteracted(false);
-                    setResponses([]);
-
-                    if (!codeChanged) {
-                        setViewerResetNum((n) => n + 1);
-                    } else {
-                        setViewerDoenetML(editorDoenetMLRef.current);
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            if (!showViewer) {
-                                doenetmlChangeCallback?.(
-                                    editorDoenetMLRef.current,
-                                );
-                            }
-                        }
-                        setCodeChanged(false);
-                        updateValueTimer.current = null;
-                    }
-                }}
+                onUpdateViewer={updateViewer}
                 variants={variants}
                 setVariants={setVariants}
                 showDiagnostics={showDiagnostics}

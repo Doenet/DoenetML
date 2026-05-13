@@ -407,6 +407,7 @@ export async function createChildrenThenComponent({
                 serializedComponent,
                 sharedParameters,
                 descendantVariantComponents,
+                core,
             });
         }
 

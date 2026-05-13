@@ -339,10 +339,7 @@ export class CoreWorker {
             if (this.core_type === "javascript") {
                 return await this.returnFlatDastFromJS();
             } else {
-                let flat_dast = this.doenetCore.return_dast();
-
-                console.log("flat_data from rust core", flat_dast);
-                return flat_dast;
+                return this.doenetCore.return_dast();
             }
         } catch (err) {
             console.error(err);
@@ -423,26 +420,15 @@ export class CoreWorker {
             }
         };
 
-        // Stub these callbacks for now, which aren't needed if we don't have interactivity
-        const reportScoreAndStateCallback = (args: any) => {
-            // console.log("reportScoreAndStateCallback", args);
-        };
-        const requestAnimationFrame = (args: any) => {
-            console.log("requestAnimationFrame", args);
-        };
-        const cancelAnimationFrame = (args: any) => {
-            console.log("cancelAnimationFrame", args);
-        };
-        const copyToClipboard = (args: any) => {
-            console.log("copyToClipboard", args);
-        };
-        const sendEvent = (args: any) => {
-            console.log("sendEvent", args);
-        };
-        const requestSolutionView = (args: any) => {
-            console.log("requestSolutionView", args);
-            return Promise.resolve({ allowView: true });
-        };
+        // No-op stubs for callbacks that aren't needed in non-interactive contexts
+        // (e.g. pretext export). The core requires these to be functions.
+        const reportScoreAndStateCallback = (_args: any) => {};
+        const requestAnimationFrame = (_args: any) => {};
+        const cancelAnimationFrame = (_args: any) => {};
+        const copyToClipboard = (_args: any) => {};
+        const sendEvent = (_args: any) => {};
+        const requestSolutionView = (_args: any) =>
+            Promise.resolve({ allowView: true });
 
         const coreResult = await this.javascriptCore.createCoreGenerateDast(
             args,

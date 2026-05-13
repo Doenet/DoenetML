@@ -183,6 +183,27 @@ export function ContextHelpPanel({
             );
         }
 
+        case "snippet": {
+            const { snippetKey, elementName, description, snippetText } =
+                content;
+            return (
+                <div className="help-panel">
+                    <div className="help-title">
+                        <span className="help-kind-label">snippet</span>
+                        <span className="help-snippet-name">{snippetKey}</span>
+                    </div>
+                    <p className="help-description">{description}</p>
+                    <div className="help-detail">
+                        <span className="help-detail-label">Inserts:</span>
+                        <span className="help-detail-value">{`<${elementName}>`}</span>
+                    </div>
+                    <pre className="help-snippet-preview">
+                        <code>{snippetText}</code>
+                    </pre>
+                </div>
+            );
+        }
+
         case "property": {
             const {
                 elementName,
@@ -236,7 +257,25 @@ function formatValue(val: unknown): string {
         return val.map((v) => formatValue(v)).join(", ");
     }
     if (typeof val === "string") {
-        return val;
+        return resolveCssVariables(val);
     }
     return JSON.stringify(val);
+}
+
+// Replace every `var(--name)` in `value` with the value currently resolved on
+// `:root`, so author-facing help shows concrete colors instead of opaque CSS
+// variable references. Keeps DoenetML.css as the single source of truth.
+export function resolveCssVariables(value: string): string {
+    if (
+        typeof document === "undefined" ||
+        typeof getComputedStyle !== "function" ||
+        !value.includes("var(")
+    ) {
+        return value;
+    }
+    const rootStyle = getComputedStyle(document.documentElement);
+    return value.replace(/var\(\s*(--[\w-]+)\s*\)/g, (match, varName) => {
+        const resolved = rootStyle.getPropertyValue(varName).trim();
+        return resolved || match;
+    });
 }

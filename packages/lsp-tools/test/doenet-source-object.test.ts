@@ -215,6 +215,36 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Reports `attributeName` for a bare value recovered as an AttributeValue node", () => {
+        // Lezer's error recovery wraps a bare unquoted run after `=` in an
+        // `AttributeValue(⚠,⚠)` node when the partial element is followed by
+        // `</...>` or another `<`. The cursor-position detector must
+        // distinguish that recovered form from a real quoted value: only the
+        // latter starts with `"`/`'`. Without this, the bare-value branch in
+        // `get-completion-items` is masked and the wrap-in-quotes hint
+        // disappears inside a parent element.
+        const source = `<aa><b bar=mo</aa>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("mo") + 2;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeName");
+        expect(node).toMatchObject({ type: "element", name: "b" });
+    });
+
+    it("Still reports `attributeValue` for a real quoted value", () => {
+        // Sanity guard for the above: when the AttributeValue node actually
+        // starts with `"` or `'`, the cursor position must remain
+        // `attributeValue` so the wrap-in-quotes hint stays suppressed.
+        const source = `<aa x="abc=def"></aa>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("def") + 3;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeValue");
+        expect(node).toMatchObject({ type: "element", name: "aa" });
+    });
+
     it("Returns body (not openTag) when < is typed inside an element", () => {
         // When a user types `<` inside an element, the completion should
         // recognize the cursor is in the body (to suggest child elements),

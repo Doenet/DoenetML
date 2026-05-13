@@ -29,6 +29,10 @@ import type {
     Range as LSPRange,
 } from "vscode-languageserver";
 import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
+import {
+    findAttributeContainingOffset,
+    findPrecedingEqualsForBareValue,
+} from "./methods/attribute-helpers";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -185,6 +189,27 @@ export class DoenetSourceObject extends LazyDataObject {
 
     /**
      * Get the element attribute at `offset`, if it exists.
+     *
+     * Accepts cursors reported as `attributeName` or `attributeValue` as well
+     * as the boundary cases `openTag` (e.g. cursor right after the opening
+     * quote of a value) and `unknown` (e.g. cursor right after `=` on a
+     * partial attribute, before the value is opened). In all cases the result
+     * is restricted to a real attribute range, so cursors that aren't inside
+     * any attribute (between attrs, on the tag name, on body text) return
+     * `null`.
+     *
+     * Also applies an unquoted-value spillover heuristic: when the cursor
+     * lands in a bogus attribute that the parser produced for the unquoted
+     * value of a preceding attribute (e.g. the `full` in `<math simplify=full`
+     * or `<math simplify= full`), returns the preceding attribute so callers
+     * follow the user's intent rather than the parser's tokenization.
+     *
+     * Finally, when no attribute range contains the cursor at all, a
+     * bare-value-after-`=` fallback walks back over value chars and
+     * whitespace; if `=` precedes them, the attribute whose range contains
+     * that `=` is returned. This mirrors the fallback in
+     * `AutoCompleter.getCompletionItems` for parser states where typed
+     * value chars don't yet land inside any attribute's range.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -195,19 +220,67 @@ export class DoenetSourceObject extends LazyDataObject {
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
-                containingElm.cursorPosition !== "attributeValue")
+                containingElm.cursorPosition !== "attributeValue" &&
+                // `openTag` is reported once the cursor sits past an attribute
+                // name on the equals/quote boundary in some cases, and
+                // `unknown` is reported in others (e.g. cursor right after `=`
+                // on a partial attribute, before the value is opened). The
+                // position-containment check below still restricts the result
+                // to a real attribute range, so cursors between attrs
+                // (`<math foo |bar`) or on the tag name return null naturally.
+                containingElm.cursorPosition !== "openTag" &&
+                containingElm.cursorPosition !== "unknown")
         ) {
             return null;
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = Object.values(containingElm.node.attributes).find(
-            (a) =>
-                a.position &&
-                a.position.start.offset! <= _offset &&
-                a.position.end.offset! >= _offset,
-        );
-        return attribute || null;
+        const attributes = Object.values(containingElm.node.attributes);
+        const attribute = findAttributeContainingOffset(attributes, _offset);
+        if (!attribute) {
+            // Bare-value-after-`=` fallback: in some parser states the typed
+            // value chars don't fall inside any attribute's position range
+            // (mirrored in `AutoCompleter.getCompletionItems`). Walk back
+            // over value chars + whitespace; if we land on `=`, return the
+            // attribute whose range contains the `=`.
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                _offset,
+            );
+            if (equalsOffset != null) {
+                return findAttributeContainingOffset(attributes, equalsOffset, {
+                    endInclusive: false,
+                });
+            }
+            return null;
+        }
+
+        // Unquoted value spillover: `<math simplify=full>` parses as TWO
+        // attributes — `simplify` (with the `=` baked into its range) and
+        // `full` (a bogus attribute with no value). When the cursor lands
+        // in the bogus one and the chars between it and the preceding
+        // attribute are just `=` plus optional whitespace, the user is
+        // mid-typing a value for the preceding attribute. Walk back over
+        // whitespace to also catch `<math simplify= full>` (space after `=`)
+        // — the parser absorbs the whitespace into `simplify`'s range, so
+        // the preceding attribute is the one whose source range *contains*
+        // the `=` position.
+        const startOffset = attribute.position?.start.offset;
+        if (startOffset != null && startOffset > 0) {
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                startOffset,
+            );
+            if (equalsOffset != null) {
+                const preceding = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false, exclude: attribute },
+                );
+                if (preceding) return preceding;
+            }
+        }
+        return attribute;
     }
 
     /**
