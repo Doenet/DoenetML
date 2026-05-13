@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback } from "react";
+import React, { ReactElement } from "react";
 import {
     Menu,
     MenuButton,
@@ -23,13 +23,8 @@ import {
 } from "react-icons/bs";
 import { IoAccessibility, IoAccessibilityOutline } from "react-icons/io5";
 import classNames from "classnames";
-import {
-    AccessibilityRecord,
-    ErrorRecord,
-    InfoRecord,
-    WarningRecord,
-} from "@doenet/utils";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
+import type { DiagnosticsSummary } from "./diagnostics";
 
 /**
  * Tab trigger with icon + optional count badge used by the editor footer to
@@ -47,13 +42,13 @@ function TabTrigger({
     iconClassName,
     onActivate,
 }: {
-    id: string;
+    id: DiagnosticsTabId;
     icon: ReactElement;
     label: string;
     count?: number;
     inlineLabel?: string;
     iconClassName?: string;
-    onActivate: (tabId: string) => void;
+    onActivate: (tabId: DiagnosticsTabId) => void;
 }) {
     return (
         <Tab
@@ -103,11 +98,8 @@ export function EditorFooter({
     showFormatter,
     reserveKeyboardButtonSpace,
     onFormat,
-    warnings,
-    errors,
-    infos,
-    accessibility,
-    submittedResponses,
+    diagnosticsSummary,
+    submittedResponsesCount,
 }: {
     store: TabStore;
     isOpen: boolean;
@@ -118,21 +110,18 @@ export function EditorFooter({
     showFormatter: boolean;
     reserveKeyboardButtonSpace: boolean;
     onFormat: (asDoenetML: boolean) => void;
-    warnings: WarningRecord[];
-    errors: ErrorRecord[];
-    infos: InfoRecord[];
-    accessibility: AccessibilityRecord[];
-    submittedResponses: { length: number };
+    diagnosticsSummary: DiagnosticsSummary;
+    submittedResponsesCount: number;
 }) {
-    const handleActivate = useCallback(
-        (tabId: string) => {
-            activateTab(tabId as DiagnosticsTabId);
-        },
-        [activateTab],
-    );
-
-    const hasLevel1Accessibility = accessibility.some((d) => d.level === 1);
-    const hasLevel2Accessibility = accessibility.some((d) => d.level === 2);
+    const {
+        warningsCount,
+        errorsCount,
+        infosCount,
+        accessibilityLevel1Count,
+        accessibilityLevel2Count,
+    } = diagnosticsSummary;
+    const accessibilityCount =
+        accessibilityLevel1Count + accessibilityLevel2Count;
 
     const anyTabs = showDiagnostics || showResponses || showHelp;
 
@@ -163,7 +152,7 @@ export function EditorFooter({
                                 iconClassName="is-help"
                                 label="Context-sensitive help"
                                 inlineLabel="Context"
-                                onActivate={handleActivate}
+                                onActivate={activateTab}
                             />
                         )}
                         {showHelp && showDiagnostics && (
@@ -176,79 +165,76 @@ export function EditorFooter({
                             <TabTrigger
                                 id="errors"
                                 icon={
-                                    errors.length > 0 ? (
+                                    errorsCount > 0 ? (
                                         <BsXOctagonFill />
                                     ) : (
                                         <BsXOctagon />
                                     )
                                 }
                                 iconClassName={
-                                    errors.length > 0 ? "is-error" : undefined
+                                    errorsCount > 0 ? "is-error" : undefined
                                 }
                                 label="Errors"
-                                count={errors.length}
-                                onActivate={handleActivate}
+                                count={errorsCount}
+                                onActivate={activateTab}
                             />
                         )}
                         {showDiagnostics && (
                             <TabTrigger
                                 id="warnings"
                                 icon={
-                                    warnings.length > 0 ? (
+                                    warningsCount > 0 ? (
                                         <BsExclamationTriangleFill />
                                     ) : (
                                         <BsExclamationTriangle />
                                     )
                                 }
                                 iconClassName={
-                                    warnings.length > 0
-                                        ? "is-warning"
-                                        : undefined
+                                    warningsCount > 0 ? "is-warning" : undefined
                                 }
                                 label="Warnings"
-                                count={warnings.length}
-                                onActivate={handleActivate}
+                                count={warningsCount}
+                                onActivate={activateTab}
                             />
                         )}
                         {showDiagnostics && (
                             <TabTrigger
                                 id="info"
                                 icon={
-                                    infos.length > 0 ? (
+                                    infosCount > 0 ? (
                                         <BsInfoCircleFill />
                                     ) : (
                                         <BsInfoCircle />
                                     )
                                 }
                                 iconClassName={
-                                    infos.length > 0 ? "is-info" : undefined
+                                    infosCount > 0 ? "is-info" : undefined
                                 }
                                 label="Info"
-                                count={infos.length}
-                                onActivate={handleActivate}
+                                count={infosCount}
+                                onActivate={activateTab}
                             />
                         )}
                         {showDiagnostics && (
                             <TabTrigger
                                 id="accessibility"
                                 icon={
-                                    hasLevel1Accessibility ||
-                                    hasLevel2Accessibility ? (
+                                    accessibilityCount > 0 ? (
                                         <IoAccessibility />
                                     ) : (
                                         <IoAccessibilityOutline />
                                     )
                                 }
                                 iconClassName={
-                                    hasLevel1Accessibility
+                                    accessibilityLevel1Count > 0
                                         ? "is-accessibility-critical"
-                                        : hasLevel2Accessibility
+                                        : accessibilityLevel2Count > 0
                                           ? "is-accessibility-advisory"
                                           : undefined
                                 }
                                 label="Accessibility"
-                                count={accessibility.length}
-                                onActivate={handleActivate}
+                                count={accessibilityCount}
+                                onActivate={activateTab}
                             />
                         )}
                         {showResponses && (showHelp || showDiagnostics) && (
@@ -261,20 +247,20 @@ export function EditorFooter({
                             <TabTrigger
                                 id="responses"
                                 icon={
-                                    submittedResponses.length > 0 ? (
+                                    submittedResponsesCount > 0 ? (
                                         <BsChatSquareTextFill />
                                     ) : (
                                         <BsChatSquareText />
                                     )
                                 }
                                 iconClassName={
-                                    submittedResponses.length > 0
+                                    submittedResponsesCount > 0
                                         ? "is-responses"
                                         : undefined
                                 }
                                 label="Submitted responses"
-                                count={submittedResponses.length}
-                                onActivate={handleActivate}
+                                count={submittedResponsesCount}
+                                onActivate={activateTab}
                             />
                         )}
                     </TabList>

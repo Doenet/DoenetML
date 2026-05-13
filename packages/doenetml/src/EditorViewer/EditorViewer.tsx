@@ -215,6 +215,16 @@ export const EditorViewer = React.forwardRef<
         allPossibleVariants: ["a"],
     });
 
+    // First enabled tab in the canonical order (help → errors → responses), or
+    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
+    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
+    function firstEnabledTab(): DiagnosticsTabId | null {
+        if (showHelp) return "help";
+        if (showDiagnostics) return "errors";
+        if (showResponses) return "responses";
+        return null;
+    }
+
     // Resolve `initialOpenTab` once at mount:
     //  - `null`               → panel closed at mount
     //  - a specific tab id    → open on that tab (or fall back to default with
@@ -226,12 +236,6 @@ export const EditorViewer = React.forwardRef<
         resolvedInitialOpenTab: DiagnosticsTabId | null;
         initialOpenTabWarning: string | null;
     }>(() => {
-        function defaultTab(): DiagnosticsTabId | null {
-            if (showHelp) return "help";
-            if (showDiagnostics) return "errors";
-            if (showResponses) return "responses";
-            return null;
-        }
         if (initialOpenTab === null) {
             return {
                 resolvedInitialOpenTab: null,
@@ -240,7 +244,7 @@ export const EditorViewer = React.forwardRef<
         }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: defaultTab(),
+                resolvedInitialOpenTab: firstEnabledTab(),
                 initialOpenTabWarning: null,
             };
         }
@@ -252,7 +256,7 @@ export const EditorViewer = React.forwardRef<
                   : showDiagnostics;
         if (!tabEnabled) {
             return {
-                resolvedInitialOpenTab: defaultTab(),
+                resolvedInitialOpenTab: firstEnabledTab(),
                 initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
@@ -306,14 +310,7 @@ export const EditorViewer = React.forwardRef<
     // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ??
-            (showHelp
-                ? "help"
-                : showDiagnostics
-                  ? "errors"
-                  : showResponses
-                    ? "responses"
-                    : undefined),
+            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
@@ -834,11 +831,14 @@ export const EditorViewer = React.forwardRef<
                         viewerLocation === "left" ||
                         viewerLocation === "top")
                 }
-                warnings={warningsObjs}
-                errors={errorsObjs}
-                infos={infoObjs}
-                accessibility={accessibilityObjs}
-                submittedResponses={responses}
+                diagnosticsSummary={{
+                    warningsCount,
+                    errorsCount,
+                    infosCount,
+                    accessibilityLevel1Count,
+                    accessibilityLevel2Count,
+                }}
+                submittedResponsesCount={responses.length}
                 onFormat={async (asDoenetML) => {
                     const printed = await prettyPrint(
                         editorDoenetMLRef.current,

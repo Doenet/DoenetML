@@ -29,9 +29,12 @@ export function ResizableCollapsiblePanelPair({
      */
     collapsedSize?: number;
     /**
-     * Initial size of the sub-panel (percentage of the container) when it
-     * opens. If omitted, `react-resizable-panels` allocates the remaining
-     * space (~50% with a single sibling).
+     * Initial size of the sub-panel (percentage of the container) at mount.
+     * Forwarded to `react-resizable-panels`' `defaultSize`, which is applied
+     * once at mount only — later open/close cycles via `isOpen` use the
+     * panel's last-resized size, not this value. If omitted,
+     * `react-resizable-panels` allocates the remaining space (~50% with a
+     * single sibling).
      */
     defaultSize?: number;
 }) {

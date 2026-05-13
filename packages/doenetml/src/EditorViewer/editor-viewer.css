@@ -39,17 +39,23 @@
 /*
  * When the footer's right edge meets the virtual keyboard's open-keyboard
  * tab (showViewer={false} or viewerLocation in {"left","top"} with the
- * keyboard enabled), push the three-dot menu inward so the icons stay
- * clickable. ~4rem covers the keyboard tab's `w-12` + `me-4` footprint;
- * very narrow viewports may still let them collide, which is acceptable.
+ * keyboard enabled), push the rightmost footer element inward so the icons
+ * stay clickable. The reservation must match the keyboard tab's right-edge
+ * footprint (`w-12` + `me-4` = 3rem + 1rem) defined in
+ * `packages/virtual-keyboard/src/virtual-keyboard/keyboard-tray.css`. Keep
+ * this value in sync if that footprint changes. Very narrow viewports may
+ * still let the tab and the icons collide; that's accepted.
  */
+.editor-panel .editor-footer.reserve-keyboard-button-space {
+    --keyboard-tab-reserve-width: 4rem;
+}
 .editor-panel .editor-footer.reserve-keyboard-button-space .footer-menu-button {
-    margin-right: 4rem;
+    margin-right: var(--keyboard-tab-reserve-width);
 }
 .editor-panel
     .editor-footer.reserve-keyboard-button-space:not(:has(.footer-menu-button))
     .footer-icons {
-    margin-right: 4rem;
+    margin-right: var(--keyboard-tab-reserve-width);
 }
 
 .editor-panel .footer-menu {
