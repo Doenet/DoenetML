@@ -1,4 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
+import { findAttributeContainingOffset } from "../doenet-source-object/methods/attribute-helpers";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
@@ -68,7 +69,7 @@ export type AliasedElementSchema = {
     properties?: SchemaProperty[];
 };
 
-type ProcessedSnippet = {
+export type ProcessedSnippet = {
     key: string;
     element: string;
     normalizedElement: string;
@@ -189,6 +190,13 @@ export class AutoCompleter {
      * Processed snippets indexed by element (normalized to schema capitalization) for quick lookup.
      */
     snippetsByNormalizedElement: Map<string, ProcessedSnippet[]> = new Map();
+    /**
+     * Processed snippets indexed by their key (the snippet's unique identifier,
+     * which is also the completion `label`). Used by the help layer to look up
+     * a snippet's description and template text from a highlighted autocomplete
+     * row.
+     */
+    snippetsByKey: Map<string, ProcessedSnippet> = new Map();
 
     constructor(
         source?: string,
@@ -478,18 +486,10 @@ export class AutoCompleter {
         node: DastElement,
         offset: number,
     ): DastAttribute | null {
-        const candidate = Object.values(node.attributes).find((attr) => {
-            const start = attr.position?.start.offset;
-            const end = attr.position?.end.offset;
-            return (
-                start !== undefined &&
-                end !== undefined &&
-                offset >= start &&
-                offset <= end
-            );
-        });
-
-        return candidate || null;
+        return findAttributeContainingOffset(
+            Object.values(node.attributes),
+            offset,
+        );
     }
 
     /**
@@ -576,6 +576,7 @@ export class AutoCompleter {
      */
     _initializeSnippets() {
         this.snippetsByNormalizedElement.clear();
+        this.snippetsByKey.clear();
 
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {
             const rawSnippet = snippet.snippet ?? "";
@@ -611,7 +612,17 @@ export class AutoCompleter {
             this.snippetsByNormalizedElement
                 .get(normalizedElement)!
                 .push(processed);
+            this.snippetsByKey.set(key, processed);
         });
+    }
+
+    /**
+     * Look up a processed snippet by its key (matches the completion `label`).
+     * Returns `undefined` when the key isn't registered — for example when the
+     * active schema doesn't include the snippet's root element.
+     */
+    findSnippet(key: string): ProcessedSnippet | undefined {
+        return this.snippetsByKey.get(key);
     }
 
     /**

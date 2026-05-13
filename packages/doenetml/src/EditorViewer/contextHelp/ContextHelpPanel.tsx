@@ -183,6 +183,27 @@ export function ContextHelpPanel({
             );
         }
 
+        case "snippet": {
+            const { snippetKey, elementName, description, snippetText } =
+                content;
+            return (
+                <div className="help-panel">
+                    <div className="help-title">
+                        <span className="help-kind-label">snippet</span>
+                        <span className="help-snippet-name">{snippetKey}</span>
+                    </div>
+                    <p className="help-description">{description}</p>
+                    <div className="help-detail">
+                        <span className="help-detail-label">Inserts:</span>
+                        <span className="help-detail-value">{`<${elementName}>`}</span>
+                    </div>
+                    <pre className="help-snippet-preview">
+                        <code>{snippetText}</code>
+                    </pre>
+                </div>
+            );
+        }
+
         case "property": {
             const {
                 elementName,

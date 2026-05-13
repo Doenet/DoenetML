@@ -32,9 +32,13 @@ import {
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { computeContextHelp } from "./contextHelp/computeContextHelp";
+import {
+    computeContextHelp,
+    computeContextHelpForCompletion,
+} from "./contextHelp/computeContextHelp";
 import type { HelpContent } from "./contextHelp/types";
 import { EditorSelection } from "@codemirror/state";
+import type { Completion } from "@codemirror/autocomplete";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -262,6 +266,11 @@ export const EditorViewer = React.forwardRef<
     // the stable `onCursorChange` callback without re-binding it on every
     // visibility change.
     const helpIsVisibleRef = useRef(false);
+    // The currently-highlighted autocomplete row, mirrored from CodeMirror's
+    // `selectedCompletion(state)`. When non-null, the help panel reflects this
+    // row instead of the cursor position. Tracked as a ref (not state) so the
+    // stable cursor handler can early-return without re-binding.
+    const selectedCompletionRef = useRef<Completion | null>(null);
 
     const tabStore = useTabStore({
         defaultSelectedId:
@@ -572,10 +581,47 @@ export const EditorViewer = React.forwardRef<
         // Skip the parse/schema walk when no one's looking — the help-becoming-
         // visible effect below will compute on demand for the current cursor.
         if (!helpIsVisibleRef.current) return;
+        // Completion-driven help wins while the autocomplete popup is open.
+        // The completion change handler is authoritative; don't overwrite or
+        // schedule a debounced overwrite from the cursor.
+        if (selectedCompletionRef.current) return;
         cursorDebounceTimer.current = window.setTimeout(() => {
             setHelpContent(computeContextHelp(completerRef.current, offset));
         }, 150);
     }, []);
+
+    // Fires when the highlighted autocomplete option changes (including
+    // popup open/close). Computes help synchronously — no debounce — so
+    // arrow-key navigation in the popup feels immediate.
+    const onSelectedCompletionChange = useCallback(
+        (completion: Completion | null) => {
+            selectedCompletionRef.current = completion;
+            if (!helpIsVisibleRef.current) return;
+            // Cancel any pending cursor-debounce so it doesn't fire after
+            // and clobber the completion-driven help.
+            window.clearTimeout(cursorDebounceTimer.current);
+            const offset = lastCursorOffsetRef.current;
+            if (completion) {
+                if (offset == null) return;
+                setHelpContent(
+                    computeContextHelpForCompletion(
+                        completerRef.current,
+                        offset,
+                        completion,
+                    ),
+                );
+            } else {
+                // Popup closed — revert to cursor-based help for the current
+                // position. No debounce: this is a discrete transition, not
+                // a stream of cursor moves.
+                if (offset == null) return;
+                setHelpContent(
+                    computeContextHelp(completerRef.current, offset),
+                );
+            }
+        },
+        [],
+    );
 
     // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
     // (b) compute help immediately when the tab becomes visible so the user
@@ -595,7 +641,18 @@ export const EditorViewer = React.forwardRef<
         }
         const offset = lastCursorOffsetRef.current;
         if (offset == null) return;
-        setHelpContent(computeContextHelp(completerRef.current, offset));
+        const completion = selectedCompletionRef.current;
+        if (completion) {
+            setHelpContent(
+                computeContextHelpForCompletion(
+                    completerRef.current,
+                    offset,
+                    completion,
+                ),
+            );
+        } else {
+            setHelpContent(computeContextHelp(completerRef.current, offset));
+        }
     }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {
@@ -656,6 +713,7 @@ export const EditorViewer = React.forwardRef<
             onBlur={onBlur}
             onChange={onEditorChange}
             onCursorChange={onCursorChange}
+            onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
         />
     );

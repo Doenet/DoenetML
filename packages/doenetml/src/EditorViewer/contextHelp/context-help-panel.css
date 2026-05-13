@@ -36,9 +36,22 @@
 }
 
 .editor-panel .help-attribute-name,
-.editor-panel .help-property-name {
+.editor-panel .help-property-name,
+.editor-panel .help-snippet-name {
     font-family: monospace;
     color: var(--mainBlue);
+}
+
+.editor-panel .help-snippet-preview {
+    margin: 0;
+    padding: 0.5rem;
+    background: var(--mainGray);
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: pre;
 }
 
 .editor-panel .help-kind-label {

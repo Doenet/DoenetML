@@ -1,4 +1,8 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
+import {
+    ATTR_VALUE_CHAR,
+    scanBareValueRun,
+} from "../../doenet-source-object/methods/attribute-helpers";
 import type { CompletionContext } from "./get-completion-context";
 import type {
     CompletionItem,
@@ -895,21 +899,14 @@ export function getCompletionItems(
     // often parses `=ful` as a new attribute name, which would otherwise
     // route the request to attribute-name completions.
     const source = this.sourceObj.source;
-    let typedValueStart = offset;
-    while (
-        typedValueStart > 0 &&
-        /[A-Za-z0-9_-]/.test(source.charAt(typedValueStart - 1))
-    ) {
-        typedValueStart--;
-    }
-    let equalsScan = typedValueStart - 1;
-    while (equalsScan >= 0 && /\s/.test(source.charAt(equalsScan))) {
-        equalsScan--;
-    }
+    const { valueStartOffset: typedValueStart, equalsOffset } =
+        scanBareValueRun(source, offset);
     const isBareValueAfterEquals =
-        equalsScan >= 0 &&
-        source.charAt(equalsScan) === "=" &&
-        typedValueStart < offset;
+        equalsOffset != null && typedValueStart < offset;
+    // Retained for downstream code that uses the `=` offset (e.g. for
+    // `createTextEditRange(equalsScan + 1, ...)`). When `=` isn't present,
+    // `isBareValueAfterEquals` is false and `equalsScan` is never read.
+    const equalsScan = equalsOffset ?? -1;
     const typedValuePrefix = source.slice(typedValueStart, offset);
 
     // The `!isBareValueAfterEquals && prevNonWhitespaceChar !== "="` guards
@@ -987,7 +984,7 @@ export function getCompletionItems(
             let nameStart = nameEnd;
             while (
                 nameStart > 0 &&
-                /[A-Za-z0-9_-]/.test(source.charAt(nameStart - 1))
+                ATTR_VALUE_CHAR.test(source.charAt(nameStart - 1))
             ) {
                 nameStart--;
             }
