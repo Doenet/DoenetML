@@ -13,6 +13,7 @@ export function ResizableCollapsiblePanelPair({
     subPanel,
     alwaysVisiblePanel,
     collapsedSize = 15,
+    defaultSize,
     isOpen,
     setIsOpen,
 }: {
@@ -21,7 +22,18 @@ export function ResizableCollapsiblePanelPair({
     alwaysVisiblePanel?: React.ReactNode;
     isOpen: boolean;
     setIsOpen: (arg: boolean) => void;
+    /**
+     * Snap-closed threshold for the sub-panel, as a percentage of the
+     * container. Drag below this and the panel collapses to `collapsedSize=0`.
+     * Despite the name, this is forwarded as the inner Panel's `minSize`.
+     */
     collapsedSize?: number;
+    /**
+     * Initial size of the sub-panel (percentage of the container) when it
+     * opens. If omitted, `react-resizable-panels` allocates the remaining
+     * space (~50% with a single sibling).
+     */
+    defaultSize?: number;
 }) {
     const collapsablePanelRef = React.useRef<ImperativePanelHandle>(null);
 
@@ -57,6 +69,7 @@ export function ResizableCollapsiblePanelPair({
                     collapsible={true}
                     collapsedSize={0}
                     minSize={collapsedSize}
+                    defaultSize={defaultSize}
                     onCollapse={() => {
                         setIsOpen(false);
                     }}

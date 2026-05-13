@@ -1,25 +1,11 @@
 import React, { ReactElement, ReactNode, useEffect, useRef } from "react";
+import { Tab, TabProvider, TabPanel, TabStore } from "@ariakit/react";
 import {
-    Button,
-    Tab,
-    TabProvider,
-    TabList,
-    TabPanel,
-    TabStore,
-} from "@ariakit/react";
-import {
-    BsChatSquareText,
-    BsChatSquareTextFill,
-    BsExclamationTriangle,
     BsExclamationTriangleFill,
-    BsInfoCircle,
     BsInfoCircleFill,
-    BsQuestionCircle,
-    BsX,
-    BsXOctagon,
     BsXOctagonFill,
 } from "react-icons/bs";
-import { IoAccessibility, IoAccessibilityOutline } from "react-icons/io5";
+import { IoAccessibility } from "react-icons/io5";
 import classNames from "classnames";
 import {
     AccessibilityRecord,
@@ -38,13 +24,14 @@ type SubmittedResponse = {
     submittedAt: string;
 };
 
-/** IDs of the tabs rendered by `DiagnosticsResponseTabstrip`. */
+/** IDs of the tabs available in the diagnostics/responses/help panel. */
 export type DiagnosticsTabId =
     | "errors"
     | "warnings"
     | "info"
     | "accessibility"
-    | "responses";
+    | "responses"
+    | "help";
 
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {
@@ -183,19 +170,29 @@ function AnnotationToggle({
     );
 }
 
-/** Tab trigger with icon + optional count badge used by diagnostics and responses tabs. */
-function TabTrigger({
+/**
+ * Tab trigger with icon + optional count badge used by the editor footer to
+ * drive the diagnostics/responses/help panel. The click is intercepted by the
+ * footer so an active+selected click can close the panel rather than re-select.
+ * Pass `inlineLabel` to render a short text label next to the icon (used by
+ * the help tab); otherwise pass `count` to render a numeric badge.
+ */
+export function TabTrigger({
     id,
     icon,
     label,
     count,
+    inlineLabel,
     iconClassName,
+    onActivate,
 }: {
     id: string;
     icon: ReactElement;
     label: string;
     count?: number;
+    inlineLabel?: string;
     iconClassName?: string;
+    onActivate: (tabId: string) => void;
 }) {
     return (
         <Tab
@@ -203,180 +200,19 @@ function TabTrigger({
             title={label}
             aria-label={count === undefined ? label : `${label}: ${count}`}
             className="diagnostic-tab-trigger"
+            data-test={`footer-tab-${id}`}
+            onClick={() => onActivate(id)}
         >
             <span className={classNames("diagnostic-tab-icon", iconClassName)}>
                 {icon}
             </span>
+            {inlineLabel !== undefined && (
+                <span className="diagnostic-tab-label">{inlineLabel}</span>
+            )}
             {count !== undefined && (
                 <span className="diagnostic-tab-count">{count}</span>
             )}
         </Tab>
-    );
-}
-
-/**
- * The tabstrip to control the display of the diagnostics and responses tabs.
- */
-export function DiagnosticsResponseTabstrip({
-    store,
-    isOpen,
-    showDiagnostics,
-    warnings,
-    errors,
-    infos,
-    accessibility,
-    submittedResponses,
-    setIsOpen,
-    showResponses,
-}: {
-    store: TabStore;
-
-    warnings: WarningRecord[];
-    errors: ErrorRecord[];
-    infos: InfoRecord[];
-    accessibility: AccessibilityRecord[];
-    submittedResponses: SubmittedResponse[];
-    isOpen: boolean;
-    setIsOpen: (arg: boolean) => void;
-    showDiagnostics?: boolean;
-    showResponses?: boolean;
-}) {
-    const hasLevel1Accessibility = accessibility.some(
-        (diagnostic) => diagnostic.level === 1,
-    );
-    const hasLevel2Accessibility = accessibility.some(
-        (diagnostic) => diagnostic.level === 2,
-    );
-
-    return (
-        <TabProvider store={store}>
-            <TabList
-                onClick={(e) => {
-                    if (!isOpen) {
-                        setIsOpen(true);
-                    }
-                }}
-                className={classNames("diagnostics-response-tabs", {
-                    "is-open": isOpen,
-                })}
-                store={store}
-            >
-                {showDiagnostics && (
-                    <TabTrigger
-                        id="errors"
-                        icon={
-                            errors.length > 0 ? (
-                                <BsXOctagonFill />
-                            ) : (
-                                <BsXOctagon />
-                            )
-                        }
-                        iconClassName={
-                            errors.length > 0 ? "is-error" : undefined
-                        }
-                        label="Errors"
-                        count={errors.length}
-                    />
-                )}
-                {showDiagnostics && (
-                    <TabTrigger
-                        id="warnings"
-                        icon={
-                            warnings.length > 0 ? (
-                                <BsExclamationTriangleFill />
-                            ) : (
-                                <BsExclamationTriangle />
-                            )
-                        }
-                        iconClassName={
-                            warnings.length > 0 ? "is-warning" : undefined
-                        }
-                        label="Warnings"
-                        count={warnings.length}
-                    />
-                )}
-                {showDiagnostics && (
-                    <TabTrigger
-                        id="info"
-                        icon={
-                            infos.length > 0 ? (
-                                <BsInfoCircleFill />
-                            ) : (
-                                <BsInfoCircle />
-                            )
-                        }
-                        iconClassName={infos.length > 0 ? "is-info" : undefined}
-                        label="Info"
-                        count={infos.length}
-                    />
-                )}
-                {showDiagnostics && (
-                    <TabTrigger
-                        id="accessibility"
-                        icon={
-                            hasLevel1Accessibility || hasLevel2Accessibility ? (
-                                <IoAccessibility />
-                            ) : (
-                                <IoAccessibilityOutline />
-                            )
-                        }
-                        iconClassName={
-                            hasLevel1Accessibility
-                                ? "is-accessibility-critical"
-                                : hasLevel2Accessibility
-                                  ? "is-accessibility-advisory"
-                                  : undefined
-                        }
-                        label="Accessibility"
-                        count={accessibility.length}
-                    />
-                )}
-                {showDiagnostics && (
-                    <div
-                        style={{
-                            flexGrow: 1,
-                        }}
-                    />
-                )}
-                {showResponses && (
-                    <TabTrigger
-                        id="responses"
-                        icon={
-                            submittedResponses.length > 0 ? (
-                                <BsChatSquareTextFill />
-                            ) : (
-                                <BsChatSquareText />
-                            )
-                        }
-                        iconClassName={
-                            submittedResponses.length > 0
-                                ? "is-responses"
-                                : undefined
-                        }
-                        label="Submitted responses"
-                        count={submittedResponses.length}
-                    />
-                )}
-                <TabTrigger
-                    id="help"
-                    icon={<BsQuestionCircle />}
-                    label="Context-sensitive help"
-                />
-                {isOpen ? (
-                    <Button
-                        title="Close panel"
-                        aria-label="Close panel"
-                        className="close-button"
-                        data-test="diagnostics-panel-close"
-                        onClick={() => {
-                            setIsOpen(false);
-                        }}
-                    >
-                        <BsX />
-                    </Button>
-                ) : null}
-            </TabList>
-        </TabProvider>
     );
 }
 
@@ -392,9 +228,9 @@ export function DiagnosticsResponseTabContents({
     accessibility,
     submittedResponses,
     isOpen,
-    setIsOpen,
     showDiagnostics = true,
     showResponses = true,
+    showHelp = true,
     showInfoAnnotations,
     setShowInfoAnnotations,
     helpContent,
@@ -407,9 +243,9 @@ export function DiagnosticsResponseTabContents({
     accessibility: AccessibilityRecord[];
     submittedResponses: SubmittedResponse[];
     isOpen: boolean;
-    setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
     helpContent: HelpContent;
@@ -642,16 +478,18 @@ export function DiagnosticsResponseTabContents({
                                 )}
                             </TabPanel>
                         )}
-                        <TabPanel
-                            store={store}
-                            tabId="help"
-                            className="diagnostic-panel"
-                        >
-                            <ContextHelpPanel
-                                content={helpContent}
-                                docsURL={docsURL}
-                            />
-                        </TabPanel>
+                        {showHelp && (
+                            <TabPanel
+                                store={store}
+                                tabId="help"
+                                className="diagnostic-panel"
+                            >
+                                <ContextHelpPanel
+                                    content={helpContent}
+                                    docsURL={docsURL}
+                                />
+                            </TabPanel>
+                        )}
                     </div>
                 )}
             </TabProvider>
