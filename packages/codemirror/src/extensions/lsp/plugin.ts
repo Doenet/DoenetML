@@ -328,6 +328,26 @@ export class LSPPlugin implements PluginValue {
             (charBeforeCursor === "(" &&
                 (charBeforeParen === "$" || charBeforeParen === "."));
 
+        // `<math simplify= ` and similar: when the cursor sits on whitespace
+        // that immediately follows a server trigger character (e.g. `=`), we
+        // still want the LSP to suggest completions. Without this, the popup
+        // that opened on `=` flickers closed the moment the user types a
+        // space and only reopens on the next non-whitespace keystroke. Local
+        // ref triggers (`$`, `.`, `(`) are intentionally excluded — `$ name`
+        // after a space is unusual and dropping the popup is preferable.
+        let postWhitespaceTrigger = false;
+        if (charBeforeCursor && /\s/.test(charBeforeCursor)) {
+            const cursorCol = pos - line.from;
+            let i = cursorCol - 1;
+            while (i >= 0 && /\s/.test(line.text[i])) i--;
+            if (i >= 0) {
+                postWhitespaceTrigger =
+                    uniqueLanguageServerInstance.completionTriggers.includes(
+                        line.text[i],
+                    );
+            }
+        }
+
         if (!explicit && precedingServerTriggerCharacter) {
             triggerKind = LSPCompletionTriggerKind.TriggerCharacter;
             triggerCharacter = charBeforeCursor;
@@ -337,6 +357,7 @@ export class LSPPlugin implements PluginValue {
             !context.matchBefore(MACRO_IDENTIFIER_SEGMENT_REGEX) &&
             !precedingServerTriggerCharacter &&
             !precedingLocalRefTriggerCharacter &&
+            !postWhitespaceTrigger &&
             !explicit
         ) {
             return null;

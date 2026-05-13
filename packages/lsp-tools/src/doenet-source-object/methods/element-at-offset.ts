@@ -98,9 +98,22 @@ export function elementAtOffsetWithContext(
             case "AttributeName":
                 cursorPosition = "attributeName";
                 break;
-            case "AttributeValue":
-                cursorPosition = "attributeValue";
+            case "AttributeValue": {
+                // Lezer's error recovery can wrap a bare unquoted run after
+                // `=` in an `AttributeValue` node when the partial element is
+                // followed by `</...>` or another `<` (e.g.
+                // `<section>\n<math name=hello\n</section>`). Only honor
+                // `attributeValue` when the node actually starts with `"` or
+                // `'`; otherwise mirror the EOF behaviour (where the same
+                // text parses as a trailing `AttributeName`) so the
+                // bare-value branch in `get-completion-items` can fire.
+                const firstChar = this.source.charAt(lezerNode.from);
+                cursorPosition =
+                    firstChar === '"' || firstChar === "'"
+                        ? "attributeValue"
+                        : "attributeName";
                 break;
+            }
             case "OpenTag":
             case "SelfClosingTag":
                 cursorPosition = "openTag";

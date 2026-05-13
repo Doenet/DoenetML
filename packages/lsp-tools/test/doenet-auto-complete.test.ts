@@ -336,6 +336,66 @@ describe("AutoCompleter", () => {
         ).toEqual([]);
     });
 
+    it("Offers a wrap-in-quotes hint on a bare value inside a parent element", () => {
+        // Lezer's error recovery wraps `mo` in an `AttributeValue(⚠,⚠)`
+        // node when the partial element is followed by `</...>`. The
+        // wrap-in-quotes hint must still fire — it would have, were the
+        // cursor reported as `attributeName` (matching the EOF parse).
+        const source = `<aa><b bar=mo</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Offers a free-text wrap-in-quotes hint on a bare value inside a parent element", () => {
+        // Same nested-context recovery as above, this time for a free-text
+        // attribute (`aa.x`). Expect a single `"foo"` hint anchored to the
+        // bare run.
+        const source = `<aa><c><aa x=foo</aa></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toEqual("foo");
+        expect(items[0].displayLabel).toEqual(`"foo"`);
+    });
+
+    it("Offers wrap-in-quotes when whitespace precedes the closing tag of the bare-valued element", () => {
+        const source = `<aa><b bar=mo </aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+    });
+
+    it("Offers wrap-in-quotes when a fresh `<` follows the bare-valued element", () => {
+        const source = `<aa><b bar=mo\n<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+    });
+
+    it("Suppresses the wrap-in-quotes hint inside a real quoted value containing `=`", () => {
+        // Regression guard: the `AttributeValue` node here starts with `"`,
+        // so the cursorPosition stays `attributeValue` and the wrap-hint
+        // guard at `:1021-1024` keeps suppressing the hint.
+        const source = `<aa x="abc=def"></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("def") + 3;
+        const items = autoCompleter.getCompletionItems(offset);
+        expect(items).toEqual([]);
+    });
+
     it("Does not offer attribute-value completions for a literal `=` in body text", () => {
         const source = `<aa>x=val</aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);

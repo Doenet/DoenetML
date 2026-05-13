@@ -317,6 +317,36 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("not.contain.text", 'name=   "hello"');
     });
 
+    it("keeps the value popup open across whitespace between `=` and a bare value", () => {
+        // Regression: typing `<math simplify=` opens the value popup, then
+        // typing a single space used to close it (gate at `plugin.ts:335`
+        // returned `null` because space isn't a server trigger char and
+        // there's no preceding identifier), only to reopen on the next
+        // keystroke. The popup must stay open continuously while the user
+        // types ` full` after `=`.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math simplify=", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type(" ", { force: true });
+        // The flap: without the post-whitespace-trigger heuristic the popup
+        // would briefly close here.
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type("full", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"full"',
+        );
+    });
+
     it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
         // Smoke test for the end-to-end ref-completion accept flow when
         // the first LSP response is slow. Originally named for a
