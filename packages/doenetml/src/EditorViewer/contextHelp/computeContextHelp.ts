@@ -83,13 +83,15 @@ export function computeContextHelp(
             cursorPosition === "openTag" ||
             cursorPosition === "unknown"
         ) {
-            // `openTag` / `unknown` cover the boundary cases lezer can't
-            // classify more specifically — typically the cursor sitting right
-            // after `=` (reported as `unknown`) or right after the opening
-            // `"` (reported as `openTag`), or on whitespace between attrs.
-            // `attributeAtOffset` uses the attribute's source range to decide
-            // whether the cursor is inside an attribute, so it returns the
-            // right thing for all these cursor positions.
+            // `openTag` and `unknown` both come up at attribute boundary
+            // cases — cursor right after `=`, right after an opening
+            // quote, or on whitespace between attributes. Which one the
+            // parser reports varies with incremental-parse state, so we
+            // accept both rather than enumerating lezer-specific mappings.
+            // `attributeAtOffset` uses position-containment within an
+            // attribute's source range to decide whether the cursor is
+            // actually inside an attribute, returning the right thing for
+            // any of these cursor positions and `null` otherwise.
             const attr = completer.sourceObj.attributeAtOffset(offset);
             if (attr) {
                 const attrHelp = helpForAttribute(
@@ -459,18 +461,37 @@ export function computeContextHelpForCompletion(
     }
 
     if (type === "reference") {
-        // Ref-name completion labels are bare (no leading `$`), but guard
-        // anyway in case a producer changes its mind.
-        const refName = rawLabel.startsWith("$") ? rawLabel.slice(1) : rawLabel;
+        // Strip a leading `$` defensively, then a trailing `[]` — the LSP
+        // layer emits an extra `name[]` row for `takesIndex` referents
+        // (repeat, select, …) that resolves to the same target as the bare
+        // `name` row.
+        let refName = rawLabel.startsWith("$") ? rawLabel.slice(1) : rawLabel;
+        if (refName.endsWith("[]")) {
+            refName = refName.slice(0, -2);
+        }
         return helpForRefNameByName(completer, offset, refName);
     }
 
     if (type === "property") {
-        // Element schema items and ref-member properties share `kind: Property`
-        // in the LSP layer. Disambiguate via the cursor's completion context.
+        // Element schema items, ref-member properties, and close-tag rows
+        // all share `kind: Property` in the LSP layer.
         const ctx = completer.getCompletionContext(offset);
         if (ctx.cursorPos === "refMember") {
             return helpForRefMemberByName(completer, offset, ctx, rawLabel);
+        }
+        if (rawLabel.startsWith("/")) {
+            // Close-tag completion (label like `/math>`): show help for the
+            // element being closed, which is the surrounding element under
+            // the cursor — matches what the cursor-driven `closeTagName`
+            // path returns.
+            const { node } =
+                completer.sourceObj.elementAtOffsetWithContext(offset);
+            if (!node) return NONE;
+            const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+                completer,
+                node,
+            );
+            return helpForElement(ownEntry, effectiveEntry);
         }
         // Element schema item.
         const ownEntry = completer.findSchemaElement(rawLabel);

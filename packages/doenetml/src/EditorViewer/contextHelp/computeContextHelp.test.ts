@@ -818,6 +818,38 @@ describe("computeContextHelpForCompletion", () => {
         expect(help.snippetText).toContain("<label>");
     });
 
+    it("returns element help for a close-tag `property`-kind completion (`/math>`)", () => {
+        // The LSP layer emits close-tag completions with `kind: Property`
+        // and labels like `/math>`. The dispatcher must recognize the
+        // `/` prefix and resolve through the surrounding element rather
+        // than treating the label as an element name.
+        const source = `<math>x`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "/math>",
+            type: "property",
+        });
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+        });
+    });
+
+    it("returns refName help for a `reference`-kind `name[]` completion (takesIndex)", () => {
+        // For `takesIndex` referents (repeat, select, …) the LSP emits an
+        // extra `name[]` row alongside the bare `name` row. Both should
+        // resolve to the same target.
+        const source = `<repeatForSequence name="rep"><math>x</math></repeatForSequence>\n$`;
+        const help = helpForCompletionAt(source, source.length, {
+            label: "rep[]",
+            type: "reference",
+        });
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "rep",
+            targetElementName: "repeatForSequence",
+        });
+    });
+
     it("returns NONE for an unknown completion label", () => {
         const source = `<a`;
         const help = helpForCompletionAt(source, source.length, {
