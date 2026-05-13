@@ -354,8 +354,10 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         // `<math name="hello"`) used to also pop the popup — showing
         // attribute names — because the gate only looked at the single
         // char before the cursor. That is inconsistent with `<math `
-        // (which waits for a letter). The gate now walks back to a
-        // matching quote and treats closers as non-triggering.
+        // (which waits for a letter). The gate now counts prior
+        // occurrences of the typed quote between the last `<` and the
+        // cursor: an odd count means the typed quote is a closer, so
+        // the trigger is suppressed.
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
                 <CodeMirror value="" />
