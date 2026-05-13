@@ -156,6 +156,19 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
+    it("keeps attribute help when whitespace follows `=` (`simplify= full`)", () => {
+        // The unquoted-spillover heuristic must walk back over whitespace to
+        // find the `=` from the preceding attribute. Without this, the bogus
+        // `full` attribute looks unrelated and the panel falls back to math.
+        const source = `<math simplify= full`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
     it("falls back to element help when cursor is in whitespace inside the open tag", () => {
         // `<math |` — cursor in the open tag but not in any attribute. We
         // previously returned NONE; now we return the element help so the

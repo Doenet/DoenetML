@@ -185,6 +185,20 @@ export class DoenetSourceObject extends LazyDataObject {
 
     /**
      * Get the element attribute at `offset`, if it exists.
+     *
+     * Accepts cursors reported as `attributeName` or `attributeValue` as well
+     * as the boundary cases `openTag` (e.g. cursor right after the opening
+     * quote of a value) and `unknown` (e.g. cursor right after `=` on a
+     * partial attribute, before the value is opened). In all cases the result
+     * is restricted to a real attribute range, so cursors that aren't inside
+     * any attribute (between attrs, on the tag name, on body text) return
+     * `null`.
+     *
+     * Also applies an unquoted-value spillover heuristic: when the cursor
+     * lands in a bogus attribute that the parser produced for the unquoted
+     * value of a preceding attribute (e.g. the `full` in `<math simplify=full`
+     * or `<math simplify= full`), returns the preceding attribute so callers
+     * follow the user's intent rather than the parser's tokenization.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -222,19 +236,31 @@ export class DoenetSourceObject extends LazyDataObject {
         // Unquoted value spillover: `<math simplify=full>` parses as TWO
         // attributes — `simplify` (with the `=` baked into its range) and
         // `full` (a bogus attribute with no value). When the cursor lands
-        // in the bogus one and the char immediately before it is `=`, the
-        // user is mid-typing a value for the preceding attribute. Return
-        // the preceding attribute so help/lookup follow the user's intent.
+        // in the bogus one and the chars between it and the preceding
+        // attribute are just `=` plus optional whitespace, the user is
+        // mid-typing a value for the preceding attribute. Walk back over
+        // whitespace to also catch `<math simplify= full>` (space after `=`)
+        // — the parser absorbs the whitespace into `simplify`'s range, so
+        // the preceding attribute is the one whose source range *contains*
+        // the `=` position.
         const startOffset = attribute.position?.start.offset;
-        if (
-            startOffset != null &&
-            startOffset > 0 &&
-            this.source.charAt(startOffset - 1) === "="
-        ) {
-            const preceding = attributes.find(
-                (a) => a.position?.end.offset === startOffset,
-            );
-            if (preceding) return preceding;
+        if (startOffset != null && startOffset > 0) {
+            let walkBack = startOffset - 1;
+            while (walkBack >= 0 && /\s/.test(this.source.charAt(walkBack))) {
+                walkBack--;
+            }
+            if (walkBack >= 0 && this.source.charAt(walkBack) === "=") {
+                const equalsOffset = walkBack;
+                const preceding = attributes.find(
+                    (a) =>
+                        a !== attribute &&
+                        a.position?.start.offset != null &&
+                        a.position?.end.offset != null &&
+                        a.position.start.offset <= equalsOffset &&
+                        a.position.end.offset > equalsOffset,
+                );
+                if (preceding) return preceding;
+            }
         }
         return attribute;
     }

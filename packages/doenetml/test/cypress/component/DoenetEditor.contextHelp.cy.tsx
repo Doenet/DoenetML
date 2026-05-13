@@ -79,6 +79,20 @@ describe("DoenetEditor context-sensitive help", () => {
             cy.get(".help-attribute-name").should("have.text", "simplify");
         });
 
+        it("keeps simplify help when whitespace follows `=` (`<math simplify= full`)", () => {
+            mountEditorWithHelpOpen("");
+            focusEditorAtEnd();
+            cy.get(".cm-content").type("<math simplify= full", {
+                force: true,
+            });
+            // Close any autocomplete popup so the panel reflects the
+            // cursor-driven path (which is what the unquoted-spillover
+            // heuristic feeds).
+            cy.get(".cm-content").type("{esc}", { force: true });
+            cy.get(".help-element-name").should("have.text", "<math>");
+            cy.get(".help-attribute-name").should("have.text", "simplify");
+        });
+
         it("falls back to element help on an unknown attribute (`<math bad`)", () => {
             mountEditorWithHelpOpen("");
             focusEditorAtEnd();
@@ -155,6 +169,27 @@ describe("DoenetEditor context-sensitive help", () => {
             cy.get(".help-snippet-preview")
                 .invoke("text")
                 .should("contain", "<choice");
+        });
+
+        it("shows refName help for a highlighted `$name` reference completion", () => {
+            // Pre-seed a named `<math>` so the reference completion has a
+            // target to resolve. Then type `$` at the document tail to
+            // surface the reference popup.
+            mountEditorWithHelpOpen(`<math name="m">x</math>\n`);
+            focusEditorAtEnd();
+            cy.get(".cm-content").type("$", { force: true });
+            openAutocomplete();
+
+            // Highlight the `m` reference row explicitly so the assertion
+            // isn't sensitive to which option CodeMirror defaults to.
+            cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+                .contains("m")
+                .trigger("mouseover");
+
+            // refName help renders `$m` references `<math>` in the sentence.
+            cy.get(".help-ref-sentence")
+                .invoke("text")
+                .should("match", /\$m\s+references\s+<math>/);
         });
 
         it("reverts to cursor-driven help when the autocomplete popup closes", () => {
