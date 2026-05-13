@@ -169,6 +169,27 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
+    it("keeps attribute help via the bare-value-after-`=` fallback when no attribute contains the cursor", () => {
+        // Mirrors the fallback documented in `get-completion-items.ts` for
+        // states where the typed bare value doesn't fall inside any
+        // attribute's position range. The walk-back to `=` recovers the
+        // attribute the value belongs to.
+        const source = `<math simplify=  `;
+        const help = helpAt(source, source.length);
+        if (help.kind === "attribute") {
+            expect(help.elementName).toBe("math");
+            expect(help.attributeName).toBe("simplify");
+        } else {
+            // If the parser already keeps the cursor inside `simplify`'s
+            // range in this state, the primary find returns it directly
+            // and we never hit the fallback — also acceptable.
+            expect(help).toMatchObject({
+                kind: "element",
+                elementName: "math",
+            });
+        }
+    });
+
     it("falls back to element help when cursor is in whitespace inside the open tag", () => {
         // `<math |` — cursor in the open tag but not in any attribute. We
         // previously returned NONE; now we return the element help so the

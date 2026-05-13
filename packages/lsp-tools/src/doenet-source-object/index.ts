@@ -199,6 +199,13 @@ export class DoenetSourceObject extends LazyDataObject {
      * value of a preceding attribute (e.g. the `full` in `<math simplify=full`
      * or `<math simplify= full`), returns the preceding attribute so callers
      * follow the user's intent rather than the parser's tokenization.
+     *
+     * Finally, when no attribute range contains the cursor at all, a
+     * bare-value-after-`=` fallback walks back over value chars and
+     * whitespace; if `=` precedes them, the attribute whose range contains
+     * that `=` is returned. This mirrors the fallback in
+     * `AutoCompleter.getCompletionItems` for parser states where typed
+     * value chars don't yet land inside any attribute's range.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -231,7 +238,36 @@ export class DoenetSourceObject extends LazyDataObject {
                 a.position.start.offset! <= _offset &&
                 a.position.end.offset! >= _offset,
         );
-        if (!attribute) return null;
+        if (!attribute) {
+            // Bare-value-after-`=` fallback: in some parser states the typed
+            // value chars don't fall inside any attribute's position range
+            // (see also `AutoCompleter._getAttributeContainsOffset` and the
+            // mirrored walk-back in `get-completion-items.ts`). Walk back
+            // over value chars + whitespace; if we land on `=`, return the
+            // attribute whose range contains the `=`.
+            let scan = _offset;
+            while (
+                scan > 0 &&
+                /[A-Za-z0-9_-]/.test(this.source.charAt(scan - 1))
+            ) {
+                scan--;
+            }
+            while (scan > 0 && /\s/.test(this.source.charAt(scan - 1))) {
+                scan--;
+            }
+            if (scan > 0 && this.source.charAt(scan - 1) === "=") {
+                const equalsOffset = scan - 1;
+                const owning = attributes.find(
+                    (a) =>
+                        a.position?.start.offset != null &&
+                        a.position?.end.offset != null &&
+                        a.position.start.offset <= equalsOffset &&
+                        a.position.end.offset > equalsOffset,
+                );
+                if (owning) return owning;
+            }
+            return null;
+        }
 
         // Unquoted value spillover: `<math simplify=full>` parses as TWO
         // attributes — `simplify` (with the `=` baked into its range) and

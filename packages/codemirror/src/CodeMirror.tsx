@@ -1,6 +1,6 @@
 import React from "react";
 import { EditorSelection, EditorState, Extension } from "@codemirror/state";
-import { Completion, selectedCompletion } from "@codemirror/autocomplete";
+import { selectedCompletion, type Completion } from "@codemirror/autocomplete";
 import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
