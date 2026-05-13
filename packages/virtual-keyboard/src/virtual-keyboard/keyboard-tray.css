@@ -58,8 +58,15 @@ Tailwind base is purposely not included because we want all styles to be prefixe
         @apply w-6 h-6 flex items-center justify-center text-2xl;
     }
 
+    /*
+     * Right-edge footprint of this button (w-12 + me-4 = 4rem) is mirrored
+     * by `--keyboard-tab-reserve-width` in
+     * `packages/doenetml/src/EditorViewer/editor-viewer.css` so the editor
+     * footer can shift its rightmost element inward to clear it. Keep the
+     * two values in sync.
+     */
     .open-keyboard-button {
-        @apply absolute top-[-1.5rem] left-0 rounded-t ms-4;
+        @apply absolute top-[-1.5rem] right-0 rounded-t me-4;
         @apply border-b-black border-b;
         @apply hover:bg-slate-300 active:bg-slate-400;
         @apply w-12 h-[1.5rem] flex items-center justify-center;

@@ -352,6 +352,7 @@ type DoenetEditorProps = {
     showDiagnostics?: boolean;
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     initialErrors?: ErrorRecord[];
@@ -359,11 +360,17 @@ type DoenetEditorProps = {
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
-     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Controls which tab the diagnostics/responses/help panel opens to at
+     * mount. Three forms:
+     *  - prop omitted (`undefined`): default — panel opens on the help tab
+     *    (or the first available tab if `showHelp` is false).
+     *  - a specific tab id: panel opens on that tab. If the tab is disabled,
+     *    falls back to the default with a `console.warn`.
+     *  - `null`: panel mounts closed.
      * Reactive changes after mount are ignored — use the imperative ref handle
      * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
      */
-    initialOpenTab?: DiagnosticsTabId;
+    initialOpenTab?: DiagnosticsTabId | null;
 };
 
 export const DoenetEditor = React.forwardRef<
@@ -395,6 +402,7 @@ export const DoenetEditor = React.forwardRef<
         showDiagnostics,
         showErrorsWarnings,
         showResponses = true,
+        showHelp = true,
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         initialErrors,
@@ -478,6 +486,8 @@ export const DoenetEditor = React.forwardRef<
             showFormatter={showFormatter}
             showDiagnostics={normalizedShowDiagnostics}
             showResponses={showResponses}
+            showHelp={showHelp}
+            addVirtualKeyboard={addVirtualKeyboard}
             border={border}
             initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}

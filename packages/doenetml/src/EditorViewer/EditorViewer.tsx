@@ -11,17 +11,14 @@ import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
-import {
-    DiagnosticsResponseTabContents,
-    DiagnosticsResponseTabstrip,
-} from "./DiagnosticsResponseTabs";
+import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
-import { FormatterVersionBar } from "./FormatterVersionBar";
+import { EditorFooter } from "./EditorFooter";
 import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
@@ -107,16 +104,32 @@ type EditorViewerProps = {
     showFormatter?: boolean;
     showDiagnostics?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
+    /**
+     * Used by the footer to decide whether to reserve space on its right edge
+     * for the virtual keyboard's open-keyboard tab. Mirrors the same prop on
+     * `DoenetEditor`. Has no effect when the footer doesn't touch the
+     * container's right edge (default `viewerLocation="right"` with the
+     * viewer shown).
+     */
+    addVirtualKeyboard?: boolean;
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
-     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Controls which tab the diagnostics/responses/help panel opens to at
+     * mount. Three forms:
+     *  - prop omitted (`undefined`): default — panel opens on the help tab
+     *    (or the first available tab if `showHelp` is false).
+     *  - a specific tab id: panel opens on that tab. If the tab is disabled
+     *    by `showDiagnostics`/`showResponses`/`showHelp`, falls back to the
+     *    default with a `console.warn`.
+     *  - `null`: panel mounts closed.
      * Reactive changes after mount are ignored — use the imperative ref handle
      * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
      */
-    initialOpenTab?: DiagnosticsTabId;
+    initialOpenTab?: DiagnosticsTabId | null;
 };
 
 /**
@@ -147,6 +160,8 @@ export const EditorViewer = React.forwardRef<
         showFormatter = true,
         showDiagnostics = true,
         showResponses = true,
+        showHelp = true,
+        addVirtualKeyboard = false,
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         fetchExternalDoenetML,
@@ -188,8 +203,6 @@ export const EditorViewer = React.forwardRef<
     const editorDoenetMLRef = useRef(initialDoenetML);
     const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
 
-    const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
-
     const updateValueTimer = useRef<number | null>(null);
 
     const viewerContainer = useRef<HTMLDivElement>(null);
@@ -202,28 +215,49 @@ export const EditorViewer = React.forwardRef<
         allPossibleVariants: ["a"],
     });
 
-    // Resolve `initialOpenTab` once at mount: if the requested tab is disabled
-    // by `showDiagnostics={false}` / `showResponses={false}` (with
-    // `showResponses` forced to `false` by `showViewer={false}` above), capture
-    // a warning message and fall back to default. The warning is emitted from
-    // an effect below so the initializer stays pure (StrictMode double-invokes
-    // useState initializers in dev).
+    // First enabled tab in the canonical order (help → errors → responses), or
+    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
+    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
+    function firstEnabledTab(): DiagnosticsTabId | null {
+        if (showHelp) return "help";
+        if (showDiagnostics) return "errors";
+        if (showResponses) return "responses";
+        return null;
+    }
+
+    // Resolve `initialOpenTab` once at mount:
+    //  - `null`               → panel closed at mount
+    //  - a specific tab id    → open on that tab (or fall back to default with
+    //                            a warning if the tab is disabled)
+    //  - `undefined` (omitted) → default: help (or first available tab)
+    // The warning is emitted from an effect below so the initializer stays pure
+    // (StrictMode double-invokes useState initializers in dev).
     const [{ resolvedInitialOpenTab, initialOpenTabWarning }] = useState<{
-        resolvedInitialOpenTab: DiagnosticsTabId | undefined;
+        resolvedInitialOpenTab: DiagnosticsTabId | null;
         initialOpenTabWarning: string | null;
     }>(() => {
+        if (initialOpenTab === null) {
+            return {
+                resolvedInitialOpenTab: null,
+                initialOpenTabWarning: null,
+            };
+        }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: undefined,
+                resolvedInitialOpenTab: firstEnabledTab(),
                 initialOpenTabWarning: null,
             };
         }
         const tabEnabled =
-            initialOpenTab === "responses" ? showResponses : showDiagnostics;
+            initialOpenTab === "responses"
+                ? showResponses
+                : initialOpenTab === "help"
+                  ? showHelp
+                  : showDiagnostics;
         if (!tabEnabled) {
             return {
-                resolvedInitialOpenTab: undefined,
-                initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}); falling back to default.`,
+                resolvedInitialOpenTab: firstEnabledTab(),
+                initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
         return {
@@ -239,7 +273,7 @@ export const EditorViewer = React.forwardRef<
     }, [initialOpenTabWarning]);
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(
-        resolvedInitialOpenTab !== undefined,
+        resolvedInitialOpenTab !== null,
     );
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
@@ -272,25 +306,43 @@ export const EditorViewer = React.forwardRef<
     // stable cursor handler can early-return without re-binding.
     const selectedCompletionRef = useRef<Completion | null>(null);
 
+    // When all tabs are disabled, the panel pair isn't rendered, so the
+    // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ??
-            (showDiagnostics ? "errors" : "responses"),
+            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
         infoPanelIsOpen && selectedTabId === "accessibility";
 
-    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
-    function toggleAccessibilityReport() {
-        if (infoPanelIsOpen && selectedTabId === "accessibility") {
-            setInfoPanelIsOpen(false);
-            return;
-        }
+    /**
+     * Toggle behavior shared by the footer icons and the viewer-controls
+     * accessibility status button: clicking the currently-selected tab while
+     * the panel is open closes it; any other click selects the tab and opens.
+     *
+     * `tabStore.setSelectedId(tabId)` is redundant when this fires from an
+     * ariakit `<Tab>` click (the Tab's internal handler has already updated
+     * the store), but it covers the "panel was closed, reopen on this tab"
+     * branch and the call from ViewerControlsBar's accessibility button, both
+     * of which need to select the tab explicitly.
+     */
+    const activateTab = useCallback(
+        (tabId: DiagnosticsTabId) => {
+            if (infoPanelIsOpen && selectedTabId === tabId) {
+                setInfoPanelIsOpen(false);
+                return;
+            }
+            tabStore.setSelectedId(tabId);
+            setInfoPanelIsOpen(true);
+        },
+        [infoPanelIsOpen, selectedTabId, tabStore],
+    );
 
-        tabStore.setSelectedId("accessibility");
-        setInfoPanelIsOpen(true);
-    }
+    const toggleAccessibilityReport = useCallback(
+        () => activateTab("accessibility"),
+        [activateTab],
+    );
 
     // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
     // shortcut, and the imperative `updateRenderedView()` ref method. Reads
@@ -331,10 +383,14 @@ export const EditorViewer = React.forwardRef<
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
                 const tabEnabled =
-                    tabId === "responses" ? showResponses : showDiagnostics;
+                    tabId === "responses"
+                        ? showResponses
+                        : tabId === "help"
+                          ? showHelp
+                          : showDiagnostics;
                 if (!tabEnabled) {
                     console.warn(
-                        `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}).`,
+                        `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}).`,
                     );
                     return;
                 }
@@ -354,7 +410,14 @@ export const EditorViewer = React.forwardRef<
                 updateViewer();
             },
         }),
-        [tabStore, showDiagnostics, showResponses, showViewer, updateViewer],
+        [
+            tabStore,
+            showDiagnostics,
+            showResponses,
+            showHelp,
+            showViewer,
+            updateViewer,
+        ],
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
@@ -719,7 +782,7 @@ export const EditorViewer = React.forwardRef<
     );
 
     const editorAndCollapsiblePanel =
-        showDiagnostics || showResponses ? (
+        showDiagnostics || showResponses || showHelp ? (
             <ResizableCollapsiblePanelPair
                 mainPanel={codeMirror}
                 subPanel={
@@ -731,31 +794,19 @@ export const EditorViewer = React.forwardRef<
                         accessibility={accessibilityObjs}
                         submittedResponses={responses}
                         isOpen={infoPanelIsOpen}
-                        setIsOpen={setInfoPanelIsOpen}
                         showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
+                        showHelp={showHelp}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
                         helpContent={helpContent}
                         docsURL={docsURL}
                     />
                 }
-                alwaysVisiblePanel={
-                    <DiagnosticsResponseTabstrip
-                        store={tabStore}
-                        warnings={warningsObjs}
-                        errors={errorsObjs}
-                        infos={infoObjs}
-                        accessibility={accessibilityObjs}
-                        submittedResponses={responses}
-                        isOpen={infoPanelIsOpen}
-                        setIsOpen={setInfoPanelIsOpen}
-                        showDiagnostics={showDiagnostics}
-                        showResponses={showResponses}
-                    />
-                }
                 isOpen={infoPanelIsOpen}
                 setIsOpen={setInfoPanelIsOpen}
+                defaultSize={25}
+                collapsedSize={10}
             />
         ) : (
             codeMirror
@@ -766,14 +817,33 @@ export const EditorViewer = React.forwardRef<
             <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
             </div>
-            <FormatterVersionBar
+            <EditorFooter
+                store={tabStore}
+                isOpen={infoPanelIsOpen}
+                activateTab={activateTab}
+                showDiagnostics={showDiagnostics}
+                showResponses={showResponses}
+                showHelp={showHelp}
                 showFormatter={showFormatter}
-                setFormatAsDoenetML={setFormatAsDoenetML}
-                onFormat={async () => {
+                reserveKeyboardButtonSpace={
+                    addVirtualKeyboard &&
+                    (!showViewer ||
+                        viewerLocation === "left" ||
+                        viewerLocation === "top")
+                }
+                diagnosticsSummary={{
+                    warningsCount,
+                    errorsCount,
+                    infosCount,
+                    accessibilityLevel1Count,
+                    accessibilityLevel2Count,
+                }}
+                submittedResponsesCount={responses.length}
+                onFormat={async (asDoenetML) => {
                     const printed = await prettyPrint(
                         editorDoenetMLRef.current,
                         {
-                            doenetSyntax: formatAsDoenetML,
+                            doenetSyntax: asDoenetML,
                             tabWidth: 2,
                         },
                     );
