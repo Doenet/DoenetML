@@ -371,6 +371,35 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete").should("not.exist");
     });
 
+    it("pops the value popup on the opening quote of a *second* attribute on the same tag", () => {
+        // Regression guard for the closing-quote heuristic. An earlier
+        // walk-back-to-matching-quote implementation incorrectly classified
+        // the opening `"` of `simplify="` here as a closer because the
+        // scan found the closing `"` of `name="hello"`. The parity-based
+        // heuristic counts prior `"` chars (two, from `name="hello"`) and
+        // correctly identifies the typed quote as an opener, so the
+        // server trigger fires and value completions surface.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello" simplify="', { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        // The `simplify` attribute is boolean-like; expect at least one
+        // value completion (e.g. `full`) — anchoring on a specific label
+        // would couple the test to schema details, so we just assert the
+        // popup has some completion row.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.length.greaterThan",
+            0,
+        );
+    });
+
     it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
         // Smoke test for the end-to-end ref-completion accept flow when
         // the first LSP response is slow. Originally named for a

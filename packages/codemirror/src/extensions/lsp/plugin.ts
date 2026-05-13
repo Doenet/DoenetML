@@ -323,25 +323,29 @@ export class LSPPlugin implements PluginValue {
         // The *closing* quote of a value (e.g. `<math name="hello"`) is the
         // same character but shouldn't pop attribute completions — that
         // would be inconsistent with `<math `, which waits for a letter
-        // before suggesting. Walk back on the current line to a matching
-        // quote; if one is found (stopping at `<`), the typed quote is a
-        // closer and we suppress the trigger.
+        // before suggesting. In a well-formed open tag, quotes of the same
+        // kind pair up after each `=`, so the parity of prior occurrences
+        // of the typed quote (between the last `<` and the typed quote)
+        // tells us whether we just typed an opener or a closer:
+        //   - even (0, 2, …) → opener → fire the trigger
+        //   - odd  (1, 3, …) → closer → suppress
+        // Counting (rather than scanning to a single matching quote) is
+        // what makes `<math name="hello" simplify="` correctly treat the
+        // second `"` as the opener of `simplify`'s value: two prior `"`
+        // chars from `name="hello"` make the count even. Stopping at `=`
+        // would seem simpler but breaks `<math foo="x=y"`, where the
+        // closing `"` of `foo` has a literal `=` inside its value.
         let isClosingQuoteTrigger = false;
         if (charBeforeCursor === '"' || charBeforeCursor === "'") {
             const quote = charBeforeCursor;
             const cursorCol = pos - line.from;
-            let j = cursorCol - 2;
-            while (j >= 0) {
-                const c = line.text[j];
-                if (c === quote) {
-                    isClosingQuoteTrigger = true;
-                    break;
-                }
-                if (c === "<") {
-                    break;
-                }
-                j--;
+            let quoteCount = 0;
+            for (let k = cursorCol - 2; k >= 0; k--) {
+                const c = line.text[k];
+                if (c === "<") break;
+                if (c === quote) quoteCount++;
             }
+            isClosingQuoteTrigger = quoteCount % 2 === 1;
         }
         const precedingServerTriggerCharacter =
             !isClosingQuoteTrigger &&
