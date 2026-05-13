@@ -318,7 +318,33 @@ export class LSPPlugin implements PluginValue {
         const charBeforeCursor = line.text[pos - line.from - 1];
         const charBeforeParen =
             charBeforeCursor === "(" ? line.text[pos - line.from - 2] : "";
+        // A `"` or `'` is a server trigger because typing the *opening*
+        // quote of a value should open a value popup (e.g. `<math name="`).
+        // The *closing* quote of a value (e.g. `<math name="hello"`) is the
+        // same character but shouldn't pop attribute completions — that
+        // would be inconsistent with `<math `, which waits for a letter
+        // before suggesting. Walk back on the current line to a matching
+        // quote; if one is found (stopping at `<`), the typed quote is a
+        // closer and we suppress the trigger.
+        let isClosingQuoteTrigger = false;
+        if (charBeforeCursor === '"' || charBeforeCursor === "'") {
+            const quote = charBeforeCursor;
+            const cursorCol = pos - line.from;
+            let j = cursorCol - 2;
+            while (j >= 0) {
+                const c = line.text[j];
+                if (c === quote) {
+                    isClosingQuoteTrigger = true;
+                    break;
+                }
+                if (c === "<") {
+                    break;
+                }
+                j--;
+            }
+        }
         const precedingServerTriggerCharacter =
+            !isClosingQuoteTrigger &&
             uniqueLanguageServerInstance.completionTriggers.includes(
                 charBeforeCursor,
             );
@@ -329,22 +355,22 @@ export class LSPPlugin implements PluginValue {
                 (charBeforeParen === "$" || charBeforeParen === "."));
 
         // `<math simplify= ` and similar: when the cursor sits on whitespace
-        // that immediately follows a server trigger character (e.g. `=`), we
-        // still want the LSP to suggest completions. Without this, the popup
-        // that opened on `=` flickers closed the moment the user types a
-        // space and only reopens on the next non-whitespace keystroke. Local
-        // ref triggers (`$`, `.`, `(`) are intentionally excluded — `$ name`
-        // after a space is unusual and dropping the popup is preferable.
+        // that immediately follows `=`, we still want the LSP to suggest
+        // completions. Without this, the popup that opened on `=` flickers
+        // closed the moment the user types a space and only reopens on the
+        // next non-whitespace keystroke. Scoped to `=` only — other server
+        // triggers (`<`, `/`, `"`, `'`, `$`, `.`) shouldn't reopen the popup
+        // across whitespace: e.g. `<math name="hello" ` should not keep the
+        // popup that briefly opened on the closing `"`, matching the
+        // behaviour of `<math ` (where space after the tag name does not
+        // pop completions until a letter is typed).
         let postWhitespaceTrigger = false;
         if (charBeforeCursor && /\s/.test(charBeforeCursor)) {
             const cursorCol = pos - line.from;
             let i = cursorCol - 1;
             while (i >= 0 && /\s/.test(line.text[i])) i--;
-            if (i >= 0) {
-                postWhitespaceTrigger =
-                    uniqueLanguageServerInstance.completionTriggers.includes(
-                        line.text[i],
-                    );
+            if (i >= 0 && line.text[i] === "=") {
+                postWhitespaceTrigger = true;
             }
         }
 

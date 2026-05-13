@@ -347,6 +347,30 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
+    it("does not pop attribute completions on the closing quote of a value", () => {
+        // `"` and `'` are server trigger characters because typing the
+        // *opening* quote of a value should pop a value popup (e.g.
+        // `<math name="`). Typing the *closing* quote (e.g.
+        // `<math name="hello"`) used to also pop the popup — showing
+        // attribute names — because the gate only looked at the single
+        // char before the cursor. That is inconsistent with `<math `
+        // (which waits for a letter). The gate now walks back to a
+        // matching quote and treats closers as non-triggering.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello"', { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+        // And a trailing space should keep it closed, matching `<math `.
+        cy.get(".cm-content").type(" ", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
     it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
         // Smoke test for the end-to-end ref-completion accept flow when
         // the first LSP response is slow. Originally named for a

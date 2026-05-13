@@ -185,6 +185,14 @@ describe("DoenetEditor context-sensitive help", () => {
             // Pre-seed a named `<math>` so the reference completion has a
             // target to resolve. Then type `$` at the document tail to
             // surface the reference popup.
+            // Same race as `<math bad` above (issue #1120): the seeded
+            // document re-inits Doenet core while an action may still be in
+            // flight, which crashes `DocViewer.resolveAction`. Swallow only
+            // that specific unhandled rejection; remove once #1120 is fixed.
+            cy.on("uncaught:exception", (err) => {
+                if (/actionId.*undefined/.test(err.message)) return false;
+                return true;
+            });
             mountEditorWithHelpOpen(`<math name="m">x</math>\n`);
             focusEditorAtEnd();
             cy.get(".cm-content").type("$", { force: true });
