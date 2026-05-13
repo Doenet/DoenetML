@@ -109,7 +109,7 @@ export function EditorFooter({
     showHelp: boolean;
     showFormatter: boolean;
     reserveKeyboardButtonSpace: boolean;
-    onFormat: (asDoenetML: boolean) => void;
+    onFormat: (asDoenetML: boolean) => Promise<void>;
     diagnosticsSummary: DiagnosticsSummary;
     submittedResponsesCount: number;
 }) {
@@ -279,14 +279,28 @@ export function EditorFooter({
                     <Menu className="footer-menu" gutter={4}>
                         <MenuItem
                             className="footer-menu-item"
-                            onClick={() => onFormat(true)}
+                            onClick={() => {
+                                onFormat(true).catch((err) =>
+                                    console.error(
+                                        "EditorFooter: format as DoenetML failed",
+                                        err,
+                                    ),
+                                );
+                            }}
                             data-test="footer-menu-format-doenetml"
                         >
                             Format as DoenetML
                         </MenuItem>
                         <MenuItem
                             className="footer-menu-item"
-                            onClick={() => onFormat(false)}
+                            onClick={() => {
+                                onFormat(false).catch((err) =>
+                                    console.error(
+                                        "EditorFooter: format as XML failed",
+                                        err,
+                                    ),
+                                );
+                            }}
                             data-test="footer-menu-format-xml"
                         >
                             Format as XML
