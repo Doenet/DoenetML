@@ -266,7 +266,11 @@ function formatValue(val: unknown): string {
 // `:root`, so author-facing help shows concrete colors instead of opaque CSS
 // variable references. Keeps DoenetML.css as the single source of truth.
 export function resolveCssVariables(value: string): string {
-    if (typeof document === "undefined" || !value.includes("var(")) {
+    if (
+        typeof document === "undefined" ||
+        typeof getComputedStyle !== "function" ||
+        !value.includes("var(")
+    ) {
         return value;
     }
     const rootStyle = getComputedStyle(document.documentElement);

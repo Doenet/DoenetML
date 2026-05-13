@@ -71,4 +71,12 @@ describe("resolveCssVariables", () => {
             "var(--lightGreen)",
         );
     });
+
+    it("is a no-op when getComputedStyle is unavailable", () => {
+        (globalThis as { getComputedStyle?: unknown }).getComputedStyle =
+            undefined;
+        expect(resolveCssVariables("var(--lightGreen)")).toBe(
+            "var(--lightGreen)",
+        );
+    });
 });
