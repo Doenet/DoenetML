@@ -94,16 +94,6 @@ describe("DoenetEditor context-sensitive help", () => {
         });
 
         it("falls back to element help on an unknown attribute (`<math bad`)", () => {
-            // Typing invalid markup forces a Doenet core re-init while an
-            // in-flight action is pending, which races inside
-            // `DocViewer.resolveAction` (issue #1120). The crash is
-            // independent of the help panel, so swallow only that specific
-            // unhandled rejection. Remove this `cy.on` block once #1120 is
-            // fixed so future regressions surface.
-            cy.on("uncaught:exception", (err) => {
-                if (/actionId.*undefined/.test(err.message)) return false;
-                return true;
-            });
             mountEditorWithHelpOpen("");
             focusEditorAtEnd();
             cy.get(".cm-content").type("<math bad", { force: true });
@@ -185,14 +175,6 @@ describe("DoenetEditor context-sensitive help", () => {
             // Pre-seed a named `<math>` so the reference completion has a
             // target to resolve. Then type `$` at the document tail to
             // surface the reference popup.
-            // Same race as `<math bad` above (issue #1120): the seeded
-            // document re-inits Doenet core while an action may still be in
-            // flight, which crashes `DocViewer.resolveAction`. Swallow only
-            // that specific unhandled rejection; remove once #1120 is fixed.
-            cy.on("uncaught:exception", (err) => {
-                if (/actionId.*undefined/.test(err.message)) return false;
-                return true;
-            });
             mountEditorWithHelpOpen(`<math name="m">x</math>\n`);
             focusEditorAtEnd();
             cy.get(".cm-content").type("$", { force: true });

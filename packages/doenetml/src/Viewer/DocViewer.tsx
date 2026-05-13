@@ -591,7 +591,9 @@ export function DocViewer({
         const actionResult =
             await coreWorker.current?.dispatchActionJavascript(actionArgs);
 
-        resolveAction(actionResult);
+        if (actionResult) {
+            resolveAction(actionResult);
+        }
     }
 
     function forceRendererState({
