@@ -1,4 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
+import { findAttributeContainingOffset } from "../doenet-source-object/methods/attribute-helpers";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
@@ -485,18 +486,10 @@ export class AutoCompleter {
         node: DastElement,
         offset: number,
     ): DastAttribute | null {
-        const candidate = Object.values(node.attributes).find((attr) => {
-            const start = attr.position?.start.offset;
-            const end = attr.position?.end.offset;
-            return (
-                start !== undefined &&
-                end !== undefined &&
-                offset >= start &&
-                offset <= end
-            );
-        });
-
-        return candidate || null;
+        return findAttributeContainingOffset(
+            Object.values(node.attributes),
+            offset,
+        );
     }
 
     /**

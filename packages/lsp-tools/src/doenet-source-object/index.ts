@@ -29,6 +29,10 @@ import type {
     Range as LSPRange,
 } from "vscode-languageserver";
 import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
+import {
+    findAttributeContainingOffset,
+    findPrecedingEqualsForBareValue,
+} from "./methods/attribute-helpers";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -232,39 +236,21 @@ export class DoenetSourceObject extends LazyDataObject {
 
         // Find the attribute whose range contains the cursor
         const attributes = Object.values(containingElm.node.attributes);
-        const attribute = attributes.find(
-            (a) =>
-                a.position &&
-                a.position.start.offset! <= _offset &&
-                a.position.end.offset! >= _offset,
-        );
+        const attribute = findAttributeContainingOffset(attributes, _offset);
         if (!attribute) {
             // Bare-value-after-`=` fallback: in some parser states the typed
             // value chars don't fall inside any attribute's position range
-            // (see also `AutoCompleter._getAttributeContainsOffset` and the
-            // mirrored walk-back in `get-completion-items.ts`). Walk back
+            // (mirrored in `AutoCompleter.getCompletionItems`). Walk back
             // over value chars + whitespace; if we land on `=`, return the
             // attribute whose range contains the `=`.
-            let scan = _offset;
-            while (
-                scan > 0 &&
-                /[A-Za-z0-9_-]/.test(this.source.charAt(scan - 1))
-            ) {
-                scan--;
-            }
-            while (scan > 0 && /\s/.test(this.source.charAt(scan - 1))) {
-                scan--;
-            }
-            if (scan > 0 && this.source.charAt(scan - 1) === "=") {
-                const equalsOffset = scan - 1;
-                const owning = attributes.find(
-                    (a) =>
-                        a.position?.start.offset != null &&
-                        a.position?.end.offset != null &&
-                        a.position.start.offset <= equalsOffset &&
-                        a.position.end.offset > equalsOffset,
-                );
-                if (owning) return owning;
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                _offset,
+            );
+            if (equalsOffset != null) {
+                return findAttributeContainingOffset(attributes, equalsOffset, {
+                    endInclusive: false,
+                });
             }
             return null;
         }
@@ -281,19 +267,15 @@ export class DoenetSourceObject extends LazyDataObject {
         // the `=` position.
         const startOffset = attribute.position?.start.offset;
         if (startOffset != null && startOffset > 0) {
-            let walkBack = startOffset - 1;
-            while (walkBack >= 0 && /\s/.test(this.source.charAt(walkBack))) {
-                walkBack--;
-            }
-            if (walkBack >= 0 && this.source.charAt(walkBack) === "=") {
-                const equalsOffset = walkBack;
-                const preceding = attributes.find(
-                    (a) =>
-                        a !== attribute &&
-                        a.position?.start.offset != null &&
-                        a.position?.end.offset != null &&
-                        a.position.start.offset <= equalsOffset &&
-                        a.position.end.offset > equalsOffset,
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                startOffset,
+            );
+            if (equalsOffset != null) {
+                const preceding = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false, exclude: attribute },
                 );
                 if (preceding) return preceding;
             }
