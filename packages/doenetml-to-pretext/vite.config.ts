@@ -11,6 +11,7 @@ export default defineConfig({
     base: "./",
     plugins: [dts({ rollupTypes: true })],
     server: {
+        host: "0.0.0.0",
         port: 8012,
     },
     define: {

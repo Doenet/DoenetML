@@ -13,26 +13,35 @@ Use this skill when creating or editing PreTeXt source files (`.ptx` / XML) for 
 2. `docs/tag-reference.md`
 3. `docs/pretext-vs-doenetml-differences.md`
 4. `docs/pretext-do-dont-checklist.md`
-5. `docs/sources.md` (for canonical guide URLs)
+5. `docs/references/pretext.rng` (schema reference; source of truth for element/attribute validity)
+6. `docs/references/pretext-common.xsl` (XSL processing/reference entry point)
+7. `docs/sources.md` (for canonical guide/source URLs)
+
+## Validation Rule (Required)
+
+Before declaring that a particular usage is correct PreTeXt, check `docs/references/pretext.rng` and verify the claim against the schema.
 
 ## Core Instructions
 
 1. Author semantically, not visually. Prefer PreTeXt structural elements (`<section>`, `<theorem>`, `<example>`, `<exercise>`) over ad hoc formatting.
-2. Keep document hierarchy valid. Do not skip levels in sectioning.
-3. Use stable, descriptive `xml:id` values on divisions and referenceable elements.
-4. Use `<xref ref="..."/>` for internal references rather than hardcoded labels/numbers.
-5. For math, use `<m>` (inline) and `<md>` (display), with MathJax-compatible LaTeX.
-6. For figures/images, include accessibility text (`<shortdescription>` and/or `<description>`).
-7. For exercises, use structured children (`<statement>`, optional `<hint>`, `<answer>`, `<solution>`).
-8. Keep output goals in mind: PreTeXt targets multi-format publishing (HTML/PDF/other), not client-side reactive state.
+2. Treat the schema as authoritative for validity claims. If uncertain, confirm element names, allowed attributes, and nesting in `docs/references/pretext.rng` before asserting correctness.
+3. Keep document hierarchy valid. Do not skip levels in sectioning.
+4. Use stable, descriptive `xml:id` values on divisions and referenceable elements.
+5. Use `<xref ref="..."/>` for internal references rather than hardcoded labels/numbers.
+6. PreTeXt internal links use `<xref>` with a `ref` attribute; there is no standalone `<ref>` element for cross-references.
+7. For math, use `<m>` (inline) and `<md>` (display), with MathJax-compatible LaTeX.
+8. For figures/images, include accessibility text (`<shortdescription>` and/or `<description>`).
+9. For exercises, use structured children (`<statement>`, optional `<hint>`, `<answer>`, `<solution>`).
+10. Keep output goals in mind: PreTeXt targets multi-format publishing (HTML/PDF/other), not client-side reactive state.
 
 ## High-Risk Mistakes To Prevent
 
 1. Do not confuse PreTeXt `<answer>` (authored exercise content) with DoenetML runtime answer validation. In PreTeXt, `<answer>` is not a live grading rule.
 2. Do not invent hybrid markup. Never introduce DoenetML-only patterns such as `$name`, `name="..."` reactive data flow, `<mathInput>`, `<award>`, or live graph-interaction logic in PreTeXt source.
 3. Do not hardcode figure/equation/section numbers. Use `xml:id` + `<xref ref="..."/>`.
-4. Do not skip hierarchy levels or omit required titles in divisions.
-5. Do not leave media inaccessible. If an image is instructional (not purely decorative), include `<shortdescription>` and/or `<description>`.
+4. Do not author `<ref>` as a cross-reference element in PreTeXt. Use `<xref ref="..."/>`.
+5. Do not skip hierarchy levels or omit required titles in divisions.
+6. Do not leave media inaccessible. If an image is instructional (not purely decorative), include `<shortdescription>` and/or `<description>`.
 
 ## Difference Emphasis (PreTeXt vs DoenetML)
 

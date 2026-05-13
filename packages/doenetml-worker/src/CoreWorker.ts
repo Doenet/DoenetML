@@ -118,7 +118,7 @@ export class CoreWorker {
 
         try {
             if (!this.wasm_initialized) {
-                await init(wasmBlobUrl);
+                await init({ module_or_path: wasmBlobUrl });
                 this.wasm_initialized = true;
             }
 
@@ -156,7 +156,7 @@ export class CoreWorker {
         await isProcessingPromise;
 
         if (!this.wasm_initialized) {
-            await init(wasmBlobUrl);
+            await init({ module_or_path: wasmBlobUrl });
             this.wasm_initialized = true;
         }
 
@@ -425,7 +425,7 @@ export class CoreWorker {
 
         // Stub these callbacks for now, which aren't needed if we don't have interactivity
         const reportScoreAndStateCallback = (args: any) => {
-            console.log("reportScoreAndStateCallback", args);
+            // console.log("reportScoreAndStateCallback", args);
         };
         const requestAnimationFrame = (args: any) => {
             console.log("requestAnimationFrame", args);

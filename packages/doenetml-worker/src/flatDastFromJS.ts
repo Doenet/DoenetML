@@ -4,6 +4,7 @@ import type {
     FlatDastRootWithErrors,
 } from "./CoreWorker";
 import { pointJsToRust } from "./jsRustConversions/point";
+import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust } from "./jsRustConversions/section";
 import { textJsToRust } from "./jsRustConversions/text";
 
@@ -50,6 +51,13 @@ export function flatDastFromJS(
     // For now, just using `componentIdx` everywhere,
     // which may be OK as long as we don't care about root names
 
+    // DAST uses componentIdx as the id for components. Doenet's JS core
+    // creates strings (sometimes based on the `name` attribute given to the component)
+    // We need a way to find the componentIdx from a given string id.
+    const doenetIdToComponentIdx: Record<string, number> = {
+        [documentToRender.id]: documentToRender.componentIdx,
+    };
+
     elements[documentToRender.componentIdx] = {
         type: "element",
         name: documentToRender.componentType,
@@ -84,7 +92,9 @@ export function flatDastFromJS(
                 for (const childInstruction of rendererState.childrenInstructions) {
                     if (typeof childInstruction === "string") {
                         element.children.push(childInstruction);
-                    } else {
+                    } else if (childInstruction != null) {
+                        doenetIdToComponentIdx[childInstruction.id] =
+                            childInstruction.componentIdx;
                         element.children.push({
                             id: childInstruction.componentIdx,
                             annotation: "original",
@@ -136,6 +146,9 @@ export function flatDastFromJS(
                 break;
             case "point":
                 pointJsToRust(element.data.props);
+                break;
+            case "ref":
+                refJsToRust(element.data.props, doenetIdToComponentIdx);
                 break;
             case "coords":
                 element.name = "math";

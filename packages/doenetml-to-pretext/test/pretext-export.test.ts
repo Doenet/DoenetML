@@ -75,6 +75,32 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("adds xml:id to reffable element and xref points to it", async () => {
+        source = `
+           <section name="foo">
+               <title>Named section</title>
+               <p>Section text</p>
+           </section>
+           <p>Jump to <ref to="$foo" /></p>
+       `;
+
+        // The important part is that the xref and the section share the same xml:id and ref attribute.
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <section xml:id="doenet-id-1">
+              <title>Named section</title>
+                         
+                         <p>Section text</p>
+                     </section>
+                     <p>Jump to <xref ref="doenet-id-1"></xref></p>
+          </article>
+          </pretext>"
+        `);
+    });
+
     // TODO: un-skip when <division> tags are supported
     it.skip("expands <division> to pretext element", async () => {
         source = `
