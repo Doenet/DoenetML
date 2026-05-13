@@ -189,6 +189,16 @@ describe("EditorViewer Tests", { tags: ["@group5"] }, function () {
             "true",
         );
 
+        cy.log(
+            "All footer tabs and the three-dot menu render in the default config",
+        );
+        cy.get("[data-test='footer-tab-errors']").should("exist");
+        cy.get("[data-test='footer-tab-warnings']").should("exist");
+        cy.get("[data-test='footer-tab-info']").should("exist");
+        cy.get("[data-test='footer-tab-accessibility']").should("exist");
+        cy.get("[data-test='footer-tab-responses']").should("exist");
+        cy.get("[data-test='footer-menu-button']").should("exist");
+
         cy.log("Click the active help tab to close the panel");
         cy.get("[data-test='footer-tab-help']").click();
         cy.get(".diagnostics-response-tabs-panels").should("not.exist");

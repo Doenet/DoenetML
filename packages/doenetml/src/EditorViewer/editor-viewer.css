@@ -36,6 +36,22 @@
     }
 }
 
+/*
+ * When the footer's right edge meets the virtual keyboard's open-keyboard
+ * tab (showViewer={false} or viewerLocation in {"left","top"} with the
+ * keyboard enabled), push the three-dot menu inward so the icons stay
+ * clickable. ~4rem covers the keyboard tab's `w-12` + `me-4` footprint;
+ * very narrow viewports may still let them collide, which is acceptable.
+ */
+.editor-panel .editor-footer.reserve-keyboard-button-space .footer-menu-button {
+    margin-right: 4rem;
+}
+.editor-panel
+    .editor-footer.reserve-keyboard-button-space:not(:has(.footer-menu-button))
+    .footer-icons {
+    margin-right: 4rem;
+}
+
 .editor-panel .footer-menu {
     z-index: 50;
     background-color: white;
@@ -94,8 +110,16 @@
             outline-offset: -2px;
         }
     }
+    /*
+     * lightBlue on mainGray is ~1.2:1 contrast (well below WCAG 1.4.11's
+     * 3:1 minimum for UI component state), so the background tint alone is
+     * not a sufficient selected-state indicator. The inset box-shadow paints
+     * a 3px mainBlue bottom edge that meets the contrast threshold and acts
+     * as a non-color cue, while leaving the tab's flex height unchanged.
+     */
     &.is-open button[aria-selected="true"] {
         background-color: var(--lightBlue);
+        box-shadow: inset 0 -3px 0 var(--mainBlue);
     }
 }
 

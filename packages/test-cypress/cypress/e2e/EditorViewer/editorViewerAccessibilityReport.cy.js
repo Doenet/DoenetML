@@ -313,7 +313,7 @@ describe(
 
             cy.get("#errors").click();
 
-            cy.get(".diagnostics-response-tabs")
+            cy.get(".footer-icons")
                 .should("have.attr", "role", "tablist")
                 .and("have.class", "is-open");
 
@@ -334,9 +334,10 @@ describe(
                 .invoke("attr", "aria-label")
                 .should("match", /^Accessibility: \d+$/);
 
-            cy.get(
-                ".diagnostics-response-tabs [role='tab'][aria-selected='true']",
-            ).should("have.length", 1);
+            cy.get(".footer-icons [role='tab'][aria-selected='true']").should(
+                "have.length",
+                1,
+            );
             cy.get("#errors")
                 .click()
                 .should("have.attr", "aria-selected", "true");
@@ -352,19 +353,22 @@ describe(
             cy.get("#errors").focus();
             cy.focused().should("have.attr", "id", "errors");
 
+            // Ariakit's TabList uses selectOnMove by default: arrow keys move
+            // focus AND select the new tab. With the panel mounted open on
+            // help by default, right-arrowing to "warnings" both selects it
+            // and switches the visible panel content — no Enter required to
+            // open.
             cy.focused().type("{rightarrow}");
             cy.focused().should("have.attr", "id", "warnings");
-            cy.focused().type("{enter}");
             cy.get("#warnings").should("have.attr", "aria-selected", "true");
             cy.contains("Warning").should("exist");
 
-            cy.get(".close-button").should("exist").focus();
+            // Close affordance: pressing Enter on the focused active tab
+            // closes the panel (the close-X button was removed in the footer
+            // redesign).
             cy.focused().type("{enter}");
 
-            cy.get(".diagnostics-response-tabs").should(
-                "not.have.class",
-                "is-open",
-            );
+            cy.get(".footer-icons").should("not.have.class", "is-open");
             cy.get(".diagnostics-response-tabs-panels").should("not.exist");
         });
 
@@ -372,8 +376,8 @@ describe(
             postDiagnosticsFixture();
 
             cy.injectAxe();
-            cy.get(".diagnostics-response-tabs").should("be.visible");
-            cy.checkA11y(".diagnostics-response-tabs", {
+            cy.get(".footer-icons").should("be.visible");
+            cy.checkA11y(".footer-icons", {
                 includedImpacts: ["critical", "serious", "moderate", "minor"],
             });
         });

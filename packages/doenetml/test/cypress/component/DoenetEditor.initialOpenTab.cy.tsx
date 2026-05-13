@@ -65,10 +65,16 @@ describe("DoenetEditor initialOpenTab", () => {
             </div>,
         );
 
-        // panel should NOT auto-open (no diagnostics tabs available, falls back)
+        // With showHelp defaulting to true, the fallback default tab is
+        // "help" — the panel opens there and the warning still fires.
         cy.get(".diagnostics-response-tabs-container").should(
-            "not.have.class",
+            "have.class",
             "is-open",
+        );
+        cy.get('[id="help"][role="tab"]').should(
+            "have.attr",
+            "aria-selected",
+            "true",
         );
         cy.get("@consoleWarn").should("have.been.called");
     });
@@ -90,10 +96,33 @@ describe("DoenetEditor initialOpenTab", () => {
             </div>,
         );
 
+        // Fallback default tab is "help" (showHelp defaults to true).
+        cy.get(".diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get('[id="help"][role="tab"]').should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+        cy.get("@consoleWarn").should("have.been.called");
+    });
+
+    it("stays closed at mount when initialOpenTab={null}", () => {
+        cy.mount(
+            <div style={{ height: "500px", width: "900px" }}>
+                <DoenetEditor
+                    doenetML={SAMPLE_DOENETML}
+                    initialOpenTab={null}
+                    addVirtualKeyboard={false}
+                />
+            </div>,
+        );
+
         cy.get(".diagnostics-response-tabs-container").should(
             "not.have.class",
             "is-open",
         );
-        cy.get("@consoleWarn").should("have.been.called");
     });
 });

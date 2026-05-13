@@ -105,6 +105,14 @@ type EditorViewerProps = {
     showDiagnostics?: boolean;
     showResponses?: boolean;
     showHelp?: boolean;
+    /**
+     * Used by the footer to decide whether to reserve space on its right edge
+     * for the virtual keyboard's open-keyboard tab. Mirrors the same prop on
+     * `DoenetEditor`. Has no effect when the footer doesn't touch the
+     * container's right edge (default `viewerLocation="right"` with the
+     * viewer shown).
+     */
+    addVirtualKeyboard?: boolean;
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
@@ -153,6 +161,7 @@ export const EditorViewer = React.forwardRef<
         showDiagnostics = true,
         showResponses = true,
         showHelp = true,
+        addVirtualKeyboard = false,
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         fetchExternalDoenetML,
@@ -314,6 +323,12 @@ export const EditorViewer = React.forwardRef<
      * Toggle behavior shared by the footer icons and the viewer-controls
      * accessibility status button: clicking the currently-selected tab while
      * the panel is open closes it; any other click selects the tab and opens.
+     *
+     * `tabStore.setSelectedId(tabId)` is redundant when this fires from an
+     * ariakit `<Tab>` click (the Tab's internal handler has already updated
+     * the store), but it covers the "panel was closed, reopen on this tab"
+     * branch and the call from ViewerControlsBar's accessibility button, both
+     * of which need to select the tab explicitly.
      */
     const activateTab = useCallback(
         (tabId: DiagnosticsTabId) => {
@@ -812,7 +827,13 @@ export const EditorViewer = React.forwardRef<
                 showDiagnostics={showDiagnostics}
                 showResponses={showResponses}
                 showHelp={showHelp}
-                formatterAvailable={showFormatter}
+                showFormatter={showFormatter}
+                reserveKeyboardButtonSpace={
+                    addVirtualKeyboard &&
+                    (!showViewer ||
+                        viewerLocation === "left" ||
+                        viewerLocation === "top")
+                }
                 warnings={warningsObjs}
                 errors={errorsObjs}
                 infos={infoObjs}

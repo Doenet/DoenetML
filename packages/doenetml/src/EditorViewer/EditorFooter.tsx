@@ -1,9 +1,10 @@
-import React, { useCallback } from "react";
+import React, { ReactElement, useCallback } from "react";
 import {
     Menu,
     MenuButton,
     MenuItem,
     MenuProvider,
+    Tab,
     TabList,
     TabProvider,
     TabStore,
@@ -28,8 +29,53 @@ import {
     InfoRecord,
     WarningRecord,
 } from "@doenet/utils";
-import { TabTrigger } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
+
+/**
+ * Tab trigger with icon + optional count badge used by the editor footer to
+ * drive the diagnostics/responses/help panel. The click is intercepted by the
+ * footer so an active+selected click can close the panel rather than re-select.
+ * Pass `inlineLabel` to render a short text label next to the icon (used by
+ * the help tab); otherwise pass `count` to render a numeric badge.
+ */
+function TabTrigger({
+    id,
+    icon,
+    label,
+    count,
+    inlineLabel,
+    iconClassName,
+    onActivate,
+}: {
+    id: string;
+    icon: ReactElement;
+    label: string;
+    count?: number;
+    inlineLabel?: string;
+    iconClassName?: string;
+    onActivate: (tabId: string) => void;
+}) {
+    return (
+        <Tab
+            id={id}
+            title={label}
+            aria-label={count === undefined ? label : `${label}: ${count}`}
+            className="diagnostic-tab-trigger"
+            data-test={`footer-tab-${id}`}
+            onClick={() => onActivate(id)}
+        >
+            <span className={classNames("diagnostic-tab-icon", iconClassName)}>
+                {icon}
+            </span>
+            {inlineLabel !== undefined && (
+                <span className="diagnostic-tab-label">{inlineLabel}</span>
+            )}
+            {count !== undefined && (
+                <span className="diagnostic-tab-count">{count}</span>
+            )}
+        </Tab>
+    );
+}
 
 /**
  * Combined editor footer (left → right):
@@ -40,6 +86,12 @@ import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
  *  - three-dot menu on the far right (formatter actions when available)
  *
  * Groups are visually separated by `.footer-icons-group-gap` spacers.
+ *
+ * `reserveKeyboardButtonSpace` shifts the three-dot menu inward to clear the
+ * virtual keyboard's open-keyboard tab when the footer's right edge meets it
+ * (showViewer={false} or viewerLocation in {"left","top"} with the keyboard
+ * enabled). Narrow viewports may still let the menu collide with the keyboard
+ * tab; that's accepted for now.
  */
 export function EditorFooter({
     store,
@@ -48,7 +100,8 @@ export function EditorFooter({
     showDiagnostics,
     showResponses,
     showHelp,
-    formatterAvailable,
+    showFormatter,
+    reserveKeyboardButtonSpace,
     onFormat,
     warnings,
     errors,
@@ -62,7 +115,8 @@ export function EditorFooter({
     showDiagnostics: boolean;
     showResponses: boolean;
     showHelp: boolean;
-    formatterAvailable: boolean;
+    showFormatter: boolean;
+    reserveKeyboardButtonSpace: boolean;
     onFormat: (asDoenetML: boolean) => void;
     warnings: WarningRecord[];
     errors: ErrorRecord[];
@@ -83,7 +137,11 @@ export function EditorFooter({
     const anyTabs = showDiagnostics || showResponses || showHelp;
 
     return (
-        <div className="editor-footer">
+        <div
+            className={classNames("editor-footer", {
+                "reserve-keyboard-button-space": reserveKeyboardButtonSpace,
+            })}
+        >
             <div
                 className="doenetml-version"
                 title={`DoenetML version ${DOENETML_VERSION}`}
@@ -222,7 +280,7 @@ export function EditorFooter({
                     </TabList>
                 </TabProvider>
             )}
-            {formatterAvailable && (
+            {showFormatter && (
                 <MenuProvider>
                     <MenuButton
                         className="footer-menu-button"

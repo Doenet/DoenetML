@@ -37,6 +37,7 @@ function Harness() {
                 ref={editorRef}
                 doenetML={SAMPLE_DOENETML}
                 addVirtualKeyboard={false}
+                initialOpenTab={null}
             />
         </div>
     );
@@ -89,8 +90,9 @@ describe("DoenetEditor imperative ref handle", () => {
             "is-open",
         );
 
-        // user clicks the panel's internal close button
-        cy.get('[data-test="diagnostics-panel-close"]').click();
+        // user clicks the active tab to close the panel (the close-X is gone;
+        // clicking the selected tab is now the close affordance)
+        cy.get('[data-test="footer-tab-accessibility"]').click();
         cy.get(".diagnostics-response-tabs-container").should(
             "not.have.class",
             "is-open",

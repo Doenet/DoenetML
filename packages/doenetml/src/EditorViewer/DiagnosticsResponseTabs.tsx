@@ -1,5 +1,5 @@
 import React, { ReactElement, ReactNode, useEffect, useRef } from "react";
-import { Tab, TabProvider, TabPanel, TabStore } from "@ariakit/react";
+import { TabProvider, TabPanel, TabStore } from "@ariakit/react";
 import {
     BsExclamationTriangleFill,
     BsInfoCircleFill,
@@ -167,52 +167,6 @@ function AnnotationToggle({
             />
             <span>{label}</span>
         </label>
-    );
-}
-
-/**
- * Tab trigger with icon + optional count badge used by the editor footer to
- * drive the diagnostics/responses/help panel. The click is intercepted by the
- * footer so an active+selected click can close the panel rather than re-select.
- * Pass `inlineLabel` to render a short text label next to the icon (used by
- * the help tab); otherwise pass `count` to render a numeric badge.
- */
-export function TabTrigger({
-    id,
-    icon,
-    label,
-    count,
-    inlineLabel,
-    iconClassName,
-    onActivate,
-}: {
-    id: string;
-    icon: ReactElement;
-    label: string;
-    count?: number;
-    inlineLabel?: string;
-    iconClassName?: string;
-    onActivate: (tabId: string) => void;
-}) {
-    return (
-        <Tab
-            id={id}
-            title={label}
-            aria-label={count === undefined ? label : `${label}: ${count}`}
-            className="diagnostic-tab-trigger"
-            data-test={`footer-tab-${id}`}
-            onClick={() => onActivate(id)}
-        >
-            <span className={classNames("diagnostic-tab-icon", iconClassName)}>
-                {icon}
-            </span>
-            {inlineLabel !== undefined && (
-                <span className="diagnostic-tab-label">{inlineLabel}</span>
-            )}
-            {count !== undefined && (
-                <span className="diagnostic-tab-count">{count}</span>
-            )}
-        </Tab>
     );
 }
 

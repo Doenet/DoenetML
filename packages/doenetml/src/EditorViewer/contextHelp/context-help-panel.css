@@ -17,6 +17,15 @@
 
 .editor-panel .help-placeholder code {
     background: var(--mainGray);
+    /*
+     * Help placeholder text inherits a muted color from `.help-panel-empty`
+     * (#667085). On `var(--mainGray)` that yields ~3.5:1 — below WCAG 2 AA's
+     * 4.5:1 minimum for normal text — and axe surfaces it when the panel
+     * mounts open on help by default. Restore the canvas text color on the
+     * code element so it sits on top of the gray chip with sufficient
+     * contrast.
+     */
+    color: var(--canvasText);
     padding: 0 0.25rem;
     border-radius: 0.2rem;
     font-family: monospace;

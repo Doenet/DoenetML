@@ -487,6 +487,7 @@ export const DoenetEditor = React.forwardRef<
             showDiagnostics={normalizedShowDiagnostics}
             showResponses={showResponses}
             showHelp={showHelp}
+            addVirtualKeyboard={addVirtualKeyboard}
             border={border}
             initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}
