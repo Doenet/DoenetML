@@ -164,7 +164,8 @@ describe("Pretext export", async () => {
 
     it("<subsetOfReals> is rendered as <m>", async () => {
         source = `<subsetOfReals>(1,2)</subsetOfReals>`;
-        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
@@ -172,6 +173,20 @@ describe("Pretext export", async () => {
           </article>
           </pretext>"
         `);
+    });
+
+    // TODO: un-skip when direct <md> conversion behavior is finalized
+    it.skip("<md> is rendered as numbered display math", async () => {
+        source = `<md><mrow>\\frac{1}{2}</mrow></md>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+                    "<?xml version="1.0" encoding="UTF-8"?>
+                    <pretext>
+                    <article>
+                    <md number="yes"><mrow>\\frac{1}{2}</mrow></md>
+                    </article>
+                    </pretext>"
+                `);
     });
 
     // TODO: un-skip when <division> tags are supported
