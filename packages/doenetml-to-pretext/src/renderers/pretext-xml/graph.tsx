@@ -2,22 +2,6 @@ import React from "react";
 import { BasicComponent } from "../types";
 import { generateHtmlId } from "../utils";
 
-/**
- * Which layer each type of element is to be drawn on. These layers determine what shows up on top of what.
- *
- *  NOTE: there can be at most 10 different layer offsets,
- *  given that the DoenetML layer is multiplied by 10 and added to these offsets
- */
-export const LAYER_OFFSETS = {
-    base: 0,
-    image: 1,
-    line: 2,
-    vertex: 3,
-    controlPoint: 4,
-    point: 5,
-    text: 6,
-};
-
 export const Graph: BasicComponent<{
     props: { prefigureXML: string | null };
 }> = ({ node, annotation, ancestors }) => {

@@ -17,5 +17,6 @@ export * from "./choice-input";
 export * from "./answer";
 export * from "./_omit";
 export * from "./_pass-through-with-tag";
+export * from "./_pass-through-without-tag";
 export * from "./_pass-through-with-tag-and-newline";
 export * from "./theorem-like";

@@ -36,6 +36,10 @@ const NoProcessingConverter: ComponentWithPassthroughChildren = {
     component: PretextComponent._PassThroughWithTag,
     passthroughChildren: true,
 };
+const PassThroughWithoutTagConverter: ComponentWithPassthroughChildren = {
+    component: PretextComponent._PassThroughWithoutTag,
+    passthroughChildren: true,
+};
 
 /**
  * Pass through the element and all its children, but rename the tag. This can be used to change capitalization or spelling
@@ -69,7 +73,11 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent.Answer,
         passthroughChildren: true,
     },
-    choiceInput: { component: PretextComponent.ChoiceInput },
+    choiceInput: {
+        component: PretextComponent.ChoiceInput,
+        passthroughChildren: true,
+    },
+    choice: PassThroughWithoutTagConverter,
     p: { component: PretextComponent.P, passthroughChildren: true },
     document: {
         component: PretextComponent._PassThroughWithTag,
