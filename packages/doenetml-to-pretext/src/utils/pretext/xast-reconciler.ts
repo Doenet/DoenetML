@@ -213,6 +213,9 @@ export function renderReactToXast(element: React.ReactNode): Xast.Root {
         null,
         "xastRoot",
         console.log,
+        (error: Error) => console.error(error),
+        (error: Error) => console.error(error),
+        () => {},
         null,
     );
 

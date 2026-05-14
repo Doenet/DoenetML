@@ -28,6 +28,15 @@ export type RendererObject = Record<
  */
 export const FALLBACK_RENDERER_KEY = Symbol("fallback");
 
+const TheoremLikeConverter: ComponentWithPassthroughChildren = {
+    component: PretextComponent.TheoremLike,
+    passthroughChildren: true,
+};
+const NoProcessingConverter: ComponentWithPassthroughChildren = {
+    component: PretextComponent._PassThroughWithTag,
+    passthroughChildren: true,
+};
+
 /**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
@@ -49,11 +58,6 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         passthroughChildren: true,
         monitorVisibility: true,
     },
-    problem: {
-        component: PretextComponent.Problem,
-        passthroughChildren: true,
-        monitorVisibility: true,
-    },
     textInput: { component: PretextComponent.TextInput },
     text: { component: PretextComponent.Text },
     boolean: { component: PretextComponent.Boolean },
@@ -62,10 +66,31 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent._Fragment,
         passthroughChildren: true,
     },
+    // Ref and Xref are treated the same, but PreTeXt only has <xref>.
+    ref: { component: PretextComponent.Xref, passthroughChildren: true },
     xref: { component: PretextComponent.Xref, passthroughChildren: true },
     ol: { component: PretextComponent.Ol, passthroughChildren: true },
     ul: { component: PretextComponent.Ul, passthroughChildren: true },
     li: { component: PretextComponent.Li, passthroughChildren: true },
+
+    // Theorem-like elements shared with DoenetML.
+    // PreTeXt theorem-like elements not present in DoenetML: assumption, axiom,
+    // claim, conjecture, corollary, fact, heuristic, hypothesis, lemma,
+    // observation, principle, proposition, remark.
+    definition: TheoremLikeConverter,
+    example: TheoremLikeConverter,
+    proof: TheoremLikeConverter,
+    theorem: TheoremLikeConverter,
+    question: TheoremLikeConverter,
+    activity: TheoremLikeConverter,
+    remark: TheoremLikeConverter,
+    aside: TheoremLikeConverter,
+    note: TheoremLikeConverter,
+
+    // Inline text formatting elements. These are the same in Doenet and Pretext
+    em: NoProcessingConverter,
+    c: NoProcessingConverter,
+    q: NoProcessingConverter,
 
     // For PreTeXt compatibility
     pretext: {
