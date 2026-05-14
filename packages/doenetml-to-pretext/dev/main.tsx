@@ -36,6 +36,7 @@ function App() {
                 }
                 panelB={
                     <div
+                        className="pretext-output-container"
                         style={{
                             padding: "1em",
                             minWidth: "100%",
@@ -45,9 +46,11 @@ function App() {
                     >
                         <h1>PreTeXt Output</h1>
                         {pretextOutput ? (
-                            <pre className="pretext-output">
-                                {pretextOutput}
-                            </pre>
+                            <textarea
+                                className="pretext-output"
+                                readOnly
+                                value={pretextOutput}
+                            ></textarea>
                         ) : (
                             <p>
                                 Your converted PreTeXt content will appear here.

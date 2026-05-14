@@ -1,7 +1,5 @@
 import React from "react";
-import {
-    BasicComponentWithPassthroughChildren,
-} from "../types";
+import { BasicComponentWithPassthroughChildren } from "../types";
 
 type AnswerData = { props: unknown };
 

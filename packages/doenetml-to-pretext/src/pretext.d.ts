@@ -63,6 +63,8 @@ type PretextIntrinsicElements = {
     math: PretextElementProps;
     sidebyside: PretextElementProps;
     blockquote: PretextElementProps;
+
+    prefigure: PretextElementProps;
 };
 
 declare global {
