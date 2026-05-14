@@ -14,6 +14,7 @@ export * from "./ol";
 export * from "./ul";
 export * from "./li";
 export * from "./choice-input";
+export * from "./code-editor";
 export * from "./answer";
 export * from "./_omit";
 export * from "./_pass-through-with-tag";

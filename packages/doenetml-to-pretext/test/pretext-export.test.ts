@@ -148,6 +148,18 @@ describe("Pretext export", async () => {
               </pretext>"
             `);
     });
+    it("<codeEditor> is rendered as <program>", async () => {
+        source = `<codeEditor><p>Some code</p></codeEditor>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <program language="xml"><p>Some code</p></program>
+              </article>
+              </pretext>"
+            `);
+    });
 
     // TODO: un-skip when <division> tags are supported
     it.skip("expands <division> to pretext element", async () => {

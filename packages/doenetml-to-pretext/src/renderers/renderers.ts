@@ -94,6 +94,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     },
     textInput: { component: PretextComponent.TextInput },
     mathInput: { component: PretextComponent.MathInput },
+    codeEditor: { component: PretextComponent.CodeEditor },
     text: { component: PretextComponent.Text },
     boolean: { component: PretextComponent.Boolean },
     title: { component: PretextComponent.Title, passthroughChildren: true },
