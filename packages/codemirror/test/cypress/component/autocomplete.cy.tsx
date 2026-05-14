@@ -538,7 +538,14 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             />,
         );
 
-        cy.get(".cm-content").click().type("{ctrl}{home}$P.", { force: true });
+        // `delay: 200` gives the LSP's rust-core sub-worker time to spin up
+        // and sync source before `.` auto-triggers a completion request.
+        // Without it the `.`-triggered request races with the worker boot
+        // and resolves against unsynced rust state.  Stopgap — revert once
+        // completions properly serialize against the latest updateSource.
+        cy.get(".cm-content")
+            .click()
+            .type("{ctrl}{home}$P.", { force: true, delay: 200 });
 
         openAutocomplete();
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
