@@ -18,6 +18,27 @@ declare global {
 
 let editorControlHandle: DoenetEditorHandle | null = null;
 
+// Holds the most recent full props bag (serializable props + proxied function
+// props) so that `updateEditorProps` can produce a new merged bag and re-render
+// without re-sending the function proxies from the parent.
+let lastAugmentedProps: Record<string, any> | null = null;
+
+// The initial DoenetML lives in a `<script type="text/doenetml">` child of
+// `#root`. React replaces those children as soon as
+// `renderDoenetEditorToContainer` mounts the editor, so we read it once up
+// front and pass it explicitly on every subsequent call. (We never want the
+// `doenetML` prop to change post-mount anyway — see the parent wrapper's
+// `initialIframePropsRef` for why.)
+let initialDoenetMLSource: string | null = null;
+function resolveInitialDoenetMLSource(root: Element): string {
+    if (initialDoenetMLSource !== null) {
+        return initialDoenetMLSource;
+    }
+    const scriptTag = root.querySelector('script[type="text/doenetml"]');
+    initialDoenetMLSource = scriptTag?.innerHTML ?? "";
+    return initialDoenetMLSource;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     let pause100 = function () {
         return new Promise((resolve, _reject) => {
@@ -43,6 +64,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 ComlinkEditor.expose(
     {
         renderEditorWithFunctionProps,
+        updateEditorProps(updatedSerializableProps: Record<string, any>) {
+            if (!lastAugmentedProps) {
+                console.warn(
+                    "iframe DoenetEditor: updateEditorProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            lastAugmentedProps = {
+                ...lastAugmentedProps,
+                ...updatedSerializableProps,
+            };
+            const root = document.getElementById("root")!;
+            const handle = window.renderDoenetEditorToContainer(
+                root,
+                resolveInitialDoenetMLSource(root),
+                lastAugmentedProps,
+            );
+            if (handle) {
+                editorControlHandle = handle;
+            }
+        },
         openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
                 console.warn(
@@ -99,9 +141,12 @@ function renderEditorWithFunctionProps(...args: (string | Function)[]) {
         }
     }
 
+    lastAugmentedProps = augmentedDoenetEditorProps;
+
+    const root = document.getElementById("root")!;
     const handle = window.renderDoenetEditorToContainer(
-        document.getElementById("root")!,
-        undefined,
+        root,
+        resolveInitialDoenetMLSource(root),
         augmentedDoenetEditorProps,
     );
     if (handle) {

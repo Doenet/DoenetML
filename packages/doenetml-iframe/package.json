@@ -28,7 +28,9 @@
         "build:iframe-viewer": "wireit",
         "build:iframe-editor": "wireit",
         "publish": "npm run build && cd dist/component && npm publish",
-        "test": "echo \"No tests \""
+        "test": "echo \"No tests \"",
+        "test-cypress": "cypress open --component",
+        "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless"
     },
     "wireit": {
         "build:iframe-viewer": {

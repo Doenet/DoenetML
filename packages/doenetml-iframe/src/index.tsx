@@ -309,6 +309,7 @@ export function DoenetViewer({
  */
 type EditorIframeRemote = Comlink.Remote<{
     renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
+    updateEditorProps: (props: Record<string, any>) => void;
     openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     closeDiagnosticsPanel: () => void;
     updateRenderedView: () => void;
@@ -396,15 +397,24 @@ export const DoenetEditor = React.forwardRef<
         [],
     );
 
-    // Augment the DoenetEditor props by adding any initial diagnostics found
-    const augmentedDoenetEditorProps = { ...doenetEditorProps };
-    if (augmentedDoenetEditorProps.initialDiagnostics) {
-        augmentedDoenetEditorProps.initialDiagnostics = [
-            ...augmentedDoenetEditorProps.initialDiagnostics,
-            ...initialDiagnostics,
-        ];
-    } else {
-        augmentedDoenetEditorProps.initialDiagnostics = initialDiagnostics;
+    // Capture the initial doenetML, width, and props bag once per mount.
+    // Subsequent changes to these are not baked into a fresh srcDoc — instead
+    // serializable prop changes are pushed through Comlink (see effect below).
+    // `doenetML` here is effectively the *initial* DoenetML: changes to the
+    // prop after mount are ignored on purpose so the user's in-progress edits
+    // aren't blown away. Consumers wanting to seed a new document should
+    // remount via a parent `key=`.
+    const initialIframePropsRef = React.useRef<{
+        doenetML: string;
+        width: string;
+        doenetEditorProps: typeof doenetEditorProps;
+    } | null>(null);
+    if (initialIframePropsRef.current === null) {
+        initialIframePropsRef.current = {
+            doenetML,
+            width,
+            doenetEditorProps,
+        };
     }
 
     let standaloneUrl: string, cssUrl: string;
@@ -497,24 +507,78 @@ export const DoenetEditor = React.forwardRef<
         };
     }, []);
 
-    const srcDoc = createHtmlForDoenetEditor(
-        id,
-        doenetML,
-        width,
-        augmentedDoenetEditorProps,
-        standaloneUrl,
-        cssUrl,
-    );
+    // Only recompute `srcDoc` when something that genuinely requires a reload
+    // changes: a new standalone bundle (e.g. autodetect-version fallback) or
+    // freshly-accumulated initial diagnostics from that fallback path. Other
+    // prop changes flow live through `updateEditorProps` below.
+    const srcDoc = React.useMemo(() => {
+        const baseProps = {
+            ...initialIframePropsRef.current!.doenetEditorProps,
+        };
+        if (baseProps.initialDiagnostics) {
+            baseProps.initialDiagnostics = [
+                ...baseProps.initialDiagnostics,
+                ...initialDiagnostics,
+            ];
+        } else {
+            baseProps.initialDiagnostics = initialDiagnostics;
+        }
+        return createHtmlForDoenetEditor(
+            id,
+            initialIframePropsRef.current!.doenetML,
+            initialIframePropsRef.current!.width,
+            baseProps,
+            standaloneUrl,
+            cssUrl,
+        );
+    }, [id, standaloneUrl, cssUrl, initialDiagnostics]);
 
-    // When `srcDoc` changes, React updates the iframe attribute and the browser
-    // reloads the iframe document. The previous Comlink remote becomes bound to
-    // a torn-down `contentWindow` until the new iframe sends `iframeReady`.
-    // Clear the remote synchronously at commit (via `useLayoutEffect`) so any
-    // imperative-handle calls between commit and the next paint queue and
-    // replay against the new remote instead of dispatching into a dead one.
+    // When `srcDoc` changes (autodetect-version fallback path), React updates
+    // the iframe attribute and the browser reloads the iframe document. The
+    // previous Comlink remote becomes bound to a torn-down `contentWindow`
+    // until the new iframe sends `iframeReady`. Clear the remote synchronously
+    // at commit so any imperative-handle calls between commit and the next
+    // paint queue and replay against the new remote instead of dispatching
+    // into a dead one. In the steady state `srcDoc` is stable for the lifetime
+    // of the component, so this effect is a no-op after the first commit.
     React.useLayoutEffect(() => {
         editorIframeRef.current = null;
     }, [srcDoc]);
+
+    // Push serializable prop changes into the iframe without reloading. The
+    // initial values were already baked into `srcDoc`, so we skip the first
+    // run by recording the snapshot and only sending when it differs. Drop
+    // function-typed entries (registered once via Comlink.proxy at iframeReady)
+    // and drop `doenetML` (initial-only — see initialIframePropsRef above).
+    const lastSentPropsSnapshotRef = React.useRef<string | null>(null);
+    const propsForUpdate: Record<string, any> = { width };
+    for (const [key, val] of Object.entries(doenetEditorProps)) {
+        if (typeof val !== "function") {
+            propsForUpdate[key] = val;
+        }
+    }
+    const propsSnapshotStr = JSON.stringify(propsForUpdate);
+    React.useEffect(() => {
+        if (lastSentPropsSnapshotRef.current === null) {
+            lastSentPropsSnapshotRef.current = propsSnapshotStr;
+            return;
+        }
+        if (lastSentPropsSnapshotRef.current === propsSnapshotStr) {
+            return;
+        }
+        lastSentPropsSnapshotRef.current = propsSnapshotStr;
+        const snapshot = JSON.parse(propsSnapshotStr);
+        const action = (remote: EditorIframeRemote) => {
+            remote
+                .updateEditorProps(snapshot)
+                .catch(logComlinkError("updateEditorProps"));
+        };
+        if (editorIframeRef.current) {
+            action(editorIframeRef.current);
+        } else {
+            pendingActions.current.push(action);
+        }
+    }, [propsSnapshotStr]);
 
     if (inErrorState) {
         if (foundAutoVersion) {

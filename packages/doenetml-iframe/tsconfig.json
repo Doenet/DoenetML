@@ -9,6 +9,8 @@
         "vite.config.ts",
         "vite.config-iframe-viewer.ts",
         "vite.config-iframe-editor.ts",
+        "cypress.config.ts",
+        "test/**/*",
         "dist/**/*"
     ],
     "references": []
