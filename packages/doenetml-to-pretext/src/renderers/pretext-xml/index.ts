@@ -1,4 +1,5 @@
 export * from "./p";
+export * from "./abs";
 export * from "./math";
 export * from "./display-math";
 export * from "./graph";

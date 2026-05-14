@@ -69,6 +69,9 @@ function passThroughWithRenamedTag(
  * tag name uniquely determines the component to render.
  */
 export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
+    abs: {
+        component: PretextComponent.Abs,
+    },
     answer: {
         component: PretextComponent.Answer,
         passthroughChildren: true,
