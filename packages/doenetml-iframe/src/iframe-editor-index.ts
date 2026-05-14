@@ -5,7 +5,11 @@ import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
-declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
+declare const ComlinkEditor: {
+    expose: Function;
+    windowEndpoint: Function;
+    releaseProxy: symbol;
+};
 declare global {
     interface Window {
         renderDoenetEditorToContainer: (
@@ -84,16 +88,35 @@ ComlinkEditor.expose(
         updateEditorFunctionProps(...args: (string | Function)[]) {
             // The wrapper sends key/proxy pairs the same way
             // renderEditorWithFunctionProps does (Comlink can't pass proxies
-            // as values inside an object, only as direct arguments). We
-            // overwrite the function entries on `lastAugmentedProps` so the
-            // next re-render uses the freshest closures from the parent.
+            // as values inside an object, only as direct arguments). Treat
+            // the args as a *full replacement* of the function-typed entries
+            // on lastAugmentedProps: drop every existing function entry
+            // (releasing its Comlink port so the parent-side MessageChannel
+            // closes — Comlink also has a FinalizationRegistry fallback, but
+            // explicit release avoids depending on GC timing) and add the
+            // new ones. This way a removed callback (parent stopped passing
+            // it) is actually removed, not silently retained.
             if (!lastAugmentedProps) {
                 console.warn(
                     "iframe DoenetEditor: updateEditorFunctionProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
                 );
                 return;
             }
-            const next: Record<string, any> = { ...lastAugmentedProps };
+            const next: Record<string, any> = {};
+            for (const [key, val] of Object.entries(lastAugmentedProps)) {
+                if (typeof val === "function") {
+                    try {
+                        (val as any)[ComlinkEditor.releaseProxy]?.();
+                    } catch (e) {
+                        console.warn(
+                            "iframe DoenetEditor: failed to release stale Comlink proxy",
+                            e,
+                        );
+                    }
+                } else {
+                    next[key] = val;
+                }
+            }
             for (let i = 0; i < args.length; i += 2) {
                 const key = args[i];
                 const fn = args[i + 1];

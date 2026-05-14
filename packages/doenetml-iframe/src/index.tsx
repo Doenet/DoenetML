@@ -647,6 +647,11 @@ export const DoenetEditor = React.forwardRef<
     // The initial set is registered at iframeReady (above) and recorded in
     // `lastSentFunctionPropsRef`; this effect only fires once that ref is
     // populated, so the first render is a no-op here.
+    //
+    // No deps array on purpose: change detection is by-hand identity
+    // comparison against `lastSentFunctionPropsRef`, not React's shallow
+    // dep diff. The effect fires every render and short-circuits when the
+    // function set is unchanged.
     React.useEffect(() => {
         const prev = lastSentFunctionPropsRef.current;
         if (prev === null) {
