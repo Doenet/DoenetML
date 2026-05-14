@@ -15,6 +15,10 @@ Use this skill when creating or editing DoenetML content for interactive browser
 4. `docs/doenetml-do-dont-checklist.md`
 5. `docs/sources.md`
 
+## Reference Materials
+
+- **Generated DoenetML Schema**: The complete programmatically-generated component schema is available at [packages/static-assets/src/generated/doenet-schema.json](../../../packages/static-assets/src/generated/doenet-schema.json). This is the source of truth for all valid DoenetML components, their attributes, and constraints.
+
 ## Core Instructions
 
 1. Write with interactive intent: inputs, feedback, dynamic math, and reactive state.
