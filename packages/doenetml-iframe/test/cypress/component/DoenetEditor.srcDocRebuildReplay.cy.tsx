@@ -105,10 +105,15 @@ describe("DoenetEditor (iframe wrapper) — srcDoc rebuild replays drifted props
 
         // The new iframe document is *not* the old one — stamp must be gone.
         // Wait for CodeMirror to come back up in the rebuilt iframe before
-        // asserting; otherwise the assertion races the reload.
-        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT })
-            .its("0.contentDocument.body", { timeout: IFRAME_READY_TIMEOUT })
-            .find(".cm-content", { timeout: IFRAME_READY_TIMEOUT })
+        // asserting; otherwise the assertion races the reload. This spec is
+        // the only one that boots the standalone bundle *twice* (mount +
+        // rebuild) and the second evaluation of the ~32 MB bundle pushes
+        // CI runners well past the single-boot 15 s budget — bump the wait
+        // here only, keeping helpers' default for everything else.
+        const REBUILT_IFRAME_TIMEOUT = 25_000;
+        cy.get("iframe", { timeout: REBUILT_IFRAME_TIMEOUT })
+            .its("0.contentDocument.body", { timeout: REBUILT_IFRAME_TIMEOUT })
+            .find(".cm-content", { timeout: REBUILT_IFRAME_TIMEOUT })
             .should("exist");
         cy.get("iframe").then(($iframe) => {
             const doc = ($iframe[0] as HTMLIFrameElement).contentDocument!;
