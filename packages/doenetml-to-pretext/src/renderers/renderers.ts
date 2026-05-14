@@ -40,6 +40,10 @@ const PassThroughWithoutTagConverter: ComponentWithPassthroughChildren = {
     component: PretextComponent._PassThroughWithoutTag,
     passthroughChildren: true,
 };
+const OmitElementConverter = {
+    component: PretextComponent._Omit,
+    passthroughChildren: false,
+};
 
 /**
  * Pass through the element and all its children, but rename the tag. This can be used to change capitalization or spelling
@@ -69,6 +73,18 @@ function passThroughWithRenamedTag(
  * tag name uniquely determines the component to render.
  */
 export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
+    orbitalDiagram: {
+        component: PretextComponent.OrbitalDiagram,
+    },
+    atom: {
+        component: PretextComponent.Atom,
+    },
+    number: {
+        component: PretextComponent.Number,
+    },
+    angle: {
+        component: PretextComponent.Angle,
+    },
     abs: {
         component: PretextComponent.Abs,
     },
@@ -134,6 +150,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     problem: TheoremLikeConverter,
 
     // Inline text formatting elements. These are the same in Doenet and Pretext
+    alert: NoProcessingConverter,
     em: NoProcessingConverter,
     c: NoProcessingConverter,
     q: NoProcessingConverter,
@@ -166,12 +183,8 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     blockQuote: passThroughWithRenamedTag("blockquote"),
 
     // Tags with no representation in PreTeXt
-    br: {
-        component: PretextComponent._Omit,
-    },
-    hr: {
-        component: PretextComponent._Omit,
-    },
+    br: OmitElementConverter,
+    hr: OmitElementConverter,
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.

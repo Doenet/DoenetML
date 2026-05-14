@@ -25,3 +25,7 @@ export * from "./_pass-through-with-tag";
 export * from "./_pass-through-without-tag";
 export * from "./_pass-through-with-tag-and-newline";
 export * from "./theorem-like";
+export * from "./angle";
+export * from "./number";
+export * from "./atom";
+export * from "./orbital-diagram";

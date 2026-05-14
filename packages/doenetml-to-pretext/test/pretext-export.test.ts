@@ -175,6 +175,54 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("<orbitalDiagram> is rendered as <tabular>", async () => {
+        source = `<orbitalDiagram labels="a b">(u,d, e, d) (e)</orbitalDiagram>`;
+        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <tabular><row><cell>b</cell><cell></cell></row><row><cell>a</cell><cell>↑</cell><cell>↓</cell><cell></cell><cell>↓</cell></row></tabular>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<angle> is rendered as <m>", async () => {
+        source = `<angle>30</angle>`;
+        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>30</m>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<number> is rendered", async () => {
+        source = `<number>42</number>`;
+        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          42
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<atom> is rendered as <m>", async () => {
+        source = `<atom symbol="Na" />`;
+        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>\\text{Na}</m>
+          </article>
+          </pretext>"
+        `);
+    });
+
     // TODO: un-skip when direct <md> conversion behavior is finalized
     it.skip("<md> is rendered as numbered display math", async () => {
         source = `<md><mrow>\\frac{1}{2}</mrow></md>`;
