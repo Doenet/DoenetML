@@ -14,7 +14,18 @@ export const defaultSettings: DoenetDocumentSettings = { formatMode: "doenet" };
 /**
  * LSP Capabilities configuration
  */
-export const config = {
+export const config: {
+    hasConfigurationCapability: boolean;
+    hasWorkspaceFolderCapability: boolean;
+    hasDiagnosticRelatedInformationCapability: boolean;
+    globalSettings: DoenetDocumentSettings;
+    /**
+     * URL of the inlined core webworker JS bundle, supplied by the host via
+     * the LSP `initialize` request's `initializationOptions`.  When unset,
+     * rust-backed completions are unavailable.
+     */
+    doenetWorkerUrl?: string;
+} = {
     hasConfigurationCapability: false,
     hasWorkspaceFolderCapability: false,
     hasDiagnosticRelatedInformationCapability: false,
@@ -47,9 +58,15 @@ export const documentInfo: Map<
          */
         additionalDiagnostics: Diagnostic[];
         /**
-         * Rust WASM resolver adapter, created lazily once the WASM module loads.
+         * Rust WASM resolver adapter, created lazily once the rust core
+         * sub-worker is spawned.
          */
         rustAdapter?: RustResolverAdapter;
+        /**
+         * Releases the rust core sub-worker that backs `rustAdapter`.  Must
+         * be called on document close to avoid orphaning worker threads.
+         */
+        rustCoreTerminate?: () => void;
         /**
          * Rust resolver lifecycle state for this document.
          */

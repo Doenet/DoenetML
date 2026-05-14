@@ -46,7 +46,7 @@ const takesIndexSet = new Set(
         .map((el: any) => el.name as string),
 );
 
-function createCoreAndAdapter(source: string) {
+async function createCoreAndAdapter(source: string) {
     const core = PublicDoenetMLCore.new() as RustResolverCore;
     core.set_flags("{}");
     const sourceObj = new DoenetSourceObject(source);
@@ -54,10 +54,11 @@ function createCoreAndAdapter(source: string) {
         core,
         takesIndexComponentTypes: takesIndexSet,
     });
+    await adapter.init();
     return { core, sourceObj, adapter };
 }
 
-function createCompleterWithAdapter(
+async function createCompleterWithAdapter(
     source: string,
     options?: { includeAdditionalRefNames?: boolean },
 ) {
@@ -69,6 +70,7 @@ function createCompleterWithAdapter(
         core,
         takesIndexComponentTypes: takesIndexSet,
     });
+    await adapter.init();
     const completer = new AutoCompleter(undefined, undefined, {
         sourceObj,
         rustResolverAdapter: adapter,
@@ -84,14 +86,14 @@ function createCompleterWithAdapter(
 describe.skipIf(!wasmAvailable)(
     "RustResolverAdapter integration (real WASM)",
     () => {
-        it("simple $name. resolution returns the named element", () => {
+        it("simple $name. resolution returns the named element", async () => {
             const source = `<section name="s1"><p name="p1">hello</p></section>\n$s1.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             expect(adapter.isEnabled()).toBe(true);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$s1.") + 4,
                 pathParts: ["s1", ""],
             });
@@ -104,12 +106,12 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.unresolvedPathParts).toEqual([]);
         });
 
-        it("multi-level $a.b. resolves through nested names", () => {
+        it("multi-level $a.b. resolves through nested names", async () => {
             const source = `<section name="outer"><section name="inner"><p name="target">text</p></section></section>\n$outer.inner.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset:
                     source.indexOf("$outer.inner.") + "$outer.inner.".length,
                 pathParts: ["outer", "inner", ""],
@@ -123,12 +125,12 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.unresolvedPathParts).toEqual([]);
         });
 
-        it("non-existent ref returns null", () => {
+        it("non-existent ref returns null", async () => {
             const source = `<section name="s1"><p name="p1" /></section>\n$noexist.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$noexist.") + "$noexist.".length,
                 pathParts: ["noexist", ""],
             });
@@ -136,23 +138,23 @@ describe.skipIf(!wasmAvailable)(
             expect(result).toBeNull();
         });
 
-        it("updateSource re-syncs and resolves correctly", () => {
+        it("updateSource re-syncs and resolves correctly", async () => {
             const source1 = `<section name="s1"><p name="p1" /></section>\n$s1.`;
-            const { adapter } = createCoreAndAdapter(source1);
+            const { adapter } = await createCoreAndAdapter(source1);
 
             const source2 = `<section name="s2"><p name="p1" /></section>\n$s2.`;
             const sourceObj2 = new DoenetSourceObject(source2);
-            adapter.updateSource(sourceObj2);
+            await adapter.updateSource(sourceObj2);
 
             const resolver = adapter.createResolver();
 
-            const oldResult = resolver({
+            const oldResult = await resolver({
                 offset: source2.indexOf("$s2.") + 4,
                 pathParts: ["s1", ""],
             });
             expect(oldResult).toBeNull();
 
-            const newResult = resolver({
+            const newResult = await resolver({
                 offset: source2.indexOf("$s2.") + 4,
                 pathParts: ["s2", ""],
             });
@@ -164,15 +166,16 @@ describe.skipIf(!wasmAvailable)(
             ).toBe("s2");
         });
 
-        it("Rust resolver resolves basic refs", () => {
+        it("Rust resolver resolves basic refs", async () => {
             const source = `<section name="sec"><p name="para">stuff</p></section>\n$sec.`;
             const sourceObj = new DoenetSourceObject(source);
 
             const core = PublicDoenetMLCore.new() as RustResolverCore;
             core.set_flags("{}");
             const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
             const resolver = adapter.createResolver();
-            const rustResult = resolver({
+            const rustResult = await resolver({
                 offset: source.indexOf("$sec.") + 5,
                 pathParts: ["sec", ""],
             });
@@ -186,16 +189,16 @@ describe.skipIf(!wasmAvailable)(
             expect(rustResult!.unresolvedPathParts).toEqual([]);
         });
 
-        it("visibleDescendantNames respects ChildrenInvisibleToTheirGrandparents for <repeat>", () => {
+        it("visibleDescendantNames respects ChildrenInvisibleToTheirGrandparents for <repeat>", async () => {
             // "inside" is a child of <repeat>, which is
             // ChildrenInvisibleToTheirGrandparents.  From the section's
             // perspective, "inside" is NOT directly visible — it must be
             // reached via $sec.rep.inside, not $sec.inside.
             const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$sec.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$sec.") + 5,
                 pathParts: ["sec", ""],
             });
@@ -208,15 +211,15 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).not.toContain("inside");
         });
 
-        it("visibleDescendantNames is empty for takesIndex element (repeat)", () => {
+        it("visibleDescendantNames is empty for takesIndex element (repeat)", async () => {
             // When resolving $sec.rep., the <repeat> is the container,
             // but repeat has takesIndex so descendants should NOT be
             // offered as dot-completions (use $rep[1].inside instead).
             const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$sec.rep.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$sec.rep.") + "$sec.rep.".length,
                 pathParts: ["sec", "rep", ""],
             });
@@ -227,34 +230,40 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toEqual([]);
         });
 
-        it("isNameAddressableFromOffset filters $name completions by visibility", () => {
+        it("isNameAddressableFromOffset filters $name completions by visibility", async () => {
             // "inside" is a child of <repeat>, which has
             // ChildrenInvisibleToTheirGrandparents.  From OUTSIDE the repeat,
             // $inside should NOT be addressable.  From INSIDE, it should.
             const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math>$ins</repeat></section>\n$ins`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             // Cursor at the trailing "$ins" (outside repeat) — "inside" is NOT addressable
             const outsideOffset = source.lastIndexOf("$ins") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "inside"),
+                await adapter.isNameAddressableFromOffset(
+                    outsideOffset,
+                    "inside",
+                ),
             ).toBe(false);
             // "sec" and "rep" should still be addressable from outside
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "sec"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "sec"),
             ).toBe(true);
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "rep"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "rep"),
             ).toBe(true);
 
             // Cursor at the first "$ins" (inside repeat) — "inside" IS addressable
             const insideOffset = source.indexOf("$ins") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(insideOffset, "inside"),
+                await adapter.isNameAddressableFromOffset(
+                    insideOffset,
+                    "inside",
+                ),
             ).toBe(true);
         });
 
-        it("getCompletionItems excludes $inside outside repeat but includes it inside repeat", () => {
+        it("getCompletionItems excludes $inside outside repeat but includes it inside repeat", async () => {
             // End-to-end test: wire isNameAddressable into an AutoCompleter
             // and verify the actual completion list.
 
@@ -262,9 +271,9 @@ describe.skipIf(!wasmAvailable)(
             {
                 // Use bare `$` so prefix is empty and all names are returned.
                 const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$`;
-                const { completer } = createCompleterWithAdapter(source);
+                const { completer } = await createCompleterWithAdapter(source);
 
-                const items = completer.getCompletionItems(source.length);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 // "sec" and "rep" are visible at root
                 expect(labels).toContain("sec");
@@ -276,9 +285,9 @@ describe.skipIf(!wasmAvailable)(
             // --- Outside the repeat: `$ins` prefix matches only "inside" ---
             {
                 const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$ins`;
-                const { completer } = createCompleterWithAdapter(source);
+                const { completer } = await createCompleterWithAdapter(source);
 
-                const items = completer.getCompletionItems(source.length);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 // "inside" is the only name matching prefix "ins", but it's
                 // invisible from outside the repeat → no completions.
@@ -289,21 +298,21 @@ describe.skipIf(!wasmAvailable)(
             // --- Inside the repeat: `$ins` matches "inside" ---
             {
                 const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math>$ins</repeat></section>`;
-                const { completer } = createCompleterWithAdapter(source);
+                const { completer } = await createCompleterWithAdapter(source);
 
                 const offset = source.indexOf("$ins") + "$ins".length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("inside");
             }
         });
 
-        it("$name[] snippet offered for takesIndex elements (repeat, select)", () => {
+        it("$name[] snippet offered for takesIndex elements (repeat, select)", async () => {
             // "rep" is a repeat (takesIndex) — should offer "rep[]" snippet
             {
                 const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$rep`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("rep");
                 expect(labels).toContain("rep[]");
@@ -318,23 +327,23 @@ describe.skipIf(!wasmAvailable)(
             // "sec" is a section (NOT takesIndex) — should NOT offer "sec[]"
             {
                 const source = `<section name="sec"><repeat name="rep"><math name="inside">x</math></repeat></section>\n$sec`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("sec");
                 expect(labels).not.toContain("sec[]");
             }
         });
 
-        it("repeat valueName/indexName appear in completions inside repeat", () => {
+        it("repeat valueName/indexName appear in completions inside repeat", async () => {
             // Inside repeat with valueName="v" indexName="i": $v and $i should appear
             {
                 const source = `<repeat valueName="v" indexName="i"><math>$</math></repeat>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.indexOf("$") + 1;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("v");
                 expect(labels).toContain("i");
@@ -343,17 +352,17 @@ describe.skipIf(!wasmAvailable)(
             // Outside repeat: $v should NOT appear
             {
                 const source = `<repeat valueName="v" indexName="i"><math>x</math></repeat>\n$`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
-                const items = completer.getCompletionItems(source.length);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).not.toContain("v");
                 expect(labels).not.toContain("i");
             }
         });
 
-        it("mixed-case component types are treated case-sensitively by resolver semantics", () => {
+        it("mixed-case component types are treated case-sensitively by resolver semantics", async () => {
             // Completion matching can be case-insensitive, but semantic behavior
             // of parsed component types must remain case-sensitive.
 
@@ -361,10 +370,10 @@ describe.skipIf(!wasmAvailable)(
             // so indexed member access should be invalid.
             {
                 const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
-                const items = completer.getCompletionItems(source.length);
+                const items = await completer.getCompletionItems(source.length);
                 expect(items).toEqual([]);
             }
 
@@ -372,10 +381,10 @@ describe.skipIf(!wasmAvailable)(
             // `<Repeat>` is not the canonical `repeat` component type.
             {
                 const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
-                const items = completer.getCompletionItems(source.length);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).not.toContain("m");
                 expect(labels).not.toContain("v");
@@ -383,15 +392,15 @@ describe.skipIf(!wasmAvailable)(
             }
         });
 
-        it("repeatForSequence valueName/indexName appear in completions", () => {
+        it("repeatForSequence valueName/indexName appear in completions", async () => {
             // repeatForSequence with valueName/indexName
             {
                 const source = `<repeatForSequence valueName="val" indexName="idx"><math>$</math></repeatForSequence>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.indexOf("$") + 1;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("val");
                 expect(labels).toContain("idx");
@@ -400,11 +409,11 @@ describe.skipIf(!wasmAvailable)(
             // Only valueName specified
             {
                 const source = `<repeat valueName="v"><math>$</math></repeat>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.indexOf("$") + 1;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("v");
                 // Default indexName is not injected
@@ -414,11 +423,11 @@ describe.skipIf(!wasmAvailable)(
             // Nested repeats: inner names visible inside, outer names also visible
             {
                 const source = `<repeat valueName="outer"><repeat valueName="inner"><math>$</math></repeat></repeat>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.indexOf("$") + 1;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("inner");
                 expect(labels).toContain("outer");
@@ -427,35 +436,35 @@ describe.skipIf(!wasmAvailable)(
             // Between nested repeats: inner name NOT visible, outer IS
             {
                 const source = `<repeat valueName="outer"><repeat valueName="inner"><math>x</math></repeat>$</repeat>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.indexOf("$") + 1;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("outer");
                 expect(labels).not.toContain("inner");
             }
         });
 
-        it("does not crash on empty source", () => {
-            const { adapter } = createCoreAndAdapter("");
+        it("does not crash on empty source", async () => {
+            const { adapter } = await createCoreAndAdapter("");
             expect(adapter.isEnabled()).toBe(false);
         });
 
-        it("does not crash on source with no elements (text only)", () => {
-            const { adapter } = createCoreAndAdapter("a");
+        it("does not crash on source with no elements (text only)", async () => {
+            const { adapter } = await createCoreAndAdapter("a");
             expect(adapter.isEnabled()).toBe(false);
         });
 
-        it("does not crash on incomplete element markup", () => {
-            const { adapter } = createCoreAndAdapter("<a");
+        it("does not crash on incomplete element markup", async () => {
+            const { adapter } = await createCoreAndAdapter("<a");
             // May or may not be enabled depending on how the Rust core
             // handles the incomplete element, but must not throw.
             expect(typeof adapter.isEnabled()).toBe("boolean");
         });
 
-        it("recovers after blank document receives first element", () => {
+        it("recovers after blank document receives first element", async () => {
             // Simulates: blank document → user types "<p>"
             const core = PublicDoenetMLCore.new() as RustResolverCore;
             core.set_flags("{}");
@@ -465,81 +474,87 @@ describe.skipIf(!wasmAvailable)(
 
             // User types "<p name='x'>hi</p>"
             sourceObj.setSource('<p name="x">hi</p>');
-            adapter.updateSource(sourceObj);
+            await adapter.updateSource(sourceObj);
             expect(adapter.isEnabled()).toBe(true);
         });
 
         // ---- conditionalContent / select sugar visibility ----
 
-        it("isNameAddressableFromOffset returns false for names inside sugared conditionalContent from outside", () => {
+        it("isNameAddressableFromOffset returns false for names inside sugared conditionalContent from outside", async () => {
             // In raw DAST, <math name="inside"> is a direct child of <conditionalContent>.
             // At runtime, sugar wraps it in <case><group>…</group></case>, hiding it.
             const source = `<conditionalContent name="cc" condition="$x"><math name="inside">x</math></conditionalContent>\n$ins`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$ins") + 1;
             // "inside" should NOT be addressable from outside cc
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "inside"),
+                await adapter.isNameAddressableFromOffset(
+                    outsideOffset,
+                    "inside",
+                ),
             ).toBe(false);
             // "cc" SHOULD be addressable from outside
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
 
-        it("isNameAddressableFromOffset returns false for names inside sugared select from outside", () => {
+        it("isNameAddressableFromOffset returns false for names inside sugared select from outside", async () => {
             const source = `<select name="sel"><math name="x">1</math><math name="y">2</math></select>\n$x`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$x") + 1;
             // "x" and "y" should NOT be addressable from outside select
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "x"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "x"),
             ).toBe(false);
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "y"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "y"),
             ).toBe(false);
             // "sel" SHOULD be addressable
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "sel"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "sel"),
             ).toBe(true);
         });
 
-        it("names inside conditionalContent are accessible from INSIDE the cc", () => {
+        it("names inside conditionalContent are accessible from INSIDE the cc", async () => {
             const source = `<conditionalContent name="cc" condition="$x"><math name="inside">x</math>$ins</conditionalContent>`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const insideOffset = source.indexOf("$ins") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(insideOffset, "inside"),
+                await adapter.isNameAddressableFromOffset(
+                    insideOffset,
+                    "inside",
+                ),
             ).toBe(true);
         });
 
-        it("explicit case name is still addressable from outside conditionalContent", () => {
+        it("explicit case name is still addressable from outside conditionalContent", async () => {
             const source = `<conditionalContent name="cc"><case name="positiveCase" condition="true"><text>hello</text></case></conditionalContent>\n$pos`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$pos") + 1;
             // "positiveCase" is a direct child of cc — should be addressable
             expect(
-                adapter.isNameAddressableFromOffset(
+                await adapter.isNameAddressableFromOffset(
                     outsideOffset,
                     "positiveCase",
                 ),
             ).toBe(true);
             // "cc" also addressable
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
 
-        it("end-to-end: getCompletionItems omits names inside sugared cc from outside", () => {
+        it("end-to-end: getCompletionItems omits names inside sugared cc from outside", async () => {
             // Outside cc: "inside" should not be offered
             {
                 const source = `<conditionalContent name="cc" condition="$x"><math name="inside">x</math></conditionalContent>\n$`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("cc");
                 expect(labels).not.toContain("inside");
@@ -548,23 +563,23 @@ describe.skipIf(!wasmAvailable)(
             // Outside select: "x" should not be offered
             {
                 const source = `<select name="sel"><math name="x">1</math></select>\n$`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("sel");
                 expect(labels).not.toContain("x");
             }
         });
 
-        it("visibleDescendantNames for $cc. includes names from explicit case children", () => {
+        it("visibleDescendantNames for $cc. includes names from explicit case children", async () => {
             // <text name="animal"> is inside <case>, which normally blocks
             // visibility in the Rust resolver.  But for cc member access,
             // we walk through case/else transparently.
             const source = `<conditionalContent name="cc"><case condition="true"><text name="animal">dog</text></case><else><text name="animal">cat</text></else></conditionalContent>\n$cc.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$cc.") + "$cc.".length,
                 pathParts: ["cc", ""],
             });
@@ -574,13 +589,13 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("animal");
         });
 
-        it("visibleDescendantNames for $cc. includes names from mixed case children", () => {
+        it("visibleDescendantNames for $cc. includes names from mixed case children", async () => {
             // Two cases with different unique names + one shared name
             const source = `<conditionalContent name="cc"><case condition="true"><text name="a">1</text><text name="shared">s</text></case><case condition="false"><text name="b">2</text><text name="shared">s</text></case></conditionalContent>\n$cc.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$cc.") + "$cc.".length,
                 pathParts: ["cc", ""],
             });
@@ -591,14 +606,14 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("shared");
         });
 
-        it("visibleDescendantNames for $cc. excludes ambiguous names within a single case", () => {
+        it("visibleDescendantNames for $cc. excludes ambiguous names within a single case", async () => {
             // "dup" appears twice in the SAME case → not contributed by that case
             // It appears once in the other case → still contributed
             const source = `<conditionalContent name="cc"><case condition="true"><text name="dup">1</text><text name="dup">2</text></case><case condition="false"><text name="dup">3</text></case></conditionalContent>\n$cc.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$cc.") + "$cc.".length,
                 pathParts: ["cc", ""],
             });
@@ -608,13 +623,13 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("dup");
         });
 
-        it("visibleDescendantNames for sugared cc (no explicit case) includes children", () => {
+        it("visibleDescendantNames for sugared cc (no explicit case) includes children", async () => {
             // Sugared form: children are direct, not wrapped in case/else
             const source = `<conditionalContent name="cc" condition="true"><math name="m1">1</math><math name="m2">2</math></conditionalContent>\n$cc.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$cc.") + "$cc.".length,
                 pathParts: ["cc", ""],
             });
@@ -624,14 +639,14 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("m2");
         });
 
-        it("visibleDescendantNames for sugared cc excludes ambiguous direct child names", () => {
+        it("visibleDescendantNames for sugared cc excludes ambiguous direct child names", async () => {
             // Sugared form: duplicate direct child names are ambiguous and
             // should not be offered as visible descendants.
             const source = `<conditionalContent name="cc" condition="true"><math name="dup">1</math><math name="dup">2</math><math name="unique">3</math></conditionalContent>\n$cc.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$cc.") + "$cc.".length,
                 pathParts: ["cc", ""],
             });
@@ -643,13 +658,13 @@ describe.skipIf(!wasmAvailable)(
 
         // ---- Index bracket parsing & pathPartHasIndex wiring ----
 
-        it("$sel[1]. with pathPartHasIndex shows descendants inside select options", () => {
+        it("$sel[1]. with pathPartHasIndex shows descendants inside select options", async () => {
             const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
             // Without per-part index info (bare $sel.) — descendants suppressed
-            const noIndex = resolver({
+            const noIndex = await resolver({
                 offset: source.indexOf("$sel[1].") + "$sel[1].".length,
                 pathParts: ["sel", ""],
             });
@@ -657,7 +672,7 @@ describe.skipIf(!wasmAvailable)(
             expect(noIndex!.visibleDescendantNames).toEqual([]);
 
             // With per-part index info — descendants should be visible
-            const withIndex = resolver({
+            const withIndex = await resolver({
                 offset: source.indexOf("$sel[1].") + "$sel[1].".length,
                 pathParts: ["sel", ""],
                 pathPartHasIndex: [true, false],
@@ -667,13 +682,13 @@ describe.skipIf(!wasmAvailable)(
             expect(withIndex!.visibleDescendantNames).toContain("b");
         });
 
-        it("$rep[2]. with pathPartHasIndex shows descendants inside repeat", () => {
+        it("$rep[2]. with pathPartHasIndex shows descendants inside repeat", async () => {
             const source = `<repeat name="rep" numRepetitions="3"><math name="inner">x</math></repeat>\n$rep[2].`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
             // Without per-part index info — descendants suppressed
-            const noIndex = resolver({
+            const noIndex = await resolver({
                 offset: source.indexOf("$rep[2].") + "$rep[2].".length,
                 pathParts: ["rep", ""],
             });
@@ -681,7 +696,7 @@ describe.skipIf(!wasmAvailable)(
             expect(noIndex!.visibleDescendantNames).toEqual([]);
 
             // With per-part index info — descendants visible
-            const withIndex = resolver({
+            const withIndex = await resolver({
                 offset: source.indexOf("$rep[2].") + "$rep[2].".length,
                 pathParts: ["rep", ""],
                 pathPartHasIndex: [true, false],
@@ -690,16 +705,16 @@ describe.skipIf(!wasmAvailable)(
             expect(withIndex!.visibleDescendantNames).toContain("inner");
         });
 
-        it("context parser strips bracket indices and sets pathPartHasIndex", () => {
+        it("context parser strips bracket indices and sets pathPartHasIndex", async () => {
             // $sel[1]. should show descendants of select option children
             // but NOT properties of select (the referent is a child, not the select)
             {
                 const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 // Should include descendant names from inside options
                 expect(labels).toContain("a");
@@ -712,11 +727,11 @@ describe.skipIf(!wasmAvailable)(
             // $sel. (no index) should NOT show descendants, only properties
             {
                 const source = `<select name="sel"><option><math name="a">1</math></option></select>\n$sel.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).not.toContain("a");
             }
@@ -724,11 +739,11 @@ describe.skipIf(!wasmAvailable)(
             // $sec[1]. where sec is a section (NOT takesIndex) — should return nothing
             {
                 const source = `<section name="sec"><math name="m">x</math></section>\n$sec[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
 
@@ -737,11 +752,11 @@ describe.skipIf(!wasmAvailable)(
             // descendants (dec) AND math properties, NOT blocked by pathPartHasIndex.
             {
                 const source = `<repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep[1].myMath.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 // Descendant of myMath
                 expect(labels).toContain("dec");
@@ -756,11 +771,11 @@ describe.skipIf(!wasmAvailable)(
             // should be blocked.
             {
                 const source = `<repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep.myMath.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
 
@@ -774,11 +789,11 @@ describe.skipIf(!wasmAvailable)(
             // NOT (they describe the composite, not its unknown replacement).
             {
                 const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence></section>\n$sec.rep[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 // Descendant names of the replacement are visible.
                 expect(labels).toContain("myMath");
@@ -796,13 +811,13 @@ describe.skipIf(!wasmAvailable)(
             // origin in the Rust resolver output.
             {
                 const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep[1].myMath.</section>`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset =
                     source.indexOf("$rep[1].myMath.") +
                     "$rep[1].myMath.".length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("dec");
                 const propertyItems = items.filter(
@@ -816,11 +831,11 @@ describe.skipIf(!wasmAvailable)(
             // concrete math target and its descendants.
             {
                 const source = `<repeat name="outer" numRepetitions="2"><repeatForSequence name="inner"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence></repeat>\n$outer[1].inner[1].myMath.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("dec");
                 const propertyItems = items.filter(
@@ -834,22 +849,22 @@ describe.skipIf(!wasmAvailable)(
             // the unindexed segment.
             {
                 const source = `<repeat name="outer" numRepetitions="2"><repeatForSequence name="inner"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence></repeat>\n$outer[1].inner.myMath.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
 
             // $rep[1]. should include valueName/indexName as completions
             {
                 const source = `<repeat name="rep" valueName="v" indexName="i"><math name="m">x</math></repeat>\n$rep[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("v");
                 expect(labels).toContain("i");
@@ -859,11 +874,11 @@ describe.skipIf(!wasmAvailable)(
             // $rep. (no index) should NOT include valueName/indexName
             {
                 const source = `<repeat name="rep" valueName="v" indexName="i"><math name="m">x</math></repeat>\n$rep.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 const labels = items.map((i) => i.label);
                 expect(labels).not.toContain("v");
                 expect(labels).not.toContain("i");
@@ -872,27 +887,27 @@ describe.skipIf(!wasmAvailable)(
             }
         });
 
-        it("Blocks completions when a non-takesIndex segment has a spurious index", () => {
+        it("Blocks completions when a non-takesIndex segment has a spurious index", async () => {
             // $sec[1].myP. — section is not takesIndex, so the [1] is invalid.
             // Prefer false negative over false positive.
             {
                 const source = `<section name="sec"><p name="myP">hello</p></section>\n$sec[1].myP.`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
 
             // $myMath[1]. — math is not takesIndex, so the [1] is invalid.
             {
                 const source = `<math name="myMath">x</math>\n$myMath[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
 
@@ -901,23 +916,23 @@ describe.skipIf(!wasmAvailable)(
             // invalid and completions should be suppressed.
             {
                 const source = `<repeat name="rep"><math name="myMath">x</math></repeat>\n$rep[1].myMath[1].`;
-                const { completer } = createCompleterWithAdapter(source, {
+                const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const offset = source.length;
-                const items = completer.getCompletionItems(offset);
+                const items = await completer.getCompletionItems(offset);
                 expect(items).toHaveLength(0);
             }
         });
 
-        it("select without index suppresses descendant-name completions", () => {
+        it("select without index suppresses descendant-name completions", async () => {
             // For direct member access ($sel.), select is takesIndex so
             // descendant names should be suppressed.
             const source = `<select name="sel"><option><math name="m">1</math></option></select>\n$sel.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            const result = resolver({
+            const result = await resolver({
                 offset: source.indexOf("$sel.") + "$sel.".length,
                 pathParts: ["sel", ""],
             });
@@ -928,12 +943,12 @@ describe.skipIf(!wasmAvailable)(
 
         // ---- $$ function refs and partial resolution ----
 
-        it("$$ triggers refName completions just like $", () => {
+        it("$$ triggers refName completions just like $", async () => {
             // $$f should show named elements
             {
                 const source = `<function name="f">x^2</function>\n$$f`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("f");
             }
@@ -941,21 +956,21 @@ describe.skipIf(!wasmAvailable)(
             // $$ alone should trigger completions
             {
                 const source = `<function name="f">x^2</function>\n$$`;
-                const { completer } = createCompleterWithAdapter(source);
-                const items = completer.getCompletionItems(source.length);
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
                 expect(labels).toContain("f");
             }
         });
 
-        it("partial resolution returns null node when path is invalid", () => {
+        it("partial resolution returns null node when path is invalid", async () => {
             // $s.nonexistent. — "s" resolves to section, "nonexistent" fails.
             // The path is invalid so no completions should be offered.
             const source = `<section name="s"><p name="p1" /></section>\n$s.nonexistent.`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
             const resolver = adapter.createResolver();
 
-            const result = resolver({
+            const result = await resolver({
                 offset:
                     source.indexOf("$s.nonexistent.") +
                     "$s.nonexistent.".length,
@@ -971,55 +986,67 @@ describe.skipIf(!wasmAvailable)(
 
         // ---- repeatForSequence / else visibility ----
 
-        it("isNameAddressableFromOffset returns false for names inside repeatForSequence from outside", () => {
+        it("isNameAddressableFromOffset returns false for names inside repeatForSequence from outside", async () => {
             const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$my`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$my") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "myMath"),
+                await adapter.isNameAddressableFromOffset(
+                    outsideOffset,
+                    "myMath",
+                ),
             ).toBe(false);
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "rep"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "rep"),
             ).toBe(true);
         });
 
-        it("names inside repeatForSequence are accessible from INSIDE", () => {
+        it("names inside repeatForSequence are accessible from INSIDE", async () => {
             const source = `<repeatForSequence name="rep"><math name="myMath">x</math>$my</repeatForSequence>`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const insideOffset = source.indexOf("$my") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(insideOffset, "myMath"),
+                await adapter.isNameAddressableFromOffset(
+                    insideOffset,
+                    "myMath",
+                ),
             ).toBe(true);
         });
 
-        it("end-to-end: getCompletionItems omits names inside repeatForSequence from outside", () => {
+        it("end-to-end: getCompletionItems omits names inside repeatForSequence from outside", async () => {
             const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$`;
-            const { completer } = createCompleterWithAdapter(source);
-            const items = completer.getCompletionItems(source.length);
+            const { completer } = await createCompleterWithAdapter(source);
+            const items = await completer.getCompletionItems(source.length);
             const labels = items.map((i) => i.label);
             expect(labels).toContain("rep");
             expect(labels).toContain("rep[]");
             expect(labels).not.toContain("myMath");
         });
 
-        it("isNameAddressableFromOffset returns false for names inside else from outside", () => {
+        it("isNameAddressableFromOffset returns false for names inside else from outside", async () => {
             // Raw DAST keeps <else> as-is (sugar is not applied in the LSP).
             // Adding "else" to CHILDREN_INVISIBLE means its children are
             // hidden from grandparent scopes in the resolver.
             const source = `<conditionalContent name="cc"><case condition="true"><text name="caseChild">a</text></case><else><text name="elseChild">b</text></else></conditionalContent>\n$`;
-            const { adapter } = createCoreAndAdapter(source);
+            const { adapter } = await createCoreAndAdapter(source);
 
             const outsideOffset = source.lastIndexOf("$") + 1;
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "caseChild"),
+                await adapter.isNameAddressableFromOffset(
+                    outsideOffset,
+                    "caseChild",
+                ),
             ).toBe(false);
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "elseChild"),
+                await adapter.isNameAddressableFromOffset(
+                    outsideOffset,
+                    "elseChild",
+                ),
             ).toBe(false);
             expect(
-                adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
+                await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
     },

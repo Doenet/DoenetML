@@ -44,6 +44,36 @@ export class LSP {
     initStatus: "uninitialized" | "initializing" | "initialized" =
         "uninitialized";
     completionTriggers: string[] = [];
+    /**
+     * URL of the inlined core webworker JS bundle.  Captured before the
+     * server initializes; the value sent in the LSP `initialize` request
+     * tells the server how to spawn the rust core sub-worker.
+     * Once init runs, later assignments are ignored (see `setDoenetWorkerUrl`).
+     */
+    doenetWorkerUrl?: string;
+
+    /**
+     * Set the doenet worker URL used during LSP initialization.  Only takes
+     * effect before `init()` runs — once the LSP is initialized the URL is
+     * locked in for the rest of the session.  If a later `<CodeMirror>`
+     * instance passes a *different* URL, it is ignored and a warning is
+     * emitted so the conflict is visible to developers.
+     */
+    setDoenetWorkerUrl(doenetWorkerUrl: string | undefined) {
+        if (this.initStatus !== "uninitialized") {
+            if (doenetWorkerUrl && doenetWorkerUrl !== this.doenetWorkerUrl) {
+                console.warn(
+                    "DoenetML LSP: doenetWorkerUrl is a process-wide singleton; " +
+                        "the URL passed by a later <CodeMirror> instance is being ignored. " +
+                        `Using "${this.doenetWorkerUrl}", ignoring "${doenetWorkerUrl}".`,
+                );
+            }
+            return;
+        }
+        if (doenetWorkerUrl) {
+            this.doenetWorkerUrl = doenetWorkerUrl;
+        }
+    }
 
     ensureDiagnosticsHandlerRegistered() {
         if (!this.lspConn || this.diagnosticsHandlerRegistered) {
@@ -81,7 +111,10 @@ export class LSP {
                     queueMicrotask(() => URL.revokeObjectURL(urlToRevoke));
                 }
             }
-            const { lspConn, workerConn } = await initWorker(this.worker!);
+            const { lspConn, workerConn } = await initWorker(
+                this.worker!,
+                this.doenetWorkerUrl,
+            );
             this.lspConn = lspConn;
             this.workerConn = workerConn;
             this.completionTriggers = this.lspConn.completionTriggers;

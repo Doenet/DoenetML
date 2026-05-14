@@ -4,8 +4,11 @@ import { createMessageConnection } from "@qualified/vscode-jsonrpc-ww";
 /**
  * Initialize a WebWorker that runs a language server. The worker is initialized with
  * `rootUri` set to `file:///` and `workspaceFolders` set to `null`.
+ *
+ * `doenetWorkerUrl`, when provided, is forwarded via `initializationOptions`
+ * so the language server can spawn a rust-core sub-worker for path resolution.
  */
-export async function initWorker(worker: Worker) {
+export async function initWorker(worker: Worker, doenetWorkerUrl?: string) {
     const workerConn = await createMessageConnection(worker);
     const lspConn = createLspConnection(workerConn);
     lspConn.listen();
@@ -90,7 +93,7 @@ export async function initWorker(worker: Worker) {
                 },
             },
         },
-        initializationOptions: null,
+        initializationOptions: doenetWorkerUrl ? { doenetWorkerUrl } : null,
         processId: null,
         rootUri: "file:///",
         workspaceFolders: null,

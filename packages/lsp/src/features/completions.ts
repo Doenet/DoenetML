@@ -6,7 +6,7 @@ export function addDocumentCompletionSupport(
     documentInfo: DocumentInfo,
 ) {
     // This handler provides the initial list of the completion items.
-    connection.onCompletion((params): CompletionItem[] => {
+    connection.onCompletion(async (params): Promise<CompletionItem[]> => {
         const info = documentInfo.get(params.textDocument.uri);
         if (!info) {
             return [];
@@ -25,7 +25,7 @@ export function addDocumentCompletionSupport(
             return [];
         }
 
-        const completions = info.autoCompleter.getCompletionItems(
+        const completions = await info.autoCompleter.getCompletionItems(
             params.position,
             completionContext,
         );

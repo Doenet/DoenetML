@@ -171,37 +171,38 @@ function getElementNameAttributeValue(el: DastElement): string | null {
 
 /**
  * Minimal interface matching the subset of PublicDoenetMLCore methods needed
- * for path resolution. Consumers provide an initialized WASM-backed instance;
- * lsp-tools does not depend on the WASM package directly.
+ * for path resolution. Consumers provide an implementation that may be backed
+ * by an in-process WASM module or a Comlink proxy to a worker.  All methods
+ * are async because the Comlink-proxied implementation returns Promises.
  */
 export interface RustResolverCore {
-    set_source(dast: unknown, source: string): void;
+    set_source(dast: unknown, source: string): Promise<void>;
     /**
      * Set runtime flags (as a JSON string). Must be called at least once
      * before `return_dast()`.  An empty object `"{}"` is sufficient for
      * pure path-resolution use-cases.
      */
-    set_flags(flags: string): void;
+    set_flags(flags: string): Promise<void>;
     /**
      * Triggers Rust core initialization and returns the flat DAST.
      * The adapter uses the returned elements to build position-based index mappings.
      */
-    return_dast(): {
+    return_dast(): Promise<{
         elements: Array<{
             data: { id: number };
             position?: { start: { offset?: number } };
         }>;
-    };
+    }>;
     resolve_path(
         path: { path: Array<FlatPathPartForResolver> },
         origin: number,
         skip_parent_search: boolean,
-    ): {
+    ): Promise<{
         nodeIdx: number;
         nodesInResolvedPath: number[];
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
-    };
+    }>;
 }
 
 /** Matches the Rust WASM FlatPathPart shape expected by resolve_path. */
@@ -255,8 +256,20 @@ export class RustResolverAdapter {
             : null;
         if (options?.core) {
             this._core = options.core;
-            this._syncSource();
+            // _syncSource is async (Comlink-backed cores return Promises).
+            // Callers must `await adapter.init()` before relying on completions.
         }
+    }
+
+    /**
+     * Initialize the adapter by syncing the current source to the Rust core
+     * and building index mappings.  Safe to call repeatedly.  Must be awaited
+     * before the adapter can produce completions; until init resolves
+     * (or the adapter is given no core), `_enabled` stays false and queries
+     * return null/false.
+     */
+    async init(): Promise<void> {
+        await this._syncSource();
     }
 
     _componentTakesIndex(componentType: string): boolean {
@@ -266,7 +279,7 @@ export class RustResolverAdapter {
     /**
      * Sync the DAST/source to the Rust core and rebuild index mappings.
      */
-    _syncSource(): void {
+    async _syncSource(): Promise<void> {
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
@@ -289,10 +302,13 @@ export class RustResolverAdapter {
             return;
         }
         try {
-            this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
+            await this._core.set_source(
+                this._sourceObj.dast,
+                this._sourceObj.source,
+            );
             // Set empty flags object for path-resolution-only use case.
-            this._core.set_flags("{}");
-            const flatDast = this._core.return_dast();
+            await this._core.set_flags("{}");
+            const flatDast = await this._core.return_dast();
             this._buildMappings(flatDast);
             this._enabled = true;
         } catch (e) {
@@ -368,11 +384,11 @@ export class RustResolverAdapter {
      * @param pathPartHasIndex — Per-path-part index flags aligned with `pathParts`.
      * @returns The resolved node and visible descendant names, or null if resolution fails.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
         return this._resolveRefMemberContainer({
             offset,
             pathParts,
@@ -390,9 +406,9 @@ export class RustResolverAdapter {
             this._resolveRefMemberContainer(args);
     }
 
-    _resolveRefMemberContainer(
+    async _resolveRefMemberContainer(
         args: ResolveRefMemberContainerArgs,
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
         if (!this._enabled || !this._core) return null;
 
         const {
@@ -425,7 +441,7 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = this._core.resolve_path(
+            const resolution = await this._core.resolve_path(
                 { path: flatPath },
                 originIndex,
                 false,
@@ -571,44 +587,48 @@ export class RustResolverAdapter {
                     this._sourceObj.getUniqueDescendantNamesForNode(
                         resolvedNode,
                     );
-                visibleDescendantNames = allNames.filter((name) => {
-                    try {
-                        const probe = this._core!.resolve_path(
-                            {
-                                path: [
-                                    {
-                                        type: "flatPathPart" as const,
-                                        name,
-                                        index: [],
-                                    },
-                                ],
-                            },
-                            resolvedIdx,
-                            true,
-                        );
-                        // A fully-resolved path (no unresolved parts whose
-                        // first segment equals the original name) means the
-                        // name matched a visible descendant.
-                        if (
-                            probe.unresolvedPath &&
-                            probe.unresolvedPath.length > 0
-                        ) {
+                const probeResults = await Promise.all(
+                    allNames.map(async (name) => {
+                        try {
+                            const probe = await this._core!.resolve_path(
+                                {
+                                    path: [
+                                        {
+                                            type: "flatPathPart" as const,
+                                            name,
+                                            index: [],
+                                        },
+                                    ],
+                                },
+                                resolvedIdx,
+                                true,
+                            );
+                            // A fully-resolved path (no unresolved parts whose
+                            // first segment equals the original name) means the
+                            // name matched a visible descendant.
+                            if (
+                                probe.unresolvedPath &&
+                                probe.unresolvedPath.length > 0
+                            ) {
+                                return false;
+                            }
+                            const probeElement =
+                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            const probeName = probeElement
+                                ? getElementNameAttributeValue(probeElement)
+                                : null;
+                            if (probeName !== name) {
+                                return false;
+                            }
+                            return true;
+                        } catch {
                             return false;
                         }
-                        const probeElement = this._rustIndexToDastElement.get(
-                            probe.nodeIdx,
-                        );
-                        const probeName = probeElement
-                            ? getElementNameAttributeValue(probeElement)
-                            : null;
-                        if (probeName !== name) {
-                            return false;
-                        }
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                });
+                    }),
+                );
+                visibleDescendantNames = allNames.filter(
+                    (_name, i) => probeResults[i],
+                );
                 this._setCachedVisibleDescendantNames(
                     resolvedIdx,
                     visibleDescendantNames,
@@ -711,7 +731,10 @@ export class RustResolverAdapter {
      * `offset` using the Rust resolver (with full parent search).
      * This respects `ChildrenInvisibleToTheirGrandparents` etc.
      */
-    isNameAddressableFromOffset(offset: number, name: string): boolean {
+    async isNameAddressableFromOffset(
+        offset: number,
+        name: string,
+    ): Promise<boolean> {
         if (!this._enabled || !this._core) return false;
 
         // Derived repeat names from valueName/indexName are introduced by
@@ -759,7 +782,7 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return false;
 
         try {
-            const resolution = this._core.resolve_path(
+            const resolution = await this._core.resolve_path(
                 {
                     path: [
                         {
@@ -881,8 +904,8 @@ export class RustResolverAdapter {
     /**
      * Update source and rebuild mappings. Call when the document changes.
      */
-    updateSource(sourceObj: DoenetSourceObject): void {
+    async updateSource(sourceObj: DoenetSourceObject): Promise<void> {
         this._sourceObj = sourceObj;
-        this._syncSource();
+        await this._syncSource();
     }
 }

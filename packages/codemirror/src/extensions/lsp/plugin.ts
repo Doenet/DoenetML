@@ -660,7 +660,12 @@ export class LSPPlugin implements PluginValue {
     };
 }
 
-export const lspPlugin = (documentId: string) => {
+export const lspPlugin = (documentId: string, doenetWorkerUrl?: string) => {
+    // The LSP is a process-wide singleton.  The first plugin instance to fire
+    // the worker locks in `doenetWorkerUrl`; later instances pass theirs but
+    // the singleton ignores subsequent values.  In practice every editor on a
+    // page reads the URL from the same `doenetGlobalConfig`, so this is fine.
+    uniqueLanguageServerInstance.setDoenetWorkerUrl(doenetWorkerUrl);
     const plugin = new LSPPlugin(documentId);
     return [
         ViewPlugin.define((view) => {

@@ -98,7 +98,9 @@ vi.mock("@doenet/lsp-tools", () => {
     class RustResolverAdapter {
         constructor(_sourceObj: unknown, _options?: unknown) {}
 
-        updateSource(_sourceObj: unknown) {}
+        async init() {}
+
+        async updateSource(_sourceObj: unknown) {}
 
         getDerivedRepeatNames(_offset: number) {
             return [];

@@ -88,27 +88,41 @@ export function addValidationSupport(
 
         if (info.rustState === "ready" && info.rustAdapter) {
             // Adapter already wired — just resync source.
-            info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
+            info.rustAdapter
+                .updateSource(info.autoCompleter.sourceObj)
+                .catch(() => undefined);
         } else if (info.rustState === "uninitialized") {
             // Fire-and-forget initialization. Diagnostics should not wait
             // for Rust to load.
             info.rustState = "initializing";
             const capturedInfo = info;
             (async () => {
+                let spawned: Awaited<ReturnType<typeof getRustCore>> = null;
                 try {
-                    const core = await getRustCore();
+                    spawned = await getRustCore(config.doenetWorkerUrl);
                     const currentInfo = documentInfo.get(uri);
-                    if (!currentInfo || currentInfo !== capturedInfo) return;
+                    // Document was closed (or replaced) while we were spawning
+                    // the worker — release it and bail.
+                    if (!currentInfo || currentInfo !== capturedInfo) {
+                        spawned?.terminate();
+                        return;
+                    }
+                    if (!spawned) {
+                        capturedInfo.rustState = "unavailable";
+                        return;
+                    }
                     const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                    // Intentionally create a dedicated core/adapter for this
-                    // document. This avoids cross-document source switching
-                    // complexity and keeps Rust state aligned with this
-                    // document's AutoCompleter mappings.
+                    // Intentionally create a dedicated adapter per document.
+                    // This avoids cross-document source switching complexity
+                    // and keeps Rust-side state aligned with this document's
+                    // AutoCompleter mappings.
                     const adapter = new RustResolverAdapter(sourceObj, {
-                        core: core as RustResolverCore,
+                        core: spawned.core as RustResolverCore,
                         takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
                     });
+                    await adapter.init();
                     capturedInfo.rustAdapter = adapter;
+                    capturedInfo.rustCoreTerminate = spawned.terminate;
                     capturedInfo.autoCompleter = new AutoCompleter(
                         undefined,
                         undefined,
@@ -127,6 +141,7 @@ export function addValidationSupport(
                         );
                     }
                 } catch (error) {
+                    spawned?.terminate();
                     console.warn(
                         "Rust autocomplete unavailable; completions disabled for this document.",
                         error,
@@ -144,6 +159,8 @@ export function addValidationSupport(
 
     // Release per-document validation/autocomplete state when a document closes.
     documents.onDidClose((event) => {
+        const info = documentInfo.get(event.document.uri);
+        info?.rustCoreTerminate?.();
         documentInfo.delete(event.document.uri);
     });
 

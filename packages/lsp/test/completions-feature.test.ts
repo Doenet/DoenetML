@@ -13,7 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 import { addDocumentCompletionSupport } from "../src/features/completions";
 
 describe("addDocumentCompletionSupport", () => {
-    it("allows non-ref completions when Rust is unavailable", () => {
+    it("allows non-ref completions when Rust is unavailable", async () => {
         const uri = "file:///test.doenet";
         const getCompletionItems = vi.fn(() => [{ label: "graph", kind: 10 }]);
 
@@ -33,7 +33,7 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         let completionHandler:
-            | ((params: any) => Array<{ label: string; kind: number }>)
+            | ((params: any) => Promise<Array<{ label: string; kind: number }>>)
             | undefined;
         const connection = {
             onCompletion: (handler: any) => {
@@ -44,7 +44,7 @@ describe("addDocumentCompletionSupport", () => {
 
         addDocumentCompletionSupport(connection as any, documentInfo as any);
 
-        const items = completionHandler!({
+        const items = await completionHandler!({
             textDocument: { uri },
             position: { line: 0, character: 1 },
         });
@@ -53,7 +53,7 @@ describe("addDocumentCompletionSupport", () => {
         expect(getCompletionItems).toHaveBeenCalledOnce();
     });
 
-    it("gates ref completions when Rust is unavailable", () => {
+    it("gates ref completions when Rust is unavailable", async () => {
         const uri = "file:///test.doenet";
         const getCompletionItems = vi.fn(() => [{ label: "x", kind: 18 }]);
 
@@ -75,7 +75,7 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         let completionHandler:
-            | ((params: any) => Array<{ label: string; kind: number }>)
+            | ((params: any) => Promise<Array<{ label: string; kind: number }>>)
             | undefined;
         const connection = {
             onCompletion: (handler: any) => {
@@ -86,7 +86,7 @@ describe("addDocumentCompletionSupport", () => {
 
         addDocumentCompletionSupport(connection as any, documentInfo as any);
 
-        const items = completionHandler!({
+        const items = await completionHandler!({
             textDocument: { uri },
             position: { line: 0, character: 8 },
         });

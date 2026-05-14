@@ -102,7 +102,7 @@ export type RefMemberContainerResolution = {
 
 export type ResolveRefMemberContainer = (
     args: ResolveRefMemberContainerArgs,
-) => RefMemberContainerResolution | null;
+) => Promise<RefMemberContainerResolution | null>;
 
 /**
  * Bundle of resolution + schema data the help layer needs to describe a
@@ -227,7 +227,7 @@ export class AutoCompleter {
      * Test whether `name` is addressable from `offset`.
      * Returns `false` when no Rust resolver adapter is set.
      */
-    isNameAddressable(offset: number, name: string): boolean {
+    async isNameAddressable(offset: number, name: string): Promise<boolean> {
         if (this._rustResolverAdapter) {
             return this._rustResolverAdapter.isNameAddressableFromOffset(
                 offset,
@@ -244,14 +244,14 @@ export class AutoCompleter {
      * For example, in `$P.coords` this resolves to `P`, while in `$P.coords.`
      * it resolves to `coords`.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution {
+    ): Promise<RefMemberContainerResolution> {
         if (this._rustResolverAdapter) {
             const resolved =
-                this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                await this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
                     offset,
                     pathParts,
                     pathPartHasIndex,

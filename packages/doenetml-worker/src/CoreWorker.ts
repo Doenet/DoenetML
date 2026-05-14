@@ -489,6 +489,36 @@ export class CoreWorker {
         }
     }
 
+    async resolvePath(args: {
+        path: PathToCheck;
+        origin: number;
+        skipParentSearch: boolean;
+    }): Promise<RefResolution> {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        try {
+            if (!this.wasm_initialized) {
+                await init({ module_or_path: wasmBlobUrl });
+                this.wasm_initialized = true;
+            }
+            if (!this.doenetCore) {
+                this.doenetCore = PublicDoenetMLCore.new();
+            }
+
+            return this.doenetCore.resolve_path(
+                args.path,
+                args.origin,
+                args.skipParentSearch,
+            );
+        } finally {
+            resolve();
+        }
+    }
+
     async dispatchAction(action: Action): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
