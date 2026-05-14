@@ -90,6 +90,8 @@ vi.mock("@doenet/lsp-tools", () => {
 
         setSource(_source: string) {}
 
+        setRustResolverAdapter(_adapter: unknown) {}
+
         getSchemaViolations() {
             return [];
         }
@@ -98,9 +100,9 @@ vi.mock("@doenet/lsp-tools", () => {
     class RustResolverAdapter {
         constructor(_sourceObj: unknown, _options?: unknown) {}
 
-        async init() {}
+        init() {}
 
-        async updateSource(_sourceObj: unknown) {}
+        updateSource(_sourceObj: unknown) {}
 
         getDerivedRepeatNames(_offset: number) {
             return [];
@@ -140,6 +142,7 @@ describe("addValidationSupport", () => {
         const autoCompleter = {
             sourceObj: { dast: {} },
             setSource: vi.fn(),
+            setRustResolverAdapter: vi.fn(),
             getSchemaViolations: vi.fn(() => []),
         };
         const documentInfo = new Map([

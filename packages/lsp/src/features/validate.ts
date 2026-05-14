@@ -86,14 +86,18 @@ export function addValidationSupport(
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
-        if (info.rustState === "ready" && info.rustAdapter) {
-            // Adapter already wired — just resync source.
+        // Forward the latest source to the rust adapter as soon as it
+        // exists.  The adapter chains updateSource calls internally and
+        // query methods await the chain, so this is safe to fire-and-forget.
+        if (info.rustAdapter) {
             info.rustAdapter
                 .updateSource(info.autoCompleter.sourceObj)
                 .catch(() => undefined);
-        } else if (info.rustState === "uninitialized") {
-            // Fire-and-forget initialization. Diagnostics should not wait
-            // for Rust to load.
+        }
+
+        if (info.rustState === "uninitialized") {
+            // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
+            // should not wait for the worker to spin up.
             info.rustState = "initializing";
             const capturedInfo = info;
             (async () => {
@@ -111,28 +115,20 @@ export function addValidationSupport(
                         capturedInfo.rustState = "unavailable";
                         return;
                     }
-                    const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                    // Intentionally create a dedicated adapter per document.
-                    // This avoids cross-document source switching complexity
-                    // and keeps Rust-side state aligned with this document's
-                    // AutoCompleter mappings.
-                    const adapter = new RustResolverAdapter(sourceObj, {
-                        core: spawned.core as RustResolverCore,
-                        takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
-                    });
+                    // One adapter per document keeps rust-side state aligned
+                    // with this document's AutoCompleter mappings.
+                    const adapter = new RustResolverAdapter(
+                        capturedInfo.autoCompleter.sourceObj,
+                        {
+                            core: spawned.core as RustResolverCore,
+                            takesIndexComponentTypes:
+                                TAKES_INDEX_COMPONENT_TYPES,
+                        },
+                    );
                     await adapter.init();
                     capturedInfo.rustAdapter = adapter;
                     capturedInfo.rustCoreTerminate = spawned.terminate;
-                    capturedInfo.autoCompleter = new AutoCompleter(
-                        undefined,
-                        undefined,
-                        {
-                            sourceObj,
-                            rustResolverAdapter: adapter,
-                            getAdditionalRefNames: (offset: number) =>
-                                adapter.getDerivedRepeatNames(offset),
-                        },
-                    );
+                    capturedInfo.autoCompleter.setRustResolverAdapter(adapter);
                     capturedInfo.rustState = "ready";
                     const latestDocument = documents.get(uri);
                     if (latestDocument) {

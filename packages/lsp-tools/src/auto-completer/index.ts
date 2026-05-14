@@ -224,6 +224,19 @@ export class AutoCompleter {
     }
 
     /**
+     * Attach a rust resolver adapter after construction.  The LSP uses this
+     * to plug in the adapter once its worker is ready, without rebuilding
+     * the AutoCompleter (which would otherwise force a swap with a fresh
+     * `sourceObj` / schema setup).  Queries issued before this is called
+     * fall back to the no-rust paths.
+     */
+    setRustResolverAdapter(adapter: RustResolverAdapter) {
+        this._rustResolverAdapter = adapter;
+        this._getAdditionalRefNamesImpl = (offset: number) =>
+            adapter.getDerivedRepeatNames(offset);
+    }
+
+    /**
      * Test whether `name` is addressable from `offset`.
      * Returns `false` when no Rust resolver adapter is set.
      */
