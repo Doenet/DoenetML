@@ -42,9 +42,22 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
     }
 
     function openHelpTab() {
-        // Clicking the Help tab also opens the (collapsed) info panel,
-        // since TabList's onClick calls setIsOpen(true).
-        cy.get('[title="Context-sensitive help"]').click();
+        // The footer redesign mounts the panel open on the help tab by
+        // default and made tabs self-toggling — clicking the active tab now
+        // closes the panel. Only click when help isn't already selected with
+        // the panel open, otherwise this helper would close it.
+        cy.get("body").then(($body) => {
+            const helpSelected =
+                $body
+                    .find('[title="Context-sensitive help"]')
+                    .attr("aria-selected") === "true";
+            const panelOpen =
+                $body.find(".diagnostics-response-tabs-container.is-open")
+                    .length > 0;
+            if (!(helpSelected && panelOpen)) {
+                cy.get('[title="Context-sensitive help"]').click();
+            }
+        });
     }
 
     it("shows component help with reference link for cursor on tag name", () => {
