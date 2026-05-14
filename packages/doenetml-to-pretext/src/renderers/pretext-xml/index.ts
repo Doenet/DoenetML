@@ -1,5 +1,6 @@
 export * from "./p";
 export * from "./math";
+export * from "./display-math";
 export * from "./graph";
 export * from "./division";
 export * from "./text-point";
@@ -15,6 +16,8 @@ export * from "./ul";
 export * from "./li";
 export * from "./choice-input";
 export * from "./code-editor";
+export * from "./subset-of-reals";
+export * from "./display-math-numbered";
 export * from "./answer";
 export * from "./_omit";
 export * from "./_pass-through-with-tag";

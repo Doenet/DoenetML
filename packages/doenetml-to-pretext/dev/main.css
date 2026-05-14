@@ -38,4 +38,30 @@ body {
         flex-grow: 1;
         resize: none;
     }
+
+    .loading-state {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #444;
+    }
+
+    .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #c9c9c9;
+        border-top-color: #2f80ed;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

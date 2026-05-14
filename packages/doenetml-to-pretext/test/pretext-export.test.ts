@@ -155,10 +155,23 @@ describe("Pretext export", async () => {
               "<?xml version="1.0" encoding="UTF-8"?>
               <pretext>
               <article>
-              <program language="xml"><p>Some code</p></program>
+              <program language="xml">&#x3C;p>Some code&#x3C;/p>
+              </program>
               </article>
               </pretext>"
             `);
+    });
+
+    it("<subsetOfReals> is rendered as <m>", async () => {
+        source = `<subsetOfReals>(1,2)</subsetOfReals>`;
+        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>\\left( 1, 2 \\right)</m>
+          </article>
+          </pretext>"
+        `);
     });
 
     // TODO: un-skip when <division> tags are supported
