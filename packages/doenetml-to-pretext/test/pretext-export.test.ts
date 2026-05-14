@@ -176,8 +176,9 @@ describe("Pretext export", async () => {
     });
 
     it("<orbitalDiagram> is rendered as <tabular>", async () => {
-        source = `<orbitalDiagram labels="a b">(u,d, e, d) (e)</orbitalDiagram>`;
-        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+        source = `<orbitalDiagram labels="a b">(u, d, e, d) (e)</orbitalDiagram>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
@@ -189,7 +190,8 @@ describe("Pretext export", async () => {
 
     it("<angle> is rendered as <m>", async () => {
         source = `<angle>30</angle>`;
-        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
@@ -201,7 +203,8 @@ describe("Pretext export", async () => {
 
     it("<number> is rendered", async () => {
         source = `<number>42</number>`;
-        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
@@ -213,7 +216,8 @@ describe("Pretext export", async () => {
 
     it("<atom> is rendered as <m>", async () => {
         source = `<atom symbol="Na" />`;
-        expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
