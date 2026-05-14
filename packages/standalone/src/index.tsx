@@ -44,6 +44,14 @@ const editorHandlesByContainer = new WeakMap<Element, EditorHandleEntry>();
  * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
+ *
+ * Repeat calls with the same `container` element re-render in place against a
+ * cached React root rather than mounting a competing root. The cache lives in
+ * a `WeakMap`, so it releases automatically once the container is GC'd, but it
+ * is *not* keyed on `doenetMLSource` or `config` — passing different values
+ * across calls is treated as an update of the same logical instance, not as a
+ * remount. Callers that need a fresh root should detach and re-create the
+ * container element.
  */
 export function renderDoenetViewerToContainer(
     container: Element,
@@ -105,9 +113,17 @@ export function renderDoenetViewerToContainer(
 }
 
 /**
- * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
+ * Render DoenetEditor to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
+ *
+ * Repeat calls with the same `container` element re-render in place against a
+ * cached React root, and return the *same* handle object across calls — the
+ * handle's methods are stable for the lifetime of the container so callers can
+ * cache it. The cache lives in a `WeakMap` keyed by container, so it releases
+ * automatically once the container is GC'd. Two consumers rendering different
+ * logical editor instances into the same container will therefore share state;
+ * detach and re-create the container element if a fresh instance is needed.
  */
 export function renderDoenetEditorToContainer(
     container: Element,

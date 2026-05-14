@@ -16,6 +16,10 @@ declare global {
     }
 }
 
+// Module-scope state below is per-iframe-document: each `<DoenetEditor>` lives
+// in its own iframe with its own copy of this module, so there's no risk of
+// two wrappers competing over the same singletons. Don't try to host multiple
+// editors inside a single iframe document — they'd alias these mutables.
 let editorControlHandle: DoenetEditorHandle | null = null;
 
 // Holds the most recent full props bag (serializable props + proxied function
@@ -75,15 +79,30 @@ ComlinkEditor.expose(
                 ...lastAugmentedProps,
                 ...updatedSerializableProps,
             };
-            const root = document.getElementById("root")!;
-            const handle = window.renderDoenetEditorToContainer(
-                root,
-                resolveInitialDoenetMLSource(root),
-                lastAugmentedProps,
-            );
-            if (handle) {
-                editorControlHandle = handle;
+            renderWithLastAugmentedProps();
+        },
+        updateEditorFunctionProps(...args: (string | Function)[]) {
+            // The wrapper sends key/proxy pairs the same way
+            // renderEditorWithFunctionProps does (Comlink can't pass proxies
+            // as values inside an object, only as direct arguments). We
+            // overwrite the function entries on `lastAugmentedProps` so the
+            // next re-render uses the freshest closures from the parent.
+            if (!lastAugmentedProps) {
+                console.warn(
+                    "iframe DoenetEditor: updateEditorFunctionProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
             }
+            const next: Record<string, any> = { ...lastAugmentedProps };
+            for (let i = 0; i < args.length; i += 2) {
+                const key = args[i];
+                const fn = args[i + 1];
+                if (typeof key === "string" && typeof fn === "function") {
+                    next[key] = fn;
+                }
+            }
+            lastAugmentedProps = next;
+            renderWithLastAugmentedProps();
         },
         openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
@@ -142,12 +161,15 @@ function renderEditorWithFunctionProps(...args: (string | Function)[]) {
     }
 
     lastAugmentedProps = augmentedDoenetEditorProps;
+    renderWithLastAugmentedProps();
+}
 
+function renderWithLastAugmentedProps() {
     const root = document.getElementById("root")!;
     const handle = window.renderDoenetEditorToContainer(
         root,
         resolveInitialDoenetMLSource(root),
-        augmentedDoenetEditorProps,
+        lastAugmentedProps!,
     );
     if (handle) {
         editorControlHandle = handle;

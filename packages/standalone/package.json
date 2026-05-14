@@ -41,6 +41,7 @@
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
+                "dist/**/*.css",
                 "dist/fonts/**/*"
             ],
             "dependencies": [
