@@ -58,7 +58,7 @@ async function promptForPassthroughMode(): Promise<PassthroughMode> {
  * - A new .tsx renderer component file with the specified passthrough mode (children or nochildren)
  * - Updates the index.ts file to export the new renderer
  * - Updates renderers.ts to add the component mapping
- * 
+ *
  * Requires two command-line arguments (tagName, rendererName) and optionally accepts
  * a third argument specifying the passthrough mode. If the mode is not provided,
  * prompts the user interactively.
