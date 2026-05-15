@@ -161,6 +161,7 @@ jobs:
                         e2e-group5,
                         codemirror-cypress,
                         doenetml-cypress,
+                        doenetml-iframe-cypress,
                     ]
         steps:
             - uses: actions/checkout@v6
@@ -184,6 +185,18 @@ jobs:
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build --workspace packages/test-cypress
+              env:
+                  WIREIT_CACHE: "local"
+
+            # doenetml-iframe-cypress reads @doenet/standalone's dist via a
+            # `?raw` import in its harness, and uses the iframe-iife bundles
+            # built by the iframe package itself. Wireit cache restores both
+            # quickly here since the upstream Build job already produced them.
+            - name: Build doenetml-iframe deps (cached)
+              if: matrix.test-group == 'doenetml-iframe-cypress'
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build --workspace packages/standalone --workspace packages/doenetml-iframe
               env:
                   WIREIT_CACHE: "local"
 
@@ -216,7 +229,14 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: cypress-screenshots-${{ matrix.test-group }}
-                  path: ./packages/test-cypress/cypress/screenshots
+                  # e2e screenshots land under test-cypress; component-test
+                  # screenshots land under the package whose harness ran them.
+                  path: |
+                      ./packages/test-cypress/cypress/screenshots
+                      ./packages/codemirror/cypress/screenshots
+                      ./packages/doenetml/cypress/screenshots
+                      ./packages/doenetml-iframe/cypress/screenshots
+                  if-no-files-found: ignore
 
     test-prefigure-browser-runtime:
         name: Prefigure Browser Runtime Check
