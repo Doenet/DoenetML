@@ -8,6 +8,5 @@ export const Li: BasicComponentWithPassthroughChildren<{
 }> = ({ children, node, annotation, ancestors }) => {
     const htmlId = generateHtmlId(node, annotation, ancestors);
     const label = node.data.props.label;
-    console.log("li rendering", node, ancestors);
     return <li {...{ "xml:id": htmlId }}>{children}</li>;
 };

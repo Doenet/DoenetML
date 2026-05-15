@@ -31,12 +31,23 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
     // If the choiceInput is inline, then the selected choice is shown without any icon.
     // If there is no selected choice, a fillin is shown instead.
     if (inline) {
-        const selectedChoice = childrenArray[selectedIndices[0] - 1];
+        const selectedChoices = selectedIndices
+            .map((index) => childrenArray[index - 1])
+            .filter((child) => child != null);
         return (
             <React.Fragment>
                 {label}{" "}
-                {selectedChoice ? (
-                    <em>{selectedChoice}</em>
+                {selectedChoices.length > 0 ? (
+                    selectedChoices.length === 1 ? (
+                        <em>{selectedChoices[0]}</em>
+                    ) : (
+                        selectedChoices.map((choice, i) => (
+                            <React.Fragment key={i}>
+                                {choice}
+                                {i < selectedChoices.length - 1 ? ", " : ""}
+                            </React.Fragment>
+                        ))
+                    )
                 ) : (
                     <fillin characters={5} />
                 )}

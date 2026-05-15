@@ -227,6 +227,19 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("inline select-multiple choiceInput renders multiple selected choices", async () => {
+        source = `<text hide name="selectedChoices">Apple, Pear</text><choiceInput inline selectMultiple bindValueTo="$selectedChoices"><choice>Apple</choice><choice>Banana</choice><choice>Pear</choice></choiceInput>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+                          "<?xml version="1.0" encoding="UTF-8"?>
+                          <pretext>
+                          <article>
+                           Apple, Pear
+                          </article>
+                          </pretext>"
+                        `);
+    });
+
     // TODO: un-skip when direct <md> conversion behavior is finalized
     it.skip("<md> is rendered as numbered display math", async () => {
         source = `<md><mrow>\\frac{1}{2}</mrow></md>`;
