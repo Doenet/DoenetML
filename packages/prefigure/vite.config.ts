@@ -16,6 +16,9 @@ const PYODIDE_EXCLUDE = [
 
 export default defineConfig({
     base: "./",
+    server: {
+        host: "0.0.0.0",
+    },
     optimizeDeps: { exclude: ["pyodide"] },
     plugins: [
         dts({ rollupTypes: true }),

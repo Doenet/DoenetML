@@ -4,7 +4,7 @@ import { MathPropsInText } from "@doenet/doenetml-worker";
 
 type MathData = { props: MathPropsInText };
 
-export const Math: BasicComponent<MathData> = ({ node }) => {
+export const DisplayMath: BasicComponent<MathData> = ({ node }) => {
     const latexString = node.data.props.latex;
-    return <m>{latexString}</m>;
+    return <md>{latexString}</md>;
 };

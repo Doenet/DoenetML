@@ -3,6 +3,7 @@ import reconciler, { HostConfig, FiberRoot } from "react-reconciler";
 import { DefaultEventPriority } from "react-reconciler/constants";
 import type * as Xast from "xast";
 import type { DastAttribute } from "@doenet/doenetml-worker";
+import { fromXml } from "xast-util-from-xml";
 import { denormalizeAttrs } from "./normalize-attrs";
 
 type RootContainer = Xast.Root & {
@@ -22,6 +23,36 @@ type TextInstance = Xast.Text;
 
 function isDastAttribute(node: any): node is DastAttribute {
     return node && node.type === "attribute";
+}
+
+function hasDangerouslySetInnerHTML(
+    props: Props,
+): props is Props & { dangerouslySetInnerHTML: { __html: string } } {
+    const value = props.dangerouslySetInnerHTML;
+    return (
+        !!value && typeof value === "object" && typeof value.__html === "string"
+    );
+}
+
+/**
+ * Parse a string as XML.
+ */
+function parseXmlFragmentToXastChildren(
+    xmlFragment: string,
+): Xast.ElementContent[] {
+    // Wrap in a <xast_fragment> since valid XML only allows a single element at the root.
+    const parsed = fromXml(`<xast_fragment>${xmlFragment}</xast_fragment>`);
+    const fragmentNode = parsed.children.find(
+        (child): child is Xast.Element =>
+            child.type === "element" && child.name === "xast_fragment",
+    );
+
+    if (!fragmentNode) {
+        throw new Error("Could not parse dangerouslySetInnerHTML XML fragment");
+    }
+
+    // Return the children directly, with all metadata (including position)
+    return fragmentNode.children;
 }
 
 /**
@@ -73,7 +104,7 @@ const HOST_CONFIG: HostConfig<
         hostContext,
         internalInstanceHandle,
     ) {
-        const { children, ...rest } = props;
+        const { children, dangerouslySetInnerHTML, ...rest } = props;
         const attributes = Object.fromEntries(
             Object.entries(denormalizeAttrs(rest)).map(([key, value]) => {
                 if (typeof value === "string") {
@@ -90,12 +121,29 @@ const HOST_CONFIG: HostConfig<
                 return [key, value];
             }),
         );
-        return {
+        const instance: Xast.Element = {
             type: "element",
             name: elmName,
             attributes,
             children: [],
         };
+
+        if (hasDangerouslySetInnerHTML(props)) {
+            if (
+                props.children &&
+                Array.isArray(props.children) &&
+                props.children.length > 0
+            ) {
+                throw new Error(
+                    "dangerouslySetInnerHTML cannot be used together with children",
+                );
+            }
+            instance.children = parseXmlFragmentToXastChildren(
+                dangerouslySetInnerHTML.__html,
+            );
+        }
+
+        return instance;
     },
 
     createTextInstance(
@@ -134,7 +182,7 @@ const HOST_CONFIG: HostConfig<
         textInstance.value = newText;
     },
     shouldSetTextContent(type, props) {
-        return false;
+        return hasDangerouslySetInnerHTML(props);
     },
     getRootHostContext(rootContainerInstance) {},
     getChildHostContext(parentHostContext, type, rootContainerInstance) {

@@ -83,3 +83,7 @@ When asked to author PreTeXt, provide:
 2. Confirm no DoenetML runtime constructs appear in the snippet.
 3. Confirm nesting is valid XML and the section hierarchy was not skipped.
 4. Confirm math is in `<m>`/`<md>` rather than plain text.
+
+## Important Note
+
+- **Do not suggest HTML styling or attributes** as a solution to PreTeXt problems. PreTeXt is a semantic XML language, and all styling is handled by the processing pipeline (e.g., CSS for HTML output, LaTeX for PDF). Direct HTML styling or attributes are not valid in PreTeXt and will not work.

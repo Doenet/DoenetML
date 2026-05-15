@@ -1,10 +1,11 @@
 import { CoreWorker, FlatDastRootWithErrors } from "@doenet/doenetml-worker";
-import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import { DastRoot, lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import * as Xast from "xast";
 import "./index-inline-worker";
 import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
+import { preprocessDastForPretext } from "./utils/pretext/preprocess-dast";
 import { toXml as xastToXml } from "xast-util-to-xml";
 
 const defaultFlags = {
@@ -59,9 +60,36 @@ export async function flatDastToPretext(
 export async function getStaticDast(
     source: string,
 ): Promise<FlatDastRootWithErrors> {
+    const normalizedDast = getNormalizedDast(source);
+    const preprocessedDast = preprocessDast(normalizedDast);
+    const flatDast = await runDastThroughWorker(preprocessedDast, source);
+
+    return flatDast;
+}
+
+/**
+ * Convert DoenetML source text into normalized DAST.
+ */
+export function getNormalizedDast(source: string) {
+    return normalizeDocumentDast(lezerToDast(source));
+}
+
+/**
+ * Apply optional preprocessing to normalized DAST before worker execution.
+ */
+export function preprocessDast(dast: DastRoot): DastRoot {
+    return preprocessDastForPretext(dast);
+}
+
+/**
+ * Run normalized DAST through the core worker to get FlatDast.
+ */
+export async function runDastThroughWorker(
+    dast: DastRoot,
+    source: string,
+): Promise<FlatDastRootWithErrors> {
     const worker = await createWrappedCoreWorker();
     await worker.setCoreType("javascript");
-    const dast = normalizeDocumentDast(lezerToDast(source));
     await worker.setSource({ dast, source });
     await worker.setFlags({ flags: defaultFlags });
 
