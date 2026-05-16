@@ -489,6 +489,19 @@ export class CoreWorker {
         }
     }
 
+    /**
+     * Resolve `path` to a node, starting the search from node `origin` and
+     * following the DoenetML core's name-scoping rules.  Used by the language
+     * server to back `$ref` / `$ref.member` autocomplete.
+     *
+     * `setSource` and `setFlags` must have run first: like `dispatchAction`
+     * and `returnDast`, this throws otherwise rather than resolving against an
+     * empty core (which would yield confusing Rust-side panics).
+     *
+     * By default the search recurses into `origin`'s ancestor scopes to match
+     * the first path segment; set `skipParentSearch` to search only
+     * descendants of `origin` instead.
+     */
     async resolvePath(args: {
         path: PathToCheck;
         origin: number;
@@ -500,15 +513,13 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        try {
-            if (!this.wasm_initialized) {
-                await init({ module_or_path: wasmBlobUrl });
-                this.wasm_initialized = true;
-            }
-            if (!this.doenetCore) {
-                this.doenetCore = PublicDoenetMLCore.new();
-            }
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error(
+                "Cannot resolve a path before setting source and flags",
+            );
+        }
 
+        try {
             return this.doenetCore.resolve_path(
                 args.path,
                 args.origin,
