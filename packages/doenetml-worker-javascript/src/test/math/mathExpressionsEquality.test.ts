@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import me from "math-expressions";
 import { createTestCore } from "../utils/test-core";
 
 const Mock = vi.fn();
@@ -1061,4 +1062,25 @@ describe("Math expressions equality tests @group2", async () => {
             ).eq(info.symbolicSimplifyExpandEqual);
         });
     }
+
+    it("nthroot fully simplifies, pulling out all factors given positivity assumptions", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<math name="m" simplify assumptions="a > 0 and b > 0 and c > 0">
+    nthroot(a^(7)*b^(6)*c^(28), 5)
+</math>`,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // a^7 = a^5 * a^2, b^6 = b^5 * b, c^28 = c^25 * c^3,
+        // so a, b, and c^5 should all be pulled out of the fifth root.
+        let expected = me.fromText("a*b*c^5 * nthroot(a^2*b*c^3, 5)");
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("m")
+            ].stateValues.value.equalsViaSyntax(expected),
+        ).eq(true);
+    });
 });
