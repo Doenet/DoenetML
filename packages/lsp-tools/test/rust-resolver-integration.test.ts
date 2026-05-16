@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { AutoCompleter, RustResolverAdapter } from "../src";
-import type { RustResolverCore } from "../src";
+import type { ResolverCore } from "../src";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
@@ -46,9 +46,24 @@ const takesIndexSet = new Set(
         .map((el: any) => el.name as string),
 );
 
+/**
+ * Present the snake_case WASM `PublicDoenetMLCore` as the camelCase
+ * {@link ResolverCore} the adapter expects.  In production the adapter talks
+ * to the Comlink-proxied `CoreWorker` (already camelCase); this test-only
+ * shim lets the same adapter run directly against the in-process WASM.
+ */
+function wrapWasmCore(wasm: any): ResolverCore {
+    return {
+        setSource: async ({ source, dast }) => wasm.set_source(dast, source),
+        setFlags: async ({ flags }) => wasm.set_flags(JSON.stringify(flags)),
+        returnDast: async () => wasm.return_dast(),
+        resolvePath: async ({ path, origin, skipParentSearch }) =>
+            wasm.resolve_path(path, origin, skipParentSearch),
+    };
+}
+
 async function createCoreAndAdapter(source: string) {
-    const core = PublicDoenetMLCore.new() as RustResolverCore;
-    core.set_flags("{}");
+    const core = wrapWasmCore(PublicDoenetMLCore.new());
     const sourceObj = new DoenetSourceObject(source);
     const adapter = new RustResolverAdapter(sourceObj, {
         core,
@@ -64,8 +79,7 @@ async function createCompleterWithAdapter(
 ) {
     const sourceObj = new DoenetSourceObject();
     sourceObj.setSource(source + " ");
-    const core = PublicDoenetMLCore.new() as RustResolverCore;
-    core.set_flags("{}");
+    const core = wrapWasmCore(PublicDoenetMLCore.new());
     const adapter = new RustResolverAdapter(sourceObj, {
         core,
         takesIndexComponentTypes: takesIndexSet,
@@ -170,8 +184,7 @@ describe.skipIf(!wasmAvailable)(
             const source = `<section name="sec"><p name="para">stuff</p></section>\n$sec.`;
             const sourceObj = new DoenetSourceObject(source);
 
-            const core = PublicDoenetMLCore.new() as RustResolverCore;
-            core.set_flags("{}");
+            const core = wrapWasmCore(PublicDoenetMLCore.new());
             const adapter = new RustResolverAdapter(sourceObj, { core });
             await adapter.init();
             const resolver = adapter.createResolver();
@@ -466,8 +479,7 @@ describe.skipIf(!wasmAvailable)(
 
         it("recovers after blank document receives first element", async () => {
             // Simulates: blank document → user types "<p>"
-            const core = PublicDoenetMLCore.new() as RustResolverCore;
-            core.set_flags("{}");
+            const core = wrapWasmCore(PublicDoenetMLCore.new());
             const sourceObj = new DoenetSourceObject("");
             const adapter = new RustResolverAdapter(sourceObj, { core });
             expect(adapter.isEnabled()).toBe(false);

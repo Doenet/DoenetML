@@ -170,34 +170,41 @@ function getElementNameAttributeValue(el: DastElement): string | null {
 }
 
 /**
- * Minimal interface matching the subset of PublicDoenetMLCore methods needed
- * for path resolution. Consumers provide an implementation that may be backed
- * by an in-process WASM module or a Comlink proxy to a worker.  All methods
- * are async because the Comlink-proxied implementation returns Promises.
+ * The subset of the DoenetML core API that {@link RustResolverAdapter} calls
+ * to resolve paths.
+ *
+ * The real core lives in `@doenet/doenetml-worker`; in the language server it
+ * runs in a sub-worker reached over a Comlink proxy.  This interface is the
+ * structural contract that proxy satisfies — declaring it here lets
+ * `@doenet/lsp-tools` call the core's real method names without taking a
+ * build dependency on the (heavy) worker package.  Every method is async
+ * because the Comlink proxy resolves results over `postMessage`.
  */
-export interface RustResolverCore {
-    set_source(dast: unknown, source: string): Promise<void>;
+export interface ResolverCore {
+    /** Load DoenetML `source` and its parsed `dast` into the core. */
+    setSource(args: { source: string; dast: unknown }): Promise<void>;
     /**
-     * Set runtime flags (as a JSON string). Must be called at least once
-     * before `return_dast()`.  An empty object `"{}"` is sufficient for
-     * pure path-resolution use-cases.
+     * Set runtime flags.  Must be called before `returnDast()`; an empty
+     * flags object is sufficient for pure path-resolution use.
      */
-    set_flags(flags: string): Promise<void>;
+    setFlags(args: { flags: Record<string, unknown> }): Promise<void>;
     /**
-     * Triggers Rust core initialization and returns the flat DAST.
-     * The adapter uses the returned elements to build position-based index mappings.
+     * Trigger core initialization and return the flat DAST.  The adapter
+     * matches the returned elements against the JS-side DAST by source
+     * position to build its index mappings.
      */
-    return_dast(): Promise<{
+    returnDast(): Promise<{
         elements: Array<{
             data: { id: number };
             position?: { start: { offset?: number } };
         }>;
     }>;
-    resolve_path(
-        path: { path: Array<FlatPathPartForResolver> },
-        origin: number,
-        skip_parent_search: boolean,
-    ): Promise<{
+    /** Resolve `path` starting from `origin`, following core scoping rules. */
+    resolvePath(args: {
+        path: { path: Array<FlatPathPartForResolver> };
+        origin: number;
+        skipParentSearch: boolean;
+    }): Promise<{
         nodeIdx: number;
         nodesInResolvedPath: number[];
         unresolvedPath: Array<{ name: string }> | null;
@@ -213,8 +220,8 @@ interface FlatPathPartForResolver {
 }
 
 export interface RustResolverAdapterOptions {
-    /** An initialized PublicDoenetMLCore (or compatible) instance. */
-    core?: RustResolverCore;
+    /** The DoenetML core used for resolution (typically the Comlink-proxied worker core). */
+    core?: ResolverCore;
     /**
      * Optional set of component types that take an index. When provided, the
      * resolver suppresses descendant names for those elements unless the user
@@ -225,16 +232,16 @@ export interface RustResolverAdapterOptions {
 }
 
 /**
- * Adapter that bridges a Rust WASM resolver (PublicDoenetMLCore.resolve_path)
+ * Adapter that bridges the DoenetML core resolver ({@link ResolverCore})
  * with the AutoCompleter's pluggable resolver seam.
  *
  * When constructed without a `core`, the adapter is disabled and its resolver
- * returns `null`. When a core is supplied, source is synced to the Rust side,
+ * returns `null`. When a core is supplied, source is synced to the core,
  * position-based index mappings are built, and the resolver calls
- * resolve_path() for each completion request.
+ * `resolvePath()` for each completion request.
  */
 export class RustResolverAdapter {
-    readonly _core: RustResolverCore | null = null;
+    readonly _core: ResolverCore | null = null;
     _sourceObj: DoenetSourceObject;
     _enabled = false;
     readonly _takesIndexComponentTypes: ReadonlySet<string> | null = null;
@@ -326,13 +333,13 @@ export class RustResolverAdapter {
             return;
         }
         try {
-            await this._core.set_source(
-                this._sourceObj.dast,
-                this._sourceObj.source,
-            );
-            // Set empty flags object for path-resolution-only use case.
-            await this._core.set_flags("{}");
-            const flatDast = await this._core.return_dast();
+            await this._core.setSource({
+                source: this._sourceObj.source,
+                dast: this._sourceObj.dast,
+            });
+            // Empty flags are sufficient for path-resolution-only use.
+            await this._core.setFlags({ flags: {} });
+            const flatDast = await this._core.returnDast();
             this._buildMappings(flatDast);
             this._enabled = true;
         } catch (e) {
@@ -469,11 +476,11 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = await this._core.resolve_path(
-                { path: flatPath },
-                originIndex,
-                false,
-            );
+            const resolution = await this._core.resolvePath({
+                path: { path: flatPath },
+                origin: originIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedNode = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
@@ -618,8 +625,8 @@ export class RustResolverAdapter {
                 const probeResults = await Promise.all(
                     allNames.map(async (name) => {
                         try {
-                            const probe = await this._core!.resolve_path(
-                                {
+                            const probe = await this._core!.resolvePath({
+                                path: {
                                     path: [
                                         {
                                             type: "flatPathPart" as const,
@@ -628,9 +635,9 @@ export class RustResolverAdapter {
                                         },
                                     ],
                                 },
-                                resolvedIdx,
-                                true,
-                            );
+                                origin: resolvedIdx,
+                                skipParentSearch: true,
+                            });
                             // A fully-resolved path (no unresolved parts whose
                             // first segment equals the original name) means the
                             // name matched a visible descendant.
@@ -813,8 +820,8 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return false;
 
         try {
-            const resolution = await this._core.resolve_path(
-                {
+            const resolution = await this._core.resolvePath({
+                path: {
                     path: [
                         {
                             type: "flatPathPart" as const,
@@ -823,9 +830,9 @@ export class RustResolverAdapter {
                         },
                     ],
                 },
-                resolveFromIndex,
-                false,
-            );
+                origin: resolveFromIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedElement = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,

@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import type { CoreWorker } from "@doenet/doenetml-worker";
-import type { RustResolverCore } from "@doenet/lsp-tools";
+import type { ResolverCore } from "@doenet/lsp-tools";
 
 /**
  * A spawned rust core sub-worker bundle.  The caller owns the lifetime: call
@@ -8,17 +8,16 @@ import type { RustResolverCore } from "@doenet/lsp-tools";
  * proxy are released.
  */
 export type SpawnedRustCore = {
-    core: RustResolverCore;
+    core: ResolverCore;
     terminate: () => void;
 };
 
 /**
  * Spawn a fresh inlined-core webworker (whose URL is provided by the host as
- * `doenetWorkerUrl`) and return a `RustResolverCore` proxy that delegates to
- * it via Comlink.  Each call returns a new sub-worker with its own
- * `PublicDoenetMLCore` instance so multiple LSP documents never share rust
- * resolver state — matching the per-document isolation the LSP relied on
- * when the WASM was loaded directly.
+ * `doenetWorkerUrl`) and return the core, reached via Comlink.  Each call
+ * returns a new sub-worker with its own `PublicDoenetMLCore` instance so
+ * multiple LSP documents never share rust resolver state — matching the
+ * per-document isolation the LSP relied on when the WASM was loaded directly.
  *
  * Returns `null` when no URL is provided.  Callers should treat the rust
  * resolver as unavailable in that case.
@@ -36,18 +35,10 @@ export async function getRustCore(
     const worker = new Worker(doenetWorkerUrl);
     const remote = Comlink.wrap<CoreWorker>(worker);
 
-    const core: RustResolverCore = {
-        set_source: (dast, source) =>
-            remote.setSource({ source, dast: dast as any }),
-        set_flags: (flags) => remote.setFlags({ flags: JSON.parse(flags) }),
-        return_dast: () => remote.returnDast() as any,
-        resolve_path: (path, origin, skipParentSearch) =>
-            remote.resolvePath({
-                path: path as any,
-                origin,
-                skipParentSearch,
-            }) as any,
-    };
+    // The Comlink proxy structurally provides every method `ResolverCore`
+    // declares.  The cast only drops Comlink's pessimistic `RemoteObject`
+    // return-type wrapping — the worker returns plain structured-cloned data.
+    const core = remote as unknown as ResolverCore;
 
     let terminated = false;
     const terminate = () => {

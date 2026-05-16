@@ -4,7 +4,11 @@ import {
     TextDocuments,
 } from "vscode-languageserver/browser";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
+import {
+    AutoCompleter,
+    RustResolverAdapter,
+    type ResolverCore,
+} from "@doenet/lsp-tools";
 
 export interface DoenetDocumentSettings {
     formatMode: "doenet" | "xml";
@@ -58,13 +62,18 @@ export const documentInfo: Map<
          */
         additionalDiagnostics: Diagnostic[];
         /**
-         * Rust WASM resolver adapter, created lazily once the rust core
-         * sub-worker is spawned.
+         * The DoenetML core for this document, reached over Comlink once the
+         * rust core sub-worker is spawned.  One core per document keeps
+         * rust-side resolver state aligned with this document.
+         */
+        rustCore?: ResolverCore;
+        /**
+         * Rust resolver adapter, created lazily once `rustCore` is spawned.
          */
         rustAdapter?: RustResolverAdapter;
         /**
-         * Releases the rust core sub-worker that backs `rustAdapter`.  Must
-         * be called on document close to avoid orphaning worker threads.
+         * Releases the rust core sub-worker that backs `rustCore`.  Must be
+         * called on document close to avoid orphaning worker threads.
          */
         rustCoreTerminate?: () => void;
         /**

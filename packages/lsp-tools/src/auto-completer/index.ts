@@ -675,6 +675,6 @@ export class AutoCompleter {
 // Export resolver adapter for external use
 export { RustResolverAdapter } from "./rust-resolver-adapter";
 export type {
-    RustResolverCore,
+    ResolverCore,
     RustResolverAdapterOptions,
 } from "./rust-resolver-adapter";

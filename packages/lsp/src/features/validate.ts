@@ -12,11 +12,7 @@ import {
     documentSettings,
     documents,
 } from "../globals";
-import {
-    AutoCompleter,
-    RustResolverAdapter,
-    type RustResolverCore,
-} from "@doenet/lsp-tools";
+import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
@@ -120,12 +116,13 @@ export function addValidationSupport(
                     const adapter = new RustResolverAdapter(
                         capturedInfo.autoCompleter.sourceObj,
                         {
-                            core: spawned.core as RustResolverCore,
+                            core: spawned.core,
                             takesIndexComponentTypes:
                                 TAKES_INDEX_COMPONENT_TYPES,
                         },
                     );
                     await adapter.init();
+                    capturedInfo.rustCore = spawned.core;
                     capturedInfo.rustAdapter = adapter;
                     capturedInfo.rustCoreTerminate = spawned.terminate;
                     capturedInfo.autoCompleter.setRustResolverAdapter(adapter);

@@ -6,7 +6,7 @@ import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { AutoCompleter, RustResolverAdapter } from "../src";
-import type { RustResolverCore } from "../src";
+import type { ResolverCore } from "../src";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -2005,8 +2005,8 @@ describe("AutoCompleter", () => {
 
     describe("RustResolverAdapter with mock core", () => {
         /**
-         * Helper: create a mock RustResolverCore that records calls and returns
-         * a configurable response from resolve_path.
+         * Helper: create a mock {@link ResolverCore} that records calls and
+         * returns a configurable response from `resolvePath`.
          */
         function createMockCore(
             source: string,
@@ -2021,7 +2021,7 @@ describe("AutoCompleter", () => {
                 startId?: number;
             },
         ): {
-            core: RustResolverCore;
+            core: ResolverCore;
             calls: {
                 path: unknown;
                 origin: number;
@@ -2056,12 +2056,16 @@ describe("AutoCompleter", () => {
                 collectElements(child);
             }
 
-            const core: RustResolverCore = {
-                set_source: () => {},
-                set_flags: () => {},
-                return_dast: () => ({ elements }),
-                resolve_path: (path, origin, skip_parent_search) => {
-                    calls.push({ path, origin, skip_parent_search });
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => ({ elements }),
+                resolvePath: async ({ path, origin, skipParentSearch }) => {
+                    calls.push({
+                        path,
+                        origin,
+                        skip_parent_search: skipParentSearch,
+                    });
                     if (resolveResult) return resolveResult;
                     // Default: resolve to first element, no unresolved path
                     return {
@@ -2127,10 +2131,10 @@ describe("AutoCompleter", () => {
             const source = `<section name="s1"><p name="p1" /></section>\n$missing.`;
             const sourceObj = new DoenetSourceObject(source + " ");
 
-            const core: RustResolverCore = {
-                set_source: () => {},
-                set_flags: () => {},
-                return_dast: () => {
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => {
                     const elements: Array<{
                         data: { id: number };
                         position?: { start: { offset?: number } };
@@ -2152,7 +2156,7 @@ describe("AutoCompleter", () => {
                     }
                     return { elements };
                 },
-                resolve_path: () => {
+                resolvePath: async () => {
                     throw new Error("NoReferent");
                 },
             };
@@ -2268,11 +2272,11 @@ describe("AutoCompleter", () => {
                 collectElements(child);
             }
 
-            const core: RustResolverCore = {
-                set_source: () => {},
-                set_flags: () => {},
-                return_dast: () => ({ elements }),
-                resolve_path: (path) => {
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => ({ elements }),
+                resolvePath: async ({ path }) => {
                     const first = (path.path[0] as { name: string }).name;
                     // Resolve $sec. to section (id 0), but resolve probe "inside"
                     // to differently cased "Inside" outside the section (id 2).
@@ -2522,13 +2526,13 @@ describe("AutoCompleter", () => {
             const source = `<section name="s1"></section>`;
             const sourceObj = new DoenetSourceObject(source);
 
-            const brokenCore: RustResolverCore = {
-                set_source: () => {
+            const brokenCore: ResolverCore = {
+                setSource: async () => {
                     throw new Error("WASM error");
                 },
-                set_flags: () => {},
-                return_dast: () => ({ elements: [] }),
-                resolve_path: () => ({
+                setFlags: async () => {},
+                returnDast: async () => ({ elements: [] }),
+                resolvePath: async () => ({
                     nodeIdx: 0,
                     nodesInResolvedPath: [0],
                     unresolvedPath: null,
