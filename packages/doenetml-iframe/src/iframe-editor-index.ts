@@ -5,7 +5,11 @@ import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
-declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
+declare const ComlinkEditor: {
+    expose: Function;
+    windowEndpoint: Function;
+    releaseProxy: symbol;
+};
 declare global {
     interface Window {
         renderDoenetEditorToContainer: (
@@ -16,7 +20,32 @@ declare global {
     }
 }
 
+// Module-scope state below is per-iframe-document: each `<DoenetEditor>` lives
+// in its own iframe with its own copy of this module, so there's no risk of
+// two wrappers competing over the same singletons. Don't try to host multiple
+// editors inside a single iframe document — they'd alias these mutables.
 let editorControlHandle: DoenetEditorHandle | null = null;
+
+// Holds the most recent full props bag (serializable props + proxied function
+// props) so that `updateEditorProps` can produce a new merged bag and re-render
+// without re-sending the function proxies from the parent.
+let lastAugmentedProps: Record<string, any> | null = null;
+
+// The initial DoenetML lives in a `<script type="text/doenetml">` child of
+// `#root`. React replaces those children as soon as
+// `renderDoenetEditorToContainer` mounts the editor, so we read it once up
+// front and pass it explicitly on every subsequent call. (We never want the
+// `doenetML` prop to change post-mount anyway — see the parent wrapper's
+// `initialIframePropsRef` for why.)
+let initialDoenetMLSource: string | null = null;
+function resolveInitialDoenetMLSource(root: Element): string {
+    if (initialDoenetMLSource !== null) {
+        return initialDoenetMLSource;
+    }
+    const scriptTag = root.querySelector('script[type="text/doenetml"]');
+    initialDoenetMLSource = scriptTag?.innerHTML ?? "";
+    return initialDoenetMLSource;
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     let pause100 = function () {
@@ -43,6 +72,61 @@ document.addEventListener("DOMContentLoaded", async () => {
 ComlinkEditor.expose(
     {
         renderEditorWithFunctionProps,
+        updateEditorProps(updatedSerializableProps: Record<string, any>) {
+            if (!lastAugmentedProps) {
+                console.warn(
+                    "iframe DoenetEditor: updateEditorProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            lastAugmentedProps = {
+                ...lastAugmentedProps,
+                ...updatedSerializableProps,
+            };
+            renderWithLastAugmentedProps();
+        },
+        updateEditorFunctionProps(...args: (string | Function)[]) {
+            // The wrapper sends key/proxy pairs the same way
+            // renderEditorWithFunctionProps does (Comlink can't pass proxies
+            // as values inside an object, only as direct arguments). Treat
+            // the args as a *full replacement* of the function-typed entries
+            // on lastAugmentedProps: drop every existing function entry
+            // (releasing its Comlink port so the parent-side MessageChannel
+            // closes — Comlink also has a FinalizationRegistry fallback, but
+            // explicit release avoids depending on GC timing) and add the
+            // new ones. This way a removed callback (parent stopped passing
+            // it) is actually removed, not silently retained.
+            if (!lastAugmentedProps) {
+                console.warn(
+                    "iframe DoenetEditor: updateEditorFunctionProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            const next: Record<string, any> = {};
+            for (const [key, val] of Object.entries(lastAugmentedProps)) {
+                if (typeof val === "function") {
+                    try {
+                        (val as any)[ComlinkEditor.releaseProxy]?.();
+                    } catch (e) {
+                        console.warn(
+                            "iframe DoenetEditor: failed to release stale Comlink proxy",
+                            e,
+                        );
+                    }
+                } else {
+                    next[key] = val;
+                }
+            }
+            for (let i = 0; i < args.length; i += 2) {
+                const key = args[i];
+                const fn = args[i + 1];
+                if (typeof key === "string" && typeof fn === "function") {
+                    next[key] = fn;
+                }
+            }
+            lastAugmentedProps = next;
+            renderWithLastAugmentedProps();
+        },
         openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
                 console.warn(
@@ -99,10 +183,16 @@ function renderEditorWithFunctionProps(...args: (string | Function)[]) {
         }
     }
 
+    lastAugmentedProps = augmentedDoenetEditorProps;
+    renderWithLastAugmentedProps();
+}
+
+function renderWithLastAugmentedProps() {
+    const root = document.getElementById("root")!;
     const handle = window.renderDoenetEditorToContainer(
-        document.getElementById("root")!,
-        undefined,
-        augmentedDoenetEditorProps,
+        root,
+        resolveInitialDoenetMLSource(root),
+        lastAugmentedProps!,
     );
     if (handle) {
         editorControlHandle = handle;

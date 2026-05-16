@@ -101,6 +101,159 @@ describe("Pretext export", async () => {
         `);
     });
 
+    // <br /> and <hr /> are removed when converting to PreTeXt
+    it("<br /> and <hr /> are removed when converting to PreTeXt", async () => {
+        source = `<p>Line 1<br />Line 2</p><hr /><p>After hr</p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <p>Line 1Line 2</p><p>After hr</p>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("source of an <m> gets rendered", async () => {
+        source = `<p>Here is some math: <m>\\frac{1}{2}</m></p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <p>Here is some math: <m>\\frac{1}{2}</m></p>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("renders mathInput nested inside answer", async () => {
+        source = `<answer><mathInput /><mathInput /></answer>`;
+        expect(await coreRunner.processToFlatDast(source)).toContain(
+            `<m><fillin characters="8"></fillin></m>`,
+        );
+    });
+
+    // <sideBySide> and <blockQuote> get rendered in lower case
+    it("<sideBySide> and <blockQuote> are rendered in lower case", async () => {
+        source = `<sideBySide><blockQuote>Quote text</blockQuote></sideBySide>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <sidebyside><blockquote>Quote text</blockquote></sidebyside>
+              </article>
+              </pretext>"
+            `);
+    });
+    it("<codeEditor> is rendered as <program>", async () => {
+        source = `<codeEditor><p>Some code</p></codeEditor>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <program language="xml">&#x3C;p>Some code&#x3C;/p>
+              </program>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("<subsetOfReals> is rendered as <m>", async () => {
+        source = `<subsetOfReals>(1,2)</subsetOfReals>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>\\left( 1, 2 \\right)</m>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<orbitalDiagram> is rendered as <tabular>", async () => {
+        source = `<orbitalDiagram labels="a b">(u, d, e, d) (e)</orbitalDiagram>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <tabular><row><cell>b</cell><cell></cell></row><row><cell>a</cell><cell>↑</cell><cell>↓</cell><cell></cell><cell>↓</cell></row></tabular>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<angle> is rendered as <m>", async () => {
+        source = `<angle>30</angle>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>30</m>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<number> is rendered", async () => {
+        source = `<number>42</number>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          42
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("<atom> is rendered as <m>", async () => {
+        source = `<atom symbol="Na" />`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <m>\\text{Na}</m>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("inline select-multiple choiceInput renders multiple selected choices", async () => {
+        source = `<text hide name="selectedChoices">Apple, Pear</text><choiceInput inline selectMultiple bindValueTo="$selectedChoices"><choice>Apple</choice><choice>Banana</choice><choice>Pear</choice></choiceInput>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+                          "<?xml version="1.0" encoding="UTF-8"?>
+                          <pretext>
+                          <article>
+                           Apple, Pear
+                          </article>
+                          </pretext>"
+                        `);
+    });
+
+    // TODO: un-skip when direct <md> conversion behavior is finalized
+    it.skip("<md> is rendered as numbered display math", async () => {
+        source = `<md><mrow>\\frac{1}{2}</mrow></md>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+                    "<?xml version="1.0" encoding="UTF-8"?>
+                    <pretext>
+                    <article>
+                    <md number="yes"><mrow>\\frac{1}{2}</mrow></md>
+                    </article>
+                    </pretext>"
+                `);
+    });
+
     // TODO: un-skip when <division> tags are supported
     it.skip("expands <division> to pretext element", async () => {
         source = `
@@ -216,5 +369,18 @@ describe("Pretext export", async () => {
           </article>
           </pretext>"
         `);
+    });
+
+    it("renders a graph with a point", async () => {
+        source = `<graph><point name="P" x="1" y="2" /></graph>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <image><prefigure label="prefigure-doenet-id-1" xmlns="https://prefigure.org"><diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"></axes><point at="point_0" p="(1,2)" style="circle" size="5" fill="#648FFF" stroke="#648FFF" fill-opacity="0.7" stroke-opacity="0.7" thickness="4"></point></coordinates><annotations></annotations></diagram></prefigure></image>
+              </article>
+              </pretext>"
+            `);
     });
 });

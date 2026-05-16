@@ -1,19 +1,10 @@
 import React from "react";
-import { BasicComponent } from "../types";
-import { useAppSelector } from "../../state/hooks";
-import { renderingOnServerSelector } from "../../state/redux-slices/global";
+import { BasicComponentWithPassthroughChildren } from "../types";
 
-export const Answer: BasicComponent = ({ node }) => {
-    const onServer = useAppSelector(renderingOnServerSelector);
-    if (onServer) {
-        return <span className="answer-input"></span>;
-    }
-    return (
-        <span className="answer-input">
-            <input type="text" />
-            <button type="button" className="answer-submit">
-                Submit
-            </button>
-        </span>
-    );
+type AnswerData = { props: unknown };
+
+export const Answer: BasicComponentWithPassthroughChildren<AnswerData> = ({
+    children,
+}) => {
+    return children;
 };
