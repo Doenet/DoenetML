@@ -1,6 +1,14 @@
 import { Connection, CompletionItem } from "vscode-languageserver/browser";
 import { DocumentInfo } from "../globals";
 
+/**
+ * Longest a completion request will block on the rust-core boot.  A healthy
+ * boot settles well under this; a genuinely broken worker only settles
+ * `rustReady` after the spawn timeout, and a completion must not hang that
+ * long — past this cap it falls back to an empty result.
+ */
+const RUST_BOOT_WAIT_MS = 5_000;
+
 export function addDocumentCompletionSupport(
     connection: Connection,
     documentInfo: DocumentInfo,
@@ -28,7 +36,18 @@ export function addDocumentCompletionSupport(
             info.rustState === "initializing" &&
             info.rustReady
         ) {
-            await info.rustReady;
+            // Wait for the boot, but cap it: a broken worker only settles
+            // `rustReady` after the spawn timeout, far longer than a
+            // completion should hang.  Past the cap, fall through and answer
+            // with `[]`.
+            let waitTimer: ReturnType<typeof setTimeout> | undefined;
+            await Promise.race([
+                info.rustReady,
+                new Promise<void>((resolve) => {
+                    waitTimer = setTimeout(resolve, RUST_BOOT_WAIT_MS);
+                }),
+            ]);
+            clearTimeout(waitTimer);
             // The document may have changed while waiting — recompute.
             completionContext = info.autoCompleter.getCompletionContext(
                 params.position,
