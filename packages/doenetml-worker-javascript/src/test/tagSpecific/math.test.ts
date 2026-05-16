@@ -13257,6 +13257,9 @@ describe("Math tag tests @group3", async () => {
     <math name="m3a" simplify extend="$m3" />
     <math name="m3b" simplify extend="$m3" assumptions="x > 0 and y > 0" />
     <math name="m3c" simplify extend="$m3" assumptions="x > 0, y > 0" />
+
+    <math name="m4">nthroot(a^(7) b^(6) c^(28), 5)</math>
+    <math name="m4b" simplify extend="$m4" assumptions="a > 0 and b > 0 and c > 0" />
     `,
         });
 
@@ -13341,6 +13344,31 @@ describe("Math tag tests @group3", async () => {
             2,
             "y",
             ["apply", "nthroot", ["tuple", ["*", 2, ["^", "x", 2], "y"], 4]],
+        ]);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
+        ).eqls([
+            "apply",
+            "nthroot",
+            ["tuple", ["*", ["^", "a", 7], ["^", "b", 6], ["^", "c", 28]], 5],
+        ]);
+        // a^7 = a^5 * a^2, b^6 = b^5 * b, c^28 = c^25 * c^3,
+        // so a, b, and c^5 should all be pulled out of the fifth root.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4b")].stateValues.value
+                .tree,
+        ).eqls([
+            "*",
+            "a",
+            "b",
+            ["^", "c", 5],
+            [
+                "apply",
+                "nthroot",
+                ["tuple", ["*", ["^", "a", 2], "b", ["^", "c", 3]], 5],
+            ],
         ]);
     });
 
