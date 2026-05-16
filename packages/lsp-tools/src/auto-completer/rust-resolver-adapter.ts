@@ -254,21 +254,22 @@ export class RustResolverAdapter {
     readonly _visibleDescendantNamesCache: Map<string, string[]> = new Map();
 
     /**
-     * Tail of the in-flight/queued sync chain.  `init` and `updateSource`
-     * append a fresh `_syncSource` to this; query methods `await` it before
-     * reading state.  Without this, a completion request can race a
-     * fire-and-forget `updateSource` and resolve against stale rust source
-     * or stale JS-side index mappings.
+     * A promise that resolves once the most recently requested source sync
+     * has finished.  `init` and `updateSource` each chain another
+     * `_syncSource` onto it, and the query methods wait on it before reading
+     * resolver state.  This serializes syncs and keeps a completion request
+     * from reading a half-updated rust core or stale index mappings while an
+     * `updateSource` is still running.
      */
-    _isSyncing: Promise<void> = Promise.resolve();
+    _pendingSync: Promise<void> = Promise.resolve();
 
     /**
-     * Source text the most recently *executed* `_syncSource` decided to push
-     * (or accept as already-current).  Used to dedup rapid-fire syncs:
-     * fast typing chains many calls but only one actually pays the worker
-     * round-trips; subsequent dequeued syncs see the same source and skip.
+     * The DoenetML source string currently loaded into the rust core (`null`
+     * before the first sync).  `_syncSource` compares the latest source
+     * against this and returns early when they are equal, so a burst of
+     * keystrokes that each queue a sync only pays the worker round-trips once.
      */
-    _lastSyncedSource: string | null = null;
+    _coreSource: string | null = null;
 
     constructor(
         sourceObj: DoenetSourceObject,
@@ -289,8 +290,8 @@ export class RustResolverAdapter {
      * is no longer required for correctness — query methods await internally.
      */
     init(): Promise<void> {
-        this._isSyncing = this._isSyncing.then(() => this._syncSource());
-        return this._isSyncing;
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 
     _componentTakesIndex(componentType: string): boolean {
@@ -307,10 +308,10 @@ export class RustResolverAdapter {
      * the cost.
      */
     async _syncSource(): Promise<void> {
-        if (this._sourceObj.source === this._lastSyncedSource) {
+        if (this._sourceObj.source === this._coreSource) {
             return;
         }
-        this._lastSyncedSource = this._sourceObj.source;
+        this._coreSource = this._sourceObj.source;
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
@@ -440,10 +441,10 @@ export class RustResolverAdapter {
     async _resolveRefMemberContainer(
         args: ResolveRefMemberContainerArgs,
     ): Promise<RefMemberContainerResolution | null> {
-        // Wait for any in-flight or queued source sync before reading state.
-        // Without this, the JS-side mappings (_rustIndexToDastElement) and
+        // Wait for the latest source sync to finish before reading state.
+        // Otherwise the JS-side mappings (_rustIndexToDastElement) and the
         // rust-side source can diverge from the offset the caller passed in.
-        await this._isSyncing;
+        await this._pendingSync;
         if (!this._enabled || !this._core) return null;
 
         const {
@@ -770,9 +771,9 @@ export class RustResolverAdapter {
         offset: number,
         name: string,
     ): Promise<boolean> {
-        // Wait for any in-flight or queued source sync before reading state.
+        // Wait for the latest source sync to finish before reading state.
         // See `_resolveRefMemberContainer` for the rationale.
-        await this._isSyncing;
+        await this._pendingSync;
         if (!this._enabled || !this._core) return false;
 
         // Derived repeat names from valueName/indexName are introduced by
@@ -942,14 +943,14 @@ export class RustResolverAdapter {
     /**
      * Update source and rebuild mappings. Call when the document changes.
      *
-     * The new sync is appended to the internal `_isSyncing` chain rather
-     * than running concurrently with whatever sync is already in flight.
-     * Callers may fire-and-forget the returned Promise; subsequent query
-     * methods will internally `await _isSyncing` and see a consistent state.
+     * The new sync is appended to the `_pendingSync` chain rather than run
+     * concurrently with a sync that is still running.  Callers may
+     * fire-and-forget the returned promise; the query methods `await
+     * _pendingSync` themselves and so always see a consistent state.
      */
     updateSource(sourceObj: DoenetSourceObject): Promise<void> {
         this._sourceObj = sourceObj;
-        this._isSyncing = this._isSyncing.then(() => this._syncSource());
-        return this._isSyncing;
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 }
