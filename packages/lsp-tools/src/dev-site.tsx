@@ -79,7 +79,7 @@ function App() {
     }, [doenetSource, omitPosition]);
     React.useEffect(() => {
         sourceObj.setSource(doenetSource);
-        completionObj.getCompletionItems(currentPos).then((items) => {
+        void (async () => {
             console.log(
                 { currentPos },
                 sourceObj.elementAtOffsetWithContext(currentPos),
@@ -90,9 +90,9 @@ function App() {
                 sourceObj.nodeAtOffset(currentPos, { side: "right" })?.type ||
                     null,
                 sourceObj.attributeAtOffset(currentPos),
-                items,
+                await completionObj.getCompletionItems(currentPos),
             );
-        });
+        })();
     }, [currentPos, doenetSource]);
 
     return (
