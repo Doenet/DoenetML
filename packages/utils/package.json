@@ -49,7 +49,7 @@
     "dependencies": {
         "color-name": "^1.1.4",
         "get-contrast": "^3.0.0",
-        "math-expressions": "^2.0.0-alpha91",
+        "math-expressions": "^2.0.0-alpha92",
         "micromark": "^4.0.2",
         "nearest-color": "^0.4.4",
         "rgb": "^0.1.0"
