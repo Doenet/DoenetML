@@ -12,12 +12,32 @@ export function addDocumentCompletionSupport(
             return [];
         }
 
-        const completionContext = info.autoCompleter.getCompletionContext(
+        let completionContext = info.autoCompleter.getCompletionContext(
             params.position,
         );
-        const isRustDependentRefContext =
+        let isRustDependentRefContext =
             completionContext.cursorPos === "refName" ||
             completionContext.cursorPos === "refMember";
+
+        // A rust-dependent completion can land in the window between the
+        // document opening and the rust-core sub-worker finishing its boot.
+        // Returning `[]` then would close the editor's autocomplete session,
+        // so wait for the boot to settle and answer with real results.
+        if (
+            isRustDependentRefContext &&
+            info.rustState === "initializing" &&
+            info.rustReady
+        ) {
+            await info.rustReady;
+            // The document may have changed while waiting — recompute.
+            completionContext = info.autoCompleter.getCompletionContext(
+                params.position,
+            );
+            isRustDependentRefContext =
+                completionContext.cursorPos === "refName" ||
+                completionContext.cursorPos === "refMember";
+        }
+
         if (
             isRustDependentRefContext &&
             (info.rustState !== "ready" || !info.rustAdapter)

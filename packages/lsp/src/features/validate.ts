@@ -84,10 +84,12 @@ export function addValidationSupport(
 
         if (info.rustState === "uninitialized") {
             // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
-            // should not wait for the worker to spin up.
+            // should not wait for the worker to spin up.  The bootstrap is
+            // also exposed as `rustReady` so a completion request that races
+            // the boot can await it instead of being answered too early.
             info.rustState = "initializing";
             const capturedInfo = info;
-            void (async () => {
+            capturedInfo.rustReady = (async () => {
                 let spawned: Awaited<ReturnType<typeof getRustCore>> = null;
                 try {
                     spawned = await getRustCore(config.doenetWorkerUrl);

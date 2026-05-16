@@ -80,6 +80,13 @@ export const documentInfo: Map<
          * Rust resolver lifecycle state for this document.
          */
         rustState: "uninitialized" | "initializing" | "ready" | "unavailable";
+        /**
+         * Resolves when the rust-core bootstrap settles (`rustState` reaches
+         * `"ready"` or `"unavailable"`).  A completion request that races the
+         * boot awaits this so it answers with real results instead of an
+         * empty list.  Set once, when the bootstrap starts.
+         */
+        rustReady?: Promise<void>;
     }
 > = new Map();
 export type DocumentInfo = typeof documentInfo;
