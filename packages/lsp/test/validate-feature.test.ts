@@ -120,6 +120,11 @@ async function flushMicrotasks() {
     await Promise.resolve();
 }
 
+/** Yield to a macrotask so every pending microtask chain has settled. */
+function settle() {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe("addValidationSupport", () => {
     beforeEach(() => {
         onDidChangeContentHandler = undefined;
@@ -186,5 +191,112 @@ describe("addValidationSupport", () => {
         // Once Rust is ready, validate is run again on the latest document.
         expect(documentInfo.get(uri)?.rustState).toBe("ready");
         expect(sendDiagnostics).toHaveBeenCalledTimes(2);
+    });
+
+    it("terminates the rust core if the document closes during init", async () => {
+        const { addValidationSupport } =
+            await import("../src/features/validate");
+
+        const uri = "file:///close-during-init.doenet";
+        const autoCompleter = {
+            sourceObj: { dast: {} },
+            setSource: vi.fn(),
+            setRustResolverAdapter: vi.fn(),
+            getSchemaViolations: vi.fn(() => []),
+        };
+        const documentInfo = new Map([
+            [
+                uri,
+                {
+                    autoCompleter,
+                    additionalDiagnostics: [],
+                    rustState: "uninitialized" as const,
+                    rustAdapter: undefined,
+                },
+            ],
+        ]);
+
+        const connection = {
+            onDidChangeConfiguration: vi.fn(),
+            onRequest: vi.fn(),
+            sendDiagnostics: vi.fn(),
+        };
+
+        addValidationSupport(connection as any, documentInfo as any);
+
+        activeDocument = TextDocument.create(uri, "doenet", 1, "<graph />");
+
+        // Kick off rust init, then close the document before `getRustCore`
+        // resolves.
+        onDidChangeContentHandler!({ document: activeDocument });
+        expect(documentInfo.get(uri)?.rustState).toBe("initializing");
+
+        onDidCloseHandler!({ document: activeDocument });
+        expect(documentInfo.has(uri)).toBe(false);
+
+        // The spawned worker finally comes up — the bootstrap must release it
+        // rather than wire it onto the removed document.
+        const terminate = vi.fn();
+        rustCoreDeferred.resolve({ core: {}, terminate });
+        await settle();
+
+        expect(terminate).toHaveBeenCalledTimes(1);
+        expect(documentInfo.has(uri)).toBe(false);
+    });
+
+    it("spawns an independent rust core per document", async () => {
+        const { addValidationSupport } =
+            await import("../src/features/validate");
+
+        // Each spawn resolves to a distinct core instance.
+        getRustCoreMock.mockImplementation(() =>
+            Promise.resolve({ core: { id: Symbol() }, terminate: vi.fn() }),
+        );
+
+        const makeEntry = () => ({
+            autoCompleter: {
+                sourceObj: { dast: {} },
+                setSource: vi.fn(),
+                setRustResolverAdapter: vi.fn(),
+                getSchemaViolations: vi.fn(() => []),
+            },
+            additionalDiagnostics: [],
+            rustState: "uninitialized" as const,
+            rustAdapter: undefined,
+        });
+
+        const uriA = "file:///doc-a.doenet";
+        const uriB = "file:///doc-b.doenet";
+        const documentInfo = new Map([
+            [uriA, makeEntry()],
+            [uriB, makeEntry()],
+        ]);
+
+        const connection = {
+            onDidChangeConfiguration: vi.fn(),
+            onRequest: vi.fn(),
+            sendDiagnostics: vi.fn(),
+        };
+
+        addValidationSupport(connection as any, documentInfo as any);
+
+        const docA = TextDocument.create(uriA, "doenet", 1, "<graph />");
+        const docB = TextDocument.create(uriB, "doenet", 1, "<graph />");
+
+        activeDocument = docA;
+        onDidChangeContentHandler!({ document: docA });
+        activeDocument = docB;
+        onDidChangeContentHandler!({ document: docB });
+
+        await settle();
+
+        expect(getRustCoreMock).toHaveBeenCalledTimes(2);
+        const coreA = documentInfo.get(uriA)?.rustCore;
+        const coreB = documentInfo.get(uriB)?.rustCore;
+        expect(coreA).toBeDefined();
+        expect(coreB).toBeDefined();
+        // Per-document cores are how the LSP keeps rust resolver state from
+        // bleeding between open documents.
+        expect(coreA).not.toBe(coreB);
     });
 });
