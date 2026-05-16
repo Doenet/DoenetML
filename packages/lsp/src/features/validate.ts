@@ -66,7 +66,7 @@ export function addValidationSupport(
 
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
-    documents.onDidChangeContent((change) => {
+    documents.onDidChangeContent(async (change) => {
         const uri = change.document.uri;
         let info = documentInfo.get(uri);
         if (!info) {
@@ -82,21 +82,12 @@ export function addValidationSupport(
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
-        // Forward the latest source to the rust adapter as soon as it
-        // exists.  The adapter chains updateSource calls internally and
-        // query methods await the chain, so this is safe to fire-and-forget.
-        if (info.rustAdapter) {
-            info.rustAdapter
-                .updateSource(info.autoCompleter.sourceObj)
-                .catch(() => undefined);
-        }
-
         if (info.rustState === "uninitialized") {
             // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
             // should not wait for the worker to spin up.
             info.rustState = "initializing";
             const capturedInfo = info;
-            (async () => {
+            void (async () => {
                 let spawned: Awaited<ReturnType<typeof getRustCore>> = null;
                 try {
                     spawned = await getRustCore(config.doenetWorkerUrl);
@@ -129,9 +120,7 @@ export function addValidationSupport(
                     capturedInfo.rustState = "ready";
                     const latestDocument = documents.get(uri);
                     if (latestDocument) {
-                        validateTextDocument(latestDocument).catch(
-                            () => undefined,
-                        );
+                        await validateTextDocument(latestDocument);
                     }
                 } catch (error) {
                     spawned?.terminate();
@@ -144,10 +133,19 @@ export function addValidationSupport(
                         capturedInfo.rustState = "unavailable";
                     }
                 }
-            })().catch(() => undefined);
+            })();
         }
 
-        validateTextDocument(change.document).catch(() => undefined);
+        // Diagnostics are derived from the JS-side DAST and must not wait on
+        // the rust worker, so compute them before syncing the rust adapter.
+        await validateTextDocument(change.document);
+
+        // Keep the rust adapter's source current.  `updateSource` chains its
+        // syncs internally and resolves without rejecting (the adapter logs
+        // and disables itself on a sync failure), so it simply runs last.
+        if (info.rustAdapter) {
+            await info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
+        }
     });
 
     // Release per-document validation/autocomplete state when a document closes.
