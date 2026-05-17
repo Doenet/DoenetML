@@ -15,7 +15,9 @@
         // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
         "./features/webdriver-libs": {},
         // Avoid erronious connections to the host's debug environment.
-        "./features/shell-init-rc": {}
+        "./features/shell-init-rc": {},
+        // Install files needed for Python bundling
+        "./features/python": {}
     },
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "
