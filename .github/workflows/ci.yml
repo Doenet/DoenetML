@@ -288,6 +288,7 @@ jobs:
     test-doenetml-to-pretext-full-devcontainer:
         name: DoenetML to PreTeXt Tests
         runs-on: ubuntu-latest
+        needs: build
         steps:
             - uses: actions/checkout@v6
 
