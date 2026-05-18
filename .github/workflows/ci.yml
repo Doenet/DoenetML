@@ -279,6 +279,7 @@ jobs:
             - name: Build and test in devcontainer
               uses: devcontainers/ci@v0.3
               with:
+                  imageName: ghcr.io/${{ github.repository }}/devcontainer
                   runCmd: |
                       npm ci
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
@@ -300,6 +301,7 @@ jobs:
             - name: Build and test in devcontainer
               uses: devcontainers/ci@v0.3
               with:
+                  imageName: ghcr.io/${{ github.repository }}/devcontainer
                   runCmd: |
                       npm ci
                       npm run build -w packages/doenetml-to-pretext
