@@ -28,8 +28,9 @@ chmod 755 /opt/playwright-browsers
 PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers playwright install chromium
 chown -R root:root /opt/playwright-browsers
 chmod -R a+rX /opt/playwright-browsers
-# Allow non-root installs (e.g. npm postinstall) to create Playwright lock/cache files.
-chmod 1777 /opt/playwright-browsers
+# Allow non-root installs (e.g. npm postinstall) to create/update lock/cache files,
+# including nested directories like /opt/playwright-browsers/.links.
+chmod -R a+rwX /opt/playwright-browsers
 
 # 3) make the path global for all users
 cat >/etc/profile.d/playwright.sh <<'EOF'
