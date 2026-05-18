@@ -82,6 +82,15 @@ export function addValidationSupport(
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
+        // Queue the rust-adapter source sync *now*, before this async handler
+        // yields.  `updateSource` synchronously appends to the adapter's sync
+        // chain, so a completion request processed during the yield below
+        // already sees this change in the chain it awaits — without this, a
+        // `$ref.` member completion can resolve against stale rust state.
+        const rustSync = info.rustAdapter?.updateSource(
+            info.autoCompleter.sourceObj,
+        );
+
         if (info.rustState === "uninitialized") {
             // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
             // should not wait for the worker to spin up.  The bootstrap is
@@ -139,15 +148,13 @@ export function addValidationSupport(
         }
 
         // Diagnostics are derived from the JS-side DAST and must not wait on
-        // the rust worker, so compute them before syncing the rust adapter.
+        // the rust worker, so compute them before the rust sync settles.
         await validateTextDocument(change.document);
 
-        // Keep the rust adapter's source current.  `updateSource` chains its
-        // syncs internally and resolves without rejecting (the adapter logs
-        // and disables itself on a sync failure), so it simply runs last.
-        if (info.rustAdapter) {
-            await info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
-        }
+        // `updateSource` (queued above) resolves without rejecting — the
+        // adapter logs and disables itself on a sync failure — so awaiting it
+        // here just keeps the handler ordered.
+        await rustSync;
     });
 
     // Release per-document validation/autocomplete state when a document closes.
