@@ -33,13 +33,32 @@ export class DoenetMLToPretext {
         }
     }
 
-    async convert(doenetML: string): Promise<string> {
+    async convert(
+        doenetML: string,
+        { throwOnError = true }: { throwOnError?: boolean } = {},
+    ): Promise<string> {
         await this._ensureWorker();
 
         const flatDast = await this._getStaticDast(doenetML);
         const xastRoot = await this._flatDastToPretext(flatDast);
+        const result = xastToXml(xastRoot);
 
-        return xastToXml(xastRoot);
+        if (throwOnError) {
+            this.throwOnErrors(result);
+        }
+
+        return result;
+    }
+
+    /**
+     * Throw an error if the PreTeXt output contains error elements (`<_error>`).
+     */
+    throwOnErrors(pretextOutput: string): void {
+        if (pretextOutput.includes("<_error>")) {
+            throw new Error(
+                "DoenetML conversion produced errors. Output contains <_error> elements.",
+            );
+        }
     }
 
     _createWrappedCoreWorker() {
@@ -111,14 +130,12 @@ export async function createWrappedCoreWorker() {
 /**
  * Convert a DoenetML string into a static PreTeXt representation.
  */
-export async function doenetMLToPretext(doenetML: string): Promise<string> {
+export async function doenetMLToPretext(
+    doenetML: string,
+    options: { throwOnError?: boolean } = {},
+): Promise<string> {
     const converter = new DoenetMLToPretext();
-    return await converter.convert(doenetML);
-
-    // const flatDast = await getStaticDast(doenetML);
-    // const xastRoot = await flatDastToPretext(flatDast);
-
-    // return xastToXml(xastRoot);
+    return await converter.convert(doenetML, options);
 }
 
 /**
@@ -129,20 +146,6 @@ export async function flatDastToPretext(
 ): Promise<Xast.Root> {
     return renderFlatDastToPretext(flatDast);
 }
-
-// /**
-//  * Convert DoenetML `source` into a static DAST representation. This is suitable for rendering to PreTeXt.
-//  * @param source
-//  */
-// export async function getStaticDast(
-//     source: string,
-// ): Promise<FlatDastRootWithErrors> {
-//     const normalizedDast = getNormalizedDast(source);
-//     const preprocessedDast = preprocessDast(normalizedDast);
-//     const flatDast = await runDastThroughWorker(preprocessedDast, source);
-
-//     return flatDast;
-// }
 
 /**
  * Convert DoenetML source text into normalized DAST.
@@ -157,20 +160,3 @@ export function getNormalizedDast(source: string) {
 export function preprocessDast(dast: DastRoot): DastRoot {
     return preprocessDastForPretext(dast);
 }
-
-// /**
-//  * Run normalized DAST through the core worker to get FlatDast.
-//  */
-// export async function runDastThroughWorker(
-//     dast: DastRoot,
-//     source: string,
-// ): Promise<FlatDastRootWithErrors> {
-//     const worker = await createWrappedCoreWorker();
-//     await worker.setCoreType("javascript");
-//     await worker.setSource({ dast, source });
-//     await worker.setFlags({ flags: defaultFlags });
-
-//     const flatDast = await worker.returnDast();
-
-//     return flatDast;
-// }

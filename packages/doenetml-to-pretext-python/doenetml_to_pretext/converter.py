@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from .exceptions import ConversionError, TimeoutError as DoenetTimeoutError
+from .exceptions import DenoError, ConversionError, DoenetTimeoutError as DoenetTimeoutError
 
 _PACKAGE_DIR = Path(__file__).resolve().parent
 _DIST_INDEX = _PACKAGE_DIR / "js-assets" / "index.js"
@@ -16,11 +16,11 @@ _IMPORT_MAP = _PACKAGE_DIR / "import_map.json"
 class DoenetConverter:
     """Runs DoenetML-to-PreTeXt conversion by invoking Deno."""
 
-    def __init__(self, deno_executable: str = None):
+    def __init__(self, deno_executable: Optional[str] = None):
         self.deno_executable = deno_executable or self._find_deno_executable()
 
     @staticmethod
-    def _find_deno_executable():
+    def _find_deno_executable() -> str:
         """
         Try to find the Deno executable.
         Returns the path to the Deno executable, or raises FileNotFoundError.
@@ -29,7 +29,7 @@ class DoenetConverter:
         try:
             import deno
             return deno.find_deno_bin()
-        except (ImportError, Exception):
+        except ImportError:
             pass
 
         # 2. Fallback: ask the OS for the deno executable
@@ -73,7 +73,7 @@ class DoenetConverter:
             )
 
         if not _IMPORT_MAP.exists():
-            raise BrowserError(f"Import map not found at {_IMPORT_MAP}.")
+            raise DenoError(f"Import map not found at {_IMPORT_MAP}.")
 
         eval_code = self._build_eval_code(self._resolve_dist_index())
 
@@ -148,9 +148,3 @@ def convert_doenetml_to_pretext(xml_string: str, timeout: int = 30000) -> str:
         _converter = DoenetConverter()
 
     return _converter.convert(xml_string, timeout)
-
-
-def cleanup() -> None:
-    """Reset converter singleton. No persistent runtime resources are held."""
-    global _converter
-    _converter = None

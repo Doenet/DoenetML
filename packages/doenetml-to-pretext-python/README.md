@@ -1,11 +1,11 @@
-# doenet-to-pretext
+# doenetml-to-pretext
 
-Python package for converting DoenetML to PreTeXt using Playwright.
+Python package for converting DoenetML to PreTeXt using Deno.
 
 ## Installation
 
 ```bash
-pip install doenet-to-pretext
+pip install doenetml-to-pretext
 ```
 
 ## Usage
@@ -25,13 +25,13 @@ print(pretext_xml)
 
 ## API
 
-### `convert_doenetml_to_pretext(doenetml: str, timeout: int = 5000) -> str`
+### `convert_doenetml_to_pretext(doenetml: str, timeout: int = 30000) -> str`
 
 Converts a DoenetML XML string to PreTeXt XML.
 
 **Parameters:**
 - `doenetml` (str): DoenetML XML source code
-- `timeout` (int): Timeout in milliseconds for conversion (default: 5000)
+- `timeout` (int): Timeout in milliseconds for conversion (default: 30000)
 
 **Returns:**
 - str: PreTeXt XML output

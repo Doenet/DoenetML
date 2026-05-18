@@ -13,13 +13,13 @@ class ConversionError(DoenetConversionError):
     pass
 
 
-class BrowserError(DoenetConversionError):
-    """Raised when browser initialization or execution fails."""
+class DenoError(DoenetConversionError):
+    """Raised when Deno initialization or execution fails."""
 
     pass
 
 
-class TimeoutError(ConversionError):
+class DoenetTimeoutError(ConversionError):
     """Raised when conversion times out."""
 
     pass

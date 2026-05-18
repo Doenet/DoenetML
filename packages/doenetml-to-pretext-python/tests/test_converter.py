@@ -1,11 +1,14 @@
 """Snapshot tests for DoenetML to PreTeXt converter."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
 import pytest
 
 from doenetml_to_pretext import convert_doenetml_to_pretext
+from doenetml_to_pretext.exceptions import ConversionError
 
 
 def _load_snapshots() -> dict[str, dict[str, str]]:
@@ -26,3 +29,9 @@ def test_converter_snapshots(case_name: str):
     case = SNAPSHOTS[case_name]
     result = convert_doenetml_to_pretext(case["input"])
     assert result == case["expected"]
+
+
+def test_malformed_xml_raises_conversion_error():
+    """Malformed XML should raise ConversionError, not crash with an unhandled exception."""
+    with pytest.raises(ConversionError):
+        convert_doenetml_to_pretext("<<<not valid xml at all>>>")
