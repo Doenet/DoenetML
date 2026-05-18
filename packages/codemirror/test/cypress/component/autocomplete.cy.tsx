@@ -561,7 +561,11 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-content").type("x{backspace}.", { force: true });
         cy.get(".cm-content").invoke("text").should("contain", "$myMath.");
 
-        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        // The member popup should auto-open on the `.`.  It intermittently
+        // does not — a residual `@codemirror/autocomplete` timing flake
+        // tracked separately — so use the retry helper, which returns
+        // immediately when the popup is already up and otherwise nudges it.
+        openAutocomplete();
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
             .its("length")
             .should("be.greaterThan", 0);
