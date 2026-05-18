@@ -102,7 +102,7 @@ export class DoenetMLToPretext {
  */
 export async function createWrappedCoreWorker() {
     const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "classic",
+        type: "module",
     });
 
     return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;

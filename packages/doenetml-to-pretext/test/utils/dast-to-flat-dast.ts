@@ -12,7 +12,7 @@ import * as Comlink from "comlink";
 import { doenetGlobalConfig } from "../../src/global-config";
 
 // @ts-ignore
-import workerSource from "@doenet/doenetml-worker/index.js?raw";
+import workerSource from "@doenet/doenetml-worker/index.esm.js?raw";
 
 // We make a blob URL directly from the source code of the worker. This way we don't
 // need to load any other files

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "doenet-to-pretext"
+version = "0.9.0a1"
+description = "Convert DoenetML to PreTeXt using Deno"
+authors = ["Doenet"]
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+keywords = ["doenetml", "pretext", "conversion"]
+repository = "https://github.com/Doenet/DoenetML"
+homepage = "https://github.com/Doenet/DoenetML"
+packages = [
+    {include = "doenetml_to_pretext"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0"
+black = "^23.0"
+mypy = "^1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

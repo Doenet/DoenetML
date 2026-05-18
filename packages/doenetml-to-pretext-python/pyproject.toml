@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "doenetml-to-pretext"
+version = "0.9.0a1"
+description = "Convert DoenetML to PreTeXt using Deno"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "AGPL-3.0-or-later"}
+authors = [
+    {name = "Doenet", email = "contact@doenet.org"}
+]
+keywords = ["doenetml", "pretext", "conversion"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "mypy>=1.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Doenet/DoenetML"
+Homepage = "https://github.com/Doenet/DoenetML"
+
+[tool.setuptools]
+packages = ["doenetml_to_pretext"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
