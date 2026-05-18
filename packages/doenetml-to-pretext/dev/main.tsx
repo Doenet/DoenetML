@@ -7,7 +7,7 @@ import "@doenet/ui-components/style.css";
 import doenetMLstring from "./testCode.doenet?raw";
 
 import "./main.css";
-import { doenetMLToPretext, getStaticDast } from "../src";
+import { DoenetMLToPretext } from "../src";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
@@ -16,6 +16,9 @@ function App() {
     const [source, setSource] = React.useState<string>(doenetMLstring);
     const [pretextOutput, setPretextOutput] = React.useState<string>("");
     const [isConverting, setIsConverting] = React.useState<boolean>(false);
+    const doenetMLToPretextInstance = React.useRef(
+        new DoenetMLToPretext(),
+    ).current;
 
     return (
         <div className="container">
@@ -28,7 +31,8 @@ function App() {
                         setIsConverting(true);
                         console.log("Converting to PreTeXt", source);
                         try {
-                            const ret = await doenetMLToPretext(source);
+                            const ret =
+                                await doenetMLToPretextInstance.convert(source);
                             console.log("Conversion result:", ret);
                             setPretextOutput(ret);
                         } finally {

@@ -68,6 +68,13 @@ Install dev dependencies:
 pip install -e ".[dev]"
 ```
 
+Build a wheel (`.whl`) (might need `pip install build` first):
+```bash
+python -m build --wheel
+```
+
+The built wheel will be placed in `dist/`.
+
 Run tests:
 ```bash
 pytest

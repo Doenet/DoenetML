@@ -79,3 +79,4 @@ packages/prefigure/src/worker/liblouis/generated/*.dis
 packages/doenetml-to-pretext-python/doenetml_to_pretext/js-assets/*
 __pycache__
 .pytest_cache
+*.egg-info
