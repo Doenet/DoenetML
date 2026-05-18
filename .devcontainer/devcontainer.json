@@ -1,6 +1,7 @@
 {
     "name": "DoenetML Node & Rust DevContainer",
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    // 2026-05-18: Playwright doesn't currently support Ubuntu 26.04. When it does, this can be updated.
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
             "version": "lts"
