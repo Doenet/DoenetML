@@ -16,7 +16,8 @@
         "README.md",
         "MANIFEST.in",
         "setup.py",
-        "pyproject.toml"
+        "pyproject.toml",
+        "../doenetml/package.json"
       ],
       "output": [
         "build/**",

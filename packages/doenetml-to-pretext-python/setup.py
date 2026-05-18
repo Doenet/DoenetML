@@ -1,5 +1,6 @@
 """Setup configuration for doenet-to-pretext Python package."""
 
+import json
 from pathlib import Path
 import shutil
 
@@ -36,7 +37,24 @@ class build_py(_build_py):
             if source_file.exists():
                 shutil.copy2(source_file, build_package_root / filename)
 
+
+def get_doenetml_version() -> str:
+    repo_root = Path(__file__).resolve().parents[1]
+    doenetml_package_json = repo_root / "doenetml" / "package.json"
+    if not doenetml_package_json.exists():
+        raise RuntimeError(f"Could not find {doenetml_package_json}")
+
+    with doenetml_package_json.open("r", encoding="utf-8") as file:
+        package_data = json.load(file)
+
+    version = package_data.get("version")
+    if not isinstance(version, str) or not version:
+        raise RuntimeError("Could not read a valid version from doenetml/package.json")
+
+    return version
+
 setup(
+    version=get_doenetml_version(),
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
