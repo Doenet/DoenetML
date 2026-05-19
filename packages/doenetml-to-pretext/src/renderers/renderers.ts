@@ -187,6 +187,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     // This should not be included in Pretext.
     document: PassThroughWithoutTagConverter,
     div: PassThroughWithoutTagConverter,
+    cascade: PassThroughWithoutTagConverter,
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.

@@ -2,24 +2,76 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
 import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
+// @ts-ignore
 import "@doenet/ui-components/style.css";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 
+// @ts-ignore
 import "./main.css";
 import { DoenetMLToPretext } from "../src";
+
+const FRAGMENT_MODE_STORAGE_KEY = "doenetml-to-pretext-fragment-mode";
+const SOURCE_STORAGE_KEY = "doenetml-to-pretext-source";
+
+function getInitialFragmentMode(): boolean {
+    try {
+        return localStorage.getItem(FRAGMENT_MODE_STORAGE_KEY) === "true";
+    } catch {
+        return false;
+    }
+}
+
+function getInitialSource(): string {
+    try {
+        return localStorage.getItem(SOURCE_STORAGE_KEY) ?? doenetMLstring;
+    } catch {
+        return doenetMLstring;
+    }
+}
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
-    const [source, setSource] = React.useState<string>(doenetMLstring);
+    const [source, setSource] = React.useState<string>(getInitialSource);
     const [pretextOutput, setPretextOutput] = React.useState<string>("");
     const [isConverting, setIsConverting] = React.useState<boolean>(false);
-    const [fragment, setFragment] = React.useState<boolean>(false);
+    const [fragment, setFragment] = React.useState<boolean>(
+        getInitialFragmentMode,
+    );
     const doenetMLToPretextInstance = React.useRef(
         new DoenetMLToPretext(),
     ).current;
+
+    React.useEffect(() => {
+        try {
+            localStorage.setItem(FRAGMENT_MODE_STORAGE_KEY, String(fragment));
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+    }, [fragment]);
+
+    React.useEffect(() => {
+        try {
+            localStorage.setItem(SOURCE_STORAGE_KEY, source);
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+    }, [source]);
+
+    function resetSavedState() {
+        try {
+            localStorage.removeItem(FRAGMENT_MODE_STORAGE_KEY);
+            localStorage.removeItem(SOURCE_STORAGE_KEY);
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+
+        setFragment(false);
+        setSource(doenetMLstring);
+        setPretextOutput("");
+    }
 
     return (
         <div className="container">
@@ -36,7 +88,7 @@ function App() {
                                 const ret =
                                     await doenetMLToPretextInstance.convert(
                                         source,
-                                        { fragment },
+                                        { fragment, throwOnError: false },
                                     );
                                 console.log("Conversion result:", ret);
                                 setPretextOutput(ret);
@@ -61,12 +113,18 @@ function App() {
                         />
                         Fragment mode
                     </label>
+                    <UiButton
+                        className="reset-button"
+                        title="Clear saved Doenet code and fragment mode from local storage, and reset them to defaults."
+                        disabled={isConverting}
+                        onClick={resetSavedState}
+                    >
+                        Reset
+                    </UiButton>
                 </div>
             </div>
             <ResizablePanelPair
-                panelA={
-                    <CodeMirror value={doenetMLstring} onChange={setSource} />
-                }
+                panelA={<CodeMirror value={source} onChange={setSource} />}
                 panelB={
                     <div className="pretext-output-container">
                         <h1>PreTeXt Output</h1>

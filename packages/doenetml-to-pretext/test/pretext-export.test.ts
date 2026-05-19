@@ -327,6 +327,27 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("renders a cascade", async () => {
+        source = `<cascade boxAll>
+                    <section>
+                        <p>hi</p>
+                        <problem><p><answer>4</answer></p></problem>
+                    </section>
+                    <section>
+                        <p>there</p>
+                    </section>
+                  </cascade>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<section xml:id="doenet-id-2">
+                                      <p>hi</p>
+                                      <problem xml:id="doenet-id-4"><p><m><fillin characters="8"></fillin></m></p></problem>
+                                  </section><section xml:id="doenet-id-7">
+                                      <p>there</p>
+                                  </section>"
+            `);
+    });
+
     it("convertMultiple assigns different xml:id's to elements with the same name across fragments", async () => {
         // Two fragments, each with an element named "foo"
         // When converted together, they should get different xml:id's

@@ -38,6 +38,10 @@ body {
     user-select: none;
 }
 
+.reset-button {
+    margin-left: auto;
+}
+
 .pretext-output-container {
     flex: 1;
     display: flex;
