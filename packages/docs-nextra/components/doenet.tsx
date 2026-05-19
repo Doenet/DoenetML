@@ -1,9 +1,22 @@
 import React from "react";
-import {
-    DoenetViewer as DoenetViewerOrig,
-    DoenetEditor as DoenetEditorOrig,
-} from "@doenet/doenetml-iframe";
+import dynamic from "next/dynamic";
 import "@doenet/virtual-keyboard/style.css";
+
+/**
+ * The iframe components generate a random per-instance id that is baked into the
+ * iframe's `srcDoc`, so they cannot be server-rendered without a hydration mismatch
+ * (server and client pick different ids), which leaves the example blank after a page
+ * reload. `next/dynamic` with `ssr: false` skips SSR entirely and mounts these
+ * client-side only. The root cause in `@doenet/doenetml-iframe` is tracked in #1139.
+ */
+const DoenetViewerOrig = dynamic(
+    () => import("./doenet-iframe").then((m) => m.DoenetViewer),
+    { ssr: false },
+);
+const DoenetEditorOrig = dynamic(
+    () => import("./doenet-iframe").then((m) => m.DoenetEditor),
+    { ssr: false },
+);
 
 /**
  * Which standalone DoenetML build the embedded examples load.
@@ -24,30 +37,11 @@ const versionProps =
         : { doenetmlVersion: "dev" };
 
 /**
- * `true` only after the component has mounted on the client.
- *
- * The iframe components generate a random per-instance id that is baked into the
- * iframe's `srcDoc`, so they cannot be server-rendered without a hydration mismatch
- * (server and client pick different ids), which leaves the example blank after a page
- * reload. Gating on this renders nothing during SSR and the initial hydration pass,
- * then mounts the real component client-side.
- */
-function useClientOnly() {
-    const [mounted, setMounted] = React.useState(false);
-    React.useEffect(() => setMounted(true), []);
-    return mounted;
-}
-
-/**
  * Render DoenetML in an iframe so that its styling/state is completely isolated from the page.
  */
 export function DoenetViewer({
     source,
 }: React.PropsWithChildren<{ source: string }>) {
-    const mounted = useClientOnly();
-    if (!mounted) {
-        return null;
-    }
     return <DoenetViewerOrig doenetML={source} {...versionProps} />;
 }
 
@@ -62,18 +56,15 @@ export function DoenetEditor({
     viewerLocation?: "left" | "right" | "top" | "bottom";
     height?: string;
 }>) {
-    const mounted = useClientOnly();
     return (
         <div className="doenet-editor-container">
-            {mounted ? (
-                <DoenetEditorOrig
-                    doenetML={source}
-                    showFormatter={showFormatter}
-                    viewerLocation={viewerLocation}
-                    height={height}
-                    {...versionProps}
-                />
-            ) : null}
+            <DoenetEditorOrig
+                doenetML={source}
+                showFormatter={showFormatter}
+                viewerLocation={viewerLocation}
+                height={height}
+                {...versionProps}
+            />
         </div>
     );
 }
