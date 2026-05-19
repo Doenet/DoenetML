@@ -239,6 +239,73 @@ describe("Normalize dast", async () => {
         expect(warnings?.[0].position).toBeDefined();
     });
 
+    it("drops deprecated description attributes", () => {
+        const source = `<description aggregateScores weight="2">hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><description>hello</description></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `weight` on `<description>` is deprecated and ignored.",
+            },
+        ]);
+        expect(warnings?.[0].position).toBeDefined();
+    });
+
+    it("drops deprecated shortDescription attributes", () => {
+        const source = `<shortDescription draggable layer="2">hi</shortDescription>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><shortDescription>hi</shortDescription></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `draggable` on `<shortDescription>` is deprecated and ignored.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `layer` on `<shortDescription>` is deprecated and ignored.",
+            },
+        ]);
+    });
+
+    it("keeps non-deprecated attributes when dropping deprecated ones", () => {
+        const source = `<description name="d" aggregateScores>hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><description name="d">hello</description></document>',
+        );
+    });
+
     it("Sugars in repeat template and _repeatSetup children", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;

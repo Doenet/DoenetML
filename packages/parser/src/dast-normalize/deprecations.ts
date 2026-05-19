@@ -19,6 +19,10 @@ type AttributeRenameRule = {
     conflictWarningMessage: string;
 };
 
+type AttributeRemovalRule = {
+    warningMessage: string;
+};
+
 type ComponentRenameRule = {
     to: string;
     warningMessage: string;
@@ -27,8 +31,28 @@ type ComponentRenameRule = {
 
 type DeprecationRegistry = {
     attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
+    attributeRemovals: Record<string, Record<string, AttributeRemovalRule>>;
     componentRenames: Record<string, ComponentRenameRule>;
 };
+
+/**
+ * Build "deprecated and ignored" removal rules for attributes that are no longer
+ * valid on a component. Using such an attribute emits a warning, and the attribute
+ * is dropped from the DAST so it does not become an "invalid attribute" error.
+ */
+function ignoredAttributes(
+    componentName: string,
+    attributeNames: string[],
+): Record<string, AttributeRemovalRule> {
+    return Object.fromEntries(
+        attributeNames.map((attributeName) => [
+            attributeName,
+            {
+                warningMessage: `[deprecation] Attribute \`${attributeName}\` on \`<${componentName}>\` is deprecated and ignored.`,
+            },
+        ]),
+    );
+}
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
@@ -81,6 +105,30 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             },
         },
     },
+    attributeRemovals: {
+        // `description` and `shortDescription` previously inherited these
+        // attributes from `Div` / `Text`, which are inappropriate parents for
+        // them. The attributes never had a meaningful effect on these
+        // components; they are dropped with a warning.
+        description: ignoredAttributes("description", [
+            "aggregateScores",
+            "weight",
+            "sectionWideCheckWork",
+            "showCorrectness",
+            "colorCorrectness",
+            "forceIndividualAnswerColoring",
+            "submitLabel",
+            "submitLabelNoCorrectness",
+            "displayDigitsForCreditAchieved",
+        ]),
+        shortDescription: ignoredAttributes("shortDescription", [
+            "draggable",
+            "layer",
+            "isLatex",
+            "anchor",
+            "positionFromAnchor",
+        ]),
+    },
     componentRenames: {},
 };
 
@@ -109,6 +157,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
 
             applyComponentRename(node, nodeWarnings);
             applyAttributeRenames(node, nodeWarnings);
+            applyAttributeRemovals(node, nodeWarnings);
             warnings.push(...nodeWarnings);
         });
 
@@ -171,6 +220,33 @@ function applyAttributeRenames(
     }
 
     applyRenames(node, renameRules, warnings);
+}
+
+function applyAttributeRemovals(
+    node: DastElement,
+    warnings: DeprecationDiagnostic[],
+) {
+    // Drop attributes that are deprecated with no replacement, scoped to this
+    // component type. The attribute is removed from the DAST and a warning emitted.
+    const removalRules = DEPRECATION_REGISTRY.attributeRemovals[node.name];
+    if (!removalRules) {
+        return;
+    }
+
+    for (const [attributeName, removalRule] of Object.entries(removalRules)) {
+        const attribute = node.attributes[attributeName];
+        if (!attribute) {
+            continue;
+        }
+
+        const position = attribute.position ?? node.position;
+        const source_doc = attribute.source_doc ?? node.source_doc;
+
+        delete node.attributes[attributeName];
+        warnings.push(
+            createWarning(removalRule.warningMessage, position, source_doc),
+        );
+    }
 }
 
 function applyRenames(
