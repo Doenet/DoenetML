@@ -7,6 +7,7 @@ export type KnownPropAttrType =
     | "text"
     | "keyword"
     | "reference"
+    | "referenceOrText"
     | "boolean"
     | "math"
     | "integer"
@@ -280,7 +281,12 @@ function formatType(typeName?: PropAttrType, isArray?: boolean) {
     if (!typeName) {
         return null;
     }
-    return isArray ? `[ ${typeName} ]` : typeName;
+    // `referenceOrText` marks an attribute (e.g. `<ref to>`) that accepts a
+    // URL string in addition to a component reference; spell it out so the
+    // docs don't imply a plain string is invalid.
+    const label =
+        typeName === "referenceOrText" ? "reference or text" : typeName;
+    return isArray ? `[ ${label} ]` : label;
 }
 
 /**
