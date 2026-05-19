@@ -4,18 +4,18 @@ import { AttrPropDisplay } from "../../components"
 
 
  
-# ` <slider>{:dn}`
+# `<slider>{:dn}`
 
 
 
-` <slider>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+`<slider>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component that renders a draggable selection bar for graphical user input of a single value.
 
 <AttrPropDisplay name='slider'/>
 
 ---
 
-### Example: Default ` <slider>{:dn}`
+### Example: Default `<slider>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -25,14 +25,14 @@ component that renders a draggable selection bar for graphical user input of a s
 
 
 
-The range for a default ` <slider>{:dn}` is from $0$ to $10$. The current value of the slider is shown, by default, in 
+The range for a default `<slider>{:dn}` is from $0$ to $10$. The current value of the slider is shown, by default, in 
 the upper left corner of the slider bar. Referencing the named slider using the `$name` notation renders its current value.
 
 
 
 ---
 
-### Example: A labeled ` <slider>{:dn}`
+### Example: A labeled `<slider>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -43,8 +43,8 @@ the upper left corner of the slider bar. Referencing the named slider using the 
 
 
 
-A ` <slider>{:dn}` can be given a ` <label>{:dn}` child, which renders above the slider to the 
-left of the current value of the ` <slider>{:dn}`.
+A `<slider>{:dn}` can be given a `<label>{:dn}` child, which renders above the slider to the 
+left of the current value of the `<slider>{:dn}`.
 
 
 
@@ -67,8 +67,8 @@ left of the current value of the ` <slider>{:dn}`.
 
 
 There are two types of sliders, "`number`" and "`text`", which can be 
-specified using the `type` attribute. The text type requires ` <text>{:dn}` children, and 
-frames them in a sequential list on the ` <slider>{:dn}` when it is rendered.
+specified using the `type` attribute. The text type requires `<text>{:dn}` children, and 
+frames them in a sequential list on the `<slider>{:dn}` when it is rendered.
 
 
 
@@ -108,7 +108,7 @@ initial value of the slider defaults to the starting value.
 
 
 
-The default `width` for a ` <slider>{:dn}` is 300 pixels, in absolute measurement; this 
+The default `width` for a `<slider>{:dn}` is 300 pixels, in absolute measurement; this 
 value can be adjusted with the `width` attribute.
 
 
@@ -184,7 +184,7 @@ no value is rendered above the slider bar as the user drags the point.
 
 
 
-The `from` and `to` attributes can be used to customize the range for the ` <slider>{:dn}`. The default 
+The `from` and `to` attributes can be used to customize the range for the `<slider>{:dn}`. The default 
 range is from $0$ to $10$.
 
 
@@ -204,7 +204,7 @@ range is from $0$ to $10$.
 
 
 
-The `step` attribute can be used to customize the incremental step size for the ` <slider>{:dn}`. The default 
+The `step` attribute can be used to customize the incremental step size for the `<slider>{:dn}`. The default 
 step is $1$.
 
 
@@ -229,7 +229,7 @@ step is $1$.
 
 
 
-The attributes of ` <slider>{:dn}` listed above are also accessible as properties.
+The attributes of `<slider>{:dn}` listed above are also accessible as properties.
 
 
 
@@ -251,8 +251,8 @@ The attributes of ` <slider>{:dn}` listed above are also accessible as propertie
 
 
 
-The `items` property of ` <slider>{:dn}` returns a list of all the possible values in 
-the slider's range for a `text` type ` <slider>{:dn}`.
+The `items` property of `<slider>{:dn}` returns a list of all the possible values in 
+the slider's range for a `text` type `<slider>{:dn}`.
 
 
 
@@ -277,6 +277,6 @@ the slider's range for a `text` type ` <slider>{:dn}`.
 
 
 
-The `numItems` property of ` <slider>{:dn}` returns the number of possible values 
+The `numItems` property of `<slider>{:dn}` returns the number of possible values 
 occuring in the slider's range.
 

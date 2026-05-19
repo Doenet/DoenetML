@@ -3,11 +3,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <award>{:dn}`
+# `<award>{:dn}`
 
 ## Attribute Examples Part 1
 
-The following examples illustrate use of the ` <award>{:dn}` tag attributes.  
+The following examples illustrate use of the `<award>{:dn}` tag attributes.  
 
 ---
 
@@ -27,8 +27,8 @@ then <m>\frac{1}{2}</m>.</em></p>
 
 
 
-By default, a matched ` <award>{:dn}` will give full credit of 1.  Specify a 
-smaller value of the `credit` attribute cause the ` <award>{:dn}` to give partial credit.
+By default, a matched `<award>{:dn}` will give full credit of 1.  Specify a 
+smaller value of the `credit` attribute cause the `<award>{:dn}` to give partial credit.
 
 
 ---
@@ -209,17 +209,17 @@ Note: if `symbolicEquality` is not specified, `expandOnCompare` has no effect.
 
 
 
-When multiple values are compared within a single ` <award>{:dn}` tag, the default behavior 
+When multiple values are compared within a single `<award>{:dn}` tag, the default behavior 
 is to match the order of the sequenced values. If order is irrelevant, use the `unorderedCompare` attribute.
 
 
-`unorderedCompare` can be used with list components (e.g., ` <mathList>{:dn}`, ` <numberList>{:dn}`, 
-and ` <textList>{:dn}`) as well as the ` <math>{:dn}` component containing a list (e.g, `1,2,3`), 
+`unorderedCompare` can be used with list components (e.g., `<mathList>{:dn}`, `<numberList>{:dn}`, 
+and `<textList>{:dn}`) as well as the `<math>{:dn}` component containing a list (e.g, `1,2,3`), 
 tuple (e.g., `(1,2,3)`) or array (e.g., `[1,2,3]`).
 
 
 Alternatively, and for more control over what is ordered, one can add the `unordered` attribute 
-directly to a list component or a ` <math>{:dn}`, which will cause an unordered comparison to 
+directly to a list component or a `<math>{:dn}`, which will cause an unordered comparison to 
 be used when comparing it to anything else.
 
 

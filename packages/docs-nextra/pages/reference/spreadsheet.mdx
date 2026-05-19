@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <spreadsheet>{:dn}`
+# `<spreadsheet>{:dn}`
 
 
-` <spreadsheet>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+`<spreadsheet>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
 component that renders a basic embedded spreadsheet tool.
 
 <AttrPropDisplay name='spreadsheet'/>
@@ -14,7 +14,7 @@ component that renders a basic embedded spreadsheet tool.
 
 ---
 
-### Example: default ` <spreadsheet>{:dn}`
+### Example: default `<spreadsheet>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -23,13 +23,13 @@ component that renders a basic embedded spreadsheet tool.
 
 
 
-Without any additional attributes, the default ` <spreadsheet>{:dn}` is $4$ rows by $4$ columns.
+Without any additional attributes, the default `<spreadsheet>{:dn}` is $4$ rows by $4$ columns.
 
 
 
 ---
 
-### Example: referencing ` <spreadsheet>{:dn}` data
+### Example: referencing `<spreadsheet>{:dn}` data
 
 
 ```doenet-editor-horiz
@@ -49,16 +49,16 @@ Without any additional attributes, the default ` <spreadsheet>{:dn}` is $4$ rows
 ```
 
 
-Values stored within individual cells of a ` <spreadsheet>{:dn}` can be accessed using the following
+Values stored within individual cells of a `<spreadsheet>{:dn}` can be accessed using the following
 notation: `spreadsheetName.cell##` where `##` is the column letter and row number of the cell. 
 For example, `$foods.cellA2` refers to the cell in the first column and second row of the 
-` <spreadsheet>{:dn}` component. 
+`<spreadsheet>{:dn}` component. 
 
 
 
 ---
 
-### Example: ` <spreadsheet>{:dn}` with ` <cell>{:dn}` children
+### Example: `<spreadsheet>{:dn}` with `<cell>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -74,7 +74,7 @@ For example, `$foods.cellA2` refers to the cell in the first column and second r
 
 
 
-Initial data can be prefilled using nested ` <cell>{:dn}` children. The `rowNum` and `colNum` attributes 
+Initial data can be prefilled using nested `<cell>{:dn}` children. The `rowNum` and `colNum` attributes 
 can be used to locate data.
 
 
@@ -92,7 +92,7 @@ When only one or neither of these attributes is specified, data is populated in 
 
 ---
 
-### Example: build ` <spreadsheet>{:dn}` with rows
+### Example: build `<spreadsheet>{:dn}` with rows
 
 
 ```doenet-editor-horiz
@@ -122,14 +122,14 @@ When only one or neither of these attributes is specified, data is populated in 
 
 
 
-Initial data can be prefilled using nested ` <row>{:dn}` children, which in turn contain 
-individual ` <cell>{:dn}` children.
+Initial data can be prefilled using nested `<row>{:dn}` children, which in turn contain 
+individual `<cell>{:dn}` children.
 
 
 
 ---
 
-### Example: build ` <spreadsheet>{:dn}` with rows
+### Example: build `<spreadsheet>{:dn}` with rows
 
 
 ```doenet-editor-horiz
@@ -157,8 +157,8 @@ individual ` <cell>{:dn}` children.
 
 
 
-Initial data can be prefilled using nested ` <column>{:dn}` children, which in turn contain 
-individual ` <cell>{:dn}` children.
+Initial data can be prefilled using nested `<column>{:dn}` children, which in turn contain 
+individual `<cell>{:dn}` children.
 
 
 
@@ -189,7 +189,7 @@ individual ` <cell>{:dn}` children.
 
 
 
-Spreadsheet computation formulas can be entered directly into an individual ` <cell>{:dn}` component. 
+Spreadsheet computation formulas can be entered directly into an individual `<cell>{:dn}` component. 
 References for data within spreadsheets follow standard spreadsheet naming conventions, 
 but no \$ is required. Formulas can be prefilled, or entered manually by the user by clicking on the cell. 
 Try directly entering a formula into cell B3 that references one or more of the other cells.
@@ -207,7 +207,7 @@ Try directly entering a formula into cell B3 that references one or more of the 
 
 
 
-The default size ` <spreadsheet/>{:dn}` of 4 rows by 4 columns has been modified with 
+The default size `<spreadsheet/>{:dn}` of 4 rows by 4 columns has been modified with 
 the `minNumRows` and the `minNumColumns` attributes.
 
 
@@ -224,7 +224,7 @@ the `minNumRows` and the `minNumColumns` attributes.
 
 
 
-The default size ` <spreadsheet>{:dn}` component (100% of available screen width) is shown 
+The default size `<spreadsheet>{:dn}` component (100% of available screen width) is shown 
 above one with a specified `width` of 50% of available width.
 
 

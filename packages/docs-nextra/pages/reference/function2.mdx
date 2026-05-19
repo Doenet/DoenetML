@@ -3,12 +3,12 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <function>{:dn}`
+# `<function>{:dn}`
 
 ## Attribute Examples Part 1
 
 
-The following examples illustrate use of the ` <function>{:dn}` tag attributes.  
+The following examples illustrate use of the `<function>{:dn}` tag attributes.  
 
 ## Attributes
  <AttrDisplay name='function'/> 
@@ -107,7 +107,7 @@ For symbolic functions (the default), evaluating at a symbolic point ignores the
 
 
 
-By default, a ` <function>{:dn}` will be based on the single variable $x$.
+By default, a `<function>{:dn}` will be based on the single variable $x$.
 Use the `variable` or `variables` attribute to create a function based a different variable or multiple variables.
 
 
@@ -180,7 +180,7 @@ as false, then the function will be evaluated numerically.  Numeric evaluation i
 but it can only return a number.
 
 
-If one evaluates using the full syntax of an ` <evaluate>{:dn}` component (as opposed to 
+If one evaluates using the full syntax of an `<evaluate>{:dn}` component (as opposed to 
 the shortcut evaluation macro `$$f(x,y)`), then one can use the attributes `forceNumeric` or `forceSymbolic`
 to force numerical or symbolic evaluation independent of the `symbolic` attribute.
 
@@ -306,7 +306,7 @@ the number of decimal places.
 
 Note: these display rounding settings do not affect the actual value of the numbers in 
 the expression.  All available digits will be used if the expression is used in another 
-calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
+calculation unless one uses the `<round>{:dn}` component to explicitly round numbers.
 
 
 

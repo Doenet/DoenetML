@@ -3,17 +3,17 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <label>{:dn}`
+# `<label>{:dn}`
 
 
-` <label>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a label on a ` <graph>{:dn}`, button, or checkbox.
+`<label>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a label on a `<graph>{:dn}`, button, or checkbox.
 
 <AttrPropDisplay name='label'/>
 
 ---
 
-### Example: ` <label>{:dn}` a ` <point>{:dn}` on a ` <graph>{:dn}`
+### Example: `<label>{:dn}` a `<point>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -27,14 +27,14 @@ component that renders a label on a ` <graph>{:dn}`, button, or checkbox.
 
 
 
-Any graphical component (such as a ` <point>{:dn}`, ` <line>{:dn}`, or ` <curve>{:dn}`) will 
-accept a ` <label>{:dn}` component as a child.
+Any graphical component (such as a `<point>{:dn}`, `<line>{:dn}`, or `<curve>{:dn}`) will 
+accept a `<label>{:dn}` component as a child.
 
 
 
 ---
 
-### Example: A stand-alone ` <label>{:dn}` on a ` <graph>{:dn}`
+### Example: A stand-alone `<label>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -51,13 +51,13 @@ accept a ` <label>{:dn}` component as a child.
 
 
 
-A ` <label>{:dn}` can be placed within a ` <graph>{:dn}` directly (not as a child of a graphical component). Use the `anchor` attribute to position the ` <label>{:dn}`.
+A `<label>{:dn}` can be placed within a `<graph>{:dn}` directly (not as a child of a graphical component). Use the `anchor` attribute to position the `<label>{:dn}`.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` a checkbox
+### Example: `<label>{:dn}` a checkbox
 
 
 ```doenet-example
@@ -68,13 +68,13 @@ A ` <label>{:dn}` can be placed within a ` <graph>{:dn}` directly (not as a chil
 
 
 
-A checkbox is rendered by the ` <booleanInput>{:dn}` component. The ` <booleanInput>{:dn}` component takes a ` <label>{:dn}` child.
+A checkbox is rendered by the `<booleanInput>{:dn}` component. The `<booleanInput>{:dn}` component takes a `<label>{:dn}` child.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` an ` <updateValue>{:dn}`
+### Example: `<label>{:dn}` an `<updateValue>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -90,14 +90,14 @@ A checkbox is rendered by the ` <booleanInput>{:dn}` component. The ` <booleanIn
 
 
 
-The ` <updateValue>{:dn}` component, when triggered based on a button click 
-interaction, can take a ` <label>{:dn}` child.
+The `<updateValue>{:dn}` component, when triggered based on a button click 
+interaction, can take a `<label>{:dn}` child.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` a ` <callAction>{:dn}`
+### Example: `<label>{:dn}` a `<callAction>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -112,14 +112,14 @@ interaction, can take a ` <label>{:dn}` child.
 
 
 
-The ` <callAction>{:dn}` component, when triggered based on a button click interaction, 
-can take a ` <label>{:dn}` child.
+The `<callAction>{:dn}` component, when triggered based on a button click interaction, 
+can take a `<label>{:dn}` child.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` a ` <triggerSet>{:dn}`
+### Example: `<label>{:dn}` a `<triggerSet>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -144,14 +144,14 @@ can take a ` <label>{:dn}` child.
 
 
 
-The ` <callAction>{:dn}` component, when triggered based on a 
-button click interaction, can take a ` <label>{:dn}` child.
+The `<callAction>{:dn}` component, when triggered based on a 
+button click interaction, can take a `<label>{:dn}` child.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` within a ` <legend>{:dn}`
+### Example: `<label>{:dn}` within a `<legend>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -169,14 +169,14 @@ button click interaction, can take a ` <label>{:dn}` child.
 
 
 
-A ` <legend>{:dn}` can be given ` <label>{:dn}` children. Labels are assigned to components in the 
+A `<legend>{:dn}` can be given `<label>{:dn}` children. Labels are assigned to components in the 
 order in which they are defined within the graph.
 
 
 
 ---
 
-### Example: ` <label>{:dn}` a ` <textInput>{:dn}` on a ` <graph>{:dn}`
+### Example: `<label>{:dn}` a `<textInput>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -199,10 +199,10 @@ order in which they are defined within the graph.
 
 
 
-Although a ` <mathInput/>{:dn}` cannot be placed on a ` <graph>{:dn}`, a ` <textInput/>{:dn}` can be 
+Although a `<mathInput/>{:dn}` cannot be placed on a `<graph>{:dn}`, a `<textInput/>{:dn}` can be 
 placed on a graph to gather basic numerical or algebraic responses. These responses can then be 
-redefined as a ` <math>{:dn}` for use in an ` <award>{:dn}`. The ` <textInput/>{:dn}` on the graph 
-can take a ` <label>{:dn}` child to prompt the desired input.
+redefined as a `<math>{:dn}` for use in an `<award>{:dn}`. The `<textInput/>{:dn}` on the graph 
+can take a `<label>{:dn}` child to prompt the desired input.
 
 
 
@@ -238,9 +238,9 @@ can take a ` <label>{:dn}` child to prompt the desired input.
 
 
 
-The `forObject` attribute is used with a ` <label>{:dn}` nested inside a ` <legend>{:dn}` to override 
+The `forObject` attribute is used with a `<label>{:dn}` nested inside a `<legend>{:dn}` to override 
 the default label ordering. The default label ordering within a legend matches the order in which 
-components are defined within the ` <graph>{:dn}`.
+components are defined within the `<graph>{:dn}`.
 
 
 
@@ -259,8 +259,8 @@ components are defined within the ` <graph>{:dn}`.
 
 
 
-The `draggable` attribute determines whether the ` <label>{:dn}` can be dragged 
-around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<label>{:dn}` can be dragged 
+around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -278,7 +278,7 @@ around the ` <graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
-The `text` property returns the text value of the named ` <label>{:dn}`.
+The `text` property returns the text value of the named `<label>{:dn}`.
 
 
 
@@ -296,7 +296,7 @@ The `text` property returns the text value of the named ` <label>{:dn}`.
 
 
 
-The `latex` property returns the latex code for rendering the named ` <label>{:dn}`.
+The `latex` property returns the latex code for rendering the named `<label>{:dn}`.
 
 
 
@@ -314,5 +314,5 @@ The `latex` property returns the latex code for rendering the named ` <label>{:d
 
 
 
-The `value` property returns the value stored with the named ` <label>{:dn}`.
+The `value` property returns the value stored with the named `<label>{:dn}`.
 

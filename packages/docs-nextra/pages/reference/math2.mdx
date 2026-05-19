@@ -3,7 +3,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <math>{:dn}`
+# `<math>{:dn}`
 
 ## Examples Page 2
 
@@ -63,7 +63,7 @@ when they occur in mathematical expressions. If the symbol itself is given by a
 named reference using `$name`, the `referencesAreFunctionSymbols` attribute 
 alerts Doenet that the value stored in this reference is the function symbol. In the 
 example above, this could be any one of the five possible symbols that are assigned 
-in different variants to the reference ` <select>{:dn}`.
+in different variants to the reference `<select>{:dn}`.
 
 
 
@@ -83,7 +83,7 @@ in different variants to the reference ` <select>{:dn}`.
 
 
 
-By default, letters placed adjacent to one another in a ` <math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the `splitSymbols` attribute to `false`.
+By default, letters placed adjacent to one another in a `<math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the `splitSymbols` attribute to `false`.
 
 
 
@@ -103,7 +103,7 @@ By default, letters placed adjacent to one another in a ` <math>{:dn}` component
 
 
 
-By default, Doenet inserts an underscore when there is a blank space (indicated by an empty set of parentheses in the DoenetML) within a ` <math>{:dn}`. To override this default behavior, set the `displayBlanks` attribute to `false`.
+By default, Doenet inserts an underscore when there is a blank space (indicated by an empty set of parentheses in the DoenetML) within a `<math>{:dn}`. To override this default behavior, set the `displayBlanks` attribute to `false`.
 
 
 
@@ -146,15 +146,15 @@ By default, maths that are also numbers will be displayed as rounded to three di
 
 
 Note: these display rounding settings do not affect the actual value of the numbers in the expression.  All 
-available digits will be used if the expression is used in another calculation unless one uses the ` <round>{:dn}` 
+available digits will be used if the expression is used in another calculation unless one uses the `<round>{:dn}` 
 component to explicitly round numbers.
 
 
-**Disclaimer:** Using a ` <math>{:dn}` component with inexact decimal values is only used in 
-this example for illustrative purposes; it is not good practice. Note that, in a ` <math>{:dn}` or 
-a ` <number>{:dn}` component, it is better enter the symbolic representation of the irrational 
+**Disclaimer:** Using a `<math>{:dn}` component with inexact decimal values is only used in 
+this example for illustrative purposes; it is not good practice. Note that, in a `<math>{:dn}` or 
+a `<number>{:dn}` component, it is better enter the symbolic representation of the irrational 
 number (i.e., to use $\pi$, $\sqrt(2)$, $e$, etc.) In addition, if 
-the final desired result is a numerical value, it may also be better to use the ` <number>{:dn}` component.
+the final desired result is a numerical value, it may also be better to use the `<number>{:dn}` component.
 
 
 
@@ -206,7 +206,7 @@ by changing the value of `displaySmallAsZero` to a different number, or even set
 
 
 **Disclaimer:** In the above example, if the final desired result is a numerical 
-value, it may be better practice to use the ` <number>{:dn}` component.
+value, it may be better practice to use the `<number>{:dn}` component.
 
 
 
@@ -232,7 +232,7 @@ zeros so that all the digits from the combination of `displayDigits` and `displa
 
 
 **Disclaimer**: In the above example, if the final desired result is a numerical value, 
-it may be better practice to use the ` <number>{:dn}` component.
+it may be better practice to use the `<number>{:dn}` component.
 
 
 
@@ -323,7 +323,7 @@ are all somewhat transparent, this effect may not be clearly visible for default
 
 
 
-The ` <math>{:dn}` attributes listed above are also accessible as properties.
+The `<math>{:dn}` attributes listed above are also accessible as properties.
 
 
 
@@ -351,7 +351,7 @@ The ` <math>{:dn}` attributes listed above are also accessible as properties.
 
 
 
-The `unordered` property returns the boolean value `true` if the ` <math>{:dn}` is 
+The `unordered` property returns the boolean value `true` if the `<math>{:dn}` is 
 considered without regard to order for validation purposes.
 
 
@@ -368,8 +368,8 @@ considered without regard to order for validation purposes.
 
 
 
-If the value stored in the ` <math>{:dn}` component can be parsed as 
-a ` <number>{:dn}`, the `number` property returns this value.
+If the value stored in the `<math>{:dn}` component can be parsed as 
+a `<number>{:dn}`, the `number` property returns this value.
 
 
 
@@ -391,10 +391,10 @@ a ` <number>{:dn}`, the `number` property returns this value.
 
 
 
-The `isNumber` property returns `true` if the ` <math>{:dn}` is a number, without any simplification. This implies that the `number` property of the ` <math>{:dn}` is equivalent to the ` <math>{:dn}` itself. (Note, that simplification includes substituting the numerical value of the symbol for `pi`, so `pi` returns a `false` for `isNumber`.) 
+The `isNumber` property returns `true` if the `<math>{:dn}` is a number, without any simplification. This implies that the `number` property of the `<math>{:dn}` is equivalent to the `<math>{:dn}` itself. (Note, that simplification includes substituting the numerical value of the symbol for `pi`, so `pi` returns a `false` for `isNumber`.) 
 
 
-The `isNumeric` property returns `true` if the ` <math>{:dn}` evaluates to a number, or simplifies to a number. This implies that the property `number` returns a value, rather than `NaN`.
+The `isNumeric` property returns `true` if the `<math>{:dn}` evaluates to a number, or simplifies to a number. This implies that the property `number` returns a value, rather than `NaN`.
 
 
 
@@ -410,7 +410,7 @@ The `isNumeric` property returns `true` if the ` <math>{:dn}` evaluates to a num
 
 
 
-The `latex` property returns the LaTeX of the ` <math>{:dn}` expression.
+The `latex` property returns the LaTeX of the `<math>{:dn}` expression.
 
 
 
@@ -426,7 +426,7 @@ The `latex` property returns the LaTeX of the ` <math>{:dn}` expression.
 
 
 
-The `text` property returns the text value of the ` <math>{:dn}` expression.
+The `text` property returns the text value of the `<math>{:dn}` expression.
 
 
 
@@ -442,7 +442,7 @@ The `text` property returns the text value of the ` <math>{:dn}` expression.
 
 
 
-The `numDimensions` property returns the number of dimensions of the ` <math>{:dn}`.
+The `numDimensions` property returns the number of dimensions of the `<math>{:dn}`.
 
 
 
@@ -462,7 +462,7 @@ The `numDimensions` property returns the number of dimensions of the ` <math>{:d
 
 
 
-If the ` <math>{:dn}` component is expressed in the form of a tuple, the `vector` property returns the vector value of the ` <math>{:dn}`.  The `vector` will also convert a row or column matrix into a vector.
+If the `<math>{:dn}` component is expressed in the form of a tuple, the `vector` property returns the vector value of the `<math>{:dn}`.  The `vector` will also convert a row or column matrix into a vector.
 
 
 
@@ -490,7 +490,7 @@ If the ` <math>{:dn}` component is expressed in the form of a tuple, the `vector
 
 
 
-When the ` <math>{:dn}` component involves a matrix, the `matrixSize` attribute returns the dimensions of the matrix. In this example, `math1` involves multiplication of two matrices. This operation is carried out with the `expand` attribute in the definition of `math2`. The `matrixSize` property of `math2` returns `2,1` for the 2 rows x 1 column of the resultant matrix.
+When the `<math>{:dn}` component involves a matrix, the `matrixSize` attribute returns the dimensions of the matrix. In this example, `math1` involves multiplication of two matrices. This operation is carried out with the `expand` attribute in the definition of `math2`. The `matrixSize` property of `math2` returns `2,1` for the 2 rows x 1 column of the resultant matrix.
 
 
 
@@ -519,7 +519,7 @@ When the ` <math>{:dn}` component involves a matrix, the `matrixSize` attribute 
 
 
 
-The `numRows` and `numCols` properties return the dimensions of a ` <math>{:dn}` that takes the form of a matrix.
+The `numRows` and `numCols` properties return the dimensions of a `<math>{:dn}` that takes the form of a matrix.
 
 
 
@@ -548,5 +548,5 @@ The `numRows` and `numCols` properties return the dimensions of a ` <math>{:dn}`
 
 
 
-The `matrix` property can be used to render the value of a ` <math>{:dn}` in matrix form, or it can be used with array notation to access a distinct entry within a matrix.  It can also be used to convert vectors into matrices.
+The `matrix` property can be used to render the value of a `<math>{:dn}` in matrix form, or it can be used with array notation to access a distinct entry within a matrix.  It can also be used to convert vectors into matrices.
 

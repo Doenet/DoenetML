@@ -3,20 +3,20 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# `<tag>{:dn}`, ` <tage/>{:dn}`
+# `<tag>{:dn}`, `<tage/>{:dn}`
 
-` <tag>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
+`<tag>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
 component which renders the enclosed text in the default font for component tags.   
 
 Similarly, a `<tage/>{:dn}` component may be used to render 
-a self-closing tag (i.e. `< componentName />`).  Use of ` <tag>{:dn}` and ` <tage/>{:dn}` will prevent errors with 
+a self-closing tag (i.e. `< componentName />`).  Use of `<tag>{:dn}` and `<tage/>{:dn}` will prevent errors with 
 rendering these symbols, allowing them to be used for display rather than as functional components within the document.
 
 <AttrPropDisplay name='tag'/>
 
 
 
-### Example: Use ` <tag>{:dn}` for correct rendering 
+### Example: Use `<tag>{:dn}` for correct rendering 
 
 
 ```doenet-editor-horiz
@@ -28,5 +28,5 @@ rendering these symbols, allowing them to be used for display rather than as fun
 </p>
 ```
 
-The author's intention is to describe the use of the ` <p>{:dn}` and ` <image\>{:dn}` tags in writing HTML. The ` <tag>{:dn}` component is 
+The author's intention is to describe the use of the `<p>{:dn}` and `<image\>{:dn}` tags in writing HTML. The `<tag>{:dn}` component is 
 therefore used to render the opening and closing brackets for the tags correctly.

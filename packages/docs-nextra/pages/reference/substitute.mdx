@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <substitute>{:dn}`
+# `<substitute>{:dn}`
 
 
-` <substitute>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+`<substitute>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
 component that replaces one character or string from a math or a text with another specified string.
 
 
@@ -33,7 +33,7 @@ Note that substitution is used for variables in math expressions, not numerical 
 
 
 
-In this example, the ` <substitute>{:dn}` component is used to swap out one variable from a user-input expression for another. Two attributes are required:
+In this example, the `<substitute>{:dn}` component is used to swap out one variable from a user-input expression for another. Two attributes are required:
 
 
 * `match`, which defines the content to replace
@@ -42,7 +42,7 @@ In this example, the ` <substitute>{:dn}` component is used to swap out one vari
 The default type for substitution is math.
 
 
-The substititution is performed in a ` <setup>{:dn}` block, which does not render on the page. The modified expression is later rendered by referencing the name of the ` <substitute>{:dn}` component in line $10$ with `$sub`.
+The substititution is performed in a `<setup>{:dn}` block, which does not render on the page. The modified expression is later rendered by referencing the name of the `<substitute>{:dn}` component in line $10$ with `$sub`.
 
 
 
@@ -65,10 +65,10 @@ The substititution is performed in a ` <setup>{:dn}` block, which does not rende
 
 
 
-In this example, the ` <substitute>{:dn}` component is used to swap out one word from a user's ` <textInput>{:dn}` for another. The `type = "text"` specification is made for the ` <substitute>{:dn}` component; this is required as the default `type` is math.
+In this example, the `<substitute>{:dn}` component is used to swap out one word from a user's `<textInput>{:dn}` for another. The `type = "text"` specification is made for the `<substitute>{:dn}` component; this is required as the default `type` is math.
 
 
-The substititution is performed in a ` <setup>{:dn}` block, which does not render on the page. The modified text is later rendered by referencing the name of the ` <substitute>{:dn}` component in line $10$ with `$sub`.
+The substititution is performed in a `<setup>{:dn}` block, which does not render on the page. The modified text is later rendered by referencing the name of the `<substitute>{:dn}` component in line $10$ with `$sub`.
 
 
 
@@ -134,10 +134,10 @@ The default substitution type is `math`. Use `type="text"` to switch the type of
 
 
 
-The `match` attribute specifies content to be replaced with the ` <substitution>{:dn}` component.
+The `match` attribute specifies content to be replaced with the `<substitution>{:dn}` component.
 
 
-The `replacement` attribute specifies new content to be inserted with the ` <substitution>{:dn}` component.
+The `replacement` attribute specifies new content to be inserted with the `<substitution>{:dn}` component.
 
 
 
@@ -155,7 +155,7 @@ The `replacement` attribute specifies new content to be inserted with the ` <sub
 
 
 
-The ` <substitution>{:dn}` component accepts the standard `simplify` attribute for math components.
+The `<substitution>{:dn}` component accepts the standard `simplify` attribute for math components.
 
 
 
@@ -209,7 +209,7 @@ By default, Doenet separates strings into individual, case-insensitive character
 
 
 
-By default, matching is case-insensitive with the ` <substitution>{:dn}` component. Use `matchCase` to change this default behavior.
+By default, matching is case-insensitive with the `<substitution>{:dn}` component. Use `matchCase` to change this default behavior.
 
 
 

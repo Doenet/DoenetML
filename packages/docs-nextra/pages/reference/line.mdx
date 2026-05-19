@@ -4,24 +4,24 @@ import { AttrPropDisplay } from "../../components"
 
 
 
-# ` <line>{:dn}`
+# `<line>{:dn}`
 
-` <line>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a line when nested inside a ` <graph>{:dn}` component, and renders an equation otherwise.
+`<line>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a line when nested inside a `<graph>{:dn}` component, and renders an equation otherwise.
 
 
 Current functionality supports generation of lines in $\mathbb{R^2}$ through user-specification of: 
 
 1. a single pair of points
 2. through a single point and a specified slope
-3. with an equation, or ` <function>{:dn}`
+3. with an equation, or `<function>{:dn}`
 
 
 <AttrPropDisplay name='line'/>
 
 ---
 
-### Example: Default ` <line>{:dn}`
+### Example: Default `<line>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -33,15 +33,15 @@ Current functionality supports generation of lines in $\mathbb{R^2}$ through use
 
 
 
-The default ` <line>{:dn}` without any attributes specified (other than a `styleNumber`) is 
+The default `<line>{:dn}` without any attributes specified (other than a `styleNumber`) is 
 illustrated. This line is not very interesting; it is just the $x$-axis. The equation of the line is 
-copied below the ` <graph>{:dn}`. You can click and drag the line to see this equation updated.
+copied below the `<graph>{:dn}`. You can click and drag the line to see this equation updated.
 
 
 
 ---
 
-### Example: ` <line>{:dn}` with slope and through point
+### Example: `<line>{:dn}` with slope and through point
 
 
 ```doenet-editor-horiz
@@ -71,7 +71,7 @@ Two lines are graphed using both the `slope` and `through` attributes.
 
 ---
 
-### Example: ` <line>{:dn}` through 2 points
+### Example: `<line>{:dn}` through 2 points
 
 
 ```doenet-editor-horiz
@@ -101,7 +101,7 @@ Two lines are graphed by specifying two through points using the `through` attri
 
 ---
 
-### Example: ` <line>{:dn}` by equation
+### Example: `<line>{:dn}` by equation
 
 
 ```doenet-editor-horiz
@@ -121,7 +121,7 @@ Two lines are graphed by providing their equations directly.
 
 ---
 
-### Example: Line as a ` <function>{:dn}`
+### Example: Line as a `<function>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -136,8 +136,8 @@ Two lines are graphed by providing their equations directly.
 
 
 
-Two lines are defined using the ` <function>{:dn}` component. This 
-is a useful alternative to defining a line with the ` <line>{:dn}` component if 
+Two lines are defined using the `<function>{:dn}` component. This 
+is a useful alternative to defining a line with the `<line>{:dn}` component if 
 the function needs to be evaluated at different input values.
 
 
@@ -290,7 +290,7 @@ illustrated: `hide`, `draggable`, `layer`, `styleNumber`, `applyStyleToLabel` an
 
 
 
-The above listed attributes of a named ` <line>{:dn}` are also available as properties.
+The above listed attributes of a named `<line>{:dn}` are also available as properties.
 
 
 
@@ -314,7 +314,7 @@ The above listed attributes of a named ` <line>{:dn}` are also available as prop
 
 
 
-The `points` property of a named ` <line>{:dn}` returns the through points of the line in an array.
+The `points` property of a named `<line>{:dn}` returns the through points of the line in an array.
 
 
 
@@ -340,7 +340,7 @@ The `points` property of a named ` <line>{:dn}` returns the through points of th
 
 
 
-The `xIntercept` and `yIntercept` properties return the intercepts of the named ` <line>{:dn}`.
+The `xIntercept` and `yIntercept` properties return the intercepts of the named `<line>{:dn}`.
 
 
 

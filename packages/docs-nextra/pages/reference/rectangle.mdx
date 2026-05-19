@@ -2,17 +2,17 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrPropDisplay } from "../../components"
 
-# ` <rectangle>{:dn}`
+# `<rectangle>{:dn}`
 
 
-` <rectangle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
-component that renders a rectangle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+`<rectangle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that renders a rectangle when nested inside a [`<graph>{:dn}`](graph.mdx) component.
 
 <AttrPropDisplay name='rectangle'/>
 
 ---
 
-### Example: Default ` <rectangle>{:dn}`
+### Example: Default `<rectangle>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -28,7 +28,7 @@ component that renders a rectangle when nested inside a [` <graph>{:dn}`](graph.
 
 
 
-This is a default ` <rectangle>{:dn}` without additional attributes. The vertices 
+This is a default `<rectangle>{:dn}` without additional attributes. The vertices 
 can be dragged to change its shape, and the rectangle itself can be repositioned by 
 clicking and dragging on any side.
 
@@ -36,7 +36,7 @@ clicking and dragging on any side.
 
 ---
 
-### Example: ` <rectangle>{:dn}` with center, width and height
+### Example: `<rectangle>{:dn}` with center, width and height
 
 
 ```doenet-editor-horiz
@@ -52,7 +52,7 @@ clicking and dragging on any side.
 
 
 
-A ` <rectangle>{:dn}` can be described by specifying its `center`, `width` and `height` 
+A `<rectangle>{:dn}` can be described by specifying its `center`, `width` and `height` 
 with attributes. The vertices can be dragged to change its shape, and the rectangle 
 itself can be repositioned by clicking and dragging on any side.
 
@@ -60,7 +60,7 @@ itself can be repositioned by clicking and dragging on any side.
 
 ---
 
-### Example: Filled colored ` <rectangle>{:dn}`
+### Example: Filled colored `<rectangle>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -82,7 +82,7 @@ The `filled` attribute renders the rectangle with default shading to match the s
 
 ---
 
-### Example: ` <rectangle>{:dn}` from vertices
+### Example: `<rectangle>{:dn}` from vertices
 
 
 ```doenet-editor-horiz
@@ -107,7 +107,7 @@ points of the rectangle (lower left and upper right); default: vertices="(0,0) (
 
 ---
 
-### Example: ` <rectangle>{:dn}` constrained to a grid
+### Example: `<rectangle>{:dn}` constrained to a grid
 
 
 ```doenet-editor-horiz
@@ -170,7 +170,7 @@ the default center position is $(0.5, 0.5)$.
 
 
 
-Use the `width` and `height` attributes to specify the proportions of the ` <rectangle>{:dn}` directly. 
+Use the `width` and `height` attributes to specify the proportions of the `<rectangle>{:dn}` directly. 
 If not specified, the default values for `width` and `height` are both $1$.
 
 
@@ -218,8 +218,8 @@ Use the `vertices` attribute to specify a list of the two opposite corner points
 
 
 Vertices are draggable by default. Use the `verticesDraggable` attribute set to `false` to 
-disable users from changing the proportions of the ` <rectangle>{:dn}`. The rectangle as a 
-whole can still be repositioned on the ` <graph>{:dn}`.
+disable users from changing the proportions of the `<rectangle>{:dn}`. The rectangle as a 
+whole can still be repositioned on the `<graph>{:dn}`.
 
 
 
@@ -292,5 +292,5 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
-The above listed attributes of a named ` <rectangle>{:dn}` are also available as properties.
+The above listed attributes of a named `<rectangle>{:dn}` are also available as properties.
 

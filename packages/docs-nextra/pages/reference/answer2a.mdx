@@ -3,11 +3,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <answer>{:dn}`
+# `<answer>{:dn}`
 
 ## Attribute Examples Part 1
 
-The following examples illustrate use of the ` <answer>{:dn}` tag attributes.  
+The following examples illustrate use of the `<answer>{:dn}` tag attributes.  
 
 ## Attributes
  <AttrDisplay name='answer'/> 
@@ -25,7 +25,7 @@ The following examples illustrate use of the ` <answer>{:dn}` tag attributes.
 
 
 The condition within the `disabled` attribute is  `true` until the 
-user achieves credit for the first ` <answer>{:dn}`.
+user achieves credit for the first `<answer>{:dn}`.
 
 
 The `symbolicEquality` attribute was added to prevent mathematical operations 
@@ -54,9 +54,9 @@ answer to the first question.
 ```
 
 This example illustrates the use the `weight` attribute 
-within an ` <answer>{:dn}`. Use `weight` to reduce or enhance the 
+within an `<answer>{:dn}`. Use `weight` to reduce or enhance the 
 proportion of total credit on the page obtained for a correct response to a  
-single ` <answer>{:dn}`. By default, each ` <answer>{:dn}` has an equal weight of $1$. 
+single `<answer>{:dn}`. By default, each `<answer>{:dn}` has an equal weight of $1$. 
 
 ---
 
@@ -128,8 +128,8 @@ The automated partial credit algorithm will attempt to break up logical conditio
 separately at components of vectors, and award partially matched choices.
 
 
-More fine grained control can be obtained by adding multiple ` <award>{:dn}` children to an ` <answer>{:dn}` and giving 
-each ` <award>{:dn}` a different `credit` attribute.
+More fine grained control can be obtained by adding multiple `<award>{:dn}` children to an `<answer>{:dn}` and giving 
+each `<award>{:dn}` a different `credit` attribute.
 
 
 For comparison of vectors, the attributes `matchByExactPositions` and `unorderedCompare` influence the partial credit algorithm.
@@ -184,7 +184,7 @@ combine `symbolicEquality` with the `simplifyOnCompare` and `expandOnCompare` at
 
 
 
-When an ` <answer>{:dn}` has an input field inside it, it will, by default use a small check work button to the right of the 
+When an `<answer>{:dn}` has an input field inside it, it will, by default use a small check work button to the right of the 
 input field.  To override this default and use the large button, add the  `forceFullCheckWorkButton` attribute.
 
 
@@ -216,7 +216,7 @@ With the large button, it is also possible to customize the message on the butto
 ```
 
 
-When an ` <answer>{:dn}` does not have an input field inside it, it will, by default use a full check work button.
+When an `<answer>{:dn}` does not have an input field inside it, it will, by default use a full check work button.
 To override this default and use the small button, add the  `forceSmallCheckWorkButton` attribute.
 
 
@@ -321,18 +321,18 @@ Note: if `symbolicEquality` is not specified, `expandOnCompare` has no effect.
 
 
 
-When multiple values are compared within a single ` <answer>{:dn}` tag, the 
+When multiple values are compared within a single `<answer>{:dn}` tag, the 
 default behavior is to match the order of the sequenced values. If order is 
 irrelevant, use the `unorderedCompare` attribute.
 
 
-`unorderedCompare` can be used with list components (e.g., ` <mathList>{:dn}`, ` <numberList>{:dn}`, 
-and ` <textList>{:dn}`) as well as the ` <math>{:dn}` component containing a list (e.g, $1,2,3$), tuple 
+`unorderedCompare` can be used with list components (e.g., `<mathList>{:dn}`, `<numberList>{:dn}`, 
+and `<textList>{:dn}`) as well as the `<math>{:dn}` component containing a list (e.g, $1,2,3$), tuple 
 (e.g., $(1,2,3)$) or array (e.g., $[1,2,3]$).
 
 
 Alternatively, and for more control over what is ordered, one can add the `unordered` attribute 
-directly to a list component or a ` <math>{:dn}`, which will cause an unordered comparison 
+directly to a list component or a `<math>{:dn}`, which will cause an unordered comparison 
 to be used when comparing it to anything else.
 
 
@@ -385,16 +385,16 @@ ordered lists, `matchByExactPositions` may not be desired.
 
 
 
-By default, if an ` <answer>{:dn}` has multiple ` <award>{:dn}` children, only a single 
+By default, if an `<answer>{:dn}` has multiple `<award>{:dn}` children, only a single 
 award will be credited.  If multiple awards match, then the award with the largest credit 
 will be chosen (with order in the document breaking ties).
 
 
 The behavior can be changed by setting the `numAwardsCredited` attribute to an 
-integer larger than the default of 1.  If `numAwardsCredited="2"`, then up to two ` <award>{:dn}`s can 
+integer larger than the default of 1.  If `numAwardsCredited="2"`, then up to two `<award>{:dn}`s can 
 be matched, and the credit achieved will the sum of their corresponding credits (up to a maximum of 1).
 
 
-Combining multiple ` <award>{:dn}`s with `numAwardsCredited` can be an approach for 
+Combining multiple `<award>{:dn}`s with `numAwardsCredited` can be an approach for 
 assigning partial credit based on different required aspects of the answer.
 

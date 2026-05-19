@@ -3,12 +3,12 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <award>{:dn}`
+# `<award>{:dn}`
 
 ## Attribute Examples Part 2
 
 
-The following examples illustrate use of the ` <award>{:dn}` tag attributes.  
+The following examples illustrate use of the `<award>{:dn}` tag attributes.  
 
 ---
 
@@ -163,7 +163,7 @@ If a mathematical expression is incomplete, such as <math>3+()</math>, it
 may contain <q>blanks</q> that are rendered by an underscore or a gray square.  
 Since such blanks typically indicate an error in a mathematical expression, any 
 expression with a blank will, by default, never match a correct answer.  To valid as 
-correct a response that includes a blank, add the `matchBlanks` attribute to the ` <answer>{:dn}`.
+correct a response that includes a blank, add the `matchBlanks` attribute to the `<answer>{:dn}`.
 
 
 
@@ -189,7 +189,7 @@ $ans.feedbacks
 
 The `feedbackText` attribute will assign a particular feedback message to the 
 answer when the award is matched.  To display feedbacks associate to the answer, 
-render the `feedbacks` property of the ` <answer>{:dn}`.
+render the `feedbacks` property of the `<answer>{:dn}`.
 
 
 
@@ -219,22 +219,22 @@ $ans.submittedResponses
 </p>
 ```
 
-If an ` <answer>{:dn}` has an embedded input field, then Doenet knows that input is the user's response.  
+If an `<answer>{:dn}` has an embedded input field, then Doenet knows that input is the user's response.  
 Absent such input, Doenet will guess that any value copied into an award is the user's response.  
 One way to tell Doenet what is the user's response is by setting the `referencesAreResponses` to names of components. 
-Then any values copied into the ` <award>{:dn}` from those components will be considered the user's response.
+Then any values copied into the `<award>{:dn}` from those components will be considered the user's response.
 
 
 
 Properly annotating DoenetML to specify the user's response will help Doenet collect better data and 
 better understand how user's are learning.  
 Other ways to annotate user responses are:
-  1. Add the `isResponse` attribute to responses that are copied into the ` <award>{:dn}`.
-  2. Add a ` <considerAsResponses>{:dn}` child to the ` <answer>{:dn}` and copy anything that 
-  should be considered a reponse into the ` <considerAsResponses>{:dn}`.
+  1. Add the `isResponse` attribute to responses that are copied into the `<award>{:dn}`.
+  2. Add a `<considerAsResponses>{:dn}` child to the `<answer>{:dn}` and copy anything that 
+  should be considered a reponse into the `<considerAsResponses>{:dn}`.
 
 
 
 Specifying the user's response will also let you use the `submittedResponses` and `currentResponses` properties 
-of the ` <answer>{:dn}`.
+of the `<answer>{:dn}`.
 

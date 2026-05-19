@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <variance>{:dn}`
+# `<variance>{:dn}`
 
 
-` <variance>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+`<variance>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
 component that renders the variance of a list of enclosed data values according to the equation: 
 
 
@@ -14,7 +14,7 @@ $$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n-1}$$
 
 
 In this equation, $\bar x$ represents 
-the [` <mean>{:dn}`](mean.mdx) of the sample and $n$ the number of data points.  By default, the sample variance is 
+the [`<mean>{:dn}`](mean.mdx) of the sample and $n$ the number of data points.  By default, the sample variance is 
 calculated.  If instead, the `population` attribute is specified as "true", the equation 
 becomes: 
 
@@ -26,7 +26,7 @@ $$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}$$
 
 ---
 
-### Example: ` <variance>{:dn}` of a nested list of numbers
+### Example: `<variance>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
@@ -35,13 +35,13 @@ $$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}$$
 
 
 
-The ` <variance>{:dn}` component renders the variance of a list of numbers separated by spaces.
+The `<variance>{:dn}` component renders the variance of a list of numbers separated by spaces.
 
 
 
 ---
 
-### Example: ` <variance>{:dn}` of a named list
+### Example: `<variance>{:dn}` of a named list
 
 
 ```doenet-editor-horiz
@@ -54,13 +54,13 @@ The ` <variance>{:dn}` component renders the variance of a list of numbers separ
 
 
 
-The `<variance>{:dn}` component renders the variance of a named ` <numberList>{:dn}`.
+The `<variance>{:dn}` component renders the variance of a named `<numberList>{:dn}`.
 
 
 
 ---
 
-### Example: ` <variance>{:dn}` of a user-input list
+### Example: `<variance>{:dn}` of a user-input list
 
 
 ```doenet-editor-horiz
@@ -78,8 +78,8 @@ The `<variance>{:dn}` component renders the variance of a named ` <numberList>{:
 ```
 
 
-Since there is no numberInput component, the ` <mathInput>{:dn}` is used to store a user's numerical list. This 
-must then be defined as a ` <numberList>{:dn}`. The named ` <numberList>{:dn}` is then referenced by 
-the ` <variance>{:dn}` component to compute the numerical variance.
+Since there is no numberInput component, the `<mathInput>{:dn}` is used to store a user's numerical list. This 
+must then be defined as a `<numberList>{:dn}`. The named `<numberList>{:dn}` is then referenced by 
+the `<variance>{:dn}` component to compute the numerical variance.
 
 

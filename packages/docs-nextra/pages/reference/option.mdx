@@ -3,25 +3,25 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <option>{:dn}`
+# `<option>{:dn}`
 
 
-` <option>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
-component that defines a selection element within a [` <select>{:dn}`](select.mdx) block. 
-If only ` <math>{:dn}` type components are to be selected, the ` <option>{:dn}` 
+`<option>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that defines a selection element within a [`<select>{:dn}`](select.mdx) block. 
+If only `<math>{:dn}` type components are to be selected, the `<option>{:dn}` 
 component can be excluded and selection items can simply be listed with a space between list items. 
-However, if multiple types or complex selections are required, the ` <option>{:dn}` component is necessary.
+However, if multiple types or complex selections are required, the `<option>{:dn}` component is necessary.
 
 
 When varying component types are used as options, such as 
-a ` <text>{:dn}`, ` <function>{:dn}`, 
-or ` <number>{:dn}`, these tags are nested within the ` <option>{:dn}` tag.
+a `<text>{:dn}`, `<function>{:dn}`, 
+or `<number>{:dn}`, these tags are nested within the `<option>{:dn}` tag.
 
 <AttrPropDisplay name='option'/>
 
 ---
 
-### Example: ` <option>{:dn}` type math
+### Example: `<option>{:dn}` type math
 
 
 ```doenet-editor-horiz
@@ -39,15 +39,15 @@ or ` <number>{:dn}`, these tags are nested within the ` <option>{:dn}` tag.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: ` <option>{:dn}` type text
+### Example: `<option>{:dn}` type text
 
 
 ```doenet-editor-horiz
@@ -63,15 +63,15 @@ editor to see different variants of the document.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: ` <option>{:dn}` type vector
+### Example: `<option>{:dn}` type vector
 
 
 ```doenet-editor-horiz
@@ -89,15 +89,15 @@ editor to see different variants of the document.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: Multiple ` <option>{:dn}` types within a ` <select>{:dn}`
+### Example: Multiple `<option>{:dn}` types within a `<select>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -116,15 +116,15 @@ editor to see different variants of the document.
 
 
 
-The ` <option>{:dn}` component is used to define multiple 
-component types as choices within a ` <select>{:dn}` block.
+The `<option>{:dn}` component is used to define multiple 
+component types as choices within a `<select>{:dn}` block.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: Retrieving ` <option>{:dn}` selections with multiple elements
+### Example: Retrieving `<option>{:dn}` selections with multiple elements
 
 
 ```doenet-editor-horiz
@@ -153,10 +153,10 @@ editor to see different variants of the document.
 <p>Click page variants to see other randomized values assigned.</p>  
 ```
 
-It is possible to group several components for selection within a single ` <option>{:dn}` component.
-In order to reference a specific component within a selected ` <option>{:dn}`, use array notation. 
-The first index of the array notation refers to the selected ` <option>{:dn}` component, and the
-second index refers to the specific component within the ` <option>{:dn}` component.
+It is possible to group several components for selection within a single `<option>{:dn}` component.
+In order to reference a specific component within a selected `<option>{:dn}`, use array notation. 
+The first index of the array notation refers to the selected `<option>{:dn}` component, and the
+second index refers to the specific component within the `<option>{:dn}` component.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -187,7 +187,7 @@ editor to see different variants of the document.
 
 
 
-The ` <option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the ` <select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
+The `<option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the `<select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
