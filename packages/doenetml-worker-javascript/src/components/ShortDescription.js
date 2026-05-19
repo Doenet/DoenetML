@@ -1,13 +1,17 @@
-import TextComponent from "./Text";
+import TextOrInline from "./abstract/TextOrInline";
 import { renameStateVariable } from "../utils/stateVariables";
 
-export default class ShortDescription extends TextComponent {
+export default class ShortDescription extends TextOrInline {
     static componentType = "shortDescription";
 
     static componentDocs = {
         summary:
             "A short accessibility description for an enclosing component.",
     };
+    // A short description is never rendered visually (it is consumed only by
+    // assistive technology, through its `text` state variable). The `text`
+    // renderer produces no visible output here, since `text` is not
+    // `forRenderer`.
     static rendererType = "text";
 
     static inSchemaOnlyInheritAs = [];
@@ -15,24 +19,26 @@ export default class ShortDescription extends TextComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // rename value to valueOriginal
+        // Rename the inherited `value` (the combined text of the children) to
+        // `valueOriginal` so that the public `value` can be redefined below to
+        // additionally emit an accessibility diagnostic.
         renameStateVariable({
             stateVariableDefinitions,
             oldName: "value",
             newName: "valueOriginal",
         });
 
-        stateVariableDefinitions.textLikeChildren = {
+        stateVariableDefinitions.inlineChildren = {
             returnDependencies: () => ({
-                textLikeChildren: {
+                inlineChildren: {
                     dependencyType: "child",
-                    childGroups: ["textLike"],
+                    childGroups: ["inlines"],
                 },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        textLikeChildren: dependencyValues.textLikeChildren,
+                        inlineChildren: dependencyValues.inlineChildren,
                     },
                 };
             },
@@ -44,25 +50,26 @@ export default class ShortDescription extends TextComponent {
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
             },
-            stateVariablesDeterminingDependencies: ["textLikeChildren"],
+            stateVariablesDeterminingDependencies: ["inlineChildren"],
             returnDependencies: ({ stateValues }) => {
                 const dependencies = {
                     valueOriginal: {
                         dependencyType: "stateVariable",
                         variableName: "valueOriginal",
                     },
-                };
-
-                const numChildren = stateValues.textLikeChildren.length;
-                dependencies.numChildren = {
-                    dependencyType: "value",
-                    value: numChildren,
+                    inlineChildren: {
+                        dependencyType: "stateVariable",
+                        variableName: "inlineChildren",
+                    },
                 };
 
                 for (const [
                     idx,
                     child,
-                ] of stateValues.textLikeChildren.entries()) {
+                ] of stateValues.inlineChildren.entries()) {
+                    if (typeof child !== "object") {
+                        continue;
+                    }
                     dependencies[`adapterSource${idx}`] = {
                         dependencyType: "adapterSource",
                         componentIdx: child.componentIdx,
@@ -71,39 +78,48 @@ export default class ShortDescription extends TextComponent {
                 return dependencies;
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                let value = dependencyValues.valueOriginal;
+                const value = dependencyValues.valueOriginal;
 
-                let foundAdaptedFromMath = false;
-                let originalType;
-
-                for (let i = 0; i < dependencyValues.numChildren; i++) {
-                    const adapterSource = dependencyValues[`adapterSource${i}`];
-                    if (adapterSource) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType:
-                                    adapterSource.componentType,
-                                baseComponentType: "math",
-                            }) ||
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType:
-                                    adapterSource.componentType,
-                                baseComponentType: "m",
-                            })
-                        ) {
-                            foundAdaptedFromMath = true;
-                            originalType = adapterSource.componentType;
-                            break;
-                        }
+                // A short description should be read verbatim by assistive
+                // technology, so it should not contain math components. A math
+                // component placed in a `shortDescription` is either a direct
+                // child (e.g. `<m>`) or adapted into a text-like child (e.g.
+                // `<math>`, `<interval>`); check both forms.
+                let foundMathType;
+                for (
+                    let idx = 0;
+                    idx < dependencyValues.inlineChildren.length;
+                    idx++
+                ) {
+                    const child = dependencyValues.inlineChildren[idx];
+                    if (typeof child !== "object") {
+                        continue;
+                    }
+                    const adapterSource =
+                        dependencyValues[`adapterSource${idx}`];
+                    const effectiveType =
+                        adapterSource?.componentType ?? child.componentType;
+                    if (
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: effectiveType,
+                            baseComponentType: "math",
+                        }) ||
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: effectiveType,
+                            baseComponentType: "m",
+                        })
+                    ) {
+                        foundMathType = effectiveType;
+                        break;
                     }
                 }
 
                 const diagnostics = [];
-                if (foundAdaptedFromMath) {
+                if (foundMathType) {
                     diagnostics.push({
                         type: "accessibility",
                         level: 2,
-                        message: `Short descriptions should not contain math components such as \`<${originalType}>\`. Spell out any math with words.`,
+                        message: `Short descriptions should not contain math components such as \`<${foundMathType}>\`. Spell out any math with words.`,
                     });
                 }
 
@@ -113,7 +129,4 @@ export default class ShortDescription extends TextComponent {
 
         return stateVariableDefinitions;
     }
-
-    // short description should not adapt into anything
-    static adapters = [];
 }
