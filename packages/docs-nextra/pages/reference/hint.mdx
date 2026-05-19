@@ -2,11 +2,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrPropDisplay } from "../../components"
 
-# ` <hint>{:dn}`
+# `<hint>{:dn}`
 
 
 
-` <hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+`<hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that renders a hidden block of content that can be expanded when its banner is clicked 
 or can be rendered visible only when triggered by specific user interactions.
 
@@ -17,7 +17,7 @@ or can be rendered visible only when triggered by specific user interactions.
 
 ---
 
-### Example: ` <hint>{:dn}` that is always visible
+### Example: `<hint>{:dn}` that is always visible
 
 
 ```doenet-example
@@ -34,13 +34,13 @@ or can be rendered visible only when triggered by specific user interactions.
 </hint> 
 ```
 
-The ` <hint>{:dn}` banner is not triggered by any specific conditions and 
-is always accessible to the user. The content of the ` <hint>{:dn}` is made 
+The `<hint>{:dn}` banner is not triggered by any specific conditions and 
+is always accessible to the user. The content of the `<hint>{:dn}` is made 
 available by clicking on the hint banner. 
 
 ---
 
-### Example: ` <hint>{:dn}` only visible for specified interactions
+### Example: `<hint>{:dn}` only visible for specified interactions
 
 
 ```doenet-editor-horiz
@@ -54,14 +54,14 @@ available by clicking on the hint banner.
 
 
 
-The conditions under which a ` <hint>{:dn}` is visible can be tailored to 
-specific user interactions using the ` <hide>{:dn}` attribute.
+The conditions under which a `<hint>{:dn}` is visible can be tailored to 
+specific user interactions using the `<hide>{:dn}` attribute.
 
 
 
 ---
 
-### Example: Hide a ` <hint>{:dn}` until user answers twice
+### Example: Hide a `<hint>{:dn}` until user answers twice
 
 
 ```doenet-editor-horiz
@@ -76,10 +76,10 @@ what is the <m>y</m>-intercept?
 </p>
 ```
 
-Properties of the named ` <answer>{:dn}` component are referenced by the 
-boolean condition listed in the `hide` attribute of the ` <hint>{:dn}`. In 
+Properties of the named `<answer>{:dn}` component are referenced by the 
+boolean condition listed in the `hide` attribute of the `<hint>{:dn}`. In 
 this case, if the user answers incorrectly 2 or more times, the `hide` attribute 
-of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
+of the `<hint>{:dn}` will become `false`, and the `<hint>{:dn}` will appear.
 
 ---
 
@@ -97,7 +97,7 @@ of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
 
 
 The `open` property renders the boolean value corresponding to whether 
-the ` <hint>{:dn}` is currently open.
+the `<hint>{:dn}` is currently open.
 
 
 
@@ -115,6 +115,6 @@ the ` <hint>{:dn}` is currently open.
 
 
 
-The `title` property renders the title associated with the ` <hint>{:dn}`.
+The `title` property renders the title associated with the `<hint>{:dn}`.
 
 

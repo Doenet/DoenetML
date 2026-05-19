@@ -2,14 +2,14 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrPropDisplay } from "../../components"
 
-# ` <section>{:dn}`
+# `<section>{:dn}`
 
 
-` <section>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+`<section>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that renders an auto-numbered block of content. Inline components such as 
-paragraphs (` <p>{:dn}`) and other components can be nested within a ` <section>{:dn}` to 
-group and order content. Some examples are: another ` <section>{:dn}`, 
-a ` <figure>{:dn}`, or a `<problem>{:dn}`.
+paragraphs (`<p>{:dn}`) and other components can be nested within a `<section>{:dn}` to 
+group and order content. Some examples are: another `<section>{:dn}`, 
+a `<figure>{:dn}`, or a `<problem>{:dn}`.
 
 
 <AttrPropDisplay name='section'/>
@@ -17,7 +17,7 @@ a ` <figure>{:dn}`, or a `<problem>{:dn}`.
 
 ---
 
-### Example: ` <section>{:dn}` with default title
+### Example: `<section>{:dn}` with default title
 
 
 ```doenet-editor-horiz
@@ -55,8 +55,8 @@ auto-numbered. Each sectional component is on the same counter.
 
 
 
-A custom ` <section>{:dn}` title is creating by providing a ` <title>{:dn}` 
-tag within the ` <section>{:dn}`.
+A custom `<section>{:dn}` title is creating by providing a `<title>{:dn}` 
+tag within the `<section>{:dn}`.
 
 
 
@@ -76,13 +76,13 @@ tag within the ` <section>{:dn}`.
 
 
 
-A subsection is created by nesting one or more sections within a ` <section>{:dn}`.
+A subsection is created by nesting one or more sections within a `<section>{:dn}`.
 
 
 
 ---
 
-### Example: named ` <section>{:dn}` as a parent reference
+### Example: named `<section>{:dn}` as a parent reference
 
 
 ```doenet-editor-horiz
@@ -107,7 +107,7 @@ they can be distinguished (when outside their parent component) by
 attaching the name of the parent component to the reference.
 
 
-Above, the ` <section>{:dn}` named `treeSection` is the
+Above, the `<section>{:dn}` named `treeSection` is the
 parent of the `<text>{:dn}` named `plant`. Therefore, when 
 referencing this specific instance of the component with that name, 
 you should use `$treeSection.plant` as shown.
@@ -133,7 +133,7 @@ you should use `$treeSection.plant` as shown.
 
 
 
-The `includeParentNumber` attribute is `true` by default for the ` <section>{:dn}` component (and `false` for other sectional components, such as ` <problem>{:dn}` and ` <exercise>{:dn}`). This allows the default numbering system to include the number of the parent sectional component, followed by the number of the ` <section>{:dn}`.
+The `includeParentNumber` attribute is `true` by default for the `<section>{:dn}` component (and `false` for other sectional components, such as `<problem>{:dn}` and `<exercise>{:dn}`). This allows the default numbering system to include the number of the parent sectional component, followed by the number of the `<section>{:dn}`.
 
 
 If it is preferable to display the section number without the parent section preceding it, set the `includeParentNumber` attribute to `false`.
@@ -158,12 +158,12 @@ If it is preferable to display the section number without the parent section pre
 
 
 
-The `includeAutoNumber` attribute is `false` by default for the ` <section>{:dn}` component. This 
-means that if a section contains a nested ` <title>{:dn}`, it will not render the default 
+The `includeAutoNumber` attribute is `false` by default for the `<section>{:dn}` component. This 
+means that if a section contains a nested `<title>{:dn}`, it will not render the default 
 numbering (although it will still be counted in the numbering scheme behind the scenes).
 
 
-In order to display the section number in addition to the custom ` <title>{:dn}`, set 
+In order to display the section number in addition to the custom `<title>{:dn}`, set 
 the `includeAutoNumber` attribute to `true`.
 
 
@@ -184,7 +184,7 @@ the `includeAutoNumber` attribute to `true`.
 
 
 The `sectionWideCheckWork` attribute combines 
-validation for all ` <answer>{:dn}` components within the ` <section>{:dn}` under a 
+validation for all `<answer>{:dn}` components within the `<section>{:dn}` under a 
 single "Check Work" button.
 
 

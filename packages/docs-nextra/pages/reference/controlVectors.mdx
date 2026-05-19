@@ -3,18 +3,18 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <controlVectors>{:dn}`
+# `<controlVectors>{:dn}`
 
-` <controlVectors>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
+`<controlVectors>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that is used to specify the direction(s) of the bezier curve 
-handles at each through point within a ` <curve>{:dn}` component.
+handles at each through point within a `<curve>{:dn}` component.
 
 <AttrPropDisplay name='controlVectors'/>
 
 
 ---
 
-### Example: ` <controlVectors>{:dn}` with vectors specified directly
+### Example: `<controlVectors>{:dn}` with vectors specified directly
 
 
 ```doenet-editor-horiz
@@ -35,16 +35,16 @@ and click each individual through point to reveal its bezier control handles.</p
 
 
 
-At each through point in the rendered ` <curve>{:dn}`, the directions for the bezier 
+At each through point in the rendered `<curve>{:dn}`, the directions for the bezier 
 curve handles are specified directly within the opening and closing tags. 
-Handles are symmetric by default, and only one ` <controlVector>{:dn}` is needed in this 
+Handles are symmetric by default, and only one `<controlVector>{:dn}` is needed in this 
 case to specify the orientation of the curve at each point.
 
 
 
 ---
 
-### Example: ` <controlVectors>{:dn}` with ` <vector>{:dn}` children
+### Example: `<controlVectors>{:dn}` with `<vector>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -73,10 +73,10 @@ click each individual through point to reveal its bezier control handles.</p>
 
 
 
-At each through point in the rendered ` <curve>{:dn}`, the 
-directions for the bezier curve handles are specified by ` <vector>{:dn}` 
-children of the ` <controlVectors>{:dn}` component. Handles are 
-symmetric by default, and only one ` <controlVector>{:dn}` is needed 
+At each through point in the rendered `<curve>{:dn}`, the 
+directions for the bezier curve handles are specified by `<vector>{:dn}` 
+children of the `<controlVectors>{:dn}` component. Handles are 
+symmetric by default, and only one `<controlVector>{:dn}` is needed 
 in this case to specify the orientation of the curve at each point.
 
 
@@ -190,7 +190,7 @@ cannot adjust the curve at this point.
 
 
 
-The `pointNumber` attribute specifies which through point the ` <controlVector>{:dn}` is associated with.
+The `pointNumber` attribute specifies which through point the `<controlVector>{:dn}` is associated with.
 
 
 
@@ -228,6 +228,6 @@ $curve1.throughPoints
 
 
 
-The `direction` of a ` <controlVectors>{:dn}` component can also be accessed as a `property`.
+The `direction` of a `<controlVectors>{:dn}` component can also be accessed as a `property`.
 
 

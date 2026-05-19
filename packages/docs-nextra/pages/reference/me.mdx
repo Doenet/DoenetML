@@ -3,19 +3,19 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <me>{:dn}`
+# `<me>{:dn}`
 
-` <me>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+`<me>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
 component that renders the math expression centered within the page. 
 
-` <me>{:dn}` can be used with [` <men>{:dn}`](men.mdx) to number the equation, and can also be used with 
-mathematical expression created by [` <m>{:dn}`](m.mdx)and [` <md>{:dn}`](md.mdx)/[` <mdn>{:dn}`](mdn.mdx).
+`<me>{:dn}` can be used with [`<men>{:dn}`](men.mdx) to number the equation, and can also be used with 
+mathematical expression created by [`<m>{:dn}`](m.mdx)and [`<md>{:dn}`](md.mdx)/[`<mdn>{:dn}`](mdn.mdx).
 
 <AttrPropDisplay name='me'/>
 
 ---
 
-### Example: ` <me>{:dn}` nested within a paragraph
+### Example: `<me>{:dn}` nested within a paragraph
 
 
 ```doenet-editor-horiz
@@ -29,13 +29,13 @@ determine the Cartesian form of the polar equation:
 
 
 
-In the example above, the ` <me>{:dn}` component is used to render centered mathematical content within a paragraph.
+In the example above, the `<me>{:dn}` component is used to render centered mathematical content within a paragraph.
 
 
 
 ---
 
-### Example: ` <me>{:dn}` with named mathematical content
+### Example: `<me>{:dn}` with named mathematical content
 
 
 ```doenet-editor-horiz
@@ -65,10 +65,10 @@ is found to be
 
 
 
- In the example above, the named mathematical ` <function>{:dn}` is referenced 
- within the ` <me>{:dn}` component using the `$functionName` notation. This function 
- is also later evalutated with a ` <math>{:dn}` nested inside the second ` <me>{:dn}` 
+ In the example above, the named mathematical `<function>{:dn}` is referenced 
+ within the `<me>{:dn}` component using the `$functionName` notation. This function 
+ is also later evalutated with a `<math>{:dn}` nested inside the second `<me>{:dn}` 
  component using the function evaluation notation `$$functionName(x)` 
- (note that you could also use the ` <evaluate>{:dn}` component here.)
+ (note that you could also use the `<evaluate>{:dn}` component here.)
 
 

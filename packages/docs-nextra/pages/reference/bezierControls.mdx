@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <bezierControls>{:dn}`
+# `<bezierControls>{:dn}`
 
-` <bezierControls>{:dn}`is a [Graphical](../document_structure/essentialConcepts#component-types) 
-component. It is always the child of a ` <curve>{:dn}` component and provides a means to 
+`<bezierControls>{:dn}`is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component. It is always the child of a `<curve>{:dn}` component and provides a means to 
 specify the control vectors at each bezier curve control point.
 
 <AttrPropDisplay name='bezierControls'/>
@@ -14,7 +14,7 @@ specify the control vectors at each bezier curve control point.
 
 ---
 
-### Example: ` <bezierControls>{:dn}` with nested control vectors
+### Example: `<bezierControls>{:dn}` with nested control vectors
 
 
 ```doenet-editor-horiz
@@ -28,13 +28,13 @@ specify the control vectors at each bezier curve control point.
 
 
 
-Assuming all control points have symmetric control vectors, the vectors may be specified directly in list form inside a ` <bezierControls>{:dn}` component, in the same order as the control points are specified in the parent ` <curve>{:dn}` component.
+Assuming all control points have symmetric control vectors, the vectors may be specified directly in list form inside a `<bezierControls>{:dn}` component, in the same order as the control points are specified in the parent `<curve>{:dn}` component.
 
 
 
 ---
 
-### Example: ` <bezierControls>{:dn}` with ` <controlVectors>{:dn}` children
+### Example: `<bezierControls>{:dn}` with `<controlVectors>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -54,13 +54,13 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 
 
 
- Control vectors for a bezier ` <curve>{:dn}` can also be specified as individual ` <controlVectors>{:dn}` nested within a ` <bezierControls>{:dn}` block.
+ Control vectors for a bezier `<curve>{:dn}` can also be specified as individual `<controlVectors>{:dn}` nested within a `<bezierControls>{:dn}` block.
 
 
 
 ---
 
-### Example: ` <bezierControls>{:dn}` with asymmetric control vectors
+### Example: `<bezierControls>{:dn}` with asymmetric control vectors
 
 
 ```doenet-editor-horiz
@@ -86,7 +86,7 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 
 
 
-When a single control point has distinct control vectors in each direction, two ` <vector>{:dn}` components may be listed within the ` <controlVectors>{:dn}` component in a ` <bezierControls>{:dn}` block. In this case, specify `direction="both"` within the ` <controlVectors>{:dn}` block.
+When a single control point has distinct control vectors in each direction, two `<vector>{:dn}` components may be listed within the `<controlVectors>{:dn}` component in a `<bezierControls>{:dn}` block. In this case, specify `direction="both"` within the `<controlVectors>{:dn}` block.
 
 
 
@@ -112,5 +112,5 @@ When a single control point has distinct control vectors in each direction, two 
 
 
 
- The `alwaysVisible` attribute can be used with ` <bezierControls>{:dn}` to make handles permanently visible.
+ The `alwaysVisible` attribute can be used with `<bezierControls>{:dn}` to make handles permanently visible.
 

@@ -3,18 +3,18 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <bestFitLine>{:dn}`
+# `<bestFitLine>{:dn}`
 
-` <bestFitLine>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+`<bestFitLine>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
 component computes a linear regression through a list of points. 
-When nested inside a [` <graph>{:dn}`](graph.mdx), the ` <bestFitLine>{:dn}` component displays a line.  
+When nested inside a [`<graph>{:dn}`](graph.mdx), the `<bestFitLine>{:dn}` component displays a line.  
 The equation for the line of best fit can be rendered by accessing the `equation` property.
 
 <AttrPropDisplay name='bestFitLine'/>
 
 ---
 
-### Example: ` <bestFitLine>{:dn}` through 3 points
+### Example: `<bestFitLine>{:dn}` through 3 points
 
 
 ```doenet-example
@@ -28,7 +28,7 @@ The equation for the line of best fit can be rendered by accessing the `equation
 
 
 
-A ` <bestFitLine>{:dn}` is rendered through three named ` <point>{:dn}` components. 
+A `<bestFitLine>{:dn}` is rendered through three named `<point>{:dn}` components. 
 Note that the data in this example are not specified as `fixed` and when the points are 
 moved the regression line will update accordingly.
 
@@ -36,7 +36,7 @@ moved the regression line will update accordingly.
 
 ---
 
-### Example: ` <bestFitLine>{:dn}` from user-input
+### Example: `<bestFitLine>{:dn}` from user-input
 
 
 ```doenet-example
@@ -57,8 +57,8 @@ moved the regression line will update accordingly.
 
 
 
-A ` <bestFitLine>{:dn}` is rendered through three named ` <point>{:dn}` components. 
-Coordinates for the points are provided by the user with the ` <mathInput/>{:dn}` component.
+A `<bestFitLine>{:dn}` is rendered through three named `<point>{:dn}` components. 
+Coordinates for the points are provided by the user with the `<mathInput/>{:dn}` component.
 
 
 
@@ -87,10 +87,10 @@ Coordinates for the points are provided by the user with the ` <mathInput/>{:dn}
 
 
 
-A ` <bestFitLine>{:dn}` is rendered through an arbitrary number of data points generated with a ` <callAction>{:dn}` component that adds ` <point>{:dn}` children to the named ` <graph>{:dn}`.
+A `<bestFitLine>{:dn}` is rendered through an arbitrary number of data points generated with a `<callAction>{:dn}` component that adds `<point>{:dn}` children to the named `<graph>{:dn}`.
 
 
-The ` <collect>{:dn}` component gathers the information required from the ` <graph>{:dn}` to provide to the `data` attribute of the ` <bestFitLine>{:dn}` without having to assign individual names to each ` <point>{:dn}`.
+The `<collect>{:dn}` component gathers the information required from the `<graph>{:dn}` to provide to the `data` attribute of the `<bestFitLine>{:dn}` without having to assign individual names to each `<point>{:dn}`.
 
 
 
@@ -144,7 +144,7 @@ dependent variable name when rendering the equation of the computed regression l
 
 
 
-The `equation` property of the named ` <bestFitLine>{:dn}` renders the 
+The `equation` property of the named `<bestFitLine>{:dn}` renders the 
 equation of the computed regression line.
 
 
@@ -163,7 +163,7 @@ equation of the computed regression line.
 
 
 
-The `slope` property of the named ` <bestFitLine>{:dn}` renders the slope of the computed regression line.
+The `slope` property of the named `<bestFitLine>{:dn}` renders the slope of the computed regression line.
 
 
 
@@ -205,7 +205,7 @@ can be obtained with the above properties, where $C = $`coeff0`, $B = $`coeffVar
 
 
 
-Use the `xIntercept` and `yIntercept` properties of the named ` <bestFitLine>{:dn}` to determine the 
+Use the `xIntercept` and `yIntercept` properties of the named `<bestFitLine>{:dn}` to determine the 
 intercepts of the computed regression line.
 
 

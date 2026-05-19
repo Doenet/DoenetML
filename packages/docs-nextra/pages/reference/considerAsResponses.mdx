@@ -4,22 +4,22 @@ import { AttrPropDisplay } from "../../components"
 
 
 
-# ` <considerAsResponses>{:dn}`
+# `<considerAsResponses>{:dn}`
 
-` <considerAsResponses>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types)
+`<considerAsResponses>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types)
 component that informs Doenet which component to designate as a "response". This is not required for correct answer evaluation, but can help disambiguate user response data 
 for instructor review. 
 
-There is **no** need to use ` <considerAsResponses>{:dn}` in the following common situations:
+There is **no** need to use `<considerAsResponses>{:dn}` in the following common situations:
 * the `<answer>{:dn}` tag does not have any `<award>{:dn}` children
 * the `<answer>{:dn}` tag has a nested `<mathInput/>{:dn}`, `<textInput/>{:dn}`, `<choice>{:dn}` 
 or `<choiceInput/>{:dn}`
 * the `<answer>{:dn}` tag *does* have `<award>{:dn}` children, but in all cases there is only 
   one available component referenced that could be considered a response (In this case, the single component
   reference is automatically processed as the
-  "response", so there is no need for the ` <considerAsResponses>{:dn}` tag clarification.)
+  "response", so there is no need for the `<considerAsResponses>{:dn}` tag clarification.)
 
-However, it is good practice to use the ` <considerAsResponses>{:dn}` in the following situations:
+However, it is good practice to use the `<considerAsResponses>{:dn}` in the following situations:
 * an `<award>{:dn}` child is used with the `<answer>{:dn}` tag, and multiple components are 
   referenced within the `<award>{:dn}` (not all of which are "responses")
 * no nested input components are used within the `<answer>{:dn}` tag, and there is ambiguity in the submitted response
@@ -32,7 +32,7 @@ However, it is good practice to use the ` <considerAsResponses>{:dn}` in the fol
 
 ---
 
-### Example: ` <considerAsResponses>{:dn}` for graphical component
+### Example: `<considerAsResponses>{:dn}` for graphical component
 
 
 ```doenet-editor
@@ -66,8 +66,8 @@ However, it is good practice to use the ` <considerAsResponses>{:dn}` in the fol
 
 
 
-The ` <considerAsResponses>{:dn}` component designates which graphical 
-element Doenet should store as a response for the named ` <answer>{:dn}`. 
+The `<considerAsResponses>{:dn}` component designates which graphical 
+element Doenet should store as a response for the named `<answer>{:dn}`. 
 Without designating `$A` as the response, both data for points `$A`
 and `$B` will appear in the **Submitted response** tab.
 
@@ -78,7 +78,7 @@ in the bottom of the editor panel on the left-hand side.
 
 ---
 
-### Example: ` <considerAsResponses>{:dn}` for multiple components
+### Example: `<considerAsResponses>{:dn}` for multiple components
 
 ```doenet-editor
 <setup>
@@ -117,10 +117,10 @@ in the bottom of the editor panel on the left-hand side.
 ```
 
 
-The ` <considerAsResponses>{:dn}` tag can contain multiple
+The `<considerAsResponses>{:dn}` tag can contain multiple
 component references and can also refer to component properties.
 
-Without the ` <considerAsResponses>{:dn}` specification as shown,
+Without the `<considerAsResponses>{:dn}` specification as shown,
 data for `$animal`, `$bestAnimal`, `$ptDist.length`
 and `$circ.radius` will all appear in the **Submitted response** tab.
 

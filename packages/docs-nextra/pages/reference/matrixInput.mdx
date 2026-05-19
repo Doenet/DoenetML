@@ -3,9 +3,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <matrixInput/>{:dn}`
+# `<matrixInput/>{:dn}`
 
-` <matrixInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+`<matrixInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component renders an empty matrix with blanks for user-input of entries.
 
 <AttrPropDisplay name='matrixInput'/>
@@ -26,14 +26,14 @@ and (r-) or (c-) to delete a row or a column.</p>
 
 
 
-The default ` <matrixInput/>{:dn}` contains a single input blank. Additional 
+The default `<matrixInput/>{:dn}` contains a single input blank. Additional 
 rows and columns are added with rendered size control buttons.
 
 
 
 ---
 
-### Example: A blank 2x3 ` <matrixInput/>{:dn}`
+### Example: A blank 2x3 `<matrixInput/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -49,7 +49,7 @@ rows and columns are added with rendered size control buttons.
 
 
 
-To show a ` <matrixInput/>{:dn}` of a specific, unchangeable size, 
+To show a `<matrixInput/>{:dn}` of a specific, unchangeable size, 
 use the `numRows` and the `numColumns` attributes. Set the `showSizeControls` 
 attribute to `false` to prevent the user from altering the size.
 
@@ -57,7 +57,7 @@ attribute to `false` to prevent the user from altering the size.
 
 ---
 
-### Example: Retrieving an entry from a ` <matrixInput/>{:dn}`
+### Example: Retrieving an entry from a `<matrixInput/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -74,7 +74,7 @@ notation with the `matrix` property.
 
 ---
 
-### Example: Operations with ` <matrixInput/>{:dn}` - defined matrices
+### Example: Operations with `<matrixInput/>{:dn}` - defined matrices
 
 
 ```doenet-editor-horiz
@@ -111,14 +111,14 @@ notation with the `matrix` property.
 
 
 
-Basic matrix operations can be performed with named ` <matrixInput/>{:dn}` components. See 
-the ` <matrix>{:dn}` component for additional examples.
+Basic matrix operations can be performed with named `<matrixInput/>{:dn}` components. See 
+the `<matrix>{:dn}` component for additional examples.
 
 
 
 ---
 
-### Example: Prefill a ` <matrixInput/>{:dn}` with a ` <matrix>{:dn}`
+### Example: Prefill a `<matrixInput/>{:dn}` with a `<matrix>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -138,9 +138,9 @@ the ` <matrix>{:dn}` component for additional examples.
 
 
 
-To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first 
-define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute 
-of the ` <matrixInput/>{:dn}`.
+To easily prefill a `<matrixInput/>{:dn}` with specific entries, first 
+define a `<matrix>{:dn}` and reference it by name within the `prefill` attribute 
+of the `<matrixInput/>{:dn}`.
 
 
 
@@ -156,7 +156,7 @@ of the ` <matrixInput/>{:dn}`.
 
 
 
-A ` <matrixInput/>{:dn}` of a specific size can be initialized with the `numRows` and the `numColumns` attributes.
+A `<matrixInput/>{:dn}` of a specific size can be initialized with the `numRows` and the `numColumns` attributes.
 
 
 
@@ -208,7 +208,7 @@ The default size control buttons can be hidden by setting the `showSizeControls`
 
 
 
-To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute of the ` <matrixInput/>{:dn}`.
+To easily prefill a `<matrixInput/>{:dn}` with specific entries, first define a `<matrix>{:dn}` and reference it by name within the `prefill` attribute of the `<matrixInput/>{:dn}`.
 
 
 
@@ -253,7 +253,7 @@ Use the `defaultEntry` attribute to change the prefilled value for a matrix of a
 
 
 
-The `format` attribute gives the option for prefilled ` <matrixInput/>{:dn}` components to contain content formatted in LaTeX. If supported, expressions entered in the prefill of the ` <matrixInput/>{:dn}` will be parsed by Doenet as math components and may be used in further computations. 
+The `format` attribute gives the option for prefilled `<matrixInput/>{:dn}` components to contain content formatted in LaTeX. If supported, expressions entered in the prefill of the `<matrixInput/>{:dn}` will be parsed by Doenet as math components and may be used in further computations. 
 
 
 
@@ -323,7 +323,7 @@ in the code to the right.</p>
 
 
 
-The `splitSymbols` attribute is used to modify the default mathematical simplification of multicharacter values in a ` <mathInput/>{:dn}` (think of each entry in a ` <matrixInput/>{:dn}` as a ` <mathInput/>{:dn}`). By default, Doenet assumes adjacent characters are single variables multiplied together, and "splits" them during parsing. So, for example, multicharacter values such as `xyz` are interpreted as the product $x \cdot y \cdot z$. However, if you wish to treat a grouping of symbols as a single variable, you can turn off this behavior by specifying `splitSymbols="false"`.
+The `splitSymbols` attribute is used to modify the default mathematical simplification of multicharacter values in a `<mathInput/>{:dn}` (think of each entry in a `<matrixInput/>{:dn}` as a `<mathInput/>{:dn}`). By default, Doenet assumes adjacent characters are single variables multiplied together, and "splits" them during parsing. So, for example, multicharacter values such as `xyz` are interpreted as the product $x \cdot y \cdot z$. However, if you wish to treat a grouping of symbols as a single variable, you can turn off this behavior by specifying `splitSymbols="false"`.
 
 
 
@@ -349,7 +349,7 @@ The `splitSymbols` attribute is used to modify the default mathematical simplifi
 
 
 
-The `bindValueTo` attribute is used to create a bidirectional link between the value of a ` <matrixInput/>{:dn}` and that of another component. This attribute accepts a reference to a named math component or the property of a named component as input.
+The `bindValueTo` attribute is used to create a bidirectional link between the value of a `<matrixInput/>{:dn}` and that of another component. This attribute accepts a reference to a named math component or the property of a named component as input.
 
 
 
@@ -376,7 +376,7 @@ The `bindValueTo` attribute is used to create a bidirectional link between the v
 
 
 
-The `minComponentWidth` attribute adjusts the width of the individual ` <mathInput/>{:dn}` components within the ` <matrixInput/>{:dn}`.
+The `minComponentWidth` attribute adjusts the width of the individual `<mathInput/>{:dn}` components within the `<matrixInput/>{:dn}`.
 
 
 
@@ -435,10 +435,10 @@ The attributes shown above are also accessible as properties.
 
 
 
-The `valueChanged` property returns the boolean value of whether the ` <matrixInput/>{:dn}` has been changed by the user when the page is updated (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
+The `valueChanged` property returns the boolean value of whether the `<matrixInput/>{:dn}` has been changed by the user when the page is updated (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
 
 
-The `immediateValueChanged` property returns the boolean value of whether the ` <matrixInput/>{:dn}` has been changed by the user immediately as they are typing into the input.
+The `immediateValueChanged` property returns the boolean value of whether the `<matrixInput/>{:dn}` has been changed by the user immediately as they are typing into the input.
 
 
 
@@ -466,8 +466,8 @@ The `immediateValueChanged` property returns the boolean value of whether the ` 
 
 
 
-The `value` property returns the value stored in the ` <matrixInput/>{:dn}` since the most current page update (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
+The `value` property returns the value stored in the `<matrixInput/>{:dn}` since the most current page update (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
 
 
-The `immediateValue` property returns the value stored in the ` <matrixInput/>{:dn}`, updated immediately as the user is typing it in.
+The `immediateValue` property returns the value stored in the `<matrixInput/>{:dn}`, updated immediately as the user is typing it in.
 

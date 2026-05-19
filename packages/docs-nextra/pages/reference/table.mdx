@@ -2,20 +2,20 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrPropDisplay } from "../../components"
 
-# ` <table>{:dn}`
+# `<table>{:dn}`
 
 
-` <table>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
+`<table>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
 component that serves as a container element for data rendered 
 in a `<tabular>{:dn}` format.  Much of the DoenetML for customizing the appearance 
-of a table occurs in its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` children.
+of a table occurs in its `<tabular>{:dn}`, `<row>{:dn}`, or `<cell>{:dn}` children.
 
 <AttrPropDisplay name='table'/>
 
 
 ---
 
-### Example: ` <table>{:dn}` without attributes
+### Example: `<table>{:dn}` without attributes
 
 
 ```doenet-editor-horiz
@@ -51,13 +51,13 @@ of a table occurs in its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` chi
 
 
 
-In the sample code above, the ` <table>{:dn}` component is used without any additional attributes specified.
+In the sample code above, the `<table>{:dn}` component is used without any additional attributes specified.
 
 
 
 ---
 
-### Example: ` <table>{:dn}` with dividing lines
+### Example: `<table>{:dn}` with dividing lines
 
 
 ```doenet-editor-horiz
@@ -84,13 +84,13 @@ In the sample code above, the ` <table>{:dn}` component is used without any addi
 
 
 
-In order to render dividing lines inside a ` <table>{:dn}`, the relevant border attributes, `top`, `bottom`, `left`, and `right` are specified in either the ` <tabular>{:dn}`, or ` <row>{:dn}` children.
+In order to render dividing lines inside a `<table>{:dn}`, the relevant border attributes, `top`, `bottom`, `left`, and `right` are specified in either the `<tabular>{:dn}`, or `<row>{:dn}` children.
 
 
 
 ---
 
-### Example: ` <table>{:dn}` with varying widths
+### Example: `<table>{:dn}` with varying widths
 
 
 ```doenet-editor-horiz
@@ -116,13 +116,13 @@ In order to render dividing lines inside a ` <table>{:dn}`, the relevant border 
 
 
 
-Tables with varying widths are constructed by adjusting the `colSpan` attribute within the ` <cell>{:dn}` components.
+Tables with varying widths are constructed by adjusting the `colSpan` attribute within the `<cell>{:dn}` components.
 
 
 
 ---
 
-### Example: ` <table>{:dn}` with thick line below header only
+### Example: `<table>{:dn}` with thick line below header only
 
 
 ```doenet-editor-horiz
@@ -149,7 +149,7 @@ Tables with varying widths are constructed by adjusting the `colSpan` attribute 
 
 
 
-To render a thicker line below the header row, use the `bottom` attribute with the `medium` or `major` specification within the ` <row>{:dn}` component.
+To render a thicker line below the header row, use the `bottom` attribute with the `medium` or `major` specification within the `<row>{:dn}` component.
 
 
 
@@ -177,7 +177,7 @@ To render a thicker line below the header row, use the `bottom` attribute with t
 
 
 
-In the sample code above, the ` <table>{:dn}` component is used in combination with the `number` attribute set to `false`, which removes the default numbering for a table.
+In the sample code above, the `<table>{:dn}` component is used in combination with the `number` attribute set to `false`, which removes the default numbering for a table.
 
 
 
@@ -207,5 +207,5 @@ In the sample code above, the ` <table>{:dn}` component is used in combination w
 
 
 
-In the sample code above, the ` <table>{:dn}` component is used in combination with the `suppressTableNameInTitle` attribute set to `true`, which results in a table with only the user-defined title rendered.
+In the sample code above, the `<table>{:dn}` component is used in combination with the `suppressTableNameInTitle` attribute set to `true`, which results in a table with only the user-defined title rendered.
 

@@ -3,17 +3,17 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <md>{:dn}`
+# `<md>{:dn}`
 
-` <md>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+`<md>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
 component that renders a block of aligned display mathematics when used in combination 
-with the ` <mrow>{:dn}` component.
+with the `<mrow>{:dn}` component.
 
 <AttrPropDisplay name='md'/>
  
 ---
 
-### Example: ` <md>{:dn}` with nested ` <mrow>{:dn}` children
+### Example: `<md>{:dn}` with nested `<mrow>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -28,15 +28,15 @@ with the ` <mrow>{:dn}` component.
 
 
 
-The data contained within an ` <md>{:dn}` block must be contained in 
-an [` <mrow>{:dn}`](mrow.mdx).  Equations and content will align vertically where 
+The data contained within an `<md>{:dn}` block must be contained in 
+an [`<mrow>{:dn}`](mrow.mdx).  Equations and content will align vertically where 
 the `&` symbol is entered in each row. 
 
 
 
 ---
 
-### Example: ` <md>{:dn}` cannot contain ` <answer>{:dn}` or `<mathInput/>{:dn}`
+### Example: `<md>{:dn}` cannot contain `<answer>{:dn}` or `<mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -49,13 +49,13 @@ the `&` symbol is entered in each row.
 
 
 
-An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
+An `<md>{:dn}` block cannot contain an `<answer>{:dn}` or a `<mathInput/>{:dn}`.
 
 
 
 ---
 
-### Example: ` <md>{:dn}` with referenced ` <math>{:dn}`
+### Example: `<md>{:dn}` with referenced `<math>{:dn}`
 
 
 ```doenet-example
@@ -80,18 +80,18 @@ An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn
 
 
 
-Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or 
-referenced within an ` <md>{:dn}` block.
+Computational DoenetML components, such as `<math>{:dn}`, or `<derivative>{:dn}`, can be nested within or 
+referenced within an `<md>{:dn}` block.
 
 
-Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` 
-components cannot be nested within an ` <md>{:dn}` block.
+Exceptions: The `<answer>{:dn}` component, the `<mathInput/>{:dn}` component, and other `<md>{:dn}` 
+components cannot be nested within an `<md>{:dn}` block.
 
 
 
 ---
 
-### Example: ` <md>{:dn}` on a ` <graph>{:dn}`
+### Example: `<md>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -109,7 +109,7 @@ components cannot be nested within an ` <md>{:dn}` block.
 
 
 
-An ` <md>{:dn}` block can be placed on a ` <graph>{:dn}`. The `anchor` attribute 
+An `<md>{:dn}` block can be placed on a `<graph>{:dn}`. The `anchor` attribute 
 can be used to specify its initial location.
 
 
@@ -142,7 +142,7 @@ can be used to specify its initial location.
 
 
 
-Since an ` <md>{:dn}` block can be placed on a graph, the standard graphical 
+Since an `<md>{:dn}` block can be placed on a graph, the standard graphical 
 attributes `draggable`, `hide`, and `styleNumber` can be used to control its appearance and behavior.
 
 

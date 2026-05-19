@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <odeSystem>{:dn}`
+# `<odeSystem>{:dn}`
 
 
-` <odeSystem>{:dn}` computes a numerical solution to a system of ordinary differential equations. The following are required attributes: `variables` and `initialConditions`. The opening ` <odeSystem>{:dn}` tag defines a block in which to enter one or more ` <rightHandSide>{:dn}` children, representing the successive RHS's of the equations defining the system.
+`<odeSystem>{:dn}` computes a numerical solution to a system of ordinary differential equations. The following are required attributes: `variables` and `initialConditions`. The opening `<odeSystem>{:dn}` tag defines a block in which to enter one or more `<rightHandSide>{:dn}` children, representing the successive RHS's of the equations defining the system.
 
 <AttrPropDisplay name='odeSystem'/>
 
@@ -35,7 +35,7 @@ import { AttrPropDisplay } from "../../components"
 
 
 
-The required attributes as well as the ` <rightHandSide>{:dn}` child of the ` <odeSystem>{:dn}` component for a single differential equation are retrieved from user input. A ` <function>{:dn}` is then defined by accessing the `numericalSolution` property of the named ` <odeSystem>{:dn}` component. The solution can be graphed and evaluated in this manner using typical function evaluation techniques (i.e. by using either the `$$functionName(input)` evaluation macro or the ` <evaluate>{:dn}` component.) 
+The required attributes as well as the `<rightHandSide>{:dn}` child of the `<odeSystem>{:dn}` component for a single differential equation are retrieved from user input. A `<function>{:dn}` is then defined by accessing the `numericalSolution` property of the named `<odeSystem>{:dn}` component. The solution can be graphed and evaluated in this manner using typical function evaluation techniques (i.e. by using either the `$$functionName(input)` evaluation macro or the `<evaluate>{:dn}` component.) 
 
 
 
@@ -63,10 +63,10 @@ The required attributes as well as the ` <rightHandSide>{:dn}` child of the ` <o
 
 
 
-A linear spring-mass system is modeled as a ` <odeSystem>{:dn}` with two ` <rightHandSide>{:dn}` children. 
+A linear spring-mass system is modeled as a `<odeSystem>{:dn}` with two `<rightHandSide>{:dn}` children. 
 The problem is customizable via math inputs embedded in the problem statement. Note that, given the numerical 
-nature of the solution process for the ` <odeSystem>{:dn}` component, an error allowance must be provided 
-in the ` <answer>{:dn}` component using the `allowedErrorInNumbers` attribute.
+nature of the solution process for the `<odeSystem>{:dn}` component, an error allowance must be provided 
+in the `<answer>{:dn}` component using the `allowedErrorInNumbers` attribute.
 
 
 
@@ -97,7 +97,7 @@ in the ` <answer>{:dn}` component using the `allowedErrorInNumbers` attribute.
 
 
 
-This example illustrates the use of ` <odeSystem>{:dn}` for a second-order nonlinear differential equation arising 
+This example illustrates the use of `<odeSystem>{:dn}` for a second-order nonlinear differential equation arising 
 from the motion of a simple pendulum without damping 
 $$
 \frac{d^2 \theta}{d t^2} + \frac{g}{l} \sin(\theta) = 0
@@ -115,9 +115,9 @@ Making the substitution $\frac{d^2 \theta}{d t^2} = \frac{d \omega}{d t}$ result
 
 
 
-The right-hand side of these two equations are entered into the ` <odeSystem>{:dn}` component as ` <rightHandSide>{:dn}` children. 
+The right-hand side of these two equations are entered into the `<odeSystem>{:dn}` component as `<rightHandSide>{:dn}` children. 
 The order of the children should match the order of the independent variables listed in the `variables` attribute 
-of the ` <odeSystem>{:dn}` component definition. In this example, we have `variables="theta omega"`, so the right-hand 
+of the `<odeSystem>{:dn}` component definition. In this example, we have `variables="theta omega"`, so the right-hand 
 side equation for $\frac{d \theta}{d t}$ is listed as the first child, and the right-hand side for $\frac{d \omega}{d t}$ is 
 listed as the second child.
 
@@ -165,7 +165,7 @@ listed as the second child.
 
 
 
-Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the ` <number>{:dn}` `t` is animated with the ` <animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$. The simulated pendulum illustrates the angle.
+Refer to the previous example for the setup of the `<odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the `<number>{:dn}` `t` is animated with the `<animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$. The simulated pendulum illustrates the angle.
 
 
 
@@ -219,7 +219,7 @@ Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component
 
 
 
-Refer to the example titled "A simple pendulum ODE system" for the setup of the ` <odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the ` <number>{:dn}` `t` is animated with the ` <animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$ and $\omega(t)$. The nullcline of the phase plane is then graphed as a parametric ` <curve>{:dn}` with the horizontal coordinate given by the numerical solution for $\theta(t)$ and the vertical coordinate given by the numerical solution for $\omega(t)$.
+Refer to the example titled "A simple pendulum ODE system" for the setup of the `<odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the `<number>{:dn}` `t` is animated with the `<animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$ and $\omega(t)$. The nullcline of the phase plane is then graphed as a parametric `<curve>{:dn}` with the horizontal coordinate given by the numerical solution for $\theta(t)$ and the vertical coordinate given by the numerical solution for $\omega(t)$.
 
 
 
@@ -280,7 +280,7 @@ Refer to the example titled "A simple pendulum ODE system" for the setup of the 
 
 
 
-A point moving along the $\theta \;v.\; t$ function corresponding to the pendulum's motion from the previous example is rendered on a ` <graph>{:dn}` by animating the time parameter defined by the ` <number>{:dn}` `t`.
+A point moving along the $\theta \;v.\; t$ function corresponding to the pendulum's motion from the previous example is rendered on a `<graph>{:dn}` by animating the time parameter defined by the `<number>{:dn}` `t`.
 
 
 
@@ -494,7 +494,7 @@ Use the `hideInitialCondition` attribute to suppress rendering of the required i
 
 
 
-The `initialConditions` attribute is required for the ` <odeSystem>{:dn}` component. Initial conditions for each dependent variable should be listed in the attribute in the same order that the associated equations appear as ` <rightHandSide>{:dn}` children in the ` <odeSystem>{:dn}` block.
+The `initialConditions` attribute is required for the `<odeSystem>{:dn}` component. Initial conditions for each dependent variable should be listed in the attribute in the same order that the associated equations appear as `<rightHandSide>{:dn}` children in the `<odeSystem>{:dn}` block.
 
 
 
@@ -516,7 +516,7 @@ The `initialConditions` attribute is required for the ` <odeSystem>{:dn}` compon
 
 
 
-The `variables` attribute is required for the ` <odeSystem>{:dn}` component. Each dependent variable should be listed in the `variables` attribute in the same order that the associated equations appear as ` <rightHandSide>{:dn}` children in the ` <odeSystem>{:dn}` block.
+The `variables` attribute is required for the `<odeSystem>{:dn}` component. Each dependent variable should be listed in the `variables` attribute in the same order that the associated equations appear as `<rightHandSide>{:dn}` children in the `<odeSystem>{:dn}` block.
 
 
 
@@ -565,7 +565,7 @@ The attributes listed in the example above are also available as properties.
 
 
 
-The `rhss` property stores/renders the right-hand side children of the ` <odeSystem>{:dn}` in an array.
+The `rhss` property stores/renders the right-hand side children of the `<odeSystem>{:dn}` in an array.
 
 
 
@@ -585,7 +585,7 @@ The `rhss` property stores/renders the right-hand side children of the ` <odeSys
 
 
 
-The `latex` property stores/renders the LaTeX of the ` <odeSystem>{:dn}`.
+The `latex` property stores/renders the LaTeX of the `<odeSystem>{:dn}`.
 
 
 

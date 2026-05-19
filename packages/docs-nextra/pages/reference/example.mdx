@@ -3,19 +3,19 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <example>{:dn}`
+# `<example>{:dn}`
 
 
-` <example>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
-component which renders an auto-numbered block of content. Inline components such as paragraphs ` <p>{:dn}`
-and other components can be nested within an ` <example>{:dn}` to group and order content. Some 
-examples are: another ` <example>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
+`<example>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
+component which renders an auto-numbered block of content. Inline components such as paragraphs `<p>{:dn}`
+and other components can be nested within an `<example>{:dn}` to group and order content. Some 
+examples are: another `<example>{:dn}`, a `<section>{:dn}`, a `<figure>{:dn}`, or a `<problem>{:dn}`.
 
 <AttrPropDisplay name='example'/>
 
 ---
 
-### Example: ` <example>{:dn}` with default title
+### Example: `<example>{:dn}` with default title
 
 
 ```doenet-editor-horiz
@@ -44,7 +44,7 @@ auto-numbered. Each sectional component is on the same counter.
 
 ---
 
-### Example: ` <example>{:dn}` with custom title
+### Example: `<example>{:dn}` with custom title
 
 
 ```doenet-example
@@ -57,8 +57,8 @@ auto-numbered. Each sectional component is on the same counter.
 
 
 
-A custom ` <example>{:dn}` title is creating by providing 
-a ` <title>{:dn}` tag within the ` <example>{:dn}`.
+A custom `<example>{:dn}` title is creating by providing 
+a `<title>{:dn}` tag within the `<example>{:dn}`.
 
 
 
@@ -81,13 +81,13 @@ a ` <title>{:dn}` tag within the ` <example>{:dn}`.
 
 
 
-A hierarchy is created by nesting one or more sectional components within an ` <example>{:dn}`.
+A hierarchy is created by nesting one or more sectional components within an `<example>{:dn}`.
 
 
 
 ---
 
-### Example: Named ` <example>{:dn}` as a parent reference
+### Example: Named `<example>{:dn}` as a parent reference
 
 
 ```doenet-editor-horiz
@@ -115,7 +115,7 @@ they can be distinguished (when outside their parent component) by
 attaching the name of the parent component to the reference.
 
 
-Above, the ` <example>{:dn}` named `birdExample` is the
+Above, the `<example>{:dn}` named `birdExample` is the
 parent of the `<text>{:dn}` named `animal`. Therefore, when 
 referencing this specific instance of the component with that name, 
 you should use `$birdExample.animal` as shown.
@@ -141,8 +141,8 @@ you should use `$birdExample.animal` as shown.
 
 
 
-The `includeParentNumber` attribute is `false` by default for the ` <example>{:dn}` component 
-(and `true` by default for the ` <section>{:dn}` component).
+The `includeParentNumber` attribute is `false` by default for the `<example>{:dn}` component 
+(and `true` by default for the `<section>{:dn}` component).
 
 In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
 
@@ -166,12 +166,12 @@ In order to include the number of the parent sectional component, set `includePa
 
 
 The `includeAutoNumber` attribute is `false` by default for 
-the ` <example>{:dn}` component. This means that if a section contains 
-a nested ` <title>{:dn}`, it will not render the default numbering 
+the `<example>{:dn}` component. This means that if a section contains 
+a nested `<title>{:dn}`, it will not render the default numbering 
 (although it will still be counted in the numbering scheme behind the scenes).
 
 
-In order to display the example number in addition to the custom ` <title>{:dn}`, 
+In order to display the example number in addition to the custom `<title>{:dn}`, 
 set the `includeAutoNumber` attribute to `true`.
 
 
@@ -191,8 +191,8 @@ set the `includeAutoNumber` attribute to `true`.
 ```
 
 The `aggregateScores` and `sectionWideCheckWork` attributes 
-together combine validation for all ` <answer>{:dn}` components 
-within the ` <example>{:dn}` under a single "Check Work" button.
+together combine validation for all `<answer>{:dn}` components 
+within the `<example>{:dn}` under a single "Check Work" button.
 
 
 ---

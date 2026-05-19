@@ -4,9 +4,9 @@ import { AttrPropDisplay } from "../../components"
 
 
 
-# ` <graph>{:dn}`
+# `<graph>{:dn}`
 
-` <graph>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types) 
+`<graph>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types) 
 component that renders a 2D cartesian graph.
 
 <AttrPropDisplay name='graph'/>
@@ -15,7 +15,7 @@ component that renders a 2D cartesian graph.
 ## Examples Page 1
 
 
-### Example: Default ` <graph>{:dn}`
+### Example: Default `<graph>{:dn}`
 
 
 ```doenet-example
@@ -27,13 +27,13 @@ component that renders a 2D cartesian graph.
 
 
 
-Here a default ` <graph>{:dn}` is illustrated without any additional attributes.
+Here a default `<graph>{:dn}` is illustrated without any additional attributes.
 
 
 
 ---
 
-### Example: ` <graph>{:dn}` with default grid
+### Example: `<graph>{:dn}` with default grid
 
 
 ```doenet-example
@@ -45,7 +45,7 @@ Here a default ` <graph>{:dn}` is illustrated without any additional attributes.
 
 
 
-A ` <graph>{:dn}` with a default grid is illustrated. As you zoom in and out of 
+A `<graph>{:dn}` with a default grid is illustrated. As you zoom in and out of 
 the graph the size of the grid adapts to the view. To zoom, use the (+) and (-) buttons 
 at the bottom of the graph.
 
@@ -53,7 +53,7 @@ at the bottom of the graph.
 
 ---
 
-### Example: Invisible ` <graph>{:dn}` with shapes
+### Example: Invisible `<graph>{:dn}` with shapes
 
 
 ```doenet-editor-horiz
@@ -84,13 +84,13 @@ at the bottom of the graph.
 
 
 
-A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
+A `<graph>{:dn}` without border, axes, or navigation buttons appears invisible.
 
 
 
 ---
 
-### Example: ` <graph>{:dn}` with axis labels
+### Example: `<graph>{:dn}` with axis labels
 
 
 ```doenet-editor-horiz
@@ -104,14 +104,14 @@ A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
 
 
 
-Axis labels are specified using the ` <xLabel>{:dn}` and ` <yLabel>{:dn}` components as 
-children of the ` <graph>{:dn}`.
+Axis labels are specified using the `<xLabel>{:dn}` and `<yLabel>{:dn}` components as 
+children of the `<graph>{:dn}`.
 
 
 
 ---
 
-### Example: ` <graph>{:dn}` with legend
+### Example: `<graph>{:dn}` with legend
 
 
 ```doenet-editor-horiz
@@ -130,14 +130,14 @@ children of the ` <graph>{:dn}`.
 
 
 
-Legends are constructed by adding a ` <legend>{:dn}` child to the ` <graph>{:dn}` 
-component. See ` <legend>{:dn}` for more examples.
+Legends are constructed by adding a `<legend>{:dn}` child to the `<graph>{:dn}` 
+component. See `<legend>{:dn}` for more examples.
 
 
 
 ---
 
-### Example: Components that can be placed on a ` <graph>{:dn}`
+### Example: Components that can be placed on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -184,14 +184,14 @@ component. See ` <legend>{:dn}` for more examples.
 />
 ```
 
-Many different components can be placed on a ` <graph>{:dn}`. If the `anchor` attribute 
+Many different components can be placed on a `<graph>{:dn}`. If the `anchor` attribute 
 is included, the rendered object is centered at the point specified. Otherwise, the 
 component is centered at $(0,0)$. 
 
 
-Note that ` <mathInput/>{:dn}` components cannot be placed on a ` <graph>{:dn}`. 
-Instead, a ` <textInput/>{:dn}` can be included, and basic math expressions can be 
-performed for math entered into a ` <textInput/>{:dn}`.
+Note that `<mathInput/>{:dn}` components cannot be placed on a `<graph>{:dn}`. 
+Instead, a `<textInput/>{:dn}` can be included, and basic math expressions can be 
+performed for math entered into a `<textInput/>{:dn}`.
 
 
 
@@ -221,7 +221,7 @@ performed for math entered into a ` <textInput/>{:dn}`.
 
 Use the `xmin`, `xmax`, `ymin` and `ymax` attributes to adjust the extents of 
 the axis scales. Note that the relative proportions of the axes will automatically 
-adjust to keep the ` <graph>{:dn}` square unless the `identicalAxisScales` attribute 
+adjust to keep the `<graph>{:dn}` square unless the `identicalAxisScales` attribute 
 is also specified, as illustrated in the second graph.
 
 
@@ -269,7 +269,7 @@ the `size` category that corresponds to that width and sizes the graph according
 
 
 The `size` attribute specifies one of 5 size categories for the 
-` <graph>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+`<graph>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
 
 
 
@@ -313,7 +313,7 @@ The `aspectRatio` attribute allows for customization of the graph's default prop
 
 
 
-The `displayMode` attribute affects how the ` <graph>{:dn}` is positioned on screen. 
+The `displayMode` attribute affects how the `<graph>{:dn}` is positioned on screen. 
 The default mode is "block", which renders the graph centered on screen. The available 
 modes are `inline`, and `block`. 
 

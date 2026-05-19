@@ -3,11 +3,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <regularPolygon>{:dn}`
+# `<regularPolygon>{:dn}`
 
 
-` <regularPolygon>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a regular polygon on a ` <graph>{:dn}`.
+`<regularPolygon>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a regular polygon on a `<graph>{:dn}`.
 
 <AttrPropDisplay name='regularPolygon'/>
 
@@ -15,7 +15,7 @@ component that renders a regular polygon on a ` <graph>{:dn}`.
 
 
 
-### Example: Default ` <regularPolygon>{:dn}`
+### Example: Default `<regularPolygon>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -34,7 +34,7 @@ component that renders a regular polygon on a ` <graph>{:dn}`.
 
 
 
-The default shape for a ` <regularPolygon>{:dn}` without any attributes specified 
+The default shape for a `<regularPolygon>{:dn}` without any attributes specified 
 is a triangle with radius 1 (where *radius* implies *circumradius* in this case), 
 centered at the origin.
 
@@ -42,7 +42,7 @@ centered at the origin.
 
 ---
 
-### Example: ` <regularPolygon>{:dn}` with user-specified sides
+### Example: `<regularPolygon>{:dn}` with user-specified sides
 
 
 ```doenet-editor-horiz
@@ -66,16 +66,16 @@ centered at the origin.
 
 
 In this example, the number of sides and side length are specified by the user 
-with a ` <mathInput/>{:dn}` and a ` <slider/>{:dn}` component, respectively. These 
+with a `<mathInput/>{:dn}` and a `<slider/>{:dn}` component, respectively. These 
 values are then referenced by the `numSides` and `sideLength` attributes of 
-the ` <regularPolygon>{:dn}`. Note that the `prefill` attributes 
+the `<regularPolygon>{:dn}`. Note that the `prefill` attributes 
 are required in this case; the values for these attributes cannot be null.
 
 
 
 ---
 
-### Example: Filled, colored ` <regularPolygon>{:dn}`
+### Example: Filled, colored `<regularPolygon>{:dn}`
 
 
 ```doenet-example
@@ -126,8 +126,8 @@ The `filled` attribute renders the polygon with default shading to match the `st
 
 
 
-Two vertices only of a ` <regularPolygon>{:dn}` are specified in the `vertices` attribute by 
-referencing the endpoints of a defined ` <lineSegment>{:dn}`. Try tinkering with the 
+Two vertices only of a `<regularPolygon>{:dn}` are specified in the `vertices` attribute by 
+referencing the endpoints of a defined `<lineSegment>{:dn}`. Try tinkering with the 
 number of sides in this example, or dragging the endpoints of the line segment.
 
 

@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <feedback>{:dn}`
+# `<feedback>{:dn}`
 
 
-` <feedback>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) 
+`<feedback>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) 
 component that renders a boxed section of content that can be triggered by predefined user interactions. 
 
 <AttrPropDisplay name='feedback'/>
@@ -14,7 +14,7 @@ component that renders a boxed section of content that can be triggered by prede
 
 ---
 
-### Example: ` <feedback>{:dn}` for any arbitrary incorrect answer
+### Example: `<feedback>{:dn}` for any arbitrary incorrect answer
 
 
 ```doenet-editor-horiz
@@ -32,16 +32,16 @@ component that renders a boxed section of content that can be triggered by prede
 
 
 
-The `condition` for triggering the ` <feedback>{:dn}` consists of a boolean 
+The `condition` for triggering the `<feedback>{:dn}` consists of a boolean 
 that has two parts. The first part references the `creditAchieved` property of the 
-named ` <answer>{:dn}`, and the second checks to see whether the user has yet submitted a response. 
+named `<answer>{:dn}`, and the second checks to see whether the user has yet submitted a response. 
 No feedback is provided if the user answers the question correctly.
 
 
 
 ---
 
-### Example: ` <feedback>{:dn}` based on ` <choice>{:dn}` selected
+### Example: `<feedback>{:dn}` based on `<choice>{:dn}` selected
 
 
 ```doenet-editor-horiz
@@ -69,8 +69,8 @@ No feedback is provided if the user answers the question correctly.
 
 
 
-The ` <feedback>{:dn}` provided to the user is tied to the ` <choice>{:dn}` 
-selected within an ` <answer>{:dn}`.
+The `<feedback>{:dn}` provided to the user is tied to the `<choice>{:dn}` 
+selected within an `<answer>{:dn}`.
 
 
 
@@ -99,15 +99,15 @@ $ans.feedbacks
 
 
 
-Feedback is defined within each ` <choice>{:dn}` with the `feedbackText` attribute.  
-Below the ` <answer>{:dn}` block, the feedback text is rendered to the viewer with the reference
+Feedback is defined within each `<choice>{:dn}` with the `feedbackText` attribute.  
+Below the `<answer>{:dn}` block, the feedback text is rendered to the viewer with the reference
 `$ans.feedbacks`.
 
 
 
 ---
 
-### Example: ` <feedback>{:dn}` tied to an ` <award>{:dn}`
+### Example: `<feedback>{:dn}` tied to an `<award>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -160,7 +160,7 @@ Individualized feedback is provided to specific responses by referencing named a
 
 
 
-The `condition` attribute specifies the boolean condition necessary for rendering the ` <feedback>{:dn}`.
+The `condition` attribute specifies the boolean condition necessary for rendering the `<feedback>{:dn}`.
 
 
 
@@ -189,7 +189,7 @@ The `condition` attribute specifies the boolean condition necessary for renderin
 
 
 
-When the `updateWith` attribute is specified, the condition for the ` <feedback>{:dn}` is re-checked after 
+When the `updateWith` attribute is specified, the condition for the `<feedback>{:dn}` is re-checked after 
 the specified action. An `<answer>{:dn}` action is completed when the user clicks the Check Work button.
 The action for a `<mathInput>{:dn}` is completed when the input box is no longer activated (i.e. the user
 navigates outside the box).

@@ -2,17 +2,17 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrPropDisplay } from "../../components"
 
-# ` <point>{:dn}`
+# `<point>{:dn}`
 
-` <point>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a point on a ` <graph>{:dn}`.
+`<point>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a point on a `<graph>{:dn}`.
 
 
 <AttrPropDisplay name='point'/>
 
 ---
 
-### Example: Default ` <point>{:dn}`
+### Example: Default `<point>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -26,13 +26,13 @@ component that renders a point on a ` <graph>{:dn}`.
 
 
 
-Here a default ` <point>{:dn}` is illustrated without any additional attributes.
+Here a default `<point>{:dn}` is illustrated without any additional attributes.
 
 
 
 ---
 
-### Example: ` <point>{:dn}` with nested coordinates
+### Example: `<point>{:dn}` with nested coordinates
 
 
 ```doenet-editor-horiz
@@ -46,13 +46,13 @@ Here a default ` <point>{:dn}` is illustrated without any additional attributes.
 
 
 
-The initial coordinates of a ` <point>{:dn}` may be specified between opening and closing tags.
+The initial coordinates of a `<point>{:dn}` may be specified between opening and closing tags.
 
 
 
 ---
 
-### Example: ` <point>{:dn}` location specified with attributes
+### Example: `<point>{:dn}` location specified with attributes
 
 
 ```doenet-editor-horiz
@@ -76,13 +76,13 @@ The initial coordinates of a ` <point>{:dn}` may be specified between opening an
 
 
 
-Three different ways to specify the coordinates of a ` <point>{:dn}` using its attributes are illustrated.
+Three different ways to specify the coordinates of a `<point>{:dn}` using its attributes are illustrated.
 
 
 
 ---
 
-### Example: A labeled ` <point>{:dn}`
+### Example: A labeled `<point>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -103,7 +103,7 @@ Three different ways to specify the coordinates of a ` <point>{:dn}` using its a
 
 
 Point labels can be created either with the shortcut attribute `labelIsName` or by 
-giving the ` <point>{:dn}` a ` <label>{:dn}` child.
+giving the `<point>{:dn}` a `<label>{:dn}` child.
 
 
 
@@ -144,7 +144,7 @@ Points with standard styleNumbers one through six are illustrated. If unspecifie
 
 ---
 
-### Example: ` <point>{:dn}` constrained to a grid
+### Example: `<point>{:dn}` constrained to a grid
 
 
 ```doenet-editor-horiz
@@ -162,13 +162,13 @@ Points with standard styleNumbers one through six are illustrated. If unspecifie
 
 
 
-Points can take constraints as children. Several different types of constraints are possible; in this example, the ` <constrainToGrid/>{:dn}` and ` <attractToGrid/>{:dn}` constraints are illustrated.
+Points can take constraints as children. Several different types of constraints are possible; in this example, the `<constrainToGrid/>{:dn}` and `<attractToGrid/>{:dn}` constraints are illustrated.
 
 
 
 ---
 
-### Example: ` <point>{:dn}` constrained to a ` <line>{:dn}`
+### Example: `<point>{:dn}` constrained to a `<line>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -184,13 +184,13 @@ Points can take constraints as children. Several different types of constraints 
 
 
 
-Points can take constraints as children. Several different types of constraints are possible. In this case, the ` <constrainTo>{:dn}` constraint references a named ` <line>{:dn}`.
+Points can take constraints as children. Several different types of constraints are possible. In this case, the `<constrainTo>{:dn}` constraint references a named `<line>{:dn}`.
 
 
 
 ---
 
-### Example: An animated ` <point>{:dn}`
+### Example: An animated `<point>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -209,7 +209,7 @@ Points can take constraints as children. Several different types of constraints 
 
 
 
-A ` <point>{:dn}` is animated by paraterizing its coordinates with respect to the ` <number>{:dn}` `t`. The parameter is animated using the ` <animateFromSequence/>{:dn}` component.
+A `<point>{:dn}` is animated by paraterizing its coordinates with respect to the `<number>{:dn}` `t`. The parameter is animated using the `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -237,7 +237,7 @@ A ` <point>{:dn}` is animated by paraterizing its coordinates with respect to th
 Although point C depends on point B which depends on point A which, in turn, depends on point C, Doenet can determine that there is actually no circular dependency in their relationship.
 
 
-This example also illustrates how one can change a point either by dragging it or by changing a ` <mathInput/>{:dn}` that is bound to one of its coordinates.
+This example also illustrates how one can change a point either by dragging it or by changing a `<mathInput/>{:dn}` that is bound to one of its coordinates.
 
 
 
@@ -260,7 +260,7 @@ This example also illustrates how one can change a point either by dragging it o
 
 
 
-The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<point>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -279,7 +279,7 @@ The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged 
 
 
 
-The `x` and `y` attributes are used to specify isolated ` <point>{:dn}` coordinates.
+The `x` and `y` attributes are used to specify isolated `<point>{:dn}` coordinates.
 
 
 
@@ -298,7 +298,7 @@ The `x` and `y` attributes are used to specify isolated ` <point>{:dn}` coordina
 
 
 
-The `coords` attribute specifies the ` <point>{:dn}` coordinates.
+The `coords` attribute specifies the `<point>{:dn}` coordinates.
 
 
 
@@ -383,7 +383,7 @@ By default, a light-grey set of coordinates is shown while the user drags the po
 
 
 
-By default, when a ` <point>{:dn}` is dragged outside the extents of the ` <graph>{:dn}`, or when a point is located outside the extents, an triangle-shaped indicator appears at the edge of the ` <graph>{:dn}`. The user can either click this indicator to bring the ` <point>{:dn}` back to the position of the cursor, or zoom out until the ` <point>{:dn}` is visible again. 
+By default, when a `<point>{:dn}` is dragged outside the extents of the `<graph>{:dn}`, or when a point is located outside the extents, an triangle-shaped indicator appears at the edge of the `<graph>{:dn}`. The user can either click this indicator to bring the `<point>{:dn}` back to the position of the cursor, or zoom out until the `<point>{:dn}` is visible again. 
 
 
 In this example, only one indicator appears initially, since point A has the `hideOffGraphIndicator` attribute specified. The student would not be aware that point A exists, until zooming out sufficiently far on the graph.
@@ -449,7 +449,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
-The above listed ` <point>{:dn}` attributes are also accessible as properties.
+The above listed `<point>{:dn}` attributes are also accessible as properties.
 
 
 
@@ -487,7 +487,7 @@ The `numDimensions` property renders the number of dimensions required to define
 
 
 
-The `latex` property renders the latex code associated with rendering the coordinates of the ` <point>{:dn}`.
+The `latex` property renders the latex code associated with rendering the coordinates of the `<point>{:dn}`.
 
 
 
@@ -511,5 +511,5 @@ The `latex` property renders the latex code associated with rendering the coordi
 
 
 
-The `constraintUsed` property renders the boolean value corresponding to whether the current location of the ` <point>{:dn}` is utilizing the specified constraint - in this case, an ` <attractToGrid/>{:dn}` constraint.
+The `constraintUsed` property renders the boolean value corresponding to whether the current location of the `<point>{:dn}` is utilizing the specified constraint - in this case, an `<attractToGrid/>{:dn}` constraint.
 

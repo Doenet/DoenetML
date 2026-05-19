@@ -3,19 +3,19 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <choiceInput>{:dn}`
+# `<choiceInput>{:dn}`
 
-` <choiceInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types) 
+`<choiceInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types) 
 component that defines a block of code for multiple choice questions.
 It serves as a container element for the individual 
-` <choice>{:dn}` components that are nested within.
+`<choice>{:dn}` components that are nested within.
 
 <AttrPropDisplay name='choiceInput'/>
 
 
 ---
 
-### Example: ` <choiceInput>{:dn}` for survey question
+### Example: `<choiceInput>{:dn}` for survey question
 
 
 ```doenet-example
@@ -28,13 +28,13 @@ It serves as a container element for the individual
 
 
 
-A ` <choiceInput>{:dn}` is used to collect user responses that do not require validation.
+A `<choiceInput>{:dn}` is used to collect user responses that do not require validation.
 
 
 
 ---
 
-### Example: ` <choiceInput>{:dn}` in ` <answer>{:dn}`
+### Example: `<choiceInput>{:dn}` in `<answer>{:dn}`
 
 
 ```doenet-example
@@ -49,14 +49,14 @@ A ` <choiceInput>{:dn}` is used to collect user responses that do not require va
 
 
 
-A ` <choiceInput>{:dn}` can be nested within an ` <answer>{:dn}` to 
+A `<choiceInput>{:dn}` can be nested within an `<answer>{:dn}` to 
 collect user responses with validation.
 
 
 
 ---
 
-### Example: ` <choiceInput>{:dn}` as a menu
+### Example: `<choiceInput>{:dn}` as a menu
 
 
 ```doenet-editor-horiz
@@ -86,8 +86,8 @@ collect user responses with validation.
 
 
 
-A ` <choiceInput>{:dn}` can be used in combination 
-with ` <conditionalContent>{:dn}` to create a simple menu.
+A `<choiceInput>{:dn}` can be used in combination 
+with `<conditionalContent>{:dn}` to create a simple menu.
 
 
 
@@ -107,8 +107,8 @@ with ` <conditionalContent>{:dn}` to create a simple menu.
 
 
 
-The `selectMultiple` allows users to select multiple ` <choice>{:dn}` 
-components in a ` <choiceInput>{:dn}`. 
+The `selectMultiple` allows users to select multiple `<choice>{:dn}` 
+components in a `<choiceInput>{:dn}`. 
 
 
 
@@ -131,10 +131,10 @@ components in a ` <choiceInput>{:dn}`.
 
 
 
-If an ` <answer>{:dn}` requires more than one ` <choice>{:dn}` selection 
+If an `<answer>{:dn}` requires more than one `<choice>{:dn}` selection 
 for full credit, the `matchPartial` attribute can be used to 
 assign partial credit if one or more of the total number of correct 
-choices are selected within a ` <choiceInput>{:dn}`.
+choices are selected within a `<choiceInput>{:dn}`.
 
 
 
@@ -151,7 +151,7 @@ choices are selected within a ` <choiceInput>{:dn}`.
 </choiceInput>
 ```
 
-The `inline` attribute provides a pull-down menu for ` <choice>{:dn}` 
+The `inline` attribute provides a pull-down menu for `<choice>{:dn}` 
 selection rather than the default radio buttons.
 
 
@@ -203,8 +203,8 @@ The `preselectChoice` attributes takes the index of the choice to preselect.
 </choiceInput>
 ```
 
-The ` <bindValueTo>{:dn}` takes a named component as input. The 
-value of the ` <choiceInput>{:dn}` then becomes linked to that component's value.
+The `<bindValueTo>{:dn}` takes a named component as input. The 
+value of the `<choiceInput>{:dn}` then becomes linked to that component's value.
 
 ---
 
@@ -265,8 +265,8 @@ The `submitLabelNoCorrectness` attribute modifies the standard
 
 
 
-The `numChoices` property returns the number of nested ` <choice>{:dn}` 
-children in the named ` <choiceInput>{:dn}`.
+The `numChoices` property returns the number of nested `<choice>{:dn}` 
+children in the named `<choiceInput>{:dn}`.
 
 
 
@@ -293,7 +293,7 @@ children in the named ` <choiceInput>{:dn}`.
 
 
 
-The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:dn}` in an array.
+The `choiceTexts` property renders the texts contained in the `<choiceInput>{:dn}` in an array.
 
 
 
@@ -320,7 +320,7 @@ The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:d
 
 
 
-The `choiceMaths` property renders the maths contained in the ` <choiceInput>{:dn}` in an array.
+The `choiceMaths` property renders the maths contained in the `<choiceInput>{:dn}` in an array.
 
 
 

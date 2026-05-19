@@ -3,9 +3,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <derivative>{:dn}`
+# `<derivative>{:dn}`
 
-` <derivative>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+`<derivative>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
 component that renders the derivative of basic elementary functions 
 (including polynomial, exponential, and trigonometric functions.)
 
@@ -15,7 +15,7 @@ component that renders the derivative of basic elementary functions
 
 ---
 
-### Example: ` <derivative>{:dn}` of a nested function
+### Example: `<derivative>{:dn}` of a nested function
 
 
 ```doenet-editor-horiz
@@ -29,14 +29,14 @@ component that renders the derivative of basic elementary functions
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the enclosed math expression, 
+A `<derivative>{:dn}` renders the derivative of the enclosed math expression, 
 if the expression can be interpreted as a function in $x$.
 
 
 
 ---
 
-### Example: ` <derivative>{:dn}` of a named function
+### Example: `<derivative>{:dn}` of a named function
 
 
 ```doenet-editor-horiz
@@ -53,13 +53,13 @@ if the expression can be interpreted as a function in $x$.
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`.
+A `<derivative>{:dn}` renders the derivative of the named `<function>{:dn}`.
 
 
 
 ---
 
-### Example: ` <derivative>{:dn}` of a function of a different variable
+### Example: `<derivative>{:dn}` of a function of a different variable
 
 
 ```doenet-editor-horiz
@@ -76,8 +76,8 @@ A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`.
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
-The ` <function>{:dn}` is defined in terms of $y$ with the `variables` attribute 
+A `<derivative>{:dn}` renders the derivative of the named `<function>{:dn}`. 
+The `<function>{:dn}` is defined in terms of $y$ with the `variables` attribute 
 and this information is carried over when evaluating the derivative.
 
 
@@ -109,8 +109,8 @@ and this information is carried over when evaluating the derivative.
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
-The ` <function>{:dn}` is defined in terms of $x$ and $z$ with the `variables` attribute. 
+A `<derivative>{:dn}` renders the derivative of the named `<function>{:dn}`. 
+The `<function>{:dn}` is defined in terms of $x$ and $z$ with the `variables` attribute. 
 The variable for differentiation of the partial derivative is specified with the `derivVariables` attribute.
 
 
@@ -190,7 +190,7 @@ differentiation (or a list of variables to differentiate with respect to) for mu
 
 
 The `variables` attribute can be used to specify the 
-function variable if not specified by ` <function>{:dn}` definition.
+function variable if not specified by `<function>{:dn}` definition.
 
 
 
@@ -264,5 +264,5 @@ The `numDerivatives` property returns the number of differentiations performed o
 
 
 
-Both attributes of the ` <derivative>{:dn}` component are also accessible as properties.
+Both attributes of the `<derivative>{:dn}` component are also accessible as properties.
 

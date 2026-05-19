@@ -3,20 +3,20 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <constrainToGrid/>{:dn}`
+# `<constrainToGrid/>{:dn}`
 
-` <constrainToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that is used to constrain a ` <point>{:dn}` to a grid. The grid can be the default $1 \times 1$ grid,
+`<constrainToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that is used to constrain a `<point>{:dn}` to a grid. The grid can be the default $1 \times 1$ grid,
  or a custom grid defined by the `dx` and `dy` attributes, or by the `xOffset` and `yOffset` attributes.
 
-` <constrainToGrid/>{:dn}` forces points to snap to gridline locations.
+`<constrainToGrid/>{:dn}` forces points to snap to gridline locations.
 
 <AttrPropDisplay name='constrainToGrid'/>
 
 
 ---
 
-### Example: Constrain a ` <point>{:dn}` to the default grid
+### Example: Constrain a `<point>{:dn}` to the default grid
 
 
 ```doenet-editor-horiz
@@ -31,13 +31,13 @@ component that is used to constrain a ` <point>{:dn}` to a grid. The grid can be
 
 
 
-The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid.
+The `<point>{:dn}` is constrained to the default $1 \times 1$ grid.
 
 
 
 ---
 
-### Example: Constrain a ` <circle>{:dn}` to the default grid
+### Example: Constrain a `<circle>{:dn}` to the default grid
 
 
 ```doenet-editor-horiz
@@ -53,13 +53,13 @@ The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid.
 
 
 
-To constrain geometric objects other than points, first define a named ` <point>{:dn}` with the desired constraint, and then reference that point within the definition of the geometric object. The original ` <point>{:dn}` can be hidden using the `hide` attribute.
+To constrain geometric objects other than points, first define a named `<point>{:dn}` with the desired constraint, and then reference that point within the definition of the geometric object. The original `<point>{:dn}` can be hidden using the `hide` attribute.
 
 
 
 ---
 
-### Example: Constrain a ` <point>{:dn}` to a custom grid
+### Example: Constrain a `<point>{:dn}` to a custom grid
 
 
 ```doenet-editor-horiz
@@ -75,7 +75,7 @@ To constrain geometric objects other than points, first define a named ` <point>
 
 
 
-The ` <point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
+The `<point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
 
 
 
@@ -97,7 +97,7 @@ The ` <point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
 
 
 
-The ` <point>{:dn}` is constrained to a custom grid using the `dx` and `dy` components. The `grid` specified for the ` <graph>{:dn}` does not affect the constraint grid, it is merely adjusted to match in this example for illustration.
+The `<point>{:dn}` is constrained to a custom grid using the `dx` and `dy` components. The `grid` specified for the `<graph>{:dn}` does not affect the constraint grid, it is merely adjusted to match in this example for illustration.
 
 
 
@@ -119,6 +119,6 @@ The ` <point>{:dn}` is constrained to a custom grid using the `dx` and `dy` comp
 
 
 
-The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid with a specified `xOffset` and `yOffset` of $0.5$. 
+The `<point>{:dn}` is constrained to the default $1 \times 1$ grid with a specified `xOffset` and `yOffset` of $0.5$. 
 
 

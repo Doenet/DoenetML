@@ -3,13 +3,13 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <mathInput/>{:dn}`
+# `<mathInput/>{:dn}`
 
 
-` <mathInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+`<mathInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component that renders a user-input field that stores mathematical content. 
-When referenced, a named ` <mathInput/>{:dn}` can be used in computations in the same manner 
-as a ` <math>{:dn}` component.
+When referenced, a named `<mathInput/>{:dn}` can be used in computations in the same manner 
+as a `<math>{:dn}` component.
 
 <AttrPropDisplay name='mathInput'/>
 
@@ -26,7 +26,7 @@ as a ` <math>{:dn}` component.
 
 
 
-A ` <mathInput/>{:dn}` renders an input field for storing and naming user-provided math expressions.
+A `<mathInput/>{:dn}` renders an input field for storing and naming user-provided math expressions.
 
 
 
@@ -45,13 +45,13 @@ A ` <mathInput/>{:dn}` renders an input field for storing and naming user-provid
 
 
 
-A named ` <mathInput/>{:dn}` can be referenced within a ` <math>{:dn}` for computations.
+A named `<mathInput/>{:dn}` can be referenced within a `<math>{:dn}` for computations.
 
 
 
 ---
 
-### Example: ` <mathInput/>{:dn}` with structured prefill
+### Example: `<mathInput/>{:dn}` with structured prefill
 
 
 ```doenet-editor-horiz
@@ -66,7 +66,7 @@ A named ` <mathInput/>{:dn}` can be referenced within a ` <math>{:dn}` for compu
 
 
 
-A ` <mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
+A `<mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
 
 
 
@@ -83,7 +83,7 @@ A ` <mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
 
 
 The `prefill` attribute can be used to specify an initial value of 
-the ` <mathInput/>{:dn}`, or a template for anticipated responses. Blank spaces, 
+the `<mathInput/>{:dn}`, or a template for anticipated responses. Blank spaces, 
 if used, are rendered as grey input boxes. 
 
 
@@ -126,9 +126,9 @@ which is typically removed when LaTeX is parsed as a math component.
 
 
 
-The `format` attribute gives the option for prefilled ` <mathInput/>{:dn}` components 
+The `format` attribute gives the option for prefilled `<mathInput/>{:dn}` components 
 to contain content formatted in LaTex. If supported, expressions entered in the 
-prefill of the ` <mathInput/>{:dn}` will be parsed by Doenet as math components and 
+prefill of the `<mathInput/>{:dn}` will be parsed by Doenet as math components and 
 may be used in further computations. 
 
 
@@ -175,7 +175,7 @@ considered functions symbols are `f` and `g`.
 
 
 The `splitSymbols` attribute is used to modify the default mathematical simplification of 
-multicharacter values in a ` <mathInput/>{:dn}`. By default, Doenet assumes adjacent characters 
+multicharacter values in a `<mathInput/>{:dn}`. By default, Doenet assumes adjacent characters 
 are single variables multiplied together, and "splits" them during parsing. So, for example, 
 multicharacter values such as `xyz` are interpreted as the product $x \cdot y \cdot z$. However, 
 if you wish to treat a grouping of symbols as a single variable, you can turn off this 
@@ -233,7 +233,7 @@ Then, try changing the value in the input box.</p>
 ```
 
 The `bindValueTo` attribute is used to create a bidirectional link between the 
-value of a ` <mathInput/>{:dn}` and that of another component. This attribute 
+value of a `<mathInput/>{:dn}` and that of another component. This attribute 
 accepts a reference to a named math component or the property of a named component as input.
 
 An alternative way to create the same bidirectional link is to simply put the reference to the 
@@ -256,7 +256,7 @@ component as a child of the `<mathInput>{:dn}`.
 
 
 
-By default, an uppercase "U" entered in a ` <mathInput/>{:dn}` will be interpreted as 
+By default, an uppercase "U" entered in a `<mathInput/>{:dn}` will be interpreted as 
 the letter U. To enter a union, one can use the virtual keyboard (by clicking button at 
 the bottom of the screen), and finding the $\cup$ symbol in the keyboard's Set menu.  
 (Or, if one knows LaTeX, one could type `\cup` for union.)
@@ -275,7 +275,7 @@ the bottom of the screen), and finding the $\cup$ symbol in the keyboard's Set m
 
 
 
-By default, the text NaN is suppressed within the ` <mathInput/>{:dn}` box. To override this 
+By default, the text NaN is suppressed within the `<mathInput/>{:dn}` box. To override this 
 behavior, the `hideNaN` attribute may be set to false.
 
 
@@ -355,7 +355,7 @@ The `minWidth` attribute is set to 50 by default. Adjust this value for a longer
 
 
 
-The above-listed attributes of ` <mathInput/>{:dn}` are also accessible as properties.
+The above-listed attributes of `<mathInput/>{:dn}` are also accessible as properties.
 
 
 
@@ -372,7 +372,7 @@ The above-listed attributes of ` <mathInput/>{:dn}` are also accessible as prope
 
 
 
-The `value` property renders the value stored in the ` <mathInput>{:dn}` after the user has 
+The `value` property renders the value stored in the `<mathInput>{:dn}` after the user has 
 clicked Enter (or mouse-clicked on another part of the screen).
 
 
@@ -409,7 +409,7 @@ The `immediateValue` property contains the value the user enters into the input 
 
 
 
-The `text` property of a ` <mathInput/>{:dn}` stores its content as a string.
+The `text` property of a `<mathInput/>{:dn}` stores its content as a string.
 
 
 

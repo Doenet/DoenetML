@@ -3,9 +3,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <matrix>{:dn}`
+# `<matrix>{:dn}`
 
-` <matrix>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+`<matrix>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
 component that defines/renders a matrix for use in computations.
 
 <AttrPropDisplay name='matrix'/>
@@ -13,7 +13,7 @@ component that defines/renders a matrix for use in computations.
 
 ---
 
-### Example: Create a ` <matrix>{:dn}` from rows
+### Example: Create a `<matrix>{:dn}` from rows
 
 
 ```doenet-editor-horiz
@@ -29,14 +29,14 @@ component that defines/renders a matrix for use in computations.
 
 
 
-Matrices can be quickly defined by listing row entries within nested ` <row>{:dn}` components. 
+Matrices can be quickly defined by listing row entries within nested `<row>{:dn}` components. 
 Individual entries can be accessed using array notation with the `matrix` property.
 
 
 
 ---
 
-### Example: Create a ` <matrix>{:dn}` from columns
+### Example: Create a `<matrix>{:dn}` from columns
 
 
 ```doenet-editor-horiz
@@ -52,14 +52,14 @@ Individual entries can be accessed using array notation with the `matrix` proper
 
 
 
-Matrices can be quickly defined by listing column entries within nested ` <column>{:dn}` components. Individual 
+Matrices can be quickly defined by listing column entries within nested `<column>{:dn}` components. Individual 
 entries can be accessed using array notation with the `matrix` property.
 
 
 
 ---
 
-### Example: Create a ` <matrix>{:dn}` of a given size
+### Example: Create a `<matrix>{:dn}` of a given size
 
 
 ```doenet-editor-horiz
@@ -78,14 +78,14 @@ entries can be accessed using array notation with the `matrix` property.
 
 
 
-A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the `numColumns` attributes. By 
+A `<matrix>{:dn}` of a given size can be generated using the `numRows` and the `numColumns` attributes. By 
 default, a zero matrix will be defined; to modify this use the `defaultEntry` attribute.
 
 
 
 ---
 
-### Example: Create a ` <matrix>{:dn}` from user-input rows
+### Example: Create a `<matrix>{:dn}` from user-input rows
 
 
 ```doenet-editor-horiz
@@ -105,14 +105,14 @@ default, a zero matrix will be defined; to modify this use the `defaultEntry` at
 
 
 
-This example shows one method of populating the entries of a ` <matrix>{:dn}` from user-input. See 
-also, ` <matrixInput>{:dn}`.
+This example shows one method of populating the entries of a `<matrix>{:dn}` from user-input. See 
+also, `<matrixInput>{:dn}`.
 
 
 
 ---
 
-### Example: ` <matrix>{:dn}` addition/ subtraction
+### Example: `<matrix>{:dn}` addition/ subtraction
 
 
 ```doenet-editor-horiz
@@ -135,13 +135,13 @@ also, ` <matrixInput>{:dn}`.
 
 
 
-The ` <math>{:dn}` component with the `simplify` attribute performs matrix addition and subtraction. 
+The `<math>{:dn}` component with the `simplify` attribute performs matrix addition and subtraction. 
 
 
 
 ---
 
-### Example: ` <matrix>{:dn}` multiplication
+### Example: `<matrix>{:dn}` multiplication
 
 
 ```doenet-editor-horiz
@@ -165,7 +165,7 @@ The ` <math>{:dn}` component with the `simplify` attribute performs matrix addit
 
 
 
-The ` <math>{:dn}` component, along with both the `simplify` and `expand` attributes, 
+The `<math>{:dn}` component, along with both the `simplify` and `expand` attributes, 
 performs matrix multiplication.
 
 
@@ -193,13 +193,13 @@ performs matrix multiplication.
 
 
 
-The ` <math>{:dn}` component with the `simplify` attribute performs matrix multiplication by a scalar.
+The `<math>{:dn}` component with the `simplify` attribute performs matrix multiplication by a scalar.
 
 
 
 ---
 
-### Example: ` <matrix>{:dn}` from geometry
+### Example: `<matrix>{:dn}` from geometry
 
 
 ```doenet-editor-horiz
@@ -224,7 +224,7 @@ The ` <math>{:dn}` component with the `simplify` attribute performs matrix multi
 
 
 A coefficient matrix can be constructed from vectors or other 
-geometric objects by referencing the objects within the ` <row>{:dn}` or ` <column>{:dn}` 
+geometric objects by referencing the objects within the `<row>{:dn}` or `<column>{:dn}` 
 components. The references should be enclosed in parentheses.
 
 

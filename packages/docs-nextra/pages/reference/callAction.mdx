@@ -3,10 +3,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <callAction>{:dn}`
+# `<callAction>{:dn}`
 
 
-` <callAction>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+`<callAction>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that triggers an action based on a click interaction or a specified boolean condition. The 
 available actions are:
 - `addChildren`: Adds one or more children to the target component.
@@ -25,7 +25,7 @@ available actions are:
 
 ---
 
-### Example: Add a ` <point>{:dn}` child to a ` <graph>{:dn}`
+### Example: Add a `<point>{:dn}` child to a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -39,14 +39,14 @@ available actions are:
 
 
 
-Each time the ` <callAction>{:dn}` button is clicked, a new ` <point>{:dn}` child 
+Each time the `<callAction>{:dn}` button is clicked, a new `<point>{:dn}` child 
 is added to the graph at $(2,3)$.
 
 
 
 ---
 
-### Example: Delete a ` <point>{:dn}` child from a ` <graph>{:dn}`
+### Example: Delete a `<point>{:dn}` child from a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -64,8 +64,8 @@ is added to the graph at $(2,3)$.
 
 
 
-Each time the second ` <callAction>{:dn}` button is clicked, a  ` <point>{:dn}` 
-child that was added previously is deleted from the ` <graph>{:dn}`.
+Each time the second `<callAction>{:dn}` button is clicked, a  `<point>{:dn}` 
+child that was added previously is deleted from the `<graph>{:dn}`.
 
 
 
@@ -95,8 +95,8 @@ child that was added previously is deleted from the ` <graph>{:dn}`.
 
 
 
-Multiple ` <callActions>{:dn}` can be performed with the action of one 
-button click when grouped together inside a ` <triggerSet>{:dn}` component.
+Multiple `<callActions>{:dn}` can be performed with the action of one 
+button click when grouped together inside a `<triggerSet>{:dn}` component.
 
 
 
@@ -117,7 +117,7 @@ button click when grouped together inside a ` <triggerSet>{:dn}` component.
 
 
 
-Each time the ` <callAction>{:dn}` button is clicked, the ` <sampleRandomNumbers/>{:dn}` component 
+Each time the `<callAction>{:dn}` button is clicked, the `<sampleRandomNumbers/>{:dn}` component 
 is resampled.
 
 
@@ -138,7 +138,7 @@ is resampled.
 
 
 Using the `labelIsName` attribute is a shortcut to adding a 
-separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
+separate `<label>{:dn}` child to the `<callAction>{:dn}` component.
 
 
 
@@ -157,8 +157,8 @@ separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
 
 
 
-The `anchor` attribute specifies the position of the ` <callAction>{:dn}` button 
-when the ` <callAction>{:dn}` is used inside a ` <graph>{:dn}`.
+The `anchor` attribute specifies the position of the `<callAction>{:dn}` button 
+when the `<callAction>{:dn}` is used inside a `<graph>{:dn}`.
 
 
 
@@ -175,7 +175,7 @@ when the ` <callAction>{:dn}` is used inside a ` <graph>{:dn}`.
 </graph>
 ```
 
-The `actionName` attribute specifies the action to be performed by the ` <callAction>{:dn}` component. 
+The `actionName` attribute specifies the action to be performed by the `<callAction>{:dn}` component. 
 
 ---
 
@@ -195,7 +195,7 @@ The `actionName` attribute specifies the action to be performed by the ` <callAc
 
 
 The `resample` specification for the `actionName` acts on 
-the ` <sampleRandomNumbers>{:dn}` component to generate a new set of random numbers.
+the `<sampleRandomNumbers>{:dn}` component to generate a new set of random numbers.
 
 
 
@@ -243,7 +243,7 @@ one or more children of the target component.
 
 The `deleteChildren` specification for the `actionName` attribute deletes 
 one or more children of the target component that have been added to 
-the ` <graph>{:dn}` with a ` <callAction>{:dn}`.
+the `<graph>{:dn}` with a `<callAction>{:dn}`.
 
 
 
@@ -284,8 +284,8 @@ When you're done, click the red circle.</p>
 
 
 The `submitAnswer` specification for the `actionName` attribute triggers 
-automatic submission of the target ` <answer>{:dn}` when the condition 
-for the ` <callAction>{:dn}` is satisfied.
+automatic submission of the target `<answer>{:dn}` when the condition 
+for the `<callAction>{:dn}` is satisfied.
 
 
 
@@ -315,7 +315,7 @@ for the ` <callAction>{:dn}` is satisfied.
 
 
 The `startAnimation` specification for the `actionName` attribute acts on a 
-target ` <animateFromSequence/>{:dn}` component.
+target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -349,7 +349,7 @@ target ` <animateFromSequence/>{:dn}` component.
 
 
 The `stopAnimation` specification for the `actionName` attribute acts on a 
-target ` <animateFromSequence/>{:dn}` component.
+target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -379,7 +379,7 @@ target ` <animateFromSequence/>{:dn}` component.
 
 
 The `toggleAnimation` specification for the `actionName` attribute 
-acts on a target ` <animateFromSequence/>{:dn}` component.
+acts on a target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -399,7 +399,7 @@ acts on a target ` <animateFromSequence/>{:dn}` component.
 
 
 The `playVideo` specification for the `actionName` attribute acts on a 
-target ` <video/>{:dn}` component.
+target `<video/>{:dn}` component.
 
 
 
@@ -423,7 +423,7 @@ target ` <video/>{:dn}` component.
 
 
 The `pauseVideo` specification for the `actionName` attribute 
-acts on a target ` <video/>{:dn}` component.
+acts on a target `<video/>{:dn}` component.
 
 
 
@@ -451,8 +451,8 @@ acts on a target ` <video/>{:dn}` component.
 
 
 The `navigateToTarget` specification for the `actionName` attribute 
-acts on a target ` <ref/>{:dn}` component. The user is automatically 
-taken to the referenced link when the condition for the ` <callAction>{:dn}` becomes `true`.
+acts on a target `<ref/>{:dn}` component. The user is automatically 
+taken to the referenced link when the condition for the `<callAction>{:dn}` becomes `true`.
 
 
 
@@ -504,8 +504,8 @@ the action to occur when the condition is `true`.
 
 Note that this process is repeated each time the boolean is newly `true`. 
 To observe this behavior, drag the point back and forth 
-into the negative $x$ region several times. Also, move the blue ` <point>{:dn}` child each 
-time so that you can clearly see the new ` <point>{:dn}` child that appears.
+into the negative $x$ region several times. Also, move the blue `<point>{:dn}` child each 
+time so that you can clearly see the new `<point>{:dn}` child that appears.
 
 
 
@@ -557,13 +557,13 @@ time so that you can clearly see the new ` <point>{:dn}` child that appears.
 
 
 
-The `triggerWith` attribute references a named ` <callAction>{:dn}`, ` <updateValue>{:dn}`, 
-` <triggerSet>{:dn}`, ` <booleanInput>{:dn}`, or an ` <answer>{:dn}`.
+The `triggerWith` attribute references a named `<callAction>{:dn}`, `<updateValue>{:dn}`, 
+`<triggerSet>{:dn}`, `<booleanInput>{:dn}`, or an `<answer>{:dn}`.
 
 
 When the user perfoms any interaction with the referenced 
 component (including submitting an incorrect answer or unchecking a checkbox), 
-the ` <callAction>{:dn}` is performed.
+the `<callAction>{:dn}` is performed.
 
 
 

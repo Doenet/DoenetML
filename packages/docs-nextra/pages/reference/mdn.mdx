@@ -3,18 +3,18 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# ` <mdn>{:dn}`
+# `<mdn>{:dn}`
 
 
-The ` <mdn>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types) 
+The `<mdn>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types) 
 component that renders a block of numbered, aligned display mathematics when used in 
-combination with the ` <mrow/>{:dn}` component.
+combination with the `<mrow/>{:dn}` component.
 
 <AttrPropDisplay name='mdn'/>
  
 ---
 
-### Example: ` <mdn>{:dn}` with Latex input
+### Example: `<mdn>{:dn}` with Latex input
 
 
 ```doenet-editor-horiz
@@ -27,17 +27,17 @@ combination with the ` <mrow/>{:dn}` component.
 
 
 
-In the sample code above, the ` <mdn>{:dn}` component is used with 
-nested ` <mrow>{:dn}` components to create aligned, numbered equations.  Equations 
-align vertically where the text `&` is entered in the ` <mrow>{:dn}`. Note that the 
-numbering of an individual ` <mrow>{:dn}` within an ` <mdn>{:dn}` can be 
-suppressed by setting the `number` attribute of the ` <mrow>{:dn}` to `false`.
+In the sample code above, the `<mdn>{:dn}` component is used with 
+nested `<mrow>{:dn}` components to create aligned, numbered equations.  Equations 
+align vertically where the text `&` is entered in the `<mrow>{:dn}`. Note that the 
+numbering of an individual `<mrow>{:dn}` within an `<mdn>{:dn}` can be 
+suppressed by setting the `number` attribute of the `<mrow>{:dn}` to `false`.
 
 
 
 ---
 
-### Example: ` <mdn>{:dn}` with nested ` <math>{:dn}` 
+### Example: `<mdn>{:dn}` with nested `<math>{:dn}` 
 
 
 ```doenet-editor-horiz
@@ -53,7 +53,7 @@ suppressed by setting the `number` attribute of the ` <mrow>{:dn}` to `false`.
 
 
 
-Although ` <mdn>{:dn}` is a Display Math component and is designed
+Although `<mdn>{:dn}` is a Display Math component and is designed
 to accept expressions in LaTeX, it is also acceptable to nest content
-within a ` <math>{:dn}` component. The text marker `&` must occur
-outside any nested ` <math>{:dn}` components.
+within a `<math>{:dn}` component. The text marker `&` must occur
+outside any nested `<math>{:dn}` components.
