@@ -304,6 +304,90 @@ describe("Normalize dast", async () => {
         expect(toXml(normalized)).toEqual(
             '<document><description name="d">hello</description></document>',
         );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0].message).toContain(
+            "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+        );
+    });
+
+    it("drops deprecated attributes regardless of case", () => {
+        // DoenetML matches attribute and component names case-insensitively;
+        // the deprecation pass must too, or `<description WeIgHt>` would slip
+        // through and hard-error after `weight` is removed from <description>.
+        const source = `<Description WeIgHt="2" AGGREGATESCORES>hello</Description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><Description>hello</Description></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        // Warnings come out in registry-iteration order (aggregateScores
+        // listed before weight), not source order.
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+            },
+            {
+                message:
+                    "[deprecation] Attribute `weight` on `<description>` is deprecated and ignored.",
+            },
+        ]);
+    });
+
+    it("renames deprecated attributes regardless of case", () => {
+        const source = `<selectPrimeNumbers MINvalue="5" maxVALUE="19" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="5" to="19" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated; use `from` instead.",
+            },
+            {
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+            },
+        ]);
+    });
+
+    it("detects rename conflicts case-insensitively", () => {
+        // `MinValue` and `From` refer to the same canonical attribute; the
+        // deprecated form must be dropped with a conflict warning, not silently
+        // co-exist with the canonical form.
+        const source = `<selectPrimeNumbers MinValue="5" From="7" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers From="7" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+        ]);
     });
 
     it("Sugars in repeat template and _repeatSetup children", () => {
