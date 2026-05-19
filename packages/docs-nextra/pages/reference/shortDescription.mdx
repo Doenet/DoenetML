@@ -9,11 +9,18 @@ import { AttrPropDisplay } from "../../components"
 component that is consumed **only by assistive technology**, such as screen readers.
 It is never shown as visible content to sighted users.
 
-Because it is invisible on screen, a `<shortDescription>{:dn}` **can** be used to
-satisfy accessibility requirements — it provides the accessible name or description
-that components like `<image>{:dn}`, `<video>{:dn}`, and `<graph>{:dn}` need. This
-is the opposite of `<description>{:dn}`, which is shown to everyone in a popup and
-therefore does not satisfy an accessibility requirement.
+Because a `<shortDescription>{:dn}` is exposed to assistive technology as the
+accessible name (label) of its enclosing component, it **does** satisfy the
+accessibility requirement for labeling. This is the opposite of `<description>{:dn}`,
+which is associated with a component only as supplementary detail, not as a label,
+and therefore does not satisfy that requirement.
+
+For inputs and answers, adding a `<label>{:dn}` is generally the preferred way to meet
+the labeling requirement: a `<label>{:dn}` is visible to sighted users *and* exposed to
+assistive technology, so a single label serves everyone. Use a `<shortDescription>{:dn}`
+when a visible label is not wanted, and for components such as `<image>{:dn}`,
+`<video>{:dn}`, and `<graph>{:dn}`, which do not accept a `<label>{:dn}` and so rely on
+a `<shortDescription>{:dn}` for their text alternative.
 
 A `<shortDescription>{:dn}` is meaningful as a child of `<image>{:dn}`,
 `<video>{:dn}`, `<graph>{:dn}`, `<answer>{:dn}`, `<mathInput>{:dn}`,
