@@ -1,6 +1,6 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { AttrPropDisplay } from "../../components"
 
 
 # ` <odeSystem>{:dn}`
@@ -8,9 +8,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ` <odeSystem>{:dn}` computes a numerical solution to a system of ordinary differential equations. The following are required attributes: `variables` and `initialConditions`. The opening ` <odeSystem>{:dn}` tag defines a block in which to enter one or more ` <rightHandSide>{:dn}` children, representing the successive RHS's of the equations defining the system.
 
-## Attributes and Properties 
- <AttrDisplay name='odeSystem'/> 
- <PropDisplay name='odeSystem'/>
+<AttrPropDisplay name='odeSystem'/>
+
 ---
 
 ### Example: Single ODE system with user-input

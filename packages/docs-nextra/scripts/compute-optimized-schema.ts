@@ -4,15 +4,29 @@ import { AttrInfo, PropAttrType, PropInfo } from "../components";
 const SCHEMA: {
     elements: {
         name: string;
+        summary: string;
         children: string[];
-        attributes: { name: string; values?: string[] }[];
-        properties: { name: string; type?: string; isArray: boolean }[];
+        attributes: {
+            name: string;
+            type?: string;
+            description: string;
+            defaultValue?: unknown;
+            values?: string[];
+            autocompleteValues?: { value: string; description: string }[];
+        }[];
+        properties: {
+            name: string;
+            type?: string;
+            isArray: boolean;
+            description: string;
+        }[];
         acceptsStringChildren: boolean;
         top: boolean;
     }[];
 } = doenetSchema;
 
 type OptimizedSchemaItem = {
+    summary: string;
     children: string[];
     parents: string[];
     attrs: AttrInfo[];
@@ -27,7 +41,13 @@ export function computeOptimizedSchema() {
         Object.fromEntries(
             SCHEMA.elements.map((element) => [
                 element.name,
-                { children: [], parents: [], attrs: [], props: [] },
+                {
+                    summary: element.summary,
+                    children: [],
+                    parents: [],
+                    attrs: [],
+                    props: [],
+                },
             ]),
         );
 
@@ -87,17 +107,27 @@ function getAttrInfo(element: (typeof SCHEMA)["elements"][number]) {
         const info: AttrInfo = {
             name: attr.name,
             common: false,
+            description: attr.description,
         };
-        if (attr.values) {
-            info.values = attr.values;
+        // The type comes from the attribute's own schema entry.
+        if (attr.type) {
+            info.type = attr.type as PropAttrType;
         }
-        if (correspondingProp) {
-            if (correspondingProp.type) {
-                info.type = correspondingProp.type as PropAttrType;
-            }
-            if (correspondingProp.isArray) {
-                info.isArray = true;
-            }
+        if (attr.defaultValue !== undefined) {
+            info.defaultValue = attr.defaultValue;
+        }
+        if (attr.autocompleteValues) {
+            // Prefer the author-facing values, which carry per-value descriptions.
+            info.values = attr.autocompleteValues.map((v) => ({
+                value: v.value,
+                description: v.description,
+            }));
+        } else if (attr.values) {
+            info.values = attr.values.map((value) => ({ value }));
+        }
+        // `isArray` is still cross-referenced from a same-named property.
+        if (correspondingProp?.isArray) {
+            info.isArray = true;
         }
 
         attrInfo.push(info);
@@ -115,6 +145,7 @@ function getPropInfo(element: (typeof SCHEMA)["elements"][number]) {
             name: prop.name,
             type: prop.type as PropAttrType,
             common: false,
+            description: prop.description,
         };
         if (prop.isArray) {
             info.isArray = true;

@@ -314,14 +314,18 @@ export default class Answer extends InlineComponent {
                 "Whether the answer's submitted-response panel is expanded by default.",
         };
 
+        // TODO: deprecate this attribute. It is currently unused — the
+        // renderer reads an accessible description from a `<description>`
+        // child, not from this attribute. Once a deprecation mechanism
+        // exists, emit an authoring warning when it is used.
         attributes.description = {
             createComponentOfType: "text",
             createStateVariable: "description",
             defaultValue: "",
             public: true,
             forRenderer: true,
-            description:
-                "An accessible description of what this answer asks for.",
+            excludeFromSchema: true,
+            description: "Currently unused",
         };
 
         attributes.showPreview = {
