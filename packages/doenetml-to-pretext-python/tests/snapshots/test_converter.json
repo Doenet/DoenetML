@@ -1,0 +1,14 @@
+{
+    "simple_conversion": {
+        "input": "<p>Hello World</p>",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<p>Hello World</p>\n</article>\n</pretext>"
+    },
+    "conversion_with_math": {
+        "input": "<p>Math: <m>\\\\frac{1}{2}</m></p>",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<p>Math: <m>\\\\frac{1}{2}</m></p>\n</article>\n</pretext>"
+    },
+    "conversion_wraps_in_article": {
+        "input": "<textInput />",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<fillin characters=\"8\"></fillin>\n</article>\n</pretext>"
+    }
+}
