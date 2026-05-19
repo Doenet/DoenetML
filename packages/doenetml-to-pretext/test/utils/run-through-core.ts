@@ -157,4 +157,43 @@ export class RunThroughCore {
 
         return result as FlatDastRoot;
     }
+
+    /**
+     * Convert multiple DoenetML fragments via doenetMLToPretextInstance.convertMultiple.
+     * Each fragment is converted in fragment mode and should have unique xml:id's.
+     */
+    async processMultipleFragmentsToFlatDast(
+        inputs: string[],
+    ): Promise<string[]> {
+        if (!this.browser) {
+            await this.init();
+        }
+        await this.initRunningPromise;
+        if (!this.browser) {
+            throw new Error("Failed to initialize browser");
+        }
+        const result = await this.browser.execute(
+            async (sources: string[]) =>
+                new Promise(async (resolve, reject) => {
+                    window.setTimeout(() => {
+                        resolve(
+                            "" + new Error("Took too long to execute script"),
+                        );
+                    }, 5000);
+                    try {
+                        // @ts-ignore
+                        const converter = new DoenetMLToPretext();
+                        const results = await converter.convertMultiple(
+                            sources,
+                        );
+                        resolve(results);
+                    } catch (e) {
+                        resolve("" + e);
+                    }
+                }),
+            inputs,
+        );
+
+        return result as string[];
+    }
 }

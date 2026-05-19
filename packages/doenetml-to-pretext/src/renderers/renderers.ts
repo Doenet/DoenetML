@@ -186,6 +186,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     // DoenetML documents all start with `<document>` (if the user didn't supply it, it is automatically added).
     // This should not be included in Pretext.
     document: PassThroughWithoutTagConverter,
+    div: PassThroughWithoutTagConverter,
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.

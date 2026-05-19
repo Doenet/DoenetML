@@ -7,6 +7,7 @@ import "./index-inline-worker";
 import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
 import { preprocessDastForPretext } from "./utils/pretext/preprocess-dast";
 import { toXml as xastToXml } from "xast-util-to-xml";
+import { prefixIds } from "./utils/pretext/prefix-ids";
 
 export type ConvertOptions = Parameters<typeof renderFlatDastToPretext>[1];
 
@@ -33,6 +34,37 @@ export class DoenetMLToPretext {
             this._worker = await this._createWrappedCoreWorker();
             await this._worker.setCoreType("javascript");
         }
+    }
+
+    /**
+     * Convert multiple DoenetML fragments to PreTeXt strings.
+     * Each fragment is converted in fragment mode and converted to string form.
+     */
+    async convertMultiple(
+        fragments: string[],
+        options: ConvertOptions = {},
+    ): Promise<string[]> {
+        const xastRoots: Xast.Root[] = [];
+        for (const fragment of fragments) {
+            const flatDast = await this._getStaticDast(fragment);
+            const xastRoot = await this._flatDastToPretext(flatDast, {
+                fragment: true,
+                ...options,
+            });
+            xastRoots.push(xastRoot);
+        }
+        if (xastRoots.length > 1) {
+            // If we have multiple fragments, assume they are being embedded into the same PreTeXt document. A such,
+            // their generated xml:id's must be unique (in PreTeXt all xml:id's are unique).
+            xastRoots.forEach((root, i) => {
+                prefixIds(`fragment${i}-`, root);
+            });
+        }
+        const ret = xastRoots.map((xastRoot) => xastToXml(xastRoot));
+        ret.forEach((pretextOutput) => {
+            this.throwOnErrors(pretextOutput);
+        });
+        return ret;
     }
 
     async convert(
