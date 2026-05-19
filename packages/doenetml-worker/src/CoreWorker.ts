@@ -489,6 +489,47 @@ export class CoreWorker {
         }
     }
 
+    /**
+     * Resolve `path` to a node, starting the search from node `origin` and
+     * following the DoenetML core's name-scoping rules.  Used by the language
+     * server to back `$ref` / `$ref.member` autocomplete.
+     *
+     * `setSource` and `setFlags` must have run first: like `dispatchAction`
+     * and `returnDast`, this throws otherwise rather than resolving against an
+     * empty core (which would yield confusing Rust-side panics).
+     *
+     * By default the search recurses into `origin`'s ancestor scopes to match
+     * the first path segment; set `skipParentSearch` to search only
+     * descendants of `origin` instead.
+     */
+    async resolvePath(args: {
+        path: PathToCheck;
+        origin: number;
+        skipParentSearch: boolean;
+    }): Promise<RefResolution> {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error(
+                "Cannot resolve a path before setting source and flags",
+            );
+        }
+
+        try {
+            return this.doenetCore.resolve_path(
+                args.path,
+                args.origin,
+                args.skipParentSearch,
+            );
+        } finally {
+            resolve();
+        }
+    }
+
     async dispatchAction(action: Action): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();

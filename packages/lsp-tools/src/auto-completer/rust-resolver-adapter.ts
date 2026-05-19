@@ -170,38 +170,46 @@ function getElementNameAttributeValue(el: DastElement): string | null {
 }
 
 /**
- * Minimal interface matching the subset of PublicDoenetMLCore methods needed
- * for path resolution. Consumers provide an initialized WASM-backed instance;
- * lsp-tools does not depend on the WASM package directly.
+ * The subset of the DoenetML core API that {@link RustResolverAdapter} calls
+ * to resolve paths.
+ *
+ * The real core lives in `@doenet/doenetml-worker`; in the language server it
+ * runs in a sub-worker reached over a Comlink proxy.  This interface is the
+ * structural contract that proxy satisfies — declaring it here lets
+ * `@doenet/lsp-tools` call the core's real method names without taking a
+ * build dependency on the (heavy) worker package.  Every method is async
+ * because the Comlink proxy resolves results over `postMessage`.
  */
-export interface RustResolverCore {
-    set_source(dast: unknown, source: string): void;
+export interface ResolverCore {
+    /** Load DoenetML `source` and its parsed `dast` into the core. */
+    setSource(args: { source: string; dast: unknown }): Promise<void>;
     /**
-     * Set runtime flags (as a JSON string). Must be called at least once
-     * before `return_dast()`.  An empty object `"{}"` is sufficient for
-     * pure path-resolution use-cases.
+     * Set runtime flags.  Must be called before `returnDast()`; an empty
+     * flags object is sufficient for pure path-resolution use.
      */
-    set_flags(flags: string): void;
+    setFlags(args: { flags: Record<string, unknown> }): Promise<void>;
     /**
-     * Triggers Rust core initialization and returns the flat DAST.
-     * The adapter uses the returned elements to build position-based index mappings.
+     * Trigger core initialization and return the flat DAST.  The adapter
+     * matches the returned elements against the JS-side DAST by source
+     * position to build its index mappings.
      */
-    return_dast(): {
+    returnDast(): Promise<{
         elements: Array<{
             data: { id: number };
             position?: { start: { offset?: number } };
         }>;
-    };
-    resolve_path(
-        path: { path: Array<FlatPathPartForResolver> },
-        origin: number,
-        skip_parent_search: boolean,
-    ): {
+    }>;
+    /** Resolve `path` starting from `origin`, following core scoping rules. */
+    resolvePath(args: {
+        path: { path: Array<FlatPathPartForResolver> };
+        origin: number;
+        skipParentSearch: boolean;
+    }): Promise<{
         nodeIdx: number;
         nodesInResolvedPath: number[];
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
-    };
+    }>;
 }
 
 /** Matches the Rust WASM FlatPathPart shape expected by resolve_path. */
@@ -212,8 +220,8 @@ interface FlatPathPartForResolver {
 }
 
 export interface RustResolverAdapterOptions {
-    /** An initialized PublicDoenetMLCore (or compatible) instance. */
-    core?: RustResolverCore;
+    /** The DoenetML core used for resolution (typically the Comlink-proxied worker core). */
+    core?: ResolverCore;
     /**
      * Optional set of component types that take an index. When provided, the
      * resolver suppresses descendant names for those elements unless the user
@@ -224,16 +232,16 @@ export interface RustResolverAdapterOptions {
 }
 
 /**
- * Adapter that bridges a Rust WASM resolver (PublicDoenetMLCore.resolve_path)
+ * Adapter that bridges the DoenetML core resolver ({@link ResolverCore})
  * with the AutoCompleter's pluggable resolver seam.
  *
  * When constructed without a `core`, the adapter is disabled and its resolver
- * returns `null`. When a core is supplied, source is synced to the Rust side,
+ * returns `null`. When a core is supplied, source is synced to the core,
  * position-based index mappings are built, and the resolver calls
- * resolve_path() for each completion request.
+ * `resolvePath()` for each completion request.
  */
 export class RustResolverAdapter {
-    readonly _core: RustResolverCore | null = null;
+    readonly _core: ResolverCore | null = null;
     _sourceObj: DoenetSourceObject;
     _enabled = false;
     readonly _takesIndexComponentTypes: ReadonlySet<string> | null = null;
@@ -245,6 +253,24 @@ export class RustResolverAdapter {
     _sourceRevision = 0;
     readonly _visibleDescendantNamesCache: Map<string, string[]> = new Map();
 
+    /**
+     * A promise that resolves once the most recently requested source sync
+     * has finished.  `init` and `updateSource` each chain another
+     * `_syncSource` onto it, and the query methods wait on it before reading
+     * resolver state.  This serializes syncs and keeps a completion request
+     * from reading a half-updated rust core or stale index mappings while an
+     * `updateSource` is still running.
+     */
+    _pendingSync: Promise<void> = Promise.resolve();
+
+    /**
+     * The DoenetML source string currently loaded into the rust core (`null`
+     * before the first sync).  `_syncSource` compares the latest source
+     * against this and returns early when they are equal, so a burst of
+     * keystrokes that each queue a sync only pays the worker round-trips once.
+     */
+    _coreSource: string | null = null;
+
     constructor(
         sourceObj: DoenetSourceObject,
         options?: RustResolverAdapterOptions,
@@ -255,8 +281,17 @@ export class RustResolverAdapter {
             : null;
         if (options?.core) {
             this._core = options.core;
-            this._syncSource();
         }
+    }
+
+    /**
+     * Queue an initial sync of the current source to the rust core.  Returns
+     * the tail of the sync chain so callers can await readiness, but awaiting
+     * is no longer required for correctness — query methods await internally.
+     */
+    init(): Promise<void> {
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 
     _componentTakesIndex(componentType: string): boolean {
@@ -265,8 +300,18 @@ export class RustResolverAdapter {
 
     /**
      * Sync the DAST/source to the Rust core and rebuild index mappings.
+     *
+     * Coalesces with the previous sync: if the source string is identical
+     * to the one the last `_syncSource` saw, returns immediately rather than
+     * paying three worker round-trips.  Rapid typing chains many enqueues
+     * but only the first one to dequeue after each real source change pays
+     * the cost.
      */
-    _syncSource(): void {
+    async _syncSource(): Promise<void> {
+        if (this._sourceObj.source === this._coreSource) {
+            return;
+        }
+        this._coreSource = this._sourceObj.source;
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
@@ -289,10 +334,13 @@ export class RustResolverAdapter {
             return;
         }
         try {
-            this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
-            // Set empty flags object for path-resolution-only use case.
-            this._core.set_flags("{}");
-            const flatDast = this._core.return_dast();
+            await this._core.setSource({
+                source: this._sourceObj.source,
+                dast: this._sourceObj.dast,
+            });
+            // Empty flags are sufficient for path-resolution-only use.
+            await this._core.setFlags({ flags: {} });
+            const flatDast = await this._core.returnDast();
             this._buildMappings(flatDast);
             this._enabled = true;
         } catch (e) {
@@ -368,11 +416,11 @@ export class RustResolverAdapter {
      * @param pathPartHasIndex — Per-path-part index flags aligned with `pathParts`.
      * @returns The resolved node and visible descendant names, or null if resolution fails.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
         return this._resolveRefMemberContainer({
             offset,
             pathParts,
@@ -390,9 +438,13 @@ export class RustResolverAdapter {
             this._resolveRefMemberContainer(args);
     }
 
-    _resolveRefMemberContainer(
+    async _resolveRefMemberContainer(
         args: ResolveRefMemberContainerArgs,
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
+        // Wait for the latest source sync to finish before reading state.
+        // Otherwise the JS-side mappings (_rustIndexToDastElement) and the
+        // rust-side source can diverge from the offset the caller passed in.
+        await this._pendingSync;
         if (!this._enabled || !this._core) return null;
 
         const {
@@ -425,11 +477,11 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = this._core.resolve_path(
-                { path: flatPath },
-                originIndex,
-                false,
-            );
+            const resolution = await this._core.resolvePath({
+                path: { path: flatPath },
+                origin: originIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedNode = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
@@ -571,44 +623,48 @@ export class RustResolverAdapter {
                     this._sourceObj.getUniqueDescendantNamesForNode(
                         resolvedNode,
                     );
-                visibleDescendantNames = allNames.filter((name) => {
-                    try {
-                        const probe = this._core!.resolve_path(
-                            {
-                                path: [
-                                    {
-                                        type: "flatPathPart" as const,
-                                        name,
-                                        index: [],
-                                    },
-                                ],
-                            },
-                            resolvedIdx,
-                            true,
-                        );
-                        // A fully-resolved path (no unresolved parts whose
-                        // first segment equals the original name) means the
-                        // name matched a visible descendant.
-                        if (
-                            probe.unresolvedPath &&
-                            probe.unresolvedPath.length > 0
-                        ) {
+                const probeResults = await Promise.all(
+                    allNames.map(async (name) => {
+                        try {
+                            const probe = await this._core!.resolvePath({
+                                path: {
+                                    path: [
+                                        {
+                                            type: "flatPathPart" as const,
+                                            name,
+                                            index: [],
+                                        },
+                                    ],
+                                },
+                                origin: resolvedIdx,
+                                skipParentSearch: true,
+                            });
+                            // A fully-resolved path (no unresolved parts whose
+                            // first segment equals the original name) means the
+                            // name matched a visible descendant.
+                            if (
+                                probe.unresolvedPath &&
+                                probe.unresolvedPath.length > 0
+                            ) {
+                                return false;
+                            }
+                            const probeElement =
+                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            const probeName = probeElement
+                                ? getElementNameAttributeValue(probeElement)
+                                : null;
+                            if (probeName !== name) {
+                                return false;
+                            }
+                            return true;
+                        } catch {
                             return false;
                         }
-                        const probeElement = this._rustIndexToDastElement.get(
-                            probe.nodeIdx,
-                        );
-                        const probeName = probeElement
-                            ? getElementNameAttributeValue(probeElement)
-                            : null;
-                        if (probeName !== name) {
-                            return false;
-                        }
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                });
+                    }),
+                );
+                visibleDescendantNames = allNames.filter(
+                    (_name, i) => probeResults[i],
+                );
                 this._setCachedVisibleDescendantNames(
                     resolvedIdx,
                     visibleDescendantNames,
@@ -711,7 +767,13 @@ export class RustResolverAdapter {
      * `offset` using the Rust resolver (with full parent search).
      * This respects `ChildrenInvisibleToTheirGrandparents` etc.
      */
-    isNameAddressableFromOffset(offset: number, name: string): boolean {
+    async isNameAddressableFromOffset(
+        offset: number,
+        name: string,
+    ): Promise<boolean> {
+        // Wait for the latest source sync to finish before reading state.
+        // See `_resolveRefMemberContainer` for the rationale.
+        await this._pendingSync;
         if (!this._enabled || !this._core) return false;
 
         // Derived repeat names from valueName/indexName are introduced by
@@ -759,8 +821,8 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return false;
 
         try {
-            const resolution = this._core.resolve_path(
-                {
+            const resolution = await this._core.resolvePath({
+                path: {
                     path: [
                         {
                             type: "flatPathPart" as const,
@@ -769,9 +831,9 @@ export class RustResolverAdapter {
                         },
                     ],
                 },
-                resolveFromIndex,
-                false,
-            );
+                origin: resolveFromIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedElement = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
@@ -880,9 +942,15 @@ export class RustResolverAdapter {
 
     /**
      * Update source and rebuild mappings. Call when the document changes.
+     *
+     * The new sync is appended to the `_pendingSync` chain rather than run
+     * concurrently with a sync that is still running.  Callers may
+     * fire-and-forget the returned promise; the query methods `await
+     * _pendingSync` themselves and so always see a consistent state.
      */
-    updateSource(sourceObj: DoenetSourceObject): void {
+    updateSource(sourceObj: DoenetSourceObject): Promise<void> {
         this._sourceObj = sourceObj;
-        this._syncSource();
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 }

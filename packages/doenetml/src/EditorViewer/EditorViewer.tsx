@@ -36,6 +36,7 @@ import {
 import type { HelpContent } from "./contextHelp/types";
 import { EditorSelection } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
+import { doenetGlobalConfig } from "../global-config";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -778,6 +779,7 @@ export const EditorViewer = React.forwardRef<
             onCursorChange={onCursorChange}
             onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
+            doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
         />
     );
 

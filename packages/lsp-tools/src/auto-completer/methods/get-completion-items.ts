@@ -528,11 +528,11 @@ function createPropertyCompletionItems(
  * @param cachedContext - Optional pre-computed CompletionContext to avoid redundant parsing
  * @returns Array of LSP CompletionItem objects suitable for the current context
  */
-export function getCompletionItems(
+export async function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
-): DoenetCompletionItem[] {
+): Promise<DoenetCompletionItem[]> {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
     }
@@ -591,10 +591,13 @@ export function getCompletionItems(
         const uniqueNames = [
             ...new Set([...addressableNames, ...additionalNames]),
         ];
+        const isAddressableFlags = await Promise.all(
+            uniqueNames.map((name) => this.isNameAddressable(offset, name)),
+        );
         const filteredNames = uniqueNames.filter(
-            (name) =>
+            (name, i) =>
                 (!prefix || name.toLowerCase().startsWith(prefix)) &&
-                this.isNameAddressable(offset, name),
+                isAddressableFlags[i],
         );
 
         // Resolve each candidate's referent once and reuse the resulting
@@ -689,7 +692,7 @@ export function getCompletionItems(
         const toRefMemberInsertText = (name: string) =>
             isParenthesizedMemberContext ? name : toRefSegmentInsertText(name);
 
-        const resolved = this.resolveRefMemberContainerAtOffset(
+        const resolved = await this.resolveRefMemberContainerAtOffset(
             offset,
             completionContext.pathParts,
             completionContext.pathPartHasIndex,

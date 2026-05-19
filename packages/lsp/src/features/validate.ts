@@ -12,11 +12,7 @@ import {
     documentSettings,
     documents,
 } from "../globals";
-import {
-    AutoCompleter,
-    RustResolverAdapter,
-    type RustResolverCore,
-} from "@doenet/lsp-tools";
+import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
@@ -70,7 +66,7 @@ export function addValidationSupport(
 
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
-    documents.onDidChangeContent((change) => {
+    documents.onDidChangeContent(async (change) => {
         const uri = change.document.uri;
         let info = documentInfo.get(uri);
         if (!info) {
@@ -86,47 +82,59 @@ export function addValidationSupport(
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
-        if (info.rustState === "ready" && info.rustAdapter) {
-            // Adapter already wired — just resync source.
-            info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
-        } else if (info.rustState === "uninitialized") {
-            // Fire-and-forget initialization. Diagnostics should not wait
-            // for Rust to load.
+        // Queue the rust-adapter source sync *now*, before this async handler
+        // yields.  `updateSource` synchronously appends to the adapter's sync
+        // chain, so a completion request processed during the yield below
+        // already sees this change in the chain it awaits — without this, a
+        // `$ref.` member completion can resolve against stale rust state.
+        const rustSync = info.rustAdapter?.updateSource(
+            info.autoCompleter.sourceObj,
+        );
+
+        if (info.rustState === "uninitialized") {
+            // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
+            // should not wait for the worker to spin up.  The bootstrap is
+            // also exposed as `rustReady` so a completion request that races
+            // the boot can await it instead of being answered too early.
             info.rustState = "initializing";
             const capturedInfo = info;
-            (async () => {
+            capturedInfo.rustReady = (async () => {
+                let spawned: Awaited<ReturnType<typeof getRustCore>> = null;
                 try {
-                    const core = await getRustCore();
+                    spawned = await getRustCore(config.doenetWorkerUrl);
                     const currentInfo = documentInfo.get(uri);
-                    if (!currentInfo || currentInfo !== capturedInfo) return;
-                    const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                    // Intentionally create a dedicated core/adapter for this
-                    // document. This avoids cross-document source switching
-                    // complexity and keeps Rust state aligned with this
-                    // document's AutoCompleter mappings.
-                    const adapter = new RustResolverAdapter(sourceObj, {
-                        core: core as RustResolverCore,
-                        takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
-                    });
-                    capturedInfo.rustAdapter = adapter;
-                    capturedInfo.autoCompleter = new AutoCompleter(
-                        undefined,
-                        undefined,
+                    // Document was closed (or replaced) while we were spawning
+                    // the worker — release it and bail.
+                    if (!currentInfo || currentInfo !== capturedInfo) {
+                        spawned?.terminate();
+                        return;
+                    }
+                    if (!spawned) {
+                        capturedInfo.rustState = "unavailable";
+                        return;
+                    }
+                    // One adapter per document keeps rust-side state aligned
+                    // with this document's AutoCompleter mappings.
+                    const adapter = new RustResolverAdapter(
+                        capturedInfo.autoCompleter.sourceObj,
                         {
-                            sourceObj,
-                            rustResolverAdapter: adapter,
-                            getAdditionalRefNames: (offset: number) =>
-                                adapter.getDerivedRepeatNames(offset),
+                            core: spawned.core,
+                            takesIndexComponentTypes:
+                                TAKES_INDEX_COMPONENT_TYPES,
                         },
                     );
+                    await adapter.init();
+                    capturedInfo.rustCore = spawned.core;
+                    capturedInfo.rustAdapter = adapter;
+                    capturedInfo.rustCoreTerminate = spawned.terminate;
+                    capturedInfo.autoCompleter.setRustResolverAdapter(adapter);
                     capturedInfo.rustState = "ready";
                     const latestDocument = documents.get(uri);
                     if (latestDocument) {
-                        validateTextDocument(latestDocument).catch(
-                            () => undefined,
-                        );
+                        await validateTextDocument(latestDocument);
                     }
                 } catch (error) {
+                    spawned?.terminate();
                     console.warn(
                         "Rust autocomplete unavailable; completions disabled for this document.",
                         error,
@@ -136,14 +144,23 @@ export function addValidationSupport(
                         capturedInfo.rustState = "unavailable";
                     }
                 }
-            })().catch(() => undefined);
+            })();
         }
 
-        validateTextDocument(change.document).catch(() => undefined);
+        // Diagnostics are derived from the JS-side DAST and must not wait on
+        // the rust worker, so compute them before the rust sync settles.
+        await validateTextDocument(change.document);
+
+        // `updateSource` (queued above) resolves without rejecting — the
+        // adapter logs and disables itself on a sync failure — so awaiting it
+        // here just keeps the handler ordered.
+        await rustSync;
     });
 
     // Release per-document validation/autocomplete state when a document closes.
     documents.onDidClose((event) => {
+        const info = documentInfo.get(event.document.uri);
+        info?.rustCoreTerminate?.();
         documentInfo.delete(event.document.uri);
     });
 
