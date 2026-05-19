@@ -68,6 +68,7 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.wasm*"
