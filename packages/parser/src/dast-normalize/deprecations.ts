@@ -36,11 +36,12 @@ type DeprecationRegistry = {
 };
 
 /**
- * Lower-cased view of the registry, built once at module load. DoenetML
- * matches component and attribute names case-insensitively in the worker, so
- * deprecation lookups must be case-insensitive too — otherwise `<description
- * WeIgHt="2">` would slip past the deprecation pass and hard-error once
- * `weight` is no longer a valid attribute on `<description>`.
+ * Indexed view of the registry, built once at module load. The component-name
+ * keys are kept verbatim (component names are case-sensitive), but the inner
+ * attribute-name keys are lower-cased so the deprecation pass can match
+ * attributes case-insensitively. Without this, `<description WeIgHt="2">`
+ * would slip past the deprecation pass and hard-error once `weight` is no
+ * longer a valid attribute on `<description>`.
  */
 type DeprecationIndex = {
     attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
@@ -154,22 +155,25 @@ function lowerKeys<T>(o: Record<string, T>): Record<string, T> {
 function buildDeprecationIndex(
     registry: DeprecationRegistry,
 ): DeprecationIndex {
+    // Component names are case-sensitive — keep top-level keys verbatim.
+    // Attribute names are case-insensitive — lower-case the inner keys so
+    // we can match against actual attribute keys on the node case-insensitively.
     return {
         attributeRenames: Object.fromEntries(
             Object.entries(registry.attributeRenames).map(([comp, rules]) => [
-                comp.toLowerCase(),
+                comp,
                 lowerKeys(rules),
             ]),
         ),
         attributeRemovals: Object.fromEntries(
             Object.entries(registry.attributeRemovals).map(([comp, rules]) => [
-                comp.toLowerCase(),
+                comp,
                 lowerKeys(rules),
             ]),
         ),
         componentRenames: Object.fromEntries(
             Object.entries(registry.componentRenames).map(([comp, rule]) => [
-                comp.toLowerCase(),
+                comp,
                 rule.attributeRenames
                     ? {
                           ...rule,
@@ -250,8 +254,7 @@ function applyComponentRename(
 ) {
     // Component renames happen before attribute renames so component-specific
     // attribute rules can be applied after the component name is canonicalized.
-    const renameRule =
-        DEPRECATION_INDEX.componentRenames[node.name.toLowerCase()];
+    const renameRule = DEPRECATION_INDEX.componentRenames[node.name];
     if (!renameRule) {
         return;
     }
@@ -277,8 +280,7 @@ function applyAttributeRenames(
     warnings: DeprecationDiagnostic[],
 ) {
     // Apply attribute rename rules scoped to this component type.
-    const renameRules =
-        DEPRECATION_INDEX.attributeRenames[node.name.toLowerCase()];
+    const renameRules = DEPRECATION_INDEX.attributeRenames[node.name];
     if (!renameRules) {
         return;
     }
@@ -292,8 +294,7 @@ function applyAttributeRemovals(
 ) {
     // Drop attributes that are deprecated with no replacement, scoped to this
     // component type. The attribute is removed from the DAST and a warning emitted.
-    const removalRules =
-        DEPRECATION_INDEX.attributeRemovals[node.name.toLowerCase()];
+    const removalRules = DEPRECATION_INDEX.attributeRemovals[node.name];
     if (!removalRules) {
         return;
     }

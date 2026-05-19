@@ -315,15 +315,15 @@ describe("Normalize dast", async () => {
     });
 
     it("drops deprecated attributes regardless of case", () => {
-        // DoenetML matches attribute and component names case-insensitively;
-        // the deprecation pass must too, or `<description WeIgHt>` would slip
-        // through and hard-error after `weight` is removed from <description>.
-        const source = `<Description WeIgHt="2" AGGREGATESCORES>hello</Description>`;
+        // DoenetML matches attribute names case-insensitively; the deprecation
+        // pass must too, or `<description WeIgHt>` would slip through and
+        // hard-error after `weight` is removed from <description>.
+        const source = `<description WeIgHt="2" AGGREGATESCORES>hello</description>`;
         const dast = lezerToDast(source);
         const normalized = normalizeDocumentDast(dast);
 
         expect(toXml(normalized)).toEqual(
-            "<document><Description>hello</Description></document>",
+            "<document><description>hello</description></document>",
         );
 
         const warnings = extractDastErrors(normalized).filter(
