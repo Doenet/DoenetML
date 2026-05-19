@@ -13,7 +13,12 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-/** Resolve the directory of an installed package (so webpack aliases handle subpaths). */
+/**
+ * Returns the directory that contains a package. The `resolve.alias` entries below
+ * alias each package to its directory (rather than a specific file), which is what
+ * lets subpath imports such as `react/jsx-runtime` and `react-dom/client` keep
+ * resolving against the aliased copy.
+ */
 function packageDir(pkg) {
     return path.dirname(require.resolve(`${pkg}/package.json`));
 }

@@ -5,14 +5,18 @@ import { createPackageJsonTransformer } from "../../scripts/transform-package-js
 import { version } from "./package.json";
 import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
-// Bare package names that will not be bundled into the library. These become
-// peerDependencies in the published dist/component/package.json.
+/**
+ * Bare package names that will not be bundled into the library. These become
+ * peerDependencies in the published dist/component/package.json.
+ */
 const EXTERNAL_PACKAGES = ["react", "react-dom", "better-react-mathjax"];
 
-// Rollup `external` predicate. Unlike a plain string array, this also matches
-// subpath imports (e.g. react/jsx-runtime, react/jsx-dev-runtime, react-dom/client),
-// which must be externalized too so the consuming app provides a single React
-// instance. Bundling them causes a duplicate-React "dispatcher" mismatch.
+/**
+ * Rollup `external` predicate. Unlike a plain string array, this also matches
+ * subpath imports (e.g. react/jsx-runtime, react/jsx-dev-runtime, react-dom/client),
+ * which must be externalized too so the consuming app provides a single React
+ * instance. Bundling them causes a duplicate-React "dispatcher" mismatch.
+ */
 function isExternal(id: string): boolean {
     return EXTERNAL_PACKAGES.some(
         (pkg) => id === pkg || id.startsWith(pkg + "/"),
