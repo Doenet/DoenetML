@@ -20,9 +20,6 @@ const versionProps =
         ? {
               standaloneUrl: "/bundle/doenet-standalone.js",
               cssUrl: "/bundle/style.css",
-              // Force the local bundle even if an example contains a
-              // <document xmlns=".../vX"> tag that would otherwise be auto-detected.
-              autodetectVersion: false as const,
           }
         : { doenetmlVersion: "dev" };
 

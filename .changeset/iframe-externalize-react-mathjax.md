@@ -1,9 +1,5 @@
 ---
-"@doenet/doenetml": patch
-"@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
-"@doenet/vscode-extension": patch
-"doenet-vscode-extension": patch
 ---
 
 Fix `dispatcher.getOwner is not a function` when an `@doenet/doenetml-iframe`
