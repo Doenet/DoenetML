@@ -1,0 +1,105 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<shortDescription>{:dn}`
+
+`<shortDescription>{:dn}` supplies a concise text alternative for an enclosing
+component that is consumed **only by assistive technology**, such as screen readers.
+It is never shown as visible content to sighted users.
+
+Unless the enclosing component already has an explicit label, a
+`<shortDescription>{:dn}` is exposed to assistive technology as the accessible name
+(label) of that component, and so it **does** satisfy the accessibility requirement
+for labeling. (When there already is an explicit `<label>{:dn}` or external
+`for`-label, the `<shortDescription>{:dn}` instead becomes supplementary description
+text, as explained below.)
+
+A `<description>{:dn}`, by contrast, is *always* associated with a component only as
+supplementary detail, never as a label, and so it never satisfies the labeling
+requirement.
+
+For inputs and answers, adding a `<label>{:dn}` is generally the preferred way to meet
+the labeling requirement: a `<label>{:dn}` is visible to sighted users *and* exposed to
+assistive technology, so a single label serves everyone. Use a `<shortDescription>{:dn}`
+when a visible label is not wanted, and for components such as `<image>{:dn}`,
+`<video>{:dn}`, and `<graph>{:dn}`, which do not accept a `<label>{:dn}` and so rely on
+a `<shortDescription>{:dn}` for their text alternative.
+
+A `<shortDescription>{:dn}` is meaningful as a child of `<image>{:dn}`,
+`<video>{:dn}`, `<graph>{:dn}`, `<answer>{:dn}`, `<mathInput>{:dn}`,
+`<textInput>{:dn}`, `<booleanInput>{:dn}`, `<choiceInput>{:dn}`, and
+`<matrixInput>{:dn}`.
+
+How it reaches assistive technology depends on the component: it becomes the `alt`
+text of an image, the `title` of a video, and an `aria-label` or `aria-labelledby`
+for an input that has no visible `<label>{:dn}`. When an input already has a visible
+`<label>{:dn}`, the `<shortDescription>{:dn}` is added as an `aria-description`
+instead, so the two do not conflict.
+
+Keep the text short and write it in plain language. In particular, spell out any
+mathematics in words rather than nesting math components inside it — Doenet emits an
+accessibility warning if a `<shortDescription>{:dn}` contains math, since a screen
+reader cannot reliably read raw math notation.
+
+
+<AttrPropDisplay name='shortDescription'/>
+
+---
+
+### Example: `<shortDescription>{:dn}` on an `<image>{:dn}`
+
+
+```doenet-editor-horiz
+<image source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+Every `<image>{:dn}` should have a `<shortDescription>{:dn}` so that screen-reader
+users receive a meaningful text alternative. Its text becomes the image's `alt` text
+and is not displayed on screen.
+
+
+
+---
+
+### Example: `<shortDescription>{:dn}` on a `<graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <shortDescription>A graph of the line y equals x</shortDescription>
+  <function>x</function>
+</graph>
+```
+
+
+
+A `<graph>{:dn}` is a visual component, so a `<shortDescription>{:dn}` gives
+assistive technology a summary of what the graph displays.
+
+
+
+---
+
+### Example: `<shortDescription>{:dn}` on a `<mathInput>{:dn}`
+
+
+```doenet-example
+<p>Enter the derivative of <m>x^2</m>:
+  <mathInput name="deriv">
+    <shortDescription>derivative of x squared</shortDescription>
+  </mathInput>
+</p>
+```
+
+
+
+When an input has no visible `<label>{:dn}`, its `<shortDescription>{:dn}` provides
+the accessible name screen-reader users need to identify the control. Note that the
+mathematics is spelled out in words ("x squared") rather than written with a
+`<m>{:dn}` component.

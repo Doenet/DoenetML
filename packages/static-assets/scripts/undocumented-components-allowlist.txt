@@ -28,7 +28,6 @@ constrainToInterior
 convertSetToList
 dataFrame
 definition
-description
 displayDoenetML
 eigenDecomposition
 electronConfiguration
@@ -67,7 +66,6 @@ regionHalfPlane
 rightHandSide
 rq
 rsq
-shortDescription
 solveEquations
 span
 sq

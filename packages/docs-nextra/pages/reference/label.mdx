@@ -6,8 +6,23 @@ import { AttrPropDisplay } from "../../components"
 # `<label>{:dn}`
 
 
-`<label>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a label on a `<graph>{:dn}`, button, or checkbox.
+`<label>{:dn}` provides a label for another component.
+
+When used with an input or answer (`<mathInput>{:dn}`, `<textInput>{:dn}`,
+`<booleanInput>{:dn}`, `<choiceInput>{:dn}`, `<matrixInput>{:dn}`, `<answer>{:dn}`) or
+with a button-triggering component (`<updateValue>{:dn}`, `<callAction>{:dn}`,
+`<triggerSet>{:dn}`), the `<label>{:dn}` is shown on screen *and* is exposed to
+assistive technology as the component's accessible name. Adding a `<label>{:dn}` is the
+preferred way to label an input: a single visible label serves both sighted users and
+assistive-technology users. (When a label should be available only to assistive
+technology, use a `<shortDescription>{:dn}` instead.)
+
+When used on a `<graph>{:dn}`, a `<label>{:dn}` renders text or math attached to a
+graphical object such as a `<point>{:dn}`, or as a standalone annotation positioned
+with the `anchor` attribute.
+
+A `<label>{:dn}` can be written as a child of the component it labels, or placed
+elsewhere in the document and linked to an input or answer with the `for` attribute.
 
 <AttrPropDisplay name='label'/>
 
@@ -203,6 +218,28 @@ Although a `<mathInput/>{:dn}` cannot be placed on a `<graph>{:dn}`, a `<textInp
 placed on a graph to gather basic numerical or algebraic responses. These responses can then be 
 redefined as a `<math>{:dn}` for use in an `<award>{:dn}`. The `<textInput/>{:dn}` on the graph 
 can take a `<label>{:dn}` child to prompt the desired input.
+
+
+
+---
+
+### Attribute Example: for
+
+
+```doenet-editor-horiz
+<p><label for="$response">Enter your full name</label></p>
+
+<p><textInput name="response" /></p>
+```
+
+
+
+The `for` attribute lets a `<label>{:dn}` be placed anywhere in the document instead
+of being nested inside the input it labels, giving you control over where the label
+appears. Set `for` to a reference to the input or answer it labels (here,
+`for="$response"`). The label is linked to that input for assistive technology in
+exactly the same way as a `<label>{:dn}` child would be. The `for` attribute is
+ignored on a `<label>{:dn}` placed inside a `<graph>{:dn}`.
 
 
 
