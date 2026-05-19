@@ -183,9 +183,8 @@ export class RunThroughCore {
                     try {
                         // @ts-ignore
                         const converter = new DoenetMLToPretext();
-                        const results = await converter.convertMultiple(
-                            sources,
-                        );
+                        const results =
+                            await converter.convertMultiple(sources);
                         resolve(results);
                     } catch (e) {
                         resolve("" + e);

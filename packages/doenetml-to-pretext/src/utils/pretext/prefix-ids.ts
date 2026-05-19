@@ -23,7 +23,11 @@ export function prefixIds(prefix: string, root: Xast.Root): void {
 
     // Second pass: update xref ref attributes to point to prefixed ids
     visit(root, "element", (node) => {
-        if (node.name === "xref" && node.attributes && typeof node.attributes.ref === "string") {
+        if (
+            node.name === "xref" &&
+            node.attributes &&
+            typeof node.attributes.ref === "string"
+        ) {
             const oldRef = node.attributes.ref;
             if (oldRef in idMapping) {
                 node.attributes.ref = idMapping[oldRef];
