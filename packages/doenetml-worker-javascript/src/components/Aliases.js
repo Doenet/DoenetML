@@ -32,7 +32,8 @@ export class Description extends Div {
     static componentType = "description";
 
     static componentDocs = {
-        summary: "A description block.",
+        summary:
+            "Extra information about an enclosing component, shown to all users in a popup or disclosure.",
     };
     static rendererType = "containerBlock";
 }

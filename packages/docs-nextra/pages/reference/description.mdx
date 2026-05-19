@@ -1,0 +1,99 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<description>{:dn}`
+
+`<description>{:dn}` provides extra information about an enclosing component.
+The information is shown to **all** users, but it is not displayed inline: Doenet
+renders it behind an info icon, so a reader must open a popover (or expand a
+disclosure triangle) to see it.
+
+Because a `<description>{:dn}` does not appear to assistive technology as a direct label
+of a component, it **does not** satisfy the accessibility requirement for labeling.
+For inputs and answers that include an input, the accessibility requirement can be met by either
+
+- adding a `<label>{:dn}` that is visible to sighted users as well (preferred), or
+- adding a `<shortDescription>{:dn}` as a label that is available solely for assistive technology.
+
+For image-like components (including graphs and videos) that don't accept a direct `<label>{:dn}`,
+you need to use `<shortDescription>{:dn}` to add a text alternative for assistive technology.
+
+In best practice, a `<description>{:dn}` is combined with a `<label>{:dn}` or `<shortDescription>{:dn}` to provide additional detail for everyone.
+
+A `<description>{:dn}` is meaningful as a child of `<answer>{:dn}`,
+`<mathInput>{:dn}`, `<textInput>{:dn}`, `<booleanInput>{:dn}`,
+`<choiceInput>{:dn}`, `<matrixInput>{:dn}`, `<image>{:dn}`, `<video>{:dn}`, and
+`<graph>{:dn}`. It accepts block content such as paragraphs.
+
+
+<AttrPropDisplay name='description'/>
+
+---
+
+### Example: `<description>{:dn}` on a `<mathInput>{:dn}`
+
+
+```doenet-example
+<p>Factor <m>x^2-1</m>:
+  <mathInput name="response">
+    <description>Enter your answer as a product of factors, for example <c>(x-2)(x+3)</c>.</description>
+  </mathInput>
+</p>
+```
+
+
+
+On an input component, a `<description>{:dn}` appears as an info icon next to the
+input. Selecting the icon opens a popover with the description, so the extra guidance
+is available without cluttering the page.
+
+
+
+---
+
+### Example: `<description>{:dn}` on an `<image>{:dn}`
+
+
+```doenet-editor-horiz
+<image source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+  <description>
+    <p>This photograph shows the upper corner of a Doric temple. Visible from
+    bottom to top are a fluted column, a simple cushion-shaped capital, the plain
+    architrave, and a frieze of alternating triglyphs and metopes.</p>
+  </description>
+</image>
+```
+
+
+
+Here the `<image>{:dn}` carries both a `<shortDescription>{:dn}`, which provides
+the accessible text alternative for screen readers, and a `<description>{:dn}` with a
+longer explanation. On a block-mode `<image>{:dn}` the description is revealed by a
+disclosure triangle below the image.
+
+
+
+---
+
+### Example: `<description>{:dn}` on a `<graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <shortDescription>A graph containing a single draggable point at the origin</shortDescription>
+  <description>
+    <p>The graph contains one point, initially located at the origin, that can be
+    dragged anywhere in the plane.</p>
+  </description>
+  <point name="P" />
+</graph>
+```
+
+
+
+A `<graph>{:dn}` can likewise pair a `<shortDescription>{:dn}` for assistive
+technology with a `<description>{:dn}` that gives sighted users more context about
+the graph's contents.
