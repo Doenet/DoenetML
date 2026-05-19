@@ -10,6 +10,9 @@ const EXTERNAL_DEPS = ["react", "react-dom"];
 export default defineConfig({
     base: "./",
     plugins: [dts({ rollupTypes: true })],
+    worker: {
+        format: "es",
+    },
     server: {
         host: "0.0.0.0",
         port: 8012,

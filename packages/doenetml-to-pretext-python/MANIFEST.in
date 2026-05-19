@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+recursive-include doenetml_to_pretext *.py
+include doenetml_to_pretext/py.typed
+include doenetml_to_pretext/import_map.json
+recursive-include doenetml_to_pretext/js-assets *.js

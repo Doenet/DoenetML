@@ -1,0 +1,7 @@
+{
+    "id": "python",
+    "version": "1.0.0",
+    "name": "Python Runtime Libraries",
+    "description": "Installs shared libraries required by Python for in-container development.",
+    "installsAfter": ["ghcr.io/devcontainers/features/common-utils"]
+}

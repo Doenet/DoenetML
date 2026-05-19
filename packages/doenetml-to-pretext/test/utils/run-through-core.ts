@@ -46,6 +46,17 @@ export class RunThroughCore {
                 },
                 logLevel: "error",
             });
+            // Mock a URL to serve a minimal HTML page so the browser has a real
+            // HTTP origin. Module workers from blob URLs require a non-null origin;
+            // Chrome rejects type:"module" workers created on about:blank (null origin).
+            const pageMock = await this.browser.mock(
+                "http://doenetml-test.localhost/",
+            );
+            pageMock.respond(
+                "<!DOCTYPE html><html><head></head><body></body></html>",
+                { headers: { "Content-Type": "text/html" } },
+            );
+            await this.browser.url("http://doenetml-test.localhost/");
             // Set up logging of console.log messages from scripts the browser is executing
             await this.browser.sessionSubscribe({ events: ["log.entryAdded"] });
             this.browser.on("log.entryAdded", (entry) => this.onLog(entry));
