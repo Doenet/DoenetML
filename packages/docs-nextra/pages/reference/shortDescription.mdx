@@ -9,11 +9,16 @@ import { AttrPropDisplay } from "../../components"
 component that is consumed **only by assistive technology**, such as screen readers.
 It is never shown as visible content to sighted users.
 
-Because a `<shortDescription>{:dn}` is exposed to assistive technology as the
-accessible name (label) of its enclosing component, it **does** satisfy the
-accessibility requirement for labeling. This is the opposite of `<description>{:dn}`,
-which is associated with a component only as supplementary detail, not as a label,
-and therefore does not satisfy that requirement.
+Unless the enclosing component already has an explicit label, a
+`<shortDescription>{:dn}` is exposed to assistive technology as the accessible name
+(label) of that component, and so it **does** satisfy the accessibility requirement
+for labeling. (When there already is an explicit `<label>{:dn}` or external
+`for`-label, the `<shortDescription>{:dn}` instead becomes supplementary description
+text, as explained below.)
+
+A `<description>{:dn}`, by contrast, is *always* associated with a component only as
+supplementary detail, never as a label, and so it never satisfies the labeling
+requirement.
 
 For inputs and answers, adding a `<label>{:dn}` is generally the preferred way to meet
 the labeling requirement: a `<label>{:dn}` is visible to sighted users *and* exposed to
