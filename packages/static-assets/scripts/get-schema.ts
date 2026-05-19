@@ -81,6 +81,8 @@ type AttributeObject = {
     createPrimitiveOfType: string;
     createStateVariable: string;
     createComponentOfType: string;
+    createReferences?: boolean;
+    allowStrings?: boolean;
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
@@ -240,6 +242,12 @@ type PublicStateVariableDescription = {
 
 type SchemaAttribute = {
     name: string;
+    /**
+     * The attribute's own type, derived from its `createComponentOfType` /
+     * `createPrimitiveOfType` declaration (`string` is normalized to `text`).
+     * An attribute with a list of valid values has type `keyword`.
+     */
+    type?: string;
     /** Values accepted by validation/schema checks. */
     values?: string[];
     /**
@@ -581,6 +589,28 @@ export function getSchema(
                 attrDef.createComponentOfType === "boolean"
             ) {
                 attrSpec.values = ["true", "false"];
+            }
+
+            // The attribute's type comes from its own declaration, not from a
+            // mapping to a same-named property. A `string` primitive is
+            // surfaced as `text`; an attribute that enumerates valid values is
+            // surfaced as `keyword`; a reference-creating attribute is
+            // surfaced as `reference` — or `referenceOrText` when it also sets
+            // `allowStrings` (e.g. `<ref to>`, which accepts a URL string in
+            // addition to a component reference).
+            if (attrDef.validValues) {
+                attrSpec.type = "keyword";
+            } else if (attrDef.createReferences) {
+                attrSpec.type = attrDef.allowStrings
+                    ? "referenceOrText"
+                    : "reference";
+            } else {
+                const rawType =
+                    attrDef.createComponentOfType ??
+                    attrDef.createPrimitiveOfType;
+                if (rawType) {
+                    attrSpec.type = rawType === "string" ? "text" : rawType;
+                }
             }
 
             attributes.push(attrSpec);

@@ -10,17 +10,20 @@ export default defineConfig({
             viteConfig: {
                 plugins: [
                     {
-                        // April 7, 2026: The LSP IIFE bundle (≈7 MB, with inlined WASM)
-                        // triggers a parse error in Vite's import-analysis
-                        // when imported with `?raw`.  This plugin intercepts
-                        // the load and returns a plain string export.
-                        name: "raw-lsp-bundle",
+                        // The LSP IIFE bundle and the doenetml-worker bundle
+                        // (each multi-MB, with inlined WASM) trigger a parse
+                        // error in Vite's import-analysis when imported with
+                        // `?raw`.  This plugin intercepts the load and
+                        // returns a plain string export.
+                        name: "raw-large-bundle",
                         enforce: "pre" as const,
                         load(id: string) {
                             if (
                                 /[?&]raw\b/.test(id) &&
                                 (id.includes("@doenet/lsp") ||
-                                    id.includes("/packages/lsp/"))
+                                    id.includes("/packages/lsp/") ||
+                                    id.includes("@doenet/doenetml-worker") ||
+                                    id.includes("/packages/doenetml-worker/"))
                             ) {
                                 const filePath = id.replace(/[?#].*$/, "");
                                 const content = fs.readFileSync(
@@ -38,7 +41,7 @@ export default defineConfig({
                     },
                 ],
                 optimizeDeps: {
-                    exclude: ["@doenet/lsp"],
+                    exclude: ["@doenet/lsp", "@doenet/doenetml-worker"],
                 },
             },
         },

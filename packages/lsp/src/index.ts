@@ -55,6 +55,13 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument?.publishDiagnostics?.relatedInformation ||
         false;
 
+    const initOptionsWorkerUrl = (
+        params.initializationOptions as { doenetWorkerUrl?: unknown } | null
+    )?.doenetWorkerUrl;
+    if (typeof initOptionsWorkerUrl === "string" && initOptionsWorkerUrl) {
+        config.doenetWorkerUrl = initOptionsWorkerUrl;
+    }
+
     const result: InitializeResult = {
         capabilities: {
             textDocumentSync: {

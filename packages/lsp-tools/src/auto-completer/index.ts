@@ -102,7 +102,7 @@ export type RefMemberContainerResolution = {
 
 export type ResolveRefMemberContainer = (
     args: ResolveRefMemberContainerArgs,
-) => RefMemberContainerResolution | null;
+) => Promise<RefMemberContainerResolution | null>;
 
 /**
  * Bundle of resolution + schema data the help layer needs to describe a
@@ -224,10 +224,23 @@ export class AutoCompleter {
     }
 
     /**
+     * Attach a rust resolver adapter after construction.  The LSP uses this
+     * to plug in the adapter once its worker is ready, without rebuilding
+     * the AutoCompleter (which would otherwise force a swap with a fresh
+     * `sourceObj` / schema setup).  Queries issued before this is called
+     * fall back to the no-rust paths.
+     */
+    setRustResolverAdapter(adapter: RustResolverAdapter) {
+        this._rustResolverAdapter = adapter;
+        this._getAdditionalRefNamesImpl = (offset: number) =>
+            adapter.getDerivedRepeatNames(offset);
+    }
+
+    /**
      * Test whether `name` is addressable from `offset`.
      * Returns `false` when no Rust resolver adapter is set.
      */
-    isNameAddressable(offset: number, name: string): boolean {
+    async isNameAddressable(offset: number, name: string): Promise<boolean> {
         if (this._rustResolverAdapter) {
             return this._rustResolverAdapter.isNameAddressableFromOffset(
                 offset,
@@ -244,14 +257,14 @@ export class AutoCompleter {
      * For example, in `$P.coords` this resolves to `P`, while in `$P.coords.`
      * it resolves to `coords`.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution {
+    ): Promise<RefMemberContainerResolution> {
         if (this._rustResolverAdapter) {
             const resolved =
-                this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                await this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
                     offset,
                     pathParts,
                     pathPartHasIndex,
@@ -662,6 +675,6 @@ export class AutoCompleter {
 // Export resolver adapter for external use
 export { RustResolverAdapter } from "./rust-resolver-adapter";
 export type {
-    RustResolverCore,
+    ResolverCore,
     RustResolverAdapterOptions,
 } from "./rust-resolver-adapter";

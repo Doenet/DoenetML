@@ -418,7 +418,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         ],
     };
 
-    it("offers annotations-skeleton snippet when typing < inside prefigure graph body", () => {
+    it("offers annotations-skeleton snippet when typing < inside prefigure graph body", async () => {
         const source = `<graph renderer="prefigure">
   <point name="P" />
   <
@@ -429,7 +429,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         );
         const offset = source.indexOf("  <\n") + 3;
 
-        const items = autoCompleter.getCompletionItems(offset);
+        const items = await autoCompleter.getCompletionItems(offset);
         const annotationSnippetItem = items.find(
             (item) => item.label === "annotations-skeleton",
         );
@@ -443,7 +443,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         }
     });
 
-    it("does not offer annotations-skeleton snippet in non-prefigure graph", () => {
+    it("does not offer annotations-skeleton snippet in non-prefigure graph", async () => {
         const source = `<graph renderer="doenet">
   <point name="P" />
   <
@@ -454,13 +454,13 @@ describe("Annotation skeleton autocomplete integration", () => {
         );
         const offset = source.indexOf("  <\n") + 3;
 
-        const items = autoCompleter.getCompletionItems(offset);
+        const items = await autoCompleter.getCompletionItems(offset);
         expect(
             items.some((item) => item.label === "annotations-skeleton"),
         ).toBe(false);
     });
 
-    it("does not offer annotations-skeleton snippet when immediate parent is not graph", () => {
+    it("does not offer annotations-skeleton snippet when immediate parent is not graph", async () => {
         const source = `<graph renderer="prefigure">
   <group>
     <point name="P" />
@@ -473,7 +473,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         );
         const offset = source.indexOf("    <\n") + 5;
 
-        const items = autoCompleter.getCompletionItems(offset);
+        const items = await autoCompleter.getCompletionItems(offset);
         expect(
             items.some((item) => item.label === "annotations-skeleton"),
         ).toBe(false);

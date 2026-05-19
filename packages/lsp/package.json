@@ -40,7 +40,7 @@
             "dependencies": [
                 "../lsp-tools:build",
                 "../parser:build",
-                "../doenetml-worker-rust:build"
+                "../doenetml-worker:build"
             ]
         }
     }

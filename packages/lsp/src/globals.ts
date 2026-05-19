@@ -4,7 +4,11 @@ import {
     TextDocuments,
 } from "vscode-languageserver/browser";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
+import {
+    AutoCompleter,
+    RustResolverAdapter,
+    type ResolverCore,
+} from "@doenet/lsp-tools";
 
 export interface DoenetDocumentSettings {
     formatMode: "doenet" | "xml";
@@ -14,7 +18,18 @@ export const defaultSettings: DoenetDocumentSettings = { formatMode: "doenet" };
 /**
  * LSP Capabilities configuration
  */
-export const config = {
+export const config: {
+    hasConfigurationCapability: boolean;
+    hasWorkspaceFolderCapability: boolean;
+    hasDiagnosticRelatedInformationCapability: boolean;
+    globalSettings: DoenetDocumentSettings;
+    /**
+     * URL of the inlined core webworker JS bundle, supplied by the host via
+     * the LSP `initialize` request's `initializationOptions`.  When unset,
+     * rust-backed completions are unavailable.
+     */
+    doenetWorkerUrl?: string;
+} = {
     hasConfigurationCapability: false,
     hasWorkspaceFolderCapability: false,
     hasDiagnosticRelatedInformationCapability: false,
@@ -47,13 +62,31 @@ export const documentInfo: Map<
          */
         additionalDiagnostics: Diagnostic[];
         /**
-         * Rust WASM resolver adapter, created lazily once the WASM module loads.
+         * The DoenetML core for this document, reached over Comlink once the
+         * rust core sub-worker is spawned.  One core per document keeps
+         * rust-side resolver state aligned with this document.
+         */
+        rustCore?: ResolverCore;
+        /**
+         * Rust resolver adapter, created lazily once `rustCore` is spawned.
          */
         rustAdapter?: RustResolverAdapter;
+        /**
+         * Releases the rust core sub-worker that backs `rustCore`.  Must be
+         * called on document close to avoid orphaning worker threads.
+         */
+        rustCoreTerminate?: () => void;
         /**
          * Rust resolver lifecycle state for this document.
          */
         rustState: "uninitialized" | "initializing" | "ready" | "unavailable";
+        /**
+         * Resolves when the rust-core bootstrap settles (`rustState` reaches
+         * `"ready"` or `"unavailable"`).  A completion request that races the
+         * boot awaits this so it answers with real results instead of an
+         * empty list.  Set once, when the bootstrap starts.
+         */
+        rustReady?: Promise<void>;
     }
 > = new Map();
 export type DocumentInfo = typeof documentInfo;
