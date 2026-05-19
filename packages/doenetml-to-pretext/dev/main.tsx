@@ -16,6 +16,7 @@ function App() {
     const [source, setSource] = React.useState<string>(doenetMLstring);
     const [pretextOutput, setPretextOutput] = React.useState<string>("");
     const [isConverting, setIsConverting] = React.useState<boolean>(false);
+    const [fragment, setFragment] = React.useState<boolean>(false);
     const doenetMLToPretextInstance = React.useRef(
         new DoenetMLToPretext(),
     ).current;
@@ -23,43 +24,51 @@ function App() {
     return (
         <div className="container">
             <div className="banner">
-                <UiButton
-                    onClick={async () => {
-                        if (isConverting) {
-                            return;
-                        }
-                        setIsConverting(true);
-                        console.log("Converting to PreTeXt", source);
-                        try {
-                            const ret =
-                                await doenetMLToPretextInstance.convert(source);
-                            console.log("Conversion result:", ret);
-                            setPretextOutput(ret);
-                        } finally {
-                            setIsConverting(false);
-                        }
-                    }}
-                    disabled={isConverting}
-                >
-                    {isConverting
-                        ? "Converting to PreTeXt..."
-                        : "Convert to PreTeXt"}
-                </UiButton>
+                <div className="banner-controls">
+                    <UiButton
+                        onClick={async () => {
+                            if (isConverting) {
+                                return;
+                            }
+                            setIsConverting(true);
+                            console.log("Converting to PreTeXt", source);
+                            try {
+                                const ret =
+                                    await doenetMLToPretextInstance.convert(
+                                        source,
+                                        { fragment },
+                                    );
+                                console.log("Conversion result:", ret);
+                                setPretextOutput(ret);
+                            } finally {
+                                setIsConverting(false);
+                            }
+                        }}
+                        disabled={isConverting}
+                    >
+                        {isConverting
+                            ? "Converting to PreTeXt..."
+                            : "Convert to PreTeXt"}
+                    </UiButton>
+                    <label
+                        className="fragment-toggle"
+                        title="Render a PreTeXt fragment (without a root <pretext> tag)."
+                    >
+                        <input
+                            type="checkbox"
+                            checked={fragment}
+                            onChange={(e) => setFragment(e.target.checked)}
+                        />
+                        Fragment mode
+                    </label>
+                </div>
             </div>
             <ResizablePanelPair
                 panelA={
                     <CodeMirror value={doenetMLstring} onChange={setSource} />
                 }
                 panelB={
-                    <div
-                        className="pretext-output-container"
-                        style={{
-                            padding: "1em",
-                            minWidth: "100%",
-                            minHeight: "100%",
-                            overflow: "auto",
-                        }}
-                    >
+                    <div className="pretext-output-container">
                         <h1>PreTeXt Output</h1>
                         {isConverting ? (
                             <div className="loading-state">

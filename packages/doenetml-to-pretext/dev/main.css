@@ -18,10 +18,33 @@ body {
     padding: 3px;
     background-color: #f0f0f0;
 }
+
+.banner-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fragment-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid #d0d7de;
+    border-radius: 999px;
+    background: #f6f8fa;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+}
+
 .pretext-output-container {
     flex: 1;
     display: flex;
     flex-direction: column;
+    padding: 1em;
+    min-width: 100%;
+    min-height: 100%;
     overflow: auto;
 
     h1 {

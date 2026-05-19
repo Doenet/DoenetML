@@ -31,8 +31,8 @@ export const OrbitalDiagram: BasicComponent<OrbitalDiagramData> = ({
     rowData.reverse();
     return (
         <tabular>
-            {rowData.map(({ orbitalText, boxes }) => (
-                <row>
+            {rowData.map(({ orbitalText, boxes }, rowIndex) => (
+                <row key={rowIndex}>
                     <cell>{orbitalText}</cell>
                     {boxes.map((box, index) => (
                         <cell key={index}>{boxToSymbol(box)}</cell>

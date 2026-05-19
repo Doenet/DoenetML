@@ -22,7 +22,18 @@ import { normalizeAttrs } from "./normalize-attrs";
  */
 export function renderFlatDastToPretext(
     flatDast: FlatDastRoot | FlatDastRootWithErrors,
+    options: {
+        /**
+         * Whether to render a standalone PreTeXt document. That is, one that starts with `<?xml version="1.0" encoding="UTF-8"?>`
+         * and has a single root `<pretext>` tag. If false, the output may not be valid PreTeXt, but should be a fragment of valid
+         * PreTeXt suitable for embedding inside a larger document.
+         *
+         * Default: `false`.
+         */
+        fragment?: boolean;
+    } = {},
 ): Xast.Root {
+    const { fragment: fragment = false } = options;
     if (typeof flatDast !== "object" || !Array.isArray(flatDast.elements)) {
         // Something went terribly wrong.
         throw new Error("Error during renderToPretext" + flatDast);
@@ -39,7 +50,9 @@ export function renderFlatDastToPretext(
     // We have no errors, so we can safely cast to FlatDastRoot
     const _flatDast: FlatDastRoot = flatDast as FlatDastRoot;
 
-    ensurePretextTag(_flatDast);
+    if (!fragment) {
+        ensurePretextTag(_flatDast);
+    }
 
     // Make sure none of the attribute names clash with special React names (e.g. `ref` and `key`).
     for (const element of _flatDast.elements) {
@@ -94,13 +107,15 @@ export function renderFlatDastToPretext(
         </Provider>,
     );
 
-    // Make sure we include an `<?xml version="1.0" encoding="UTF-8"?>` instruction on the first line
-    xast.children.unshift({ type: "text", value: "\n" });
-    xast.children.unshift({
-        type: "instruction",
-        name: "xml",
-        value: 'version="1.0" encoding="UTF-8"',
-    });
+    if (!fragment) {
+        // Make sure we include an `<?xml version="1.0" encoding="UTF-8"?>` instruction on the first line
+        xast.children.unshift({ type: "text", value: "\n" });
+        xast.children.unshift({
+            type: "instruction",
+            name: "xml",
+            value: 'version="1.0" encoding="UTF-8"',
+        });
+    }
 
     return xast;
 }

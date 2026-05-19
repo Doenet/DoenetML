@@ -8,6 +8,8 @@ import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
 import { preprocessDastForPretext } from "./utils/pretext/preprocess-dast";
 import { toXml as xastToXml } from "xast-util-to-xml";
 
+export type ConvertOptions = Parameters<typeof renderFlatDastToPretext>[1];
+
 const defaultFlags = {
     showCorrectness: true,
     readOnly: false,
@@ -35,12 +37,15 @@ export class DoenetMLToPretext {
 
     async convert(
         doenetML: string,
-        { throwOnError = true }: { throwOnError?: boolean } = {},
+        {
+            throwOnError = true,
+            ...options
+        }: { throwOnError?: boolean } & ConvertOptions = {},
     ): Promise<string> {
         await this._ensureWorker();
 
         const flatDast = await this._getStaticDast(doenetML);
-        const xastRoot = await this._flatDastToPretext(flatDast);
+        const xastRoot = await this._flatDastToPretext(flatDast, options);
         const result = xastToXml(xastRoot);
 
         if (throwOnError) {
@@ -94,7 +99,9 @@ export class DoenetMLToPretext {
         await this._ensureWorker();
 
         const normalizedDast = getNormalizedDast(doenetML);
-        const preprocessedDast = preprocessDast(normalizedDast);
+
+        // Apply optional preprocessing to normalized DAST before worker execution.
+        const preprocessedDast = preprocessDastForPretext(normalizedDast);
 
         const flatDast = await this._runDastThroughWorker(
             preprocessedDast,
@@ -111,8 +118,9 @@ export class DoenetMLToPretext {
      */
     async _flatDastToPretext(
         flatDast: FlatDastRootWithErrors,
+        options: Parameters<typeof renderFlatDastToPretext>[1] = {},
     ): Promise<Xast.Root> {
-        return renderFlatDastToPretext(flatDast);
+        return renderFlatDastToPretext(flatDast, options);
     }
 }
 
@@ -132,7 +140,7 @@ export async function createWrappedCoreWorker() {
  */
 export async function doenetMLToPretext(
     doenetML: string,
-    options: { throwOnError?: boolean } = {},
+    options: { throwOnError?: boolean } & ConvertOptions = {},
 ): Promise<string> {
     const converter = new DoenetMLToPretext();
     return await converter.convert(doenetML, options);
@@ -152,11 +160,4 @@ export async function flatDastToPretext(
  */
 export function getNormalizedDast(source: string) {
     return normalizeDocumentDast(lezerToDast(source));
-}
-
-/**
- * Apply optional preprocessing to normalized DAST before worker execution.
- */
-export function preprocessDast(dast: DastRoot): DastRoot {
-    return preprocessDastForPretext(dast);
 }
