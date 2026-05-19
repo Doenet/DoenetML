@@ -5,8 +5,19 @@ import { createPackageJsonTransformer } from "../../scripts/transform-package-js
 import { version } from "./package.json";
 import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
-// These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["react", "react-dom"];
+// Bare package names that will not be bundled into the library. These become
+// peerDependencies in the published dist/component/package.json.
+const EXTERNAL_PACKAGES = ["react", "react-dom", "better-react-mathjax"];
+
+// Rollup `external` predicate. Unlike a plain string array, this also matches
+// subpath imports (e.g. react/jsx-runtime, react/jsx-dev-runtime, react-dom/client),
+// which must be externalized too so the consuming app provides a single React
+// instance. Bundling them causes a duplicate-React "dispatcher" mismatch.
+function isExternal(id: string): boolean {
+    return EXTERNAL_PACKAGES.some(
+        (pkg) => id === pkg || id.startsWith(pkg + "/"),
+    );
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,7 +30,7 @@ export default defineConfig({
                     src: "package.json",
                     dest: "./",
                     transform: createPackageJsonTransformer({
-                        externalDeps: EXTERNAL_DEPS,
+                        externalDeps: EXTERNAL_PACKAGES,
                         targetDir: "dist/component",
                     }),
                 },
@@ -40,12 +51,7 @@ export default defineConfig({
             cssFileName: "style",
         },
         rollupOptions: {
-            external: EXTERNAL_DEPS,
-            output: {
-                globals: Object.fromEntries(
-                    EXTERNAL_DEPS.map((dep) => [dep, dep]),
-                ),
-            },
+            external: isExternal,
         },
     },
     define: {

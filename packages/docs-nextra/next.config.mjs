@@ -8,6 +8,15 @@ import {
 } from "./dist/index.js";
 import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+
+/** Resolve the directory of an installed package (so webpack aliases handle subpaths). */
+function packageDir(pkg) {
+    return path.dirname(require.resolve(`${pkg}/package.json`));
+}
 
 const withNextra = nextraConfig({
     theme: "nextra-theme-docs",
@@ -154,7 +163,22 @@ fullConfig.webpack = (config, options) => {
     const newConfig = nextraWebpackConfig(config, options);
     newConfig.optimization.minimizer = [];
     newConfig.optimization.minimize = false;
-    return config;
+
+    // Force a single copy of React (and better-react-mathjax) so the
+    // `@doenet/doenetml-iframe` component shares the host page's React
+    // dispatcher. Without this, a duplicate React instance triggers
+    // `dispatcher.getOwner is not a function` when MathJaxContext renders.
+    // Alias to each package's directory so subpath imports
+    // (react/jsx-runtime, react-dom/client, ...) keep resolving.
+    newConfig.resolve = newConfig.resolve || {};
+    newConfig.resolve.alias = {
+        ...(newConfig.resolve.alias || {}),
+        react: packageDir("react"),
+        "react-dom": packageDir("react-dom"),
+        "better-react-mathjax": packageDir("better-react-mathjax"),
+    };
+
+    return newConfig;
 };
 
 export default fullConfig;
