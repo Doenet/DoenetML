@@ -13,6 +13,8 @@ describe("generated schema help fields", () => {
     const when = elementsByName.when;
     const point = elementsByName.point;
     const fn = elementsByName.function;
+    const ref = elementsByName.ref;
+    const collect = elementsByName.collect;
 
     it("has the piloted components present in the generated schema", () => {
         // Asserted up front so later tests don't fail with confusing
@@ -22,6 +24,22 @@ describe("generated schema help fields", () => {
         expect(when).toBeDefined();
         expect(point).toBeDefined();
         expect(fn).toBeDefined();
+        expect(ref).toBeDefined();
+        expect(collect).toBeDefined();
+    });
+
+    it("types a plain reference-creating attribute as `reference`", () => {
+        const from = collect.attributes.find(
+            (attribute) => attribute.name === "from",
+        );
+        expect(from?.type).toBe("reference");
+    });
+
+    it("types a reference attribute that allows strings as `referenceOrText`", () => {
+        // `<ref to>` sets `createReferences` and `allowStrings`, so it accepts
+        // a URL string in addition to a component reference.
+        const to = ref.attributes.find((attribute) => attribute.name === "to");
+        expect(to?.type).toBe("referenceOrText");
     });
 
     it("populates element summary from static componentDocs", () => {
