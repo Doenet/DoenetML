@@ -104,14 +104,18 @@ describe("Pretext export", async () => {
     // <br /> and <hr /> are removed when converting to PreTeXt
     it("<br /> and <hr /> are removed when converting to PreTeXt", async () => {
         source = `<p>Line 1<br />Line 2</p><hr /><p>After hr</p>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<p>Line 1Line 2</p><p>After hr</p>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p>Line 1Line 2</p><p>After hr</p>"`);
     });
 
     it("source of an <m> gets rendered", async () => {
         source = `<p>Here is some math: <m>\\frac{1}{2}</m></p>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<p>Here is some math: <m>\\frac{1}{2}</m></p>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Here is some math: <m>\\frac{1}{2}</m></p>"`,
+        );
     });
 
     it("renders mathInput nested inside answer", async () => {
@@ -124,8 +128,11 @@ describe("Pretext export", async () => {
     // <sideBySide> and <blockQuote> get rendered in lower case
     it("<sideBySide> and <blockQuote> are rendered in lower case", async () => {
         source = `<sideBySide><blockQuote>Quote text</blockQuote></sideBySide>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<sidebyside><blockquote>Quote text</blockquote></sidebyside>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<sidebyside><blockquote>Quote text</blockquote></sidebyside>"`,
+        );
     });
     it("<codeEditor> is rendered as <program>", async () => {
         source = `<codeEditor><p>Some code</p></codeEditor>`;
@@ -138,38 +145,46 @@ describe("Pretext export", async () => {
 
     it("<subsetOfReals> is rendered as <m>", async () => {
         source = `<subsetOfReals>(1,2)</subsetOfReals>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<m>\\left( 1, 2 \\right)</m>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<m>\\left( 1, 2 \\right)</m>"`);
     });
 
     it("<orbitalDiagram> is rendered as <tabular>", async () => {
         source = `<orbitalDiagram labels="a b">(u, d, e, d) (e)</orbitalDiagram>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<tabular><row><cell>b</cell><cell></cell></row><row><cell>a</cell><cell>↑</cell><cell>↓</cell><cell></cell><cell>↓</cell></row></tabular>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>b</cell><cell></cell></row><row><cell>a</cell><cell>↑</cell><cell>↓</cell><cell></cell><cell>↓</cell></row></tabular>"`,
+        );
     });
 
     it("<angle> is rendered as <m>", async () => {
         source = `<angle>30</angle>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<m>30</m>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<m>30</m>"`);
     });
 
     it("<number> is rendered", async () => {
         source = `<number>42</number>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"42"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"42"`);
     });
 
     it("<atom> is rendered as <m>", async () => {
         source = `<atom symbol="Na" />`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<m>\\text{Na}</m>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<m>\\text{Na}</m>"`);
     });
 
     it("inline select-multiple choiceInput renders multiple selected choices", async () => {
         source = `<text hide name="selectedChoices">Apple, Pear</text><choiceInput inline selectMultiple bindValueTo="$selectedChoices"><choice>Apple</choice><choice>Banana</choice><choice>Pear</choice></choiceInput>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`" Apple, Pear"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`" Apple, Pear"`);
     });
 
     // TODO: un-skip when direct <md> conversion behavior is finalized
@@ -305,7 +320,10 @@ describe("Pretext export", async () => {
 
     it("renders a graph with a point", async () => {
         source = `<graph><point name="P" x="1" y="2" /></graph>`;
-        expect(await coreRunner.processToFlatDastAsFragment(source))
-            .toMatchInlineSnapshot(`"<image><prefigure label="prefigure-doenet-id-1" xmlns="https://prefigure.org"><diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"></axes><point at="point_0" p="(1,2)" style="circle" size="5" fill="#648FFF" stroke="#648FFF" fill-opacity="0.7" stroke-opacity="0.7" thickness="4"></point></coordinates><annotations></annotations></diagram></prefigure></image>"`);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<image><prefigure label="prefigure-doenet-id-1" xmlns="https://prefigure.org"><diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"></axes><point at="point_0" p="(1,2)" style="circle" size="5" fill="#648FFF" stroke="#648FFF" fill-opacity="0.7" stroke-opacity="0.7" thickness="4"></point></coordinates><annotations></annotations></diagram></prefigure></image>"`,
+        );
     });
 });
