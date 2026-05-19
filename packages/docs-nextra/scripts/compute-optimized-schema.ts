@@ -1,5 +1,5 @@
 import { doenetSchema } from "@doenet/static-assets/schema";
-import { AttrInfo, PropAttrType, PropInfo } from "../components";
+import { AttrInfo, PropInfo } from "../components";
 
 const SCHEMA: {
     elements: {
@@ -111,7 +111,7 @@ function getAttrInfo(element: (typeof SCHEMA)["elements"][number]) {
         };
         // The type comes from the attribute's own schema entry.
         if (attr.type) {
-            info.type = attr.type as PropAttrType;
+            info.type = attr.type;
         }
         if (attr.defaultValue !== undefined) {
             info.defaultValue = attr.defaultValue;
@@ -132,6 +132,8 @@ function getAttrInfo(element: (typeof SCHEMA)["elements"][number]) {
 
         attrInfo.push(info);
     }
+    // Sort by name once here so the display components don't have to.
+    attrInfo.sort((a, b) => a.name.localeCompare(b.name));
     return attrInfo;
 }
 
@@ -143,15 +145,19 @@ function getPropInfo(element: (typeof SCHEMA)["elements"][number]) {
     for (const prop of element.properties) {
         const info: PropInfo = {
             name: prop.name,
-            type: prop.type as PropAttrType,
             common: false,
             description: prop.description,
         };
+        if (prop.type) {
+            info.type = prop.type;
+        }
         if (prop.isArray) {
             info.isArray = true;
         }
 
         propInfo.push(info);
     }
+    // Sort by name once here so the display components don't have to.
+    propInfo.sort((a, b) => a.name.localeCompare(b.name));
     return propInfo;
 }

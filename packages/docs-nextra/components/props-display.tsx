@@ -1,16 +1,26 @@
 import { Link } from "nextra-theme-docs";
 import React from "react";
 
-export type PropAttrType =
+/** Types the rendering code special-cases. */
+export type KnownPropAttrType =
     | "title"
     | "text"
     | "keyword"
+    | "reference"
     | "boolean"
     | "math"
     | "integer"
     | "number"
     | "textList"
     | "point";
+
+/**
+ * An attribute/prop type. The known types above are special-cased by the
+ * rendering code, but the value is ultimately derived from `createComponentOfType`,
+ * which is open-ended — so any other component type string is also valid. The
+ * `(string & {})` keeps editor autocomplete for the known literals.
+ */
+export type PropAttrType = KnownPropAttrType | (string & {});
 
 /** A single value an attribute may take, with an optional description. */
 export type AttrValueInfo = {
@@ -41,7 +51,7 @@ export type PropInfo = {
     /** Name of the prop */
     name: string;
     /** Type of the prop */
-    type: PropAttrType;
+    type?: PropAttrType;
     /** Whether this prop is common to all components (like `hide`) */
     common: boolean;
     /** Author-facing description of the prop */
@@ -60,7 +70,7 @@ export function AttrDisplay({
     attrs: AttrInfo[];
     links?: Record<string, string>;
 }>) {
-    attrs.sort((a, b) => a.name.localeCompare(b.name));
+    // `attrs` arrives already sorted by name from computeOptimizedSchema.
     const componentAttrs = attrs.filter((attr) => !attr.common);
 
     return (
@@ -170,7 +180,7 @@ export function PropDisplay({
     props: PropInfo[];
     links?: Record<string, string>;
 }>) {
-    props.sort((a, b) => a.name.localeCompare(b.name));
+    // `props` arrives already sorted by name from computeOptimizedSchema.
     const componentProps = props.filter((prop) => !prop.common);
     const refName = name.charAt(0).toLowerCase();
 

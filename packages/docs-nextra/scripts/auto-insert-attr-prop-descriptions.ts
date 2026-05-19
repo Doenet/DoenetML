@@ -49,18 +49,27 @@ export const autoInsertAttrPropDescriptions: Plugin<
             if (node.name === "ComponentDisplay") {
                 injectSummary(node, info, file);
             }
-            if (
-                node.name === "AttrPropDisplay" &&
-                parent &&
-                typeof index === "number"
-            ) {
+            if (node.name === "AttrPropDisplay") {
                 // <AttrPropDisplay> renders the attribute and property
                 // sections (or "no attributes/properties" messages), so it
-                // needs both data sets.
+                // needs both data sets. This injection does not depend on the
+                // node's position, so it always runs.
                 injectAttrs(node, info, file);
                 injectProps(node, info, file);
+
                 // Emit the section heading as a real Markdown heading so it
                 // picks up the theme's heading styling, anchor, and TOC entry.
+                // A flow element should always have a parent and numeric
+                // index; if it does not, the tree is malformed — surface a
+                // warning rather than silently dropping the heading.
+                if (!parent || typeof index !== "number") {
+                    file.message(
+                        `<AttrPropDisplay name="${name}"> has no parent node; ` +
+                            `the "Attributes and Properties" heading was not inserted.`,
+                        node,
+                    );
+                    return;
+                }
                 const heading: Heading = {
                     type: "heading",
                     depth: 2,
