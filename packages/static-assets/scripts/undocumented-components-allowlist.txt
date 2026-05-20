@@ -20,7 +20,6 @@ cascade
 cascadeMessage
 cellBlock
 clampFunction
-cobwebPolyline
 codeEditor
 column
 conclusion
@@ -29,11 +28,7 @@ convertSetToList
 dataFrame
 definition
 displayDoenetML
-eigenDecomposition
 electronConfiguration
-equilibriumCurve
-equilibriumLine
-equilibriumPoint
 exercises
 extractMathOperator
 feedbackDefinition
@@ -56,7 +51,6 @@ pluralize
 pointList
 problems
 regionHalfPlane
-rightHandSide
 solveEquations
 span
 statement

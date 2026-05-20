@@ -1,0 +1,98 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<equilibriumPoint>{:dn}`
+
+
+`<equilibriumPoint>{:dn}` extends [`<point>{:dn}`](point) to mark an equilibrium of a dynamical system. It is
+rendered as a filled point when the equilibrium is stable and as an open (hollow) point when it is unstable.
+This conventional notation lets a single diagram convey both the location and the stability of an equilibrium.
+The component otherwise accepts the full set of `<point>{:dn}` attributes (coordinates, label, style, etc.).
+
+<AttrPropDisplay name='equilibriumPoint'/>
+
+---
+
+### Example: Stable and unstable equilibria
+
+
+```doenet-editor-horiz
+<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+  <shortDescription>Three equilibrium points on the x-axis: two stable, one unstable</shortDescription>
+  <equilibriumPoint>(0, 0)<label>stable</label></equilibriumPoint>
+  <equilibriumPoint stable="false">(2, 0)<label>unstable</label></equilibriumPoint>
+  <equilibriumPoint>(4, 0)<label>stable</label></equilibriumPoint>
+</graph>
+```
+
+
+
+Three equilibria on the $x$-axis: the filled points are stable and the open point is unstable. The
+`stable` attribute defaults to `true`; setting it to `false` flips the rendering to an open point.
+
+
+
+---
+
+### Attribute Example: switchable
+
+
+```doenet-editor-horiz
+<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+  <shortDescription>Two clickable equilibrium points whose stability the learner can toggle</shortDescription>
+  <equilibriumPoint switchable name="A">(0, 0)</equilibriumPoint>
+  <equilibriumPoint switchable name="B">(3, 0)</equilibriumPoint>
+</graph>
+<p><c>A.stable</c> = $A.stable</p>
+<p><c>B.stable</c> = $B.stable</p>
+```
+
+
+
+When `switchable` is set, clicking the point toggles its `stable` state (and therefore its filled/open
+rendering). Use this for interactive exercises where the learner must classify each equilibrium.
+
+
+
+---
+
+### Attribute Example: stable bound to a boolean input
+
+
+```doenet-editor-horiz
+<booleanInput name="b1" prefill="true"><label>Left equilibrium stable</label></booleanInput>
+<booleanInput name="b2" prefill="false"><label>Right equilibrium stable</label></booleanInput>
+<graph xmin="-6" xmax="6" ymin="-1" ymax="1">
+  <shortDescription>Two equilibrium points whose stability is driven by boolean inputs</shortDescription>
+  <equilibriumPoint stable="$b1">(-3, 0)</equilibriumPoint>
+  <equilibriumPoint stable="$b2">(3, 0)</equilibriumPoint>
+</graph>
+```
+
+
+
+The `stable` attribute accepts any boolean expression, so the rendering can be driven from a
+`<booleanInput>{:dn}` or any other state.
+
+
+
+---
+
+### Property Example: stable
+
+
+```doenet-editor-horiz
+<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+  <shortDescription>A clickable equilibrium point</shortDescription>
+  <equilibriumPoint name="eq" switchable>(2, 0)</equilibriumPoint>
+</graph>
+<p>Click the point to toggle. Current state: <c>stable</c> = $eq.stable</p>
+```
+
+
+
+The `stable` property reflects the current stability of the equilibrium. Combined with `switchable` it can be
+read back to grade the learner's classification.
+

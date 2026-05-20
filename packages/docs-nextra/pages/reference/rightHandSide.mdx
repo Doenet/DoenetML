@@ -1,0 +1,87 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<rightHandSide>{:dn}`
+
+
+`<rightHandSide>{:dn}` is a math child of [`<odeSystem>{:dn}`](odeSystem) that defines the right-hand side of one
+differential equation in the system. Each `<rightHandSide>{:dn}` corresponds to one dependent variable of the
+parent `<odeSystem>{:dn}`; the children are matched, in order, to the variables listed in the parent's `variables`
+attribute. The component otherwise behaves like [`<math>{:dn}`](math) — any math expression that resolves to a
+function of the system's variables and the independent variable is valid.
+
+<AttrPropDisplay name='rightHandSide'/>
+
+---
+
+### Example: Defining a single right-hand side
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="rhs" prefill="-y">
+    <label>Enter the right-hand side of <m>dy/dt = </m></label>
+  </mathInput>
+</p>
+<odeSystem name="ode" variables="y" initialConditions="1">
+  <rightHandSide>$rhs</rightHandSide>
+</odeSystem>
+<p><m>y(2) = $$ode.numericalSolution[1](2)</m></p>
+```
+
+
+
+A single `<rightHandSide>{:dn}` child supplies the right-hand side of a one-equation `<odeSystem>{:dn}`. The
+expression is read from a `<mathInput>{:dn}` so the equation can be edited interactively.
+
+
+
+---
+
+### Example: Multiple right-hand sides matched to variables
+
+
+```doenet-editor-horiz
+<odeSystem name="ode" variables="x v" initialConditions="0 1" hideInitialCondition>
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>-x</rightHandSide>
+</odeSystem>
+<p>
+  <mathInput name="t" prefill="1">
+    <label><m>t = </m></label>
+  </mathInput>
+</p>
+<p><m>x($t) = $$ode.numericalSolution[1]($t)</m></p>
+<p><m>v($t) = $$ode.numericalSolution[2]($t)</m></p>
+```
+
+
+
+For an ODE system of dimension $n$, supply $n$ `<rightHandSide>{:dn}` children. The order of the
+children must match the order of the dependent variables in the `variables` attribute; here the first child
+defines $dx/dt$ and the second defines $dv/dt$.
+
+
+
+---
+
+### Example: Reading right-hand sides back
+
+
+```doenet-editor-horiz
+<odeSystem name="ode" variables="x v" initialConditions="0 1" hideInitialCondition>
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>-x</rightHandSide>
+</odeSystem>
+<p>The system's right-hand sides:</p>
+<p><c>rhss[1]</c> = $ode.rhss[1]</p>
+<p><c>rhss[2]</c> = $ode.rhss[2]</p>
+```
+
+
+
+The collected right-hand sides are exposed on the parent as the `rhss` array property, so the individual
+`<rightHandSide>{:dn}` expressions can be rendered or referenced after they are defined.
+
