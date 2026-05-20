@@ -38,9 +38,7 @@ exercises
 extractMathOperator
 feedbackDefinition
 givenAnswer
-h
 hr
-idx
 introduction
 ion
 ionicCompound
