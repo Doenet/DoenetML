@@ -1,0 +1,31 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<sq>{:dn}`
+
+
+`<sq>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders its enclosed content wrapped in curly single quotation marks (‘ ’).
+
+
+<AttrPropDisplay name='sq'/>
+
+
+---
+
+### Example: `<sq>{:dn}` in a paragraph
+
+
+```doenet-example
+<p>She described the result as <sq>surprising</sq>, but did not elaborate.</p>
+```
+
+
+
+`<sq>{:dn}` automatically supplies a left single quotation mark before its content and a right
+single quotation mark after. To place each mark independently, use [`<lsq/>{:dn}`](lsq) and
+[`<rsq/>{:dn}`](rsq) instead.
+
+

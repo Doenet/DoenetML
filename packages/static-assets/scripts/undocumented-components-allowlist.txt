@@ -57,12 +57,10 @@ periodicSet
 pluralize
 pointList
 problems
-q
 regionHalfPlane
 rightHandSide
 solveEquations
 span
-sq
 statement
 stickyGroup
 subsection
