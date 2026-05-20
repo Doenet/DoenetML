@@ -8,11 +8,9 @@ export default class ShortDescription extends TextOrInline {
         summary:
             "A short accessibility description for an enclosing component.",
     };
-    // A short description is never rendered visually (it is consumed only by
-    // assistive technology, through its `text` state variable). The `text`
-    // renderer produces no visible output here, since `text` is not
-    // `forRenderer`.
-    static rendererType = "text";
+    // A short description is never rendered visually — it is consumed only
+    // by assistive technology, through its `text` state variable.
+    static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
 
