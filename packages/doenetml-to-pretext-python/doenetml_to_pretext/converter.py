@@ -28,7 +28,6 @@ class DoenetConverter:
         # 1. Try to import from a Python Deno package (if present)
         try:
             import deno
-
             return deno.find_deno_bin()
         except ImportError:
             pass
