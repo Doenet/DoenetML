@@ -1,0 +1,231 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<cobwebPolyline>{:dn}`
+
+
+`<cobwebPolyline>{:dn}` renders an interactive cobweb diagram for visualizing iteration of a one-variable function
+$x_{n+1} = f(x_n)$. When placed inside a [`<graph>{:dn}`](graph), the user clicks to add successive vertices
+that should alternate between the curve $y = f(x)$ and the diagonal $y = x$. Each vertex is graded for
+correctness against the true iteration, so the component can drive both interactive exploration and answer checking.
+
+<AttrPropDisplay name='cobwebPolyline'/>
+
+---
+
+### Example: Basic cobweb for a quadratic iteration
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">1/3 x (3 - x) + x</function>
+  <number name="numPoints">1</number>
+
+  <point name="P0" x="-1.5" y="0">
+    <attractToGrid dx="0.2" xthreshold="0.05" />
+  </point>
+</setup>
+
+<updateValue name="addLine" target="$numPoints" newValue="$numPoints + 1">
+  <label>Add line</label>
+</updateValue>
+<updateValue name="deleteLine" hide="$numPoints = 1" target="$numPoints" newValue="$numPoints - 1">
+  <label>Delete line</label>
+</updateValue>
+
+<graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5">
+  <shortDescription>An interactive cobweb plot</shortDescription>
+  <xLabel><m>x_n</m></xLabel>
+  <yLabel><m>x_{n+1}</m></yLabel>
+  $f
+  <cobwebPolyline name="cobweb"
+    function="$f"
+    initialPoint="$P0"
+    numPoints="$numPoints"
+    attractThreshold="0.2"
+    numIterationsRequired="3" />
+</graph>
+```
+
+
+
+A `<cobwebPolyline>{:dn}` is added to a graph that already shows the function curve and the diagonal. The
+`function` attribute identifies the iterated function, `initialPoint` sets the starting point on the diagonal,
+and `numPoints` controls how many vertices are currently displayed. As the user drags successive vertices, each
+one snaps to either the curve or the diagonal when within `attractThreshold` of the correct position.
+
+
+
+---
+
+### Example: Locked to the correct solution
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">1/3 x (3 - x) + x</function>
+</setup>
+<mathInput name="x0" prefill="0.5">
+  <label>Enter initial condition <m>x_0</m></label>
+</mathInput>
+<graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5">
+  <shortDescription>A cobweb plot showing the solution with initial condition <number>$x0</number></shortDescription>
+  $f
+  <cobwebPolyline name="cobweb"
+    function="$f"
+    initialPoint="$x0"
+    numPoints="20"
+    lockToSolution />
+</graph>
+```
+
+
+
+Setting `lockToSolution` forces every vertex to lie at the exact cobweb position, ignoring any user drag.
+This is useful for demonstrating an iteration deterministically — for instance to illustrate convergence or
+divergence from different initial conditions without manual placement.
+
+
+
+---
+
+### Example: Reading the iterate values
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">1/3 x (3 - x) + x</function>
+  <point name="P0" x="0.5" y="0" />
+</setup>
+<graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5" size="small">
+  $f
+  <cobwebPolyline name="cobweb"
+    function="$f"
+    initialPoint="$P0"
+    numPoints="9"
+    lockToSolution />
+</graph>
+
+<md>
+  <repeat for="$cobweb.iterateValues" valueName="x" indexName="i">
+    <mrow>x_{<number>$i - 1</number>} &amp; = <math extend="$x" displayDigits="5" /></mrow>
+  </repeat>
+</md>
+```
+
+
+
+The `iterateValues` property is an array of the successive values $x_0, x_1, x_2, \ldots$ implied by the
+current vertices, with one entry per iteration. Combined with [`<repeat>{:dn}`](repeat) this lets the document
+render a numeric table of the iteration that stays in sync with the diagram.
+
+
+
+---
+
+### Example: Scoring a cobweb answer
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">1/3 x (3 - x) + x</function>
+  <number name="numPoints">1</number>
+  <point name="P0" x="1.5" y="0" />
+</setup>
+
+<updateValue name="addLine" target="$numPoints" newValue="$numPoints + 1">
+  <label>Add line</label>
+</updateValue>
+
+<graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5">
+  $f
+  <cobwebPolyline name="cobweb"
+    function="$f"
+    initialPoint="$P0"
+    numPoints="$numPoints"
+    attractThreshold="0.2"
+    numIterationsRequired="3" />
+</graph>
+
+<p>Cobweb at least three iterations.</p>
+<p>
+  <answer name="check">
+    <award credit="$cobweb.fractionCorrectVerticesAdjusted"><when>true</when></award>
+    <considerAsResponses>$cobweb.vertices</considerAsResponses>
+  </answer>
+</p>
+<p>Score: $check.creditAchieved</p>
+```
+
+
+
+For graded use, award credit equal to the `fractionCorrectVerticesAdjusted` property. That value is the
+fraction of correctly placed vertices, scaled by `numIterationsRequired` so a partial cobweb cannot earn full
+credit just by having a few correct vertices. The vertices themselves are recorded as the answer's responses
+via `<considerAsResponses>{:dn}`.
+
+
+
+---
+
+
+### Attribute Example: variable
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="z">z^2 - 1</function>
+  <point name="P0" x="0.8" y="0" />
+</setup>
+<graph xmin="-1.5" xmax="1.5" ymin="-1.5" ymax="1.5">
+  <shortDescription>A cobweb plot using the variable z</shortDescription>
+  $f
+  <cobwebPolyline name="cw" function="$f" initialPoint="$P0" numPoints="6" variable="z" lockToSolution />
+</graph>
+<p>Iterate values: <asList>$cw.iterateValues</asList></p>
+```
+
+
+
+The `variable` attribute sets the symbol used as the independent variable when displaying iterate values. It
+does not change the function being iterated; it only affects rendering.
+
+
+
+
+
+### Property Example: fractionCorrectVertices
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">0.5 x + 1</function>
+  <point name="P0" x="0.5" y="0" />
+  <number name="numPoints">2</number>
+</setup>
+
+<updateValue name="addLine" target="$numPoints" newValue="$numPoints + 1">
+  <label>Add line</label>
+</updateValue>
+<updateValue name="deleteLine" hide="$numPoints = 1" target="$numPoints" newValue="$numPoints - 1">
+  <label>Delete line</label>
+</updateValue>
+
+<graph xmin="-1" xmax="4" ymin="-1" ymax="4" size="small">
+  <shortDescription>An interactive cobweb plot</shortDescription>
+  $f
+  <cobwebPolyline name="cw" function="$f" initialPoint="$P0" numPoints="$numPoints" attractThreshold="0.3" />
+</graph>
+<p><c>numGradedVertices</c> = $cw.numGradedVertices</p>
+<p><c>numCorrectVertices</c> = $cw.numCorrectVertices</p>
+<p><c>fractionCorrectVertices</c> = $cw.fractionCorrectVertices</p>
+```
+
+
+
+The `fractionCorrectVertices` property is the unscaled fraction of placed vertices that are at the correct
+cobweb positions. Use this when you do not want to enforce a minimum number of iterations; use
+`fractionCorrectVerticesAdjusted` (illustrated in the scoring example above) when you do.
+
