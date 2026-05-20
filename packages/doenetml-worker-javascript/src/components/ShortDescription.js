@@ -1,5 +1,5 @@
 import TextOrInline from "./abstract/TextOrInline";
-import { renameStateVariable } from "../utils/stateVariables";
+import { textFromChildren } from "../utils/text";
 
 export default class ShortDescription extends TextOrInline {
     static componentType = "shortDescription";
@@ -19,31 +19,30 @@ export default class ShortDescription extends TextOrInline {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // Rename the inherited `value` (the combined text of the children) to
-        // `valueOriginal` so that the public `value` can be redefined below to
-        // additionally emit an accessibility diagnostic.
-        renameStateVariable({
-            stateVariableDefinitions,
-            oldName: "value",
-            newName: "valueOriginal",
-        });
-
+        // `inlineChildren` is a thin pass-through of the `inlines` child
+        // group, exposed as a state variable so that `value` can use it in
+        // `stateVariablesDeterminingDependencies` (to enumerate per-child
+        // adapter-source dependencies for the math diagnostic below) while
+        // also feeding `textFromChildren`. It carries `text` and `hidden` for
+        // `textFromChildren` and the bare child references for the adapter
+        // loop in a single child read.
         stateVariableDefinitions.inlineChildren = {
             returnDependencies: () => ({
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlines"],
+                    variableNames: ["text", "hidden"],
+                    variablesOptional: true,
                 },
             }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        inlineChildren: dependencyValues.inlineChildren,
-                    },
-                };
-            },
+            definition: ({ dependencyValues }) => ({
+                setValue: { inlineChildren: dependencyValues.inlineChildren },
+            }),
         };
 
+        // Override the inherited `value` (the combined text of the children)
+        // so that, in addition to computing the text, it emits an
+        // accessibility diagnostic when the description contains math.
         stateVariableDefinitions.value = {
             description: "The short description text.",
             public: true,
@@ -53,10 +52,6 @@ export default class ShortDescription extends TextOrInline {
             stateVariablesDeterminingDependencies: ["inlineChildren"],
             returnDependencies: ({ stateValues }) => {
                 const dependencies = {
-                    valueOriginal: {
-                        dependencyType: "stateVariable",
-                        variableName: "valueOriginal",
-                    },
                     inlineChildren: {
                         dependencyType: "stateVariable",
                         variableName: "inlineChildren",
@@ -78,7 +73,7 @@ export default class ShortDescription extends TextOrInline {
                 return dependencies;
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                const value = dependencyValues.valueOriginal;
+                const value = textFromChildren(dependencyValues.inlineChildren);
 
                 // A short description should be read verbatim by assistive
                 // technology, so it should not contain math components. A math
@@ -96,10 +91,9 @@ export default class ShortDescription extends TextOrInline {
                     if (typeof child !== "object") {
                         continue;
                     }
-                    const adapterSource =
-                        dependencyValues[`adapterSource${idx}`];
                     const effectiveType =
-                        adapterSource?.componentType ?? child.componentType;
+                        dependencyValues[`adapterSource${idx}`]
+                            ?.componentType ?? child.componentType;
                     if (
                         componentInfoObjects.isInheritedComponentType({
                             inheritedComponentType: effectiveType,
