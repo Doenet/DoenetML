@@ -5,6 +5,20 @@ import {
 } from "../../state/redux-slices/dast";
 import * as Xast from "xast";
 import { FlatDastRoot, FlatDastRootWithErrors } from "@doenet/doenetml-worker";
+
+/**
+ * Options for rendering FlatDast to PreTeXt.
+ */
+export interface ConvertOptions {
+    /**
+     * Whether to render a standalone PreTeXt document. That is, one that starts with `<?xml version="1.0" encoding="UTF-8"?>`
+     * and has a single root `<pretext>` tag. If false, the output may not be valid PreTeXt, but should be a fragment of valid
+     * PreTeXt suitable for embedding inside a larger document.
+     *
+     * Default: `false`.
+     */
+    fragment?: boolean;
+}
 import { configureStore } from "@reduxjs/toolkit";
 import {
     _globalReducerActions,
@@ -22,18 +36,9 @@ import { normalizeAttrs } from "./normalize-attrs";
  */
 export function renderFlatDastToPretext(
     flatDast: FlatDastRoot | FlatDastRootWithErrors,
-    options: {
-        /**
-         * Whether to render a standalone PreTeXt document. That is, one that starts with `<?xml version="1.0" encoding="UTF-8"?>`
-         * and has a single root `<pretext>` tag. If false, the output may not be valid PreTeXt, but should be a fragment of valid
-         * PreTeXt suitable for embedding inside a larger document.
-         *
-         * Default: `false`.
-         */
-        fragment?: boolean;
-    } = {},
+    options: ConvertOptions = {},
 ): Xast.Root {
-    const { fragment: fragment = false } = options;
+    const { fragment = false } = options;
     if (typeof flatDast !== "object" || !Array.isArray(flatDast.elements)) {
         // Something went terribly wrong.
         throw new Error("Error during renderToPretext" + flatDast);

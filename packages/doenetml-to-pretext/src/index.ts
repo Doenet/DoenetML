@@ -4,12 +4,13 @@ import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import * as Xast from "xast";
 import "./index-inline-worker";
-import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
+import {
+    renderFlatDastToPretext,
+    ConvertOptions,
+} from "./utils/pretext/render-to-pretext";
 import { preprocessDastForPretext } from "./utils/pretext/preprocess-dast";
 import { toXml as xastToXml } from "xast-util-to-xml";
 import { prefixIds } from "./utils/pretext/prefix-ids";
-
-export type ConvertOptions = Parameters<typeof renderFlatDastToPretext>[1];
 
 const defaultFlags = {
     showCorrectness: true,
@@ -48,8 +49,8 @@ export class DoenetMLToPretext {
         for (const fragment of fragments) {
             const flatDast = await this._getStaticDast(fragment);
             const xastRoot = await this._flatDastToPretext(flatDast, {
-                fragment: true,
                 ...options,
+                fragment: true,
             });
             xastRoots.push(xastRoot);
         }
@@ -150,7 +151,7 @@ export class DoenetMLToPretext {
      */
     async _flatDastToPretext(
         flatDast: FlatDastRootWithErrors,
-        options: Parameters<typeof renderFlatDastToPretext>[1] = {},
+        options: ConvertOptions = {},
     ): Promise<Xast.Root> {
         return renderFlatDastToPretext(flatDast, options);
     }
