@@ -44,11 +44,7 @@ ion
 ionicCompound
 latex
 lcm
-lq
-lsq
 markers
-mdash
-ndash
 note
 objectives
 orbitalDiagram
@@ -59,14 +55,10 @@ periodicSet
 pluralize
 pointList
 problems
-q
 regionHalfPlane
 rightHandSide
-rq
-rsq
 solveEquations
 span
-sq
 statement
 stickyGroup
 subsection
