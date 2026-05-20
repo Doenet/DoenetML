@@ -128,10 +128,6 @@ export default class Document extends BaseComponent {
                 componentTypes: ["title"],
             },
             {
-                group: "description",
-                componentTypes: ["description"],
-            },
-            {
                 group: "setups",
                 componentTypes: ["setup"],
             },
@@ -215,34 +211,6 @@ export default class Document extends BaseComponent {
                         setValue: {
                             title: dependencyValues.titleChild[0].stateValues
                                 .text,
-                        },
-                    };
-                }
-            },
-        };
-
-        stateVariableDefinitions.description = {
-            description: "The document's accessible description.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                descriptionChild: {
-                    dependencyType: "child",
-                    childGroups: ["description"],
-                    variableNames: ["text"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.descriptionChild.length === 0) {
-                    return { setValue: { description: "" } };
-                } else {
-                    return {
-                        setValue: {
-                            description:
-                                dependencyValues.descriptionChild[0].stateValues
-                                    .text,
                         },
                     };
                 }
