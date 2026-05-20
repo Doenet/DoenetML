@@ -17,18 +17,13 @@ cascade
 cascadeMessage
 cellBlock
 clampFunction
-cobwebPolyline
 codeEditor
 column
 constrainToInterior
 convertSetToList
 dataFrame
 displayDoenetML
-eigenDecomposition
 electronConfiguration
-equilibriumCurve
-equilibriumLine
-equilibriumPoint
 extractMathOperator
 feedbackDefinition
 givenAnswer
@@ -44,7 +39,6 @@ periodicSet
 pluralize
 pointList
 regionHalfPlane
-rightHandSide
 solveEquations
 stickyGroup
 subsetOfRealsInput

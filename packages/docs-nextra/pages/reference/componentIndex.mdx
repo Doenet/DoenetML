@@ -44,7 +44,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<circle>`](circle.mdx)              | circle Graphical Component                                                                                      |
 | `<clampFunction>`                                                                        |                                                                                                                 |
 | [`<clampNumber>`](clampNumber.mdx)         | rounds a number to within a specified interval                                                                  |
-| `<cobwebPolyline>`                                                                       |                                                                                                                 |
+| [`<cobwebPolyline>`](cobwebPolyline)                                                     | interactive cobweb diagram for visualizing iteration of a one-variable function                                 |
 | `<codeEditor>`                                                                           | renders an embedded doenetML code editor                                                                        |
 | [`<collect />`](collect.mdx)           | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list  |
 | `<column>`                                       | container element for a column of cells in a `<spreadsheet>`                                                    |
@@ -80,9 +80,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<else>`](else)        | defines a logical else condition within a `<conditionalContent>` block                          |
 | [`<em>`](em)          | renders italicized text                                                                         |
 | [`<endpoint>`](endpoint)    | an extension of the `<point>` component which allows open and toggle-open style points          |
-| `<equilibriumCurve>`                                                             |                                                                                                 |
-| `<equilibriumLine>`                                                              |                                                                                                 |
-| `<equilibriumPoint>`                                                             |                                                                                                 |
+| [`<eigenDecomposition>`](eigenDecomposition)                                     | computes the eigenvalues and eigenvectors of a square matrix                                    |
+| [`<equilibriumCurve>`](equilibriumCurve)                                         | curve of equilibria of a dynamical system, rendered solid if stable or dashed if unstable        |
+| [`<equilibriumLine>`](equilibriumLine)                                           | line of equilibria of a dynamical system, rendered solid if stable or dashed if unstable         |
+| [`<equilibriumPoint>`](equilibriumPoint)                                         | equilibrium point of a dynamical system, rendered filled if stable or open if unstable           |
 | [`<evaluate/>`](evaluate)    | evaluate a function                                                                             |
 | [`<example>`](example)     | sectional component that defines an example                                                     |
 | [`<exercise>`](exercise)    | sectional component that defines a scored exercise                                              |
@@ -203,7 +204,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<regularPolygon>`](regularPolygon)          | regular polygon graphical component                                                               |
 | [`<repeat>`](repeat)                 | iterate an action or a group of actions                                 |
 | [`<repeatForSequence>`](repeatForSequence)          | iterate an action or a group of actions over a sequence                               |
-| `<rightHandSide>`                                                                            | used with `<odeSystem>` to define the right-hand side of a differential equation                  |
+| [`<rightHandSide>`](rightHandSide)                                                           | used with `<odeSystem>` to define the right-hand side of a differential equation                  |
 | [`<round>`](round)                   | round a number to a specified place value                                                         |
 | [`<row> (in a table)`](row_table)        | container element for one or more `<cell>`components within a `<tabular>`                         |
 | [`<row> (in a matrix)`](row_matrix)       | container element for horizontal entries in a single row of a `<matrix>`                          |
