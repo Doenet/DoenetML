@@ -82,9 +82,10 @@ export default class ShortDescription extends TextOrInline {
 
                 // A short description should be read verbatim by assistive
                 // technology, so it should not contain math components. A math
-                // component placed in a `shortDescription` is either a direct
-                // child (e.g. `<m>`) or adapted into a text-like child (e.g.
-                // `<math>`, `<interval>`); check both forms.
+                // component placed in a `shortDescription` appears either
+                // directly as an inline child (e.g. `<m>`, `<math>`,
+                // `<interval>`, all of which inherit from `_inline`) or via an
+                // adapter; check both forms.
                 let foundMathType;
                 for (
                     let idx = 0;

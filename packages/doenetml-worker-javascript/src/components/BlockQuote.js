@@ -13,6 +13,10 @@ export default class BlockQuote extends BlockComponent {
     static rendererType = "blockQuote";
     static renderChildren = true;
 
+    static canDisplayChildErrors = true;
+
+    static includeBlankStringChildren = true;
+
     static componentDocs = {
         summary: "A block-level quotation containing arbitrary content.",
     };
