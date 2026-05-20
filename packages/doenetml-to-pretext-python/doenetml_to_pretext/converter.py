@@ -4,9 +4,9 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-from .exceptions import DenoError, ConversionError, DoenetTimeoutError as DoenetTimeoutError
+from .exceptions import ConversionError, DenoError, DoenetTimeoutError as DoenetTimeoutError
 
 _PACKAGE_DIR = Path(__file__).resolve().parent
 _DIST_INDEX = _PACKAGE_DIR / "js-assets" / "index.js"
@@ -49,14 +49,17 @@ class DoenetConverter:
             "dist assets are packaged with this Python library."
         )
 
-    def _build_eval_code(self, dist_index_path: Path) -> str:
+    def _build_eval_code_single(self, dist_index_path: Path) -> str:
         dist_url = dist_index_path.resolve().as_uri()
         return (
             f"import {{ doenetMLToPretext }} from {json.dumps(dist_url)};\n"
-            "const input = Deno.args[0] ?? '';\n"
+            "const rawInput = Deno.args[0] ?? '';\n"
             "try {\n"
-            "  const output = await doenetMLToPretext(input);\n"
-            "  console.log(JSON.stringify({ success: true, result: output }));\n"
+            "  if (typeof rawInput !== 'string') {\n"
+            "    throw new Error('Input must be a string.');\n"
+            "  }\n"
+            "  const result = await doenetMLToPretext(rawInput, { fragment: false });\n"
+            "  console.log(JSON.stringify({ success: true, result }));\n"
             "  Deno.exit(0);\n"
             "} catch (error) {\n"
             "  const message = error instanceof Error ? error.message : String(error);\n"
@@ -65,8 +68,28 @@ class DoenetConverter:
             "}\n"
         )
 
-    def convert(self, doenetml: str, timeout: int = 30000) -> str:
-        """Convert DoenetML to PreTeXt."""
+    def _build_eval_code_multiple(self, dist_index_path: Path) -> str:
+        dist_url = dist_index_path.resolve().as_uri()
+        return (
+            f"import {{ DoenetMLToPretext }} from {json.dumps(dist_url)};\n"
+            "const rawInput = Deno.args[0] ?? '[]';\n"
+            "try {\n"
+            "  const input = JSON.parse(rawInput);\n"
+            "  if (!Array.isArray(input) || input.some((s) => typeof s !== 'string')) {\n"
+            "    throw new Error('Input must be a JSON array of strings.');\n"
+            "  }\n"
+            "  const converter = new DoenetMLToPretext();\n"
+            "  const result = await converter.convertMultiple(input);\n"
+            "  console.log(JSON.stringify({ success: true, result }));\n"
+            "  Deno.exit(0);\n"
+            "} catch (error) {\n"
+            "  const message = error instanceof Error ? error.message : String(error);\n"
+            "  console.log(JSON.stringify({ success: false, error: message }));\n"
+            "  Deno.exit(1);\n"
+            "}\n"
+        )
+
+    def _validate_runtime(self) -> None:
         if shutil.which(self.deno_executable) is None:
             raise OSError(
                 f"Deno executable '{self.deno_executable}' was not found on PATH."
@@ -75,8 +98,7 @@ class DoenetConverter:
         if not _IMPORT_MAP.exists():
             raise DenoError(f"Import map not found at {_IMPORT_MAP}.")
 
-        eval_code = self._build_eval_code(self._resolve_dist_index())
-
+    def _run_eval(self, eval_code: str, arg: str, timeout: int) -> dict:
         command = [
             self.deno_executable,
             "eval",
@@ -86,7 +108,7 @@ class DoenetConverter:
             str(_IMPORT_MAP),
             eval_code,
             "--",
-            doenetml,
+            arg,
         ]
 
         try:
@@ -114,9 +136,39 @@ class DoenetConverter:
             message = payload.get("error", "Unknown conversion error")
             raise ConversionError(message)
 
+        return payload
+
+    def convert(self, doenetml: str, timeout: int = 30000) -> str:
+        """Convert DoenetML to standalone PreTeXt."""
+        if not isinstance(doenetml, str):
+            raise TypeError("doenetml must be a string")
+
+        self._validate_runtime()
+        eval_code = self._build_eval_code_single(self._resolve_dist_index())
+        payload = self._run_eval(eval_code, doenetml, timeout)
+
         result = payload.get("result")
         if not isinstance(result, str):
             raise ConversionError("Conversion result was not a string.")
+
+        return result
+
+    def convert_multiple(self, doenetml_list: List[str], timeout: int = 30000) -> List[str]:
+        """Convert multiple DoenetML fragments to PreTeXt using convertMultiple."""
+        if not isinstance(doenetml_list, list) or any(
+            not isinstance(item, str) for item in doenetml_list
+        ):
+            raise TypeError("doenetml_list must be a list of strings")
+
+        self._validate_runtime()
+        eval_code = self._build_eval_code_multiple(self._resolve_dist_index())
+        payload = self._run_eval(eval_code, json.dumps(doenetml_list), timeout)
+
+        result = payload.get("result")
+        if not isinstance(result, list) or any(
+            not isinstance(item, str) for item in result
+        ):
+            raise ConversionError("Conversion result was not a list of strings.")
 
         return result
 
@@ -148,3 +200,18 @@ def convert_doenetml_to_pretext(xml_string: str, timeout: int = 30000) -> str:
         _converter = DoenetConverter()
 
     return _converter.convert(xml_string, timeout)
+
+
+def convert_multiple_doenetml_to_pretext(
+    xml_strings: List[str],
+    timeout: int = 30000,
+) -> List[str]:
+    """
+    Convert multiple DoenetML XML fragments to PreTeXt XML strings using convertMultiple.
+    """
+    global _converter
+
+    if _converter is None:
+        _converter = DoenetConverter()
+
+    return _converter.convert_multiple(xml_strings, timeout)

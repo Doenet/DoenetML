@@ -7,11 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from doenetml_to_pretext import convert_doenetml_to_pretext
+from doenetml_to_pretext import (
+    convert_doenetml_to_pretext,
+    convert_multiple_doenetml_to_pretext,
+)
 from doenetml_to_pretext.exceptions import ConversionError
 
 
-def _load_snapshots() -> dict[str, dict[str, str]]:
+def _load_snapshots() -> dict[str, dict[str, object]]:
     snapshots_file = Path(__file__).parent / "snapshots" / "test_converter.json"
     with snapshots_file.open("r", encoding="utf-8") as f:
         return json.load(f)
@@ -35,3 +38,10 @@ def test_malformed_xml_raises_conversion_error():
     """Malformed XML should raise ConversionError, not crash with an unhandled exception."""
     with pytest.raises(ConversionError):
         convert_doenetml_to_pretext("<<<not valid xml at all>>>")
+
+
+def test_convert_multiple_snapshots():
+    """Compare convert_multiple output against approved snapshots."""
+    case = SNAPSHOTS["convert_multiple_with_refs"]
+    results = convert_multiple_doenetml_to_pretext(case["input"])
+    assert results == case["expected"]
