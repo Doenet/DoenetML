@@ -19,6 +19,10 @@ type AttributeRenameRule = {
     conflictWarningMessage: string;
 };
 
+type AttributeRemovalRule = {
+    warningMessage: string;
+};
+
 type ComponentRenameRule = {
     to: string;
     warningMessage: string;
@@ -27,8 +31,42 @@ type ComponentRenameRule = {
 
 type DeprecationRegistry = {
     attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
+    attributeRemovals: Record<string, Record<string, AttributeRemovalRule>>;
     componentRenames: Record<string, ComponentRenameRule>;
 };
+
+/**
+ * Indexed view of the registry, built once at module load. The component-name
+ * keys are kept verbatim (component names are case-sensitive), but the inner
+ * attribute-name keys are lower-cased so the deprecation pass can match
+ * attributes case-insensitively. Without this, `<description WeIgHt="2">`
+ * would slip past the deprecation pass and hard-error once `weight` is no
+ * longer a valid attribute on `<description>`.
+ */
+type DeprecationIndex = {
+    attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
+    attributeRemovals: Record<string, Record<string, AttributeRemovalRule>>;
+    componentRenames: Record<string, ComponentRenameRule>;
+};
+
+/**
+ * Build "deprecated and ignored" removal rules for attributes that are no longer
+ * valid on a component. Using such an attribute emits a warning, and the attribute
+ * is dropped from the DAST so it does not become an "invalid attribute" error.
+ */
+function ignoredAttributes(
+    componentName: string,
+    attributeNames: string[],
+): Record<string, AttributeRemovalRule> {
+    return Object.fromEntries(
+        attributeNames.map((attributeName) => [
+            attributeName,
+            {
+                warningMessage: `[deprecation] Attribute \`${attributeName}\` on \`<${componentName}>\` is deprecated and ignored.`,
+            },
+        ]),
+    );
+}
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
@@ -81,8 +119,84 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             },
         },
     },
+    attributeRemovals: {
+        // `description` and `shortDescription` previously inherited these
+        // attributes from `Div` / `Text`, which are inappropriate parents for
+        // them. The attributes never had a meaningful effect on these
+        // components; they are dropped with a warning.
+        description: ignoredAttributes("description", [
+            "aggregateScores",
+            "weight",
+            "sectionWideCheckWork",
+            "showCorrectness",
+            "colorCorrectness",
+            "forceIndividualAnswerColoring",
+            "submitLabel",
+            "submitLabelNoCorrectness",
+            "displayDigitsForCreditAchieved",
+        ]),
+        shortDescription: ignoredAttributes("shortDescription", [
+            "draggable",
+            "layer",
+            "isLatex",
+            "anchor",
+            "positionFromAnchor",
+        ]),
+    },
     componentRenames: {},
 };
+
+function lowerKeys<T>(o: Record<string, T>): Record<string, T> {
+    return Object.fromEntries(
+        Object.entries(o).map(([k, v]) => [k.toLowerCase(), v]),
+    );
+}
+
+function buildDeprecationIndex(
+    registry: DeprecationRegistry,
+): DeprecationIndex {
+    // Component names are case-sensitive — keep top-level keys verbatim.
+    // Attribute names are case-insensitive — lower-case the inner keys so
+    // we can match against actual attribute keys on the node case-insensitively.
+    return {
+        attributeRenames: Object.fromEntries(
+            Object.entries(registry.attributeRenames).map(([comp, rules]) => [
+                comp,
+                lowerKeys(rules),
+            ]),
+        ),
+        attributeRemovals: Object.fromEntries(
+            Object.entries(registry.attributeRemovals).map(([comp, rules]) => [
+                comp,
+                lowerKeys(rules),
+            ]),
+        ),
+        componentRenames: Object.fromEntries(
+            Object.entries(registry.componentRenames).map(([comp, rule]) => [
+                comp,
+                rule.attributeRenames
+                    ? {
+                          ...rule,
+                          attributeRenames: lowerKeys(rule.attributeRenames),
+                      }
+                    : rule,
+            ]),
+        ),
+    };
+}
+
+const DEPRECATION_INDEX: DeprecationIndex =
+    buildDeprecationIndex(DEPRECATION_REGISTRY);
+
+/** Find an attribute on `node` by case-insensitive name match. */
+function findAttributeKey(
+    node: DastElement,
+    lowerName: string,
+): string | undefined {
+    return Object.keys(node.attributes).find(
+        (k) => k.toLowerCase() === lowerName,
+    );
+}
 
 /**
  * Apply deprecation migrations directly on DAST nodes.
@@ -109,6 +223,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
 
             applyComponentRename(node, nodeWarnings);
             applyAttributeRenames(node, nodeWarnings);
+            applyAttributeRemovals(node, nodeWarnings);
             warnings.push(...nodeWarnings);
         });
 
@@ -139,7 +254,7 @@ function applyComponentRename(
 ) {
     // Component renames happen before attribute renames so component-specific
     // attribute rules can be applied after the component name is canonicalized.
-    const renameRule = DEPRECATION_REGISTRY.componentRenames[node.name];
+    const renameRule = DEPRECATION_INDEX.componentRenames[node.name];
     if (!renameRule) {
         return;
     }
@@ -165,12 +280,42 @@ function applyAttributeRenames(
     warnings: DeprecationDiagnostic[],
 ) {
     // Apply attribute rename rules scoped to this component type.
-    const renameRules = DEPRECATION_REGISTRY.attributeRenames[node.name];
+    const renameRules = DEPRECATION_INDEX.attributeRenames[node.name];
     if (!renameRules) {
         return;
     }
 
     applyRenames(node, renameRules, warnings);
+}
+
+function applyAttributeRemovals(
+    node: DastElement,
+    warnings: DeprecationDiagnostic[],
+) {
+    // Drop attributes that are deprecated with no replacement, scoped to this
+    // component type. The attribute is removed from the DAST and a warning emitted.
+    const removalRules = DEPRECATION_INDEX.attributeRemovals[node.name];
+    if (!removalRules) {
+        return;
+    }
+
+    // Rule keys are lower-cased; match the actual attribute key on the node
+    // case-insensitively so e.g. `WeIgHt` is still recognized.
+    for (const [lowerName, removalRule] of Object.entries(removalRules)) {
+        const actualKey = findAttributeKey(node, lowerName);
+        if (!actualKey) {
+            continue;
+        }
+
+        const attribute = node.attributes[actualKey];
+        const position = attribute.position ?? node.position;
+        const source_doc = attribute.source_doc ?? node.source_doc;
+
+        delete node.attributes[actualKey];
+        warnings.push(
+            createWarning(removalRule.warningMessage, position, source_doc),
+        );
+    }
 }
 
 function applyRenames(
@@ -179,19 +324,23 @@ function applyRenames(
     warnings: DeprecationDiagnostic[],
 ) {
     // `new` attribute names take precedence over deprecated names when both are
-    // present; in that conflict case, deprecated attributes are dropped.
-    for (const [oldName, renameRule] of Object.entries(renameRules)) {
-        const oldAttribute = node.attributes[oldName];
-        if (!oldAttribute) {
+    // present; in that conflict case, deprecated attributes are dropped. Rule
+    // keys are lower-cased (see DEPRECATION_INDEX) and matched against the
+    // actual attribute keys on the node case-insensitively.
+    for (const [oldLowerName, renameRule] of Object.entries(renameRules)) {
+        const oldActualKey = findAttributeKey(node, oldLowerName);
+        if (!oldActualKey) {
             continue;
         }
 
+        const oldAttribute = node.attributes[oldActualKey];
         const position = oldAttribute.position ?? node.position;
         const source_doc = oldAttribute.source_doc ?? node.source_doc;
 
-        delete node.attributes[oldName];
+        delete node.attributes[oldActualKey];
 
-        if (node.attributes[renameRule.to]) {
+        const conflictKey = findAttributeKey(node, renameRule.to.toLowerCase());
+        if (conflictKey) {
             warnings.push(
                 createWarning(
                     renameRule.conflictWarningMessage,
