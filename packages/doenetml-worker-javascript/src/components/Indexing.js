@@ -30,8 +30,6 @@ export class Idx extends CompositeComponent {
     };
     static excludeFromSchema = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
-
     static returnChildGroups() {
         return [
             {
