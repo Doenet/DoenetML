@@ -1,68 +1,68 @@
-import TextComponent from "./Text";
-import { renameStateVariable } from "../utils/stateVariables";
+import TextOrInline from "./abstract/TextOrInline";
+import { textFromChildren } from "../utils/text";
 
-export default class ShortDescription extends TextComponent {
+export default class ShortDescription extends TextOrInline {
     static componentType = "shortDescription";
 
     static componentDocs = {
         summary:
             "A short accessibility description for an enclosing component.",
     };
-    static rendererType = "text";
+    // A short description is never rendered visually — it is consumed only
+    // by assistive technology, through its `text` state variable.
+    static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // rename value to valueOriginal
-        renameStateVariable({
-            stateVariableDefinitions,
-            oldName: "value",
-            newName: "valueOriginal",
-        });
-
-        stateVariableDefinitions.textLikeChildren = {
+        // `inlineChildren` is a thin pass-through of the `inlines` child
+        // group, exposed as a state variable so that `value` can use it in
+        // `stateVariablesDeterminingDependencies` (to enumerate per-child
+        // adapter-source dependencies for the math diagnostic below) while
+        // also feeding `textFromChildren`. It carries `text` and `hidden` for
+        // `textFromChildren` and the bare child references for the adapter
+        // loop in a single child read.
+        stateVariableDefinitions.inlineChildren = {
             returnDependencies: () => ({
-                textLikeChildren: {
+                inlineChildren: {
                     dependencyType: "child",
-                    childGroups: ["textLike"],
+                    childGroups: ["inlines"],
+                    variableNames: ["text", "hidden"],
+                    variablesOptional: true,
                 },
             }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        textLikeChildren: dependencyValues.textLikeChildren,
-                    },
-                };
-            },
+            definition: ({ dependencyValues }) => ({
+                setValue: { inlineChildren: dependencyValues.inlineChildren },
+            }),
         };
 
+        // Override the inherited `value` (the combined text of the children)
+        // so that, in addition to computing the text, it emits an
+        // accessibility diagnostic when the description contains math.
         stateVariableDefinitions.value = {
             description: "The short description text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
             },
-            stateVariablesDeterminingDependencies: ["textLikeChildren"],
+            stateVariablesDeterminingDependencies: ["inlineChildren"],
             returnDependencies: ({ stateValues }) => {
                 const dependencies = {
-                    valueOriginal: {
+                    inlineChildren: {
                         dependencyType: "stateVariable",
-                        variableName: "valueOriginal",
+                        variableName: "inlineChildren",
                     },
-                };
-
-                const numChildren = stateValues.textLikeChildren.length;
-                dependencies.numChildren = {
-                    dependencyType: "value",
-                    value: numChildren,
                 };
 
                 for (const [
                     idx,
                     child,
-                ] of stateValues.textLikeChildren.entries()) {
+                ] of stateValues.inlineChildren.entries()) {
+                    if (typeof child !== "object") {
+                        continue;
+                    }
                     dependencies[`adapterSource${idx}`] = {
                         dependencyType: "adapterSource",
                         componentIdx: child.componentIdx,
@@ -71,39 +71,48 @@ export default class ShortDescription extends TextComponent {
                 return dependencies;
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                let value = dependencyValues.valueOriginal;
+                const value = textFromChildren(dependencyValues.inlineChildren);
 
-                let foundAdaptedFromMath = false;
-                let originalType;
-
-                for (let i = 0; i < dependencyValues.numChildren; i++) {
-                    const adapterSource = dependencyValues[`adapterSource${i}`];
-                    if (adapterSource) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType:
-                                    adapterSource.componentType,
-                                baseComponentType: "math",
-                            }) ||
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType:
-                                    adapterSource.componentType,
-                                baseComponentType: "m",
-                            })
-                        ) {
-                            foundAdaptedFromMath = true;
-                            originalType = adapterSource.componentType;
-                            break;
-                        }
+                // A short description should be read verbatim by assistive
+                // technology, so it should not contain math components. A math
+                // component placed in a `shortDescription` appears either
+                // directly as an inline child (e.g. `<m>`, `<math>`,
+                // `<interval>`, all of which inherit from `_inline`) or via an
+                // adapter; check both forms.
+                let foundMathType;
+                for (
+                    let idx = 0;
+                    idx < dependencyValues.inlineChildren.length;
+                    idx++
+                ) {
+                    const child = dependencyValues.inlineChildren[idx];
+                    if (typeof child !== "object") {
+                        continue;
+                    }
+                    const effectiveType =
+                        dependencyValues[`adapterSource${idx}`]
+                            ?.componentType ?? child.componentType;
+                    if (
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: effectiveType,
+                            baseComponentType: "math",
+                        }) ||
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: effectiveType,
+                            baseComponentType: "m",
+                        })
+                    ) {
+                        foundMathType = effectiveType;
+                        break;
                     }
                 }
 
                 const diagnostics = [];
-                if (foundAdaptedFromMath) {
+                if (foundMathType) {
                     diagnostics.push({
                         type: "accessibility",
                         level: 2,
-                        message: `Short descriptions should not contain math components such as \`<${originalType}>\`. Spell out any math with words.`,
+                        message: `Short descriptions should not contain math components such as \`<${foundMathType}>\`. Spell out any math with words.`,
                     });
                 }
 
@@ -113,7 +122,4 @@ export default class ShortDescription extends TextComponent {
 
         return stateVariableDefinitions;
     }
-
-    // short description should not adapt into anything
-    static adapters = [];
 }

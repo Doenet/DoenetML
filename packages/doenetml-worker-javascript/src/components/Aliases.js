@@ -28,16 +28,6 @@ export class RightHandSide extends MathComponent {
     static rendererType = "math";
 }
 
-export class Description extends Div {
-    static componentType = "description";
-
-    static componentDocs = {
-        summary:
-            "Extra information about an enclosing component, shown to all users in a popup or disclosure.",
-    };
-    static rendererType = "containerBlock";
-}
-
 export class XLabel extends Label {
     static componentType = "xLabel";
 
