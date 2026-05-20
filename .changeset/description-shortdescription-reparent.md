@@ -14,4 +14,4 @@ Re-parent `<description>` and `<shortDescription>` to appropriate base component
 
 The dropped attributes are registered as deprecated-and-ignored in the DAST deprecation registry (#1144), so existing documents that used them produce a warning instead of an "invalid attribute" error.
 
-`<blockQuote>` gains `canDisplayChildErrors` and `includeBlankStringChildren` to match the other arbitrary-content block containers (`<description>`, `<p>`, `<div>`): blank-string children between inline children are preserved, and a child component that is an error renders its error inline.
+Fix `<blockQuote>` rendering of whitespace between inline children. `<blockQuote>` was missing `includeBlankStringChildren`, so a whitespace-only string between two child components was stripped and adjacent texts ran together — `<blockQuote><text>hello</text> <text>there</text></blockQuote>` rendered as `hellothere`. `<blockQuote>` now also sets `canDisplayChildErrors`, matching the other arbitrary-content block containers (`<description>`, `<p>`, `<div>`).
