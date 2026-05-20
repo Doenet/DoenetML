@@ -9,36 +9,50 @@ import {
 
 // In normal use, srcDoc only rebuilds via the autodetect-version fallback
 // path — hard to simulate cleanly in a component test. Here we trigger a
-// rebuild by handing the wrapper a *different* standaloneUrl reference
-// (with the same content), which invalidates the srcDoc useMemo and forces
-// a real iframe reload. Whatever the rebuild trigger, the wrapper must:
+// rebuild by handing the wrapper a *different* cssUrl reference (with the
+// same content), which invalidates the srcDoc useMemo (deps include
+// `cssUrl`) and forces a real iframe reload. Whatever the rebuild trigger,
+// the wrapper must:
 //  1. Re-anchor `lastSentPropsSnapshotRef` to the mount-time baseline (in
 //     useLayoutEffect on srcDoc), and
 //  2. Re-fire the live-update effect on `srcDoc` change so any prop drift
 //     since mount is replayed against the freshly-booted iframe.
 // This spec verifies that drift (here: readOnly toggled true between mount
 // and rebuild) survives the rebuild.
+//
+// Why cssUrl and not standaloneUrl: this spec is the only one that boots
+// the iframe twice in a single test. Driving the rebuild off `standaloneUrl`
+// — as an earlier revision did — meant the *second* boot loaded the ~32 MB
+// JS bundle from a fresh Blob URL, defeating the in-memory script cache and
+// forcing a full re-parse/execute. Slow CI runners blew past 60 s on that
+// second boot ~1 in 13 runs. Routing the rebuild through `cssUrl` keeps the
+// JS bundle URL stable across both boots (Chrome reuses the parsed script
+// from the first boot), and the CSS round-trip we *do* do is on a far
+// smaller file. The wrapper sees the same "srcDoc changed" signal either
+// way, so the contract under test is unchanged.
 
-function freshStandaloneBlobUrl(): string {
-    // Resolve the original blob to its bytes synchronously (sync XHR is
+function freshCssBlobUrl(): string {
+    // Resolve the original CSS blob to its bytes synchronously (sync XHR is
     // fine here — runs once during test harness setup, never on the main
-    // user thread). Sync XHR cannot set responseType, so rely on the
-    // default and read responseText. Wrap the bytes in a fresh Blob to get
-    // a URL distinct from STANDALONE_BLOB_URL but pointing at the same
-    // working bundle.
+    // user thread) and wrap them in a fresh Blob to get a URL distinct from
+    // STANDALONE_CSS_BLOB_URL but pointing at the same working stylesheet.
+    // Sync XHR cannot set responseType, so rely on the default and read
+    // responseText; for a `text/css` source that round-trip is straight
+    // UTF-8 text and avoids the encoding pitfalls of doing the same on the
+    // multi-MB binary-ish JS bundle.
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", STANDALONE_BLOB_URL, false);
+    xhr.open("GET", STANDALONE_CSS_BLOB_URL, false);
     xhr.send();
     return URL.createObjectURL(
-        new Blob([xhr.responseText], { type: "application/javascript" }),
+        new Blob([xhr.responseText], { type: "text/css" }),
     );
 }
 
 function Harness() {
     const [readOnly, setReadOnly] = useState(false);
-    const [useAlt, setUseAlt] = useState(false);
-    const altUrl = useMemo(() => freshStandaloneBlobUrl(), []);
-    const standaloneUrl = useAlt ? altUrl : STANDALONE_BLOB_URL;
+    const [useAltCss, setUseAltCss] = useState(false);
+    const altCssUrl = useMemo(() => freshCssBlobUrl(), []);
+    const cssUrl = useAltCss ? altCssUrl : STANDALONE_CSS_BLOB_URL;
     return (
         <div style={{ height: "600px", width: "900px" }}>
             <button
@@ -47,14 +61,17 @@ function Harness() {
             >
                 Toggle readOnly
             </button>
-            <button data-test="swap-standalone" onClick={() => setUseAlt(true)}>
-                Swap standalone URL
+            <button
+                data-test="force-rebuild"
+                onClick={() => setUseAltCss(true)}
+            >
+                Force srcDoc rebuild
             </button>
             <span data-test="read-only-state">{String(readOnly)}</span>
             <DoenetEditor
                 doenetML="<p>hello</p>"
-                standaloneUrl={standaloneUrl}
-                cssUrl={STANDALONE_CSS_BLOB_URL}
+                standaloneUrl={STANDALONE_BLOB_URL}
+                cssUrl={cssUrl}
                 addVirtualKeyboard={false}
                 readOnly={readOnly}
             />
@@ -100,17 +117,17 @@ describe("DoenetEditor (iframe wrapper) — srcDoc rebuild replays drifted props
                 cy.wrap($el).invoke("text").should("eq", before);
             });
 
-        // Now force a srcDoc rebuild by swapping standaloneUrl.
-        cy.get("[data-test=swap-standalone]").click();
+        // Now force a srcDoc rebuild by swapping cssUrl.
+        cy.get("[data-test=force-rebuild]").click();
 
         // The new iframe document is *not* the old one — stamp must be gone.
         // Wait for CodeMirror to come back up in the rebuilt iframe before
-        // asserting; otherwise the assertion races the reload. This spec is
-        // the only one that boots the standalone bundle *twice* (mount +
-        // rebuild) and the second evaluation of the ~32 MB bundle pushes CI
-        // runners well past the single-boot 15 s budget — and past 25 s often
-        // enough to flake. Give the rebuilt boot a wide margin here only,
-        // keeping helpers' default for everything else.
+        // asserting; otherwise the assertion races the reload. Even with the
+        // JS bundle URL held stable (so Chrome can reuse the parsed script
+        // from the first boot), the second iframe still re-executes the
+        // bundle from scratch — which on slow CI runners isn't covered by
+        // the helpers' default 15 s budget. Give the rebuilt boot a wider
+        // margin here only.
         const REBUILT_IFRAME_TIMEOUT = 60_000;
         cy.get("iframe", { timeout: REBUILT_IFRAME_TIMEOUT })
             .its("0.contentDocument.body", { timeout: REBUILT_IFRAME_TIMEOUT })

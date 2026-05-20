@@ -4,6 +4,18 @@ import fs from "fs";
 import { version as iframeVersion } from "./package.json";
 
 export default defineConfig({
+    // Match @doenet/test-cypress's policy: retry twice in CI (runMode), no
+    // retries when iterating locally (openMode). The component specs that
+    // double-boot the ~32 MB @doenet/standalone bundle (notably
+    // DoenetEditor.srcDocRebuildReplay) ride right at the edge of cold CI
+    // runners' budget and don't have a logic flake — they have a
+    // boot-cost flake. Without this, an unlucky cold start fails the whole
+    // job; with it, the second attempt almost always passes against a
+    // warmed-up disk cache and V8 isolate.
+    retries: {
+        runMode: 2,
+        openMode: 0,
+    },
     component: {
         devServer: {
             framework: "react",
