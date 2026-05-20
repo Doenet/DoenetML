@@ -26,12 +26,14 @@ These components can be placed within a `<p>` tag to change the rendered appeara
 
 <a id="sectionalComponents"></a>
 ## Sectional components
-Sectional components are blocks of content that serve as containers for other components. Some of these have auto-numbering and/or a default title. General content that is not typically included inside a paragraph are also included here.
+Sectional components are blocks of content that serve as containers for other components. Some of these accept a custom `<title>` and/or auto-generate a title with a number when no `<title>` is supplied. General content that is not typically included inside a paragraph is also included here.
 
 | Component                                                                              | Description                                                                           |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `<activity>`                   | a sectional component with auto-numbering and auto-title, see [`<exercise>`](exercise) for similar examples               |
+| [`<activity>`](activity)             | sectional component with score aggregation, similar to `<problem>`                  |
 | [`<aside>`](aside)             | renders a collapsible section of content                                              |
+| [`<blockQuote>`](blockQuote)            | block-level quotation                                                                  |
+| [`<br/>`](br)             | line break within a paragraph                                                          |
 | [`<caption>`](caption.mdx)           | renders a caption inside a `<figure>`                                                 |
 | [`<cell>`](cell)              | smallest data element in a `<table>`                                                  |
 | `<cellBlock>`                                                                          | a container element for specifying data in a `<spreadsheet>`                          |
@@ -39,41 +41,46 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<choiceInput>`](choiceInput)       | defines a multiple-choice block                                                       |
 | `<codeEditor>`                                                                         | renders an embedded doenetML code editor                                              |
 | `<column>`                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
-| `<conclusion>`                          | container element included for PreTeXt compatibility                         |
-| `<definition>`                          | container element included for PreTeXt compatibility                              |
+| [`<conclusion>`](conclusion)            | block container for the conclusion of a section                                       |
+| [`<definition>`](definition)            | sectional component for defining a term or concept                                    |
 | [`<div>`](div)               | groups doenetML content into an unformatted container that can be named               |
 | [`<document>`](document)          | largest hierarchical sectional component                                              |
-| [`<example>`](example)           | sectional component with default numbering that defines an example                    |
-| [`<exercise>`](exercise)          | sectional component with default numbering that defines an exercise                   |
-| `<exercises>`                                                                          | a container element for multiple `<exercise>` components                              |
+| [`<example>`](example)           | sectional component that defines an example                                            |
+| [`<exercise>`](exercise)          | sectional component that defines a scored exercise                                     |
+| [`<exercises>`](exercises)            | a container element grouping `<exercise>` components, rendered as a list by default   |
 | [`<figure>`](figure)            | container element for images, videos, and captions                                    |
 | [`<hint>`](hint)              | hidden content triggered by clicking on a banner or by specific user interactions     |
+| [`<hr/>`](hr)              | horizontal rule separating block-level content                                         |
 | [`<image />`](image)           | inserts an image                                                                      |
-| `<introduction>`               | container element included for PreTeXt compatibility                     |
+| [`<introduction>`](introduction)            | block container for the introduction of a section                                     |
 | [`<li>`](li)                | list item                                                                             |
 | `<note>`                          | container element included for PreTeXt compatibility                                   |
-| `<objectives>`                    | container element included for PreTeXt compatibility                         |
+| [`<objectives>`](objectives)            | sectional component listing learning objectives, boxed by default                     |
 | [`<ol>`](ol.mdx)                | ordered list                                                                          |
 | [`<p>`](p)                 | create a paragraph or drop down a line                                                |
 | [`<paginator>`](paginator)                 | define a paginated section of content within a larger `<document>`                        |
 | [`<paginatorControls>`](paginatorControls)     | render navigation buttons for progression through content in a `<paginator>`        |
-| `<paragraphs>`                                                                         | a container element for `<p>` components                                              |
-| [`<problem>`](problem)           | sectional component with default numbering that defines a problem                     |
-| `<problems>`                                                                           | a container element for `<problem>` components                                        |
-| [`<proof>`](proof)             | container element included for PreTeXt compatibility                                                  |
+| [`<paragraphs>`](paragraphs)            | sectional component grouping `<p>` components, rendered at heading level 4            |
+| [`<part>`](part)            | one piece of a multi-part exercise or problem, rendered as a numbered list item       |
+| [`<problem>`](problem)           | sectional component that defines a scored problem                                      |
+| [`<problems>`](problems)            | a container element grouping `<problem>` components, rendered as a list by default    |
+| [`<proof>`](proof)             | a proof section (often paired with a `<theorem>`)                                      |
 | [`<question>`](question)          | a sectional component; similar to a `<problem>`                                       |
 | [`<row> (in a table)`](row_table)  | container element for one or more `<cell>`components within a `<tabular>`             |
 | [`<sbsGroup>`](sBsGroup)          | a container element for `<sideBySide>` components                                     |
-| [`<section>`](section)           | sectional component that renders an auto-numbered block of content                    |
+| [`<section>`](section)           | sectional component that renders a titled block of content                            |
 | [`<setup>`](setup.mdx)             | defines a block for defining or initializing named content; does not render to viewer |
 | [`<sidebySide>`](sideBySide.mdx)        | renders components in a side-by-side horizontal format                                |
 | [`<solution>`](solution.mdx)          | expandable block component which displays a problem solution                          |
+| [`<span>`](span)            | generic inline container (inline counterpart to `<div>`)                              |
 | [`<stack>`](stack)             | vertical container element for organizing content within a `<sideBySide>`             |
-| `<statement>`        | container element included for PreTeXt compatibility                     |
-| `<subsection>`         | container element included for PreTeXt compatibility                        |
+| [`<statement>`](statement)            | block container for the statement of a problem, theorem, or similar                   |
+| [`<subsection>`](subsection)            | sectional component nested one heading level deeper than `<section>`                  |
+| [`<subsubsection>`](subsubsection)            | sectional component nested one heading level deeper than `<subsection>`               |
 | [`<table>`](table.mdx)             | container element for a `<tabular>`                                                   |
 | [`<tabular>`](tabular.mdx)           | define data arranged in a tabular format                                              |
-| `<theorem>`                          | container element included for PreTeXt compatibility                            |
+| [`<task>`](task)            | one task of a multi-task activity or problem (alias for `<part>`)                     |
+| [`<theorem>`](theorem)            | sectional component for the statement of a theorem (or similar formal statement)      |
 | [`<title>`](title.mdx)             | creates a title within a document, section, or other block component                  |
 | `<topic>`                          | container element included for PreTeXt compatibility                      |
 | [`<ul>`](ul.mdx)                   | unordered, or bulleted, list                                                          |

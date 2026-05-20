@@ -1,0 +1,71 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<conclusion>{:dn}`
+
+
+`<conclusion>{:dn}` is a block container for the concluding content
+of a section. It groups content without adding a heading, numbering,
+or any other visible chrome, and is typically placed at the end of
+a [`<section>{:dn}`](section) (or similar sectional component) to
+mark the closing prose distinct from the body.
+
+
+<AttrPropDisplay name='conclusion'/>
+
+
+---
+
+### Example: `<conclusion>{:dn}` at the end of a section
+
+
+```doenet-editor-horiz
+<section>
+  <title>Linear equations</title>
+
+  <subsection>
+    <title>Examples</title>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+
+  <conclusion>
+    <p>In the next section we will turn to quadratic equations.</p>
+  </conclusion>
+</section>
+```
+
+
+
+The `<conclusion>{:dn}` itself adds no visible formatting; it simply
+groups the concluding content so that surrounding components (and
+authoring tools) can locate it.
+
+
+
+---
+
+### Example: `<conclusion>{:dn}` after a list of `<task>{:dn}` items
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Lab procedure</title>
+  <introduction>
+    <p>Complete the following tasks in order.</p>
+  </introduction>
+  <task>Gather the equipment.</task>
+  <task>Calibrate the instrument.</task>
+  <task>Record the measurement.</task>
+  <conclusion>
+    <p>Submit your recorded measurements.</p>
+  </conclusion>
+</problem>
+```
+
+
+
+Like [`<introduction>{:dn}`](introduction), `<conclusion>{:dn}` does
+not participate in the list-item numbering of the [`<part>{:dn}`](part)
+or [`<task>{:dn}`](task) items inside the surrounding section.

@@ -1,0 +1,123 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<activity>{:dn}`
+
+
+`<activity>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a scored block of content (like
+[`<problem>{:dn}`](problem) or [`<exercise>{:dn}`](exercise)), with
+score aggregation for any nested `<answer>{:dn}` components turned on
+by default.
+
+
+<AttrPropDisplay name='activity'/>
+
+
+---
+
+### Example: `<activity>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<activity>
+  <p>Estimate the number of jelly beans in the jar.</p>
+  <p><answer>1000</answer></p>
+</activity>
+
+<activity>
+  <p>Estimate the weight of the jar (in grams).</p>
+  <p><answer>500</answer></p>
+</activity>
+```
+
+
+
+When `<activity>{:dn}` has no `<title>{:dn}`, an auto-generated title
+(e.g. `Activity 1`) is rendered. Each `<activity>{:dn}` is counted on
+the same sectional counter as its siblings.
+
+
+
+---
+
+### Example: `<activity>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<activity>
+  <title>Coin flip</title>
+  <p>How many heads do you expect in 10 fair coin flips?</p>
+  <p><answer>5</answer></p>
+</activity>
+```
+
+
+
+A custom `<activity>{:dn}` title is provided by nesting a
+`<title>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: sectionWideCheckWork
+
+
+```doenet-example
+<activity sectionWideCheckWork>
+  <title>Multiple questions</title>
+  <p>Enter <m>x</m>: <answer>x</answer></p>
+  <p>Enter <m>y</m>: <answer>y</answer></p>
+  <p>Enter <m>z</m>: <answer>z</answer></p>
+</activity>
+```
+
+
+
+The `sectionWideCheckWork` attribute combines validation for all
+`<answer>{:dn}` components within the `<activity>{:dn}` under a single
+"Check Work" button.
+
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<activity boxed>
+  <title>Boxed activity</title>
+  <p>Type "sassafras": <answer type="text">sassafras</answer></p>
+</activity>
+```
+
+
+
+The `boxed` attribute changes the default formatting to a border with
+a shaded title banner.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideActivity">
+  <label>Click here to hide the activity</label>
+</booleanInput>
+
+<activity hide="$hideActivity">
+  <title>Now you see me...</title>
+  <p>Type "sassafras": <answer type="text">sassafras</answer></p>
+</activity>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

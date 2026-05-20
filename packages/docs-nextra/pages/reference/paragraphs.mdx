@@ -1,0 +1,117 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<paragraphs>{:dn}`
+
+
+`<paragraphs>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that groups a block of `<p>{:dn}` components (and other
+content) into a labeled subsection, rendered at heading level 4. It
+behaves like [`<section>{:dn}`](section) — it accepts a custom
+`<title>{:dn}` or falls back to an auto-generated name and number —
+and is typically used as a finer-grained subdivision inside a
+`<section>{:dn}` or `<subsection>{:dn}`.
+
+
+<AttrPropDisplay name='paragraphs'/>
+
+
+---
+
+### Example: `<paragraphs>{:dn}` grouping related `<p>{:dn}` components
+
+
+```doenet-editor-horiz
+<section>
+  <title>Discussion</title>
+  <paragraphs>
+    <title>Opening remarks</title>
+    <p><lorem generateSentences="2"/></p>
+    <p><lorem generateSentences="2"/></p>
+  </paragraphs>
+
+  <paragraphs>
+    <title>Closing remarks</title>
+    <p><lorem generateSentences="2"/></p>
+  </paragraphs>
+</section>
+```
+
+
+
+Each `<paragraphs>{:dn}` is rendered with a heading-level-4 title,
+counted on the same sectional counter as its siblings.
+
+
+
+---
+
+### Example: `<paragraphs>{:dn}` with default (auto-generated) title
+
+
+```doenet-editor-horiz
+<section>
+  <title>Discussion</title>
+  <paragraphs>
+    <p><lorem generateSentences="2"/></p>
+  </paragraphs>
+  <paragraphs>
+    <p><lorem generateSentences="2"/></p>
+  </paragraphs>
+</section>
+```
+
+
+
+When a `<paragraphs>{:dn}` has no `<title>{:dn}`, an auto-generated
+title (e.g. `Paragraphs 1.1`) is rendered.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+<paragraphs>
+  <title>Custom title</title>
+  <p>The custom title overrides the default numbering.</p>
+</paragraphs>
+
+<paragraphs includeAutoNumber="true">
+  <title>Special title</title>
+  <p>The number is still rendered in addition to the custom title.</p>
+</paragraphs>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default. This means
+that if a `<paragraphs>{:dn}` contains a nested `<title>{:dn}`, the
+default numbering is not rendered (although it is still counted
+behind the scenes). Set `includeAutoNumber="true"` to display both
+the number and the custom title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideParas">
+  <label>Click here to hide the paragraphs block</label>
+</booleanInput>
+
+<paragraphs hide="$hideParas"><title>Now you see me...</title>
+  <p><lorem generateWords="10"/></p>
+</paragraphs>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

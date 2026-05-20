@@ -1,0 +1,72 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<introduction>{:dn}`
+
+
+`<introduction>{:dn}` is a block container for the introductory
+content of a section. It groups content without adding a heading,
+numbering, or any other visible chrome, and is typically placed at
+the start of a [`<section>{:dn}`](section) (or similar sectional
+component) to mark the introductory prose distinct from the body.
+
+
+<AttrPropDisplay name='introduction'/>
+
+
+---
+
+### Example: `<introduction>{:dn}` at the start of a section
+
+
+```doenet-editor-horiz
+<section>
+  <title>Linear equations</title>
+  <introduction>
+    <p>This section introduces linear equations and their graphs.</p>
+  </introduction>
+
+  <subsection>
+    <title>Definition</title>
+    <p>A linear equation in one variable is...</p>
+  </subsection>
+
+  <subsection>
+    <title>Examples</title>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+</section>
+```
+
+
+
+The `<introduction>{:dn}` itself adds no visible formatting; it
+simply groups the introductory content so that surrounding
+components (and authoring tools) can locate it.
+
+
+
+---
+
+### Example: `<introduction>{:dn}` before a list of `<task>{:dn}` items
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Lab setup</title>
+  <introduction>
+    <p>Complete the following tasks in order.</p>
+  </introduction>
+  <task>Gather the equipment.</task>
+  <task>Calibrate the instrument.</task>
+  <task>Record the measurement.</task>
+</problem>
+```
+
+
+
+Because `<introduction>{:dn}` does not participate in the list-item
+numbering of [`<part>{:dn}`](part) or [`<task>{:dn}`](task), it can
+introduce such a list without itself being counted.

@@ -1,0 +1,132 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<subsubsection>{:dn}`
+
+
+`<subsubsection>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a section at one more heading level deeper
+than [`<subsection>{:dn}`](subsection). It behaves like
+[`<section>{:dn}`](section) and is typically used inside a
+`<subsection>{:dn}`.
+
+
+<AttrPropDisplay name='subsubsection'/>
+
+
+---
+
+### Example: `<subsubsection>{:dn}` inside a `<subsection>{:dn}`
+
+
+```doenet-editor-horiz
+<section>
+  <title>Main topic</title>
+
+  <subsection>
+    <title>First idea</title>
+
+    <subsubsection>
+      <title>Background</title>
+      <p><lorem generateSentences="1"/></p>
+    </subsubsection>
+
+    <subsubsection>
+      <title>Details</title>
+      <p><lorem generateSentences="2"/></p>
+    </subsubsection>
+  </subsection>
+</section>
+```
+
+
+
+Each `<subsubsection>{:dn}` is rendered at a deeper heading level than
+its containing `<subsection>{:dn}` and is counted on the same
+sectional counter as other subsubsections at that level.
+
+
+
+---
+
+### Example: `<subsubsection>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<section>
+  <title>Main topic</title>
+  <subsection>
+    <title>First idea</title>
+    <subsubsection>
+      <p><lorem generateSentences="1"/></p>
+    </subsubsection>
+    <subsubsection>
+      <p><lorem generateSentences="2"/></p>
+    </subsubsection>
+  </subsection>
+</section>
+```
+
+
+
+When a `<subsubsection>{:dn}` has no `<title>{:dn}`, an auto-generated
+title (e.g. `Section 1.1.1`) is rendered, including the parent and
+grandparent numbers by default.
+
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-example
+<section boxed>
+  <subsection>
+    <subsubsection>
+      <p>Default subsubsection number includes the parent numbers.</p>
+    </subsubsection>
+  </subsection>
+</section>
+
+<section boxed>
+  <subsection>
+    <subsubsection includeParentNumber="false">
+      <p>The parent numbering has been suppressed.</p>
+    </subsubsection>
+  </subsection>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `true` by default for
+`<subsubsection>{:dn}`. Set it to `false` to display the subsubsection
+number without any parent numbers preceding it.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideSub">
+  <label>Click here to hide the subsubsection</label>
+</booleanInput>
+
+<section>
+  <subsection>
+    <subsubsection hide="$hideSub"><title>Now you see me...</title>
+      <p><lorem generateWords="10"/></p>
+    </subsubsection>
+  </subsection>
+</section>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

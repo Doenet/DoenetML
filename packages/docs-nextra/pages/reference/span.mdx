@@ -1,0 +1,75 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<span>{:dn}`
+
+
+`<span>{:dn}` is a generic inline container that groups inline content
+into a named or otherwise-attributed region without introducing a line
+break or paragraph spacing. It is the inline counterpart to
+`<div>{:dn}`.
+
+
+<AttrPropDisplay name='span'/>
+
+
+---
+
+### Example: `<span>{:dn}` as a named inline container
+
+
+```doenet-editor-horiz
+<p>The currency is <span name="symbol">USD</span>.</p>
+<p>Symbol reference: $symbol</p>
+```
+
+
+
+A `<span>{:dn}` can wrap a portion of inline content so that it can be
+referenced by name elsewhere in the document.
+
+
+
+---
+
+### Example: copying inline content with `<span>{:dn}`
+
+
+```doenet-editor-horiz
+<booleanInput name="copyMotto">
+  <label>Show motto again</label>
+</booleanInput>
+
+<p>Our motto is <span name="motto">"learn by doing"</span>.</p>
+
+<p>Reminder: the motto is
+  <conditionalContent condition="$copyMotto=true">$motto</conditionalContent>.
+</p>
+```
+
+
+
+Because `<span>{:dn}` is inline, its content flows with surrounding
+text and can be conditionally hidden, copied, or referenced like any
+other named component.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-editor-horiz
+<booleanInput name="hideSpan">
+  <label>Click here to hide the span</label>
+</booleanInput>
+
+<p>The answer is <span hide="$hideSpan">42</span>.</p>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

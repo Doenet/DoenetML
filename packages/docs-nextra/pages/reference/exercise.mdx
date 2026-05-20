@@ -7,10 +7,12 @@ import { AttrPropDisplay } from "../../components"
 
 
 `<exercise>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
-component that renders an auto-numbered block of content. Inline components such as 
-paragraphs (`<p>{:dn}`) and other components can be nested within an `<exercise>{:dn}` to group 
-and order content. Some examples are: another `<exercise>{:dn}`, a `<section>{:dn}`, 
-a `<figure>{:dn}`, or a `<problem>{:dn}`.
+component that renders a scored, titled block of content. If no
+`<title>{:dn}` is provided, an auto-generated title (e.g. `Exercise 1`)
+is rendered. Inline components such as paragraphs (`<p>{:dn}`) and
+other components can be nested within an `<exercise>{:dn}` to group
+and order content. Some examples are: another `<exercise>{:dn}`, a
+`<section>{:dn}`, a `<figure>{:dn}`, or a `<problem>{:dn}`.
 
 
 <AttrPropDisplay name='exercise'/>

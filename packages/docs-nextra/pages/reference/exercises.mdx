@@ -1,0 +1,111 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<exercises>{:dn}`
+
+
+`<exercises>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that groups a collection of [`<exercise>{:dn}`](exercise)
+(or [`<problem>{:dn}`](problem)) components and, by default, renders
+the contained sectional components as a numbered list. It is an alias
+for [`<problems>{:dn}`](problems) and behaves the same way.
+
+
+<AttrPropDisplay name='exercises'/>
+
+
+---
+
+### Example: `<exercises>{:dn}` rendering its children as a list
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Section exercises</title>
+
+  <exercise>
+    <p>Compute <m>\int_0^1 x \, dx</m>. <answer>1/2</answer></p>
+  </exercise>
+
+  <exercise>
+    <p>Compute <m>\int_0^1 x^2 \, dx</m>. <answer>1/3</answer></p>
+  </exercise>
+
+  <exercise>
+    <p>Compute <m>\int_0^1 x^3 \, dx</m>. <answer>1/4</answer></p>
+  </exercise>
+</exercises>
+```
+
+
+
+`<exercises>{:dn}` sets `asList` to `true` by default, so each child
+section is rendered as a numbered list item.
+
+
+
+---
+
+### Example: `<exercises>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<exercises>
+  <exercise><p><answer>1</answer></p></exercise>
+  <exercise><p><answer>2</answer></p></exercise>
+</exercises>
+```
+
+
+
+When `<exercises>{:dn}` has no `<title>{:dn}`, an auto-generated title
+(e.g. `Exercises 1`) is rendered.
+
+
+
+---
+
+### Attribute Example: asList
+
+
+```doenet-example
+<exercises asList="false">
+  <title>Exercises without list rendering</title>
+
+  <exercise><title>Exercise 1</title>
+    <p><answer>1</answer></p>
+  </exercise>
+  <exercise><title>Exercise 2</title>
+    <p><answer>2</answer></p>
+  </exercise>
+</exercises>
+```
+
+
+
+Set `asList="false"` to render the contained exercises as ordinary
+sectional blocks rather than as list items.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideExercises">
+  <label>Hide the exercise set</label>
+</booleanInput>
+
+<exercises hide="$hideExercises">
+  <title>Practice</title>
+  <exercise><p>Type "sassafras": <answer type="text">sassafras</answer></p></exercise>
+</exercises>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.
