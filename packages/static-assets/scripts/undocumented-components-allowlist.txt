@@ -46,11 +46,7 @@ ion
 ionicCompound
 latex
 lcm
-lq
-lsq
 markers
-mdash
-ndash
 note
 objectives
 orbitalDiagram
@@ -64,8 +60,6 @@ problems
 q
 regionHalfPlane
 rightHandSide
-rq
-rsq
 solveEquations
 span
 sq
