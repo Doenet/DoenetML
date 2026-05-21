@@ -18,6 +18,7 @@ component that renders a spline within a `<graph>{:dn}`.
 ```doenet-example
 <p>Click the curve to adjust the through points</p>
 <graph>
+  <shortDescription>A graph of a curve through four points</shortDescription>
   <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
 </graph>
 ```
@@ -39,6 +40,7 @@ Click the points to adjust the curve's shape.
 </p>
 
 <graph>
+  <shortDescription>A graph of a curve through four points with bezier controls</shortDescription>
   <curve through="(1,5) (-3,-6) (1,0) (-6,3)" name="myCurve">
     <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
   </curve>
@@ -69,6 +71,7 @@ through points are clicked.
 <slider name="b" initialValue="2" labelIsName/>
 
 <graph size="small">
+<shortDescription>A graph of a parameterized ellipse</shortDescription>
 <curve 
   name="parameterizedEllipse" 
   variable="t">

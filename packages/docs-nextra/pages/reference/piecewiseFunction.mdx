@@ -28,6 +28,7 @@ endpoints must also be graphed as independent components (see [`<endpoint>{:dn}`
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a three-part piecewise function</shortDescription>
   <piecewiseFunction name="f" symbolic="false">
     <function domain="(-infinity,-5)">
       x
@@ -89,6 +90,7 @@ the function attribute `symbolic="false"` to force numerical evaluation.
 </p>
 
 <graph xmin="-2" xmax="2" ymin="-1" ymax="2">
+  <shortDescription>A graph of the Heaviside step function with endpoints</shortDescription>
   $H
   <endpoint open>(0,$$Hminus(0))</endpoint>
   <endpoint open>(0,$$Hplus(0))</endpoint>
@@ -124,6 +126,7 @@ function attribute `symbolic="false"` to force numerical evaluation.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a piecewise function with overlapping domains</shortDescription>
   <piecewiseFunction name="f" symbolic="false" domain="(-8,8)">
     <function domain="(-5,-2)">
       -2
@@ -161,6 +164,7 @@ Domains may be specified for the parent `<piecewiseFunction>{:dn}`, and also for
 
 ```doenet-example
 <graph>
+<shortDescription>A graph of a piecewise function on a restricted domain</shortDescription>
 <piecewiseFunction 
   name="f" 
   domain="(-5,5)">
@@ -189,6 +193,7 @@ for the `<piecewiseFunction>{:dn}`.
 ```doenet-example
 <p><m>f(t) = $f</m></p>
 <graph>
+<shortDescription>A graph of a piecewise function with variable t</shortDescription>
 <piecewiseFunction name="f" variables="t">
   <function domain="(0,Infinity)">x</function>
   <function domain="(-Infinity, 0]" variables="y">2-y</function>
@@ -214,6 +219,7 @@ independent variable of $x$.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a piecewise function with maxima and minima marked</shortDescription>
   <piecewiseFunction name="f">
     <function domain="(-infinity, 0)">
       1/4(x+4)^2 - 4</function>

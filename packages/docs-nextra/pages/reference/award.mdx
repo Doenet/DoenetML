@@ -29,8 +29,9 @@ See the following pages for additional examples on using the attributes and prop
 
 
 ```doenet-example
-<p>1. Enter  <m>a</m> or <m>b</m>:
-  <answer><mathInput name="ans1"/>
+<p>
+  <answer>
+    <mathInput name="ans1"><label>1. Enter <m>a</m> or <m>b</m></label></mathInput>
     <award>a</award>
     <award>b</award>
   </answer>
@@ -50,9 +51,9 @@ See the following pages for additional examples on using the attributes and prop
 
 
 ```doenet-example
-<p>Enter a number greater than 2:
+<p>
   <answer>
-    <mathInput name="input1"/>
+    <mathInput name="input1"><label>Enter a number greater than 2</label></mathInput>
     <award>
       <when>$input1 > 2</when>
     </award>
@@ -77,8 +78,9 @@ child.  An `<award>{:dn}` will be awarded if its `<when>{:dn}` evaluates to `tru
 <p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
 then <m>\frac{1}{2}</m>.</em></p>
 
-<p>Question: Simplify <m>\frac{8}{16}</m>
+<p>
 <answer symbolicEquality>
+  <label>Question: Simplify <m>\frac{8}{16}</m></label>
   <award>1/2</award>
   <award credit="0.5">4/8</award>
 </answer>
@@ -100,8 +102,9 @@ The `credit` attribute of the `<award>{:dn}` component is used to assign partial
 <p><em>For the following question, first enter <m>\frac{4}{8}</m> 
 and then <m>\frac{1}{2}</m>.</em></p>
 
-<p>Question: Simplify <m>\frac{8}{16}</m>
+<p>
   <answer symbolicEquality>
+    <label>Question: Simplify <m>\frac{8}{16}</m></label>
     <award>1/2</award>
     <award name="notFully" credit="0">4/8</award>
   </answer>

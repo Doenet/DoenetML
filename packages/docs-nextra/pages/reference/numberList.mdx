@@ -9,6 +9,9 @@ import { AttrPropDisplay } from "../../components"
 components that accept a `<numberList>{:dn}` as an input include `<function>{:dn}`, `<repeat>{:dn}`, 
 and `<award>{:dn}`.
 
+When creating a `<numberList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas.
+
 <AttrPropDisplay name='numberList'/>
 
 ---
@@ -17,9 +20,7 @@ and `<award>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>Here is a list of numbers, with one missing piece. What do you want it to be? 
-  <mathInput name="userNumber"/>
-</p>
+<p><mathInput name="userNumber"><label>Here is a list of numbers, with one missing piece. What do you want it to be?</label></mathInput></p>
 <p>You've selected: <number>$userNumber</number></p>
 
 <numberList name="nList">
@@ -46,17 +47,11 @@ or `<number>{:dn}` components. Array notation can be used to access an individua
 ```doenet-editor-horiz
 <p>Let's build a list of numbers:</p>
 
-<p>Type <m>\frac{5}{3}</m>: 
-  <mathInput name="mi1"/>
-</p>
+<p><mathInput name="mi1"><label>Type <m>\frac{5}{3}</m>:</label></mathInput></p>
 
-<p>Type <m>\pi</m>: 
-  <mathInput name="mi2"/>
-</p>
+<p><mathInput name="mi2"><label>Type <m>\pi</m>:</label></mathInput></p>
 
-<p>Type <m>\sqrt{2}</m>: 
-  <mathInput name="mi3"/>
-</p>
+<p><mathInput name="mi3"><label>Type <m>\sqrt{2}</m>:</label></mathInput></p>
 
 <numberList name="asList">
   $mi1 $mi2 $mi3
@@ -95,7 +90,7 @@ referencing the named component between the opening and closing tags, separated 
   />
 </m></p>
 
-<p>Alternate notation (using evaluation macro):</p>
+<p>Alternate notation (using evaluation reference):</p>
 <p><m>f($inputList) = $$f($inputList)</m></p>
 ```
 
@@ -112,9 +107,9 @@ Here, a `<numberList>{:dn}` stores multiple input values to be used in the subse
 
 ```doenet-editor-horiz
 <p>Type <m>3, 4, 5</m>: 
-  <mathInput name="mi1" minWidth="20px"/>, 
-  <mathInput name="mi2" minWidth="20px"/>, 
-  <mathInput name="mi3" minWidth="20px"/>
+  <mathInput name="mi1" minWidth="20px"><label>Type 3</label></mathInput>, 
+  <mathInput name="mi2" minWidth="20px"><label>Type 4</label></mathInput>, 
+  <mathInput name="mi3" minWidth="20px"><label>Type 5</label></mathInput>
 </p>
 <p>
 <numberList name="nL" unordered>
@@ -139,9 +134,7 @@ comparisons (for validation in an `<award>{:dn}` or a `<boolean>{:dn}` for examp
 
 
 ```doenet-editor-horiz
-<p>Enter a list of 3 or more numbers (separated by commas): 
-  <mathInput name="mi1"/>
-</p>
+<p><mathInput name="mi1"><label>Enter a list of 3 or more numbers (separated by commas):</label></mathInput></p>
 
 <p><mathList name="mL">$mi1</mathList></p>
 

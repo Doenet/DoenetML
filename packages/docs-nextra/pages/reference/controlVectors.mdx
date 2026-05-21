@@ -22,6 +22,7 @@ handles at each through point within a `<curve>{:dn}` component.
 and click each individual through point to reveal its bezier control handles.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a bezier curve with control vectors specified directly</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,-4)">
     <bezierControls>
       <controlVectors>(3,1)</controlVectors>
@@ -52,6 +53,7 @@ case to specify the orientation of the curve at each point.
 click each individual through point to reveal its bezier control handles.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a bezier curve with control vectors as vector children</shortDescription>
   <curve through="(7,1) (1,7) (-6,2) (0,-1)">
     <bezierControls>
       <controlVectors>
@@ -88,13 +90,14 @@ in this case to specify the orientation of the curve at each point.
 
 ```doenet-example
 <p>Set control vector(s) for middle point: 
-  <mathInput name="vList1" prefill="(-5,1)"/>
-  <mathInput name="vList2" prefill="(3,4)"/>
+  <mathInput name="vList1" prefill="(-5,1)"><shortDescription>First control vector</shortDescription></mathInput>
+  <mathInput name="vList2" prefill="(3,4)"><shortDescription>Second control vector</shortDescription></mathInput>
 </p>
 
 <sideBySide>
-<p>Select direction: 
+<p>
   <choiceInput name="dir">
+    <label>Select direction</label>
     <choice>symmetric</choice>
     <choice>previous</choice>
     <choice preSelect>both</choice>
@@ -104,6 +107,7 @@ in this case to specify the orientation of the curve at each point.
 </p>
 
 <graph>
+<shortDescription>A graph of a bezier curve showing different direction options for control vectors</shortDescription>
 <point styleNumber="2">$curve1.throughPoints[2]</point>
 <curve 
   name="curve1" 
@@ -173,6 +177,7 @@ cannot adjust the curve at this point.
 
 ```doenet-editor-horiz
 <graph size="small">
+<shortDescription>A graph of a bezier curve with a control vector at the third point</shortDescription>
 <point coords="$curve1.throughPoints[3]" 
   styleNumber="2"/>
 <curve 
@@ -201,6 +206,7 @@ The `pointNumber` attribute specifies which through point the `<controlVector>{:
 
 ```doenet-editor-horiz
 <graph size="small">
+<shortDescription>A graph of a bezier curve with control vectors with different directions</shortDescription>
 $curve1.throughPoints
 <curve 
   name="curve1" 

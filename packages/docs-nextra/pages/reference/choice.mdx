@@ -19,6 +19,7 @@ within an [`<answer>{:dn}`](answer.mdx) block for multiple choice questions.
 
 ```doenet-example
   <choiceInput>
+    <label>Choose one</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice>C</choice>
@@ -38,6 +39,7 @@ The `<choice>{:dn}` components can be nested inside a `<choiceInput>{:dn}` block
 
 ```doenet-example
  <answer>
+    <label>Pick the correct choice</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice credit="1">C</choice>
@@ -57,8 +59,8 @@ validation. Use the `credit` attribute to assign the correct `<choice>{:dn}`.
 
 
 ```doenet-editor-horiz
- <p>Which of the following animals is a carnivore?</p>
   <answer>
+    <label>Which of the following animals is a carnivore?</label>
     <choice>rabbit</choice>
     <choice credit="0.5">human</choice>
     <choice credit="1">lion</choice>
@@ -78,8 +80,8 @@ an `<answer>{:dn}`. Partial credit may also be assigned with the `credit` attrib
 
 
 ```doenet-example
-<p>Which number is greater than 4?</p>
   <answer name="ans">
+    <label>Which number is greater than 4?</label>
     <choice feedbackText="4 is equal to 4">4</choice>
     <choice feedbackText="2 is less than 4">2</choice>
     <choice credit="1" feedbackText="Great job!">6</choice>
@@ -102,6 +104,7 @@ To render the feedback to the student, copy the `feedbacks` property of the name
 
 ```doenet-example
  <answer>
+    <label>True or False</label>
     <choice preSelect credit="1">True</choice>
     <choice>False</choice>
   </answer>
@@ -121,6 +124,7 @@ selected when the page is rendered.
 
 ```doenet-editor-horiz
 <answer>
+    <label>Pick the correct choice</label>
     <choice credit="1" feedbackText="A is correct">A</choice>
     <choice>B</choice>
   </answer>
@@ -142,6 +146,7 @@ are accessible as properties.
 
 ```doenet-example
 <answer>
+    <label>True or False</label>
     <choice name="c1" credit="1">True</choice>
     <choice>False</choice>
   </answer>
@@ -161,6 +166,7 @@ The `text` property renders the text contained in the `<choice>{:dn}`.
 
 ```doenet-example
 <answer>
+  <label>Pick the correct choice</label>
   <choice name="c1" credit="1" ><math>pi/2</math></choice>
   <choice><math>pi</math></choice>
 </answer>
@@ -180,6 +186,7 @@ The `math` property renders the math contained in the `<choice>{:dn}`.
 
 ```doenet-example
  <answer>
+    <label>Pick the correct choice</label>
     <choice name="c1" credit="1">A</choice>
     <choice>B</choice>
   </answer>
@@ -200,6 +207,7 @@ a choice is currently selected.
 
 ```doenet-editor-horiz
 <answer>
+  <label>Pick the correct choice</label>
   <choice name="c1" credit="1">A</choice>
   <choice>B</choice>
 </answer>

@@ -24,9 +24,9 @@ Note that substitution is used for variables in math expressions, not numerical 
   $mi
 </substitute>
 
-<p>Enter <m>x + y</m> 
-  <mathInput name="mi"/>
-</p>
+<p><mathInput name="mi">
+  <label>Enter <m>x + y</m></label>
+</mathInput></p>
 <p>You've entered $mi</p>
 <p>Substituting <m>z</m> for <m>y</m>, we have: $sub</p>
 ```
@@ -56,9 +56,9 @@ The substititution is performed in a `<setup>{:dn}` block, which does not render
     $ti
 </substitute>
 
-<p>Enter "vanilla ice cream"
-  <textInput name="ti"/>
-</p>
+<p><textInput name="ti">
+  <label>Enter "vanilla ice cream"</label>
+</textInput></p>
 <p>You've entered $ti</p>
 <p>But wouldn't you rather have: $sub ?</p>
 ```
@@ -80,9 +80,9 @@ The substititution is performed in a `<setup>{:dn}` block, which does not render
 ```doenet-editor-horiz
 <p>The given expression is 
   <math name="math1">a + b = c</math></p>
-<p>What would you like to replace <m>c</m> with?
-  <mathInput name="mi"/>
-</p>
+<p><mathInput name="mi">
+  <label>What would you like to replace <m>c</m> with?</label>
+</mathInput></p>
 <p>Substituting <m>$mi</m> for <m>c</m>, we have:</p>
   <substitute name="sub" match="c" replacement="$mi">
       $math1
@@ -166,7 +166,7 @@ The `<substitution>{:dn}` component accepts the standard `simplify` attribute fo
 
 ```doenet-editor-horiz
 <p>If your name is Billy, you're a goat:</p>
-<p>What's your name? <textInput name="nameWholeMatch"/></p>
+<p><textInput name="nameWholeMatch"><label>What's your name?</label></textInput></p>
 <p>Hey, 
   <substitute type="text" match="Billy" matchWholeWord replacement="goat">
     $nameWholeMatch
@@ -174,7 +174,7 @@ The `<substitution>{:dn}` component accepts the standard `simplify` attribute fo
 </p>
 <p>(Default)</p>
 <p>If your name starts with a B, you're a goat (sort of):</p>
-<p>What's your name? <textInput name="namePartial"/></p>
+<p><textInput name="namePartial"><label>What's your name?</label></textInput></p>
 <p>Hey, 
   <substitute type="text" match="B" replacement="goat">
     $namePartial
@@ -224,7 +224,7 @@ By default, matching is case-insensitive with the `<substitution>{:dn}` componen
     <label>Preserve case</label>
   </booleanInput>
 </p>
-<p>Type a name with an uppercase letter: <textInput name="name"/></p>
+<p><textInput name="name"><label>Type a name with an uppercase letter</label></textInput></p>
 <p>Replace the first letter with a "z"</p>
 
   <split name="splitName" type="text">$name</split>

@@ -1,0 +1,164 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<vectorList>{:dn}`
+
+
+`<vectorList>{:dn}` is a graphical-list component that defines a collection
+of [`<vector>{:dn}`](vector) components.
+
+When creating a `<vectorList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (The commas
+inside each vector's `(x, y)` component tuple are part of the vector itself,
+not separators between vectors.)
+
+<AttrPropDisplay name='vectorList'/>
+
+---
+
+### Example: Defining a `<vectorList>{:dn}` and accessing an item
+
+
+```doenet-editor-horiz
+<vectorList name="vs">
+  (1, 2) (3, 4) (5, 6)
+</vectorList>
+
+<p>The full list: $vs</p>
+<p>The second vector is $vs[2].</p>
+```
+
+
+
+Each vector is written as `(x, y)`. Spaces between the parenthesized tuples
+separate the vectors; the comma between `x` and `y` is part of a single
+vector. Individual vectors are addressable with array notation.
+
+
+
+---
+
+### Example: A `<vectorList>{:dn}` on a graph
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Three vectors on a graph.</shortDescription>
+  <vectorList>
+    (1, 2) (-3, 4) (5, -1)
+  </vectorList>
+</graph>
+```
+
+
+
+When placed inside a `<graph>{:dn}`, a `<vectorList>{:dn}` renders each of
+its vectors from the origin. Drag a vector head to update its components.
+
+
+
+---
+
+### Example: 3-component vectors
+
+
+```doenet-editor-horiz
+<vectorList name="vs">
+  (1, 2, 3) (4, 5, 6)
+</vectorList>
+
+<p>$vs</p>
+<p>First component of the second vector: $vs[2][1]</p>
+```
+
+
+
+Vectors may have any number of components; all vectors in the list are
+rendered with the same dimension (the maximum across the list).
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<p>Are the two lists equal in any order?
+  <boolean>
+    <vectorList unordered>(1, 0) (0, 1)</vectorList> =
+    <vectorList>(0, 1) (1, 0)</vectorList>
+  </boolean>
+</p>
+```
+
+
+
+The `unordered` attribute makes comparisons (e.g., inside a `<boolean>{:dn}`
+or an `<award>{:dn}`) ignore the order of vectors.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-editor-horiz
+<vectorList name="vs" maxNumber="2">
+  (1, 1) (2, 2) (3, 3) (4, 4)
+</vectorList>
+
+<p>$vs</p>
+<p>numVectors = $vs.numVectors</p>
+```
+
+
+
+The `maxNumber` attribute imposes a limit on the number of vectors
+retained in the list, regardless of how many are supplied.
+
+
+
+---
+
+### Attribute Example: asList
+
+
+```doenet-editor-horiz
+<p>Comma-separated (default):
+  <vectorList>(1, 2) (3, 4) (5, 6)</vectorList>
+</p>
+
+<p>No separator:
+  <vectorList asList="false">(1, 2) (3, 4) (5, 6)</vectorList>
+</p>
+```
+
+
+
+By default a `<vectorList>{:dn}` renders its items joined by commas.
+Setting `asList="false"` removes the separator so the items render
+concatenated.
+
+
+
+---
+
+### Property Example: numVectors
+
+
+```doenet-editor-horiz
+<vectorList name="vs">
+  (1, 2) (3, 4) (5, 6) (7, 8)
+</vectorList>
+
+<p>numVectors = $vs.numVectors</p>
+```
+
+
+
+The `numVectors` property returns the number of vectors in the list. The
+alias `numValues` returns the same value.

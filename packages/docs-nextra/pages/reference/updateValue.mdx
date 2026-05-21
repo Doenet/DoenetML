@@ -19,6 +19,7 @@ component that changes the value or property of a named component based on a but
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" radius="6" filled/>
 </graph>
 
@@ -73,6 +74,7 @@ An `<updateValue>{:dn}` is used to change the value of a `<number>{:dn}` based o
 </updateValue>
 
 <graph size="small">
+  <shortDescription>A graph of a circle</shortDescription>
   <circle name="circ" radius="8"/>
 </graph>
 ```
@@ -121,6 +123,7 @@ The `type` attribute specifies the type of component that is changing. The defau
 </updateValue>
 
 <graph size="small">
+  <shortDescription>A graph of a line</shortDescription>
   <line name="line1">y = x</line>
 </graph>
 ```
@@ -138,6 +141,7 @@ The `newValue` attribute specifies the new value for the target or target proper
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" radius="6" filled/>
 </graph>
 
@@ -167,10 +171,10 @@ The `disabled` attribute takes a boolean condition. When the condition evaluates
   newValue="1"
 />
 
-<p>What is the radius of the circle? 
-  <answer name="ans1">$circ.radius</answer></p>   
+<p><answer name="ans1"><label>What is the radius of the circle?</label>$circ.radius</answer></p>   
 
 <graph size="small" name="g" grid>
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" styleNumber="2" radius="6" filled fixLocation/>
 </graph>
 ```
@@ -202,6 +206,7 @@ The `triggerWhen` attribute establishes a boolean condition for triggering when 
 />
 
 <graph size="small">
+  <shortDescription>A graph of a movable point</shortDescription>
   <point name="p"/>
 </graph>     
 ```
@@ -227,6 +232,7 @@ The `triggerWith` attribute allows the update to occur based on interaction with
 <p>Click the point or the label to change the point's color.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a clickable point with a label</shortDescription>
   <point name="p"/>
   <label anchor="(6,4)" name="message">Or, click here</label>
 </graph> 

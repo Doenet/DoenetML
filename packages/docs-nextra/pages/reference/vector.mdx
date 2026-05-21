@@ -23,6 +23,7 @@ component that renders a vector when nested within a [`<graph>{:dn}`](graph.mdx)
   xmax="2" 
   ymin="-2" 
   ymax="2">
+    <shortDescription>A graph of a default vector</shortDescription>
     <vector name="v"/>
 </graph>
 
@@ -72,6 +73,7 @@ A `<vector>{:dn}` within a `<math>{:dn}` follows vector operations.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector</shortDescription>
   <vector name="v1" x="3" y="4"/>
 </graph>
 
@@ -95,6 +97,7 @@ elements for a vector given by $\bf{v} = (x, y)$.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector</shortDescription>
   <vector name="v" xs="3 4" tail="(1,1)"/>
 </graph>
 
@@ -118,6 +121,7 @@ access or render the list information, use index notation.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector with specified displacement</shortDescription>
   <vector 
     name="v" 
     displacement="(3,4)" 
@@ -143,6 +147,7 @@ Use the `displacement` property to specify the displacement of the vector in eac
 ```doenet-editor-horiz
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector with specified head and tail</shortDescription>
   <vector name="v" head="(4,5)" tail="(1,1)"/>
 </graph>
 
@@ -181,6 +186,7 @@ If this is the desired rendering format, use the attribute `displayWithAngleBrac
 ```doenet-example
 <p>Try to drag the head and the tail of each vector, or the vectors themselves.</p>
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of two vectors, one draggable and one fixed</shortDescription>
   <vector name="v1" tail="(-2,0)">(3,4)
     <label>Draggable</label>
   </vector>
@@ -213,6 +219,7 @@ The `draggable` attribute determines whether the `<point>{:dn}` can be dragged a
 </booleanInput>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a vector with toggleable head and tail draggability</shortDescription>
   <vector name="v1" headDraggable="$hD" tailDraggable="$tD">(3,4)</vector>
 </graph>
 
@@ -233,6 +240,7 @@ The head and tail of a `<vector>{:dn}` are draggable by default. Use the `headDr
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of two vectors with a background circle</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <vector 
     name="vectorA" 
@@ -253,7 +261,7 @@ The head and tail of a `<vector>{:dn}` are draggable by default. Use the `headDr
   />
 </graph>
 
-<booleanInput name="hideVectorA" labelIsName/>
+<booleanInput name="hideVectorA"><label>Hide vectorA</label></booleanInput>
 <p>Standard graphical attributes:</p>
     <ul>
       <li><attr>hide</attr></li>

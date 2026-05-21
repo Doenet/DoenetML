@@ -12,7 +12,6 @@
 activity
 annotation
 annotations
-asList
 attractToConstraint
 blockQuote
 br
@@ -24,7 +23,6 @@ codeEditor
 column
 conclusion
 constrainToInterior
-convertSetToList
 dataFrame
 definition
 displayDoenetML
@@ -48,7 +46,6 @@ part
 pegboard
 periodicSet
 pluralize
-pointList
 problems
 regionHalfPlane
 solveEquations
@@ -64,7 +61,5 @@ tage
 task
 theorem
 topic
-tupleList
 variantControl
-vectorList
 wrapFunctionPeriodic

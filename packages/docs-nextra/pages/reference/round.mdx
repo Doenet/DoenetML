@@ -17,7 +17,7 @@ component that renders a numerical value rounded to the user-specified number of
 
 
 ```doenet-editor-horiz
-<p>Enter a number to be rounded: <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a number to be rounded</label></mathInput></p>
 <p>Rounded number = <round>$n</round></p>
 ```
 
@@ -33,8 +33,8 @@ Default rounding is to the nearest integer.
 
 
 ```doenet-editor-horiz
-<p>Enter a number with more than 2 decimal places: 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>Enter a number with more than 2 decimal places</label></mathInput></p>
 <p>Rounded number = 
   <round numDecimals="2">$n</round>
 </p>  
@@ -52,8 +52,8 @@ The `numDecimals` attribute specifies how many decimal places to round to.
 
 
 ```doenet-editor-horiz
-<p>Enter a number with more than 2 significant figures: 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>Enter a number with more than 2 significant figures</label></mathInput></p>
 <p>Rounded number = 
   <round numDigits="2">$n</round>
 </p>

@@ -22,6 +22,7 @@ component that is used to constrain a `<point>{:dn}` to a grid. The grid can be 
 ```doenet-editor-horiz
 <p>Move the point.</p>
 <graph size="small">
+  <shortDescription>A graph with a point constrained to a default grid</shortDescription>
   <point name="p">
     <constrainToGrid/>
     <label>$p.coords</label>
@@ -43,6 +44,7 @@ The `<point>{:dn}` is constrained to the default $1 \times 1$ grid.
 ```doenet-editor-horiz
 <p>Move the circle.</p>
 <graph size="small">
+  <shortDescription>A graph with a circle whose center is constrained to a grid</shortDescription>
   <point name="p" hide>
     <constrainToGrid/>
   </point>
@@ -66,6 +68,7 @@ To constrain geometric objects other than points, first define a named `<point>{
 <p>Move the point.</p>
 <graph size="small" grid="1 1" 
   xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph with a point constrained to a 0.5 by 0.5 grid</shortDescription>
   <point name="p">
     <constrainToGrid dx="0.5" dy="0.5"/>
     <label>$p.coords</label>
@@ -88,6 +91,7 @@ The `<point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
 <p>Move the point.</p>
 <graph size="small" grid="0.5 2" xmin="-3" xmax="3" 
   ymin="-1" ymax="5">
+  <shortDescription>A graph with a point constrained to a custom 0.5 by 2 grid</shortDescription>
   <point name="p">
     <constrainToGrid dx="0.5" dy="2"/>
     <label>$p.coords</label>
@@ -110,6 +114,7 @@ The `<point>{:dn}` is constrained to a custom grid using the `dx` and `dy` compo
 <p>Move the point.</p>
 <graph size="small" grid="1 1" xmin="-3" xmax="3" 
   ymin="-3" ymax="3">
+  <shortDescription>A graph with a point constrained to a grid with offsets</shortDescription>
   <point name="p">
     <constrainToGrid xOffset="0.5" yOffset="0.5"/>
     <label>$p.coords</label>

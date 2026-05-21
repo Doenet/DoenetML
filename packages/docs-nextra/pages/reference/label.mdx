@@ -33,6 +33,7 @@ elsewhere in the document and linked to an input or answer with the `for` attrib
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>graph with a labeled point</shortDescription>
   <point name="pointA">(3,4)
     <label>A</label>
   </point>
@@ -54,12 +55,14 @@ accept a `<label>{:dn}` component as a child.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>graph with point A and an instructional label</shortDescription>
   <point name="A" labelIsName>(3,4)
     <constrainToGrid/>
   </point>
   <label anchor="(-5,8)">Move point A to <m>(0,0)</m></label>
 </graph>
 <answer>
+  <label>Move point A to <m>(0,0)</m></label>
   <award><when>$A = (0,0)</when></award>
 </answer>     
 ```
@@ -122,7 +125,7 @@ interaction, can take a `<label>{:dn}` child.
     <point>(2,3)</point>
     <label>Add point</label>
 </callAction>
-<graph name="g" size="small"/>      
+<graph name="g" size="small"><shortDescription>graph where a point will be added</shortDescription></graph>      
 ```
 
 
@@ -153,6 +156,7 @@ can take a `<label>{:dn}` child.
 </triggerSet>
 
 <graph size="small">
+  <shortDescription>graph with a point whose style and position can be changed</shortDescription>
   <point name="A" coords="(4,4)" styleNumber="3"/>
 </graph>
 ```
@@ -171,6 +175,7 @@ button click interaction, can take a `<label>{:dn}` child.
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>graph of a parabola, its vertex, and a line with a legend</shortDescription>
   <function name="f">(x-2)^2 + 2</function>
   <point name="V" styleNumber="2" applyStyleToLabel>(2,$$f(2))</point>
   <line name="line1" styleNumber="3">y = x</line>
@@ -205,6 +210,7 @@ order in which they are defined within the graph.
 </answer></p>
 
 <graph xmin="-2" ymin="-2">
+  <shortDescription>graph with a fixed point and an input for its coordinates</shortDescription>
   <point name="pointA" fixed>(3,4)</point>
   <textInput name="input" anchor="(4,5)" width="30px">
     <label><m>(x, y) = </m></label>
@@ -229,7 +235,7 @@ can take a `<label>{:dn}` child to prompt the desired input.
 ```doenet-editor-horiz
 <p><label for="$response">Enter your full name</label></p>
 
-<p><textInput name="response" /></p>
+<p><textInput name="response"><shortDescription>Full name response</shortDescription></textInput></p>
 ```
 
 
@@ -250,6 +256,7 @@ ignored on a `<label>{:dn}` placed inside a `<graph>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph of a circle and its radius with a legend</shortDescription>
   <circle 
     name="circ" 
     center="(0,0)" 
@@ -288,6 +295,7 @@ components are defined within the `<graph>{:dn}`.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>graph with a draggable and a non-draggable label</shortDescription>
   <label anchor="(5,5)" name="label1">Draggable!</label>
   <label draggable="false" anchor="(-5,-5)">Not Draggable!</label>
 </graph>    
@@ -308,6 +316,7 @@ around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a text label</shortDescription>
   <label anchor="(-6,5)" name="label1">A pretty label</label>
 </graph>    
 <p><c>text</c> = $label1.text</p>
@@ -326,6 +335,7 @@ The `text` property returns the text value of the named `<label>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a math label</shortDescription>
   <label anchor="(6,6)" name="label1"><m>\frac{3}{4}</m></label>
 </graph>    
 <p><c>latex</c> = $label1.latex</p>
@@ -344,6 +354,7 @@ The `latex` property returns the latex code for rendering the named `<label>{:dn
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a label showing the simplified value of a math expression</shortDescription>
   <label anchor="(2,5)" name="label1"><math simplify>15/3</math></label>
 </graph>    
 <p><c>value</c> = $label1.value</p>

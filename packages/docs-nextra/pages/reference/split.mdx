@@ -16,7 +16,7 @@ component that splits a numerical value or a text string into separate character
 
 
 ```doenet-editor-horiz
-<p>Type a 4-digit number: <mathInput name="n" prefill="3.142"/></p>
+<p><mathInput name="n" prefill="3.142"><label>Type a 4-digit number</label></mathInput></p>
 <p><split name="sN">$n</split></p>
 <p>sN[1] = $sN[1]</p>
 <p>sN[2] = $sN[2]</p>
@@ -38,7 +38,7 @@ points will occupy their own index.
 
 
 ```doenet-editor-horiz
-<p>Type a word: <textInput name="t" prefill="Hi you!"/></p>
+<p><textInput name="t" prefill="Hi you!"><label>Type a word</label></textInput></p>
 <p><split name="sT">$t</split></p>
 <p>sT[1] = $sT[1]</p>
 <p>sT[2] = $sT[2]</p>
@@ -63,7 +63,7 @@ Note that spaces and puncuation will occupy their own index.
 
 
 ```doenet-editor-horiz
-<p>Split the following by commas: <textInput name="ti" prefill="red,green,blue"/></p>
+<p><textInput name="ti" prefill="red,green,blue"><label>Split the following by commas</label></textInput></p>
 <p>
   <split name="cSplit" splitBy="comma">
     $ti
@@ -71,7 +71,7 @@ Note that spaces and puncuation will occupy their own index.
 </p>
 <p>cSplit[2] = $cSplit[2]</p>
 
-<p>Split the following by letter: <textInput name="ti2" prefill="red,green,blue"/></p>
+<p><textInput name="ti2" prefill="red,green,blue"><label>Split the following by letter</label></textInput></p>
 <p>
   <split name="lSplit" splitBy="letter">
     $ti2
@@ -79,7 +79,7 @@ Note that spaces and puncuation will occupy their own index.
 </p>
 <p>lSplit[2] = $lSplit[2]</p>
 
-<p>Split the following by word: <textInput name="ti3" prefill="red green blue"/></p>
+<p><textInput name="ti3" prefill="red green blue"><label>Split the following by word</label></textInput></p>
 <p>
   <split name="wSplit" splitBy="word">
     $ti3

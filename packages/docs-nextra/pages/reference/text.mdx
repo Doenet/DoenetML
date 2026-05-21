@@ -44,8 +44,9 @@ component that defines a string variable for use in evaluations and boolean expr
 <text name="color">green</text>
 </setup>
 
-<p>Enter the complement of red: 
-  <textInput name="userColor"/></p>
+<p><textInput name="userColor">
+  <label>Enter the complement of red</label>
+</textInput></p>
 <boolean>$userColor = $color</boolean>
 ```
 
@@ -62,6 +63,7 @@ A `<text>{:dn}` values is defined in a `<setup>{:dn}` and referenced by name lat
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with a Hello World text label and a circle</shortDescription>
   <text anchor="(-6,6)">Hello World!</text>
   <circle radius="5"/>
 </graph>
@@ -99,6 +101,7 @@ A `<text>{:dn}` values is defined on a `<graph>{:dn}`. The position of the `<tex
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with a Hello World text label and a circle</shortDescription>
   <text name="a" anchor="(-6,6)">Hello World!</text>
   <circle radius="5"/>
 </graph>
@@ -119,6 +122,7 @@ The `anchor` attribute determines the initial position of a `<text>{:dn}` on a `
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with two text labels</shortDescription>
   <text name="a" anchor="(-6,3)">
     I'm free!
   </text>

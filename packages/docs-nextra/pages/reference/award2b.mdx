@@ -14,13 +14,13 @@ The following examples illustrate use of the `<award>{:dn}` tag attributes.
 
 ### Attribute Example: matchByExactPositions
 ```doenet-example
-  <p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
   <answer>
+    <label>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct</label>
     <award matchPartial matchByExactPositions>(1,2,3,4)</award>
   </answer>
 
-  <p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
   <answer>
+    <label>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order</label>
     <award matchPartial>1,2,3,4</award>
   </answer>
 ```
@@ -48,20 +48,23 @@ and `unordered` are ignored.
 
 ### Attribute Example: allowedErrorInNumbers and allowedErrorIsAbsolute
 ```doenet-editor-horiz
-<p>Enter a number within about <m>1\%</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within about <m>1\%</m> of <m>100</m></label>
     <award allowedErrorInNumbers="0.01">100</award>
   </answer>
 </p>
 
-<p>Enter a number within 0.01 of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within 0.01 of <m>100</m></label>
     <award allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
 
-<p>Enter an expression close to <m>\sin(\pi x)</m>: 
+<p>
   <answer>
+    <label>Enter an expression close to <m>\sin(\pi x)</m></label>
     <award allowedErrorInNumbers="0.1" symbolicEquality>sin(pi x)</award>
   </answer>
 </p>
@@ -86,14 +89,16 @@ The `allowedErrorIsAbsolute` attribute will change the tolerance to be specified
 
 ### Attribute Example: allowedErrorIsAbsolute
 ```doenet-editor-horiz
-<p>Enter a number within <m>1</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within <m>1</m> of <m>100</m></label>
     <award allowedErrorInNumbers="1" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
 
-<p>Enter a number within <m>10</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within <m>10</m> of <m>100</m></label>
     <award allowedErrorInNumbers="10" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
@@ -106,11 +111,17 @@ use the `allowedErrorIsAbsolute` attribute in combination with the `allowedError
 
 ### Attribute Example: includeErrorInNumberExponents
 ```doenet-example
-  <p>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4: 
-  <answer><award allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</award></answer>
+  <p>
+    <answer>
+      <label>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4</label>
+      <award allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</award>
+    </answer>
   </p>
-    <p>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers: 
-  <answer><award allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</award></answer>
+  <p>
+    <answer>
+      <label>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers</label>
+      <award allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</award>
+    </answer>
   </p>
 ```
 
@@ -127,20 +138,23 @@ the `includeErrorInNumberExponents` attribute, preferably with the `symbolicEqua
 
 ### Attribute Example: caseInsensitiveMatch
 ```doenet-editor-horiz
-<p>Enter tTkLp: 
+<p>
   <answer type="text">
+    <label>Enter tTkLp</label>
     <award>tTkLp</award>
   </answer>
 </p>
 
-<p>Enter tTkLp with any capitalization: 
+<p>
   <answer type="text">
+    <label>Enter tTkLp with any capitalization</label>
     <award caseInsensitiveMatch>ttklp</award>
   </answer>
 </p>
 
-<p>Either <m>x^2</m> or <m>X^2</m> is acceptable:
+<p>
   <answer>
+    <label>Either <m>x^2</m> or <m>X^2</m> is acceptable</label>
     <award caseInsensitiveMatch>x^2</award>
   </answer>
 </p>
@@ -152,8 +166,11 @@ Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for v
 
 ### Attribute Example: matchBlanks
 ```doenet-example
-    <p>Enter <m>f()</m> with no arguments.
-      <answer name="ans"><award matchBlanks>f()</award></answer>
+    <p>
+      <answer name="ans">
+        <label>Enter <m>f()</m> with no arguments.</label>
+        <award matchBlanks>f()</award>
+      </answer>
     </p>
 ```
 
@@ -175,8 +192,9 @@ correct a response that includes a blank, add the `matchBlanks` attribute to the
 <p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
 then <m>\frac{1}{2}</m>.</em></p>
 
-<p>Question: Simplify <m>\frac{8}{16}</m>
+<p>
   <answer name="ans" symbolicEquality>
+    <label>Question: Simplify <m>\frac{8}{16}</m></label>
     <award>1/2</award>
     <award feedbackText="Simplify further." credit="0">4/8</award>
   </answer>

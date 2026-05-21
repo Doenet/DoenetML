@@ -21,6 +21,7 @@ component that renders a regular polygon on a `<graph>{:dn}`.
 ```doenet-editor-horiz
 <p>Try dragging the different vertices of the polygon</p>
 <graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <shortDescription>A graph of the default regular polygon with its circumscribed circle</shortDescription>
   <regularPolygon name="defaultPolygon"/>
   <circle 
     styleNumber="6" 
@@ -46,15 +47,16 @@ centered at the origin.
 
 
 ```doenet-editor-horiz
-<p>How many sides? (Enter an integer): 
-  <mathInput name="userN" prefill="3"/>
+<p>
+  <mathInput name="userN" prefill="3"><label>How many sides? (Enter an integer)</label></mathInput>
 </p>
 
-<p>What is the side length?: 
-  <slider name="userL" initialValue="5"/>
+<p>
+  <slider name="userL" initialValue="5"><label>What is the side length?</label></slider>
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of a user-configured regular polygon</shortDescription>
   <regularPolygon 
     name="userPolygon" 
     numSides="$userN" 
@@ -80,6 +82,7 @@ are required in this case; the values for these attributes cannot be null.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of six filled pentagons with different styles</shortDescription>
   <regularPolygon numSides="5" perimeter="10" center="(-5,2)" filled styleNumber="1"/>
   <regularPolygon numSides="5" perimeter="10" center="(-3,-2)" filled styleNumber="2"/>
   <regularPolygon numSides="5" perimeter="10" center="(-1,2)" filled styleNumber="3"/>
@@ -102,6 +105,7 @@ The `filled` attribute renders the polygon with default shading to match the `st
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a regular polygon built on a line segment</shortDescription>
   <lineSegment name="segment" endpoints="(-3,-6) (3,-4)" layer="1"/>
   <regularPolygon 
     name="userPolygon" 
@@ -139,6 +143,7 @@ number of sides in this example, or dragging the endpoints of the line segment.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a regular heptagon</shortDescription>
   <regularPolygon name="heptagon" numVertices="7" sideLength="8"/>
 </graph>
 
@@ -158,6 +163,7 @@ The number of vertices of a regular polygon can be specified with the `numVertic
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a regular nonagon</shortDescription>
   <regularPolygon name="nonagon" numSides="9" sideLength="6"/>
 </graph>
 
@@ -180,6 +186,7 @@ The number of sides of a regular polygon can be specified with the `numSides` at
 <p><c>center</c> = $pentagon.center</p>
 
 <graph size="small">
+  <shortDescription>A graph of a pentagon with its center marked</shortDescription>
   <regularPolygon name="pentagon" center="(3,3)" numSides="5" sideLength="4"/>
   <point extend="$pentagon.center" styleNumber="2"/>
 </graph>     
@@ -203,6 +210,7 @@ following attributes (in the event of overconstraint): `radius / circumRadius`,
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a square with its vertices marked</shortDescription>
   <regularPolygon name="square" numSides="4" vertices="(0,0) (3,1)"/>
   <pointList styleNumber="5">
     $square.vertices
@@ -230,6 +238,7 @@ Note on precedence: the `vertices` and `center` attributes take precedence over 
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of two squares with circumscribed circles</shortDescription>
   <regularPolygon name="square1" radius="4" numSides="4"  center="(-5,0)"/>
   <circle name="circ1" center="$square1.center" radius="$square1.radius"/>
   <regularPolygon name="square2" radius="4" numSides="4"  center="(5,0)" styleNumber="2"/>
@@ -254,6 +263,7 @@ The `radius` and `circumRadius` attributes are an interchangeable way to specify
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of two triangles with inscribed circles</shortDescription>
   <regularPolygon name="tri1" inRadius="2" numSides="3"  center="(-5,0)"/>
   <circle name="circ1" center="$tri1.center" radius="$tri1.inRadius"/>
   <regularPolygon name="tri2" apothem="2" numSides="3"  center="(5,0)" styleNumber="2"/>
@@ -280,6 +290,7 @@ The `inRadius` and `apothem` attributes are an interchangeable way to specify th
 <p>Try dragging any vertex of the pentagon to change its side length.</p>
 <p><c>sideLength</c> = $pentagon.sideLength</p>
 <graph size="small">
+  <shortDescription>A graph of a pentagon with a specified side length</shortDescription>
   <regularPolygon name="pentagon" numSides="5" sideLength="4"/>
 </graph>  
 ```
@@ -298,11 +309,11 @@ The `sideLength` attribute can be used to adjust the size of the regular polygon
 ```doenet-editor-horiz
 <p>How much fencing do you have to enclose this shape?</p>
 <p>
-  <m>\text{Perimeter} = </m>
-  <mathInput name="length" prefill="20"/>
+  <mathInput name="length" prefill="20"><label><m>\text{Perimeter} = </m></label></mathInput>
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of a hexagon with a user-specified perimeter</shortDescription>
   <regularPolygon name="hexagon" numSides="6" perimeter="$length" filled/>
 </graph>  
 

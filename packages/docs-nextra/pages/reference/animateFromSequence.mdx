@@ -55,6 +55,7 @@ the `actionName` set to `toggleAnimation`.
 ### Example: Animated circle radius
 ```doenet-example
 <graph size="small">
+  <shortDescription>A circle with animated radius</shortDescription>
   <circle radius="$r" center="(0, 0)"/>
 </graph>
 
@@ -76,6 +77,7 @@ the radius has been defined as a `<number/>{:dn}` over a sequence of values from
 ### Example: Point moving along a function
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A function with an animated point moving along it</shortDescription>
   <function name="f">(1/4)x^2 - 4</function>
   <point styleNumber="2">($i,$$f($i))</point>
 </graph>
@@ -100,6 +102,7 @@ The $y$-coordinate of the point is defined with the function evaluation macro `$
 ### Attribute Example: target
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph with a point whose x-coordinate is animated</shortDescription>
   <point name="P">(-10, 0)</point>
 </graph>
 
@@ -115,7 +118,7 @@ without having to define a separate `<number/>{:dn}`.
 ### Attribute Example: animationOn
 ```doenet-example
 <slider name="s">0</slider>
-Click to animate <booleanInput name="switch"/> $switch
+<booleanInput name="switch"><label>Click to animate</label></booleanInput> $switch
 <animateFromSequence target="$s" from="0" to="10" animationInterval="200" animationOn="$switch"/>
 ```
 
@@ -128,11 +131,11 @@ the boolean value is specified by the user with a `<booleanInput/>{:dn}`.
 ### Attribute Example: animationMode
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with a point whose x-coordinate is animated</shortDescription>
   <point name="P">(0, 0)</point>
 </graph>
 
-<p>Type "increase", "increase once", "decrease", "decrease once", or "oscillate":
-  <textInput name="userMode" prefill="increase"/></p>
+<p><textInput name="userMode" prefill="increase"><label>Type "increase", "increase once", "decrease", "decrease once", or "oscillate"</label></textInput></p>
 <booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput>
@@ -182,13 +185,12 @@ The default value is `increase`.
 
 <sideBySide>
 <stack>
-<p>Point A: 
-  <mathInput name="miA" prefill="500"/></p> 
-<p>Point B: 
-  <mathInput name="miB" prefill="800"/></p>
+<p><mathInput name="miA" prefill="500"><label>Point A</label></mathInput></p> 
+<p><mathInput name="miB" prefill="800"><label>Point B</label></mathInput></p>
 </stack>
 
 <graph size="small">
+  <shortDescription>A graph with two points whose y-coordinates are animated</shortDescription>
   <point name="A" labelIsName>(-5, -8)</point>
   <point name="B" styleNumber="2" labelIsName>(5, -8)</point>
 </graph>

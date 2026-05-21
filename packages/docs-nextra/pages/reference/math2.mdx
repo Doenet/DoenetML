@@ -243,6 +243,7 @@ it may be better practice to use the `<number>{:dn}` component.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A circle of radius 5 with an editable equation label</shortDescription>
   <math 
     name="math1" 
     anchor="$miAnchor" 
@@ -260,24 +261,24 @@ it may be better practice to use the `<number>{:dn}` component.
 </graph>
 
 <p>Adjust attribute values:</p>
-  <p>anchor (x,y): 
-    <mathInput name="miAnchor" prefill="(-3,3)"/>
+  <p>
+    <mathInput name="miAnchor" prefill="(-3,3)"><label>anchor (x,y)</label></mathInput>
   </p>
 
-  <p>hide (true/false): 
-    <booleanInput name="biHide"/>
+  <p>
+    <booleanInput name="biHide"><label>hide (true/false)</label></booleanInput>
   </p>
 
-  <p>draggable (true/false): 
-    <booleanInput name="biDraggable" prefill="true"/>
+  <p>
+    <booleanInput name="biDraggable" prefill="true"><label>draggable (true/false)</label></booleanInput>
   </p>
 
-  <p>styleNumber (1-6): 
-    <mathInput name="miStyleNumber" prefill="3"/>
+  <p>
+    <mathInput name="miStyleNumber" prefill="3"><label>styleNumber (1-6)</label></mathInput>
   </p>
 
-  <p>layer (0,1,2,...): 
-    <mathInput name="miLayer" prefill="1"/>
+  <p>
+    <mathInput name="miLayer" prefill="1"><label>layer (0,1,2,...)</label></mathInput>
   </p>
 ```
 
@@ -313,6 +314,7 @@ are all somewhat transparent, this effect may not be clearly visible for default
 <hr/>
 
 <graph size="small">
+  <shortDescription>A graph displaying the math expression x^2</shortDescription>
   <math name="math3" styleNumber="4" anchor="(4,4)">x^2</math>
 </graph>
 <p><c>draggable</c> = $math3.draggable</p>
@@ -455,6 +457,7 @@ The `numDimensions` property returns the number of dimensions of the `<math>{:dn
 <math name="math1">(3,4)</math>
 <math name="math2" format="latex">\begin{bmatrix}-5 \\ 7\end{bmatrix}</math>
 <graph size="small">
+  <shortDescription>A graph showing two vectors</shortDescription>
   $math1.vector
   $math2.vector
 </graph>

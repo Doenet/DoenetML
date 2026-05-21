@@ -4963,7 +4963,7 @@ Enter any letter:
     it("copy answer with no link", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
-  <answer extend="$ans1" name="ans2" link="false" />
+  <answer copy="$ans1" name="ans2" />
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });

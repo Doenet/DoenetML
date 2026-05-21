@@ -21,6 +21,7 @@ The following examples illustrate use of the `<curve>{:dn}` tag attributes.
 </booleanInput> $isDraggable.value
 
 <graph size="small">
+<shortDescription>A graph of a curve whose draggability is controlled by a boolean input</shortDescription>
 <curve 
   draggable="$isDraggable" 
   through="(3,-1) (3,4) (-5,6) (-3,2)"
@@ -42,6 +43,7 @@ the user will not be able to manipulate the through points.
 
 ```doenet-editor-horiz
 <graph size="small">
+<shortDescription>A graph of curve C with a left-positioned label</shortDescription>
 <curve 
   name="curve1" 
   labelPosition="left" 
@@ -51,6 +53,7 @@ the user will not be able to manipulate the through points.
 </graph>
 
 <graph size="small">
+  <shortDescription>A graph of curve C with an upper-right-positioned label</shortDescription>
   <curve 
     extend="$curve1" 
     labelPosition="upperright"
@@ -81,6 +84,7 @@ The default value is `upperright`.
 </booleanInput>
 
 <graph>
+  <shortDescription>A graph of polynomial and trigonometric curves with optional flipped versions</shortDescription>
   <curve hide="!$Poly">x^2
     <label><m>P_1</m></label>
   </curve>
@@ -137,6 +141,7 @@ and closing tags. The `flipFunction` attribute reflects the curve about the line
   tension on the shape of <m>C_2</m>.</p>
 
 <graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of two curves illustrating the effect of spline tension</shortDescription>
   <curve 
     through="$through_points" 
     extrapolateForward
@@ -185,10 +190,11 @@ component can be used.
   to adjust the shape of the extrapolations.
 </p>
 
-<p>Extrapolate backward: <booleanInput name="extBack" /></p>
-<p>Extrapolate foward: <booleanInput name="extFor" /></p>
+<p><booleanInput name="extBack"><label>Extrapolate backward</label></booleanInput></p>
+<p><booleanInput name="extFor"><label>Extrapolate foward</label></booleanInput></p>
 
 <graph>
+  <shortDescription>A graph of a curve with optional backward and forward extrapolations</shortDescription>
   <curve 
     through='(-3,-5) (-1, 4) (2,-3) (5,3)' 
     extrapolateBackward="$extBack" 
@@ -229,6 +235,7 @@ either vertically or horizontally.
 <p><m>C_2</m> <attr>splineForm</attr> = $_curve2.splineForm</p>
 
 <graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of two curves illustrating the effect of spline form</shortDescription>
   <curve 
     through="$through_points" 
     extrapolateForward
@@ -272,6 +279,7 @@ and "`uniform`", with a default value of "`centripetal`".
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a parametric curve using variable t</shortDescription>
   <curve variable="t">(t sin(t), t)</curve>
 </graph>
 ```
@@ -290,6 +298,7 @@ The `variable` attribute specifies the parameter used when defining a parametric
 ```doenet-editor-horiz
 <p>Click the curve to adjust the through points</p>
 <graph size="small">
+  <shortDescription>A graph of a curve through four points</shortDescription>
   <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
 </graph>
 ```
@@ -307,6 +316,7 @@ The `through` attribute defines through points for the `<curve>{:dn}`
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a parametric curve with restricted parameter range</shortDescription>
   <curve variable="t" parMin="pi/2" parMax="3pi/2">
     (6cos(t), 6sin(t))
   </curve>
@@ -327,6 +337,7 @@ The `parMin` and `parMax` attributes specify a minimum and maximum value for the
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of two curves illustrating standard graphical attributes</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <curve 
     name="C1" 

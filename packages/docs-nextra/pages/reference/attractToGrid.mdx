@@ -16,6 +16,7 @@ is used to within a `<point>{:dn}` to attract it to a specified grid.
 ### Example: Attract `<point>{:dn}` to a grid, default behavior
 ```doenet-example
 <graph xmin="-4" xmax="4" ymin="-4" ymax="4" grid>
+  <shortDescription>A grid with a draggable point that snaps to integer coordinates</shortDescription>
   <point>
     <attractToGrid/>
   </point>
@@ -31,6 +32,7 @@ the `<attractToGrid>{:dn}` constraint is 1.
 ### Attribute Example: dx, dy
 ```doenet-example
 <graph grid="2 4">
+  <shortDescription>A grid with a draggable point that snaps to a 2x4 grid</shortDescription>
   <point>
     <attractToGrid dx="2" dy="4"/>
   </point>
@@ -46,6 +48,7 @@ Note that it is not required to display the grid in the graph; this is done for 
 ### Attribute Example: xOffset, yOffset
 ```doenet-editor-horiz
 <graph grid="5 5">
+  <shortDescription>A grid with a draggable point that snaps to an offset grid</shortDescription>
   <point styleNumber="2" layer="2">
     <attractToGrid dx="5" xOffset="1" dy="5" yOffset="1" includeGridlines="true"/>
   </point>
@@ -67,6 +70,7 @@ The grey points are included as an illustration of where the offset attraction g
 ### Attribute Example: xThreshold, yThreshold
 ```doenet-editor-horiz
 <graph grid="2 4">
+  <shortDescription>A grid with a draggable point with adjustable attraction thresholds</shortDescription>
   <point>
     <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
   </point>
@@ -82,6 +86,7 @@ close to the $x$ gridlines and $y$ gridlines.
 ### Property Example: Attributes as properties
 ```doenet-editor-horiz
 <graph grid="1 4" size="small">
+  <shortDescription>A grid with a draggable point demonstrating attractToGrid properties</shortDescription>
   <point>
     <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yOffset="1" />
   </point>

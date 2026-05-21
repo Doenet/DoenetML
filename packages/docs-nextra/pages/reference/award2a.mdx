@@ -17,8 +17,9 @@ The following examples illustrate use of the `<award>{:dn}` tag attributes.
 <p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
 then <m>\frac{1}{2}</m>.</em></p>
 
-<p>Question: Simplify <m>\frac{8}{16}</m>
+<p>
 <answer symbolicEquality>
+  <label>Question: Simplify <m>\frac{8}{16}</m></label>
   <award>1/2</award>
   <award credit="0.5">4/8</award>
 </answer>
@@ -35,17 +36,18 @@ smaller value of the `credit` attribute cause the `<award>{:dn}` to give partial
 
 ### Attribute Example: matchPartial
 ```doenet-editor-horiz
-<p>Enter an even number greater than 6:
+<p>
   <answer>
-    <mathInput name="userNumber"/>
+    <mathInput name="userNumber"><label>Enter an even number greater than 6</label></mathInput>
     <award matchPartial>
       <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
     </award>
   </answer>
 </p>
 
-<p>What is <m>(1,2,3)+(4,5,6)</m>? 
+<p>
   <answer>
+    <label>What is <m>(1,2,3)+(4,5,6)</m>?</label>
     <award matchPartial>(5,7,9)</award></answer>
 </p>
 ```
@@ -71,14 +73,16 @@ the partial credit algorithm.
 ### Attribute Example: symbolicEquality
 ```doenet-editor-horiz
 <p>Your responses to these questions must exactly match our answers!</p>
-<p><m>2x + 5x = </m>
+<p>
   <answer>
+    <label><m>2x + 5x = </m></label>
     <award symbolicEquality>7x</award>
   </answer>
 </p>
 
-<p><m>x^2 + 2x^2 + 3x + x</m>
+<p>
   <answer>
+    <label><m>x^2 + 2x^2 + 3x + x</m></label>
     <award symbolicEquality>3x^2 + 4x</award>
   </answer>
 </p> 
@@ -100,23 +104,27 @@ numerical checker), combine `symbolicEquality` with the `simplifyOnCompare` and
 
 ### Attribute Example: symbolicEquality with simplifyOnCompare
 ```doenet-editor-horiz
-<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+<p>
   <answer>
+    <label>Enter anything mathematically equivalent to <m>x^2+2x+1</m></label>
     <award>x^2+2x+1</award>
   </answer></p>
 
-<p>Enter <m>x^2+2x+1</m> exactly: 
+<p>
   <answer>
+    <label>Enter <m>x^2+2x+1</m> exactly</label>
     <award symbolicEquality>x^2+2x+1</award>
   </answer></p>
 
-<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+<p>
   <answer>
+    <label>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored)</label>
     <award symbolicEquality simplifyOnCompare>x^2+2x+1</award>
   </answer></p>
 
-<p>Pick a level of simplification:
+<p>
   <choiceInput name="simpOnComp" inline preselectChoice="1">
+    <label>Pick a level of simplification</label>
     <choice>none</choice>
     <choice>numbersPreserveOrder</choice>
     <choice>normalizeOrder</choice>
@@ -126,8 +134,8 @@ numerical checker), combine `symbolicEquality` with the `simplifyOnCompare` and
 </p>
 
 <p>
-  Enter <m>x^2+2x+1</m>:
   <answer>
+    <label>Enter <m>x^2+2x+1</m></label>
     <award symbolicEquality simplifyOnCompare="$simpOnComp">x^2+2x+1</award>
   </answer></p>
 ```
@@ -156,23 +164,27 @@ Note: if `symbolicEquality` is not specified, `simplifyOnCompare` has no effect.
 
 ### Attribute Example: symbolicEquality with expandOnCompare
 ```doenet-editor-horiz
-<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+<p>
   <answer>
+    <label>Enter anything mathematically equivalent to <m>x^2+2x+1</m></label>
     <award>x^2+2x+1</award>
   </answer></p>
 
-<p>Enter <m>x^2+2x+1</m> exactly: 
+<p>
   <answer>
+    <label>Enter <m>x^2+2x+1</m> exactly</label>
     <award symbolicEquality>x^2+2x+1</award>
   </answer></p>
 
-<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+<p>
   <answer>
+    <label>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored)</label>
     <award symbolicEquality simplifyOnCompare>x^2+2x+1</award>
   </answer></p>
 
-<p>Enter <m>x^2+2x+1</m> in factored or unfactored form: 
+<p>
   <answer>
+    <label>Enter <m>x^2+2x+1</m> in factored or unfactored form</label>
     <award symbolicEquality simplifyOnCompare expandOnCompare>x^2+2x+1</award>
   </answer></p>
 ```
@@ -191,20 +203,29 @@ Note: if `symbolicEquality` is not specified, `expandOnCompare` has no effect.
 
 ### Attribute Example: unorderedCompare and unordered
 ```doenet-editor-horiz
-<p>Enter <m>1,2,3,4,5</m> :
-  <answer><award>
-    <mathList>1 2 3 4 5</mathList>
-  </award></answer></p>
+<p>
+  <answer>
+    <label>Enter <m>1,2,3,4,5</m></label>
+    <award>
+      <mathList>1 2 3 4 5</mathList>
+    </award>
+  </answer></p>
 
-<p>Now enter <m>1,2,3,4,5</m>, but scramble the order up :
-  <answer><award unorderedCompare>
-    <mathList>1 2 3 4 5</mathList>
-  </award></answer></p>
+<p>
+  <answer>
+    <label>Now enter <m>1,2,3,4,5</m>, but scramble the order up</label>
+    <award unorderedCompare>
+      <mathList>1 2 3 4 5</mathList>
+    </award>
+  </answer></p>
 
-<p>Again, enter <m>1,2,3,4,5</m>, but scramble the order up :
-  <answer><award>
-    <mathList unordered>1 2 3 4 5</mathList>
-  </award></answer></p>
+<p>
+  <answer>
+    <label>Again, enter <m>1,2,3,4,5</m>, but scramble the order up</label>
+    <award>
+      <mathList unordered>1 2 3 4 5</mathList>
+    </award>
+  </answer></p>
 ```
 
 
