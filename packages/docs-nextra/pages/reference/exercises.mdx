@@ -26,15 +26,15 @@ for [`<problems>{:dn}`](problems) and behaves the same way.
   <title>Section exercises</title>
 
   <exercise>
-    <p>Compute <m>\int_0^1 x \, dx</m>. <answer>1/2</answer></p>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
   </exercise>
 
   <exercise>
-    <p>Compute <m>\int_0^1 x^2 \, dx</m>. <answer>1/3</answer></p>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
   </exercise>
 
   <exercise>
-    <p>Compute <m>\int_0^1 x^3 \, dx</m>. <answer>1/4</answer></p>
+    <p><answer><label>Compute <m>\int_0^1 x^3 \, dx</m></label>1/4</answer></p>
   </exercise>
 </exercises>
 ```
@@ -53,8 +53,12 @@ section is rendered as a numbered list item.
 
 ```doenet-editor-horiz
 <exercises>
-  <exercise><p><answer>1</answer></p></exercise>
-  <exercise><p><answer>2</answer></p></exercise>
+  <exercise>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
+  </exercise>
+  <exercise>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
+  </exercise>
 </exercises>
 ```
 
@@ -75,10 +79,10 @@ When `<exercises>{:dn}` has no `<title>{:dn}`, an auto-generated title
   <title>Exercises without list rendering</title>
 
   <exercise><title>Exercise 1</title>
-    <p><answer>1</answer></p>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
   </exercise>
   <exercise><title>Exercise 2</title>
-    <p><answer>2</answer></p>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
   </exercise>
 </exercises>
 ```
@@ -102,7 +106,14 @@ sectional blocks rather than as list items.
 
 <exercises hide="$hideExercises">
   <title>Practice</title>
-  <exercise><p>Type "sassafras": <answer type="text">sassafras</answer></p></exercise>
+  <exercise>
+    <p>
+      <answer type="text">
+        <label>Type "sassafras"</label>
+        sassafras
+      </answer>
+    </p>
+  </exercise>
 </exercises>
 ```
 

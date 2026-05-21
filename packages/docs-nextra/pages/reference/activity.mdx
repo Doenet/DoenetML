@@ -23,13 +23,21 @@ by default.
 
 ```doenet-editor-horiz
 <activity>
-  <p>Estimate the number of jelly beans in the jar.</p>
-  <p><answer>1000</answer></p>
+  <p>
+    <answer>
+      <label>Estimate the number of jelly beans in the jar.</label>
+      1000
+    </answer>
+  </p>
 </activity>
 
 <activity>
-  <p>Estimate the weight of the jar (in grams).</p>
-  <p><answer>500</answer></p>
+  <p>
+    <answer>
+      <label>Estimate the weight of the jar (in grams).</label>
+      500
+    </answer>
+  </p>
 </activity>
 ```
 
@@ -49,8 +57,12 @@ the same sectional counter as its siblings.
 ```doenet-editor-horiz
 <activity>
   <title>Coin flip</title>
-  <p>How many heads do you expect in 10 fair coin flips?</p>
-  <p><answer>5</answer></p>
+  <p>
+    <answer>
+      <label>How many heads do you expect in 10 fair coin flips?</label>
+      5
+    </answer>
+  </p>
 </activity>
 ```
 
@@ -69,9 +81,9 @@ A custom `<activity>{:dn}` title is provided by nesting a
 ```doenet-example
 <activity sectionWideCheckWork>
   <title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </activity>
 ```
 
@@ -91,7 +103,12 @@ The `sectionWideCheckWork` attribute combines validation for all
 ```doenet-example
 <activity boxed>
   <title>Boxed activity</title>
-  <p>Type "sassafras": <answer type="text">sassafras</answer></p>
+  <p>
+    <answer type="text">
+      <label>Type "sassafras"</label>
+      sassafras
+    </answer>
+  </p>
 </activity>
 ```
 
@@ -114,7 +131,12 @@ a shaded title banner.
 
 <activity hide="$hideActivity">
   <title>Now you see me...</title>
-  <p>Type "sassafras": <answer type="text">sassafras</answer></p>
+  <p>
+    <answer type="text">
+      <label>Type "sassafras"</label>
+      sassafras
+    </answer>
+  </p>
 </activity>
 ```
 

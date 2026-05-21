@@ -26,15 +26,15 @@ sectional components as a numbered list. It behaves like
   <title>Practice problems</title>
 
   <problem>
-    <p>What is <m>2 + 2</m>? <answer>4</answer></p>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
   </problem>
 
   <problem>
-    <p>What is <m>3 \times 5</m>? <answer>15</answer></p>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
   </problem>
 
   <problem>
-    <p>What is <m>12 - 7</m>? <answer>5</answer></p>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
   </problem>
 </problems>
 ```
@@ -53,8 +53,12 @@ section is rendered as a numbered list item.
 
 ```doenet-editor-horiz
 <problems>
-  <problem><p><answer>1</answer></p></problem>
-  <problem><p><answer>2</answer></p></problem>
+  <problem>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
+  </problem>
+  <problem>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
+  </problem>
 </problems>
 ```
 
@@ -75,10 +79,10 @@ When `<problems>{:dn}` has no `<title>{:dn}`, an auto-generated title
   <title>Problems without list rendering</title>
 
   <problem><title>Problem 1</title>
-    <p><answer>1</answer></p>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
   </problem>
   <problem><title>Problem 2</title>
-    <p><answer>2</answer></p>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
   </problem>
 </problems>
 ```
@@ -102,7 +106,14 @@ sectional blocks rather than as list items.
 
 <problems hide="$hideProblems">
   <title>Problem set</title>
-  <problem><p>Type "sassafras": <answer type="text">sassafras</answer></p></problem>
+  <problem>
+    <p>
+      <answer type="text">
+        <label>Type "sassafras"</label>
+        sassafras
+      </answer>
+    </p>
+  </problem>
 </problems>
 ```
 
