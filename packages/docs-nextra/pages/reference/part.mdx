@@ -1,0 +1,124 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<part>{:dn}`
+
+
+`<part>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders one piece of a multi-part exercise or problem.
+Each `<part>{:dn}` inside a parent section is rendered as a numbered
+list item, with the part number drawn from the sectional counter.
+[`<task>{:dn}`](task) is an alias for `<part>{:dn}`.
+
+
+<AttrPropDisplay name='part'/>
+
+
+---
+
+### Example: multi-part exercise
+
+
+```doenet-editor-horiz
+<exercise>
+  <title>Vector arithmetic</title>
+  <introduction>
+    <p>Let <m>\vec{u} = (1,2)</m> and <m>\vec{v} = (-3, 4)</m>.</p>
+  </introduction>
+
+  <part>
+    <p><answer><label>Compute <m>\vec{u} + \vec{v}</m></label>(-2,6)</answer></p>
+  </part>
+  <part>
+    <p><answer><label>Compute <m>2\vec{u} - \vec{v}</m></label>(5,0)</answer></p>
+  </part>
+  <part>
+    <p><answer><label>Compute <m>\vec{u} \cdot \vec{v}</m></label>5</answer></p>
+  </part>
+</exercise>
+```
+
+
+
+Each `<part>{:dn}` is rendered as a list item with an auto-generated
+number. The parent [`<introduction>{:dn}`](introduction) introduces the
+shared context for the parts.
+
+
+
+---
+
+### Example: `<part>{:dn}` with a title
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Multi-step problem</title>
+
+  <part><title>Setup</title>
+    <p>Define the relevant variables.</p>
+  </part>
+  <part><title>Compute</title>
+    <p><answer><label>Carry out the calculation.</label>42</answer></p>
+  </part>
+  <part><title>Interpret</title>
+    <p>What does your answer mean?</p>
+  </part>
+</problem>
+```
+
+
+
+A `<part>{:dn}` can carry a `<title>{:dn}` like other sectional
+components.
+
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<exercise><title>Two-part exercise</title>
+  <part boxed>
+    <p><answer><label>Boxed part. Enter <m>1</m></label>1</answer></p>
+  </part>
+  <part boxed>
+    <p><answer><label>Another boxed part. Enter <m>2</m></label>2</answer></p>
+  </part>
+</exercise>
+```
+
+
+
+The `boxed` attribute changes the default formatting of an individual
+`<part>{:dn}` to a border with a shaded title banner.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hidePart">
+  <label>Hide part (b)</label>
+</booleanInput>
+
+<exercise>
+  <part>
+    <p>Part (a) is always visible.</p>
+  </part>
+  <part hide="$hidePart">
+    <p>Part (b) is conditionally hidden.</p>
+  </part>
+</exercise>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

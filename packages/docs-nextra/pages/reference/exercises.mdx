@@ -1,0 +1,186 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<exercises>{:dn}`
+
+
+`<exercises>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that groups a collection of [`<exercise>{:dn}`](exercise)
+(or [`<problem>{:dn}`](problem)) components and, by default, renders
+them as a numbered list. It is an alias for
+[`<problems>{:dn}`](problems) and behaves the same way:
+`<exercises>{:dn}` sets `asList` to `true` by default, which means
+that only the title child, sectional children, an
+[`<introduction>{:dn}`](introduction), and a
+[`<conclusion>{:dn}`](conclusion) are rendered. Any other content
+nested inside `<exercises>{:dn}` — including plain text and `<p>{:dn}`
+components — is silently dropped. To frame the list with prose, wrap
+that prose in an [`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion).
+
+
+<AttrPropDisplay name='exercises'/>
+
+
+---
+
+### Example: `<exercises>{:dn}` rendering its children as a list
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Section exercises</title>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^3 \, dx</m></label>1/4</answer></p>
+  </exercise>
+</exercises>
+```
+
+
+
+Each nested `<exercise>{:dn}` is rendered as a numbered list item.
+
+
+
+---
+
+### Example: framing the list with `<introduction>{:dn}` and `<conclusion>{:dn}`
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Basic integration</title>
+
+  <introduction>
+    <p>Evaluate each of the following definite integrals.
+       Enter exact (non-decimal) answers.</p>
+  </introduction>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^3 \, dx</m></label>1/4</answer></p>
+  </exercise>
+
+  <conclusion>
+    <p>Bonus: do you see the pattern in your three answers?</p>
+  </conclusion>
+</exercises>
+```
+
+
+
+Because `asList` is `true`, the only ways to surround the list with
+prose are an [`<introduction>{:dn}`](introduction) (before the list)
+and a [`<conclusion>{:dn}`](conclusion) (after it). Both are passed
+through unchanged; the contained `<exercise>{:dn}` items are still
+rendered as numbered list items.
+
+
+
+---
+
+### Example: ignored content when `asList` is `true`
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Two integrals</title>
+
+  Solve each problem.
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
+  </exercise>
+
+  <p>The next problem uses the same method.</p>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
+  </exercise>
+</exercises>
+```
+
+
+
+Both the bare string and the `<p>{:dn}` are ignored because they are
+neither sectional components nor an
+[`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion). Only the two `<exercise>{:dn}`s
+render. Wrap such prose in an `<introduction>{:dn}` or
+`<conclusion>{:dn}` to make it visible.
+
+
+
+---
+
+### Attribute Example: asList
+
+
+```doenet-example
+<exercises asList="false">
+  <title>Exercises without list rendering</title>
+
+  <p>With asList disabled, this paragraph also renders.</p>
+
+  <exercise><title>Exercise 1</title>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
+  </exercise>
+  <exercise><title>Exercise 2</title>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
+  </exercise>
+</exercises>
+```
+
+
+
+Set `asList="false"` to render the contained exercises as ordinary
+sectional blocks rather than as list items. With list rendering
+turned off, sibling prose (and any other children) renders normally
+alongside the exercises.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideExercises">
+  <label>Hide the exercise set</label>
+</booleanInput>
+
+<exercises hide="$hideExercises">
+  <title>Practice</title>
+  <exercise>
+    <p>
+      <answer type="text">
+        <label>Type "sassafras"</label>
+        sassafras
+      </answer>
+    </p>
+  </exercise>
+</exercises>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

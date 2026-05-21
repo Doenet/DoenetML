@@ -1,0 +1,90 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<statement>{:dn}`
+
+
+`<statement>{:dn}` is a block container for the statement of a
+problem, theorem, or similar piece of content. It groups content
+without adding a heading, numbering, or any other visible chrome.
+A common pattern is to use it inside a [`<problem>{:dn}`](problem),
+[`<exercise>{:dn}`](exercise), [`<theorem>{:dn}`](theorem), or
+[`<definition>{:dn}`](definition) to label the declarative portion
+of the content, separate from any solution, proof, or discussion.
+
+
+<AttrPropDisplay name='statement'/>
+
+
+---
+
+### Example: `<statement>{:dn}` within a `<problem>{:dn}`
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Sum of consecutive integers</title>
+  <statement>
+    <p>What is the sum of the integers from <m>1</m> to <m>100</m>?</p>
+  </statement>
+  <p>
+    <answer>
+      <label>Enter the sum</label>
+      5050
+    </answer>
+  </p>
+</problem>
+```
+
+
+
+Inside a `<problem>{:dn}` or `<exercise>{:dn}`, `<statement>{:dn}`
+marks the prose of the problem itself, separating it from the
+answer-checking machinery (or from any nested solution or hint).
+
+
+
+---
+
+### Example: `<statement>{:dn}` within a `<theorem>{:dn}`
+
+
+```doenet-editor-horiz
+<theorem>
+  <statement>
+    <p>If <m>a</m> and <m>b</m> are positive real numbers, then 
+      <m>a + b \ge 2\sqrt{ab}</m>.</p>
+  </statement>
+  <proof>
+    <p>Expand <m>(\sqrt{a} - \sqrt{b})^2 \ge 0</m> and rearrange.</p>
+  </proof>
+</theorem>
+```
+
+
+
+The `<statement>{:dn}` itself adds no visible formatting; it simply
+groups the declarative content so that surrounding components (and
+authoring tools) can locate it.
+
+
+
+---
+
+### Example: `<statement>{:dn}` as a named, referenceable container
+
+
+```doenet-editor-horiz
+<statement name="claim">
+  <p>The sum of two even numbers is even.</p>
+</statement>
+
+Restated: $claim
+```
+
+
+
+A `<statement>{:dn}` can be named and referenced like any other
+block container.

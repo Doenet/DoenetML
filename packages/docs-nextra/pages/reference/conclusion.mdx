@@ -1,0 +1,132 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<conclusion>{:dn}`
+
+
+`<conclusion>{:dn}` is a block container for the concluding content
+of a section. It groups content without adding a heading, numbering,
+or any other visible chrome. Its primary use is inside a sectional
+component whose `asList` attribute is `true` — most commonly
+[`<problems>{:dn}`](problems) or [`<exercises>{:dn}`](exercises) —
+because in that case ordinary prose children are silently dropped,
+and a `<conclusion>{:dn}` is one of the few non-sectional children
+that still renders.
+
+
+<AttrPropDisplay name='conclusion'/>
+
+
+---
+
+### Example: `<conclusion>{:dn}` at the end of a `<problems>{:dn}` list
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Warm-up arithmetic</title>
+
+  <introduction>
+    <p>Compute each of the following.
+       Enter exact (non-decimal) answers.</p>
+  </introduction>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+
+  <conclusion>
+    <p>Submit your answers when finished.</p>
+  </conclusion>
+</problems>
+```
+
+
+
+The `<conclusion>{:dn}` renders after the numbered list of
+`<problem>{:dn}`s. The same pattern works inside
+[`<exercises>{:dn}`](exercises) and any other sectional component
+with `asList="true"`.
+
+
+
+---
+
+### Example: closing prose that needs to be wrapped
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Two integrals</title>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
+  </exercise>
+
+  Submit your answers when finished. (This sentence is dropped.)
+</exercises>
+```
+
+
+
+The bare-string closing line above is dropped because
+`<exercises>{:dn}` has `asList="true"` by default. Wrap it in a
+`<conclusion>{:dn}` to make it visible:
+
+
+```doenet-editor-horiz
+<exercises>
+  <title>Two integrals</title>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x \, dx</m></label>1/2</answer></p>
+  </exercise>
+
+  <exercise>
+    <p><answer><label>Compute <m>\int_0^1 x^2 \, dx</m></label>1/3</answer></p>
+  </exercise>
+
+  <conclusion>
+    <p>Submit your answers when finished.</p>
+  </conclusion>
+</exercises>
+```
+
+
+
+---
+
+### Example: `<conclusion>{:dn}` as a named, referenceable container
+
+
+```doenet-editor-horiz
+<problems>
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+  <conclusion name="instr">
+    <p>Submit your answers when finished.</p>
+  </conclusion>
+</problems>
+
+Restated: $instr
+```
+
+
+
+Like any block container, a `<conclusion>{:dn}` can be named and
+referenced elsewhere in the document.

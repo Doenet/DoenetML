@@ -70,7 +70,8 @@ export class Statement extends Div {
     static componentType = "statement";
 
     static componentDocs = {
-        summary: "A theorem-like statement block.",
+        summary:
+            "A block container for the statement of a problem, theorem, or similar.",
     };
 }
 
@@ -78,7 +79,7 @@ export class Introduction extends Div {
     static componentType = "introduction";
 
     static componentDocs = {
-        summary: "An introductory block displayed at the start of a section.",
+        summary: "A block container for the introduction of a section.",
     };
 }
 
@@ -86,7 +87,7 @@ export class Conclusion extends Div {
     static componentType = "conclusion";
 
     static componentDocs = {
-        summary: "A concluding block displayed at the end of a section.",
+        summary: "A block container for the conclusion of a section.",
     };
 }
 

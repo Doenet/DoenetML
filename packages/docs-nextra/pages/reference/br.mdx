@@ -1,0 +1,46 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<br>{:dn}`
+
+
+`<br>{:dn}` is an inline component that forces a line break in the
+surrounding text, without starting a new paragraph.
+
+
+<AttrPropDisplay name='br'/>
+
+
+---
+
+### Example: line break inside a `<p>{:dn}`
+
+
+```doenet-editor-horiz
+<p>First line<br/>second line<br/>third line</p>
+```
+
+
+
+A `<br/>{:dn}` self-closing tag inserts a single line break wherever it appears.
+
+
+
+---
+
+### Example: `<br>{:dn}` vs. separate `<p>{:dn}` components
+
+
+```doenet-editor-horiz
+<p>Above the break<br/>below the break</p>
+
+<p>First paragraph</p>
+<p>Second paragraph</p>
+```
+
+
+
+Use `<br/>{:dn}` to break a line within a paragraph; use separate
+`<p>{:dn}` components to start a new paragraph with paragraph spacing.

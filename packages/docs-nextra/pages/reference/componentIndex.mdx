@@ -6,7 +6,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | Component                                                                                | Description                                                                           |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [`<abs>`](abs.mdx)                 | absolute value                                                                        |
-| `<activity>`                        | a sectional component with auto-numbering and auto-title, see [`<exercise>`](exercise) for similar examples              |
+| [`<activity>`](activity)                        | sectional component with score aggregation, similar to `<problem>`                  |
 | [`<alert>`](alert.mdx)               | bold text                                                                             |
 | [`<and>`](and.mdx)                 | functions as the boolean operator `and` or `&`                                            |
 | [`<angle>`](angle.mdx)               | angle graphical component                                                             |
@@ -24,9 +24,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [`<bestFitLine>`](bestFitLine.mdx)    | computes a linear regression on a set of points, renders a line when nested inside a `<graph>` |
 | [`<bezierControls>`](bezierControls.mdx) | container element for control vectors of a spline curve                                        |
+| [`<blockQuote>`](blockQuote)        | block-level quotation                                                                          |
 | [`<boolean>`](boolean.mdx)        | renders the boolean true or false value of the enclosed expression                             |
 | [`<booleanInput>`](booleanInput.mdx)   | renders a checkbox                                                                             |
 | [`<booleanList>`](booleanList.mdx)    | list of `<boolean>` values separated by commas                                                 |
+| [`<br/>`](br)        | line break within a paragraph                                                                  |
 
 ## C
 | Component                                                                                | Description                                                                                                     |
@@ -47,7 +49,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | `<codeEditor>`                                                                           | renders an embedded doenetML code editor                                                                        |
 | [`<collect />`](collect.mdx)           | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list  |
 | `<column>`                                       | container element for a column of cells in a `<spreadsheet>`                                                    |
-| `<conclusion>`                                   | container element included for PreTeXt compatibility                                               |
+| [`<conclusion>`](conclusion)                                   | block container for the conclusion of a section                                                 |
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                 |
 | [`<considerAsResponses>`](considerAsResponses.mdx) | specifies components involved in response data collection when the component occurs outside an `<answer>` block |
 | [`<constrainTo>`](constrainTo)         | constrain a `<point>` to a named component                                                                      |
@@ -64,7 +66,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 ## D
 | Component                                                                       | Description                                                             |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `<definition>`                                 |     container element included for PreTeXt compatibility                                                 |
+| [`<definition>`](definition)                                 |     sectional component for defining a term or concept                                                  |
 | [`<derivative>`](derivative) | renders or graphs the derivative of basic elementary functions          |
 | `<discreteSimulationResultList>`               |                                                                         |
 | `<discreteSimulationResultPolyline>`           |                                                                         |
@@ -84,9 +86,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<equilibriumLine>`](equilibriumLine)                                           | line of equilibria of a dynamical system, rendered solid if stable or dashed if unstable         |
 | [`<equilibriumPoint>`](equilibriumPoint)                                         | equilibrium point of a dynamical system, rendered filled if stable or open if unstable           |
 | [`<evaluate/>`](evaluate)    | evaluate a function                                                                             |
-| [`<example>`](example)     | sectional component with default numbering that defines an example                              |
-| [`<exercise>`](exercise)    | sectional component with default numbering that defines an exercise                             |
-| `<exercises>`               | a container element for multiple `<exercise>` components                                        |
+| [`<example>`](example)     | sectional component that defines an example                                                     |
+| [`<exercise>`](exercise)    | sectional component that defines a scored exercise                                              |
+| [`<exercises>`](exercises)               | a container element grouping `<exercise>` components, rendered as a list by default              |
 | [`<extractMath>`](extractMath) | extract data (such as number of operands, or individual operands) from mathematical expressions |
 
 
@@ -108,11 +110,12 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [`<hasSameFactoring>`](hasSameFactoring) | check to see if two expressions are factored in the same way                      |
 | [`<hint>`](hint)             | hidden content triggered by clicking on a banner or by specific user interactions |
+| [`<hr/>`](hr)             | horizontal rule separating block-level content                                     |
 | [`<image />`](image)          | inserts an image                                                                  |
 | [`<intComma>`](intComma)         | inserts commas into a large integer when rendering                                |
 | [`<integer>`](integer)          | defines an integer                                                                |
 | [`<intersection>`](intersection)     | render intersections between graphical objects                                    |
-| `<introduction>`                     | container element included for PreTeXt compatibility                  |
+| [`<introduction>`](introduction)                     | block container for the introduction of a section                                  |
 | `<ionicCompound>`                                                                     |                                                                                   |
 | [`<isBetween>`](isBetween)        | returns whether a value is within a specified interval                            |
 | [`<isInteger>`](isInteger)        | returns whether a value is an integer                                             |
@@ -159,7 +162,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | `<note>`                          | container element included for PreTeXt compatibility                       |
 | [`<number>`](number)              | calculates a floating point value from its contents                       |
 | [`<numberList>`](numberList)          | defines a list of `<number>` components                                      |
-| `<objectives>`                        | container element included for PreTeXt compatibility                |
+| [`<objectives>`](objectives)                        | sectional component listing learning objectives, boxed by default            |
 | [`<odesystem>`](odeSystem)           | computes a numerical solution to a system of ordinary differential equations |
 | [`<ol>`](ol.mdx)                  | ordered list                                                                 |
 | [`<option>`](option)              | specifies selection items within a `<select>` block                          |
@@ -174,7 +177,8 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<paginator>`](paginator)                                                             | define a paginated section of content within a larger `<document>`           |
 | [`<paginatorControls />`](paginatorControls)                                           | render navigation buttons for progression through content in a `<paginator>` |
 | [`<parabola>`](parabola)          | parabola Graphical Component                                                 |
-| `<paragraphs>`                                                                         | a container element for `<p>` components                                     |
+| [`<paragraphs>`](paragraphs)                                                                         | sectional component grouping `<p>` components, rendered at heading level 4   |
+| [`<part>`](part)                                                                         | one piece of a multi-part exercise or problem, rendered as a numbered list item |
 | `<pegboard>`                                                                           | a Graphical Component that renders dots at grid intersections                |
 | `<periodicSet />`                                                                      | a set of numbers defined by their periodicity                                |
 | [`<piecewiseFunction>`](piecewiseFunction) | define piecewise functions for graphing and evaluation                       |
@@ -185,10 +189,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<polyline/>`](polyline)         | polyline Graphical Component                                                 |
 | [`<pre>`](pre)               | preserves verbatim text; renders text as input into the editor               |
 | [`<pretzel>`](pretzel)           | response-matching component where students enter a sequence to match statements and answers |
-| [`<problem>`](problem)           | sectional component with default numbering that defines a problem            |
-| `<problems>`                                                                           | a container element for `<problem>` components                               |
+| [`<problem>`](problem)           | sectional component that defines a scored problem                            |
+| [`<problems>`](problems)                                                                           | a container element grouping `<problem>` components, rendered as a list by default |
 | [`<product>`](product)           | renders the product of its arguments                                         |
-| [`<proof>`](proof)             | sectional component designated as a proof                                    |
+| [`<proof>`](proof)             | a proof section (often paired with a `<theorem>`)                            |
 ## Q-R
 | Component                                                                                    | Description                                                                                       |
 | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -215,7 +219,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<samplePrimeNumbers/>`](samplePrimeNumbers)  | generates randomly sampled prime numbers within a specified range                            |
 | [`<sampleRandomNumbers/>`](sampleRandomNumbers) | generates randomly sampled numbers from a specified distribution                             |
 | [`<sbsGroup>`](sbsGroup)             | a container element for `<sideBySide>` components                                            |
-| [`<section>`](section)              | sectional component that renders an auto-numbered block of content                           |
+| [`<section>`](section)              | sectional component that renders a titled block of content                                   |
 | [`<select>`](select)               | select values from a list or set of `<option>`s to create document variants                  |
 | [`<selectFromSequence>`](selectFromSequence)   | generates immutable random values within a predefined range to create document variants      |
 | [`<selectPrimeNumbers/>`](selectPrimeNumbers)  | generates immutable random prime numbers to create document variants                         |
@@ -229,14 +233,16 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<slider>`](slider)               | renders a sliding bar for interactively adjusting values                                     |
 | [`<solution>`](solution.mdx)             | expandable block component which displays a problem solution                                 |
 | [`<sort>`](sort.mdx)                 | sort components based on their values in numerical or alphabetical order                     |
+| [`<span>`](span)                | generic inline container (inline counterpart to `<div>`)                                     |
 | [`<split>`](split.mdx)                | splits multi-digit numbers or text strings into individual characters                        |
 | [`<spreadsheet>`](spreadsheet.mdx)          | renders a basic spreadsheet tool                                                             |
 | [`<sq>`](sq)                   | renders the enclosed text in single quotation marks                                          |
 | [`<stack>`](stack)                | vertical container element for organizing content within a `<sideBySide>`                    |
 | [`<standardDeviation>`](standardDeviation)    | renders the standard deviation of its arguments                                              |
-| `<statement>`           | container element included for PreTeXt compatibility                             |
+| [`<statement>`](statement)           | block container for the statement of a problem, theorem, or similar                            |
 | [`<styleDefinition>`](styleDefinition.mdx)      | defines custom styling for graphical elements outside the default styleNumbers (1-6)         |
-| `<subsection>`           | container element included for PreTeXt compatibility                             |
+| [`<subsection>`](subsection)           | sectional component nested one heading level deeper than `<section>`                          |
+| [`<subsubsection>`](subsubsection)           | sectional component nested one heading level deeper than `<subsection>`                       |
 | [`<subsetOfReals>`](subsetOfReals.mdx)        | defines an interval or a subset on the number line                                           |
 | [`<substitute>`](substitute.mdx)           | replace a math, character or string with a user-specified alternative                        |
 | [`<sum>`](sum)                  | renders the sum of its arguments                                                             |
@@ -250,11 +256,12 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<tag>`](tag)              | render enclosed text within a pair of tags, `< >` `< />`                                            |
 | `<tagc>`                                                                         |                                                                                                     |
 | `<tage>`                    | render enclosed text within a self-closing tag, `< />`                                              |
+| [`<task>`](task)              | one task of a multi-task activity or problem (alias for `<part>`)                                    |
 | [`<term>`](term)            | emphasized styling associated with a defined vocabulary word                                        |
 | [`<text>`](text)            | a stored text value, or string                                                                      |
 | [`<textInput/>`](textInput) | renders an input field for text responses                                                           |
 | [`<textList>`](textList)    | list of `<text>` values separated by commas                                                         |
-| `<theorem>`                 | container element included for PreTeXt compatibility                                            |
+| [`<theorem>`](theorem)                 | sectional component for the statement of a theorem (or similar formal statement)                  |
 | [`<title>`](title)          | creates a title within a document, section, or other block component                                |
 | `<topic>`                   | container element included for PreTeXt compatibility                                         |
 | [`<triangle>`](triangle)    | triangle Graphical Component                                                                        |

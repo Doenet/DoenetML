@@ -1,0 +1,144 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<theorem>{:dn}`
+
+
+`<theorem>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a block of content presenting a theorem (or
+analogous formal statement). It behaves like
+[`<example>{:dn}`](example) — it accepts a custom `<title>{:dn}` or
+falls back to an auto-generated name and number — but carries the
+semantic meaning "theorem". A nested [`<statement>{:dn}`](statement)
+and [`<proof>{:dn}`](proof) are often used to structure the content.
+
+
+<AttrPropDisplay name='theorem'/>
+
+
+---
+
+### Example: `<theorem>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<theorem>
+  <statement>
+    <p>If <m>n</m> is an integer, then <m>n^2</m> has the same parity as <m>n</m>.</p>
+  </statement>
+  <proof>
+    <p>Write <m>n = 2k</m> or <m>n = 2k+1</m> and square.</p>
+  </proof>
+</theorem>
+
+<theorem>
+  <statement>
+    <p>The sum of two even integers is even.</p>
+  </statement>
+</theorem>
+```
+
+
+
+When `<theorem>{:dn}` has no `<title>{:dn}`, an auto-generated title
+(e.g. `Theorem 1`) is rendered. Each `<theorem>{:dn}` is counted on
+the same sectional counter as its siblings.
+
+
+
+---
+
+### Example: `<theorem>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<theorem>
+  <title>Pythagorean theorem</title>
+  <statement>
+    <p>In a right triangle with legs of length <m>a</m> and <m>b</m> and
+       hypotenuse of length <m>c</m>, we have <m>a^2 + b^2 = c^2</m>.</p>
+  </statement>
+</theorem>
+```
+
+
+
+A custom `<theorem>{:dn}` title is provided by nesting a
+`<title>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<theorem boxed>
+  <title>Mean value theorem</title>
+  <statement>
+    <p>If <m>f</m> is continuous on <m>[a,b]</m> and differentiable on 
+      <m>(a,b)</m>, then there exists <m>c \in (a,b)</m> with 
+      <m>f'(c) = (f(b)-f(a))/(b-a)</m>.</p>
+  </statement>
+</theorem>
+```
+
+
+
+The `boxed` attribute changes the default formatting to a border with
+a shaded title banner.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+<theorem>
+  <title>Pythagorean theorem</title>
+  <statement>
+    <p><m>a^2 + b^2 = c^2</m>.</p>
+  </statement>
+</theorem>
+
+<theorem includeAutoNumber>
+  <title>Pythagorean theorem</title>
+  <statement>
+    <p><m>a^2 + b^2 = c^2</m>.</p>
+  </statement>
+</theorem>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default. Set it to
+`true` to render the theorem number in addition to a custom title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideThm">
+  <label>Click here to hide the theorem</label>
+</booleanInput>
+
+<theorem hide="$hideThm">
+  <title>Now you see me...</title>
+  <statement>
+    <p>An important theorem.</p>
+  </statement>
+</theorem>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

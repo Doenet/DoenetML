@@ -1,0 +1,177 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<subsection>{:dn}`
+
+
+`<subsection>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a section at a heading level one deeper than
+`<section>{:dn}`. It behaves like [`<section>{:dn}`](section) — it
+accepts a custom `<title>{:dn}` or falls back to an auto-generated
+name and number — and is typically used inside a `<section>{:dn}`.
+
+A `<subsection>{:dn}` is equivalent to nesting a `<section>{:dn}`
+inside another `<section>{:dn}`: a `<section>{:dn}`'s heading level
+is determined by how deeply it is nested, so the second level can
+always be written as either `<subsection>{:dn}` or a nested
+`<section>{:dn}`. Use whichever form makes the intent clearer.
+
+
+<AttrPropDisplay name='subsection'/>
+
+
+---
+
+### Example: `<subsection>{:dn}` inside a `<section>{:dn}`
+
+
+```doenet-editor-horiz
+<section>
+  <title>Main topic</title>
+  <p><lorem generateSentences="1"/></p>
+
+  <subsection>
+    <title>First idea</title>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+
+  <subsection>
+    <title>Second idea</title>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+</section>
+```
+
+
+
+Each `<subsection>{:dn}` is rendered at a deeper heading level than
+its containing `<section>{:dn}` and is counted on the same sectional
+counter as other subsections at that level.
+
+
+
+---
+
+### Example: `<subsection>{:dn}` with default (auto-generated) title
+
+
+```doenet-editor-horiz
+<section>
+  <title>Main topic</title>
+
+  <subsection>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+
+  <subsection>
+    <p><lorem generateSentences="2"/></p>
+  </subsection>
+</section>
+```
+
+
+
+When a `<subsection>{:dn}` has no `<title>{:dn}`, an auto-generated
+title (e.g. `Section 1.1`) is rendered. By default, the parent
+section's number is included as a prefix.
+
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-example
+<section boxed>
+  <subsection>
+    <p>Default subsection number includes the parent section number.</p>
+  </subsection>
+</section>
+
+<section boxed>
+  <subsection includeParentNumber="false">
+    <p>The parent section number has been suppressed.</p>
+  </subsection>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `true` by default for
+`<subsection>{:dn}` (matching `<section>{:dn}`). Set it to `false` to
+display the subsection number without the parent section number
+preceding it.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+<section boxed>
+  <subsection><title>Custom title</title>
+    <p>The custom title overrides the default numbering.</p>
+  </subsection>
+
+  <subsection includeAutoNumber="true"><title>Special title</title>
+    <p>The number is still rendered in addition to the custom title.</p>
+  </subsection>
+</section>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default. This means
+that if a subsection contains a nested `<title>{:dn}`, the default
+numbering is not rendered (although it is still counted behind the
+scenes). Set `includeAutoNumber="true"` to display both the number and
+the custom title.
+
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<section><title>Outer section</title>
+  <subsection boxed><title>Boxed subsection</title>
+    <p><lorem generateWords="10"/></p>
+  </subsection>
+</section>
+```
+
+
+
+The `boxed` attribute changes the default formatting to a border with
+a shaded title banner.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideSub">
+  <label>Click here to hide the subsection</label>
+</booleanInput>
+
+<section>
+  <title>Outer section</title>
+  <subsection hide="$hideSub"><title>Now you see me...</title>
+    <p><lorem generateWords="10"/></p>
+  </subsection>
+</section>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

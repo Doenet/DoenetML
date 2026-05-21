@@ -8,7 +8,8 @@ export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
 
     static componentDocs = {
-        summary: "A numbered section of a document, with title and content.",
+        summary:
+            "A section of a document, with a title (auto-generated or custom) and content.",
     };
     static rendererType = "section";
 
@@ -29,7 +30,8 @@ export class Subsection extends Section {
     static componentType = "subsection";
 
     static componentDocs = {
-        summary: "A numbered subsection, nested within a section.",
+        summary:
+            "A subsection, typically nested within a section (rendered at a deeper heading level).",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -45,7 +47,8 @@ export class Subsubsection extends Section {
     static componentType = "subsubsection";
 
     static componentDocs = {
-        summary: "A numbered subsubsection, nested within a subsection.",
+        summary:
+            "A subsubsection, typically nested within a subsection (rendered at one more heading level deeper than a subsection).",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -62,8 +65,7 @@ export class Paragraphs extends SectioningComponentNumberWithSiblings {
     static componentType = "paragraphs";
 
     static componentDocs = {
-        summary:
-            "A numbered subsection of paragraphs (rendered at heading level 4).",
+        summary: "A subsection of paragraphs (rendered at heading level 4).",
     };
     static rendererType = "section";
 
@@ -273,7 +275,7 @@ export class Definition extends Example {
     static componentType = "definition";
 
     static componentDocs = {
-        summary: "A definition.",
+        summary: "A definition section.",
     };
 }
 
@@ -289,7 +291,7 @@ export class Theorem extends Example {
     static componentType = "theorem";
 
     static componentDocs = {
-        summary: "A theorem statement.",
+        summary: "A theorem section.",
     };
 }
 
@@ -299,7 +301,7 @@ export class Part extends SectioningComponentNumberWithSiblings {
 
     static componentDocs = {
         summary:
-            "A numbered subsection-style block (a part of an exercise or problem).",
+            "A subsection-style block rendered as a list item (a part of an exercise or problem).",
     };
 
     static returnStateVariableDefinitions() {
@@ -321,7 +323,7 @@ export class Task extends Part {
     static componentType = "task";
 
     static componentDocs = {
-        summary: "A numbered task (alias for `<part>`).",
+        summary: "A task (alias for `<part>`).",
     };
 }
 
