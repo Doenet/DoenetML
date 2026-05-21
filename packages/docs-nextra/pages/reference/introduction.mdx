@@ -8,9 +8,13 @@ import { AttrPropDisplay } from "../../components"
 
 `<introduction>{:dn}` is a block container for the introductory
 content of a section. It groups content without adding a heading,
-numbering, or any other visible chrome, and is typically placed at
-the start of a [`<section>{:dn}`](section) (or similar sectional
-component) to mark the introductory prose distinct from the body.
+numbering, or any other visible chrome. Its primary use is inside a
+sectional component whose `asList` attribute is `true` — most
+commonly [`<problems>{:dn}`](problems) or
+[`<exercises>{:dn}`](exercises) — because in that case ordinary
+prose children are silently dropped, and an
+`<introduction>{:dn}` is one of the few non-sectional children that
+still renders.
 
 
 <AttrPropDisplay name='introduction'/>
@@ -18,55 +22,108 @@ component) to mark the introductory prose distinct from the body.
 
 ---
 
-### Example: `<introduction>{:dn}` at the start of a section
+### Example: `<introduction>{:dn}` at the start of a `<problems>{:dn}` list
 
 
 ```doenet-editor-horiz
-<section>
-  <title>Linear equations</title>
+<problems>
+  <title>Warm-up arithmetic</title>
+
   <introduction>
-    <p>This section introduces linear equations and their graphs.</p>
+    <p>Compute each of the following.
+       Enter exact (non-decimal) answers.</p>
   </introduction>
 
-  <subsection>
-    <title>Definition</title>
-    <p>A linear equation in one variable is...</p>
-  </subsection>
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
 
-  <subsection>
-    <title>Examples</title>
-    <p><lorem generateSentences="2"/></p>
-  </subsection>
-</section>
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+</problems>
 ```
 
 
 
-The `<introduction>{:dn}` itself adds no visible formatting; it
-simply groups the introductory content so that surrounding
-components (and authoring tools) can locate it.
+The `<introduction>{:dn}` renders before the numbered list of
+`<problem>{:dn}`s. The same pattern works inside
+[`<exercises>{:dn}`](exercises) and any other sectional component
+with `asList="true"`.
 
 
 
 ---
 
-### Example: `<introduction>{:dn}` before a list of `<task>{:dn}` items
+### Example: prose that needs to be wrapped
 
 
 ```doenet-editor-horiz
-<problem>
-  <title>Lab setup</title>
-  <introduction>
-    <p>Complete the following tasks in order.</p>
-  </introduction>
-  <task>Gather the equipment.</task>
-  <task>Calibrate the instrument.</task>
-  <task>Record the measurement.</task>
-</problem>
+<problems>
+  <title>Two problems</title>
+
+  These instructions will not appear.
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+</problems>
 ```
 
 
 
-Because `<introduction>{:dn}` does not participate in the list-item
-numbering of [`<part>{:dn}`](part) or [`<task>{:dn}`](task), it can
-introduce such a list without itself being counted.
+The bare-string instructions above are dropped because
+`<problems>{:dn}` has `asList="true"` by default. Wrap them in an
+`<introduction>{:dn}` to make them visible:
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Two problems</title>
+
+  <introduction>
+    <p>These instructions now appear.</p>
+  </introduction>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+---
+
+### Example: `<introduction>{:dn}` as a named, referenceable container
+
+
+```doenet-editor-horiz
+<problems>
+  <introduction name="instr">
+    <p>Compute each of the following.</p>
+  </introduction>
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+</problems>
+
+<p>Restated instructions: $instr</p>
+```
+
+
+
+Like any block container, an `<introduction>{:dn}` can be named and
+referenced elsewhere in the document.

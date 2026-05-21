@@ -8,9 +8,15 @@ import { AttrPropDisplay } from "../../components"
 
 `<problems>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that groups a collection of [`<problem>{:dn}`](problem)
-components (and other content) and, by default, renders the contained
-sectional components as a numbered list. It behaves like
-[`<section>{:dn}`](section) in other respects.
+components and, by default, renders them as a numbered list.
+`<problems>{:dn}` sets `asList` to `true` by default, which means
+that only the title child, sectional children (such as
+`<problem>{:dn}`s), an [`<introduction>{:dn}`](introduction), and
+a [`<conclusion>{:dn}`](conclusion) are rendered. Any other content
+nested inside `<problems>{:dn}` — including plain text and `<p>{:dn}`
+components — is silently dropped. To frame the list with prose, wrap
+that prose in an [`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion).
 
 
 <AttrPropDisplay name='problems'/>
@@ -41,31 +47,83 @@ sectional components as a numbered list. It behaves like
 
 
 
-`<problems>{:dn}` sets `asList` to `true` by default, so each child
-section is rendered as a numbered list item.
+Each nested `<problem>{:dn}` is rendered as a numbered list item.
 
 
 
 ---
 
-### Example: `<problems>{:dn}` with default title
+### Example: framing the list with `<introduction>{:dn}` and `<conclusion>{:dn}`
 
 
 ```doenet-editor-horiz
 <problems>
+  <title>Warm-up arithmetic</title>
+
+  <introduction>
+    <p>Compute each of the following.
+       Enter exact (non-decimal) answers.</p>
+  </introduction>
+
   <problem>
-    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
   </problem>
+
   <problem>
-    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+
+  <conclusion>
+    <p>Submit your answers when finished.</p>
+  </conclusion>
+</problems>
+```
+
+
+
+Because `asList` is `true`, the only ways to surround the list with
+prose are an [`<introduction>{:dn}`](introduction) (before the list)
+and a [`<conclusion>{:dn}`](conclusion) (after it). Both are passed
+through unchanged; the contained `<problem>{:dn}` items are still
+rendered as numbered list items.
+
+
+
+---
+
+### Example: ignored content when `asList` is `true`
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Three problems</title>
+
+  These instructions will not appear.
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <p>This paragraph is between problems and is dropped.</p>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
   </problem>
 </problems>
 ```
 
 
 
-When `<problems>{:dn}` has no `<title>{:dn}`, an auto-generated title
-(e.g. `Problems 1`) is rendered.
+Both the bare string and the `<p>{:dn}` are ignored because they are
+neither sectional components nor an
+[`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion). Only the two `<problem>{:dn}`s
+render. Wrap such prose in an `<introduction>{:dn}` or
+`<conclusion>{:dn}` to make it visible.
 
 
 
@@ -77,6 +135,8 @@ When `<problems>{:dn}` has no `<title>{:dn}`, an auto-generated title
 ```doenet-example
 <problems asList="false">
   <title>Problems without list rendering</title>
+
+  <p>With asList disabled, this paragraph also renders.</p>
 
   <problem><title>Problem 1</title>
     <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
@@ -90,7 +150,9 @@ When `<problems>{:dn}` has no `<title>{:dn}`, an auto-generated title
 
 
 Set `asList="false"` to render the contained problems as ordinary
-sectional blocks rather than as list items.
+sectional blocks rather than as list items. With list rendering
+turned off, sibling prose (and any other children) renders normally
+alongside the problems.
 
 
 
