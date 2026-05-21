@@ -17,6 +17,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<atom>`](atom.mdx)                | used for rendering a chemical symbol and retrieving chemical properties               |
 | [`<attr>`](attr.mdx)                | renders default font for an attribute                                                 |
 | [`<attractTo>`](attractTo.mdx)           | attracts a point to a named graphical component                                       |
+| [`<attractToConstraint>`](attractToConstraint) | wraps another constraint so it acts as a soft attraction within a threshold     |
 | [`<attractToGrid>`](attractToGrid.mdx)   | defines snapping behavior of GraphicalComponents to gridlines in a `<graph>`          |
 | [`<award>`](award.mdx)               | specifies conditions for awarding credit where multiple user responses are considered |
 ## B
@@ -55,6 +56,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<constrainTo>`](constrainTo)         | constrain a `<point>` to a named component                                                                      |
 | [`<constrainToGraph>`](constrainToGraph.mdx)         | keep a referenced `<point>` within the graphing window                                                                       |
 | [`<constrainToGrid>`](constrainToGrid.mdx)     | snap points to a specified grid                                                                                 |
+| [`<constrainToInterior>`](constrainToInterior) | constrain a `<point>` to lie inside a referenced graphical region                                              |
 | [`<constraintUnion>`](constraintUnion)     | container element for a union of constraint components                                                          |
 | [`<controlVectors>`](controlVectors)      | define individual control vectors for a spline curve within a `<bezierControls>` block component                |
 | [`<convertSetToList>`](convertSetToList)    | converts a math set expression into a comma-separated list expression (with duplicates removed)                 |
@@ -180,7 +182,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<parabola>`](parabola)          | parabola Graphical Component                                                 |
 | [`<paragraphs>`](paragraphs)                                                                         | sectional component grouping `<p>` components, rendered at heading level 4   |
 | [`<part>`](part)                                                                         | one piece of a multi-part exercise or problem, rendered as a numbered list item |
-| `<pegboard>`                                                                           | a Graphical Component that renders dots at grid intersections                |
+| [`<pegboard>`](pegboard)                                                               | a Graphical Component that renders dots at grid intersections                |
 | `<periodicSet />`                                                                      | a set of numbers defined by their periodicity                                |
 | [`<piecewiseFunction>`](piecewiseFunction) | define piecewise functions for graphing and evaluation                       |
 | `<pluralize>`                                                                          | change text from singular to plural based on context                         |
@@ -204,6 +206,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<ref>`](ref)                     | creates a link to another document, or a referenced component's location within the same document |
 | [`<regionBetweenCurves>`](regionBetweenCurves) | shade a region on a graph between two specified functions                            |
 | [`<regionBetweenCurveXAxis>`](regionBetweenCurveXAxis) | shade a region on a graph between a specified function and the x-axis                             |
+| [`<regionHalfPlane>`](regionHalfPlane)       | a half-plane region for use as a constraint                                                       |
 | [`<regularPolygon>`](regularPolygon)          | regular polygon graphical component                                                               |
 | [`<repeat>`](repeat)                 | iterate an action or a group of actions                                 |
 | [`<repeatForSequence>`](repeatForSequence)          | iterate an action or a group of actions over a sequence                               |
@@ -241,6 +244,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<stack>`](stack)                | vertical container element for organizing content within a `<sideBySide>`                    |
 | [`<standardDeviation>`](standardDeviation)    | renders the standard deviation of its arguments                                              |
 | [`<statement>`](statement)           | block container for the statement of a problem, theorem, or similar                            |
+| [`<stickyGroup>`](stickyGroup)          | group of graphical objects that snap together when nearby                                    |
 | [`<styleDefinition>`](styleDefinition.mdx)      | defines custom styling for graphical elements outside the default styleNumbers (1-6)         |
 | [`<subsection>`](subsection)           | sectional component nested one heading level deeper than `<section>`                          |
 | [`<subsubsection>`](subsubsection)           | sectional component nested one heading level deeper than `<subsection>`                       |
