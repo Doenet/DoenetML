@@ -64,7 +64,7 @@ tag within the `<section>{:dn}`.
 
 ---
 
-### Example: How to create a subsection
+### Example: How to create a subsection (and subsubsection)
 
 
 ```doenet-editor-horiz
@@ -72,15 +72,19 @@ tag within the `<section>{:dn}`.
   <p><lorem generateWords="10"/></p>
   <section><title>This is a subsection</title>
     <p><lorem generateWords="10"/></p>
+    <section><title>This is a subsubsection</title>
+      <p><lorem generateWords="10"/></p>
+    </section>
   </section>
 </section>
 ```
 
 
 
-A subsection is created by nesting one or more sections within a `<section>{:dn}`.
-The heading level of each `<section>{:dn}` is determined by how deeply
-it is nested.
+A subsection is created by nesting a `<section>{:dn}` within another
+`<section>{:dn}`; nesting one level deeper creates a subsubsection,
+and so on. The heading level of each `<section>{:dn}` is determined
+by how deeply it is nested.
 
 
 
