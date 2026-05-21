@@ -12,6 +12,12 @@ component that renders a section at a heading level one deeper than
 accepts a custom `<title>{:dn}` or falls back to an auto-generated
 name and number — and is typically used inside a `<section>{:dn}`.
 
+A `<subsection>{:dn}` is equivalent to nesting a `<section>{:dn}`
+inside another `<section>{:dn}`: a `<section>{:dn}`'s heading level
+is determined by how deeply it is nested, so the second level can
+always be written as either `<subsection>{:dn}` or a nested
+`<section>{:dn}`. Use whichever form makes the intent clearer.
+
 
 <AttrPropDisplay name='subsection'/>
 

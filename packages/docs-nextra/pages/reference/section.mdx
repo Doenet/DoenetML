@@ -79,6 +79,37 @@ tag within the `<section>{:dn}`.
 
 
 A subsection is created by nesting one or more sections within a `<section>{:dn}`.
+The heading level of each `<section>{:dn}` is determined by how deeply
+it is nested.
+
+
+
+---
+
+### Example: equivalent nesting with `<subsection>{:dn}` and `<subsubsection>{:dn}`
+
+
+```doenet-editor-horiz
+<section><title>This is the main section.</title>
+  <p><lorem generateWords="10"/></p>
+  <subsection><title>This is a subsection</title>
+    <p><lorem generateWords="10"/></p>
+    <subsubsection><title>This is a subsubsection</title>
+      <p><lorem generateWords="10"/></p>
+    </subsubsection>
+  </subsection>
+</section>
+```
+
+
+
+[`<subsection>{:dn}`](subsection) and
+[`<subsubsection>{:dn}`](subsubsection) are equivalent to nesting
+`<section>{:dn}`s to the same depth. Use whichever form makes the
+intent clearer in the source: nested `<section>{:dn}` lets the
+heading level follow the structure, while `<subsection>{:dn}` /
+`<subsubsection>{:dn}` make the intended level explicit at every
+tag.
 
 
 
