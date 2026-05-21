@@ -21,17 +21,13 @@ column
 constrainToInterior
 dataFrame
 displayDoenetML
-electronConfiguration
 extractMathOperator
 feedbackDefinition
 givenAnswer
-ion
-ionicCompound
 latex
 lcm
 markers
 note
-orbitalDiagram
 pegboard
 periodicSet
 pluralize
