@@ -1,0 +1,213 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<ion>{:dn}`
+
+
+`<ion>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
+component that represents a charged ion. It renders the element symbol with its
+charge as a superscript, and exposes the same chemical properties as
+[`<atom>{:dn}`](atom) along with `charge` and the appropriate ion `name`.
+
+
+<AttrPropDisplay name='ion'/>
+
+
+---
+
+### Example: Define an `<ion>{:dn}` by symbol and charge
+
+
+```doenet-example
+<ion name="sodium" symbol="Na" charge="1"/>,
+<ion name="oxide" symbol="O" charge="-2"/>,
+<ion name="aluminum" symbol="Al" charge="3"/>
+
+<p>The full name of $sodium.text is $sodium.name.</p>
+
+<p>The full name of $oxide.text is $oxide.name.</p>
+
+<p>The full name of $aluminum.text is $aluminum.name.</p>
+```
+
+
+
+An `<ion>{:dn}` may be specified by either its chemical `symbol` or its
+`atomicNumber`, together with a `charge`. If `charge` is omitted, the element's
+most common ion charge is used. The `name` property automatically adjusts to
+the ion's chemistry naming convention (e.g. *oxide* for $\mathrm{O}^{2-}$).
+
+
+
+---
+
+### Example: Default `charge` uses the most common ion
+
+
+```doenet-example
+<ion name="potassium" symbol="K"/>,
+<ion name="chloride" symbol="Cl"/>,
+<ion name="magnesium" symbol="Mg"/>
+
+<p>$potassium.text = $potassium.name (charge $potassium.charge)</p>
+<p>$chloride.text = $chloride.name (charge $chloride.charge)</p>
+<p>$magnesium.text = $magnesium.name (charge $magnesium.charge)</p>
+```
+
+
+
+When `charge` is not specified, `<ion>{:dn}` uses the element's
+`chargeOfCommonIon` as its default. For elements without a common ion (e.g.
+noble gases), the default charge is zero.
+
+
+
+---
+
+### Attribute Example: symbol
+
+
+```doenet-editor-horiz
+<p><textInput name="ti" prefill="Ca"><label>Type a chemical symbol</label></textInput></p>
+
+<ion name="ionFromSymbol" symbol="$ti" charge="2"/>
+
+<p>You entered the ion $ionFromSymbol (named $ionFromSymbol.name).</p>
+```
+
+
+
+The `symbol` attribute takes the chemical symbol of the underlying element. The
+symbol is case-insensitive on input but is rendered with the canonical
+capitalization.
+
+
+
+---
+
+### Attribute Example: atomicNumber
+
+
+```doenet-editor-horiz
+<p><mathInput name="mi" prefill="17"><label>Type an atomic number</label></mathInput></p>
+
+<ion name="ionFromZ" atomicNumber="$mi" charge="-1"/>
+
+<p>You entered the ion $ionFromZ (named $ionFromZ.name).</p>
+```
+
+
+
+The `atomicNumber` attribute identifies the underlying element by its number of
+protons.
+
+
+
+---
+
+### Attribute Example: charge
+
+
+```doenet-editor-horiz
+<p><mathInput name="mi" prefill="3"><label>Choose a charge for iron</label></mathInput></p>
+
+<ion name="iron" symbol="Fe" charge="$mi"/>
+
+<p>$iron has the name $iron.name.</p>
+```
+
+
+
+The `charge` attribute is an integer (positive for cations, negative for
+anions). When the underlying element supports multiple oxidation states (e.g.
+transition metals), the `name` property includes a Roman-numeral oxidation
+state suffix.
+
+
+
+---
+
+### Example: Provide the element as an `<atom>{:dn}` child
+
+
+```doenet-editor-horiz
+<atom name="sulfur" symbol="S"/>
+
+<ion name="sulfide" charge="-2">$sulfur</ion>
+
+<p>$sulfide is named $sulfide.name.</p>
+```
+
+
+
+Instead of `symbol` or `atomicNumber`, an `<ion>{:dn}` may take an
+[`<atom>{:dn}`](atom) child. This is useful when the element has already been
+defined elsewhere in the document.
+
+
+
+---
+
+### Property Example: name, charge, symbol, atomicNumber
+
+
+```doenet-editor-horiz
+<ion name="ferric" symbol="Fe" charge="3"/>
+
+<p><c>symbol</c> = $ferric.symbol</p>
+<p><c>atomicNumber</c> = $ferric.atomicNumber</p>
+<p><c>charge</c> = $ferric.charge</p>
+<p><c>name</c> = $ferric.name</p>
+```
+
+
+
+`symbol`, `atomicNumber`, and `charge` echo the values used to define the ion;
+`name` is the full IUPAC-style name, including a Roman-numeral oxidation state
+where applicable.
+
+
+
+---
+
+### Property Example: math, latex, text
+
+
+```doenet-editor-horiz
+<ion name="phosphate" symbol="P" charge="-3"/>
+
+<p>The ion is $phosphate.</p>
+<p><c>math</c> = $phosphate.math</p>
+<p><c>latex</c> = $phosphate.latex</p>
+<p><c>text</c> = $phosphate.text</p>
+```
+
+
+
+`math` is a math expression that can be used in computations,
+`latex` is a LaTeX string suitable for rendering, and `text` is a plain-text
+fallback.
+
+
+
+---
+
+### Property Example: periodic-table properties of the underlying element
+
+
+```doenet-editor-horiz
+<ion name="cu2" symbol="Cu" charge="2"/>
+
+<p><c>group</c> = $cu2.group</p>
+<p><c>groupName</c> = $cu2.groupName</p>
+<p><c>period</c> = $cu2.period</p>
+<p><c>metalCategory</c> = $cu2.metalCategory</p>
+```
+
+
+
+The `group`, `groupName`, `period`, and `metalCategory` properties report
+periodic-table information about the underlying element (the same values you
+would get from an `<atom>{:dn}` of that element).

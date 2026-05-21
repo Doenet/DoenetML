@@ -1,0 +1,139 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<orbitalDiagram>{:dn}`
+
+
+`<orbitalDiagram>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
+component that renders an orbital diagram: rows of labeled boxes containing up
+and down arrows representing electrons in atomic orbitals.
+
+Most documents use the `orbitalDiagram` property of an [`<atom>{:dn}`](atom),
+which already returns a fully-populated `<orbitalDiagram>{:dn}`. Write an
+`<orbitalDiagram>{:dn}` directly when you need to display a custom diagram —
+for example, the expected diagram for a problem, or a comparison against a
+student response from an [`<orbitalDiagramInput/>{:dn}`](orbitalDiagramInput).
+
+
+<AttrPropDisplay name='orbitalDiagram'/>
+
+
+---
+
+### Example: Built-in `orbitalDiagram` property of an `<atom>{:dn}`
+
+
+```doenet-example
+<atom name="nitrogen" symbol="N"/>
+
+<p>The orbital diagram for nitrogen:</p>
+$nitrogen.orbitalDiagram
+```
+
+
+
+The `orbitalDiagram` property of an [`<atom>{:dn}`](atom) returns an
+`<orbitalDiagram>{:dn}` filled in to match the element's ground-state electron
+configuration. This is the easiest way to display a diagram for a known
+element.
+
+
+
+---
+
+### Example: Build a diagram by hand
+
+
+```doenet-example
+<orbitalDiagram labels="1s 2s 2p">
+  (ud) (ud) (u, u, )
+</orbitalDiagram>
+```
+
+
+
+The body of an `<orbitalDiagram>{:dn}` is a tuple list: one parenthesized
+tuple per row, listed from lowest to highest sublevel. Inside each tuple,
+write one entry per box, using
+
+- `u` for an up arrow,
+- `d` for a down arrow,
+- `ud` (or `du`) for a paired up/down arrow, and
+- an empty entry (a space between commas) for an empty box.
+
+The `labels` attribute provides the sublevel label shown to the left of each
+row, listed from the lowest row up.
+
+
+
+---
+
+### Attribute Example: labels
+
+
+```doenet-editor-horiz
+<orbitalDiagram labels="1s 2s 2p 3s">
+  (ud) (ud) (ud, ud, ud) (u)
+</orbitalDiagram>
+```
+
+
+
+The `labels` attribute is a list of text labels, one per row, with the bottom
+row first. Each label is rendered as the orbital text to the left of the
+corresponding row.
+
+
+
+---
+
+### Example: Use as the expected answer for an `<orbitalDiagramInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<orbitalDiagram name="expected" labels="1s 2s 2p">
+  (ud) (ud) (u, u, u)
+</orbitalDiagram>
+
+<label for="$userDiagram">Draw the orbital diagram for nitrogen.</label>
+<orbitalDiagramInput name="userDiagram"/>
+
+<answer>
+  <award>
+    <when>$userDiagram = $expected</when>
+  </award>
+</answer>
+
+<solution>
+The orbital diagram for nitrogen is $expected.
+</solution>
+```
+
+
+
+An explicit `<orbitalDiagram>{:dn}` can serve as the reference answer for an
+[`<orbitalDiagramInput/>{:dn}`](orbitalDiagramInput) — useful when you want a
+particular diagram independent of any [`<atom>{:dn}`](atom) source.
+
+
+
+---
+
+### Property Example: value
+
+
+```doenet-editor-horiz
+<atom name="carbon" symbol="C"/>
+
+<orbitalDiagram name="cDiagram" extend="$carbon.orbitalDiagram"/>
+
+<p><c>value</c> = $cDiagram.value</p>
+```
+
+
+
+The `value` property returns the diagram as a list of rows; each row is an
+object with an `orbitalText` label and a `boxes` array containing strings like
+`"U"`, `"D"`, `"UD"`, or `""` for each box.
