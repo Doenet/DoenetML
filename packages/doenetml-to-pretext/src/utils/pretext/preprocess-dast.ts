@@ -21,8 +21,28 @@ const addPrefigureRendererToGraphs: Plugin<[], DastRoot, DastRoot> = () => {
     };
 };
 
+/**
+ * Add the `revealAll` attribute to all `cascade` elements so they render with everything visible.
+ */
+const addCascadeRevealAll: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node) || node.name !== "cascade") {
+                return;
+            }
+
+            node.attributes.revealAll = {
+                type: "attribute",
+                name: "revealAll",
+                children: [{ type: "text", value: "true" }],
+            };
+        });
+    };
+};
+
 export function preprocessDastForPretext(dast: DastRoot): DastRoot {
     return unified()
         .use(addPrefigureRendererToGraphs)
+        .use(addCascadeRevealAll)
         .runSync(dast) as DastRoot;
 }

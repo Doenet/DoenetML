@@ -8,6 +8,9 @@ import { AttrPropDisplay } from "../../components"
 `<booleanList>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
 component that stores multiple [`<boolean>{:dn}`](boolean.mdx) components within a list.
 
+When creating a `<booleanList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas.
+
 <AttrPropDisplay name='booleanList'/>
 
 
@@ -28,7 +31,7 @@ component that stores multiple [`<boolean>{:dn}`](boolean.mdx) components within
 
 
 Individual [`<boolean>{:dn}`](boolean.mdx) components are listed directly between the opening 
-and closing `<booleanInput>{:dn}` tags, with spaces to separate list items.
+and closing `<booleanList>{:dn}` tags, with spaces (not commas) to separate list items.
 
 The individual list items can be accessed with 
 the index of the desired item.
@@ -43,12 +46,21 @@ the index of the desired item.
 ```doenet-editor-horiz
 <p>Check each box if you agree:</p>
   <ol>
-    <li>All food goes better with hot sauce 
-      <booleanInput name="tf1"/></li>
-    <li>Fall is the best season 
-      <booleanInput name="tf2"/></li>
-    <li>Coffee is better than tea 
-      <booleanInput name="tf3"/></li>
+    <li> 
+      <booleanInput name="tf1">
+        <label>All food goes better with hot sauce</label>
+      </booleanInput>
+    </li>
+    <li> 
+      <booleanInput name="tf2">
+        <label>Fall is the best season</label>
+      </booleanInput>
+    </li>
+    <li> 
+      <booleanInput name="tf3">
+        <label>Coffee is better than tea</label>
+      </booleanInput>
+    </li>
   </ol>
 
 <p>Your list of responses is: 
@@ -71,10 +83,10 @@ These are gathered into a `<booleanList>{:dn}`..
 ```doenet-editor-horiz
 Check two of the boxes, in any order:
 <p>
-  <booleanInput name="b1"/>
-  <booleanInput name="b2"/>
-  <booleanInput name="b3"/>
-  <booleanInput name="b4"/>
+  <booleanInput name="b1"><shortDescription>Checkbox 1 of 4</shortDescription></booleanInput>
+  <booleanInput name="b2"><shortDescription>Checkbox 2 of 4</shortDescription></booleanInput>
+  <booleanInput name="b3"><shortDescription>Checkbox 3 of 4</shortDescription></booleanInput>
+  <booleanInput name="b4"><shortDescription>Checkbox 4 of 4</shortDescription></booleanInput>
 </p>
 
 <answer>
@@ -103,7 +115,7 @@ The `<booleanList>{:dn}` component is ordered by default.
 
 ```doenet-example
   <p>Specify <attr>maxNumber</attr> for the <tag>booleanList</tag>: 
-    <mathInput name="n"/></p>
+    <mathInput name="n"><shortDescription>max number for the boolean list</shortDescription></mathInput></p>
   <p>List = 
   <booleanList name="list" maxNumber="$n">
    0 1 0 1 1 1 0 0 1 1 0 0

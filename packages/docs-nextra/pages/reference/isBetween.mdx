@@ -16,7 +16,7 @@ that returns the boolean value of `true` or `false` depending on whether a value
 
 
 ```doenet-editor-horiz
-<p>Enter a number: <mathInput name="mi" prefill="0"/></p>
+<p><mathInput name="mi" prefill="0"><label>Enter a number</label></mathInput></p>
 <p>Your number is between <m>0</m> and <m>5</m>: </p>
 <isBetween limits="0 5" >$mi</isBetween>
 ```
@@ -34,7 +34,7 @@ By default, endpoints are included in the interval.
 
 
 ```doenet-editor-horiz
-<p>Enter a number: <mathInput name="mi" prefill="0"/></p>
+<p><mathInput name="mi" prefill="0"><label>Enter a number</label></mathInput></p>
 <p>Your number is between <m>0</m> and <m>5</m>: </p>
 <isBetween limits="0 5" strict>$mi</isBetween>
 ```

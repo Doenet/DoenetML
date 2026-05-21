@@ -17,8 +17,10 @@ component that renders a form input field for text responses from the user.
 
 
 ```doenet-editor-horiz
-<p>Type anything: 
-  <textInput name="userText"/>
+<p>
+  <textInput name="userText">
+    <label>Type anything</label>
+  </textInput>
 </p>
 
 <p>You typed: $userText</p>
@@ -36,8 +38,10 @@ The default `<textInput/>{:dn}` blank is wide enough for approximately 2-4 words
 
 
 ```doenet-editor-horiz
-<p>Type some longer things: 
-  <textInput name="longText" expanded/>
+<p>
+  <textInput name="longText" expanded>
+    <label>Type some longer things</label>
+  </textInput>
 </p>
 
 <p>You typed: $longText</p>
@@ -75,9 +79,11 @@ The `<textInput/>{:dn}` component can take a nested `<label>{:dn}` child.
 
 
 ```doenet-editor-horiz
-<p>Explain how you solved the problem: 
+<p>
   <answer name="ans" type="text" handGraded>
-    <textInput expanded/>
+    <textInput expanded>
+      <label>Explain how you solved the problem</label>
+    </textInput>
   </answer>
 </p>
 ```
@@ -94,8 +100,10 @@ The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` with the `handGraded
 
 
 ```doenet-editor-horiz
-<p>What color is the complement of purple? 
-  <textInput name="userColor"/>
+<p>
+  <textInput name="userColor">
+    <label>What color is the complement of purple?</label>
+  </textInput>
   <answer 
     name="ans" 
     type="text"
@@ -122,12 +130,17 @@ The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` with the `handGraded
 
 
 ```doenet-editor-horiz
-<p>Where should we put the <tage>textInput</tage>? 
-  <mathInput name="userAnchor" prefill="(0,0)"/>
+<p>
+  <mathInput name="userAnchor" prefill="(0,0)">
+    <label>Where should we put the <tage>textInput</tage>?</label>
+  </mathInput>
 </p>
 
 <graph size="small"> 
-  <textInput name="shape" anchor="$userAnchor"/>
+  <shortDescription>A regular pentagon with a draggable text input.</shortDescription>
+  <textInput name="shape" anchor="$userAnchor">
+    <shortDescription>text input anchored at $userAnchor</shortDescription>
+  </textInput>
   <regularPolygon numSides="5" sideLength="6" filled center="(-2,0)"/>
 </graph>
 ```
@@ -144,8 +157,11 @@ A `<textInput/>{:dn}` can be placed on a `<graph>{:dn}`. Use the `anchor` attrib
 
 
 ```doenet-example
-<p>Enter your favorite vacation place: 
-  <textInput prefill="my cabin"/></p>
+<p>
+  <textInput prefill="my cabin">
+    <label>Enter your favorite vacation place</label>
+  </textInput>
+</p>
 ```
 
 
@@ -160,7 +176,11 @@ The `prefill` attribute specifies initial text for the `<textInput/>{:dn}`.
 
 
 ```doenet-example
-<p>Type some longer things: <textInput expanded/></p>
+<p>
+  <textInput expanded>
+    <label>Type some longer things</label>
+  </textInput>
+</p>
 ```
 
 
@@ -183,7 +203,6 @@ The `expanded` attribute renders a larger `<textInput/>{:dn}` space. The dimensi
     <shortDescription>second color</shortDescription>
   </textInput>
   <answer name="ans" matchPartial caseInsensitiveMatch>
-    <shortDescription>Enter two colors of ROYGBIV</shortDescription>
     <award><when>$c1 elementof $validColors and $c2 elementof $validColors</when></award>
   </answer>
 </p>
@@ -203,10 +222,16 @@ Specifying the attribute `forAnswer` of a `<textInput>` does two things:
 
 
 ```doenet-example
-<p>A wider input: 
-  <textInput width="600px"/></p>
-<p>A narrower input: 
-  <textInput width="10px"/></p>
+<p>
+  <textInput width="600px">
+    <label>A wider input</label>
+  </textInput>
+</p>
+<p>
+  <textInput width="10px">
+    <label>A narrower input</label>
+  </textInput>
+</p>
 ```
 
 
@@ -221,8 +246,11 @@ The default width of the input space can be customized with the `width` attribut
 
 
 ```doenet-example
-<p>A taller input: 
-  <textInput height="600px" expanded/></p>
+<p>
+  <textInput height="600px" expanded>
+    <label>A taller input</label>
+  </textInput>
+</p>
 ```
 
 
@@ -240,11 +268,16 @@ The default height of the input space can be customized with the `height` attrib
 <p>Enter the shape that is shown.</p>
 
 <graph size="small" displayXAxis="false" displayYAxis="false"> 
-  <textInput name="shape" labelIsName/>
+  <shortDescription>A triangle with a text input labeled "shape" for entering its name.</shortDescription>
+  <textInput name="shape" labelIsName>
+    <shortDescription>input for the name of the shape shown</shortDescription>
+  </textInput>
   <regularPolygon numSides="3" sideLength="18" filled center="(-2,0)"/>
 </graph>
 
-<textInput name="Hi" labelIsName/>
+<textInput name="Hi" labelIsName>
+  <shortDescription>text input demonstrating labelIsName</shortDescription>
+</textInput>
 ```
 
 
@@ -262,12 +295,17 @@ The `labelIsName` attribute can be used to assign an automatic label to a `<text
 <p>Play with moving the boxes around.</p>
 
 <graph size="small"> 
+  <shortDescription>A circle with two text inputs, one fixed and one draggable.</shortDescription>
   <textInput 
     draggable="false" 
     prefill="cannot drag" 
     anchor="(-3,-5)"
-  />
-  <textInput prefill="drag me" anchor="(3,5)"/>
+  >
+    <shortDescription>fixed text box</shortDescription>
+  </textInput>
+  <textInput prefill="drag me" anchor="(3,5)">
+    <shortDescription>draggable text box</shortDescription>
+  </textInput>
   <circle radius="8" filled/>
 </graph>
 ```
@@ -284,7 +322,9 @@ The `draggable` attribute can be set to false to prevent users from moving the `
 
 
 ```doenet-editor-horiz
-<textInput name="ti"/>
+<textInput name="ti">
+  <shortDescription>any text</shortDescription>
+</textInput>
 
 <p><c>value</c> = $ti.value</p>
 ```
@@ -301,7 +341,9 @@ The `value` property contains the finalized value the user entered into the inpu
 
 
 ```doenet-editor-horiz
-<textInput name="ti"/>
+<textInput name="ti">
+  <shortDescription>any text</shortDescription>
+</textInput>
 
 <p><c>immediateValue</c> = $ti.immediateValue</p>
 ```
@@ -318,6 +360,7 @@ The `immediateValue` property contains the value the user enters into the input 
 
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" displayYAxis="false">
+<shortDescription>A text input on a graph demonstrating attributes used as properties.</shortDescription>
 <textInput 
   name="ti" 
   width="50" 

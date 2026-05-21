@@ -19,8 +19,11 @@ as a `<math>{:dn}` component.
 
 
 ```doenet-editor-horiz
-<p>Type <c>x^2 + sqrt4 - 1/y</c>: 
-  <mathInput name="userExpression"/></p>
+<p>
+  <mathInput name="userExpression">
+    <label>Type <c>x^2 + sqrt4 - 1/y</c></label>
+  </mathInput>
+</p>
 <p>You've typed: $userExpression</p>
 ```
 
@@ -36,11 +39,15 @@ A `<mathInput/>{:dn}` renders an input field for storing and naming user-provide
 
 
 ```doenet-editor-horiz
-<p>Enter <c>pi/4</c>: <mathInput name="userAngle"/></p>
-  <p>
-    <math name="sinOfUserAngle">sin($userAngle)</math> = 
-    <number>$sinOfUserAngle</number>
-  </p>
+<p>
+  <mathInput name="userAngle">
+    <label>Enter <c>pi/4</c></label>
+  </mathInput>
+</p>
+<p>
+  <math name="sinOfUserAngle">sin($userAngle)</math> = 
+  <number>$sinOfUserAngle</number>
+</p>
 ```
 
 
@@ -58,7 +65,9 @@ A named `<mathInput/>{:dn}` can be referenced within a `<math>{:dn}` for computa
 <p>Simplify.</p>
   <math>2/10</math> = 
     <answer symbolicEquality="true">
-      <mathInput name="userFraction" prefill=" / "/>
+      <mathInput name="userFraction" prefill=" / ">
+        <shortDescription>simplified fraction</shortDescription>
+      </mathInput>
       <award>1/5</award>
     </answer>
   <p>You answered $userFraction</p>
@@ -76,7 +85,11 @@ A `<mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
 
 
 ```doenet-example
-<mathInput name="userInput" prefill="x^() sin()" />
+<p>
+  <mathInput name="userInput" prefill="x^() sin()">
+    <shortDescription>fill in the blanks</shortDescription>
+  </mathInput>
+</p>
 <p>You entered: $userInput</p>
 ```
 
@@ -94,7 +107,11 @@ if used, are rendered as grey input boxes.
 
 
 ```doenet-example
-<mathInput name="userInput" prefillLatex="\binom{n}{ }"/>
+<p>
+  <mathInput name="userInput" prefillLatex="\binom{n}{ }">
+    <shortDescription>fill in the bottom of the binomial coefficient</shortDescription>
+  </mathInput>
+</p>
 <p>You entered: <m>$userInput.rawRendererValue</m></p>
 ```
 
@@ -112,12 +129,16 @@ which is typically removed when LaTeX is parsed as a math component.
 
 
 ```doenet-example
-<p>Enter a fraction (LaTeX prefill):
-  <mathInput name="fraction1" prefill="\frac{ }{ }" format="latex" />
+<p>
+  <mathInput name="fraction1" prefill="\frac{ }{ }" format="latex">
+    <label>Enter a fraction (LaTeX prefill)</label>
+  </mathInput>
 </p>
 
-<p>Enter a fraction (default prefill):
-  <mathInput name="fraction2" prefill=" / " />
+<p>
+  <mathInput name="fraction2" prefill=" / ">
+    <label>Enter a fraction (default prefill)</label>
+  </mathInput>
 </p>
 
 <p><m>$fraction1 + $fraction2 = 
@@ -139,12 +160,18 @@ may be used in further computations.
 
 
 ```doenet-editor-horiz
-<p>Type <m>h(x) = x^2</m> (without <attr>functionSymbols</attr>):
- <mathInput name="function1"/></p>
+<p>
+  <mathInput name="function1">
+    <label>Type <m>h(x) = x^2</m> (without <attr>functionSymbols</attr>)</label>
+  </mathInput>
+</p>
 <p>You've entered $function1</p>
 
-<p>Type <m>h(x) = x^2</m> (with <attr>functionSymbols</attr>):
- <mathInput name="function2" functionSymbols="h"/></p>
+<p>
+  <mathInput name="function2" functionSymbols="h">
+    <label>Type <m>h(x) = x^2</m> (with <attr>functionSymbols</attr>)</label>
+  </mathInput>
+</p>
 <p>You've entered $function2</p>
 ```
 
@@ -162,12 +189,18 @@ considered functions symbols are `f` and `g`.
 
 
 ```doenet-example
-<p>With <attr>splitSymbols="true"</attr>, by default:
-  <mathInput name='mi1' prefill="xyz"/></p>
+<p>
+  <mathInput name='mi1' prefill="xyz">
+    <label>With <attr>splitSymbols="true"</attr>, by default</label>
+  </mathInput>
+</p>
 <p>The square of $mi1 is <math simplify>$mi1^2</math>.</p>
       -------------------------
-<p>With <attr>splitSymbols="false"</attr>:
-   <mathInput splitSymbols="false" name="mi2" prefill="xyz" /></p>
+<p>
+  <mathInput splitSymbols="false" name="mi2" prefill="xyz">
+    <label>With <attr>splitSymbols="false"</attr></label>
+  </mathInput>
+</p>
 <p>Notice how adding spaces between the characters above will change this value.</p>   
 <p>The square of $mi2 is <math simplify>$mi2^2</math>.</p>   
 ```
@@ -196,7 +229,6 @@ behavior by specifying `splitSymbols="false"`.
     <shortDescription>second number</shortDescription>
   </mathInput>
   <answer name="ans">
-    <shortDescription>Enter two numbers that add to 5</shortDescription>
     <award><when>$n1 + $n2 = 5</when></award>
   </answer>
 </p>
@@ -225,11 +257,18 @@ Then, try changing the value in the input box.</p>
   <circle name="circ" through="$A $B $C" />
 </graph>
 
-<p>The bound radius of the circle through the points $A, $B, and $C is 
-  <mathInput bindValueTo="$circ.radius" />. 
-</p> 
+<p>
+  <mathInput bindValueTo="$circ.radius">
+    <label>Bound radius of the circle through the points $A, $B, and $C</label>
+  </mathInput>
+</p>
 
-<p>Alternate way to access the bound radius: <mathInput>$circ.radius</mathInput></p>
+<p>Alternate way to access the bound radius:
+  <mathInput>
+    <shortDescription>radius reference (read-only display)</shortDescription>
+    $circ.radius
+  </mathInput>
+</p>
 ```
 
 The `bindValueTo` attribute is used to create a bidirectional link between the 
@@ -245,12 +284,18 @@ component as a child of the `<mathInput>{:dn}`.
 
 
 ```doenet-example
-<p>Type <m>A U B</m> (with spaces between): 
-  <mathInput name="union" unionFromU />.</p>
+<p>
+  <mathInput name="union" unionFromU>
+    <label>Type <m>A U B</m> (with spaces between)</label>
+  </mathInput>
+</p>
 <p>Value interpreted as $union.</p>
 
-<p>Type <m>A U B</m> (with spaces between): 
-  <mathInput name="noUnion" />.</p>
+<p>
+  <mathInput name="noUnion">
+    <label>Type <m>A U B</m> (with spaces between)</label>
+  </mathInput>
+</p>
 <p>Value interpreted as $noUnion, a product of three variables.</p>
 ```
 
@@ -269,8 +314,20 @@ the bottom of the screen), and finding the $\cup$ symbol in the keyboard's Set m
 
 
 ```doenet-example
-<p><mathInput name="mi1"><number /></mathInput> = $mi1</p>
-<p><mathInput name="mi2" hideNaN="false"><number /></mathInput> = $mi2</p>
+<p>
+  <mathInput name="mi1">
+    <shortDescription>numeric input with hideNaN default</shortDescription>
+    <number />
+  </mathInput>
+  = $mi1
+</p>
+<p>
+  <mathInput name="mi2" hideNaN="false">
+    <shortDescription>numeric input with hideNaN false</shortDescription>
+    <number />
+  </mathInput>
+  = $mi2
+</p>
 ```
 
 
@@ -286,12 +343,18 @@ behavior, the `hideNaN` attribute may be set to false.
 
 
 ```doenet-example
-<p>Enter <m>20\%</m> 
-  <mathInput name="mi1" /> = $mi1
+<p>
+  <mathInput name="mi1">
+    <label>Enter <m>20\%</m></label>
+  </mathInput>
+  = $mi1
 </p>
 
-<p>Enter <m>20\%</m> 
-  <mathInput name="mi2" removeStrings="%" /> = $mi2
+<p>
+  <mathInput name="mi2" removeStrings="%">
+    <label>Enter <m>20\%</m> (with <c>%</c> removed)</label>
+  </mathInput>
+  = $mi2
 </p>
 
 <p>Removing the string character allows the mathInput to be used in further calculations:</p>
@@ -310,16 +373,25 @@ The `removeStrings` attribute allows Doenet to ignore elements of a user's input
 
 
 ```doenet-example
-<p>Enter <m>ax^2 + bx + c</m>: 
-  <mathInput name="mi1"/> = $mi1
+<p>
+  <mathInput name="mi1">
+    <label>Enter <m>ax^2 + bx + c</m> (default width)</label>
+  </mathInput>
+  = $mi1
 </p>
 
-<p>Enter <m>ax^2 + bx + c</m>: 
-  <mathInput name="mi2" minWidth="100" /> = $mi2
+<p>
+  <mathInput name="mi2" minWidth="100">
+    <label>Enter <m>ax^2 + bx + c</m> (minWidth 100)</label>
+  </mathInput>
+  = $mi2
 </p>
 
-<p>Enter <m>ax</m>: 
-  <mathInput name="mi3" minWidth="20"/> = $mi3
+<p>
+  <mathInput name="mi3" minWidth="20">
+    <label>Enter <m>ax</m> (minWidth 20)</label>
+  </mathInput>
+  = $mi3
 </p>
 ```
 
@@ -335,7 +407,9 @@ The `minWidth` attribute is set to 50 by default. Adjust this value for a longer
 
 
 ```doenet-editor-horiz
-<mathInput name="mi1" prefill="3/4 x"/>
+<mathInput name="mi1" prefill="3/4 x">
+  <shortDescription>example mathInput with prefill</shortDescription>
+</mathInput>
 
 <p><c>prefill</c> = $mi1.prefill</p>
 <p><c>format</c> = $mi1.format</p>
@@ -347,7 +421,9 @@ The `minWidth` attribute is set to 50 by default. Adjust this value for a longer
 
 <mathInput 
   name="mi2" 
-  prefillLatex="\left( \frac{3}{4} \right) x"/>
+  prefillLatex="\left( \frac{3}{4} \right) x">
+  <shortDescription>example mathInput with prefillLatex</shortDescription>
+</mathInput>
 
 <p><c>prefillLatex</c> = $mi2.prefillLatex</p>
 <p><c>format</c> = $mi2.format</p>
@@ -365,7 +441,10 @@ The above-listed attributes of `<mathInput/>{:dn}` are also accessible as proper
 
 
 ```doenet-example
-<mathInput name="mi1"/> = $mi1
+<mathInput name="mi1">
+  <shortDescription>any math expression</shortDescription>
+</mathInput>
+= $mi1
 
 <p><c>value</c> = $mi1.value</p>
 ```
@@ -383,7 +462,10 @@ clicked Enter (or mouse-clicked on another part of the screen).
 
 
 ```doenet-example
-<mathInput name="mi1"/> = $mi1
+<mathInput name="mi1">
+  <shortDescription>any math expression</shortDescription>
+</mathInput>
+= $mi1
 
 <p><c>immediateValue</c> = $mi1.immediateValue</p>
 ```
@@ -400,8 +482,11 @@ The `immediateValue` property contains the value the user enters into the input 
 
 
 ```doenet-example
-<p>Enter an expression with text and math:
-<mathInput name="mi1"/> </p>
+<p>
+  <mathInput name="mi1">
+    <label>Enter an expression with text and math</label>
+  </mathInput>
+</p>
 
 <p><c>text</c> = $mi1.text</p>
 <p><c>mi1</c> = $mi1</p> 
@@ -419,8 +504,11 @@ The `text` property of a `<mathInput/>{:dn}` stores its content as a string.
 
 
 ```doenet-example
-<p>Type an expression involving latex, or using a mathematical operator.</p>
-<mathInput name="mi1"/>
+<p>
+  <mathInput name="mi1">
+    <label>Type an expression involving latex, or using a mathematical operator</label>
+  </mathInput>
+</p>
 
 <p><c>rawRendererValue</c> = $mi1.rawRendererValue</p>
 <p><c>mi1</c> = $mi1</p> 

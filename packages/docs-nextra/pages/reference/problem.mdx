@@ -22,7 +22,7 @@ order content. Some examples are: another `<problem>{:dn}`, a
 
 ```doenet-editor-horiz
 <problem>
-  <p><answer>42</answer></p>
+  <p><answer><label>The answer to life, the universe, and everything</label>42</answer></p>
 </problem>
 
 <section>
@@ -49,9 +49,9 @@ Each sectional component is on the same counter.
 ```doenet-editor-horiz
 <problem>
   <title>Factor the trinomial</title>
-    <p><m>x^2 + 3x + 2 = </m>
+    <p>
       <answer symbolicEquality>
-        <mathInput name="userInput"/>
+        <mathInput name="userInput"><label><m>x^2 + 3x + 2 = </m></label></mathInput>
         <award>
           <when>
             <hasSameFactoring>
@@ -161,9 +161,9 @@ In order to display the problem number in addition to the custom `<title>{:dn}`,
 ```doenet-example
 <problem sectionWideCheckWork>
   <title>Multiple questions</title>
-    <p>Enter <m>x</m>: <answer>x</answer></p>
-    <p>Enter <m>y</m>: <answer>y</answer></p>
-    <p>Enter <m>z</m>: <answer>z</answer></p>
+    <p><answer><label>Enter <m>x</m></label>x</answer></p>
+    <p><answer><label>Enter <m>y</m></label>y</answer></p>
+    <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </problem>
 ```
 
@@ -178,9 +178,9 @@ The `sectionWideCheckWork` attribute combines validation for all `<answer>{:dn}`
 
 ```doenet-example
 <problem sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </problem>
 ```
 
@@ -229,8 +229,8 @@ The `boxed` attribute changes the default formatting for a sectional component t
 
 <problem hide="$hideProblem">
   <title>Now you see me...</title>
-    <p>Type "sassafras" 
-      <answer type="text">sassafras</answer>.
+    <p>
+      <answer type="text"><label>Type "sassafras"</label>sassafras</answer>.
     </p>
 </problem>
 ```

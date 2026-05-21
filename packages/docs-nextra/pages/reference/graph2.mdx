@@ -18,6 +18,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ```doenet-editor-horiz
 <p>A graph without a description or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
 <graph name="deficientGraph">
+  <shortDescription>An empty graph used to illustrate a missing description warning</shortDescription>
 </graph>
 
 <p>In general, each graph should have a description attribute set to a textual description of the graph contents.</p>
@@ -28,7 +29,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 <p>If for some reason, a graph is just present for decoration or contains no content that a user of a screen reader needs to be aware of, 
 the attribute decorative should be added to the graph.</p>
-<graph decorative />
+<graph decorative>
+  <shortDescription>An empty decorative graph</shortDescription>
+</graph>
 ```
 
 Typically the `description` attribute should be specified for each `<graph>{:dn}`.
@@ -260,7 +263,7 @@ By default, `showNavigation` is set to `true`.
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" fixAxes="false" link="false">
+<graph copy="$g" fixAxes="false" >
   <shortDescription>A graph without the axes fixed (the default)</shortDescription>
 </graph>
 ```

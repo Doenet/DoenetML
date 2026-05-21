@@ -38,14 +38,14 @@ between the opening and closing tags.
 
 
 ```doenet-editor-horiz
-<p>Enter number of integers: 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>Enter number of integers</label></mathInput></p>
 
 <repeatForSequence 
   name="userIntegers" 
   from="1" 
   to="$n">
-   <mathInput />
+   <mathInput><shortDescription>integer in the list</shortDescription></mathInput>
 </repeatForSequence>
 
 <p>The <m>GCD</m> of your list of integers is
@@ -69,6 +69,7 @@ named `<repeat>{:dn}`.
 ```doenet-editor-horiz
 <problem>What is the greatest common divisor of 32, 24, and 64?
   <answer>
+    <label>Select the greatest common divisor</label>
     <choice credit = "1"><gcd>32 24 64</gcd></choice>
     <choice><gcd>24 8 12</gcd></choice>
     <choice><gcd>8 2 12</gcd></choice>

@@ -45,15 +45,15 @@ once when placed within a `<graph>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>How many answers do you have? 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many answers do you have?</label></mathInput></p>
 
 <p><m>x = </m>
 <repeatForSequence 
   name="inputs" 
   from="1" 
   to="$n">
-    <mathInput/>
+    <mathInput><shortDescription>one of the answers</shortDescription></mathInput>
 </repeatForSequence>
 </p>
 
@@ -98,8 +98,8 @@ over a combination of sequences with different ranges and steps.
 ### Example: Generate a user-specified number of random `<point>{:dn}` components
 
 ```doenet-editor-horiz
-<p>How many points do you want to generate?
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many points do you want to generate?</label></mathInput></p>
 <em>(Note, more than 10 takes some processing time...)</em>
 
 <graph><shortDescription>A graph of $n random points</shortDescription>

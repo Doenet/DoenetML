@@ -4,9 +4,13 @@ import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import * as Xast from "xast";
 import "./index-inline-worker";
-import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
+import {
+    renderFlatDastToPretext,
+    ConvertOptions,
+} from "./utils/pretext/render-to-pretext";
 import { preprocessDastForPretext } from "./utils/pretext/preprocess-dast";
 import { toXml as xastToXml } from "xast-util-to-xml";
+import { prefixIds } from "./utils/pretext/prefix-ids";
 
 const defaultFlags = {
     showCorrectness: true,
@@ -33,14 +37,48 @@ export class DoenetMLToPretext {
         }
     }
 
+    /**
+     * Convert multiple DoenetML fragments to PreTeXt strings.
+     * Each fragment is converted in fragment mode and converted to string form.
+     */
+    async convertMultiple(
+        fragments: string[],
+        options: ConvertOptions = {},
+    ): Promise<string[]> {
+        const xastRoots: Xast.Root[] = [];
+        for (const fragment of fragments) {
+            const flatDast = await this._getStaticDast(fragment);
+            const xastRoot = await this._flatDastToPretext(flatDast, {
+                ...options,
+                fragment: true,
+            });
+            xastRoots.push(xastRoot);
+        }
+        if (xastRoots.length > 1) {
+            // If we have multiple fragments, assume they are being embedded into the same PreTeXt document. A such,
+            // their generated xml:id's must be unique (in PreTeXt all xml:id's are unique).
+            xastRoots.forEach((root, i) => {
+                prefixIds(`fragment${i}-`, root);
+            });
+        }
+        const ret = xastRoots.map((xastRoot) => xastToXml(xastRoot));
+        ret.forEach((pretextOutput) => {
+            this.throwOnErrors(pretextOutput);
+        });
+        return ret;
+    }
+
     async convert(
         doenetML: string,
-        { throwOnError = true }: { throwOnError?: boolean } = {},
+        {
+            throwOnError = true,
+            ...options
+        }: { throwOnError?: boolean } & ConvertOptions = {},
     ): Promise<string> {
         await this._ensureWorker();
 
         const flatDast = await this._getStaticDast(doenetML);
-        const xastRoot = await this._flatDastToPretext(flatDast);
+        const xastRoot = await this._flatDastToPretext(flatDast, options);
         const result = xastToXml(xastRoot);
 
         if (throwOnError) {
@@ -94,7 +132,9 @@ export class DoenetMLToPretext {
         await this._ensureWorker();
 
         const normalizedDast = getNormalizedDast(doenetML);
-        const preprocessedDast = preprocessDast(normalizedDast);
+
+        // Apply optional preprocessing to normalized DAST before worker execution.
+        const preprocessedDast = preprocessDastForPretext(normalizedDast);
 
         const flatDast = await this._runDastThroughWorker(
             preprocessedDast,
@@ -111,8 +151,9 @@ export class DoenetMLToPretext {
      */
     async _flatDastToPretext(
         flatDast: FlatDastRootWithErrors,
+        options: ConvertOptions = {},
     ): Promise<Xast.Root> {
-        return renderFlatDastToPretext(flatDast);
+        return renderFlatDastToPretext(flatDast, options);
     }
 }
 
@@ -132,7 +173,7 @@ export async function createWrappedCoreWorker() {
  */
 export async function doenetMLToPretext(
     doenetML: string,
-    options: { throwOnError?: boolean } = {},
+    options: { throwOnError?: boolean } & ConvertOptions = {},
 ): Promise<string> {
     const converter = new DoenetMLToPretext();
     return await converter.convert(doenetML, options);
@@ -152,11 +193,4 @@ export async function flatDastToPretext(
  */
 export function getNormalizedDast(source: string) {
     return normalizeDocumentDast(lezerToDast(source));
-}
-
-/**
- * Apply optional preprocessing to normalized DAST before worker execution.
- */
-export function preprocessDast(dast: DastRoot): DastRoot {
-    return preprocessDastForPretext(dast);
 }

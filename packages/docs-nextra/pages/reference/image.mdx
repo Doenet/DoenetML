@@ -59,6 +59,7 @@ An `<image/>{:dn}` is often nested within a `<figure>{:dn}` along with a `<capti
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>graph with a rabbit image placed on it</shortDescription>
   <image 
     source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
     size="small" anchor="(4,4)"
@@ -106,8 +107,12 @@ The `width` attribute specifies the absolute width of the image. Doenet determin
   source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" >
   <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
 </image>
-<image extend="$doric" size="small"/>
-<image extend="$doric" size="full"/>
+<image extend="$doric" size="small">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+<image extend="$doric" size="full">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
 ```
 
 
@@ -149,7 +154,9 @@ The `aspectRatio` attribute allows for customization of the image's default prop
   <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
 </image>
 
-<image extend="$doric" displayMode="block"/>  
+<image extend="$doric" displayMode="block">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>  
 ```
 
 
@@ -206,7 +213,9 @@ If a `description` is not supplied and `decorative` is not supplied, a warning i
 
 
 ```doenet-editor-horiz
-<image width="100" decorative source="https://upload.wikimedia.org/wikipedia/commons/f/f5/Circle_file.487.png"/>
+<image width="100" decorative source="https://upload.wikimedia.org/wikipedia/commons/f/f5/Circle_file.487.png">
+  <shortDescription>Decorative circle image</shortDescription>
+</image>
 ```
 
 If `decorative` is specified, it indicates that the image doesn't add any information to the content of the page
@@ -242,6 +251,7 @@ The `source` attribute specifies the url for a hyperlinked `<image/>{:dn}` and t
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>graph with an anchored rabbit image</shortDescription>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
   size="small" 
@@ -268,6 +278,7 @@ The `anchor` attribute positions the `<image/>{:dn}` on a `<graph>{:dn}`.
   <label>Draggable?</label>
 </booleanInput> $isDraggable.value
 <graph size="small">
+  <shortDescription>graph with a rabbit image that can be made draggable</shortDescription>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
   size="small" 
@@ -292,6 +303,7 @@ The `draggable` attribute determines whether the `<image/>{:dn}` can be dragged 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a filled circle and a layered rabbit image</shortDescription>
   <circle radius="7" filled/>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
@@ -319,6 +331,7 @@ By adjusting the `layer` attribute number, geometry can be placed in front of or
 ```doenet-editor-horiz
 <slider name="angle" from="0" to="2pi"/>
 <graph size="small">
+  <shortDescription>graph with a rotating rabbit image</shortDescription>
   <circle  radius="7" filled/>
   <image 
     rotate="$angle"
@@ -373,6 +386,7 @@ The above listed `<image/>{:dn}` attributes are also accessible as properties.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a layered rabbit image</shortDescription>
   <circle  radius="7" filled/>
   <image 
     name="bunny"

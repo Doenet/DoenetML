@@ -20,11 +20,11 @@ component that renders a regular polygon on a `<graph>{:dn}`.
 ```doenet-editor-horiz
 <p>What area are you trying to cover?</p>
 <p>
-  <m>\text{Area} = </m>
-  <mathInput name="cover" prefill="75"/>
+  <mathInput name="cover" prefill="75"><label><m>\text{Area} = </m></label></mathInput>
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of a hexagon with a user-specified area</shortDescription>
   <regularPolygon name="hexagon" numSides="6" area="$cover" filled/>
 </graph> 
 
@@ -51,6 +51,7 @@ The `area` attribute can be used to adjust the size of the regular polygon.
 </booleanInput>
 
 <graph size="small">
+  <shortDescription>A graph of a hexagon with toggleable verticesDraggable</shortDescription>
   <regularPolygon 
     name="hexagon" 
     verticesDraggable="$isDraggable" 
@@ -81,6 +82,7 @@ polygon as a whole can still be repositioned on the `<graph>{:dn}`.
 <p>Triangle B has <attr>fixed</attr></p>
 
 <graph size="small" displayXAxis="false" displayYAxis="false">
+  <shortDescription>A graph illustrating fixLocation and fixed attributes</shortDescription>
   <regularPolygon 
     name="fixLocationTri" 
     fixLocation 
@@ -134,6 +136,7 @@ makes vertices not draggable), but other characteristics of the object can still
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph illustrating standard graphical attributes on regular polygons</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <regularPolygon 
     name="A" 
@@ -159,7 +162,7 @@ makes vertices not draggable), but other characteristics of the object can still
   />
 </graph>
 
-<booleanInput name="hidePolygonA" labelIsName/>
+<booleanInput name="hidePolygonA"><label>Hide polygonA</label></booleanInput>
 <p>Standard graphical attributes:</p>
     <ul>
       <li><attr>hide</attr></li>
@@ -187,6 +190,7 @@ Layers: By adjusting the `layer` attribute number, geometry can be placed in fro
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a regular heptagon</shortDescription>
   <regularPolygon 
     name="heptagon" 
     numSides="7" 
@@ -220,6 +224,7 @@ The above-listed attributes of the `<regularPolygon>{:dn}` component are also ac
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a 13-sided polygon with its vertices marked</shortDescription>
   <regularPolygon 
     name="largePoly" 
     numSides="13" 
@@ -246,6 +251,7 @@ The `vertices` property stores/renders all the computed vertices of the regular 
 
 ```doenet-editor-horiz
 <graph  size="small">
+  <shortDescription>A graph of a filled, styled square</shortDescription>
   <regularPolygon 
     name="square" 
     numSides="4" 

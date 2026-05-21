@@ -18,8 +18,9 @@ component that renders a boxed section of content that can be triggered by prede
 
 
 ```doenet-editor-horiz
-<p>Enter <em>hello there</em>: 
+<p>
   <answer name="ans" type="text">
+    <label>Enter <em>hello there</em></label>
     hello there
   </answer>
 </p>
@@ -45,8 +46,9 @@ No feedback is provided if the user answers the question correctly.
 
 
 ```doenet-editor-horiz
-<p>Select animal: 
+<p>
   <answer name="ans"> 
+    <label>Select animal</label>
     <choice credit="0.8">cat</choice>
     <choice credit="1">dog</choice>
     <choice credit="0.5">cow</choice>
@@ -80,8 +82,9 @@ selected within an `<answer>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>Select animal: 
+<p>
   <answer name="ans">
+    <label>Select animal</label>
     <choice credit="1" feedbackText="Meow">
       cat
     </choice>
@@ -111,8 +114,9 @@ Below the `<answer>{:dn}` block, the feedback text is rendered to the viewer wit
 
 
 ```doenet-editor-horiz
-<p>List all factors of 6, entering your numbers separated by commas:
+<p>
     <answer name="ans">
+      <label>List all factors of 6, entering your numbers separated by commas</label>
       <award name="fullCredit"
         unorderedCompare>
           <mathList>1,2,3,6</mathList>
@@ -151,8 +155,8 @@ Individualized feedback is provided to specific responses by referencing named a
 
 
 ```doenet-example
-<p>Enter 2 (and get it wrong...):
-  <answer name="ans">2</answer></p>
+<p>
+  <answer name="ans"><label>Enter 2 (and get it wrong...)</label>2</answer></p>
 <feedback condition="$ans != 2 and $ans.responseHasBeenSubmitted">
   This is not a 2
 </feedback>
@@ -170,15 +174,14 @@ The `condition` attribute specifies the boolean condition necessary for renderin
 
 
 ```doenet-editor-horiz
-<p>Enter <em>y</em>, then click the Check Work button.</p>
-  <answer name="ans">x</answer>
+<answer name="ans"><label>Enter <em>y</em>, then click the Check Work button</label>x</answer>
 
 <feedback updateWith="$ans">
   You answered the question!
 </feedback> 
 
-<p>Enter <em>x</em>, then click outside the box.
-  <mathInput name="mi"/>
+<p>
+  <mathInput name="mi"><label>Enter <em>x</em>, then click outside the box</label></mathInput>
 </p>
 
 <feedback updateWith="$mi">

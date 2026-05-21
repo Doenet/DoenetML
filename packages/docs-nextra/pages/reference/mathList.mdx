@@ -11,6 +11,15 @@ import { AttrPropDisplay } from "../../components"
 component that defines a collection, or list, of [`<math>{:dn}`](math.mdx) components. 
 Some components that accept a `<mathList>{:dn}` as an input include functions, repeats, and awards.
 
+When creating a `<mathList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas.
+
+A comma between entries inside a `<mathList>{:dn}` creates a tuple — a single
+math — so `<mathList>x, y, z</mathList>{:dn}` is a list with the single entry
+`(x,y,z)`, while `<mathList>x y z</mathList>{:dn}` is a list of three entries.
+To split a math that already contains commas into separate entries, use the
+[`mergeMathLists`](#attribute-example-mergemathlists) attribute.
+
 <AttrPropDisplay name='mathList'/>
 
 ---
@@ -19,8 +28,10 @@ Some components that accept a `<mathList>{:dn}` as an input include functions, r
 
 
 ```doenet-editor-horiz
-<p>Here is a list of maths, with one missing piece. What do you want it to be? 
-  <mathInput name="userMath"/>
+<p>
+  <mathInput name="userMath">
+    <label>Here is a list of maths, with one missing piece. What do you want it to be?</label>
+  </mathInput>
 </p>
 
 <mathList name="mList">
@@ -43,9 +54,21 @@ To access an individual element in the list, use array notation with the named `
 
 ```doenet-editor-horiz
 <p>Let's build a list:</p>
-<p>Type <m>x</m>: <mathInput name="mi1"/></p>
-<p>Type <m>y</m>: <mathInput name="mi2"/></p>
-<p>Type <m>z</m>: <mathInput name="mi3"/></p>
+<p>
+  <mathInput name="mi1">
+    <label>Type <m>x</m></label>
+  </mathInput>
+</p>
+<p>
+  <mathInput name="mi2">
+    <label>Type <m>y</m></label>
+  </mathInput>
+</p>
+<p>
+  <mathInput name="mi3">
+    <label>Type <m>z</m></label>
+  </mathInput>
+</p>
 <mathList name="asList">$mi1 $mi2 $mi3</mathList>
 
 <p>The second element in the user's list is: 
@@ -127,8 +150,10 @@ a `<repeat>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>Type <m>x, y, z</m> 
-  <mathInput name="mi1"/>
+<p>
+  <mathInput name="mi1">
+    <label>Type <m>x, y, z</m></label>
+  </mathInput>
 </p>
 
 <p>Check your answer:
@@ -159,11 +184,21 @@ can occur in the `<award>{:dn}`, the `<answer>{:dn}`, or the `<mathList>{:dn}` i
 
 
 ```doenet-example
-<p>Type <m>x, y, z</m> <mathInput name="mi1"/></p>
+<p>Type <m>x</m>, <m>y</m>, <m>z</m>:
+  <mathInput name="mi1">
+    <shortDescription>first value</shortDescription>
+  </mathInput>
+  <mathInput name="mi2">
+    <shortDescription>second value</shortDescription>
+  </mathInput>
+  <mathInput name="mi3">
+    <shortDescription>third value</shortDescription>
+  </mathInput>
+</p>
 
-<p>Check if equal to <m>{y,z,x}</m>:
+<p>Check if equal to <m>\{y,z,x\}</m>:
   <boolean>
-    $mi1 = <mathList unordered>y,z,x</mathList>
+    <mathList unordered>$mi1 $mi2 $mi3</mathList> = <mathList>y z x</mathList>
   </boolean></p>
 ```
 
@@ -181,8 +216,11 @@ unordered automatically.
 
 
 ```doenet-example
-<p>Enter a list of 3 or more variables: 
-  <mathInput name="mi1"/></p>
+<p>
+  <mathInput name="mi1">
+    <label>Enter a list of 3 or more variables</label>
+  </mathInput>
+</p>
 
 <p><mathList name="mL1" maxNumber="2">$mi1</mathList></p>
 <p>$mL1</p>    
@@ -207,7 +245,11 @@ The `maxNumber` attribute imposes a limit on the number of maths that can be sto
   <math>g</math>
 </mathList>
 
-<p>Merge math lists: <booleanInput name="isMerged" /></p>
+<p>
+  <booleanInput name="isMerged">
+    <label>Merge math lists</label>
+  </booleanInput>
+</p>
 <p>The third math in the list is: $mL1[3]</p>
 ```
 
@@ -225,9 +267,16 @@ use the `mergeMathLists` attribute.
 
 
 ```doenet-editor-horiz
-<p>How many maths should we keep?
-  <mathInput name="n"/></p>
-<p>Merge? <booleanInput name="merge"/></p>
+<p>
+  <mathInput name="n">
+    <label>How many maths should we keep?</label>
+  </mathInput>
+</p>
+<p>
+  <booleanInput name="merge">
+    <label>Merge?</label>
+  </booleanInput>
+</p>
 
   <mathList name="mL1" mergeMathLists="$merge" maxNumber="$n">
     <math>(e^t, cos(t))</math>
@@ -254,7 +303,11 @@ All of the attributes of the `<mathList>{:dn}` component are also available as p
 
 
 ```doenet-editor-horiz
-<p>Merge? <booleanInput name="merge"/></p>
+<p>
+  <booleanInput name="merge">
+    <label>Merge?</label>
+  </booleanInput>
+</p>
 
   <mathList name="mL1" mergeMathLists="$merge">
     <math>(a, b)</math>

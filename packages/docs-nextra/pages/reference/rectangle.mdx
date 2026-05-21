@@ -22,6 +22,7 @@ component that renders a rectangle when nested inside a [`<graph>{:dn}`](graph.m
   xmax="3" 
   ymin="-3" 
   ymax="3">
+    <shortDescription>A graph of the default rectangle</shortDescription>
     <rectangle/>
 </graph>
 ```
@@ -46,6 +47,7 @@ clicking and dragging on any side.
   xmax="3" 
   ymin="-3" 
   ymax="3">
+    <shortDescription>A graph of a rectangle defined by center, width, and height</shortDescription>
     <rectangle name="rect1" center='(0,0)' width="4" height="2"/>
 </graph>
 ```
@@ -65,6 +67,7 @@ itself can be repositioned by clicking and dragging on any side.
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-2" xmax="6" ymin="-1" ymax="1">
+  <shortDescription>A graph of six filled rectangles with different styles</shortDescription>
   <rectangle filled center="(0,0.25)"/>
   <rectangle filled center="(1,-0.25)" styleNumber="2"/>
   <rectangle filled center="(2,0.25)" styleNumber="3"/>
@@ -89,6 +92,7 @@ The `filled` attribute renders the rectangle with default shading to match the s
 <p>Drag the corners of the rectangle to change its shape.</p>
 
 <graph size="small" grid>
+  <shortDescription>A graph of two rectangles, one defined by vertices</shortDescription>
   <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
   <rectangle styleNumber="2" name="default"/>
   $rect.vertices[1]
@@ -114,6 +118,7 @@ points of the rectangle (lower left and upper right); default: vertices="(0,0) (
 <p>Drag the corners of the rectangle to change its shape.</p>
 
 <graph size="small" grid>
+  <shortDescription>A graph of a rectangle constrained to a grid</shortDescription>
   <point name="v1">(-2,-2)
     <constrainToGrid/>
   </point>
@@ -140,6 +145,7 @@ constrained points in the `vertices` attribute.
 <p>Drag the center point to shift the rectangle's position</p>
 
 <graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <shortDescription>A graph of a rectangle with its center point</shortDescription>
   <rectangle center="(0,0)" name="rect"/>
   <point extend="$rect.center" styleNumber="2"/>
 </graph>
@@ -161,6 +167,7 @@ the default center position is $(0.5, 0.5)$.
 ```doenet-example
 <p>Drag the corners of the rectangle to change its shape.</p>
 <graph size="small">
+  <shortDescription>A graph of a rectangle with specified width and height</shortDescription>
   <rectangle height="4" width="7" name="rect"/>
 </graph>
 
@@ -184,6 +191,7 @@ If not specified, the default values for `width` and `height` are both $1$.
 <p>Drag the corners of the rectangle to change its shape.</p>
 
 <graph>
+  <shortDescription>A graph of a rectangle with vertex points marked</shortDescription>
   <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
   <point extend="$rect.vertices[1]"/>
   <point extend="$rect.vertices[3]"/>
@@ -207,6 +215,7 @@ Use the `vertices` attribute to specify a list of the two opposite corner points
 <p>Drag the rectangle around the graph.</p>
 
 <graph>
+  <shortDescription>A graph of a rectangle with non-draggable vertices</shortDescription>
   <rectangle vertices="(-3,-4) (5,6)" name="rect" verticesDraggable="false"/>
 </graph>
 
@@ -230,6 +239,7 @@ whole can still be repositioned on the `<graph>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph illustrating standard graphical attributes on rectangles</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <rectangle 
     name="A" 
@@ -252,7 +262,7 @@ whole can still be repositioned on the `<graph>{:dn}`.
   />
 </graph>
 
-<booleanInput name="hideRectangleA" labelIsName/>
+<booleanInput name="hideRectangleA"><label>Hide rectangleA</label></booleanInput>
 <p>Standard graphical attributes:</p>
     <ul>
       <li><attr>hide</attr></li>
@@ -277,6 +287,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a rectangle</shortDescription>
   <rectangle vertices="(-3,-4) (7,6)" name="rect"/>
 </graph>
 

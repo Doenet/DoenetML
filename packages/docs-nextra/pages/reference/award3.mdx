@@ -14,8 +14,8 @@ The following examples illustrate use of the `<award>{:dn}` tag properties.
 
 ### Property Example: Attributes as Properties
 ```doenet-editor-horiz
-Enter <m>x + y</m>: 
 <answer>
+  <label>Enter <m>x + y</m></label>
   <award name="aw" symbolicEquality simplifyOnCompare feedbackText="correct!">x + y</award>
 </answer>
 <p><c>credit</c> = $aw.credit</p>
@@ -40,9 +40,9 @@ The `<award>{:dn}` attributes listed above are also accessible as properties.
 
 ### Property Example: creditAchieved
 ```doenet-example
-      <p>Enter a number larger than 1.  (Partial credit for number larger than 0.)
+      <p>
         <answer>
-          <mathInput name="input" />
+          <mathInput name="input"><label>Enter a number larger than 1.  (Partial credit for number larger than 0.)</label></mathInput>
           <award name="aw1"><when>$input > 1</when></award>
           <award credit="0.5" name="aw2"><when>$input > 0</when></award>
         </answer>
@@ -64,9 +64,9 @@ The `creditAchieved` property of the named `<award>{:dn}` renders the credit tha
 
 
 ```doenet-example
-      <p>Enter a number larger than 1.  (Partial credit for number larger than 0.)
+      <p>
         <answer>
-          <mathInput name="input" />
+          <mathInput name="input"><label>Enter a number larger than 1.  (Partial credit for number larger than 0.)</label></mathInput>
           <award name="aw1"><when>$input > 1</when></award>
           <award credit="0.5" name="aw2"><when>$input > 0</when></award>
         </answer>
@@ -89,8 +89,9 @@ attribute of the award indicates the fraction of its conditions are satisified.
 
 ```doenet-example
       <p><em>For the following question, first enter <m>\frac{4}{8}</m> and then <m>\frac{1}{2}</m>.</em></p>
-      <p>Question: Simplify <m>\frac{8}{16}</m>
+      <p>
       <answer symbolicEquality>
+        <label>Question: Simplify <m>\frac{8}{16}</m></label>
         <award name="right">1/2</award>
         <award name="notFully" credit="0">4/8</award>
       </answer>
@@ -120,6 +121,7 @@ macro (see the use of `$notFully` in this example).
 ```doenet-example
     <p>The correct answer is <m>x</m> but <m>y</m> is close.</p>
     <answer name="ans">
+      <label>Enter the correct answer</label>
       <award name="aw1" feedbackText="good job!">x</award>
       <award name="aw2" credit="0.5" feedbackText="Not quite">y</award>
     </answer>

@@ -86,6 +86,11 @@ export class RunThroughCore {
             this._initPromise();
         }
     }
+    /**
+     * Create a PreTeXt document from DoenetML. This document includes a root `<pretext>` tag.
+     *
+     * If you only want a fragment of a PreTeXt document (e.g. without the root `<pretext>` tag), use `processToFlatDastAsFragment` instead.
+     */
     async processToFlatDast(input: string): Promise<FlatDastRoot> {
         if (!this.browser) {
             await this.init();
@@ -104,7 +109,9 @@ export class RunThroughCore {
                     }, 5000);
                     try {
                         // @ts-ignore
-                        const dast = await doenetMLToPretext(source);
+                        const dast = await doenetMLToPretext(source, {
+                            fragment: false,
+                        });
                         resolve(dast);
                     } catch (e) {
                         resolve("" + e);
@@ -114,5 +121,78 @@ export class RunThroughCore {
         );
 
         return result as FlatDastRoot;
+    }
+    /**
+     * Create a fragment of a PreTeXt document from DoenetML. The output will not be a complete PreTeXt document,
+     * but should be suitable for embedding inside a larger PreTeXt document.
+     */
+    async processToFlatDastAsFragment(input: string): Promise<FlatDastRoot> {
+        if (!this.browser) {
+            await this.init();
+        }
+        await this.initRunningPromise;
+        if (!this.browser) {
+            throw new Error("Failed to initialize browser");
+        }
+        const result = await this.browser.execute(
+            async (source) =>
+                new Promise(async (resolve, reject) => {
+                    window.setTimeout(() => {
+                        resolve(
+                            "" + new Error("Took too long to execute script"),
+                        );
+                    }, 5000);
+                    try {
+                        // @ts-ignore
+                        const dast = await doenetMLToPretext(source, {
+                            fragment: true,
+                        });
+                        resolve(dast);
+                    } catch (e) {
+                        resolve("" + e);
+                    }
+                }),
+            input,
+        );
+
+        return result as FlatDastRoot;
+    }
+
+    /**
+     * Convert multiple DoenetML fragments via doenetMLToPretextInstance.convertMultiple.
+     * Each fragment is converted in fragment mode and should have unique xml:id's.
+     */
+    async processMultipleFragmentsToFlatDast(
+        inputs: string[],
+    ): Promise<string[]> {
+        if (!this.browser) {
+            await this.init();
+        }
+        await this.initRunningPromise;
+        if (!this.browser) {
+            throw new Error("Failed to initialize browser");
+        }
+        const result = await this.browser.execute(
+            async (sources: string[]) =>
+                new Promise(async (resolve, reject) => {
+                    window.setTimeout(() => {
+                        resolve(
+                            "" + new Error("Took too long to execute script"),
+                        );
+                    }, 5000);
+                    try {
+                        // @ts-ignore
+                        const converter = new DoenetMLToPretext();
+                        const results =
+                            await converter.convertMultiple(sources);
+                        resolve(results);
+                    } catch (e) {
+                        resolve("" + e);
+                    }
+                }),
+            inputs,
+        );
+
+        return result as string[];
     }
 }

@@ -21,8 +21,9 @@ or can be rendered visible only when triggered by specific user interactions.
 
 
 ```doenet-example
-<p>What food item below was NOT invented in America?
+<p>
   <answer>
+    <label>What food item below was NOT invented in America?</label>
     <choice>Hot Dogs</choice>
     <choice>Cotton Candy</choice>
     <choice credit="1">Pizza</choice>
@@ -44,8 +45,8 @@ available by clicking on the hint banner.
 
 
 ```doenet-editor-horiz
-<p>What is the smallest prime number?
-  <answer name="ans1">2</answer>
+<p>
+  <answer name="ans1"><label>What is the smallest prime number?</label>2</answer>
     <hint hide="$ans1 != 1">
       By convention the number 1 is not prime.  Try again!
     </hint>
@@ -65,9 +66,8 @@ specific user interactions using the `<hide>{:dn}` attribute.
 
 
 ```doenet-editor-horiz
-<p>Given the line <math>y = 1/2 x - 4</math>, 
-what is the <m>y</m>-intercept?
-  <answer name="ans">-4</answer>
+<p>
+  <answer name="ans"><label>Given the line <math>y = 1/2 x - 4</math>, what is the <m>y</m>-intercept?</label>-4</answer>
 
   <hint 
     hide="($ans.nSubmissions < 2) or ($ans.creditAchieved = 1)">

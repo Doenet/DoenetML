@@ -20,7 +20,7 @@ the range of that interval. The default interval is $[0,1]$.
 
 
 ```doenet-example
-<p>Enter any number: <mathInput name="n"/></p>   
+<p><mathInput name="n"><label>Enter any number</label></mathInput></p>   
 <p>Your number, within the default clamped limits is: 
   <clampNumber>$n</clampNumber>
 </p>   
@@ -39,8 +39,8 @@ and the default `upperValue` is $1$.
 
 
 ```doenet-example
-<p>Enter a number that is <m> < -10</m>: 
-  <mathInput name="n"/>
+<p>
+  <mathInput name="n"><label>Enter a number that is <m> < -10</m></label></mathInput>
 </p>   
 
 <p>Your number, within the clamped limits is: 
@@ -63,8 +63,8 @@ for the `<clampNumber>{:dn}` component. The default value is $0$.
 
 
 ```doenet-example
-<p>Enter a number that is <m> > 10</m>: 
-  <mathInput name="n"/>
+<p>
+  <mathInput name="n"><label>Enter a number that is <m> > 10</m></label></mathInput>
 </p>   
 
 <p>Your number, within the clamped limits is: 

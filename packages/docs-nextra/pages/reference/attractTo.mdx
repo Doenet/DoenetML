@@ -17,6 +17,7 @@ is used to within a `<point>{:dn}` to attract it to a specified reference compon
 ```doenet-editor-horiz
 <p>Move the point towards the circle.</p>
   <graph size="small">
+    <shortDescription>A circle and a draggable point attracted to it</shortDescription>
     <circle name="circ" radius="7"/>
     <point name="P" styleNumber="2">
       <attractTo>$circ</attractTo>
@@ -34,6 +35,7 @@ $2 \%$ of the graph axes.
 ```doenet-editor-horiz  
 <p>Move the point to the intersection.</p>
   <graph size="small">
+    <shortDescription>Two lines and a draggable point attracted to their intersection</shortDescription>
     <line name="line1">y = 3/2 x - 5</line>
     <line name="line2">y = -1/2 x + 4</line>
     <intersection name="ip" hide>$line1 $line2</intersection>
@@ -62,6 +64,7 @@ $2 \%$ of the graph axes.
    
 <p>Move the point to the maximum of the function.</p>
   <graph size="small">
+    <shortDescription>A function with a draggable point attracted to it and its maximum</shortDescription>
     <function name="f">-x^2 + 3</function>
     <point name="max" hide>$f.maxima</point>
     <point name="P" styleNumber="2" isResponse>
@@ -90,8 +93,9 @@ of the graph axes.
 
 ### Attribute Example: threshold
 ```doenet-editor-horiz
-<p>Enter attraction threshold: <mathInput name="x" prefill="0"/>.</p>
+<p><mathInput name="x" prefill="0"><label>Enter attraction threshold</label></mathInput></p>
   <graph size="small">
+    <shortDescription>A circle and a draggable point attracted to it with adjustable threshold</shortDescription>
     <circle name="circ" radius="7"/>
     <point name="P" styleNumber="2">
       <attractTo threshold="$x">$circ</attractTo>
@@ -107,6 +111,7 @@ The `threshold` attribute allows customization of the the threshold of attractio
 ### Property Example: threshold
 ```doenet-editor-horiz
 <graph size="small" >
+  <shortDescription>A horizontal line and a draggable point attracted to it</shortDescription>
   <line name="ground">y = 0</line>
   <point name="P" styleNumber="2">
     (0,5)

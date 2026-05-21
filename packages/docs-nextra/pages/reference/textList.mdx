@@ -8,6 +8,11 @@ import { AttrPropDisplay } from "../../components"
 The `<textList>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
 component that stores multiple [`<text>{:dn}`](text.mdx) components within a list.
 
+When creating a `<textList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (A comma inside a
+`<textList>{:dn}` is treated as part of the text itself, just as it would be inside
+a `<text>{:dn}`.)
+
 <AttrPropDisplay name='textList'/>
 
 ---
@@ -17,15 +22,15 @@ component that stores multiple [`<text>{:dn}`](text.mdx) components within a lis
 
 ```doenet-editor-horiz
 <p>A list of flower names: 
-( <textList name="flowerNames">
+ <textList name="flowerNames">
     rose lily daffodil tulip
-  </textList> )
+  </textList>
 </p>
 ```
 
 
 
-In the sample code above, the individual [`<text>{:dn}`](text.mdx) components are listed directly between the opening and closing `<textInput>{:dn}` tags, with spaces to separate list items.
+In the sample code above, the individual [`<text>{:dn}`](text.mdx) components are listed directly between the opening and closing `<textList>{:dn}` tags, with spaces (not commas) to separate list items.
 
 
 
@@ -37,9 +42,21 @@ In the sample code above, the individual [`<text>{:dn}`](text.mdx) components ar
 ```doenet-editor-horiz
 <p>Name 3 reptiles:</p>
 <ol>
-  <li><textInput name="r1"/></li>
-  <li><textInput name="r2"/></li>
-  <li><textInput name="r3"/></li>
+  <li>
+    <textInput name="r1">
+      <shortDescription>reptile 1</shortDescription>
+    </textInput>
+  </li>
+  <li>
+    <textInput name="r2">
+      <shortDescription>reptile 2</shortDescription>
+    </textInput>
+  </li>
+  <li>
+    <textInput name="r3">
+      <shortDescription>reptile 3</shortDescription>
+    </textInput>
+  </li>
 </ol>
 
 <p>Your list of reptiles is: 
@@ -67,9 +84,21 @@ definition of a `<textList>{:dn}`. Individual entries in the list can be referen
 ```doenet-editor-horiz
 <p>Enter "apple", "banana", "orange":</p>
 <ul>
-  <li><textInput name="fruit1"/></li>
-  <li><textInput name="fruit2"/></li>
-  <li><textInput name="fruit3"/></li>
+  <li>
+    <textInput name="fruit1">
+      <shortDescription>fruit 1</shortDescription>
+    </textInput>
+  </li>
+  <li>
+    <textInput name="fruit2">
+      <shortDescription>fruit 2</shortDescription>
+    </textInput>
+  </li>
+  <li>
+    <textInput name="fruit3">
+      <shortDescription>fruit 3</shortDescription>
+    </textInput>
+  </li>
 </ul>
 
 <textList name="userAns" unordered hide>
@@ -115,5 +144,5 @@ without regard to the order in which the names of the fruits have been entered.
 
 
 In the sample code above, the maximum number of `<text>{:dn}` components displayed is 3, even 
-though there are 5 `<text>{:dn}` components listed directly between the opening and closing `<textInput>{:dn}` tags.
+though there are 5 `<text>{:dn}` components listed directly between the opening and closing `<textList>{:dn}` tags.
 

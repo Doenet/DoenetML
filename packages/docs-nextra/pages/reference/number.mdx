@@ -78,7 +78,7 @@ The `convertBoolean` attribute renders or stores a boolean that evaluates to `tr
 
 
 ```doenet-editor-horiz
-<p>Enter a number other than 0: <mathInput name="userN"/></p>
+<p><mathInput name="userN"><label>Enter a number other than 0</label></mathInput></p>
 <p><number>$userN</number></p>
 
 <p>
@@ -105,6 +105,7 @@ be stored by Doenet until a new number is assigned
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph displaying a number at (5,5)</shortDescription>
   <number name="n1" anchor="(5,5)">5/3</number>
 </graph>    
 
@@ -125,6 +126,7 @@ The `anchor` attribute sets the location of a `<number>{:dn}` placed within a `<
 ```doenet-editor-horiz
 <p>Try dragging each number.</p>
 <graph size="small">
+  <shortDescription>A graph displaying two numbers, one draggable and one not</shortDescription>
   <number name="n1" anchor="(5,5)">53</number>
   <number name="n2" draggable="false" anchor="(-5,-5)">21</number>
 </graph>     
