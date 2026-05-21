@@ -1,5 +1,7 @@
 import React from "react";
+import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
+import { isMathDefaultValue } from "@doenet/static-assets/schema";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
 
@@ -252,9 +254,30 @@ export function ContextHelpPanel({
     }
 }
 
-function formatValue(val: unknown): string {
+function formatValue(val: unknown): React.ReactNode {
+    if (isMathDefaultValue(val)) {
+        // `\(…\)` is the MathJax inline-math delimiter. The surrounding
+        // `<MathJaxContext>` is set up at the top of `doenetml.tsx`, so we
+        // can drop a `<MathJax>` directly into the help panel without
+        // managing a context here.
+        return (
+            <MathJax
+                inline
+                dynamic
+                hideUntilTypeset="first"
+            >{`\\(${val.latex}\\)`}</MathJax>
+        );
+    }
     if (Array.isArray(val)) {
-        return val.map((v) => formatValue(v)).join(", ");
+        // Interleave React nodes with comma separators rather than calling
+        // `.join(", ")`, which would coerce any inner `<MathJax>` element to
+        // the string `[object Object]`.
+        return val.map((v, i) => (
+            <React.Fragment key={i}>
+                {i > 0 ? ", " : null}
+                {formatValue(v)}
+            </React.Fragment>
+        ));
     }
     if (typeof val === "string") {
         return resolveCssVariables(val);

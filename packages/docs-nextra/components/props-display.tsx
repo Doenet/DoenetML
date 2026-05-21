@@ -1,5 +1,7 @@
 import { Link } from "nextra-theme-docs";
 import React from "react";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
+import { isMathDefaultValue } from "@doenet/static-assets/schema";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -75,99 +77,121 @@ export function AttrDisplay({
     const componentAttrs = attrs.filter((attr) => !attr.common);
 
     return (
-        <div className="attr-list" id="attr-list">
-            <h3 className="attr-list-caption">
-                Attributes for{" "}
-                {children || (
-                    <code>
-                        {"<"}
-                        {name}
-                        {">"}
-                    </code>
-                )}
-            </h3>
-            {componentAttrs.map((attr) => {
-                const linkTarget = links[attr.name];
-                const nameElm = linkTarget ? (
-                    <Link href={linkTarget}>{attr.name}</Link>
-                ) : (
-                    attr.name
-                );
-                const typeLabel = formatType(attr.type, attr.isArray);
-                const isKeyword = attr.type === "keyword";
-                const defaultStr = formatDefaultValue(attr.defaultValue);
-                // `boolean` attributes only ever take true/false, so the
-                // value table would be noise — skip it for them.
-                const showValues =
-                    attr.type !== "boolean" &&
-                    attr.values != null &&
-                    attr.values.length > 0;
-                return (
-                    <div className="attr-item" key={attr.name}>
-                        <div>
-                            <code className="attr-name attr-name-box">
-                                {nameElm}
-                            </code>
-                        </div>
-                        <p className="attr-detail">
-                            {typeLabel ? (
-                                <>
-                                    <em className="attr-type">{typeLabel}</em>
-                                    .{" "}
-                                </>
-                            ) : null}
-                            {/* The default value follows the type, except for
+        <WithMathJaxIfNeeded
+            needed={componentAttrs.some((a) =>
+                isMathDefaultValue(a.defaultValue),
+            )}
+        >
+            <div className="attr-list" id="attr-list">
+                <h3 className="attr-list-caption">
+                    Attributes for{" "}
+                    {children || (
+                        <code>
+                            {"<"}
+                            {name}
+                            {">"}
+                        </code>
+                    )}
+                </h3>
+                {componentAttrs.map((attr) => {
+                    const linkTarget = links[attr.name];
+                    const nameElm = linkTarget ? (
+                        <Link href={linkTarget}>{attr.name}</Link>
+                    ) : (
+                        attr.name
+                    );
+                    const typeLabel = formatType(attr.type, attr.isArray);
+                    const isKeyword = attr.type === "keyword";
+                    const defaultNode = renderDefaultValue(attr.defaultValue);
+                    // `boolean` attributes only ever take true/false, so the
+                    // value table would be noise — skip it for them.
+                    const showValues =
+                        attr.type !== "boolean" &&
+                        attr.values != null &&
+                        attr.values.length > 0;
+                    return (
+                        <div className="attr-item" key={attr.name}>
+                            <div>
+                                <code className="attr-name attr-name-box">
+                                    {nameElm}
+                                </code>
+                            </div>
+                            <p className="attr-detail">
+                                {typeLabel ? (
+                                    <>
+                                        <em className="attr-type">
+                                            {typeLabel}
+                                        </em>
+                                        .{" "}
+                                    </>
+                                ) : null}
+                                {/* The default value follows the type, except for
                                 keyword attributes, where it is marked in the
-                                value list below. */}
-                            {!isKeyword && defaultStr !== null ? (
-                                <>
-                                    Default value:{" "}
-                                    <code className="attr-default">
-                                        {defaultStr}
-                                    </code>
-                                    .{" "}
-                                </>
+                                value list below. Math defaults are typeset by
+                                MathJax, so we render them in a plain `<span>`
+                                instead of `<code>` — wrapping typeset math
+                                inside a monospace `<code>` block produces
+                                awkward mixed-typography output. */}
+                                {!isKeyword && defaultNode !== null ? (
+                                    <>
+                                        Default value:{" "}
+                                        {isMathDefaultValue(
+                                            attr.defaultValue,
+                                        ) ? (
+                                            <span className="attr-default attr-default-math">
+                                                {defaultNode}
+                                            </span>
+                                        ) : (
+                                            <code className="attr-default">
+                                                {defaultNode}
+                                            </code>
+                                        )}
+                                        .{" "}
+                                    </>
+                                ) : null}
+                                {attr.description}
+                            </p>
+                            {showValues ? (
+                                <table className="attr-value-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Value</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {attr.values!.map((v) => {
+                                            const isDefault =
+                                                attr.defaultValue != null &&
+                                                String(attr.defaultValue) ===
+                                                    v.value;
+                                            return (
+                                                <tr key={v.value}>
+                                                    <td>
+                                                        <code className="attr-value-chip">
+                                                            {v.value}
+                                                        </code>
+                                                        {isDefault ? (
+                                                            <span className="attr-default-marker">
+                                                                {" "}
+                                                                (default)
+                                                            </span>
+                                                        ) : null}
+                                                    </td>
+                                                    <td>
+                                                        {v.description || ""}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             ) : null}
-                            {attr.description}
-                        </p>
-                        {showValues ? (
-                            <table className="attr-value-table">
-                                <thead>
-                                    <tr>
-                                        <th>Value</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {attr.values!.map((v) => {
-                                        const isDefault =
-                                            attr.defaultValue != null &&
-                                            String(attr.defaultValue) ===
-                                                v.value;
-                                        return (
-                                            <tr key={v.value}>
-                                                <td>
-                                                    <code className="attr-value-chip">
-                                                        {v.value}
-                                                    </code>
-                                                    {isDefault ? (
-                                                        <span className="attr-default-marker">
-                                                            {" "}
-                                                            (default)
-                                                        </span>
-                                                    ) : null}
-                                                </td>
-                                                <td>{v.description || ""}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        ) : null}
-                    </div>
-                );
-            })}
-        </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </WithMathJaxIfNeeded>
     );
 }
 
@@ -290,12 +314,30 @@ function formatType(typeName?: PropAttrType, isArray?: boolean) {
 }
 
 /**
- * Format an attribute's default value for display. Returns `null` when there
- * is no meaningful default (`null`/`undefined`), so callers can omit it.
+ * Render an attribute's default value for display. Returns `null` when
+ * there is no meaningful default (`null`/`undefined`, an empty string, or
+ * an empty array), so callers can omit the "Default value: …" prefix
+ * altogether. Math-expression defaults (the `{ type: "math", latex }`
+ * sentinel produced by `get-schema.ts`) are rendered through MathJax so the
+ * actual expression — not the raw serialized object — appears in the docs.
  */
-function formatDefaultValue(value: unknown): string | null {
+function renderDefaultValue(value: unknown): React.ReactNode {
     if (value == null) {
         return null;
+    }
+    if (isMathDefaultValue(value)) {
+        // `\(…\)` is the MathJax inline-math delimiter. `dynamic` and
+        // `hideUntilTypeset="first"` mirror how `<m>`-style math is
+        // rendered elsewhere in DoenetML — the latex is hidden until the
+        // first typeset pass, which avoids a flash of raw source on first
+        // paint.
+        return (
+            <MathJax
+                inline
+                dynamic
+                hideUntilTypeset="first"
+            >{`\\(${value.latex}\\)`}</MathJax>
+        );
     }
     if (typeof value === "string") {
         // An empty-string default carries no useful information.
@@ -309,4 +351,23 @@ function formatDefaultValue(value: unknown): string | null {
         return String(value);
     }
     return JSON.stringify(value);
+}
+
+/**
+ * Wrap children in a `MathJaxContext` only when at least one default value
+ * needs MathJax to render — most components have no math defaults, and
+ * mounting a context (which loads the MathJax script) on every reference
+ * page would be wasteful. When no math is present we render children plain
+ * to keep the DOM identical to the pre-MathJax behavior.
+ */
+function WithMathJaxIfNeeded({
+    needed,
+    children,
+}: React.PropsWithChildren<{ needed: boolean }>) {
+    if (!needed) {
+        return <>{children}</>;
+    }
+    // `version={4}` matches the MathJax major version used elsewhere in
+    // DoenetML (see `doenetml.tsx`).
+    return <MathJaxContext version={4}>{children}</MathJaxContext>;
 }

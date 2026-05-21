@@ -6,7 +6,7 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
-import type { ValidValueEntry } from "../src/schema";
+import type { MathDefaultValue, ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -36,18 +36,53 @@ export function getExistingDocSlugs(): Set<string> {
 }
 
 /**
- * Encode a `defaultValue` for inclusion in the schema JSON. JSON has no
- * representation for `Infinity`, `-Infinity`, or `NaN` — `JSON.stringify`
- * silently rewrites them to `null`, which is indistinguishable from an
- * explicit `null` default. To preserve the distinction, encode each
- * non-finite number as a sentinel string before serialization. Help
- * consumers render strings as-is, so `<booleanList maxNumber>` will
- * surface as `"Infinity"` instead of being silently dropped as `null`.
+ * Encode a `defaultValue` for inclusion in the schema JSON.
+ *
+ * - JSON has no representation for `Infinity`, `-Infinity`, or `NaN` —
+ *   `JSON.stringify` silently rewrites them to `null`, which is
+ *   indistinguishable from an explicit `null` default. To preserve the
+ *   distinction, encode each non-finite number as a sentinel string. Help
+ *   consumers render strings as-is, so `<booleanList maxNumber>` surfaces as
+ *   `"Infinity"` instead of being silently dropped as `null`.
+ *
+ * - `math-expressions` `Expression` objects (e.g. the default of the `<math>`
+ *   `assumptions` attribute) round-trip through `JSON.stringify` as
+ *   `{ objectType: "math-expression", tree: ... }`, which is opaque to a
+ *   reader. Replace them with a `{ type: "math", latex }` sentinel so the
+ *   docs UI can render the LaTeX with MathJax.
  */
 function encodeDefaultValueForJson(val: unknown): unknown {
+    if (isMathExpression(val)) {
+        const sentinel: MathDefaultValue = {
+            type: "math",
+            latex: val.toLatex(),
+        };
+        return sentinel;
+    }
     if (typeof val !== "number" || Number.isFinite(val)) return val;
     if (Number.isNaN(val)) return "NaN";
     return val > 0 ? "Infinity" : "-Infinity";
+}
+
+/**
+ * `math-expressions` exports its `Expression` class as the default export
+ * of `math-expressions`. Instances carry a `tree` (own property), a
+ * prototype `toLatex()`, and a `toJSON()` that writes the
+ * `{ objectType: "math-expression", tree }` shape that shows up in the
+ * default schema serialization — but `objectType` is only present on the
+ * `toJSON` output, not on the instance itself. So we probe for the
+ * instance shape (`toLatex` + `tree`) rather than the serialized one, and
+ * stay free of a direct `math-expressions` dependency in this module.
+ */
+function isMathExpression(
+    val: unknown,
+): val is { toLatex: () => string; tree: unknown } {
+    return (
+        typeof val === "object" &&
+        val !== null &&
+        typeof (val as { toLatex?: unknown }).toLatex === "function" &&
+        "tree" in val
+    );
 }
 
 /**
@@ -238,6 +273,16 @@ type PublicStateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
     description: string;
     fromAttribute?: boolean;
+    /**
+     * Resting value the runtime uses when nothing else (attribute, child,
+     * parent) sets the state variable. Surfaced here by
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `hasEssential` + `defaultValue` pair. Used by the attribute loop to
+     * fall back when an attribute declaration does not carry its own
+     * `defaultValue` (e.g. number-display attrs like `padZeros`,
+     * `displayDigits`, whose default lives on the state variable).
+     */
+    defaultValue?: unknown;
 };
 
 type SchemaAttribute = {
@@ -522,6 +567,27 @@ export function getSchema(
                 excludedStateVariableNames.add(attrDef.createStateVariable);
             }
         }
+        // Map state variable name → its essential `defaultValue`, when the
+        // state def declares one. Used below to surface a default for
+        // attributes (e.g. `padZeros`, `displayDigits`) whose attribute
+        // declaration omits `defaultValue` because the actual resting value
+        // is defined on the state variable, not the attribute. We read from
+        // the *full* (non-public-only) state variable info so non-public
+        // state defs can still donate a default to a public attribute.
+        const stateVarDefaults: Record<string, unknown> = {};
+        const stateVarInfo =
+            componentInfoObjects.stateVariableInfo[type]
+                ?.stateVariableDescriptions;
+        if (stateVarInfo) {
+            for (const varName in stateVarInfo) {
+                const svDesc = stateVarInfo[varName] as {
+                    defaultValue?: unknown;
+                };
+                if (svDesc.defaultValue !== undefined) {
+                    stateVarDefaults[varName] = svDesc.defaultValue;
+                }
+            }
+        }
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
             if (attrDef.excludeFromSchema) continue;
@@ -541,10 +607,38 @@ export function getSchema(
                 name: attrName,
                 description: attrDef.description,
             };
-            if (attrDef.defaultValue !== undefined) {
-                attrSpec.defaultValue = encodeDefaultValueForJson(
-                    attrDef.defaultValue,
-                );
+            // Prefer the default declared on the attribute itself. When it
+            // doesn't declare one, fall back to the matching state
+            // variable's default — this covers number-display attributes
+            // like `padZeros`, `displayDigits`, `displayDecimals`, etc.
+            // whose actual resting value is defined on the state variable
+            // (so the runtime can also inherit it from a child/parent)
+            // rather than on the attribute. The matching state variable is
+            // the one named by `createStateVariable`, or — when the
+            // attribute doesn't even declare a `createStateVariable` — a
+            // state variable with the same name as the attribute.
+            //
+            // The attribute-name fallback relies on a codebase convention:
+            // when a `returnXxxAttributes()` helper omits both
+            // `defaultValue` and `createStateVariable` from an attribute
+            // declaration, the attribute and its backing state variable
+            // share a name (e.g. `padZeros` → `padZeros`). If that
+            // convention is ever broken — an attribute happens to share a
+            // name with an unrelated state variable — this would silently
+            // pull in the wrong default. We accept that risk because the
+            // alternative (a heavier explicit mapping) would force every
+            // attribute declaration to wire up a state variable name even
+            // when the existing convention already pairs them.
+            const fallbackStateVarName =
+                attrDef.createStateVariable ?? attrName;
+            const fallbackDefault = stateVarDefaults[fallbackStateVarName];
+            const resolvedDefault =
+                attrDef.defaultValue !== undefined
+                    ? attrDef.defaultValue
+                    : fallbackDefault;
+            if (resolvedDefault !== undefined) {
+                attrSpec.defaultValue =
+                    encodeDefaultValueForJson(resolvedDefault);
             }
 
             const booleanAliasValues: string[] = [];

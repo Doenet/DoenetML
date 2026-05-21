@@ -15,6 +15,10 @@ describe("generated schema help fields", () => {
     const fn = elementsByName.function;
     const ref = elementsByName.ref;
     const collect = elementsByName.collect;
+    const math = elementsByName.math;
+    const num = elementsByName.number;
+    const mathInput = elementsByName.mathInput;
+    const round = elementsByName.round;
 
     it("has the piloted components present in the generated schema", () => {
         // Asserted up front so later tests don't fail with confusing
@@ -143,6 +147,58 @@ describe("generated schema help fields", () => {
         );
         expect(xsProp?.description).toBe("The point's coordinates as a list.");
         expect(xProp?.description).not.toBe(xsProp?.description);
+    });
+
+    it("falls back to a state variable's defaultValue when an attribute declares none", () => {
+        // `padZeros`, `displayDigits`, and `displayDecimals` on `<number>`
+        // are declared by `returnNumberDisplayAttributes()` without their
+        // own `defaultValue` — the resting value lives on the state
+        // variable so it can also be inherited from children/parents. The
+        // schema generator should still surface that resting value as the
+        // attribute's effective default.
+        const padZeros = num.attributes.find((a) => a.name === "padZeros");
+        const displayDigits = num.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        const displayDecimals = num.attributes.find(
+            (a) => a.name === "displayDecimals",
+        );
+        expect(padZeros?.defaultValue).toBe(false);
+        expect(displayDigits?.defaultValue).toBe(3);
+        expect(displayDecimals?.defaultValue).toBe(2);
+    });
+
+    it("honors a component's `displayDigitsDefault` override on the state-variable fallback", () => {
+        // Most components default `displayDigits` to 3 via the state
+        // variable. `<mathInput>` (and `<matrixInput>`) override the state
+        // def's `defaultValue` to 10, and `<round>` overrides it to 14, so
+        // those overrides must flow through the state-variable fallback in
+        // `get-schema.ts`. If the fallback were ever flattened back to the
+        // attribute declaration, every component would silently revert to
+        // 3 — pin all three so that regression is caught.
+        const mathInputDD = mathInput.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        const roundDD = round.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        expect(mathInputDD?.defaultValue).toBe(10);
+        expect(roundDD?.defaultValue).toBe(14);
+    });
+
+    it('encodes a math-expression default as { type: "math", latex } so the docs can render MathJax', () => {
+        // `<math>`'s `assumptions` attribute defaults to
+        // `me.fromAst("＿")`. Left alone it serializes opaquely as
+        // `{ objectType: "math-expression", tree: "＿" }`; the schema
+        // generator should replace it with a small `{ type: "math",
+        // latex }` sentinel so docs-nextra can route it through MathJax.
+        const assumptions = math.attributes.find(
+            (a) => a.name === "assumptions",
+        );
+        expect(assumptions?.defaultValue).toEqual({
+            type: "math",
+            latex: "＿",
+        });
     });
 
     it("uses a schema subarray's own description when set", () => {
