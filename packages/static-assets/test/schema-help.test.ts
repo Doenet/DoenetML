@@ -17,6 +17,8 @@ describe("generated schema help fields", () => {
     const collect = elementsByName.collect;
     const math = elementsByName.math;
     const num = elementsByName.number;
+    const mathInput = elementsByName.mathInput;
+    const round = elementsByName.round;
 
     it("has the piloted components present in the generated schema", () => {
         // Asserted up front so later tests don't fail with confusing
@@ -164,6 +166,24 @@ describe("generated schema help fields", () => {
         expect(padZeros?.defaultValue).toBe(false);
         expect(displayDigits?.defaultValue).toBe(3);
         expect(displayDecimals?.defaultValue).toBe(2);
+    });
+
+    it("honors a component's `displayDigitsDefault` override on the state-variable fallback", () => {
+        // Most components default `displayDigits` to 3 via the state
+        // variable. `<mathInput>` (and `<matrixInput>`) override the state
+        // def's `defaultValue` to 10, and `<round>` overrides it to 14, so
+        // those overrides must flow through the state-variable fallback in
+        // `get-schema.ts`. If the fallback were ever flattened back to the
+        // attribute declaration, every component would silently revert to
+        // 3 — pin all three so that regression is caught.
+        const mathInputDD = mathInput.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        const roundDD = round.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        expect(mathInputDD?.defaultValue).toBe(10);
+        expect(roundDD?.defaultValue).toBe(14);
     });
 
     it('encodes a math-expression default as { type: "math", latex } so the docs can render MathJax', () => {

@@ -1221,6 +1221,21 @@ export default class BaseComponent {
                 // because attributes for these state variables (e.g.
                 // `padZeros`, `displayDigits`) don't declare their own
                 // `defaultValue` — the default lives here.
+                //
+                // The `hasEssential` guard is a deliberate narrowing:
+                // non-essential state defs may carry a `defaultValue` field
+                // for purposes unrelated to "this is the resting value if
+                // nothing else sets it" (e.g. a fallback used by an internal
+                // definition function). Only essential state vars are
+                // semantically "the value the runtime falls back to," so only
+                // they donate a default here.
+                //
+                // We assign `theStateDef.defaultValue` by reference. The
+                // existing callers downstream — `get-schema.ts` and the docs
+                // pipeline — treat the value as read-only. If a future state
+                // def declares an object or array default, callers must not
+                // mutate it through this surface, or they'll corrupt the
+                // state def's own copy.
                 if (
                     theStateDef.hasEssential &&
                     theStateDef.defaultValue !== undefined

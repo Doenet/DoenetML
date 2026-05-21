@@ -1,23 +1,7 @@
 import { Link } from "nextra-theme-docs";
 import React from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-
-/**
- * Sentinel emitted by `encodeDefaultValueForJson` in `get-schema.ts` for a
- * `math-expressions` default value. The schema generator converts each
- * `Expression` instance to this shape so the docs-nextra build doesn't have
- * to pull in `math-expressions` just to render the LaTeX.
- */
-type MathDefaultValue = { type: "math"; latex: string };
-
-function isMathDefaultValue(val: unknown): val is MathDefaultValue {
-    return (
-        typeof val === "object" &&
-        val !== null &&
-        (val as { type?: unknown }).type === "math" &&
-        typeof (val as { latex?: unknown }).latex === "string"
-    );
-}
+import { isMathDefaultValue } from "@doenet/static-assets/schema";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -143,13 +127,25 @@ export function AttrDisplay({
                                 ) : null}
                                 {/* The default value follows the type, except for
                                 keyword attributes, where it is marked in the
-                                value list below. */}
+                                value list below. Math defaults are typeset by
+                                MathJax, so we render them in a plain `<span>`
+                                instead of `<code>` — wrapping typeset math
+                                inside a monospace `<code>` block produces
+                                awkward mixed-typography output. */}
                                 {!isKeyword && defaultNode !== null ? (
                                     <>
                                         Default value:{" "}
-                                        <code className="attr-default">
-                                            {defaultNode}
-                                        </code>
+                                        {isMathDefaultValue(
+                                            attr.defaultValue,
+                                        ) ? (
+                                            <span className="attr-default attr-default-math">
+                                                {defaultNode}
+                                            </span>
+                                        ) : (
+                                            <code className="attr-default">
+                                                {defaultNode}
+                                            </code>
+                                        )}
                                         .{" "}
                                     </>
                                 ) : null}

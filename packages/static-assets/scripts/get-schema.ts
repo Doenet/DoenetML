@@ -6,7 +6,7 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
-import type { ValidValueEntry } from "../src/schema";
+import type { MathDefaultValue, ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -53,7 +53,11 @@ export function getExistingDocSlugs(): Set<string> {
  */
 function encodeDefaultValueForJson(val: unknown): unknown {
     if (isMathExpression(val)) {
-        return { type: "math", latex: val.toLatex() };
+        const sentinel: MathDefaultValue = {
+            type: "math",
+            latex: val.toLatex(),
+        };
+        return sentinel;
     }
     if (typeof val !== "number" || Number.isFinite(val)) return val;
     if (Number.isNaN(val)) return "NaN";
@@ -613,6 +617,18 @@ export function getSchema(
             // the one named by `createStateVariable`, or — when the
             // attribute doesn't even declare a `createStateVariable` — a
             // state variable with the same name as the attribute.
+            //
+            // The attribute-name fallback relies on a codebase convention:
+            // when a `returnXxxAttributes()` helper omits both
+            // `defaultValue` and `createStateVariable` from an attribute
+            // declaration, the attribute and its backing state variable
+            // share a name (e.g. `padZeros` → `padZeros`). If that
+            // convention is ever broken — an attribute happens to share a
+            // name with an unrelated state variable — this would silently
+            // pull in the wrong default. We accept that risk because the
+            // alternative (a heavier explicit mapping) would force every
+            // attribute declaration to wire up a state variable name even
+            // when the existing convention already pairs them.
             const fallbackStateVarName =
                 attrDef.createStateVariable ?? attrName;
             const fallbackDefault = stateVarDefaults[fallbackStateVarName];

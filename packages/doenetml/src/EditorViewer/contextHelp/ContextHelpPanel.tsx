@@ -1,25 +1,9 @@
 import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
+import { isMathDefaultValue } from "@doenet/static-assets/schema";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
-
-/**
- * Sentinel emitted by `encodeDefaultValueForJson` in
- * `static-assets/scripts/get-schema.ts` for a `math-expressions` default
- * value (e.g. `<math>`'s `assumptions` attribute). Matches the same shape
- * consumed by docs-nextra's `props-display.tsx`; kept in sync by contract.
- */
-type MathDefaultValue = { type: "math"; latex: string };
-
-function isMathDefaultValue(val: unknown): val is MathDefaultValue {
-    return (
-        typeof val === "object" &&
-        val !== null &&
-        (val as { type?: unknown }).type === "math" &&
-        typeof (val as { latex?: unknown }).latex === "string"
-    );
-}
 
 /**
  * Render schema description text, mapping the shared inline-markdown tokens

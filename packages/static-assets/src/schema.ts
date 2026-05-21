@@ -7,6 +7,29 @@ import doenetSchema from "./generated/doenet-schema.json";
  */
 export type ValidValueEntry = { value: string; description: string };
 
+/**
+ * Sentinel shape produced by `get-schema.ts`'s `encodeDefaultValueForJson`
+ * for a `math-expressions` default value (e.g. `<math>`'s `assumptions`
+ * attribute, which defaults to `me.fromAst("＿")`). Without this rewrite,
+ * the default would round-trip through `JSON.stringify` as the opaque
+ * `{ objectType: "math-expression", tree: ... }` shape — readable only to
+ * someone who knows the `math-expressions` library. Renderers (docs-nextra
+ * `props-display.tsx`, doenetml `ContextHelpPanel.tsx`) detect this
+ * sentinel with `isMathDefaultValue` and typeset the `latex` through
+ * MathJax. This type and its guard are the contract shared between the
+ * producer in this package and the two renderers.
+ */
+export type MathDefaultValue = { type: "math"; latex: string };
+
+export function isMathDefaultValue(val: unknown): val is MathDefaultValue {
+    return (
+        typeof val === "object" &&
+        val !== null &&
+        (val as { type?: unknown }).type === "math" &&
+        typeof (val as { latex?: unknown }).latex === "string"
+    );
+}
+
 export type SchemaProperty = {
     name: string;
     /**
