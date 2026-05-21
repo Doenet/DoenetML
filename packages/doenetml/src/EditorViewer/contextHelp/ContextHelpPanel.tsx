@@ -1,7 +1,25 @@
 import React from "react";
+import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
+
+/**
+ * Sentinel emitted by `encodeDefaultValueForJson` in
+ * `static-assets/scripts/get-schema.ts` for a `math-expressions` default
+ * value (e.g. `<math>`'s `assumptions` attribute). Matches the same shape
+ * consumed by docs-nextra's `props-display.tsx`; kept in sync by contract.
+ */
+type MathDefaultValue = { type: "math"; latex: string };
+
+function isMathDefaultValue(val: unknown): val is MathDefaultValue {
+    return (
+        typeof val === "object" &&
+        val !== null &&
+        (val as { type?: unknown }).type === "math" &&
+        typeof (val as { latex?: unknown }).latex === "string"
+    );
+}
 
 /**
  * Render schema description text, mapping the shared inline-markdown tokens
@@ -252,9 +270,30 @@ export function ContextHelpPanel({
     }
 }
 
-function formatValue(val: unknown): string {
+function formatValue(val: unknown): React.ReactNode {
+    if (isMathDefaultValue(val)) {
+        // `\(…\)` is the MathJax inline-math delimiter. The surrounding
+        // `<MathJaxContext>` is set up at the top of `doenetml.tsx`, so we
+        // can drop a `<MathJax>` directly into the help panel without
+        // managing a context here.
+        return (
+            <MathJax
+                inline
+                dynamic
+                hideUntilTypeset="first"
+            >{`\\(${val.latex}\\)`}</MathJax>
+        );
+    }
     if (Array.isArray(val)) {
-        return val.map((v) => formatValue(v)).join(", ");
+        // Interleave React nodes with comma separators rather than calling
+        // `.join(", ")`, which would coerce any inner `<MathJax>` element to
+        // the string `[object Object]`.
+        return val.map((v, i) => (
+            <React.Fragment key={i}>
+                {i > 0 ? ", " : null}
+                {formatValue(v)}
+            </React.Fragment>
+        ));
     }
     if (typeof val === "string") {
         return resolveCssVariables(val);

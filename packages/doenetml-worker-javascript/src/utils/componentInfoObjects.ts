@@ -84,6 +84,16 @@ type StateVariableDescription = {
         | { componentType: string; isAttributeNamed: string }
     )[][];
     entryPrefixes: string[];
+    /**
+     * Resting value the runtime falls back to when nothing else (attribute,
+     * child, parent) sets this state variable. Populated by
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `hasEssential` + `defaultValue` pair so the docs schema can surface
+     * it as the effective default of a matching attribute (e.g. `padZeros`,
+     * `displayDigits`, whose default lives on the state variable rather
+     * than the attribute declaration).
+     */
+    defaultValue?: unknown;
 };
 
 /**

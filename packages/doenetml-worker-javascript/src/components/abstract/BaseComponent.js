@@ -1214,6 +1214,20 @@ export default class BaseComponent {
                     stateVariableDescriptions[varName].description =
                         theStateDef.description;
                 }
+                // Surface the resting/default value the runtime falls back to
+                // when nothing else (attribute, child, parent) sets the
+                // variable. This is what consumers like the docs schema treat
+                // as the effective default of the corresponding attribute,
+                // because attributes for these state variables (e.g.
+                // `padZeros`, `displayDigits`) don't declare their own
+                // `defaultValue` — the default lives here.
+                if (
+                    theStateDef.hasEssential &&
+                    theStateDef.defaultValue !== undefined
+                ) {
+                    stateVariableDescriptions[varName].defaultValue =
+                        theStateDef.defaultValue;
+                }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;
                     stateVariableDescriptions[varName].numDimensions =

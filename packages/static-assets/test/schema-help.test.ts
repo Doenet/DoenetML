@@ -15,6 +15,8 @@ describe("generated schema help fields", () => {
     const fn = elementsByName.function;
     const ref = elementsByName.ref;
     const collect = elementsByName.collect;
+    const math = elementsByName.math;
+    const num = elementsByName.number;
 
     it("has the piloted components present in the generated schema", () => {
         // Asserted up front so later tests don't fail with confusing
@@ -143,6 +145,40 @@ describe("generated schema help fields", () => {
         );
         expect(xsProp?.description).toBe("The point's coordinates as a list.");
         expect(xProp?.description).not.toBe(xsProp?.description);
+    });
+
+    it("falls back to a state variable's defaultValue when an attribute declares none", () => {
+        // `padZeros`, `displayDigits`, and `displayDecimals` on `<number>`
+        // are declared by `returnNumberDisplayAttributes()` without their
+        // own `defaultValue` — the resting value lives on the state
+        // variable so it can also be inherited from children/parents. The
+        // schema generator should still surface that resting value as the
+        // attribute's effective default.
+        const padZeros = num.attributes.find((a) => a.name === "padZeros");
+        const displayDigits = num.attributes.find(
+            (a) => a.name === "displayDigits",
+        );
+        const displayDecimals = num.attributes.find(
+            (a) => a.name === "displayDecimals",
+        );
+        expect(padZeros?.defaultValue).toBe(false);
+        expect(displayDigits?.defaultValue).toBe(3);
+        expect(displayDecimals?.defaultValue).toBe(2);
+    });
+
+    it('encodes a math-expression default as { type: "math", latex } so the docs can render MathJax', () => {
+        // `<math>`'s `assumptions` attribute defaults to
+        // `me.fromAst("＿")`. Left alone it serializes opaquely as
+        // `{ objectType: "math-expression", tree: "＿" }`; the schema
+        // generator should replace it with a small `{ type: "math",
+        // latex }` sentinel so docs-nextra can route it through MathJax.
+        const assumptions = math.attributes.find(
+            (a) => a.name === "assumptions",
+        );
+        expect(assumptions?.defaultValue).toEqual({
+            type: "math",
+            latex: "＿",
+        });
     });
 
     it("uses a schema subarray's own description when set", () => {
