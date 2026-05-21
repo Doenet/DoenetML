@@ -1,0 +1,74 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<convertSetToList>{:dn}`
+
+
+`<convertSetToList>{:dn}` is a math operator that converts a math **set**
+expression $\{x_1, x_2, \ldots\}$ into a **list** expression
+$x_1, x_2, \ldots$, removing any duplicate elements in the process. If the
+child math is not a set, the input is passed through unchanged.
+
+<AttrPropDisplay name='convertSetToList'/>
+
+---
+
+### Example: Converting a set to a list
+
+
+```doenet-editor-horiz
+<p>A set: <math name="s">{1, 2, 3, 2, 1}</math></p>
+<p>As a list: <convertSetToList>$s</convertSetToList></p>
+```
+
+
+
+Curly braces in a `<math>{:dn}` produce a set, which renders with braces and
+treats duplicates as a single element. `<convertSetToList>{:dn}` rewrites the
+set as a comma-separated list and discards repeated values.
+
+
+
+---
+
+### Example: Non-set inputs pass through
+
+
+```doenet-editor-horiz
+<setup>
+  <math name="t">(1, 2, 3, 2, 1)</math>
+  <math name="l">1, 2, 3, 2, 1</math>
+</setup>
+
+<p>A tuple <m>(1,2,3,2,1)</m>: <convertSetToList>$t</convertSetToList></p>
+<p>A list <m>1,2,3,2,1</m>: <convertSetToList>$l</convertSetToList></p>
+```
+
+
+
+When the input is already a tuple or list (or any non-set math), the
+component returns the input untouched — duplicates are **not** removed, since
+duplicate removal only applies to set inputs.
+
+
+
+---
+
+### Example: Indexing into the converted list
+
+
+```doenet-editor-horiz
+<p>Solutions to <m>x^2 = 4</m>:
+  <convertSetToList name="sols">{-2, 2}</convertSetToList>
+</p>
+
+<p>The first solution is $sols[1].</p>
+<p>The second solution is $sols[2].</p>
+```
+
+
+
+Once converted to a list, individual elements are addressable with array
+notation.

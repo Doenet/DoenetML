@@ -20,6 +20,7 @@ specify the control vectors at each bezier curve control point.
 ```doenet-editor-horiz
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
     <graph>
+      <shortDescription>A graph of a bezier curve with control vectors specified in list form</shortDescription>
       <curve through="(1,2) (3,4) (-5,6) (2,-4)">
         <bezierControls>(3,1) (-1,5) (5,3) (0,-5)</bezierControls>
       </curve>
@@ -41,6 +42,7 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
 
 <graph>
+  <shortDescription>A graph of a bezier curve with individual control vectors</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,-4)">
     <bezierControls>
       <controlVectors>(3,1)</controlVectors>
@@ -67,6 +69,7 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
 
 <graph>
+  <shortDescription>A graph of a bezier curve with asymmetric control vectors</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,1)">
     <bezierControls>
       <controlVectors>(3,1)</controlVectors>
@@ -99,6 +102,7 @@ When a single control point has distinct control vectors in each direction, two 
 <p>Use the light grey handles to adjust the shape of the curve.</p>
     
 <graph>
+  <shortDescription>A graph of a bezier curve with always-visible control handles</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,1)">
     <bezierControls alwaysVisible>
       <controlVectors>(3,1)</controlVectors>

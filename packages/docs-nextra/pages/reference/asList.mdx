@@ -1,0 +1,110 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<asList>{:dn}`
+
+
+`<asList>{:dn}` is an inline component that renders its children as a
+**comma-separated list**. Unlike typed list components such as
+[`<mathList>{:dn}`](mathList) or [`<textList>{:dn}`](textList), the children
+of an `<asList>{:dn}` are not collected into an indexable list of values — the
+component is purely for display, joining the rendered text of its children
+with `,` between them.
+
+`<asList>{:dn}` is a legacy display helper. When you want to display a single
+**array property** (e.g. `$eig.eigenvalues`, `$ode.rhss`,
+`$choiceInput.selectedValues`), the property already renders as a
+comma-separated list on its own — no wrapper is needed. Use `<asList>{:dn}`
+only when joining a fixed set of **individually-named** components with
+commas between them.
+
+<AttrPropDisplay name='asList'/>
+
+---
+
+### Example: Joining individually-named children with commas
+
+
+```doenet-editor-horiz
+<setup>
+  <number name="a">2</number>
+  <number name="b">3</number>
+  <number name="c">5</number>
+</setup>
+
+<p>The first three primes are: <asList>$a $b $c</asList>.</p>
+```
+
+
+
+Each child is rendered in place; `<asList>{:dn}` inserts `,` between them.
+Without the wrapper, the three references would be separated only by the
+whitespace of the surrounding markup.
+
+
+
+---
+
+### Example: Mixing component types
+
+
+```doenet-editor-horiz
+<setup>
+  <number name="n">3</number>
+  <math name="m">x^2 + 1</math>
+  <text name="t">hello</text>
+</setup>
+
+<p>The values are: <asList>$n $m $t</asList>.</p>
+```
+
+
+
+`<asList>{:dn}` accepts any inline children — numbers, maths, texts, booleans,
+references, and so on — and joins their rendered output with commas.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-editor-horiz
+<asList name="al">
+  <number>1</number>
+  <number>2</number>
+  <number>3</number>
+</asList>
+
+<p>$al.text</p>
+```
+
+
+
+The `text` property exposes the rendered list as a single comma-separated
+text string, suitable for downstream text processing.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<asList name="al">
+  <math>x^2</math>
+  <math>y^{1/2}</math>
+  <math>1/z</math>
+</asList>
+
+<p>latex = $al.latex</p>
+```
+
+
+
+The `latex` property returns the children's LaTeX representations joined
+with commas, suitable for further LaTeX processing.

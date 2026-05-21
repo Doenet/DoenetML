@@ -93,16 +93,18 @@ The `<p>{:dn}` component can be nested inside list items to provide additional l
 </setup>
 
 <p>Write the equation for a line in slope-intercept form:</p> 
-<p><m>y = </m> <mathInput name="userFunction"/></p>
+<p><mathInput name="userFunction"><label><m>y = </m></label></mathInput></p>
 <graph grid="1 1" size="small">
     <shortDescription>A graph of a function and its y-intercept</shortDescription>
     $intercept
     $f
 </graph>
-<p>What is the <m>y</m>-intercept of your line?</p>
-  <answer>$$f(0)</answer>
-<p>The slope of your line is:</p> 
-  <answer>$userLine.slope</answer>
+<p>
+  <answer><label>What is the <m>y</m>-intercept of your line?</label>$$f(0)</answer>
+</p>
+<p>
+  <answer><label>The slope of your line is</label>$userLine.slope</answer>
+</p>
 ```
 
 

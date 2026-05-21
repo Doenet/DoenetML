@@ -42,8 +42,8 @@ the `&` symbol is entered in each row.
 ```doenet-editor-horiz
 <p>The following will not render as intended:</p>
 <md>
-  <mrow>x = <answer name="ans1">x</answer></mrow>
-  <mrow>y = <mathInput/></mrow>
+  <mrow>x = <answer name="ans1"><label>What is x?</label>x</answer></mrow>
+  <mrow>y = <mathInput><label>Enter y</label></mathInput></mrow>
 </md>
 ```
 
@@ -120,10 +120,10 @@ can be used to specify its initial location.
 
 
 ```doenet-editor-horiz
-<p>Hide equations: 
-  <booleanInput name="hideEq"/> $hideEq</p>
-<p>Drag equations: 
-  <booleanInput name="canDrag" prefill="true"/> $canDrag</p>
+<p>
+  <booleanInput name="hideEq"><label>Hide equations</label></booleanInput> $hideEq</p>
+<p>
+  <booleanInput name="canDrag" prefill="true"><label>Drag equations</label></booleanInput> $canDrag</p>
 <graph><shortDescription>A graph of two lines and their intersection</shortDescription>
   <line name="line1">2x - y = 3</line>
   <line name="line2">x + y = 5</line>

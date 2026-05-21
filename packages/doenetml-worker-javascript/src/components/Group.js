@@ -71,7 +71,7 @@ export default class Group extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: false,
             description:
-                "Whether to render the group's children separated by commas (true) or each on its own line (false).",
+                "Whether to render the group's children separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

@@ -17,7 +17,9 @@ component that renders an embedded video.
 
 
 ```doenet-example
-<video youtube="B7UmUX68KtE" />
+<video youtube="B7UmUX68KtE">
+  <shortDescription>Example embedded YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -34,14 +36,16 @@ the equals sign is required.
 
 
 ```doenet-example
-<p>What muppet likes to throw pepper? 
-  <answer name="ans">
-    <choice>Oscar the Grouch</choice>
-    <choice>Kermit the Frog</choice>
-    <choice credit="1">the Swedish Chef</choice>
-  </answer></p>
+<p><answer name="ans">
+  <label>What muppet likes to throw pepper?</label>
+  <choice>Oscar the Grouch</choice>
+  <choice>Kermit the Frog</choice>
+  <choice credit="1">the Swedish Chef</choice>
+</answer></p>
 
-<video name="chefVideo" youtube="B7UmUX68KtE" />
+<video name="chefVideo" youtube="B7UmUX68KtE">
+  <shortDescription>Video of the Swedish Chef</shortDescription>
+</video>
 <callAction actionName="playVideo" target="$chefVideo" triggerWhen="$ans.creditAchieved = 1"/>
 ```
 
@@ -58,7 +62,9 @@ is triggered to play automatically with a `<callAction>{:dn}` when the correct a
 
 
 ```doenet-example
-<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9" />
+<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
 <p>Video credit achieved: 
   <number displayDecimals="1">$v1.fractionWatched*100</number>%</p>
@@ -86,10 +92,14 @@ with a `<callAction>{:dn}` employing the `submitAnswer` action.
 
 
 ```doenet-example
-<video name="v1" youtube="49qilPR8Qpc" width="300px"/>
+<video name="v1" youtube="49qilPR8Qpc" width="300px">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 <p><c>v1.size</c> = $v1.size</p>
 
-<video name="v2" extend="$v1" width="700px"/>
+<video name="v2" extend="$v1" width="700px">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 <p><c>v2.size</c> = $v2.size</p>
 ```
 
@@ -106,9 +116,13 @@ the `size` category that corresponds to that width and sizes the video according
 
 
 ```doenet-editor-horiz
-<video name="v1" youtube="49qilPR8Qpc" size="small"/>
+<video name="v1" youtube="49qilPR8Qpc" size="small">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
-<video extend="$v1" size="medium"/>
+<video extend="$v1" size="medium">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -123,9 +137,13 @@ The `size` attribute specifies one of 5 size categories for the `<video/>{:dn}`:
 
 
 ```doenet-example
-<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9"/>
+<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
-<video extend="$v1" size="small" aspectRatio="9/16"/>
+<video extend="$v1" size="small" aspectRatio="9/16">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -140,9 +158,13 @@ The `aspectRatio` attribute allows for customization of the video embed's defaul
 
 
 ```doenet-editor-horiz
-<video name="v1" youtube="49qilPR8Qpc" displayMode="inline" size="small"/>
+<video name="v1" youtube="49qilPR8Qpc" displayMode="inline" size="small">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
-<video extend="$v1"  displayMode="block" />
+<video extend="$v1"  displayMode="block">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -164,13 +186,19 @@ The `displayMode` attribute affects how the `<video/>{:dn}` is positioned on scr
   displayMode="block" 
   size="small" 
   horizontalAlign="left"
-/>
+>
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
 <p>A centered video (default)</p>
-<video extend="$v1" horizontalAlign="center"/>
+<video extend="$v1" horizontalAlign="center">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
 <p>A right video </p>
-<video extend="$v1" horizontalAlign="right"/>
+<video extend="$v1" horizontalAlign="right">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -186,7 +214,9 @@ default block-mode style video. Valid values are `left`, `center`, and `right`, 
 
 
 ```doenet-editor-horiz
-<video youtube="B7UmUX68KtE" />
+<video youtube="B7UmUX68KtE">
+  <shortDescription>Example embedded YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -207,7 +237,9 @@ The video at *https://www.youtube.com/watch?v=B7UmUX68KtE* is embedded into the 
   <label>Play</label>
 </callAction>
 
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -230,7 +262,9 @@ The `playVideo` action can be triggered with a `<callAction>{:dn}` component.
   <label>Pause</label>
 </callAction>
 
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 ```
 
 
@@ -245,7 +279,9 @@ The `pauseVideo` action can be triggered with a `<callAction>{:dn}` component.
 
 
 ```doenet-editor-horiz
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
 <p><c>width</c> = $v1.width</p>
 <p><c>size</c> = $v1.size</p>
@@ -267,7 +303,9 @@ The above listed `<video/>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>Example YouTube video</shortDescription>
+</video>
 
 <p><c>state</c> = $v1.state</p>
 <p><c>time</c> = $v1.time</p>

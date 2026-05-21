@@ -1,0 +1,173 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<pointList>{:dn}`
+
+
+`<pointList>{:dn}` is a graphical-list component that defines a collection
+of [`<point>{:dn}`](point) components.
+
+When creating a `<pointList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (The commas
+inside each point's `(x, y)` coordinate tuple are part of the point itself, not
+separators between points.)
+
+<AttrPropDisplay name='pointList'/>
+
+---
+
+### Example: Defining a `<pointList>{:dn}` and accessing an item
+
+
+```doenet-editor-horiz
+<pointList name="pts">
+  (1, 2) (3, 4) (5, 6)
+</pointList>
+
+<p>The full list: $pts</p>
+<p>The second point is $pts[2].</p>
+```
+
+
+
+Each point is written as `(x, y)`. Spaces between the parenthesized tuples
+separate the points; the comma between `x` and `y` is part of a single
+point's coordinates. Individual points are addressable with array notation.
+
+
+
+---
+
+### Example: A `<pointList>{:dn}` on a graph
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Three points on a graph.</shortDescription>
+  <pointList>
+    (1, 2) (-3, 4) (5, -1)
+  </pointList>
+</graph>
+```
+
+
+
+When placed inside a `<graph>{:dn}`, a `<pointList>{:dn}` renders each of
+its points on the graph. Drag any point to update its coordinates.
+
+
+
+---
+
+### Example: Feeding a `<pointList>{:dn}` to another component
+
+
+```doenet-editor-horiz
+<pointList name="endpoints">
+  (-3, -2) (4, 3)
+</pointList>
+
+<graph size="small">
+  <shortDescription>A line through two points.</shortDescription>
+  $endpoints
+  <line through="$endpoints" />
+</graph>
+```
+
+
+
+Components that accept multiple points as an attribute (such as
+`<line>{:dn}`'s `through`) accept a `<pointList>{:dn}` directly.
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Drag the three points.</shortDescription>
+  <point name="p1">(0, 0)</point>
+  <point name="p2">(1, 1)</point>
+  <point name="p3">(2, 2)</point>
+</graph>
+
+<p>Do the points lie at <m>(0,0)</m>, <m>(1,1)</m>, and <m>(2,2)</m>, in any order?
+  <boolean>
+    <pointList unordered>$p1 $p2 $p3</pointList> =
+    <pointList>(0, 0) (1, 1) (2, 2)</pointList>
+  </boolean>
+</p>
+```
+
+
+
+The `unordered` attribute makes comparisons (e.g., inside a `<boolean>{:dn}`
+or an `<award>{:dn}`) ignore the order of points.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-editor-horiz
+<pointList name="pts" maxNumber="3">
+  (1, 1) (2, 2) (3, 3) (4, 4) (5, 5)
+</pointList>
+
+<p>$pts</p>
+<p>numPoints = $pts.numPoints</p>
+```
+
+
+
+The `maxNumber` attribute imposes a limit on the number of points retained
+in the list, regardless of how many are supplied.
+
+
+
+---
+
+### Attribute Example: asList
+
+
+```doenet-editor-horiz
+<p>Comma-separated (default):
+  <pointList>(1, 2) (3, 4) (5, 6)</pointList>
+</p>
+
+<p>No separator:
+  <pointList asList="false">(1, 2) (3, 4) (5, 6)</pointList>
+</p>
+```
+
+
+
+By default a `<pointList>{:dn}` renders its items joined by commas. Setting
+`asList="false"` removes the separator so the items render concatenated.
+
+
+
+---
+
+### Property Example: numPoints
+
+
+```doenet-editor-horiz
+<pointList name="pts">
+  (1, 2) (3, 4) (5, 6) (7, 8)
+</pointList>
+
+<p>numPoints = $pts.numPoints</p>
+```
+
+
+
+The `numPoints` property returns the number of points in the list.
+The alias `numValues` returns the same value.

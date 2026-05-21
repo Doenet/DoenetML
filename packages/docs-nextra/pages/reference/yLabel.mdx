@@ -17,6 +17,7 @@ component that specifies a label for the vertical axis on a `<graph>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of the line y equals x with a y axis label</shortDescription>
   <yLabel><m>y</m></yLabel>
   <line>y=x</line>
 </graph>
@@ -33,6 +34,7 @@ can contain text, inline display mathematics (`<m>{:dn}`) or  `<math>{:dn}` comp
 
 ```doenet-editor-horiz
 <graph size="small" yLabelPosition="bottom">
+  <shortDescription>A graph of the line y equals x with a bottom-positioned y axis label</shortDescription>
   <yLabel>position, <m>m</m></yLabel>
   <line>y=x</line>
 </graph>
@@ -53,6 +55,7 @@ attribute within the `<graph>{:dn}` definition.
     name="g" 
     yLabelAlignment="right"  
     size="small">
+  <shortDescription>A graph of the line y equals x with right-aligned axis labels</shortDescription>
   <yLabel><m>y</m></yLabel>
   <xLabel><m>x</m></xLabel>
   <point/>

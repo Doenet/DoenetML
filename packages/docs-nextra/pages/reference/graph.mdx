@@ -150,12 +150,14 @@ component. See `<legend>{:dn}` for more examples.
   <number anchor="(5,-5)" name="t">0</number>
   
   <image source="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Squirrel_in_Chandigarh.jpg/2560px-Squirrel_in_Chandigarh.jpg" 
-    anchor="(-5,-4)" size="small"/>
+    anchor="(-5,-4)" size="small">
+    <shortDescription>squirrel photo</shortDescription>
+  </image>
   <text anchor="(-5,5)">
     Type some basic math below
   </text>
 
-  <textInput anchor="(-5,3)" name="ti"/>
+  <textInput anchor="(-5,3)" name="ti"><label>Type some basic math</label></textInput>
   
   <math anchor="(5,3)">x^2 + y^2</math>
   
@@ -231,8 +233,7 @@ is also specified, as illustrated in the second graph.
 
 
 ```doenet-example
-<p>Enter a width for the graph:
-<mathInput name="w" prefill="80"/> pixels.</p>
+<p><mathInput name="w" prefill="80"><label>Enter a width for the graph (in pixels)</label></mathInput></p>
 <graph name="g" width="$w">
   <shortDescription>A graph of size $g.size</shortDescription>
   <point/>

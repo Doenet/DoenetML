@@ -27,6 +27,7 @@ A `<ray>{:dn}` may be specified with:
 direction $rayAB.direction, passing through point <m>B</m> at $rayAB.through.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a ray defined by endpoint and through-point</shortDescription>
   <ray 
     name="rayAB" 
     endpoint="(-1,-1)" 
@@ -57,6 +58,7 @@ in the direction $rayAB.direction, passing through point <m>B</m>
 at $rayAB.through.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a ray defined by two draggable points</shortDescription>
   <point 
     name="A" 
     labelIsName 
@@ -96,6 +98,7 @@ The user can manipulate both the direction and the endpoint of the `<ray>{:dn}` 
 extends in the direction $rayAB.direction.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a ray defined by endpoint and direction</shortDescription>
   <point 
     name="A" 
     labelIsName 
@@ -127,11 +130,12 @@ direction $rayAB.direction. Adjust the direction vector or type in a
 direction vector below, to adjust the line segment's direction</p>
 
 <p><m>\langle x_1, x_2 \rangle = \langle</m>
-  <mathInput bindValueTo="$dirVector.x1"/>, 
-  <mathInput bindValueTo="$dirVector.x2"/> <m>\rangle</m>
+  <mathInput bindValueTo="$dirVector.x1"><label>x_1 component</label></mathInput>, 
+  <mathInput bindValueTo="$dirVector.x2"><label>x_2 component</label></mathInput> <m>\rangle</m>
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of a ray with an editable direction vector</shortDescription>
   <point 
     name="A" 
     labelIsName 

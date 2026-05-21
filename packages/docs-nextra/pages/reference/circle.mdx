@@ -20,6 +20,7 @@ component that renders a circle when nested inside a `<graph>{:dn}`.
 
 ```doenet-example
 <graph size="small">
+    <shortDescription>A graph of a default circle</shortDescription>
     <circle/>
   </graph>      
 ```
@@ -38,6 +39,7 @@ It has a default radius of $1$ and center at $(0,0)$.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a circle with specified center and radius</shortDescription>
   <circle center="(2,3)" radius="4"/>
 </graph>
 ```
@@ -55,6 +57,7 @@ The `center` and `radius` of the circle are specified as attributes.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a circle through three points</shortDescription>
   <circle through="(-4,-2) (2,-4) (0,6)"/>
 </graph>
 ```
@@ -72,6 +75,7 @@ Three points the circle passes through are specified using the `through` attribu
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a circle through three points</shortDescription>
   <circle 
     name="circle1" 
     through="(-6,1) (0,-4) (5,3)"/>
@@ -80,6 +84,7 @@ Three points the circle passes through are specified using the `through` attribu
 </graph>
 
 <graph size="small">
+  <shortDescription>A graph of a circle through two points</shortDescription>
   <circle 
     name="circle2" 
     through="(-2,-2) (1, 4)"/>
@@ -88,6 +93,7 @@ Three points the circle passes through are specified using the `through` attribu
 </graph>
 
 <graph size="small">
+  <shortDescription>A graph of a circle through one point with a specified radius</shortDescription>
   <circle 
     name="circle3" 
     radius="2" 
@@ -97,6 +103,7 @@ Three points the circle passes through are specified using the `through` attribu
 </graph>
 
 <graph size="small">
+  <shortDescription>A graph of a circle with a specified center and through-point</shortDescription>
   <circle 
     name="circle4" 
     center="(-1,1)" 
@@ -118,6 +125,7 @@ and can be used in combination with other attributes.
 
 ```doenet-editor-horiz
 <graph size="small" grid>
+  <shortDescription>A graph of a circle with center constrained to a grid</shortDescription>
   <point name="O" styleNumber="2">
     (2,3)
     <constrainToGrid/>
@@ -142,8 +150,9 @@ restricting the movement of the `<circle>{:dn}` to a grid.
 
 
 ```doenet-editor-horiz
-<p>Enter radius: <mathInput name="r"/></p>
+<p><mathInput name="r"><label>Enter radius</label></mathInput></p>
   <graph size="small" grid>
+    <shortDescription>A graph of a circle with user-specified radius</shortDescription>
     <circle name="circle1" radius="$r"/>
   </graph>
 
@@ -164,6 +173,7 @@ and a `radius` specified with a user-input.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of six filled circles in different styles</shortDescription>
   <circle radius="1" center="(-7,0)" filled/>
   <circle radius="1" center="(-4.5,0)" filled styleNumber="2"/>
   <circle radius="1" center="(-1.5,0)" filled styleNumber="3"/>
@@ -187,6 +197,7 @@ color corresponding to its `styleNumber`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of three circles demonstrating standard graphical attributes</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <circle 
     name="circleA" 
@@ -207,7 +218,7 @@ color corresponding to its `styleNumber`.
     radius="4"/>
 </graph>
 
-<booleanInput name="hideCircleA" labelIsName/>
+<booleanInput name="hideCircleA"><label>Hide circleA</label></booleanInput>
 
 <p>Standard graphical attributes:</p>
     <ul>
@@ -239,6 +250,7 @@ higher numbers are placed in front.
 
 ```doenet-editor-horiz
 <graph  size="small">
+  <shortDescription>A graph of a circle through three points</shortDescription>
   <circle name="circle1" through="(-4,-2) (2,-4) (0,6)"/>
   $circle1.throughPoints
 </graph>
@@ -267,6 +279,7 @@ can be accessed using array notation.
 
 ```doenet-editor-horiz
 <graph  size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circle1" filled styleNumber="2"/>
 </graph>
 

@@ -19,8 +19,7 @@ which checks to see whether all enclosed `<boolean>{:dn}` references are `true`.
 
 ### Example: `<and>{:dn}` in a `<boolean>{:dn}`
 ```doenet-editor-horiz
-<p>Enter a number between 5 and 10, excluding 7:
-  <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a number between 5 and 10, excluding 7</label></mathInput></p>
       
 <boolean name="check1">$n > 5</boolean>
 <boolean name="check2">$n < 10</boolean>
@@ -80,8 +79,7 @@ within an `<award>{:dn}`.
 <a id="alternative-ex"></a>
 ### Example: An alternative to `<and>{:dn}`
 ```doenet-editor-horiz
-<p>Enter a number between 5 and 10, excluding 7:
-  <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a number between 5 and 10, excluding 7</label></mathInput></p>
       
 <boolean name="check1">$n > 5</boolean>
 <boolean name="check2">$n < 10</boolean>

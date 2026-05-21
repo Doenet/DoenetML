@@ -17,11 +17,9 @@ math (often a referenced `<mathInput/>{:dn}`) conforms to the specified `pattern
 
 
 ```doenet-editor-horiz
-<p>Write an equation where <m>y</m> is the
+<p><mathInput name="mi"><label>Write an equation where <m>y</m> is the
   <term>sum</term> of three terms. (For example, 
-  <m>y = ax^2 + bx + c</m>)</p>
-  
-<p><mathInput name="mi"/></p>
+  <m>y = ax^2 + bx + c</m>)</label></mathInput></p>
 
 <p>Format correct: </p>
 <matchesPattern pattern="y = () + () + ()" >
@@ -49,10 +47,8 @@ attributes to `<matchesPattern>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m>:</p> 
-
 <answer name="ans1">
-<mathInput name="mi"/>
+<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m></label></mathInput>
   <award>
       <when>
         <matchesPattern 

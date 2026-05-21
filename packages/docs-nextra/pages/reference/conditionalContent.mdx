@@ -22,8 +22,9 @@ optional [`<else>{:dn}`](else.mdx) child.
 
 
 ```doenet-editor-horiz
-  <p>Choose a letter: 
+  <p>
   <choiceInput inline name="letter">
+    <label>Choose a letter</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice>C</choice>
@@ -56,8 +57,7 @@ each `<case>{:dn}` is only rendered when its specified `condition` is `true`.
 
 
 ```doenet-editor-horiz
-<p>Type an even integer and press enter:
-  <mathInput name="int"/></p>
+<p><mathInput name="int"><label>Type an even integer and press enter</label></mathInput></p>
 
 <conditionalContent>
   <case condition="mod($int,2) = 0">
@@ -82,8 +82,9 @@ cases following a given condition or set of conditions, the
 
 
 ```doenet-example
-<p>Let's graph a... 
+<p>
     <choiceInput name="shape">
+      <label>Let's graph a...</label>
       <choice>circle</choice>
       <choice>square</choice>
       <choice>pentagon</choice>

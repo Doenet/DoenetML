@@ -67,7 +67,7 @@ can be accessed.
 
 
 ```doenet-editor-horiz
-<p>Type in the symbol for gold: <textInput name="ti" prefill=""/></p>
+<p><textInput name="ti" prefill=""><label>Type in the symbol for gold</label></textInput></p>
 
 <atom symbol="$ti"/>
 <boolean>$ti = Au</boolean>
@@ -85,7 +85,7 @@ The `symbol` attribute takes the atom's chemical symbol as input.
 
 
 ```doenet-editor-horiz
-<p>Type in the atomic number for carbon: <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Type in the atomic number for carbon</label></mathInput></p>
 
 <atom atomicNumber="$mi"/>
 <boolean>$mi = 6</boolean>

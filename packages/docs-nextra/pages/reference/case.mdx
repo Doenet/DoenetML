@@ -18,8 +18,9 @@ the its condition is met within a `<conditionalContent>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>Choose a letter: 
+<p>
   <choiceInput inline name="letter">
+    <label>Choose a letter</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice>C</choice>
@@ -51,9 +52,9 @@ when the specified `condition` attribute is `true`.
 
 
 ```doenet-editor-horiz
- <p>Enter an integer 
+ <p>
     <answer name="intAns" weight="0" showCorrectness="false">
-      <mathInput name="int"/>
+      <mathInput name="int"><label>Enter an integer</label></mathInput>
     </answer></p>
 
     <boolean name="even"><mod>$int 2</mod> = 0</boolean>
@@ -85,7 +86,7 @@ only rendered when the specified `condition` attribute is `true`.
 
 
 ```doenet-example
-<p>Type 1 or 2: <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Type 1 or 2</label></mathInput></p>
 <conditionalContent>
   <case name="case1" condition="$mi = 1">
     <p>You've entered a 1.</p>

@@ -17,6 +17,7 @@ component that renders a line segment when nested within a [`<graph>{:dn}`](grap
 
 ```doenet-example
 <graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <shortDescription>graph with a default line segment</shortDescription>
   <lineSegment/>
 </graph>
 ```
@@ -34,6 +35,7 @@ Without any attributes, the default `<lineSegment>{:dn}` has endpoints $(0,0)$ a
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>graph of a line segment with its endpoints marked</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
   <pointList styleNumber="2">
     $segment1.endpoints
@@ -55,6 +57,7 @@ rendered on a `<graph>{:dn}` with the macro `$name.property`.
 
 ```doenet-editor-horiz
 <graph size="small" grid="1 1">
+  <shortDescription>graph of a line segment whose endpoints are constrained to a grid</shortDescription>
   <point name="A" styleNumber="4">(0,0)
     <constrainToGrid/>
   </point>
@@ -79,6 +82,7 @@ thereby constraining the segment to a grid as well.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph of a line segment with specified endpoints</shortDescription>
   <lineSegment name="segment1" endpoints="(1,2) (3,4)"/>
 </graph>
 
@@ -101,6 +105,7 @@ The `endpoints` attribute takes as an input a list of two points.
 ```doenet-example
 <p>Try dragging each of the line segments.</p>
 <graph size="small">
+  <shortDescription>graph with a draggable and a non-draggable line segment</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
   <lineSegment name="segment2" draggable="false" endpoints="(-2,4) (5,-2)" styleNumber="2"/>
 </graph>
@@ -124,6 +129,7 @@ dragged around the `<graph>{:dn}`. All graphical objects are draggable by defaul
 ```doenet-example
 <p>Try dragging the endpoints of each of the line segments.</p>
 <graph size="small">
+  <shortDescription>graph with one line segment whose endpoints are draggable and one whose endpoints are not</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
   <lineSegment name="segment2" endpointsDraggable="false" endpoints="(-2,4) (5,-2)" styleNumber="2"/>
 </graph>
@@ -148,6 +154,7 @@ as a whole can still be repositioned on the `<graph>{:dn}`.
 ```doenet-example
 <p>Drag the endpoints of each of the line segments.</p>
 <graph size="small">
+  <shortDescription>graph with two line segments demonstrating the showCoordsWhenDragging behavior</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
   <lineSegment name="segment2"  endpoints="(-2,4) (5,-2)" styleNumber="2" showCoordsWhenDragging="false"/>
 </graph>
@@ -171,6 +178,7 @@ to false.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a filled circle and two line segments demonstrating standard graphical attributes</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <lineSegment 
     name="segment1" 
@@ -191,7 +199,7 @@ to false.
   />
 </graph>
 
-<booleanInput name="hideSegmentA" labelIsName/>
+<booleanInput name="hideSegmentA"><label>Hide segmentA</label></booleanInput>
 
 <p>Standard graphical attributes:</p>
     <ul>
@@ -218,6 +226,7 @@ illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph of a line segment</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
 </graph>
 
@@ -237,6 +246,7 @@ The `numDimensions` property returns the number of dimesions of the `<lineSegmen
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph of a line segment</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
 </graph>
 
@@ -256,6 +266,7 @@ The `length` property returns the length of the `<lineSegment>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph of a line segment</shortDescription>
   <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
 </graph>
 <p><c>slope</c> = $segment1.slope</p>

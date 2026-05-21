@@ -18,6 +18,7 @@ component that renders a polyline when nested inside a [`<graph>{:dn}`](graph.md
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a polyline with four vertices</shortDescription>
   <polyline 
     vertices="(0,0) (2,2) (-1,5) (-5,1)" 
   />
@@ -37,6 +38,7 @@ The default `<polyline>{:dn}` requires the `vertices` attribute as a minimum.
 
 ```doenet-editor-horiz
 <graph size="small" grid="1 1">
+  <shortDescription>A graph of a polyline constrained to a grid</shortDescription>
   <point name="A">(-1,5)
     <constrainToGrid/>
   </point>
@@ -64,6 +66,7 @@ constraining the polyline to a grid as well.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a polyline</shortDescription>
   <polyline 
     name="poly1" 
     vertices="(0,1) (2,3) (-1,5) (-5,1)" 
@@ -90,6 +93,7 @@ The `vertices` attribute takes a list of points as its input.
 <p>Try dragging each of the polylines and their vertices.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a draggable polyline and a non-draggable polyline</shortDescription>
   <polyline name="poly1" vertices="(-6,2) (-3,-2) (3,5) (-1,4)"/>
   <polyline name="poly2" vertices="(6,-5) (4,7) (2,2)" styleNumber="2" draggable="false"/>
 </graph>
@@ -114,6 +118,7 @@ dragged around the `<graph>{:dn}`. All graphical objects are draggable by defaul
 <p>Try dragging each of the polylines and their vertices.</p>
 
 <graph size="small">
+  <shortDescription>A graph of two polylines illustrating verticesDraggable</shortDescription>
   <polyline 
     name="poly1" 
     vertices="(-6,2) (-3,-2) (3,5) (-1,4)"
@@ -145,6 +150,7 @@ polyline as a whole can still be repositioned on the `<graph>{:dn}`.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph illustrating standard graphical attributes on polylines</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <polyline 
     name="poly1" 
@@ -165,7 +171,7 @@ polyline as a whole can still be repositioned on the `<graph>{:dn}`.
   />
 </graph>
 
-<booleanInput name="hidePolyline1" labelIsName/>
+<booleanInput name="hidePolyline1"><label>Hide polyline1</label></booleanInput>
 <p>Standard graphical attributes:</p>
   <ul>
     <li><attr>hide</attr></li>
@@ -191,6 +197,7 @@ illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a styled polyline</shortDescription>
   <polyline 
     name="poly1" 
     vertices="(-6,2) (-3,-2) (3,5) (-1,4)" 

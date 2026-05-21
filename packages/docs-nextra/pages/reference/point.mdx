@@ -18,6 +18,7 @@ component that renders a point on a `<graph>{:dn}`.
 ```doenet-editor-horiz
 <p>Drag the point to change its location.</p>
 <graph size="small">
+  <shortDescription>A graph of a draggable point</shortDescription>
   <point name="p"/>
 </graph>
 
@@ -38,6 +39,7 @@ Here a default `<point>{:dn}` is illustrated without any additional attributes.
 ```doenet-editor-horiz
 <p>Drag the point to change its location.</p>
 <graph size="small">
+  <shortDescription>A graph of a draggable point starting at (2,3)</shortDescription>
   <point name="p">(2,3)</point>
 </graph>
 
@@ -60,6 +62,7 @@ The initial coordinates of a `<point>{:dn}` may be specified between opening and
 <p><m>p2 = $p2</m></p>
 <p><m>p3 = $p3</m></p>
 <graph size="small">
+  <shortDescription>A graph of three labeled points</shortDescription>
   <point name="p1" x="4" y="0" labelIsName/>
   <point 
     name="p2" 
@@ -89,6 +92,7 @@ Three different ways to specify the coordinates of a `<point>{:dn}` using its at
 <p><m>A = $A</m></p>
 <p><m>B = $B</m></p>
 <graph size="small">
+  <shortDescription>A graph of two labeled points</shortDescription>
   <point 
     name="A" 
     labelIsName>
@@ -114,6 +118,7 @@ giving the `<point>{:dn}` a `<label>{:dn}` child.
 
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" displayYAxis="false">
+  <shortDescription>A graph of six points with different styles</shortDescription>
   <point styleNumber="1" coords="(-5,5)">
     <label>1</label>
   </point>
@@ -151,6 +156,7 @@ Points with standard styleNumbers one through six are illustrated. If unspecifie
 <p><m>A = $A</m> (Constrained to grid)</p>
 <p><m>B = $B</m> (Attracted to grid)</p>
 <graph size="small" grid="1 1" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>A graph of two points, one constrained to a grid and one attracted</shortDescription>
   <point name="A" labelIsName>(-2,2)
     <constrainToGrid/>
   </point>
@@ -174,6 +180,7 @@ Points can take constraints as children. Several different types of constraints 
 ```doenet-editor-horiz
 <p><m>p = $p</m></p>
 <graph size="small">
+  <shortDescription>A graph of a line and a point constrained to it</shortDescription>
   <line name="line1">y = x</line>
   <point name="p" styleNumber="2">
     (-2,-2)
@@ -197,6 +204,7 @@ Points can take constraints as children. Several different types of constraints 
 <p><m>p = $p</m></p>
 <p><number name="t">-4pi</number></p>
 <graph size="small" xmin="-5pi" xmax="5pi" ymin="-2.5" ymax="2.5" xTickScaleFactor="pi">
+  <shortDescription>A graph of an animated point on a sine curve</shortDescription>
   <point name="p" styleNumber="2">
     ($t, sin($t))
   </point>
@@ -220,16 +228,17 @@ A `<point>{:dn}` is animated by paraterizing its coordinates with respect to the
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>A graph of three interdependent points A, B, and C</shortDescription>
   <point name="A" labelIsName>($C.y, 7)</point>
   <point name="B" labelIsName>($A.y, -2)</point>
   <point name="C" labelIsName>($B.y, 5)</point>
 </graph>
-<p><m>A_x = </m> <mathInput bindValueTo="$A.x" />,
-  <m>A_y = </m> <mathInput bindValueTo="$A.y" /></p>
-<p><m>B_x = </m> <mathInput bindValueTo="$B.x" />,
-  <m>B_y = </m> <mathInput bindValueTo="$B.y" /></p>
-<p><m>C_x = </m> <mathInput bindValueTo="$C.x" />,
-  <m>C_y = </m> <mathInput bindValueTo="$C.y" /></p>
+<p><mathInput bindValueTo="$A.x"><label><m>A_x = </m></label></mathInput>,
+  <mathInput bindValueTo="$A.y"><label><m>A_y = </m></label></mathInput></p>
+<p><mathInput bindValueTo="$B.x"><label><m>B_x = </m></label></mathInput>,
+  <mathInput bindValueTo="$B.y"><label><m>B_y = </m></label></mathInput></p>
+<p><mathInput bindValueTo="$C.x"><label><m>C_x = </m></label></mathInput>,
+  <mathInput bindValueTo="$C.y"><label><m>C_y = </m></label></mathInput></p>
 ```
 
 
@@ -248,6 +257,7 @@ This example also illustrates how one can change a point either by dragging it o
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a draggable point and a non-draggable point</shortDescription>
   <point>(-6,0)
     <label>I'm free!</label>
   </point>
@@ -273,6 +283,7 @@ The `draggable` attribute determines whether the `<point>{:dn}` can be dragged a
 <p><m>p = $p</m></p>
 
 <graph size="small">
+  <shortDescription>A graph of a point at (3,2)</shortDescription>
   <point name="p" x="3" y="2"/>
 </graph>
 ```
@@ -292,6 +303,7 @@ The `x` and `y` attributes are used to specify isolated `<point>{:dn}` coordinat
 <p><m>p = $p</m></p>
 
 <graph size="small">
+  <shortDescription>A graph of a point at (2,3)</shortDescription>
   <point name="p" coords="(2,3)"/>
 </graph>
 ```
@@ -311,6 +323,7 @@ The `coords` attribute specifies the `<point>{:dn}` coordinates.
 <p><m>p = $p</m></p>
 
 <graph size="small">
+  <shortDescription>A graph of a point with xs="2 3"</shortDescription>
   <point name="p" xs="2 3"/>
 </graph>
 ```
@@ -328,6 +341,7 @@ The `xs` attribute specifies the point's location as a list of displacements.
 
 ```doenet-example
 <graph size="small" displayYAxis="false" displayXAxis="false">
+  <shortDescription>A graph of eight labeled points showing label positions</shortDescription>
   <point name="A" labelPosition="upperleft" coords="(-4,4)" labelIsName/>
   <point name="B" labelPosition="upperright" coords="(4,4)" labelIsName/>
   <point name="C" labelPosition="top" coords="(0,4)" labelIsName/>
@@ -353,6 +367,7 @@ The `labelPosition` attribute specifies the location of the point's label. Valid
 ```doenet-example
 <p>Drag each of the points to observe the difference.</p>
 <graph size="small">
+  <shortDescription>A graph of two points illustrating showCoordsWhenDragging</shortDescription>
   <point name="A" coords="(-6,4)">
     <label>Showing</label>
   </point>
@@ -376,6 +391,7 @@ By default, a light-grey set of coordinates is shown while the user drags the po
 ```doenet-example
 <p>To see both points A and B, use the (-) button at the bottom of the graph to zoom out.</p>
 <graph size="small">
+  <shortDescription>A graph of two off-graph points with different indicator settings</shortDescription>
   <point name="A" labelIsName coords="(-15,4)" hideOffGraphIndicator/>
   <point name="B" labelIsName coords="(15,4)"/>
 </graph>
@@ -397,6 +413,7 @@ In this example, only one indicator appears initially, since point A has the `hi
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of two styled points and a circle</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <point 
     name="A" layer="1" 
@@ -413,7 +430,7 @@ In this example, only one indicator appears initially, since point A has the `hi
   />
 </graph>
 
-<booleanInput name="hidePointA" labelIsName/>
+<booleanInput name="hidePointA"><label>Hide pointA</label></booleanInput>
 <p>Standard graphical attributes:</p>
     <ul>
       <li><attr>hide</attr></li>
@@ -437,6 +454,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a point labeled p</shortDescription>
   <point name="p" labelIsName>(2,3)</point>
 </graph>
 
@@ -460,6 +478,7 @@ The above listed `<point>{:dn}` attributes are also accessible as properties.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a point labeled p</shortDescription>
   <point name="p" labelIsName>(5,5)</point>
 </graph>
 
@@ -479,6 +498,7 @@ The `numDimensions` property renders the number of dimensions required to define
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a point labeled p</shortDescription>
   <point name="p" labelIsName>(0,3)</point>
 </graph>
 
@@ -503,6 +523,7 @@ The `latex` property renders the latex code associated with rendering the coordi
 <p><c>constraintUsed</c> = $p.constraintUsed</p>
 
 <graph size="small" grid="2 2">
+  <shortDescription>A graph of a point with an attractToGrid constraint</shortDescription>
   <point name="p">(1.5,1.5)
     <attractToGrid dx="2" dy="2"/>
   </point>

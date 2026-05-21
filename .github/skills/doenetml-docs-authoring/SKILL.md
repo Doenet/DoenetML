@@ -136,12 +136,74 @@ Reference pages double as a curriculum for how to write DoenetML well — so exa
    </graph>
    ```
 
-3. **Label every input.** Use `<label>` either as a child of the input or via a `<label for="$inputName">` sibling. This satisfies the accessibility model the docs are teaching readers to copy.
-   ```doenet
-   <mathInput name="x0" prefill="0.5">
-     <label>Enter initial condition <m>x_0</m></label>
-   </mathInput>
-   ```
+3. **Label every input, and associate the label with its input.** Surrounding prose ("Type _x_: `<mathInput/>`") looks like a label to a sighted reader but does **not** create a programmatic association — screen readers will announce the input as unlabeled. Use one of these forms instead:
+
+   - **`<label>` as a child of the input** (preferred when the input owns its label):
+     ```doenet
+     <mathInput name="x0" prefill="0.5">
+       <label>Enter initial condition <m>x_0</m></label>
+     </mathInput>
+     ```
+   - **`<label for="$inputName">` as a sibling** (when layout requires the label to live elsewhere in the markup):
+     ```doenet
+     <label for="$x0">Enter initial condition <m>x_0</m></label>
+     <mathInput name="x0" prefill="0.5" />
+     ```
+   - **`<shortDescription>` as a child** — visible only to screen readers — when there is no natural visible label (e.g. one of several anonymous checkboxes in a row, or an input embedded in a sentence where adding a visible label would duplicate the prose):
+     ```doenet
+     <booleanInput name="b1">
+       <shortDescription>Checkbox 1 of 4</shortDescription>
+     </booleanInput>
+     ```
+
+   Do not leave inputs unlabeled in reference examples — readers copy these patterns into their own pages.
+
+   **The label belongs on the input, not on a wrapping `<answer>{:dn}`.** When an input appears explicitly — either nested inside the `<answer>{:dn}` or referenced into it from outside — put the `<label>{:dn}` or `<shortDescription>{:dn}` inside that input. The only time an `<answer>{:dn}` itself needs a `<label>{:dn}`/`<shortDescription>{:dn}` is when it **sugars in** an implicit input (i.e. there is no explicit `<*Input/>{:dn}` in the source — the answer creates one automatically). If you can see the input element in the source, label the input.
+
+   - Bad (input is explicit, but label is on the answer):
+     ```doenet
+     <answer>
+       <shortDescription>Simplify 2/10</shortDescription>
+       <mathInput name="userFraction" prefill=" / " />
+       <award>1/5</award>
+     </answer>
+     ```
+   - Good (label moved to the explicit input):
+     ```doenet
+     <answer>
+       <mathInput name="userFraction" prefill=" / ">
+         <label>Simplify <m>2/10</m></label>
+       </mathInput>
+       <award>1/5</award>
+     </answer>
+     ```
+   - Good (answer sugars its own input — no explicit input in the source, so the answer owns the label):
+     ```doenet
+     <answer>
+       <label>What is <m>2 + 2</m>?</label>
+       <award>4</award>
+     </answer>
+     ```
+
+   **`<answer>` with `<award><when>` does not sugar an input — leave it unlabeled.** An `<award>` that contains a `<when>` child evaluates arbitrary boolean logic against existing components; it never causes the parent `<answer>` to create an implicit input. So an `<answer>` whose `<award>`s all use `<when>` neither has an input to label nor sugars one, and putting a `<label>{:dn}`/`<shortDescription>{:dn}` directly on it is redundant. If the example needs a visible prompt (e.g. "Move the point to the first quadrant"), keep that prose as ordinary `<p>{:dn}` text next to the answer, not as the answer's label.
+
+   - Wrong (no input to label, no sugar — the label is redundant):
+     ```doenet
+     <answer>
+       <label>Move the point to the first quadrant.</label>
+       <award><when>$P.x > 0 and $P.y > 0</when></award>
+     </answer>
+     ```
+   - Right (prompt is plain prose; the answer carries no label):
+     ```doenet
+     <p>Move the point to the first quadrant.
+       <answer>
+         <award><when>$P.x > 0 and $P.y > 0</when></award>
+       </answer>
+     </p>
+     ```
+
+   **When removing a redundant label, check the original.** If the label text was originally instructional prose that *previously lived outside the answer* (and was migrated into the label during an earlier accessibility pass), put that prose back as text outside the answer — don't just delete the prompt. Use `git show <baseline>:<file>` to recover the original wording when in doubt.
 
 4. **Avoid `<asList>`.** It is an obsolete way of rendering an array as a comma-separated list. Array properties (`$ode.rhss`, `$eig.eigenvalues`, etc.) render as a comma-separated list on their own — write `<p>Eigenvalues: $eig.eigenvalues</p>`, not `<p>Eigenvalues: <asList>$eig.eigenvalues</asList></p>`. Many older tests still use `<asList>`; do not mirror that in docs.
 

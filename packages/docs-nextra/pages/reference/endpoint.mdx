@@ -20,6 +20,7 @@ component that renders a point that can be switched from open to closed (or unfi
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>three endpoints: default, switchable, and open</shortDescription>
   <endpoint name="default" labelIsName/>  
   <endpoint name="switchable" switchable
     coords="(0,5)"  labelIsName/>
@@ -42,6 +43,7 @@ An `<endpoint>{:dn}` also accepts all `<point>{:dn}` attributes.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a labeled endpoint</shortDescription>
   <endpoint name="ep" x="-2" y="4"
     open="true" switchable="true"
     styleNumber="2" labelPosition="lowerleft" 
@@ -67,6 +69,7 @@ endpoints. Endpoints can also have the same constraints as points.
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>graph with a switchable endpoint</shortDescription>
   <endpoint switchable="true">
     <label>Click me!</label>
   </endpoint>
@@ -88,6 +91,7 @@ switch between an open and a closed point.
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>graph with an open endpoint</shortDescription>
   <endpoint open="true"/>
 </graph>
 ```
@@ -105,6 +109,7 @@ The `open` attribute renders an `<endpoint>{:dn}` that is open.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a labeled endpoint</shortDescription>
   <endpoint name="ep" x="-2" y="4"
     open="true" switchable="true"
     styleNumber="2" labelPosition="lowerleft" 
@@ -133,6 +138,7 @@ The properties of points are accessible to endpoints as well. A few selected pro
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with an open, switchable endpoint</shortDescription>
   <endpoint name="ep" open switchable/>
 </graph>
 

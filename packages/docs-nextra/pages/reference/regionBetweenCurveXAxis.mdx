@@ -19,6 +19,7 @@ import { AttrPropDisplay } from "../../components"
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of the region between a function and the x-axis</shortDescription>
   <function name="f">x</function>
   <regionBetweenCurveXAxis 
     function="$f" 
@@ -41,6 +42,7 @@ and the $x$-axis over a specified interval.
 
 ```doenet-example
 <graph size="small" xmin="-1" xmax="6" ymin="-3">
+  <shortDescription>A graph of the region between x^2 and the x-axis</shortDescription>
   <function name="f">x^2</function>
   <regionBetweenCurveXAxis function="$f" boundaryValues="0 3"/>
 </graph>
@@ -58,8 +60,9 @@ The `function` attribute takes a named function reference as input.
 
 
 ```doenet-example
-<slider name="upperLimit" from="-pi" to="pi" step="pi/8"/>
+<slider name="upperLimit" from="-pi" to="pi" step="pi/8"><label>upper limit</label></slider>
 <graph size="small" xmin="-2pi" xmax="2pi" ymin="-2" ymax="2" xTickScaleFactor="pi">
+  <shortDescription>A graph of the region under sin(x)</shortDescription>
   <function name="f" styleNumber="2">sin(x)</function>
   <regionBetweenCurveXAxis 
     name="shadedRegion" 
@@ -84,9 +87,10 @@ The `boundaryValues` attribute accepts a list of $x$-values or numerical referen
 
 
 ```doenet-example
-<slider name="styleNum" from="1" to="6" step="1"/>
+<slider name="styleNum" from="1" to="6" step="1"><label>style number</label></slider>
 
 <graph size="small" xmin="-1" xmax="6" ymin="-3">
+  <shortDescription>A graph of a styled region under x^2</shortDescription>
   <function name="f">x^2</function>
   <regionBetweenCurveXAxis 
     function="$f" 
@@ -108,8 +112,9 @@ The `<regionBetweenCurveXAxis>{:dn}` component accepts the `styleNumber` attribu
 
 
 ```doenet-editor-horiz
-<slider name="styleNum" from="1" to="6" step="1"/>
+<slider name="styleNum" from="1" to="6" step="1"><label>style number</label></slider>
 <graph size="tiny" xmin="-1" xmax="6" ymin="-3">
+  <shortDescription>A graph of a styled region under x^2</shortDescription>
   <function name="f">x^2</function>
   <regionBetweenCurveXAxis 
     name="styledRegion" 

@@ -18,8 +18,9 @@ only one of the enclosed `<boolean>{:dn}` references are `true`.
 ### Example: `<xor>{:dn}` in a `<boolean>{:dn}`
 
 ```doenet-editor-horiz
-<p>Enter a number that is divisible by 2 or 3, but not both:
-  <mathInput name="n"/></p>
+<p><mathInput name="n">
+  <label>Enter a number that is divisible by 2 or 3, but not both</label>
+</mathInput></p>
       
 <boolean name="divisBy2"><mod>$n 2</mod> = 0</boolean>
 <boolean name="divisBy3"><mod>$n 3</mod> = 0</boolean>

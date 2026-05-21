@@ -60,9 +60,9 @@ are sorted in increasing order using the `<sort>{:dn}` component.
 
 ```doenet-editor-horiz
 <p>Enter three numbers, not in increasing order:
-  <mathInput name="n1"/>, 
-  <mathInput name="n2"/>, 
-  <mathInput name="n3"/>
+  <mathInput name="n1"><shortDescription>first number</shortDescription></mathInput>, 
+  <mathInput name="n2"><shortDescription>second number</shortDescription></mathInput>, 
+  <mathInput name="n3"><shortDescription>third number</shortDescription></mathInput>
 </p>
 <p>Your sorted list is: 
   <sort>$n1 $n2 $n3</sort>
@@ -83,9 +83,9 @@ referenced by name and are sorted in increasing order using the `<sort>{:dn}` co
 
 ```doenet-editor-horiz
 <p>Enter three names, not in alphabetical order:
-  <textInput name="n1"/>, 
-  <textInput name="n2"/>, 
-  <textInput name="n3"/>
+  <textInput name="n1"><shortDescription>first name</shortDescription></textInput>, 
+  <textInput name="n2"><shortDescription>second name</shortDescription></textInput>, 
+  <textInput name="n3"><shortDescription>third name</shortDescription></textInput>
 </p>
 <p>Your sorted list is: 
   <sort>$n1 $n2 $n3</sort>
@@ -109,8 +109,9 @@ using the `<sort>{:dn}` component.
 ```doenet-editor-horiz
 <p>Drag the points!</p>
 
-<p>Choose component number to sort by (1 or 2):
-  <mathInput name="i" prefill="1"/></p>
+<p><mathInput name="i" prefill="1">
+  <label>Choose component number to sort by (1 or 2)</label>
+</mathInput></p>
 <p>
   <sort sortByComponent="$i">
     $A $B $C $D
@@ -118,6 +119,7 @@ using the `<sort>{:dn}` component.
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
   <point name="A">(0,5)</point>
   <point name="B" styleNumber="2">(-2,6)</point>
   <point name="C" styleNumber="3">(7,-3)</point>
@@ -145,6 +147,7 @@ for a two-dimensional object, will result in no sorting.
 ```doenet-editor-horiz
 Drag the points!
 <graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
   <point name="A">(0,5)</point>
   <point name="B" styleNumber="2">(-2,6)</point>
   <point name="C" styleNumber="3">(7,-3)</point>
@@ -177,6 +180,7 @@ Components with numerical properties can be sorted based on an individual proper
 ```doenet-editor-horiz
 Drag the vectors!
 <graph size="small">
+  <shortDescription>A graph of four draggable vectors</shortDescription>
   <vector name="v1" styleNumber="1">(0,6)</vector>
   <vector name="v2" tail="(2,2)" displacement="(3,7)" styleNumber="2"/>
   <vector name="v3" tail="(7,1)" displacement="(-1,-3)" styleNumber="3"/>

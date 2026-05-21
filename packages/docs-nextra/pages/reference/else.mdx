@@ -20,6 +20,7 @@ component in creating logical statements with DoenetML.
 
 ```doenet-example
 <answer name="candyQuery" submitLabel="Submit Response">
+    <label>Do you like candy?</label>
     <choice name="yes">I like candy</choice>
     <choice>I do not like candy</choice>
 </answer>
@@ -50,7 +51,7 @@ in a `<conditionalContent>{:dn}` block.
 
 
 ```doenet-example
-<p>Type in the letter A, B, or C: <textInput name="userLetter" prefill="type letter here"/></p>
+<p><textInput name="userLetter" prefill="type letter here"><label>Type in the letter A, B, or C</label></textInput></p>
 <conditionalContent>
   <case condition="$userLetter = A or $userLetter = a">A is for apple.</case>
   <case condition="$userLetter = B or $userLetter = b">B is for boy.</case>

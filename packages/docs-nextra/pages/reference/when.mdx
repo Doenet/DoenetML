@@ -17,15 +17,16 @@ component that is used for creating boolean conditions within an [`<award>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>1. Enter  <m>a</m> or <m>b</m>:
-  <answer><mathInput name="ans1"/>
-    <award>
-      <when>
-        $ans1 = a or $ans1 = b
-      </when>
-    </award>
-  </answer>
-</p>
+<p><answer>
+  <mathInput name="ans1">
+    <label>1. Enter <m>a</m> or <m>b</m></label>
+  </mathInput>
+  <award>
+    <when>
+      $ans1 = a or $ans1 = b
+    </when>
+  </award>
+</answer></p>
 ```
 
 
@@ -71,8 +72,9 @@ this case, the boolean is based on graphical interactions performed by the user 
 
 
 ```doenet-editor-horiz
-<p>What color is the complement of purple? 
-<textInput name="userColor"/>
+<p><textInput name="userColor">
+  <label>What color is the complement of purple?</label>
+</textInput>
   <answer name="ans" type="text">
     <award caseInsensitiveMatch>
       <when>
@@ -96,8 +98,9 @@ this case, the boolean is based on the value of a `<textInput/>{:dn}`.
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when matchPartial="true">
@@ -120,8 +123,9 @@ enclosed boolean condition is true.
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>
@@ -145,8 +149,9 @@ The `value` property renders the value of the boolean condition enclosed by the 
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial="true">
@@ -171,8 +176,9 @@ which portion of the boolean condition enclosed by the `<when>{:dn}` evaluates t
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>
@@ -197,8 +203,9 @@ whether the `<when>{:dn}` condition has been satisfied.
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>

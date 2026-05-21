@@ -57,14 +57,14 @@ A `<repeat>{:dn}` can be used to generate multiple graphical elements at once wh
 
 
 ```doenet-editor-horiz
-<p>How many answers do you have? 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many answers do you have?</label></mathInput></p>
 
 <sequence name="s" from="1" to="$n" hide/>
 
 <p><m>x = </m>
 <repeat name="inputs" for="$s">
-  <mathInput/>
+  <mathInput><shortDescription>one of the answers</shortDescription></mathInput>
 </repeat>
 </p>
 
@@ -189,8 +189,8 @@ attributes can be used.
 ### Example: Generate a user-specified number of random `<point>{:dn}` components
 
 ```doenet-editor-horiz
-<p>How many points do you want to generate?
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many points do you want to generate?</label></mathInput></p>
 <em>(Note, more than 10 takes some processing time...)</em>
 
 <sequence name="s" from="1" to="$n" hide/>

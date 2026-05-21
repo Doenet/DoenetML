@@ -1,0 +1,145 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<tupleList>{:dn}`
+
+
+`<tupleList>{:dn}` is a math-list component that stores a list of math
+**tuples** — parenthesized, comma-separated groups such as `(1, 2)` or
+`(a, b, c)`. It is a specialized form of [`<mathList>{:dn}`](mathList) in
+which each list item must be written as a parenthesized group.
+
+When creating a `<tupleList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (The commas
+**inside** each pair of parentheses are part of one tuple, not separators
+between items.)
+
+Because `<tupleList>{:dn}` extends [`<mathList>{:dn}`](mathList), all of the
+attributes and properties of `<mathList>{:dn}` are also available here
+(`unordered`, `maxNumber`, `asList`, `mergeMathLists`, `numComponents`,
+`latex`, `text`, etc.).
+
+<AttrPropDisplay name='tupleList'/>
+
+---
+
+### Example: Defining a `<tupleList>{:dn}` and retrieving a tuple
+
+
+```doenet-editor-horiz
+<tupleList name="tl">
+  (1, 2) (3, 4) (5, 6)
+</tupleList>
+
+<p>The full list: $tl</p>
+<p>The second tuple is $tl[2].</p>
+```
+
+
+
+Each parenthesized group becomes one math tuple. Spaces between the groups
+separate the items; the commas inside each `(...)` are part of one tuple.
+Individual tuples are accessed by index.
+
+
+
+---
+
+### Example: A `<tupleList>{:dn}` of 3-tuples
+
+
+```doenet-editor-horiz
+<tupleList name="tl">
+  (1, 2, 3) (4, 5, 6) (7, 8, 9)
+</tupleList>
+
+<p>First tuple: $tl[1]; its second component: $tl[1][2].</p>
+<p>Third tuple: $tl[3]; its first component: $tl[3][1].</p>
+```
+
+
+
+Tuples may have any number of components. Each tuple is itself a math
+expression and its components can be indexed individually.
+
+
+
+---
+
+### Example: Mixed-arity items
+
+
+```doenet-editor-horiz
+<tupleList name="tl">
+  (1, 2) (3, 4, 5) (a, b)
+</tupleList>
+
+<p>$tl</p>
+```
+
+
+
+The items in a `<tupleList>{:dn}` do not need to share the same arity or
+the same content type.
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<p>Is the pair of tuples equal in any order?
+  <boolean>
+    <tupleList unordered>(1, 2) (3, 4)</tupleList> =
+    <tupleList>(3, 4) (1, 2)</tupleList>
+  </boolean>
+</p>
+```
+
+
+
+The `unordered` attribute makes comparisons (e.g., inside a `<boolean>{:dn}`
+or an `<award>{:dn}`) ignore the order of the items.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-editor-horiz
+<tupleList name="tl" maxNumber="2">
+  (1, 1) (2, 2) (3, 3) (4, 4)
+</tupleList>
+
+<p>$tl</p>
+<p>numComponents = $tl.numComponents</p>
+```
+
+
+
+The `maxNumber` attribute limits the number of tuples retained in the list,
+regardless of how many are supplied.
+
+
+
+---
+
+### Comparison with `<mathList>{:dn}`
+
+The difference between `<tupleList>{:dn}` and `<mathList>{:dn}` is in how
+the children are parsed:
+
+- `<mathList>x y z</mathList>{:dn}` → a list of 3 maths (`x`, `y`, `z`).
+  Commas inside the body would create a single tuple math instead.
+- `<tupleList>(1, 2) (3, 4)</tupleList>{:dn}` → a list of 2 tuples
+  (`(1,2)`, `(3,4)`). Non-parenthesized text is not accepted as an item.
+
+Use `<tupleList>{:dn}` when every item must be a tuple — for example, a
+list of coordinate pairs that should not specifically be a list of
+[`<point>{:dn}`](point) or [`<interval>{:dn}`](interval) components.

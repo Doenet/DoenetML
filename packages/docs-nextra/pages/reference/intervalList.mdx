@@ -9,6 +9,11 @@ import { AttrPropDisplay } from "../../components"
 `<intervalList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
 component that renders a list of intervals.
 
+When creating an `<intervalList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (The commas that
+appear inside each interval — e.g. `(-1, 2)` — are part of the interval itself, not
+separators between intervals.)
+
 <AttrPropDisplay name='intervalList'/>
 
 ---

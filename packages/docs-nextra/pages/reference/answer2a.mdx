@@ -17,9 +17,9 @@ The following examples illustrate use of the `<answer>{:dn}` tag attributes.
 ### Example: disabled
 ```doenet-example
   <p>Answer this to activate the next problem: 
-    <m>2 - 1 = </m><answer name="ans1" symbolicEquality>1</answer></p>
-  <p>Next problem: <m>$ans1.submittedResponse + 1 = </m>
-    <answer name="ans2" disabled="$ans1.creditAchieved != 1" symbolicEquality>2</answer></p>
+    <answer name="ans1" symbolicEquality><label><m>2 - 1 = </m></label>1</answer></p>
+  <p>Next problem: 
+    <answer name="ans2" disabled="$ans1.creditAchieved != 1" symbolicEquality><label><m>$ans1.submittedResponse + 1 = </m></label>2</answer></p>
 ```
 
 
@@ -40,12 +40,12 @@ answer to the first question.
 ```doenet-example
   <document name="assignment">
     <p>Question 1 (important)</p>
-    <p><m>1 + 1 = </m>
-    <answer weight="2" name="ans1">2</answer></p>
+    <p>
+    <answer weight="2" name="ans1"><label><m>1 + 1 = </m></label>2</answer></p>
 
     <p>Question 2 (less important)</p>
-    <p><m>1 + 2 = </m>
-    <answer name="ans2">3</answer></p>
+    <p>
+    <answer name="ans2"><label><m>1 + 2 = </m></label>3</answer></p>
 
     <p>Credit for question 1: $ans1.creditAchieved</p>
     <p>Credit for question 2: $ans2.creditAchieved</p>
@@ -64,13 +64,15 @@ single `<answer>{:dn}`. By default, each `<answer>{:dn}` has an equal weight of 
 ```doenet-example
 <p>The complementary color for red is 
   <answer inline>
+    <shortDescription>complementary color for red</shortDescription>
     <choice>blue</choice>
     <choice credit="1">green</choice>
     <choice>yellow</choice>
   </answer>.
 </p>
-<p>What is the complementary color for purple?
+<p>
   <answer>
+    <label>What is the complementary color for purple?</label>
     <choice>blue</choice>
     <choice>green</choice>
     <choice credit="1">yellow</choice>
@@ -86,8 +88,10 @@ For a multiple choice question, the `inline` attribute causes the choices to dis
 
 ### Example: handGraded
 ```doenet-example
-<p>In one sentence, describe the theme of the story: 
-  <answer type="text" handGraded expanded/>
+<p>
+  <answer type="text" handGraded expanded>
+    <label>In one sentence, describe the theme of the story</label>
+  </answer>
 </p>
 ```
 
@@ -98,17 +102,18 @@ preferred. The student's responses are stored for future grading.
 
 ### Example: matchPartial
 ```doenet-editor-horiz
-<p>Enter an even number greater than 6:
+<p>
   <answer matchPartial>
-    <mathInput name="userNumber"/>
+    <mathInput name="userNumber"><label>Enter an even number greater than 6</label></mathInput>
     <award>
       <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
     </award>
   </answer></p>
 
-<p>What is <m>(1,2,3)+(4,5,6)</m>? <answer matchPartial>(5,7,9)</answer></p>
-<p>Select all the warm colors:
+<p><answer matchPartial><label>What is <m>(1,2,3)+(4,5,6)</m>?</label>(5,7,9)</answer></p>
+<p>
   <answer matchPartial selectMultiple>
+    <label>Select all the warm colors</label>
     <choice credit="1">yellow</choice>
     <choice>green</choice>
     <choice credit="1">orange</choice>
@@ -141,11 +146,11 @@ For comparison of vectors, the attributes `matchByExactPositions` and `unordered
 ### Example: symbolicEquality
 ```doenet-example
 <p>Your responses to these questions must exactly match our answers!</p>
-<p><m>2x + 5x = </m>
-  <answer symbolicEquality>7x</answer>
+<p>
+  <answer symbolicEquality><label><m>2x + 5x = </m></label>7x</answer>
 </p>
-<p><m>x^2 + 2x^2 + 3x + x</m>
-  <answer symbolicEquality>3x^2 + 4x</answer>
+<p>
+  <answer symbolicEquality><label><m>x^2 + 2x^2 + 3x + x</m></label>3x^2 + 4x</answer>
 </p> 
 ```
 
@@ -163,21 +168,24 @@ combine `symbolicEquality` with the `simplifyOnCompare` and `expandOnCompare` at
 
 ### Example: forceFullCheckWorkButton
 ```doenet-example
-<p><m>2x + 5x = </m>
-  <answer>7x</answer>
+<p>
+  <answer><label><m>2x + 5x = </m></label>7x</answer>
 </p>
-<p><m>2x + 5x</m>
-  <answer forceFullCheckWorkButton>7x</answer>
+<p>
+  <answer forceFullCheckWorkButton><label><m>2x + 5x</m></label>7x</answer>
 </p>  
-<p><m>2x + 5x</m>
-  <answer forceFullCheckWorkButton submitLabel="check!">7x</answer>
+<p>
+  <answer forceFullCheckWorkButton submitLabel="check!"><label><m>2x + 5x</m></label>7x</answer>
 </p>
 <p>Move the below point to the first quadrant.
-  <answer><award><when>
-    $P.x > 0 & $P.y>0
-  </when></award></answer>
+  <answer>
+    <award><when>
+      $P.x > 0 & $P.y>0
+    </when></award>
+  </answer>
 </p>
 <graph size="small">
+  <shortDescription>graph for moving a point</shortDescription>
   <point name="P" />
 </graph>
 ```
@@ -202,13 +210,18 @@ With the large button, it is also possible to customize the message on the butto
 <p>Enter two numbers that add up to 5:
   <mathInput name="n1" forAnswer="$ans1"><shortDescription>first number</shortDescription></mathInput>
   <mathInput name="n2" forAnswer="$ans1"><shortDescription>second number</shortDescription></mathInput>
-  <answer name="ans1"><award><when>$n1+$n2=5</when></award></answer>
+  <answer name="ans1">
+    <shortDescription>two numbers that add up to 5</shortDescription>
+    <award><when>$n1+$n2=5</when></award>
+  </answer>
 </p>
 
 <p>Enter two numbers that multiply to 12:
   <mathInput name="m1" forAnswer="$ans2"><shortDescription>first number</shortDescription></mathInput>
   <mathInput name="m2" forAnswer="$ans2"><shortDescription>second number</shortDescription></mathInput>
-  <answer name="ans2" forceSmallCheckWorkButton><award><when>$m1 $m2=12</when></award></answer>
+  <answer name="ans2" forceSmallCheckWorkButton>
+    <award><when>$m1 $m2=12</when></award>
+  </answer>
 </p>
 
 <p><answer><label>1+1=</label>2</answer></p>
@@ -230,17 +243,18 @@ If both `forceFullCheckWorkButton` and `forceSmallCheckWorkButton` are supplied,
 
 ### Example: simplifyOnCompare
 ```doenet-editor-horiz
-<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
-  <answer>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter anything mathematically equivalent to <m>x^2+2x+1</m></label>:
+  <answer name="ans">x^2+2x+1</answer></p>
 
-<p>Enter <m>x^2+2x+1</m> exactly: 
-  <answer symbolicEquality>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter <m>x^2+2x+1</m> exactly</label>:
+  <answer name="ans" symbolicEquality>x^2+2x+1</answer></p>
 
-<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
-  <answer symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored)</label>:
+  <answer name="ans" symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
 
-<p>Pick level of simplification:
+<p>
   <choiceInput name="simpOnComp" inline preselectChoice="1">
+    <label>Pick level of simplification</label>
     <choice>none</choice>
     <choice>numbersPreserveOrder</choice>
     <choice>normalizeOrder</choice>
@@ -250,8 +264,7 @@ If both `forceFullCheckWorkButton` and `forceSmallCheckWorkButton` are supplied,
 </p>
 
 <p>
-  Enter <m>x^2+2x+1</m>:
-  <answer symbolicEquality simplifyOnCompare="$simpOnComp">x^2+2x+1</answer></p>
+  <answer symbolicEquality simplifyOnCompare="$simpOnComp"><label>Enter <m>x^2+2x+1</m></label>x^2+2x+1</answer></p>
 ```
 
 
@@ -279,17 +292,17 @@ Note: if `symbolicEquality` is not specified, `simplifyOnCompare` has no effect.
 
 ### Example: expandOnCompare
 ```doenet-editor-horiz
-<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
-  <answer>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter anything mathematically equivalent to <m>x^2+2x+1</m></label>:
+  <answer name="ans">x^2+2x+1</answer></p>
 
-<p>Enter <m>x^2+2x+1</m> exactly: 
-  <answer symbolicEquality>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter <m>x^2+2x+1</m> exactly</label>:
+  <answer name="ans" symbolicEquality>x^2+2x+1</answer></p>
 
-<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
-  <answer symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored)</label>:
+  <answer name="ans" symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
 
-<p>Enter <m>x^2+2x+1</m> in factored or unfactored form: 
-  <answer symbolicEquality simplifyOnCompare expandOnCompare>x^2+2x+1</answer></p>
+<p><label for="$ans">Enter <m>x^2+2x+1</m> in factored or unfactored form</label>:
+  <answer name="ans" symbolicEquality simplifyOnCompare expandOnCompare>x^2+2x+1</answer></p>
 ```
 
 The default comparison is a numerical answer-checker with a liberal definition of equality.  
@@ -303,18 +316,21 @@ Note: if `symbolicEquality` is not specified, `expandOnCompare` has no effect.
 
 ### Example: unorderedCompare
 ```doenet-example
-<p>Enter <m>1,2,3,4,5</m> :
+<p>
   <answer>
+    <label>Enter <m>1,2,3,4,5</m></label>
     <mathList>1 2 3 4 5</mathList>
   </answer></p>
 
-<p>Now enter <m>1,2,3,4,5</m>, but scramble the order up :
+<p>
   <answer unorderedCompare>
+    <label>Now enter <m>1,2,3,4,5</m>, but scramble the order up</label>
     <mathList>1 2 3 4 5</mathList>
   </answer></p>
 
-<p>Again, enter <m>1,2,3,4,5</m>, but scramble the order up :
+<p>
   <answer>
+    <label>Again, enter <m>1,2,3,4,5</m>, but scramble the order up</label>
     <mathList unordered>1 2 3 4 5</mathList>
   </answer></p>
 ```
@@ -341,11 +357,15 @@ to be used when comparing it to anything else.
 
 ### Example: matchByExactPositions
 ```doenet-example
-<p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
-<answer matchPartial matchByExactPositions>(1,2,3,4)</answer>
+<answer matchPartial matchByExactPositions>
+  <label>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct</label>
+  (1,2,3,4)
+</answer>
 
-<p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
-<p><answer matchPartial>1,2,3,4</answer></p>
+<p><answer matchPartial>
+  <label>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order</label>
+  1,2,3,4
+</answer></p>
 ```
 
 
@@ -370,9 +390,9 @@ ordered lists, `matchByExactPositions` may not be desired.
 
 ### Example: numAwardsCredited
 ```doenet-example
-<p>Enter an even number greater than 6:
+<p>
 <answer numAwardsCredited="2">
-  <mathInput name="userNumber"/>
+  <mathInput name="userNumber"><label>Enter an even number greater than 6</label></mathInput>
   <award credit="0.5"><when>
     $userNumber > 6
   </when></award>
