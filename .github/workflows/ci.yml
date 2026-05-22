@@ -273,12 +273,6 @@ jobs:
     test-doenetml-to-pretext-devcontainer:
         name: Devcontainer Runs Tests
         runs-on: ubuntu-latest
-        # Disabled: @playwright/browser-chromium's install.js currently hangs
-        # inside this devcontainer after the Chromium download completes
-        # (transitive dep via @vscode/test-web). Re-enable by removing `if: false`
-        # once upstream is fixed. The underlying doenetml-to-pretext tests are
-        # also exercised by Test Main on the plain runner.
-        if: false
         timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
@@ -296,9 +290,6 @@ jobs:
         name: DoenetML to PreTeXt Tests
         runs-on: ubuntu-latest
         needs: build
-        # See sibling job above: disabled while upstream Playwright install hang
-        # is unresolved. Remove `if: false` to re-enable.
-        if: false
         timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
