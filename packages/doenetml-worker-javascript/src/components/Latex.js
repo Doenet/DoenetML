@@ -32,6 +32,7 @@ export default class Latex extends TextComponent {
                 dependencyType: "child",
                 childGroups: ["textLike"],
                 variableNames: ["text", "latex"],
+                variablesOptional: true,
             },
         });
 
