@@ -11,14 +11,12 @@
 
 annotation
 annotations
-attractToConstraint
 cascade
 cascadeMessage
 cellBlock
 clampFunction
 codeEditor
 column
-constrainToInterior
 dataFrame
 displayDoenetML
 extractMathOperator
@@ -28,12 +26,9 @@ latex
 lcm
 markers
 note
-pegboard
 periodicSet
 pluralize
-regionHalfPlane
 solveEquations
-stickyGroup
 subsetOfRealsInput
 summaryStatistics
 tagc
