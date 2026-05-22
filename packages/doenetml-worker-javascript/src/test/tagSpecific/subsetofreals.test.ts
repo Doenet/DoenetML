@@ -1514,4 +1514,34 @@ describe("SubsetOfReals tag tests @group1", async () => {
                 .text,
         ).eq("R isolated points: ");
     });
+
+    it("subsetOfRealsInput propagates its variable to an extending subsetOfReals", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <subsetOfRealsInput name="S" variable="t" prefill="t > 0" />
+    <subsetOfReals extend="$S" name="extended" />
+    <subsetOfReals extend="$S" name="extendedIneq" displayMode="inequalities" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The extending <subsetOfReals> should inherit variable="t" from the
+        // source input (via addAttributeComponentsShadowingStateVariables on
+        // subsetValue), not fall back to the default "x".
+        expect(
+            stateVariables[await resolvePathToNodeIdx("extended")].stateValues
+                .variable.tree,
+        ).eq("t");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("extendedIneq")]
+                .stateValues.variable.tree,
+        ).eq("t");
+
+        // The subset itself should round-trip too (parsed via t).
+        expect(
+            stateVariables[await resolvePathToNodeIdx("extended")].stateValues
+                .value.tree,
+        ).eqls(["interval", ["tuple", 0, Infinity], ["tuple", false, false]]);
+    });
 });

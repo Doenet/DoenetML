@@ -27,6 +27,12 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // xMin/xMax/width/height/dx/xlabel are declared on the descriptor
+        // but currently do nothing (the renderer hard-codes width="808" /
+        // height="80" and ignores the rest; dx="1" actively breaks
+        // negative-point input). Hidden from the schema (and therefore the
+        // auto-generated docs and editor autocomplete) until they actually
+        // work; tracked in https://github.com/Doenet/DoenetML/issues/391.
         attributes.xMin = {
             description: "Left endpoint of the visible number line.",
             createComponentOfType: "number",
@@ -34,6 +40,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: -10,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.xMax = {
             description: "Right endpoint of the visible number line.",
@@ -42,6 +49,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: 10,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.width = {
             description: "Display width of the input.",
@@ -50,6 +58,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: 800,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.height = {
             description: "Display height of the input.",
@@ -58,6 +67,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: 300,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.xlabel = {
             description: "Label rendered for the x axis.",
@@ -66,6 +76,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: "",
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         //interval type buttons includeIntervalBasedControls
         //point type buttons includePointBasedControls
@@ -76,6 +87,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             createStateVariable: "dx",
             defaultValue: 0.5,
             public: true,
+            excludeFromSchema: true,
         };
 
         attributes.variable = {
@@ -127,6 +139,9 @@ export default class SubsetOfRealsInput extends BlockComponent {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "subsetOfReals",
+                addAttributeComponentsShadowingStateVariables: {
+                    variable: { stateVariableToShadow: "variable" },
+                },
             },
             hasEssential: true,
             returnDependencies: () => ({
