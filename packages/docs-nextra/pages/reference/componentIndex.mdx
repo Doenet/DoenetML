@@ -11,6 +11,8 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<and>`](and.mdx)                 | functions as the boolean operator `and` or `&`                                            |
 | [`<angle>`](angle.mdx)               | angle graphical component                                                             |
 | [`<animateFromSequence>`](animateFromSequence.mdx) | renders an animation of a changing component or component property                    |
+| [`<annotation>`](annotation) | describes a single graph element for screen-reader navigation in a Prefigure-rendered `<graph>` |
+| [`<annotations>`](annotations) | container for `<annotation>` children inside a `<graph>`, supplying its screen-reader description |
 | [`<answer>`](answer1.mdx)              | defines an answer block for response validation                                       |  |
 | [`<asList>`](asList.mdx)              | renders its children as a comma-separated list                                        |
 | [`<aside>`](aside.mdx)               | renders a collapsible section of content                                              |
@@ -37,19 +39,21 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<c>`](c.mdx)                   | renders default font for a code example                                                                         |
 | [`<callAction>`](callAction.mdx)          | triggers an action when clicked or in response to a specified user interaction                                  |
 | [`<caption>`](caption.mdx)             | renders a caption inside a `<figure>`                                                                           |
+| [`<cascade>`](cascade) | sectional container that reveals its children one at a time as the learner completes each step |
+| [`<cascadeMessage>`](cascadeMessage) | continuation placeholder shown inside a `<cascade>` in place of a not-yet-revealed entry |
 | [`<case>`](case.mdx)                | defines the condition within a `<conditionalContent>` block                                                     |
 | [`<ceil>`](ceil.mdx)                | ceiling function                                                                                                |
 | [`<cell>`](cell.mdx)                | smallest data element in a `<table>`                                                                            |
-| `<cellBlock>`                                                                            | a container element for specifying data in a `<spreadsheet>`                                                    |
+| [`<cellBlock>`](cellBlock)                                                                            | container for grouping `<cell>`, `<row>`, and `<column>` children inside a `<spreadsheet>`                                                    |
 | [`<choice>`](choice.mdx)              | defines a multiple-choice response                                                                              |
 | [`<choiceInput>`](choiceInput.mdx)         | defines a multiple-choice block                                                                                 |
 | [`<circle>`](circle.mdx)              | circle Graphical Component                                                                                      |
-| `<clampFunction>`                                                                        |                                                                                                                 |
+| [`<clampFunction>`](clampFunction)                                                                        | wraps a `<function>` and limits its output to a specified interval                                                                                                                |
 | [`<clampNumber>`](clampNumber.mdx)         | rounds a number to within a specified interval                                                                  |
 | [`<cobwebPolyline>`](cobwebPolyline)                                                     | interactive cobweb diagram for visualizing iteration of a one-variable function                                 |
-| `<codeEditor>`                                                                           | renders an embedded doenetML code editor                                                                        |
+| [`<codeEditor>`](codeEditor)                                                                           | renders an embedded doenetML code editor                                                                        |
 | [`<collect />`](collect.mdx)           | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list  |
-| `<column>`                                       | container element for a column of cells in a `<spreadsheet>`                                                    |
+| [`<column>`](column)                                       | container element for a column of cells in a `<spreadsheet>`                                                    |
 | [`<conclusion>`](conclusion)                                   | block container for the conclusion of a section                                                 |
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                 |
 | [`<considerAsResponses>`](considerAsResponses.mdx) | specifies components involved in response data collection when the component occurs outside an `<answer>` block |
@@ -70,8 +74,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | [`<definition>`](definition)                                 |     sectional component for defining a term or concept                                                  |
 | [`<derivative>`](derivative) | renders or graphs the derivative of basic elementary functions          |
-| `<discreteSimulationResultList>`               |                                                                         |
-| `<discreteSimulationResultPolyline>`           |                                                                         |
+| [`<displayDoenetML>`](displayDoenetML) | renders DoenetML source verbatim as text, with syntax highlighting where supported |
 | [`<div>`](div)        | groups doenetML content into an unformatted container that can be named |
 | [`<document>`](document)   | largest hierarchical sectional component                                |
 
@@ -92,18 +95,21 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<exercise>`](exercise)    | sectional component that defines a scored exercise                                              |
 | [`<exercises>`](exercises)               | a container element grouping `<exercise>` components, rendered as a list by default              |
 | [`<extractMath>`](extractMath) | extract data (such as number of operands, or individual operands) from mathematical expressions |
+| [`<extractMathOperator>`](extractMathOperator) | returns the top-level operator of a math expression as text |
 
 
 ## F-G
 | Component                                                                             | Description                                                                                          |
 | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`<feedback>`](feedback)         | hidden content triggered in response to specific user interactions                                   |
+| [`<feedbackDefinition>`](feedbackDefinition) | reusable feedback string keyed by a code referenced from `<award>` |
 | [`<figure>`](figure)           | container element for images, videos, and captions                                                   |
 | [`<floor>`](floor)            | renders the result of the floor function applied to the enclosed argument                            |
 | [`<footnote>`](footnote)         | renders a numbered footnote above and to the right of the preceeding text which expands when clicked |
 | [`<function>`](function)         | mathematical function                                                                                |
 | [`<functionIterates>`](functionIterates) | evaluate a function over a specified number of iterations of its argument                            |
 | [`<gcd>`](gcd)              | renders the greatest common divisor of its arguments                                                 |
+| [`<givenAnswer>`](givenAnswer) | sectional component that renders an expandable block labelled "Answer" |
 | [`<graph>`](graph)            | renders a 2D cartesian graph                                                                         |
 | [`<group>`](group)            | groups multiple components into one component which can be referenced with a single name             |
 
@@ -124,6 +130,8 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<isInteger>`](isInteger)        | returns whether a value is an integer                                             |
 | [`<isNumber>`](isNumber)         | returns whether a value is a real number                                               |
 | [`<label>`](label)            | adds a label to its parent component                                              |  |
+| [`<latex>`](latex) | stores a LaTeX-formatted string as a text value |
+| [`<lcm>`](lcm) | renders the least common multiple of its arguments |
 | [`<legend>`](legend)           | renders a legend when nested within a `<graph>`                                   |
 | [`<li>`](li)               | list item                                                                         |
 | [`<line>`](line)             | renders a line when nested inside a `<graph>`                                     |
@@ -162,7 +170,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<nbsp/>`](nbsp)               | renders a blank space                                                        |
 | [`<ndash/>`](ndash)             | renders an en-dash character                                                 |
 | [`<not>`](not)                 | used in the construction of boolean conditions                               |
-| `<note>`                          | container element included for PreTeXt compatibility                       |
+| [`<note>`](note)                          | sectional container for a short remark set off from the main flow of the document                       |
 | [`<number>`](number)              | calculates a floating point value from its contents                       |
 | [`<numberList>`](numberList)          | defines a list of `<number>` components                                      |
 | [`<objectives>`](objectives)                        | sectional component listing learning objectives, boxed by default            |
@@ -183,9 +191,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<paragraphs>`](paragraphs)                                                                         | sectional component grouping `<p>` components, rendered at heading level 4   |
 | [`<part>`](part)                                                                         | one piece of a multi-part exercise or problem, rendered as a numbered list item |
 | [`<pegboard>`](pegboard)                                                               | a Graphical Component that renders dots at grid intersections                |
-| `<periodicSet />`                                                                      | a set of numbers defined by their periodicity                                |
+| [`<periodicSet />`](periodicSet)                                                                      | a set of numbers defined by their periodicity                                |
 | [`<piecewiseFunction>`](piecewiseFunction) | define piecewise functions for graphing and evaluation                       |
-| `<pluralize>`                                                                          | change text from singular to plural based on context                         |
+| [`<pluralize>`](pluralize)                                                                          | change text from singular to plural based on context                         |
 | [`<point>`](point)             | point Graphical Component                                                    |
 | [`<pointList>`](pointList)     | list of `<point>` components                                                 |
 | [`<polygon/>`](polygon)          | polygon Graphical Component                                                  |
@@ -236,6 +244,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<sign>`](sign)                 | returns the result of the sign function of the enclosed argument                             |
 | [`<slider>`](slider)               | renders a sliding bar for interactively adjusting values                                     |
 | [`<solution>`](solution.mdx)             | expandable block component which displays a problem solution                                 |
+| [`<solveEquations>`](solveEquations) | numerically solves a system of equations |
 | [`<sort>`](sort.mdx)                 | sort components based on their values in numerical or alphabetical order                     |
 | [`<span>`](span)                | generic inline container (inline counterpart to `<div>`)                                     |
 | [`<split>`](split.mdx)                | splits multi-digit numbers or text strings into individual characters                        |
@@ -260,8 +269,8 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<table>`](table.mdx)       | container element for a `<tabular>`                                                                 |
 | [`<tabular>`](tabular.mdx)     | define data arranged in a tabular format                                                            |
 | [`<tag>`](tag)              | render enclosed text within a pair of tags, `< >` `< />`                                            |
-| `<tagc>`                                                                         |                                                                                                     |
-| `<tage>`                    | render enclosed text within a self-closing tag, `< />`                                              |
+| [`<tagc>`](tagc)                                                                         | render enclosed text as a closing tag, `</ >`                                                                                                     |
+| [`<tage>`](tage)                    | render enclosed text within a self-closing tag, `< />`                                              |
 | [`<task>`](task)              | one task of a multi-task activity or problem (alias for `<part>`)                                    |
 | [`<term>`](term)            | emphasized styling associated with a defined vocabulary word                                        |
 | [`<text>`](text)            | a stored text value, or string                                                                      |
@@ -269,7 +278,6 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<textList>`](textList)    | list of `<text>` values separated by commas                                                         |
 | [`<theorem>`](theorem)                 | sectional component for the statement of a theorem (or similar formal statement)                  |
 | [`<title>`](title)          | creates a title within a document, section, or other block component                                |
-| `<topic>`                   | container element included for PreTeXt compatibility                                         |
 | [`<triangle>`](triangle)    | triangle Graphical Component                                                                        |
 | [`<triggerSet>`](triggerSet)  | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition |
 | [`<tupleList>`](tupleList)  | a list of math tuples, parsed from parenthesized comma-separated pieces                             |
@@ -280,13 +288,12 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<ul>`](ul.mdx)                 | unordered, or bulleted, list                       |
 | [`<updateValue>`](updateValue)        | changes the value or property of a named component |
 | [`<variance>`](variance)           | renders the variance of its arguments              |
-| `<variantControl>`                                                                      |                                                    |
-| `<variantNames>`                                                                        |                                                    |
+| [`<variantControl>`](variantControl)                                                                      | configures how variants are generated for the enclosing document or section                                                    |
 | [`<vector>`](vector)             | renders a vector inside a `<graph>`                |
 | [`<vectorList>`](vectorList)     | list of `<vector>` components                      |
 | [`<video />`](video)            | embeds a video                                     |
 | [`<when>`](when)               | defines logical conditions within an `<award>`     |
-| `<wrapFunctionPeriodic>`                                                                |                                                    |
+| [`<wrapFunctionPeriodic>`](wrapFunctionPeriodic)                                                                | wraps a function's output into a specified periodic range                                                    |
 | [`<wrapNumberPeriodic>`](wrapNumberPeriodic) | wraps a number line around a circle                |
 | [`<xLabel>`](xLabel)             | labels the horizontal axis on a `<graph>`          |
 | [`<xor>`](xor)                | functions as the exclusive or boolean operator     |

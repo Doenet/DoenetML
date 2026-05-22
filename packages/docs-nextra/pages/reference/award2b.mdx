@@ -213,6 +213,34 @@ render the `feedbacks` property of the `<answer>{:dn}`.
 
 ---
 
+### Attribute Example: feedbackCodes
+```doenet-example
+<p>
+  <answer name="ans">
+    <label>Simplify <m>\frac{-8}{-16}</m></label>
+    <mathInput name="mi" />
+    <award>1/2</award>
+    <award credit="0.7" feedbackCodes="oneSignError">-1/2</award>
+  </answer>
+</p>
+
+$ans.feedbacks
+```
+
+
+
+The `feedbackCodes` attribute selects feedback by *code* rather than by
+literal string. Codes resolve through any
+[`<feedbackDefinition>{:dn}`](feedbackDefinition) in scope and fall back to
+the four [built-in codes](feedbackDefinition#built-in-feedback-codes)
+(`goodJob`, `numericalError`, `oneSignError`, `twoSignErrors`). The matched
+text is delivered through the answer's `feedbacks` property, so the
+`$ans.feedbacks` reference is what actually renders it.
+
+
+
+---
+
 ### Attribute Example: referencesAreResponses
 ```doenet-editor-horiz
 <number name="threshold">6</number>

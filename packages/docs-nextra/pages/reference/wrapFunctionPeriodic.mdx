@@ -1,0 +1,96 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<wrapFunctionPeriodic>{:dn}`
+
+
+`<wrapFunctionPeriodic>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+that wraps the output of a [`<function>{:dn}`](function) into a periodic range
+$[\text{lowerValue}, \text{upperValue})$. Any output that falls outside that
+range is shifted by a whole multiple of the range's length until it lands
+inside.
+
+The result is itself a function and can be evaluated, graphed, or composed
+just like any other `<function>{:dn}`. Compare with
+[`<wrapNumberPeriodic>{:dn}`](wrapNumberPeriodic), which wraps a single
+number rather than a function, and with [`<clampFunction>{:dn}`](clampFunction),
+which truncates outputs at the endpoints rather than wrapping them.
+
+
+<AttrPropDisplay name='wrapFunctionPeriodic'/>
+
+
+---
+
+### Example: Wrap a linear function to $[0, 1)$
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x / 4</function>
+</setup>
+
+<graph size="small" xmin="-5" xmax="5" ymin="-0.5" ymax="1.5">
+  <shortDescription>A line and its wrap into the unit interval.</shortDescription>
+  $f
+  <wrapFunctionPeriodic styleNumber="2">$f</wrapFunctionPeriodic>
+</graph>
+```
+
+
+The underlying function `f(x) = x/4` is plotted alongside its periodic wrap.
+Each time the line would leave $[0, 1)$, the wrap brings it back to the
+other side, producing the sawtooth pattern.
+
+
+
+---
+
+### Attribute Example: lowerValue, upperValue
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x</function>
+</setup>
+
+<graph size="small" xmin="-5" xmax="5" ymin="-3" ymax="3">
+  <shortDescription>A line wrapped into a wider periodic range.</shortDescription>
+  $f
+  <wrapFunctionPeriodic styleNumber="2" lowerValue="-2" upperValue="2">
+    $f
+  </wrapFunctionPeriodic>
+</graph>
+```
+
+
+`lowerValue` and `upperValue` set the periodic range. The wrapped function
+takes values in $[-2, 2)$ — outputs above $2$ are reduced by $4$ until they
+fall inside, and outputs below $-2$ are increased by $4$ until they do.
+
+
+
+---
+
+### Example: Evaluate a periodically-wrapped function
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x</function>
+  <wrapFunctionPeriodic name="wrapped" lowerValue="0" upperValue="1">$f</wrapFunctionPeriodic>
+</setup>
+
+<p>f(0.3) = $$f(0.3)</p>
+<p>wrapped(0.3) = $$wrapped(0.3)</p>
+<p>f(2.7) = $$f(2.7)</p>
+<p>wrapped(2.7) = $$wrapped(2.7)</p>
+<p>f(-0.4) = $$f(-0.4)</p>
+<p>wrapped(-0.4) = $$wrapped(-0.4)</p>
+```
+
+
+For an input that already lies in $[0, 1)$ the wrap is a no-op; for an input
+outside the range the function returns the equivalent value inside the range.

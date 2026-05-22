@@ -1,0 +1,51 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<tagc>{:dn}`
+
+
+`<tagc>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders its content surrounded by closing-tag delimiters
+(`</...>`). It is the closing-tag counterpart to [`<tag>{:dn}`](tag) (which
+renders an opening tag `<...>`) and [`<tage>{:dn}`](tage) (which renders an
+empty self-closing tag `<.../>`).
+
+Use these markers in prose to *display* tag names without the surrounding
+markdown trying to parse them as actual DoenetML.
+
+
+<AttrPropDisplay name='tagc'/>
+
+
+---
+
+### Example: Refer to a closing tag in prose
+
+
+```doenet-editor-horiz
+<p>An HTML paragraph element starts with <tag>p</tag> and ends with
+<tagc>p</tagc>.</p>
+```
+
+
+`<tagc>p</tagc>{:dn}` renders as `</p>`, matching the opening `<tag>p</tag>`
+that renders as `<p>`. Pairing the two lets you walk the reader through a
+tag name without having to escape the angle brackets manually.
+
+
+
+---
+
+### Example: A complete tag pair in code-like prose
+
+
+```doenet-editor-horiz
+<p>To show a block of quoted code, wrap it in
+<tag>pre</tag>...<tagc>pre</tagc>.</p>
+```
+
+
+When you need both ends of the tag pair, combine [`<tag>{:dn}`](tag) and
+`<tagc>{:dn}` around the content placeholder.

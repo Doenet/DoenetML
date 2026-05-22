@@ -16,6 +16,20 @@ For writing the DoenetML inside the examples themselves, defer to the [`doenetml
 3. The generated schema: `packages/static-assets/src/generated/doenet-schema.json` — source of truth for a component's attributes, properties, and `docsSlug`.
 4. An existing reference page that matches the shape of what you are writing — e.g. `bestFitLine.mdx` (component with attrs+props), `odeSystem.mdx` (block-with-children), `sq.mdx` (tiny markup component), `Sample_Component.mdx` (in-tree template with the three example fence types).
 
+## Audience and voice
+
+These pages are for **authors writing DoenetML activities**, not for developers working on the DoenetML implementation. Prose and examples should help an author predict, observe, and use a component's behavior from the outside.
+
+Do not, in author-facing prose:
+
+- Reference source files, function names, line numbers, or commit/PR numbers (`SubsetOfRealsInput.js:6`, `variants.ts:459`, `BaseComponent.determineNumberOfUniqueVariants`, etc.). The author has no reason to look there and the citation will go stale.
+- Name internal data structures, state-variable identifiers that aren't exposed as author-facing properties, or framework helpers (`shadowingInstructions`, `returnDependencies`, `componentInfoObjects`). If a behavior emerges from one of these and the author needs to know about it, describe the behavior in terms the author can observe.
+- Walk through algorithms ("the resolver does X, then checks Y, then falls back to Z"). Authors care about the *resulting behavior*, not the steps. State the rule and one or two concrete consequences.
+
+It is fine — and often necessary — to mention attribute names, child-tag names, property names, and other surface-API identifiers. Those *are* the author-facing surface. The line to hold is roughly: "what would an author see by experimenting" vs "how is it implemented".
+
+Source-code references *are* appropriate in: PR descriptions, GitHub issue bodies, code comments, and skill/contributor docs like this file. Just not in `pages/reference/*.mdx`.
+
 ## High-level page anatomy
 
 Every reference page lives at `packages/docs-nextra/pages/reference/<slug>.mdx`. The standard skeleton is:
@@ -116,6 +130,15 @@ A quick local check (good as a CI hook candidate, but useful ad-hoc): parse the 
 ## DoenetML conventions for examples in docs
 
 Reference pages double as a curriculum for how to write DoenetML well — so example snippets should follow these conventions even when shorter forms also work. (Authoring rules for DoenetML in general live in the `doenetml-authoring` skill; the items below are the ones that come up specifically in reference-page examples.)
+
+> **Tests are not a style guide.** When looking up usage patterns for a component (e.g. browsing `packages/doenetml-worker-javascript/src/test/tagSpecific/*.test.ts`), expect the test DoenetML to omit accessibility annotations — tests are written for brevity and verify behavior, not accessibility. Typical test idioms you will see and **must rewrite** for a docs example:
+>
+> - `<graph>...</graph>` with no `<shortDescription>` — add one.
+> - `<mathInput name="..." />` with no `<label>` or `<shortDescription>` — add one.
+> - `<p>What is <m>1+1</m>? <answer>2</answer></p>` — the `<answer>` sugars a `<mathInput>` and has no label. Move the prompt **into** the answer as `<answer><label>What is <m>1+1</m>?</label>2</answer>`.
+> - `<answer name="ans"><label>...</label><mathInput name="mi"/><award>...</award></answer>` — the label is on the wrapper instead of on the explicit input. Move it onto the `<mathInput>{:dn}`.
+>
+> The accessibility rules below (rules 2–3) are **not optional** for reference-page examples. WCAG-failing patterns from tests must be fixed before a doc example is considered done; the [Quick checklist](#quick-checklist) treats this as a blocking item.
 
 1. **Use `<setup>` to hide scaffolding.** Hidden helper components — named `<function>`s, named `<point>`s used only as state, intermediate `<number>`s — go inside a `<setup>` block so they do not visually clutter the rendered output. Components the reader is being asked to look at stay outside `<setup>`.
    ```doenet
@@ -237,6 +260,7 @@ KaTeX (via `$…$`) supports the full LaTeX surface docs need: `\pm`, `\theta`, 
 
 ### Other small things
 
+- **Call `$foo` a "reference", not a "macro".** "Macro" was the older term for the `$ref` substitution mechanism; it has been retired. Write "the `$foo` reference is replaced with …", not "the `$foo` macro …". Older docs that still say "macro" should be updated when you touch them.
 - HTML entities in code: write `&amp;` inside DoenetML examples where LaTeX `&` would otherwise be parsed by surrounding markdown. The `bestFitLine.mdx` and `odeSystem.mdx` examples model this.
 - ` `<tag>{:dn}` ` — `{:dn}` is a Shiki language token attached to the surrounding inline code span; it is handled before MDX's JSX parser, so the braces here are safe.
 - A bare `{` in MDX prose outside `$…$` and outside inline code is risky (MDX will try to parse `{…}` as a JS expression). Either move it into a code span, into `$…$` if it's math, or rephrase.
@@ -314,6 +338,7 @@ Before opening a PR that adds or renames a reference page:
 - [ ] All examples use `doenet-editor-horiz` (or a documented alternative) and are valid DoenetML per the `doenetml-authoring` skill.
 - [ ] **Every tag and attribute in every example has been looked up in `doenet-schema.json`** — not pattern-matched from other docs. In particular, no `xLabel` / `yLabel` *attributes* on `<graph>` (they are children), and labels/short descriptions are children.
 - [ ] Examples follow the conventions: `<setup>`, `<shortDescription>`, labeled inputs, no `<asList>`, indexed array access, no redundant `<tag extend="$x" />`.
+- [ ] **Accessibility sweep of every example** (separate, blocking step — *not* satisfied by copying test code): every `<graph>` has a `<shortDescription>`; every input-creating tag (`<mathInput>`, `<textInput>`, `<booleanInput>`, `<choiceInput>`, `<matrixInput>`, `<subsetOfRealsInput>`, `<orbitalDiagramInput>`, `<slider>`, …) has a `<label>` or `<shortDescription>`; every `<answer>` that sugars an input (no explicit `<*Input>` child and not just `<award><when>`) has a `<label>` *inside* the answer; every `<answer>` that has an explicit `<*Input>` child has the `<label>` on the input, not on the answer.
 - [ ] Math in prose uses `$…$` / `$$…$$` (KaTeX); `<m>` / `<me>` / `<md>` appear only inside example fences.
 - [ ] `_meta.ts`, `componentIndex.mdx`, `componentTypes.mdx` updated.
 - [ ] Component removed from `undocumented-components-allowlist.txt` if it was on it.

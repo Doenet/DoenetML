@@ -16,15 +16,16 @@ These components can be placed within a `<p>` tag to change the rendered appeara
 | [`<mdash/>`](mdash)  | renders an em-dash character                                                                         |
 | [`<nbsp/>`](nbsp)    | renders a blank space                                                                                |
 | [`<ndash/>`](ndash)  | renders an en-dash character                                                                         |
-| `<pluralize>`                                                                 | change text from singular to plural based on context                                                 |
+| [`<pluralize>`](pluralize)                                                                 | change text from singular to plural based on context                                                 |
 | [`<pre>`](pre)      | preserves verbatim text; renders text as input into the editor                                       |
 | [`<q>`](q)        | paragraph markup component for a quotation                                                           |
 | [`<rq/>`](rq)       | paragraph markup component for a right-quote mark                                                    |
 | [`<rsq/>`](rsq)     | paragraph markup component for a right-single-quote mark                                             |
 | [`<sq>`](sq)       | renders the enclosed text in single quotation marks                                              |
 | [`<tag>`](tag)      | render enclosed text within a pair of tags, `< >` `</ >`                                        |
-| `<tage>`    | render enclosed text within a self-closing tag, `< />`                                          |
+| [`<tage>`](tage)    | render enclosed text within a self-closing tag, `< />`                                          |
 | [`<term>`](term)     | emphasized styling associated with a defined vocabulary word                                   |
+| [`<tagc>`](tagc)     | render enclosed text as a closing tag, `</ >`                                                  |
 
 <a id="sectionalComponents"></a>
 ## Sectional components
@@ -38,11 +39,15 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<br/>`](br)             | line break within a paragraph                                                          |
 | [`<caption>`](caption.mdx)           | renders a caption inside a `<figure>`                                                 |
 | [`<cell>`](cell)              | smallest data element in a `<table>`                                                  |
-| `<cellBlock>`                                                                          | a container element for specifying data in a `<spreadsheet>`                          |
+| [`<cascade>`](cascade)                                                                 | sectional container that reveals its children one at a time                          |
+| [`<cascadeMessage>`](cascadeMessage)                                                   | placeholder shown inside a `<cascade>` in place of a not-yet-revealed entry          |
+| [`<cellBlock>`](cellBlock)                                                                          | container for grouping `<cell>`, `<row>`, `<column>`, or `<cellBlock>` children inside a `<spreadsheet>`                          |
 | [`<choice>`](choice.mdx)            | defines a multiple-choice response                                                    |
 | [`<choiceInput>`](choiceInput)       | defines a multiple-choice block                                                       |
-| `<codeEditor>`                                                                         | renders an embedded doenetML code editor                                              |
-| `<column>`                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
+| [`<codeEditor>`](codeEditor)                                                                         | renders an embedded doenetML code editor                                              |
+| [`<column>`](column)                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
+| [`<displayDoenetML>`](displayDoenetML)                                                                             | renders DoenetML source verbatim as text, with syntax highlighting                          |
+| [`<givenAnswer>`](givenAnswer)                                                                            | sectional component that renders an expandable block labelled "Answer"                                              |
 | [`<conclusion>`](conclusion)            | block container for the conclusion of a section                                       |
 | [`<definition>`](definition)            | sectional component for defining a term or concept                                    |
 | [`<div>`](div)               | groups doenetML content into an unformatted container that can be named               |
@@ -56,7 +61,7 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<image />`](image)           | inserts an image                                                                      |
 | [`<introduction>`](introduction)            | block container for the introduction of a section                                     |
 | [`<li>`](li)                | list item                                                                             |
-| `<note>`                          | container element included for PreTeXt compatibility                                   |
+| [`<note>`](note)                          | sectional container for a short remark set off from the main flow of the document                                   |
 | [`<objectives>`](objectives)            | sectional component listing learning objectives, boxed by default                     |
 | [`<ol>`](ol.mdx)                | ordered list                                                                          |
 | [`<p>`](p)                 | create a paragraph or drop down a line                                                |
@@ -84,7 +89,6 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<task>`](task)            | one task of a multi-task activity or problem (alias for `<part>`)                     |
 | [`<theorem>`](theorem)            | sectional component for the statement of a theorem (or similar formal statement)      |
 | [`<title>`](title.mdx)             | creates a title within a document, section, or other block component                  |
-| `<topic>`                          | container element included for PreTeXt compatibility                      |
 | [`<ul>`](ul.mdx)                   | unordered, or bulleted, list                                                          |
 
 <a id="inputComponents"></a>
@@ -117,6 +121,8 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 | Component                                                                                    | Description                                                                                      |
 | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | [`<angle>`](angle.mdx)                   | angle graphical component                                                                        |
+| [`<annotation>`](annotation)             | describes a single graph element for screen-reader navigation in a Prefigure-rendered `<graph>` |
+| [`<annotations>`](annotations)           | container for `<annotation>` children inside a `<graph>`, supplying its screen-reader description |
 | [`<attractTo>`](attractTo.mdx)               | attracts a point to a named graphical component                                                  |
 | [`<attractToConstraint>`](attractToConstraint)   | wraps another constraint so it acts as a soft attraction within a threshold                      |
 | [`<attractToGrid>`](attractToGrid.mdx)           | defines snapping behavior of GraphicalComponents to gridlines in a `<graph>`                     |
@@ -191,7 +197,7 @@ Mathematical content can be defined and rendered with Math Components. These com
 | [`<number>`](number)               | calculates a floating point value from its contents                                                  |
 | [`<numberList>`](numberList)           | defines a list of `<number>` components                                                      |
 | [`<odeSystem>`](odeSystem)            | computes a numerical solution to a system of ordinary differential equations                 |
-| `<periodicSet />`                                                                         | a set of numbers defined by their periodicity                                                |
+| [`<periodicSet />`](periodicSet)                                                                         | a set of numbers defined by their periodicity                                                |
 | [`<rightHandSide>`](rightHandSide)                                                        | used with `<odeSystem>` to define the right-hand side of a differential equation             |
 | [`<row> (in a matrix)`](row_matrix) | container element for horizontal entries in a single row of a `<matrix>`              |
 | [`<samplePrimeNumbers/>`](samplePrimeNumbers)  | generates randomly sampled prime numbers within a specified range                            |
@@ -215,7 +221,7 @@ Math Operator components perform computations or take actions on the math compon
 | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [`<abs>`](abs.mdx)                | absolute value                                                                                 |
 | [`<ceil>`](ceil)               | ceiling function                                                                               |
-| `<clampFunction>`                                                                       |                                                                                                |
+| [`<clampFunction>`](clampFunction)                                                                       | wraps a `<function>` and limits its output to a specified interval                                                                                              |
 | [`<clampNumber>`](clampNumber.mdx)        | rounds a number to within a specified interval                                                 |
 | [`<convertSetToList>`](convertSetToList)   | converts a math set expression into a comma-separated list expression (with duplicates removed) |
 | [`<count>`](count)              | renders the length of its list of arguments                                                    |
@@ -224,6 +230,7 @@ Math Operator components perform computations or take actions on the math compon
 | [`<functionIterates>`](functionIterates)     | evaluate a function over a specified number of iterations of its argument                    |
 | [`<gcd>`](gcd)                | renders the greatest common divisor of its arguments                                           |
 | [`<intComma>`](intComma)           | inserts commas into a large integer when rendering                                             |
+| [`<lcm>`](lcm)                | renders the least common multiple of its arguments                                              |
 | [`<max>`](max)                | renders the maximum value of its arguments                                                     |
 | [`<mean>`](mean)               | renders the arithmetic mean of a list of numerical values                                      |
 | [`<median>`](median)             | renders the median of the enclosed argument                                                    |
@@ -234,7 +241,9 @@ Math Operator components perform computations or take actions on the math compon
 | [`<standardDeviation>`](standardDeviation)  | renders the standard deviation of its arguments                                                |
 | [`<sum>`](sum)                | renders the sum of its arguments                                                               |
 | [`<variance>`](variance)           | renders the variance of its arguments                                                          |
+| [`<wrapFunctionPeriodic>`](wrapFunctionPeriodic) | wraps a function's output into a specified periodic range                                                            |
 | [`<wrapNumberPeriodic>`](wrapNumberPeriodic) | wraps a number line around a circle                                                            |
+| [`<solveEquations>`](solveEquations) | numerically solves a system of equations                                                            |
 
 
 <a id="generalOperatorComponents"></a>
@@ -249,6 +258,8 @@ These components perform actions on Math components as well as other component t
 | [`<collect />`](collect.mdx)         | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list |
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                |
 | [`<extractMath>`](extractMath)         | extract data (such as number of operands, or individual operands) from mathematical expressions                |
+| [`<extractMathOperator>`](extractMathOperator)         | returns the top-level operator of a math expression as text                |
+| [`<feedbackDefinition>`](feedbackDefinition)         | reusable feedback string keyed by a code referenced from `<award>`                |
 | [`<group>`](group)               | groups multiple components into one component which can be referenced with a single name                       |
 | [`<repeat>`](repeat)                 | iterate an action or a group of actions                                 |
 | [`<repeatForSequence>`](repeatForSequence)          | iterate an action or a group of actions over a sequence                               |
@@ -266,8 +277,7 @@ These components perform actions on Math components as well as other component t
 | [`<substitute>`](substitute.mdx)          | replace a math, character or string with a user-specified alternative                                          |
 | [`<triggerSet>`](triggerSet)          | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition            |
 | [`<updateValue>`](updateValue)         | changes the value or property of a named component                                                             |
-| `<variantControl>`                                     |                                                                                                                |
-| `<variantNames>`                                       |                                                                                                                |
+| [`<variantControl>`](variantControl)                                     | configures how variants are generated for the enclosing document or section                                                                                                               |
 | [`<video />`](video)             | embeds a video                                                                                                 |
 
 <a id="logicComponents"></a>
@@ -308,6 +318,8 @@ Text components are values containing strings that are not necessarily embedded 
 
 | Component                                                                     | Description                                 |
 | ----------------------------------------------------------------------------- | ------------------------------------------- |
+| [`<latex>`](latex) | stores a LaTeX-formatted string as a text value |
+| [`<pluralize>`](pluralize) | change text from singular to plural based on context |
 | [`<text>`](text)     | a stored text value, or string              |
 | [`<textList>`](textList) | list of `<text>` values separated by commas |
 

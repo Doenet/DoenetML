@@ -1,0 +1,160 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<annotation>{:dn}`
+
+
+`<annotation>{:dn}` describes a single graph element for screen-reader
+navigation when a [`<graph>{:dn}`](graph) is rendered through the
+[Prefigure](https://prefigure.org/) backend. Each `<annotation>{:dn}` attaches
+to a referenced component (with the `ref` attribute) and supplies the spoken
+text that assistive technology will read when the user navigates to that
+element.
+
+Annotations must be placed inside an [`<annotations>{:dn}`](annotations) child
+of a `<graph>{:dn}`. Only the first (root) `<annotation>{:dn}` child is used,
+and it should, in general, describe the entire graph. Any additional
+`<annotation>{:dn}` components that sit inside the `<annotations>{:dn}` but
+are not nested inside the first `<annotation>{:dn}` are ignored.
+
+To annotate individual components of the graph, nest additional
+`<annotation>{:dn}` components inside the root `<annotation>{:dn}`. If an
+`<annotation>{:dn}` references a component in the graph via the `ref`
+attribute, it annotates that one component. Alternatively, if an
+`<annotation>{:dn}` contains multiple `<annotation>{:dn}` children, it
+annotates the entire group of components as a unit (e.g. a cluster of points
+whose individual points are sub-annotations).
+
+
+<AttrPropDisplay name='annotation'/>
+
+
+---
+
+### Example: Label a single point
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph with one labelled point.</shortDescription>
+  <point name="P">(1, 2)</point>
+  <annotations>
+    <annotation ref="$P" text="Point P at x-coordinate $P.x and y-coordinate $P.y." />
+  </annotations>
+</graph>
+```
+
+
+The `<annotation>{:dn}` references the named point with `ref="$P"` and
+supplies the text screen readers announce when the user navigates to that
+point. References inside the `text` value (here `$P.x` and `$P.y`) are
+substituted in, so the announcement updates as the point moves.
+
+
+
+---
+
+### Example: Nested annotations for a group of points
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-2" xmax="5" ymin="-2" ymax="5">
+  <shortDescription>A triangle of three labelled vertices.</shortDescription>
+  <point name="A" labelIsName fixed>(0, 0)</point>
+  <point name="B" labelIsName fixed>(3, 0)</point>
+  <point name="C" labelIsName fixed>(1.5, 2.5)</point>
+  <annotations>
+    <annotation text="Three points A, B, and C, forming a triangle.">
+      <annotation ref="$A" text="Vertex A at the origin." />
+      <annotation ref="$B" text="Vertex B on the x-axis." />
+      <annotation ref="$C" text="Vertex C above the points A and B." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+
+Nesting `<annotation>{:dn}` elements groups related graph elements together
+under a parent annotation, allowing screen-reader users to navigate from the
+group description down to individual members.
+
+
+
+---
+
+### Attribute Example: speech
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph with a labelled point.</shortDescription>
+  <point name="P">(2, 1)</point>
+  <annotations>
+    <annotation
+      ref="$P"
+      text="Point P"
+      speech="P at coordinates two, one"
+    />
+  </annotations>
+</graph>
+```
+
+
+When `speech` is set, screen readers read out the `text` attribute by default
+and read out the extra `speech` details when the user presses W.
+Alternatively, when the user turns on expert mode by pressing X, the screen
+reader reads out the `speech` attribute (if set) in place of `text`.
+
+
+
+---
+
+### Attribute Example: sonify
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph with a sonified point.</shortDescription>
+  <function name="f">x^3-x</function>
+  <annotations>
+    <annotation ref="$f" text="A function that can be sonified by pressing O." sonify />
+  </annotations>
+</graph>
+```
+
+
+Setting `sonify` to `true` on an `<annotation>{:dn}` that references a
+function lets the user press O to sound out the shape of the function.
+
+
+
+
+---
+
+### Attribute Example: circular
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-1" xmax="5" ymin="-1" ymax="3">
+  <shortDescription>Four collinear points in a cycle.</shortDescription>
+  <point name="P1">(0, 1)</point>
+  <point name="P2">(1, 1)</point>
+  <point name="P3">(2, 1)</point>
+  <point name="P4">(3, 1)</point>
+  <annotations>
+    <annotation text="Four collinear points." circular>
+      <annotation ref="$P1" text="Point 1." />
+      <annotation ref="$P2" text="Point 2." />
+      <annotation ref="$P3" text="Point 3." />
+      <annotation ref="$P4" text="Point 4." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+
+When `circular` is set on a parent `<annotation>{:dn}`, navigating past the
+last child wraps back to the first child. Useful for describing closed
+shapes (cycles, polygons) where there is no natural "end".

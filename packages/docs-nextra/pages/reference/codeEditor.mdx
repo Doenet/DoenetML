@@ -1,0 +1,136 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<codeEditor>{:dn}`
+
+
+`<codeEditor>{:dn}` renders an embedded text editor pre-populated with
+DoenetML source. The viewer can edit the source and, when `showResults` is
+set, see the live preview rendered alongside.
+
+Use `<codeEditor>{:dn}` for tutorials and demos where the learner is expected
+to *modify* DoenetML, not just read it. For documentation-style read-only
+displays of source text, use [`<displayDoenetML>{:dn}`](displayDoenetML) inside
+a [`<pre>{:dn}`](pre) instead.
+
+The implicit value of a `<codeEditor>{:dn}` is its current source text. The
+`bindValueTo` attribute creates a two-way binding to a referenced text-valued
+component.
+
+
+<AttrPropDisplay name='codeEditor'/>
+
+
+---
+
+### Example: Editor with live preview
+
+
+```doenet-example
+<codeEditor showResults>
+  <p>Edit this DoenetML, then press Update to see the preview.</p>
+  <p>Try changing the point coordinates:</p>
+  <graph size="small">
+    <shortDescription>A draggable point.</shortDescription>
+    <point>(2, 3)</point>
+  </graph>
+</codeEditor>
+```
+
+
+The children of `<codeEditor>{:dn}` provide the initial source. With
+`showResults` set, the viewer renders that source live in a results panel
+attached to the editor. Click the **Source** tab above to see the DoenetML
+that produced this example.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<codeEditor showResults prefill="<p>Hello, world!</p>" />
+```
+
+
+The `prefill` attribute supplies the editor's initial text as a string. Use
+this when the starting source is short enough to live inline; for longer
+starting documents, use children instead.
+
+
+
+---
+
+### Attribute Example: showResults, resultsLocation
+
+
+```doenet-example
+<codeEditor showResults resultsLocation="right">
+  <m>e^{i \pi} + 1 = 0</m>
+</codeEditor>
+```
+
+
+`showResults` toggles the live preview panel; `resultsLocation` places it
+relative to the editor (`bottom`, `right`, or `left`). The default is `bottom`.
+
+
+
+---
+
+### Attribute Example: readOnly
+
+
+```doenet-example
+<codeEditor readOnly showResults>
+  <p>This source is locked.</p>
+  <p>Press Update to see the preview, but you can't edit the source.</p>
+</codeEditor>
+```
+
+
+When `readOnly` is set, the viewer can see the source and run the preview but
+cannot modify the source text.
+
+
+
+---
+
+### Attribute Example: width, height
+
+
+```doenet-example
+<codeEditor width="500px" height="200px" showResults>
+  <p>A compact editor.</p>
+</codeEditor>
+```
+
+
+`width` and `height` accept CSS-style sizes. The defaults are full available
+width and a moderate fixed height.
+
+
+
+---
+
+### Attribute Example: bindValueTo
+
+
+```doenet-example
+<p>
+  <textInput name="source" prefill="Hello, world!">
+    <label>Editor source</label>
+  </textInput>
+</p>
+<codeEditor bindValueTo="$source" showResults />
+```
+
+
+`bindValueTo` two-way binds the editor's text to a referenced text-valued
+component. Edits made in either input update the other. The label on the
+[`<textInput>{:dn}`](textInput) makes the field accessible — its peer
+`<codeEditor>{:dn}` reflects whatever is typed there.

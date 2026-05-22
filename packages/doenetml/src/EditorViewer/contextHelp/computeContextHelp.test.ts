@@ -637,20 +637,6 @@ describe("computeContextHelp — docsSlug propagation", () => {
         }
     });
 
-    it("emits null docsSlug for components without a real /reference page", () => {
-        // <codeEditor> is on the undocumented allow-list (no .mdx file), so
-        // the schema generator clamps docsSlug to null and the help UI
-        // suppresses the link.
-        const source = `<codeEditor/>`;
-        const offset = source.indexOf("codeEditor") + 3;
-        const help = helpAt(source, offset);
-        if (help.kind === "element") {
-            expect(help.docsSlug).toBeNull();
-        } else {
-            expect.fail(`expected element help, got ${help.kind}`);
-        }
-    });
-
     it("attribute help carries the owning element's docsSlug", () => {
         const source = `<point draggable="true"/>`;
         const offset = source.indexOf("draggable") + 3;

@@ -95,6 +95,10 @@ export class Topic extends TextComponent {
     static componentType = "topic";
     static rendererType = "text";
 
+    // Present for PreTeXt-conversion compatibility but not surfaced to
+    // authors via the schema/autocomplete/reference docs.
+    static excludeFromSchema = true;
+
     static componentDocs = {
         summary: "A topic label rendered as text (e.g. for tagging content).",
     };

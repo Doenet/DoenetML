@@ -3,6 +3,13 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class Markers extends BaseComponent {
     static componentType = "markers";
 
+    // TODO: <markers> is currently non-functional — examples crash with
+    // "tA.returnDependencies is not a function" because the recent <slider>
+    // rework dropped the supporting infrastructure. Excluded from the schema
+    // until that is restored; tracked in
+    // https://github.com/Doenet/DoenetML/issues/1164.
+    static excludeFromSchema = true;
+
     static componentDocs = {
         summary:
             "A list of text or number markers used by graphical components (e.g. axis tick labels).",

@@ -10,6 +10,11 @@ import { AttrPropDisplay } from "../../components"
 component that selects values from a list or from a group of 
 nested [`<option>{:dn}`](option.mdx) components at random. Selections generate variants of the document.
 
+For fine-grained control over which option appears in which named variant
+of the document, see the `selectForVariants` attribute on
+[`<option>{:dn}`](option) — it lets you pin specific options to specific
+variants instead of relying on random selection.
+
 <AttrPropDisplay name='select'/>
  
 ---
