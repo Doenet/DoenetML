@@ -555,7 +555,16 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
 
         cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
         openAutocomplete();
-        cy.get(".cm-content").type("{enter}", { force: true });
+        // Click the `myMath` completion directly rather than relying on
+        // `{enter}` to accept the selected item: openAutocomplete() only
+        // waits for the tooltip element to exist, but the LSP-provided
+        // items can still be populating (and the keyboard selection may
+        // not yet be on the desired item). The .contains() retry also
+        // gives the LSP time to render the label before we click it.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("myMath")
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "$myMath");
 
         // Reproduce a delete-then-dot transition ending at the same final text.
         cy.get(".cm-content").type("x{backspace}.", { force: true });
