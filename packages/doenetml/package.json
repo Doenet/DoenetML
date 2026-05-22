@@ -26,6 +26,7 @@
     "scripts": {
         "dev": "vite",
         "build": "wireit",
+        "build:dev": "wireit",
         "preview": "vite preview",
         "test": "vitest",
         "test-cypress": "cypress open --component",
@@ -33,6 +34,23 @@
         "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {
+        "build:dev": {
+            "command": "vite build --mode development --outDir dist-dev",
+            "files": [
+                "src/**/*.html",
+                "src/**/*.css"
+            ],
+            "output": [
+                "dist-dev/**/*.js",
+                "dist-dev/**/*.map",
+                "dist-dev/**/*.css",
+                "dist-dev/**/*.d.ts",
+                "dist-dev/**/*.json"
+            ],
+            "dependencies": [
+                "build"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [

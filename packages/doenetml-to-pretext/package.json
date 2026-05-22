@@ -26,6 +26,7 @@
     "scripts": {
         "dev": "vite",
         "build": "wireit",
+        "build:dev": "wireit",
         "preview": "vite preview",
         "test:before": "npm run build:test2",
         "build:test1": "wireit",
@@ -34,6 +35,23 @@
         "create-renderer-stub": "vite-node scripts/create-renderer-stub.ts"
     },
     "wireit": {
+        "build:dev": {
+            "command": "vite build --mode development --outDir dist-dev",
+            "files": [
+                "src/**/*.html",
+                "src/**/*.css"
+            ],
+            "output": [
+                "dist-dev/**/*.js",
+                "dist-dev/**/*.map",
+                "dist-dev/**/*.css",
+                "dist-dev/**/*.d.ts",
+                "dist-dev/**/*.json"
+            ],
+            "dependencies": [
+                "build"
+            ]
+        },
         "build:test1": {
             "command": "cd test/utils && vite build -c vite.dast-to-flat-dast.config.ts",
             "files": [
