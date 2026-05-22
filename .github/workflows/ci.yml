@@ -281,7 +281,10 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci --foreground-scripts --loglevel=info
+                      # @vscode/test-web pulls @playwright/browser-chromium whose install.js
+                      # hangs after the Chromium download in this container; skip it since
+                      # the doenetml-to-pretext tests don't use Playwright.
+                      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
@@ -303,7 +306,7 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci --foreground-scripts --loglevel=info
+                      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
