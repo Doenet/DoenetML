@@ -46,7 +46,7 @@ jobs:
                   npm run build:docs
                   # We also want a demos folder as a subfolder of the docs. Build the demos workspace and copy it over to docs-nextra/out/demos
                   npm run build --workspace packages/demos
-                  cp -r packages/demos/out packages/docs-nextra/out/demos
+                  cp -r packages/demos/dist packages/docs-nextra/out/demos
             - name: Setup Pages
               uses: actions/configure-pages@v6
             - name: Upload artifact
