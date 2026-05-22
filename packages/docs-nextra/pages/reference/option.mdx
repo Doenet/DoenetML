@@ -191,3 +191,70 @@ The `<option>{:dn}` component is used with the `selectWeight` attribute. This at
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
+
+
+
+---
+
+### Attribute Example: selectForVariants
+
+
+```doenet-editor-horiz
+<variantControl numVariants="3" variantNames="apple banana cherry" />
+
+<p>Selected option:
+  <select name="s">
+    <option selectForVariants="apple"><text>red</text></option>
+    <option selectForVariants="banana"><text>yellow</text></option>
+    <option selectForVariants="cherry"><text>dark red</text></option>
+  </select>
+</p>
+```
+
+
+`selectForVariants` pins this `<option>{:dn}` to specific named variants of
+the document. Paired with `variantNames` on
+[`<variantControl>{:dn}`](variantControl), it lets the author control
+exactly which option appears in which variant — useful when the variants
+need to line up with a specific story, image, or partner answer key
+rather than being randomly assigned. In the example, the *apple* variant
+always shows `red`, *banana* always shows `yellow`, and *cherry* always
+shows `dark red`.
+
+A few rules to keep in mind:
+
+- It's all-or-nothing per `<select>{:dn}`: either no option uses
+  `selectForVariants`, or every variant name declared by
+  `<variantControl>{:dn}` is covered.
+- Each variant name has to be listed in exactly as many options as the
+  `<select>{:dn}`'s `numToSelect` (the default is 1). For
+  `numToSelect="3"`, each variant name must appear in three options'
+  `selectForVariants` lists.
+- Multiple variant names are space-separated, and matching is
+  case-insensitive.
+
+
+
+---
+
+### Attribute Example: selectForVariants with multiple choices per variant
+
+
+```doenet-editor-horiz
+<variantControl numVariants="3" variantNames="apple banana cherry" />
+
+<p>Selected pair:
+  <select name="s" numToSelect="2">
+    <option selectForVariants="apple banana"><text>red</text></option>
+    <option selectForVariants="apple cherry"><text>yellow</text></option>
+    <option selectForVariants="banana cherry"><text>dark red</text></option>
+  </select>
+</p>
+```
+
+
+When `numToSelect` is greater than 1, each variant name has to appear in
+exactly that many options' `selectForVariants` lists. Here each variant
+name (`apple`, `banana`, `cherry`) appears in exactly two options, so the
+*apple* variant produces `red, yellow`, *banana* produces `red, dark red`,
+and *cherry* produces `yellow, dark red`.

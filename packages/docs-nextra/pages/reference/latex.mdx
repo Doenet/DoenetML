@@ -1,0 +1,130 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<latex>{:dn}`
+
+
+`<latex>{:dn}` is a [Text](../document_structure/essentialConcepts#component-types)
+component that stores a LaTeX-formatted string. It is equivalent to
+[`<text>{:dn}`](text) with the `isLatex` attribute defaulted to `true`.
+
+The primary reason `<latex>{:dn}` exists is that the `latex` property of a
+[`<math>{:dn}`](math) (or any math-valued component) returns a `<latex>{:dn}`.
+That makes round-tripping through the LaTeX form natural: a reference like
+`$myMath.latex` is itself a `<latex>{:dn}`, and feeding it back into a
+`<math>{:dn}` produces the original expression — *without* having to set
+`format="latex"` on the outer `<math>{:dn}`.
+
+`<latex>{:dn}` is rarely useful as a display tag — [`<m>{:dn}`](m),
+[`<me>{:dn}`](me), and [`<md>{:dn}`](md) always parse their children as LaTeX,
+so for typeset output they do the job whether you wrap the LaTeX in
+`<latex>{:dn}`, in `<text>{:dn}`, or leave it bare. `<latex>{:dn}` becomes
+distinguishable from `<text>{:dn}` only when the surrounding context is going
+to *parse* the content, not just render it. The canonical such context is a
+[`<math>{:dn}`](math).
+
+### How `<math>{:dn}` consumes a `<latex>{:dn}` child
+
+Each text-like child of a [`<math>{:dn}`](math) parses its own value with
+its own parser before being incorporated as a math sub-expression: a
+`<latex>{:dn}` (or any `<text>{:dn}` with `isLatex="true"`) uses the LaTeX
+parser, a plain `<text>{:dn}` uses the text parser. This is independent of
+the outer `<math>{:dn}`'s `format` attribute, which only controls how the
+outer math parses its own string content.
+
+So `<math><latex>…</latex></math>{:dn}` parses the contents as LaTeX even
+though the outer `<math>{:dn}`'s `format` is still its default `"text"`.
+
+
+<AttrPropDisplay name='latex'/>
+
+
+---
+
+### Example: Round-trip math → `latex` → math
+
+
+```doenet-editor-horiz
+<setup>
+  <math name="m" simplify>(x + 1)^2</math>
+</setup>
+
+<p>Original math: <math extend="$m"/></p>
+<p>Its <c>latex</c> property: <c>$m.latex</c></p>
+<p>Latex parsed back into a math: <math>$m.latex</math></p>
+```
+
+
+The first two paragraphs show the original expression and its
+LaTeX-formatted string. The third places `$m.latex` (which is a
+`<latex>{:dn}` component) inside a `<math>{:dn}`. The outer `<math>{:dn}`
+has no `format` attribute, yet the round trip works: the `<latex>{:dn}`
+child uses the LaTeX parser to convert its own contents back into a math
+expression, which the outer `<math>{:dn}` then incorporates.
+
+
+
+---
+
+### Example: Why a plain `<text>{:dn}` does not round-trip
+
+
+```doenet-editor-horiz
+<setup>
+  <math name="m" simplify>(x + 1)^2</math>
+</setup>
+
+<p>Via <c>latex</c> child — works:
+  <math>$m.latex</math>
+</p>
+
+<p>Via <c>text</c> child — broken:
+  <math><text>$m.latex</text></math>
+</p>
+
+<p>Outer math with <c>format="latex"</c> and a text child — still broken:
+  <math format="latex"><text>$m.latex</text></math>
+</p>
+
+<p>Text child with <c>isLatex</c> — works (this is what <c>&lt;latex&gt;</c> already does):
+  <math><text isLatex>$m.latex</text></math>
+</p>
+```
+
+
+Wrapping `$m.latex` in a `<text>{:dn}` instead of a `<latex>{:dn}` loses the
+`isLatex` flag. The `<text>{:dn}` parses its own value using its own
+`isLatex` setting (false by default), so the text parser tries to read the
+LaTeX string and fails — the result renders as a blank box, `＿`. Setting
+`format="latex"` on the outer `<math>{:dn}` does not help, because that
+attribute only controls how the outer math parses its own string content;
+the `<text>{:dn}` child is still parsed by the `<text>{:dn}`'s own parser.
+The real fix is to mark the child as LaTeX — either with `isLatex="true"` on
+the `<text>{:dn}`, or by using a `<latex>{:dn}`, which is just that case
+spelled more concisely.
+
+
+
+---
+
+### Example: Reuse one LaTeX string in multiple places
+
+
+```doenet-editor-horiz
+<setup>
+  <latex name="formula">\frac{d}{dx}\sin(x) = \cos(x)</latex>
+</setup>
+
+<p>As text: <c>$formula</c></p>
+<p>As a math: <math>$formula</math></p>
+<p>As display math:</p>
+<me>$formula</me>
+```
+
+
+A named `<latex>{:dn}` value can be referenced anywhere a text or math
+component is accepted. The `<math>{:dn}` parses the LaTeX into an expression
+(via the round-trip mechanism above); [`<me>{:dn}`](me) renders it as
+display math. Storing the LaTeX once keeps every consumer in sync.

@@ -17,6 +17,10 @@ export default class SummaryStatistics extends BlockComponent {
     }
     static componentType = "summaryStatistics";
 
+    // Experimental — not surfaced via the schema/autocomplete/reference
+    // docs until the data-source story is implemented.
+    static excludeFromSchema = true;
+
     static componentDocs = {
         summary:
             "Summary statistics (mean, median, etc.) for a list of numbers.",

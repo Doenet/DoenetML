@@ -1,0 +1,255 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<cascade>{:dn}`
+
+
+`<cascade>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+container that reveals its children one at a time as the learner makes progress.
+Each child is hidden until the preceding child has been *completed* — answered
+correctly (`creditAchieved = 1`), or having no `creditAchieved` at all (in
+which case it is treated as auto-completed the moment it becomes visible).
+
+The `numCompleted` property tracks how many children have been completed so
+far. Use [`<cascadeMessage>{:dn}`](cascadeMessage) inside a `<cascade>{:dn}`
+to show a "continuation message" in place of a not-yet-revealed entry.
+
+A `<cascade>{:dn}` automatically turns on `aggregateScores` on every scored
+child (sections, `<problem>{:dn}`, nested `<cascade>{:dn}`s, even bare
+`<p>{:dn}` paragraphs that contain answers). That is what gives each child a
+`creditAchieved` value the cascade can watch — without it, a paragraph or
+section containing an `<answer>{:dn}` would not roll the answer's credit up
+into its own, and the cascade would have no way to tell when the child is
+"done". You therefore do not need to set `aggregateScores` by hand on
+cascade children.
+
+
+<AttrPropDisplay name='cascade'/>
+
+
+---
+
+### Example: Step-by-step questions
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough">
+  <title>A short walkthrough</title>
+
+  <section boxed>
+    <title>First step</title>
+    <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Second step</title>
+    <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Third step</title>
+    <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
+  </section>
+</cascade>
+
+<p>Sections completed: $walkthrough.numCompleted</p>
+```
+
+
+Each `<section>{:dn}` is revealed only after the previous one is answered
+correctly. The `numCompleted` property of the named `<cascade>{:dn}` updates
+as the learner progresses.
+
+
+
+---
+
+### Example: Nested cascade inside a section
+
+
+```doenet-editor-horiz
+<cascade name="outer">
+  <title>A walkthrough with a nested cascade</title>
+
+  <section boxed>
+    <title>Warm-up</title>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Two-step part</title>
+    <cascade name="inner">
+      <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
+      <p><answer><label>What is <m>12 \div 3</m>?</label>4</answer></p>
+    </cascade>
+  </section>
+
+  <section boxed>
+    <title>Cool-down</title>
+    <p><answer><label>What is <m>10 - 7</m>?</label>3</answer></p>
+  </section>
+</cascade>
+```
+
+
+The outer `<cascade>{:dn}` reveals its three `<section>{:dn}` children one at
+a time. The middle section contains an inner `<cascade>{:dn}` whose children
+are bare `<p>{:dn}` paragraphs. Because the outer cascade has turned on
+`aggregateScores` for the middle section, and that section's inner cascade
+turns it on for each `<p>{:dn}`, each paragraph rolls up the credit of its
+`<answer>{:dn}` — so the inner cascade can hide the second paragraph until
+the first answer is correct, then reveal it.
+
+
+
+---
+
+### Example: Cascade with continuation messages
+
+
+```doenet-editor-horiz
+<cascade name="quiz">
+  <title>A guided quiz</title>
+
+  <section boxed>
+    <title>Step 1</title>
+    <p><answer><label>What is <m>2^3</m>?</label>8</answer></p>
+  </section>
+
+  <cascadeMessage>
+    <em>Solve the previous step to continue.</em>
+  </cascadeMessage>
+
+  <section boxed>
+    <title>Step 2</title>
+    <p><answer><label>What is <m>3^2</m>?</label>9</answer></p>
+  </section>
+
+  <cascadeMessage>
+    <em>One more step to go.</em>
+  </cascadeMessage>
+
+  <section boxed>
+    <title>Step 3</title>
+    <p><answer><label>What is <m>4^2</m>?</label>16</answer></p>
+  </section>
+</cascade>
+```
+
+
+Each [`<cascadeMessage>{:dn}`](cascadeMessage) replaces the entry that would
+otherwise be hidden. When the preceding section is completed the message
+disappears and the next section appears.
+
+
+
+---
+
+### Attribute Example: hideFutureSections
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough" hideFutureSections>
+  <title>Sequenced steps</title>
+
+  <section boxed>
+    <title>Step 1</title>
+    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Step 2</title>
+    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+  </section>
+</cascade>
+```
+
+
+With `hideFutureSections`, later children are completely hidden (titles and
+all) until the preceding child is completed. Without it, the title of the
+next section still appears greyed-out so the learner can see what is coming.
+
+
+
+---
+
+### Attribute Example: revealAll
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough" revealAll>
+  <title>All steps visible</title>
+
+  <section boxed>
+    <title>Step 1</title>
+    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Step 2</title>
+    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+  </section>
+</cascade>
+```
+
+
+Setting `revealAll` shows every child immediately, ignoring completion. This
+is useful when authoring (so you can see every step) or when you want the
+cascade *structure* without enforcing the order.
+
+
+
+---
+
+### Attribute Example: boxAll
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough" boxAll>
+  <title>All steps boxed</title>
+
+  <section>
+    <title>Step 1</title>
+    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+  </section>
+
+  <section>
+    <title>Step 2</title>
+    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+  </section>
+</cascade>
+```
+
+
+`boxAll` draws a box around every child regardless of progress, instead of
+boxing only the currently-active child.
+
+
+
+---
+
+### Property Example: numCompleted
+
+
+```doenet-editor-horiz
+<cascade name="w">
+  <section boxed>
+    <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
+  </section>
+  <section boxed>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </section>
+  <section boxed>
+    <p><answer><label>What is <m>3 + 3</m>?</label>6</answer></p>
+  </section>
+</cascade>
+
+<p>Completed: $w.numCompleted of 3</p>
+```
+
+
+The `numCompleted` property counts how many children have been completed so
+far, in order. Once a child is skipped (e.g. its answer is wrong), counting
+stops at that point.

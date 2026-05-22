@@ -1,0 +1,70 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<givenAnswer>{:dn}`
+
+
+`<givenAnswer>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders an expandable block labelled "Answer". It is a
+sibling of [`<solution>{:dn}`](solution) and behaves the same way — the
+content is hidden by default and revealed when the learner clicks the
+heading — but the label says *Answer* rather than *Solution*.
+
+Use `<givenAnswer>{:dn}` inside a [`<problem>{:dn}`](problem) or
+[`<exercise>{:dn}`](exercise) when you want to provide the final answer
+separately from a worked solution.
+
+
+<AttrPropDisplay name='givenAnswer'/>
+
+
+---
+
+### Example: Final answer alongside a worked solution
+
+
+```doenet-editor-horiz
+<exercise>
+  <statement>
+    <p>Differentiate <m>f(x) = x^3 - 2x</m> with respect to <m>x</m>.</p>
+  </statement>
+
+  <givenAnswer>
+    <m>f'(x) = 3 x^2 - 2</m>
+  </givenAnswer>
+
+  <solution>
+    <p>Differentiate term-by-term: the derivative of <m>x^3</m> is
+    <m>3 x^2</m> and the derivative of <m>-2x</m> is <m>-2</m>, giving
+    <m>f'(x) = 3 x^2 - 2</m>.</p>
+  </solution>
+</exercise>
+```
+
+
+`<givenAnswer>{:dn}` gives the final answer in a separate, expandable panel,
+while [`<solution>{:dn}`](solution) holds the longer walkthrough.
+
+
+
+---
+
+### Example: Answer-only block (no worked solution)
+
+
+```doenet-editor-horiz
+<problem>
+  <p>What is the smallest positive integer divisible by both <m>4</m> and
+  <m>6</m>?</p>
+
+  <givenAnswer>
+    <m>12</m>
+  </givenAnswer>
+</problem>
+```
+
+
+Use `<givenAnswer>{:dn}` on its own when there is no separate worked
+solution and you simply want a clickable "Answer" reveal.

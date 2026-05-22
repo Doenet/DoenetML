@@ -1,0 +1,73 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<note>{:dn}`
+
+
+`<note>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+container for a short remark set off from the main flow of the document. It
+shares the rendering and numbering machinery of [`<example>{:dn}`](example)
+and [`<theorem>{:dn}`](theorem) — boxed, titled, and auto-numbered — and is
+present primarily for PreTeXt compatibility, so DoenetML authored against
+PreTeXt conventions has a direct counterpart.
+
+Use `<note>{:dn}` for asides, warnings, or supplementary commentary. For
+collapsible content (revealed only when the learner clicks), use
+[`<aside>{:dn}`](aside) instead.
+
+
+<AttrPropDisplay name='note'/>
+
+
+---
+
+### Example: A short note in the document flow
+
+
+```doenet-editor-horiz
+<section><title>Continuous functions</title>
+
+  <p>A function <m>f</m> is continuous at <m>x = a</m> if
+  <m>\lim_{x \to a} f(x) = f(a)</m>.</p>
+
+  <note>
+    <title>About one-sided continuity</title>
+    <p>The two-sided limit can be replaced by a one-sided limit at the
+    endpoints of the domain.</p>
+  </note>
+</section>
+```
+
+
+The `<note>{:dn}` is rendered as a boxed, titled aside in the document flow.
+A `<title>{:dn}` child supplies the heading; without one, the note is
+auto-numbered (e.g. *Note 1*).
+
+
+
+---
+
+### Example: Multiple notes are auto-numbered
+
+
+```doenet-editor-horiz
+<section><title>Definitions</title>
+
+  <p>A *prime* is an integer greater than <m>1</m> whose only positive
+  divisors are <m>1</m> and itself.</p>
+
+  <note>
+    <p><m>1</m> is conventionally excluded from the primes.</p>
+  </note>
+
+  <note>
+    <p><m>2</m> is the only even prime.</p>
+  </note>
+</section>
+```
+
+
+Without explicit titles each `<note>{:dn}` is rendered with an auto-numbered
+heading, much like `<example>{:dn}` or `<theorem>{:dn}`.

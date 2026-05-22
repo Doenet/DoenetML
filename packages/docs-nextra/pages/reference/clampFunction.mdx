@@ -1,0 +1,120 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<clampFunction>{:dn}`
+
+
+`<clampFunction>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+that wraps a [`<function>{:dn}`](function) and limits its output to a closed
+interval $[\text{lowerValue}, \text{upperValue}]$. Any output below
+`lowerValue` is replaced by `lowerValue`; any output above `upperValue` is
+replaced by `upperValue`. The default interval is $[0, 1]$.
+
+The result is itself a function, so it can be evaluated, graphed, and used
+anywhere an ordinary `<function>{:dn}` is accepted. Compare with
+[`<clampNumber>{:dn}`](clampNumber), which clamps a single number rather than
+a function, and with [`<wrapFunctionPeriodic>{:dn}`](wrapFunctionPeriodic),
+which wraps a function's output instead of clamping it.
+
+
+<AttrPropDisplay name='clampFunction'/>
+
+
+---
+
+### Example: Clamp a function to $[0, 1]$
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x / 4</function>
+</setup>
+
+<graph size="small" xmin="-5" xmax="5" ymin="-0.5" ymax="1.5">
+  <shortDescription>A linear function and its clamp to the unit interval.</shortDescription>
+  $f
+  <clampFunction styleNumber="2">$f</clampFunction>
+</graph>
+```
+
+
+The underlying function `f(x) = x/4` is plotted alongside its clamp. Outside
+the input range $[0, 4]$ the clamped function flatlines at $0$ or $1$.
+
+
+
+---
+
+### Example: Use as part of a graph
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">sin(x)</function>
+</setup>
+
+<graph size="small" xmin="-7" xmax="7" ymin="-1.5" ymax="1.5">
+  <shortDescription>sin(x) clamped to a tighter range.</shortDescription>
+  $f
+  <clampFunction styleNumber="2" lowerValue="-0.5" upperValue="0.5">
+    $f
+  </clampFunction>
+</graph>
+```
+
+
+Setting `lowerValue` and `upperValue` clamps `sin(x)` to a band of width $1$,
+flattening the peaks and troughs. The original function is plotted underneath
+for comparison.
+
+
+
+---
+
+### Attribute Example: lowerValue, upperValue
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x^2 - 5</function>
+</setup>
+
+<graph size="small" xmin="-4" xmax="4" ymin="-6" ymax="6">
+  <shortDescription>A parabola clamped between -3 and 4.</shortDescription>
+  $f
+  <clampFunction styleNumber="2" lowerValue="-3" upperValue="4">
+    $f
+  </clampFunction>
+</graph>
+```
+
+
+`lowerValue` and `upperValue` set the output interval. The clamped function
+is constant outside the input range where the underlying function is below
+`lowerValue` or above `upperValue`.
+
+
+
+---
+
+### Example: Evaluate a clamped function at specific inputs
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">3x</function>
+  <clampFunction name="clamped" lowerValue="0" upperValue="5">$f</clampFunction>
+</setup>
+
+<p>f(0.5) = $$f(0.5)</p>
+<p>clamped(0.5) = $$clamped(0.5)</p>
+<p>f(10) = $$f(10)</p>
+<p>clamped(10) = $$clamped(10)</p>
+```
+
+
+The named clamp is evaluated like any other function with `$$name(input)`.
+Outputs inside $[0, 5]$ pass through unchanged; outputs outside it are
+replaced by the nearest endpoint.
