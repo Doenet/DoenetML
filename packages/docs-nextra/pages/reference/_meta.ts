@@ -212,6 +212,7 @@ export default {
     styleDefinition: { title: "styleDefinition" },
     subsection: { title: "subsection" },
     subsetOfReals: { title: "subsetOfReals" },
+    subsetOfRealsInput: { title: "subsetOfRealsInput" },
     substitute: { title: "substitute" },
     subsubsection: { title: "subsubsection" },
     sum: { title: "sum" },

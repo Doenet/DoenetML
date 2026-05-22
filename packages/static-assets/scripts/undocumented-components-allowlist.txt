@@ -29,7 +29,6 @@ note
 periodicSet
 pluralize
 solveEquations
-subsetOfRealsInput
 summaryStatistics
 tagc
 tage
