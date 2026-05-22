@@ -273,6 +273,7 @@ jobs:
     test-doenetml-to-pretext-devcontainer:
         name: Devcontainer Runs Tests
         runs-on: ubuntu-latest
+        timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
 
@@ -280,7 +281,7 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci
+                      npm ci --foreground-scripts --loglevel=info
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
@@ -289,6 +290,7 @@ jobs:
         name: DoenetML to PreTeXt Tests
         runs-on: ubuntu-latest
         needs: build
+        timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
 
@@ -301,7 +303,7 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci
+                      npm ci --foreground-scripts --loglevel=info
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
