@@ -12,6 +12,7 @@ import {
     type CompletionContext,
 } from "./methods/get-completion-context";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
+import { isRepeatLikeElement } from "./repeat-elements";
 
 // Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
 // can type a precomputed completion context they thread into
@@ -511,7 +512,7 @@ export class AutoCompleter {
         element: DastElement,
         name: string,
     ): DerivedRepeatNameInfo | null {
-        if (element.name !== "repeat" && element.name !== "repeatForSequence") {
+        if (!isRepeatLikeElement(element)) {
             return null;
         }
         for (const role of ["valueName", "indexName"] as const) {

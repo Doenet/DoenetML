@@ -1,5 +1,5 @@
 import type { CompletionContext } from "@doenet/lsp-tools";
-import type { DocumentInfo } from "../globals";
+import type { DocumentInfoEntry } from "../globals";
 
 /**
  * Longest a feature handler will block on the rust-core boot.  A healthy
@@ -36,7 +36,7 @@ export function isRefCompletionContext(ctx: CompletionContext): boolean {
  * awaited.
  */
 export async function awaitRustBootIfInitializing(
-    info: NonNullable<ReturnType<DocumentInfo["get"]>>,
+    info: DocumentInfoEntry,
 ): Promise<void> {
     if (info.rustState !== "initializing" || !info.rustReady) {
         return;

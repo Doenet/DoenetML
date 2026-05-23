@@ -7,7 +7,7 @@ import {
     type ContextHelpCompletion,
     type HelpContent,
 } from "@doenet/lsp-tools";
-import { DocumentInfo } from "../globals";
+import type { DocumentInfo, DocumentInfoEntry } from "../globals";
 import {
     awaitRustBootIfInitializing,
     isRefCompletionContext,
@@ -112,7 +112,7 @@ export function addContextHelpSupport(
  * same schema walk.
  */
 async function prepareForRefContext(
-    info: NonNullable<ReturnType<DocumentInfo["get"]>>,
+    info: DocumentInfoEntry,
     offset: number,
 ): Promise<CompletionContext> {
     let ctx = info.autoCompleter.getCompletionContext(offset);
