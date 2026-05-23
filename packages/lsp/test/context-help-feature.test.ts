@@ -10,7 +10,12 @@
  * race, and error-path graceful degradation.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AutoCompleter, DOENET_LSP_METHODS } from "@doenet/lsp-tools";
+import {
+    AutoCompleter,
+    DOENET_LSP_METHODS,
+    type RustResolverAdapter,
+} from "@doenet/lsp-tools";
+import type { DastElement } from "@doenet/parser";
 import { addContextHelpSupport } from "../src/features/context-help";
 
 type Handler = (params: any) => Promise<any>;
@@ -46,6 +51,46 @@ async function flushMicrotasks() {
     for (let i = 0; i < 10; i++) {
         await Promise.resolve();
     }
+}
+
+/**
+ * Minimal `RustResolverAdapter` stand-in for tests that need
+ * `resolveRefMemberContainerAtOffset` to return a real container — e.g.
+ * the rust-boot-wait tests, which prove that once `rustReady` settles
+ * the handler picks up the (now-wired) adapter and produces real
+ * resolver-backed help rather than a NONE shape.
+ *
+ * Restricted to `$head.member` (length-2) chains: walks the AST for the
+ * head segment via `getReferentAtOffset` and reports an empty
+ * `visibleDescendantNames`, so the help layer falls through to
+ * schema-property lookup on the container.  This mirrors the
+ * length-2-only stub used in `@doenet/lsp-tools`'s own context-help
+ * tests; resolver-specific multi-part semantics are tested there with
+ * the real adapter + a mock `ResolverCore`.
+ */
+function makeMemberRefStubAdapter(
+    completer: AutoCompleter,
+): RustResolverAdapter {
+    const stub = {
+        async resolveRefMemberContainerAtOffset(
+            offset: number,
+            pathParts: string[],
+        ) {
+            if (pathParts.length !== 2) {
+                return { node: null, visibleDescendantNames: [] };
+            }
+            const headName = pathParts[0];
+            if (!headName) return { node: null, visibleDescendantNames: [] };
+            const node =
+                completer.sourceObj.getReferentAtOffset(offset, headName) ??
+                null;
+            return { node, visibleDescendantNames: [] };
+        },
+        getDerivedRepeatNames(_offset: number) {
+            return [] as Array<{ name: string; element: DastElement }>;
+        },
+    };
+    return stub as unknown as RustResolverAdapter;
 }
 
 describe("addContextHelpSupport — doenet/contextHelp", () => {
@@ -84,15 +129,16 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         });
     });
 
-    it("waits for the rust boot before answering a refMember query", async () => {
+    it("waits for the rust boot, then uses the resolver to answer a refMember query", async () => {
         const uri = "file:///t.doenet";
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         let resolveRustReady!: () => void;
         const rustReady = new Promise<void>((resolve) => {
             resolveRustReady = resolve;
         });
+        const autoCompleter = new AutoCompleter(source);
         const docEntry = {
-            autoCompleter: new AutoCompleter(source),
+            autoCompleter,
             additionalDiagnostics: [],
             rustState: "initializing",
             rustAdapter: undefined as unknown,
@@ -124,18 +170,36 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         await flushMicrotasks();
         expect(settled).toBe(false);
 
-        // Boot completes — adapter becomes ready and rustReady settles.
+        // Boot completes — wire the adapter in (mirrors what
+        // `validate.ts` does once the rust core finishes spawning),
+        // then settle `rustReady` to release the handler's await.
+        // Wiring before resolving makes the intent explicit; the
+        // ordering itself doesn't matter (the handler can't resume
+        // until we yield), but reading the test this way makes the
+        // "now real resolver answers are available" step obvious.
         docEntry.rustState = "ready";
         docEntry.rustAdapter = {};
+        autoCompleter.setRustResolverAdapter(
+            makeMemberRefStubAdapter(autoCompleter),
+        );
         resolveRustReady();
 
         const result = await pending;
         expect(settled).toBe(true);
-        // Without an actual adapter wired in here we don't get real
-        // property help (post-Option-2 the JS fallback is gone), but the
-        // response is still well-formed and — critically — the request
-        // didn't resolve before the boot completed.
-        expect(result).toMatchObject({ kind: expect.any(String) });
+        // Resolver-backed property help: with the adapter now wired,
+        // `$m.displayDecimals` resolves to the `<math>` referent and
+        // surfaces the `displayDecimals` schema property.  Pre-wait
+        // (no adapter) the same payload would be NONE — confirming
+        // the wait genuinely lets the resolver answer.
+        expect(result).toMatchObject({
+            kind: "property",
+            elementName: "math",
+        });
+        if ((result as any).kind === "property") {
+            expect((result as any).propertyName.toLowerCase()).toBe(
+                "displaydecimals",
+            );
+        }
     });
 
     it("returns NONE for refMember queries when rust is unavailable", async () => {
@@ -226,7 +290,7 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
         });
     });
 
-    it("waits for the rust boot before answering a refMember completion query", async () => {
+    it("waits for the rust boot, then uses the resolver to answer a refMember completion query", async () => {
         // Mirrors the cursor-side `waits for the rust boot...` test —
         // the wait helper is shared between the two RPCs, so a regression
         // there must be caught on both code paths.  The dropdown's
@@ -239,8 +303,9 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
         const rustReady = new Promise<void>((resolve) => {
             resolveRustReady = resolve;
         });
+        const autoCompleter = new AutoCompleter(source);
         const docEntry = {
-            autoCompleter: new AutoCompleter(source),
+            autoCompleter,
             additionalDiagnostics: [],
             rustState: "initializing",
             rustAdapter: undefined as unknown,
@@ -267,14 +332,30 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
         await flushMicrotasks();
         expect(settled).toBe(false);
 
-        // Boot completes — adapter becomes ready and rustReady settles.
+        // Boot completes — wire the adapter in, then settle `rustReady`.
         docEntry.rustState = "ready";
         docEntry.rustAdapter = {};
+        autoCompleter.setRustResolverAdapter(
+            makeMemberRefStubAdapter(autoCompleter),
+        );
         resolveRustReady();
 
         const result = await pending;
         expect(settled).toBe(true);
-        expect(result).toMatchObject({ kind: expect.any(String) });
+        // Resolver-backed property help for the highlighted completion
+        // row — the `property`-kind branch routes through
+        // `helpForRefMemberByName` with the row's label as the member,
+        // resolves the head via the now-wired adapter, and looks up
+        // `displayDecimals` on the `<math>` schema.
+        expect(result).toMatchObject({
+            kind: "property",
+            elementName: "math",
+        });
+        if ((result as any).kind === "property") {
+            expect((result as any).propertyName.toLowerCase()).toBe(
+                "displaydecimals",
+            );
+        }
     });
 
     it("times out the rust-boot wait and returns NONE for refMember completion queries", async () => {
