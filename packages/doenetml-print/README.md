@@ -2,6 +2,10 @@
 
 DoenetML print tooling and experiments.
 
+## About
+
+This package uses Pyodide to run the XSL version of pretext against the converted DoenetML. It is based on the library in https://github.com/siefkenj/pretext-book
+
 ## Building
 
 Before building, refresh the bundled PreTeXt core files to the latest upstream commit:
