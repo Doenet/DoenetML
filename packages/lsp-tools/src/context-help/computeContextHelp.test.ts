@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AutoCompleter } from "../auto-completer";
+import type { RustResolverAdapter } from "../auto-completer/rust-resolver-adapter";
+import type { DastElement } from "@doenet/parser";
 import {
     computeContextHelp,
     computeContextHelpForCompletion,
@@ -12,12 +14,57 @@ import type { HelpContent } from "./types";
 // are exercised against the same data the editor consumes at runtime.
 //
 // The helpers are `async` because `computeContextHelp` awaits the resolver
-// call inside `helpForRefMemberByName`. With no `RustResolverAdapter`
-// attached (as in these unit tests), `resolveRefMemberContainerAtOffset`
-// resolves to `{ node: null, ... }` and the JS-only fallback path is what
-// drives the assertions below.
+// call inside `helpForRefMemberByName`. To keep these unit tests focused
+// on schema-walking behaviour without spinning up a real Rust resolver,
+// each completer gets a lightweight stub adapter that implements the
+// minimum surface AutoCompleter calls into — `resolveRefMemberContainerAtOffset`
+// (length-1 resolution via `getReferentAtOffset`, descendant names from the
+// DAST tree) and `getDerivedRepeatNames` (always `[]`).  Resolver-specific
+// semantics like `takesIndex` blocking belong in `computeContextHelp.resolver.test.ts`,
+// which uses the real `RustResolverAdapter` with a mock `ResolverCore`.
+function attachStubAdapter(completer: AutoCompleter) {
+    const stub = {
+        async resolveRefMemberContainerAtOffset(
+            offset: number,
+            pathParts: string[],
+        ) {
+            // Match the legacy JS fallback's scope: length-2 chains only.
+            // Longer chains are deliberately left unresolved so the help
+            // layer surfaces `unsupportedRefChain` for them, mirroring the
+            // pre-LSP behaviour the existing tests assert.  Multi-part /
+            // takesIndex semantics live in the resolver-backed test file,
+            // where a real `RustResolverAdapter` with a mock `ResolverCore`
+            // exercises the proper rust-side resolution.
+            if (pathParts.length !== 2) {
+                return { node: null, visibleDescendantNames: [] };
+            }
+            const headName = pathParts[0];
+            if (!headName) return { node: null, visibleDescendantNames: [] };
+            const containerNode =
+                completer.sourceObj.getReferentAtOffset(offset, headName) ??
+                null;
+            if (!containerNode) {
+                return { node: null, visibleDescendantNames: [] };
+            }
+            const visibleDescendantNames =
+                completer.sourceObj.getUniqueDescendantNamesForNode(
+                    containerNode as DastElement,
+                );
+            return { node: containerNode, visibleDescendantNames };
+        },
+        getDerivedRepeatNames(_offset: number) {
+            return [] as Array<{ name: string; element: DastElement }>;
+        },
+    };
+    completer.setRustResolverAdapter(stub as unknown as RustResolverAdapter);
+    return completer;
+}
+
 async function helpAt(source: string, offset: number): Promise<HelpContent> {
-    return await computeContextHelp(new AutoCompleter(source), offset);
+    return await computeContextHelp(
+        attachStubAdapter(new AutoCompleter(source)),
+        offset,
+    );
 }
 
 async function helpForCompletionAt(
@@ -26,7 +73,7 @@ async function helpForCompletionAt(
     completion: ContextHelpCompletion,
 ): Promise<HelpContent> {
     return await computeContextHelpForCompletion(
-        new AutoCompleter(source),
+        attachStubAdapter(new AutoCompleter(source)),
         offset,
         completion,
     );
@@ -343,13 +390,14 @@ describe("computeContextHelp — property reference (refMember)", () => {
         expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 
-    it("returns an unsupportedRefChain placeholder for multi-part chains under the JS fallback", async () => {
-        // Without a Rust resolver adapter, the JS fallback can only
-        // resolve `$ref.prop`. For longer chains it would otherwise
-        // look up the cursor identifier as a property of the root,
-        // producing wrong help — so we surface a placeholder instead.
-        // With Option 4 wired, the LSP-hosted resolver replaces this
-        // path with a real multi-part resolution.
+    it("returns an unsupportedRefChain placeholder for multi-part chains the resolver can't walk", async () => {
+        // Length-3 chain with no resolver-backed answer — the stub adapter
+        // returns `{ node: null }`, and `helpForRefMemberByName` surfaces
+        // the placeholder so a user staring at `$a.b.c` knows *something*
+        // about the cursor position rather than getting a blank panel.
+        // With a real resolver wired in (the LSP path), most chains in
+        // this shape do resolve through to real help — see
+        // `computeContextHelp.resolver.test.ts`.
         const source = `<math name="m">x</math>\n$m.foo.displayDecimals`;
         expect((await helpAt(source, source.length)).kind).toBe(
             "unsupportedRefChain",

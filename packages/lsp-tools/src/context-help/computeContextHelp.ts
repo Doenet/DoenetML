@@ -276,44 +276,47 @@ async function helpForRefMemberByName(
     },
     memberName: string,
 ): Promise<HelpContent> {
-    // Await the resolver call. The previous JS-only call site silently treated
-    // the returned Promise as a truthy object and never read `.node`, which is
-    // the root cause of issue #1086 — multi-segment refs never resolved even
-    // when a Rust adapter was attached. With the help logic now running inside
-    // the LSP worker (which has a Rust adapter), awaiting this is what lights
-    // up multi-part chains like `$rep[1].point1.x`.
+    // The Rust resolver (when available) is the source of truth for member
+    // resolution. Awaiting this fixes issue #1086: the previous JS-only path
+    // both silently dropped the Promise and bypassed the resolver entirely,
+    // so chains like `$rep[1].point1.x` never resolved and unindexed access
+    // through a `takesIndex` composite (e.g. `$rep.myMath`) incorrectly
+    // surfaced help via a separate JS fallback that walked descendants.
+    // With the help logic now hosted in the LSP, the resolver IS attached;
+    // we respect its verdict in full — including "this path can't be
+    // walked", which now correctly yields NONE rather than misleading help.
     const resolved = await completer.resolveRefMemberContainerAtOffset(
         offset,
         ctx.pathParts,
         ctx.pathPartHasIndex,
     );
 
-    // Fallback to pure-JS resolution for simple `$name.member` when no Rust
-    // resolver adapter is configured (browser-only setups). Restricted to
-    // length-2 chains because the JS path resolves only `pathParts[0]` and
-    // would otherwise look up the cursor identifier on the root referent,
-    // producing wrong help for `$a.b.c`.
-    let containerNode = resolved.node;
+    const containerNode = resolved.node;
     if (!containerNode) {
-        if (ctx.pathParts.length === 2) {
-            containerNode =
-                completer.sourceObj.getReferentAtOffset(
-                    offset,
-                    ctx.pathParts[0],
-                ) ?? null;
-        } else if (ctx.pathParts.length > 2) {
+        // No-adapter / unresolved path. For deep chains, surface the
+        // placeholder so a user staring at `$a.b.c` knows *something* about
+        // the cursor position; for shorter chains, just blank the panel.
+        if (ctx.pathParts.length > 2) {
             return { kind: "unsupportedRefChain" };
         }
+        return NONE;
     }
-    if (!containerNode) return NONE;
 
     // Match runtime ref-resolution precedence: a named descendant of the
     // container shadows a same-named property. Try the descendant first;
     // only fall back to property lookup when no descendant matches.
-    const descendantInfo = completer.resolveRefMemberDescendantHelp(
-        containerNode,
-        memberName,
-    );
+    //
+    // Gate the descendant lookup on the resolver's `visibleDescendantNames`
+    // allow-list — for a `takesIndex` composite addressed without an index
+    // the resolver returns the composite node but with descendants
+    // suppressed (`visibleDescendantNames: []`), since member access must
+    // pick an instance via `$rep[N].member`. Without this check the raw
+    // tree-walk in `resolveRefMemberDescendantHelp` would still find
+    // `myMath` inside the repeat body and surface misleading help —
+    // issue #1086 verification checklist item 1.
+    const descendantInfo = resolved.visibleDescendantNames.includes(memberName)
+        ? completer.resolveRefMemberDescendantHelp(containerNode, memberName)
+        : null;
     if (descendantInfo) {
         // Use `rawPathParts` for the prefix so authored bracket indices are
         // preserved (`rep[1]` stays as `rep[1]`). Each segment — prefix and

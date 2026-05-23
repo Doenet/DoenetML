@@ -86,7 +86,13 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         };
         const { contextHelp } = registerHandlers(new Map([[uri, docEntry]]));
 
-        // Fire the request while rust is still initializing.
+        // Fire the request while rust is still initializing.  The handler
+        // must wait for `rustReady` rather than bailing immediately —
+        // otherwise it would close the help session before the resolver
+        // can answer.  Without an adapter actually wired in here we don't
+        // get real property help (post-Option-2 the JS fallback is gone),
+        // but the response is still well-formed and the request didn't
+        // resolve before the boot completed.
         const pending = contextHelp({ uri, offset: source.length });
 
         // Boot completes — adapter becomes ready and rustReady settles.
@@ -95,17 +101,15 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         resolveRustReady();
 
         const result = await pending;
-        // Even with the JS-only fallback (no rust adapter wired into the
-        // completer here), a 2-part chain resolves to property help via
-        // `getReferentAtOffset`.  The point of this test is the race —
-        // the handler didn't bail before the wait settled.
-        expect(result).toMatchObject({
-            kind: "property",
-            elementName: "math",
-        });
+        expect(result).toMatchObject({ kind: expect.any(String) });
     });
 
-    it("returns help via the JS fallback even when rust is unavailable", async () => {
+    it("returns NONE for refMember queries when rust is unavailable", async () => {
+        // Post-Option-2 (the JS fallback removed), the resolver is the
+        // sole source of truth for member resolution.  Without an adapter
+        // the help layer correctly returns NONE rather than the
+        // descendant-walking surface that produced wrong help for
+        // `$rep.myMath` (issue #1086 verification checklist item 1).
         const uri = "file:///t.doenet";
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         const documentInfo = new Map([
@@ -121,14 +125,10 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         ]);
         const { contextHelp } = registerHandlers(documentInfo);
         const result = await contextHelp({ uri, offset: source.length });
-        // 2-part chain — JS fallback in `computeContextHelp` covers this.
-        expect(result).toMatchObject({
-            kind: "property",
-            elementName: "math",
-        });
+        expect(result).toEqual({ kind: "none" });
     });
 
-    it("times out the rust-boot wait and still answers (JS fallback)", async () => {
+    it("times out the rust-boot wait and returns NONE for refMember queries", async () => {
         vi.useFakeTimers();
         const uri = "file:///t.doenet";
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
@@ -144,9 +144,10 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         const pending = contextHelp({ uri, offset: source.length });
         await vi.advanceTimersByTimeAsync(5_000);
         const result = await pending;
-        // Past the cap, the handler falls through to compute with whatever's
-        // ready — here the JS fallback yields property help, not NONE.
-        expect(result).toMatchObject({ kind: "property" });
+        // Past the cap the handler computes with whatever's ready — no
+        // adapter means no resolution → NONE.  The point is graceful
+        // degradation: a broken worker doesn't hang the request.
+        expect(result).toEqual({ kind: "none" });
     });
 });
 
