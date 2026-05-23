@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AutoCompleter } from "@doenet/lsp-tools";
+import { AutoCompleter } from "../auto-completer";
 import {
     computeContextHelp,
     computeContextHelpForCompletion,
@@ -10,16 +10,22 @@ import type { HelpContent } from "./types";
 // Default `new AutoCompleter(source)` already binds the bundled doenetSchema
 // + aliasedElements, so alias resolution and other cross-element behaviours
 // are exercised against the same data the editor consumes at runtime.
-function helpAt(source: string, offset: number): HelpContent {
-    return computeContextHelp(new AutoCompleter(source), offset);
+//
+// The helpers are `async` because `computeContextHelp` awaits the resolver
+// call inside `helpForRefMemberByName`. With no `RustResolverAdapter`
+// attached (as in these unit tests), `resolveRefMemberContainerAtOffset`
+// resolves to `{ node: null, ... }` and the JS-only fallback path is what
+// drives the assertions below.
+async function helpAt(source: string, offset: number): Promise<HelpContent> {
+    return await computeContextHelp(new AutoCompleter(source), offset);
 }
 
-function helpForCompletionAt(
+async function helpForCompletionAt(
     source: string,
     offset: number,
     completion: ContextHelpCompletion,
-): HelpContent {
-    return computeContextHelpForCompletion(
+): Promise<HelpContent> {
+    return await computeContextHelpForCompletion(
         new AutoCompleter(source),
         offset,
         completion,
@@ -27,10 +33,10 @@ function helpForCompletionAt(
 }
 
 describe("computeContextHelp — element help", () => {
-    it("returns element help when cursor is mid-tag-name", () => {
+    it("returns element help when cursor is mid-tag-name", async () => {
         const source = `<math>x</math>`;
         // Offset 3 lands between 'a' and 't' inside the opening tag name.
-        const help = helpAt(source, 3);
+        const help = await helpAt(source, 3);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "math",
@@ -41,28 +47,28 @@ describe("computeContextHelp — element help", () => {
         }
     });
 
-    it("returns element help when cursor is on closing tag name", () => {
+    it("returns element help when cursor is on closing tag name", async () => {
         const source = `<math>x</math>`;
         // Offset right after `</`, inside "math".
         const offset = source.indexOf("</math") + 3;
-        expect(helpAt(source, offset).kind).toBe("element");
+        expect((await helpAt(source, offset)).kind).toBe("element");
     });
 
-    it("returns none for an unknown component", () => {
+    it("returns none for an unknown component", async () => {
         const source = `<unknownThing/>`;
         const offset = source.indexOf("unknownThing") + 3;
-        expect(helpAt(source, offset).kind).toBe("none");
+        expect((await helpAt(source, offset)).kind).toBe("none");
     });
 
-    it("returns none for cursor in body content", () => {
+    it("returns none for cursor in body content", async () => {
         const source = `<math>x</math>`;
         // Offset 6 is between `>` and `x`.
-        expect(helpAt(source, 6).kind).toBe("none");
+        expect((await helpAt(source, 6)).kind).toBe("none");
     });
 
-    it("resolves elements case-insensitively and displays the canonical name", () => {
+    it("resolves elements case-insensitively and displays the canonical name", async () => {
         const source = `<MaTh>x</MaTh>`;
-        const help = helpAt(source, 3);
+        const help = await helpAt(source, 3);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "math",
@@ -72,10 +78,10 @@ describe("computeContextHelp — element help", () => {
 });
 
 describe("computeContextHelp — attribute help", () => {
-    it("returns attribute help with description and defaultValue", () => {
+    it("returns attribute help with description and defaultValue", async () => {
         const source = `<point draggable="true"/>`;
         const offset = source.indexOf("draggable") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "point",
@@ -87,24 +93,24 @@ describe("computeContextHelp — attribute help", () => {
         }
     });
 
-    it("returns attribute help when cursor is inside the attribute value", () => {
+    it("returns attribute help when cursor is inside the attribute value", async () => {
         const source = `<math simplify="full"/>`;
         // Cursor between 'f' and 'u' of "full".
         const offset = source.indexOf('"full') + 2;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "attribute",
             attributeName: "simplify",
         });
     });
 
-    it("keeps attribute help when cursor sits right after `=` on a partial attribute", () => {
+    it("keeps attribute help when cursor sits right after `=` on a partial attribute", async () => {
         // Regression: lezer reports `cursorPosition: openTag` once the cursor
         // crosses the `=` boundary on an incomplete attribute, but the cursor
         // is still inside the attribute's position range — help should
         // continue to show the attribute description.
         const source = `<math simplify=`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -112,9 +118,9 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help right after the opening quote of an empty value", () => {
+    it("keeps attribute help right after the opening quote of an empty value", async () => {
         const source = `<math simplify="`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -122,13 +128,13 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help on an unquoted partial value (`simplify=f`)", () => {
+    it("keeps attribute help on an unquoted partial value (`simplify=f`)", async () => {
         // Parser tokenizes `simplify=f` as TWO attributes — `simplify` (with
         // `=` baked in) and bogus `f`. `attributeAtOffset` detects the `=`
         // spillover and returns the preceding `simplify`, so the help panel
         // tracks the attribute the user is actually trying to value.
         const source = `<math simplify=f`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -136,9 +142,9 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help on a longer unquoted partial value (`simplify=ff`)", () => {
+    it("keeps attribute help on a longer unquoted partial value (`simplify=ff`)", async () => {
         const source = `<math simplify=ff`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -146,9 +152,9 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help on a complete unquoted value (`simplify=full`)", () => {
+    it("keeps attribute help on a complete unquoted value (`simplify=full`)", async () => {
         const source = `<math simplify=full`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -156,12 +162,12 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help when whitespace follows `=` (`simplify= full`)", () => {
+    it("keeps attribute help when whitespace follows `=` (`simplify= full`)", async () => {
         // The unquoted-spillover heuristic must walk back over whitespace to
         // find the `=` from the preceding attribute. Without this, the bogus
         // `full` attribute looks unrelated and the panel falls back to math.
         const source = `<math simplify= full`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "math",
@@ -169,13 +175,13 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("keeps attribute help via the bare-value-after-`=` fallback when no attribute contains the cursor", () => {
+    it("keeps attribute help via the bare-value-after-`=` fallback when no attribute contains the cursor", async () => {
         // Mirrors the fallback documented in `get-completion-items.ts` for
         // states where the typed bare value doesn't fall inside any
         // attribute's position range. The walk-back to `=` recovers the
         // attribute the value belongs to.
         const source = `<math simplify=  `;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         if (help.kind === "attribute") {
             expect(help.elementName).toBe("math");
             expect(help.attributeName).toBe("simplify");
@@ -190,47 +196,47 @@ describe("computeContextHelp — attribute help", () => {
         }
     });
 
-    it("falls back to element help when cursor is in whitespace inside the open tag", () => {
+    it("falls back to element help when cursor is in whitespace inside the open tag", async () => {
         // `<math |` — cursor in the open tag but not in any attribute. We
         // previously returned NONE; now we return the element help so the
         // panel doesn't blank out.
         const source = `<math `;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "math",
         });
     });
 
-    it("falls back to element help when cursor is on an unknown attribute name", () => {
+    it("falls back to element help when cursor is on an unknown attribute name", async () => {
         // `<math bad` — `bad` isn't a math attribute. Rather than blanking
         // the panel, show element help so the user can still see what
         // `<math>` is.
         const source = `<math bad`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "math",
         });
     });
 
-    it("falls back to element help on an unknown attribute with an unquoted value (`bad=foo`)", () => {
+    it("falls back to element help on an unknown attribute with an unquoted value (`bad=foo`)", async () => {
         const source = `<math bad=foo`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "math",
         });
     });
 
-    it("shows element help across every cursor position in `<math bad=foo`", () => {
+    it("shows element help across every cursor position in `<math bad=foo`", async () => {
         // Defends every offset inside the open tag against blanking, so
         // moving the cursor around in an unknown-attribute context keeps
         // the user oriented on the element.
         const source = `<math bad=foo`;
         // Start after `<math` (offset 5, the space) through end of source.
         for (let offset = 5; offset <= source.length; offset++) {
-            const help = helpAt(source, offset);
+            const help = await helpAt(source, offset);
             expect(help.kind).toBe("element");
             if (help.kind === "element") {
                 expect(help.elementName).toBe("math");
@@ -238,13 +244,13 @@ describe("computeContextHelp — attribute help", () => {
         }
     });
 
-    it("prefers autocompleteValues over values for boolean-aliased enums", () => {
+    it("prefers autocompleteValues over values for boolean-aliased enums", async () => {
         // `simplify` is a string enum that also accepts "true"/"false" via
         // valueForTrue / valueForFalse. The help should surface the enum
         // values only — not the boolean aliases that are merged into `values`.
         const source = `<math simplify="full"/>`;
         const offset = source.indexOf("simplify") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         if (help.kind !== "attribute") {
             expect.fail(`expected attribute help, got ${help.kind}`);
             return;
@@ -256,7 +262,7 @@ describe("computeContextHelp — attribute help", () => {
         expect(allowedValueStrings).not.toContain("false");
     });
 
-    it("omits allowedValues for pure boolean primitives", () => {
+    it("omits allowedValues for pure boolean primitives", async () => {
         // Boolean primitives have a synthesized `values: ["true","false"]`
         // but no `autocompleteValues`. The help panel intentionally drops
         // the "Allowed values" row here — the attribute description already
@@ -264,7 +270,7 @@ describe("computeContextHelp — attribute help", () => {
         // `?? values.map(...)` fallback in `computeContextHelp`.
         const source = `<point draggable="true"/>`;
         const offset = source.indexOf("draggable") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         if (help.kind !== "attribute") {
             expect.fail(`expected attribute help, got ${help.kind}`);
             return;
@@ -272,10 +278,10 @@ describe("computeContextHelp — attribute help", () => {
         expect(help.allowedValues).toBeUndefined();
     });
 
-    it("resolves attributes case-insensitively and displays the canonical name", () => {
+    it("resolves attributes case-insensitively and displays the canonical name", async () => {
         const source = `<point DrAgGaBlE="true"/>`;
         const offset = source.indexOf("DrAgGaBlE") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "attribute",
             elementName: "point",
@@ -283,14 +289,14 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("preserves an explicit null defaultValue", () => {
+    it("preserves an explicit null defaultValue", async () => {
         // <slider initialValue> declares `defaultValue: null` to mean
         // "no initial value". The help pipeline must surface the null
         // through to the panel (which then chooses to hide the Default
         // row entirely rather than render a misleading value).
         const source = `<slider initialValue="3"/>`;
         const offset = source.indexOf("initialValue") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         if (help.kind !== "attribute") {
             expect.fail(`expected attribute help, got ${help.kind}`);
             return;
@@ -300,9 +306,9 @@ describe("computeContextHelp — attribute help", () => {
 });
 
 describe("computeContextHelp — property reference (refMember)", () => {
-    it("returns property help when cursor is at end of $ref.property", () => {
+    it("returns property help when cursor is at end of $ref.property", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "property",
             elementName: "math",
@@ -313,45 +319,48 @@ describe("computeContextHelp — property reference (refMember)", () => {
         }
     });
 
-    it("returns property help when cursor is in the middle of the property name", () => {
+    it("returns property help when cursor is in the middle of the property name", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         // Cursor inside "display|Decimals".
         const offset = source.indexOf("displayDecimals") + 7;
-        expect(helpAt(source, offset).kind).toBe("property");
+        expect((await helpAt(source, offset)).kind).toBe("property");
     });
 
-    it("returns property help when cursor is at the start of the property name", () => {
+    it("returns property help when cursor is at the start of the property name", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         // Cursor right after the dot, before any character of the property.
         const offset = source.indexOf(".displayDecimals") + 1;
-        expect(helpAt(source, offset).kind).toBe("property");
+        expect((await helpAt(source, offset)).kind).toBe("property");
     });
 
-    it("returns none for unknown property names", () => {
+    it("returns none for unknown property names", async () => {
         const source = `<math name="m">x</math>\n$m.notARealProperty`;
-        expect(helpAt(source, source.length).kind).toBe("none");
+        expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 
-    it("returns none when the referent name doesn't match any element", () => {
+    it("returns none when the referent name doesn't match any element", async () => {
         const source = `<math>x</math>\n$nonexistent.coords`;
-        expect(helpAt(source, source.length).kind).toBe("none");
+        expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 
-    it("returns an unsupportedRefChain placeholder for multi-part chains under the JS fallback", () => {
+    it("returns an unsupportedRefChain placeholder for multi-part chains under the JS fallback", async () => {
         // Without a Rust resolver adapter, the JS fallback can only
         // resolve `$ref.prop`. For longer chains it would otherwise
         // look up the cursor identifier as a property of the root,
         // producing wrong help — so we surface a placeholder instead.
-        // Tracked in #1086.
+        // With Option 4 wired, the LSP-hosted resolver replaces this
+        // path with a real multi-part resolution.
         const source = `<math name="m">x</math>\n$m.foo.displayDecimals`;
-        expect(helpAt(source, source.length).kind).toBe("unsupportedRefChain");
+        expect((await helpAt(source, source.length)).kind).toBe(
+            "unsupportedRefChain",
+        );
     });
 });
 
 describe("computeContextHelp — bare ref ($name)", () => {
-    it("returns refName help when cursor is on a bare $name", () => {
+    it("returns refName help when cursor is on a bare $name", async () => {
         const source = `<math name="m">x</math>\n$m`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "m",
@@ -367,11 +376,11 @@ describe("computeContextHelp — bare ref ($name)", () => {
         }
     });
 
-    it("returns refName help when cursor is mid-identifier on $myName", () => {
+    it("returns refName help when cursor is mid-identifier on $myName", async () => {
         const source = `<math name="myName">x</math>\n$myName`;
         // Cursor between 'y' and 'N' inside "myName" of the ref.
         const offset = source.length - 4;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "myName",
@@ -379,11 +388,11 @@ describe("computeContextHelp — bare ref ($name)", () => {
         });
     });
 
-    it("returns refName help when cursor sits on the name segment of $name.descendant", () => {
+    it("returns refName help when cursor sits on the name segment of $name.descendant", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         // Cursor right after the 'm', before the '.'.
         const offset = source.indexOf("$m") + 2;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "m",
@@ -391,17 +400,17 @@ describe("computeContextHelp — bare ref ($name)", () => {
         });
     });
 
-    it("returns none for a $name that doesn't resolve", () => {
+    it("returns none for a $name that doesn't resolve", async () => {
         const source = `<math>x</math>\n$nonexistent`;
-        expect(helpAt(source, source.length).kind).toBe("none");
+        expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 
-    it("uses the alias target's summary and docsSlug for $name inside <matrix>", () => {
+    it("uses the alias target's summary and docsSlug for $name inside <matrix>", async () => {
         // <row name="r"> inside <matrix> sugars to matrixRow. The bare-ref
         // help should follow the same alias redirection as element/attribute/
         // property help so the docs link lands on the matrixRow page.
         const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         if (help.kind !== "refName") {
             expect.fail(`expected refName help, got ${help.kind}`);
             return;
@@ -412,9 +421,9 @@ describe("computeContextHelp — bare ref ($name)", () => {
         expect(help.summary).toMatch(/matrix/i);
     });
 
-    it("reports the line where the referent is defined", () => {
+    it("reports the line where the referent is defined", async () => {
         const source = `<p>intro</p>\n<p>more</p>\n<math name="m">x</math>\n$m`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         if (help.kind !== "refName") {
             expect.fail(`expected refName help, got ${help.kind}`);
             return;
@@ -425,9 +434,9 @@ describe("computeContextHelp — bare ref ($name)", () => {
 });
 
 describe("computeContextHelp — refMember resolving to a named descendant", () => {
-    it("returns refName help when $sec.bi resolves to a named child element", () => {
+    it("returns refName help when $sec.bi resolves to a named child element", async () => {
         const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "bi",
@@ -440,7 +449,7 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
         }
     });
 
-    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", () => {
+    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", async () => {
         // The chain has three parts but the cursor sits on the middle
         // segment, so the question is "what is $sec.bi?" — a 2-part chain.
         // The booleanInput descendant of section answers it; the trailing
@@ -448,7 +457,7 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
         const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi.fixed`;
         // Cursor right after the second 'i' in 'bi', before the '.'.
         const offset = source.indexOf(".bi.fixed") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "bi",
@@ -457,22 +466,22 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
         });
     });
 
-    it("falls through to property help when no named descendant matches", () => {
+    it("falls through to property help when no named descendant matches", async () => {
         // `displayDecimals` is a math property; <math> has no descendants
         // named "displayDecimals", so the existing property branch handles
         // it and we get property help, not refName help.
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help.kind).toBe("property");
     });
 
-    it("prefers a named descendant over a same-named property (descendants shadow properties)", () => {
+    it("prefers a named descendant over a same-named property (descendants shadow properties)", async () => {
         // Construct a case where the property name is shadowed by a child
         // element with the same name. <section> has a `hidden` property
         // (inherited from base components); a child element named "hidden"
         // shadows the property under runtime ref-resolution rules.
         const source = `<section name="sec"><booleanInput name="hidden"/></section>\n$sec.hidden`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "hidden",
@@ -482,7 +491,7 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
 });
 
 describe("computeContextHelp — hyphenated names in $(...) macros", () => {
-    it("resolves a hyphenated bare ref name with cursor mid-identifier", () => {
+    it("resolves a hyphenated bare ref name with cursor mid-identifier", async () => {
         // The rightward identifier scan must use the macro char class
         // (`[A-Za-z0-9_-]`) when the cursor sits inside `$(...)`, so a cursor
         // between the `o` of "foo" and the `-` of "-bar" still captures the
@@ -491,7 +500,7 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
         // `$(foo-bar) references <math> ...`.
         const source = `<math name="foo-bar">x</math>\n$(foo-bar)`;
         const offset = source.indexOf("foo-bar)") + 3; // between 'foo' and '-bar'
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "foo-bar",
@@ -500,13 +509,13 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
         });
     });
 
-    it("resolves a hyphenated descendant name in $(base).(my-p) with cursor mid-identifier", () => {
+    it("resolves a hyphenated descendant name in $(base).(my-p) with cursor mid-identifier", async () => {
         // `$(base).(my-p)` should resolve to the descendant `<p name="my-p"/>`,
         // not truncate at the hyphen and fall through to property lookup.
         // Only the hyphenated segment is wrapped in parens.
         const source = `<section name="base"><p name="my-p"/></section>\n$(base).(my-p)`;
         const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "my-p",
@@ -517,14 +526,16 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
 });
 
 describe("computeContextHelp — indexed path segments in displayPath", () => {
-    it("preserves a bracket index on the prefix segment of $rep[1].myMath", () => {
+    it("preserves a bracket index on the prefix segment of $rep[1].myMath", async () => {
         // The JS-only fallback in helpForRefMember ignores takesIndex
-        // semantics (tracked in #1086), so it incidentally resolves the
-        // descendant `<math name="myMath"/>` here. The rendered sentence
-        // should still match what the author wrote — preserving the `[1]` on
-        // the prefix segment — rather than dropping the index to "rep.myMath".
+        // semantics, so it incidentally resolves the descendant
+        // `<math name="myMath"/>` here. The rendered sentence should still
+        // match what the author wrote — preserving the `[1]` on the prefix
+        // segment — rather than dropping the index to "rep.myMath". With
+        // a Rust adapter attached (the LSP path), this same assertion will
+        // hold via the proper resolver-backed lookup.
         const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "myMath",
@@ -535,10 +546,10 @@ describe("computeContextHelp — indexed path segments in displayPath", () => {
 });
 
 describe("computeContextHelp — childAliases (sugar redirection)", () => {
-    it("redirects <row> inside <matrix> to matrixRow help", () => {
+    it("redirects <row> inside <matrix> to matrixRow help", async () => {
         const source = `<matrix>\n  <row>1 2 3</row>\n</matrix>`;
         const offset = source.indexOf("<row>") + 2;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "element",
             // The author wrote <row>, so display "row" — but the docs link
@@ -551,10 +562,10 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         }
     });
 
-    it("redirects <column> inside <matrix> to matrixColumn help", () => {
+    it("redirects <column> inside <matrix> to matrixColumn help", async () => {
         const source = `<matrix>\n  <column>1 2 3</column>\n</matrix>`;
         const offset = source.indexOf("<column>") + 2;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "column",
@@ -564,10 +575,10 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         });
     });
 
-    it("uses tabular row help when <row> is NOT inside <matrix>", () => {
+    it("uses tabular row help when <row> is NOT inside <matrix>", async () => {
         const source = `<tabular>\n  <row>cell</row>\n</tabular>`;
         const offset = source.indexOf("<row>") + 2;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "element",
             elementName: "row",
@@ -575,26 +586,26 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         });
     });
 
-    it("routes attribute lookup through the alias target", () => {
+    it("routes attribute lookup through the alias target", async () => {
         // matrixRow extends MathList, so it has `functionSymbols`. Tabular
         // <row> does not. If alias redirection is wired into the attribute
         // path, this attribute resolves to non-none.
         const source = `<matrix>\n  <row functionSymbols="f">x</row>\n</matrix>`;
         const offset = source.indexOf("functionSymbols") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "attribute",
             attributeName: "functionSymbols",
         });
     });
 
-    it("routes $ref.property lookup through the alias target", () => {
+    it("routes $ref.property lookup through the alias target", async () => {
         // `maxNumber` lives on matrixRow (math-list semantics), not on the
         // canonical tabular `row` entry. Without alias-aware property
         // resolution, $r.maxNumber inside <matrix> would surface no help —
         // disagreeing with the autocomplete dropdown, which IS alias-aware.
         const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.maxNumber`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         if (help.kind !== "property") {
             expect.fail(`expected property help, got ${help.kind}`);
             return;
@@ -607,20 +618,20 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         expect(help.docsSlug).toBe("row_matrix");
     });
 
-    it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", () => {
+    it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", async () => {
         // `rowNum` is a tabular-row property. Inside <matrix>, the `<row>`
         // is sugared to matrixRow, which has no `rowNum`. Returning none
         // (rather than the misleading tabular description) keeps the panel
         // honest about what's in scope.
         const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.rowNum`;
-        expect(helpAt(source, source.length).kind).toBe("none");
+        expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 });
 
 describe("computeContextHelp — docsSlug propagation", () => {
-    it("emits the default componentName-based slug when no override is set", () => {
+    it("emits the default componentName-based slug when no override is set", async () => {
         const source = `<math>x</math>`;
-        const help = helpAt(source, 3);
+        const help = await helpAt(source, 3);
         if (help.kind === "element") {
             expect(help.docsSlug).toBe("math");
         } else {
@@ -628,9 +639,9 @@ describe("computeContextHelp — docsSlug propagation", () => {
         }
     });
 
-    it("emits the override slug for components with explicit docsSlug", () => {
+    it("emits the override slug for components with explicit docsSlug", async () => {
         const source = `<answer>$x</answer>`;
-        const help = helpAt(source, 3);
+        const help = await helpAt(source, 3);
         if (help.kind === "element") {
             expect(help.docsSlug).toBe("answer1");
         } else {
@@ -638,10 +649,10 @@ describe("computeContextHelp — docsSlug propagation", () => {
         }
     });
 
-    it("attribute help carries the owning element's docsSlug", () => {
+    it("attribute help carries the owning element's docsSlug", async () => {
         const source = `<point draggable="true"/>`;
         const offset = source.indexOf("draggable") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         if (help.kind !== "attribute") {
             expect.fail(`expected attribute help, got ${help.kind}`);
             return;
@@ -649,13 +660,13 @@ describe("computeContextHelp — docsSlug propagation", () => {
         expect(help.docsSlug).toBe("point");
     });
 
-    it("attribute help on alias-redirected child uses the alias target's slug", () => {
+    it("attribute help on alias-redirected child uses the alias target's slug", async () => {
         // `<row>` inside `<matrix>` is sugared to `<matrixRow>`. Help text
         // and the docs link must follow the alias so the link goes to the
         // matrixRow page, not the unrelated tabular row page.
         const source = `<matrix>\n  <row functionSymbols="f">x</row>\n</matrix>`;
         const offset = source.indexOf("functionSymbols") + 3;
-        const help = helpAt(source, offset);
+        const help = await helpAt(source, offset);
         if (help.kind !== "attribute") {
             expect.fail(`expected attribute help, got ${help.kind}`);
             return;
@@ -663,9 +674,9 @@ describe("computeContextHelp — docsSlug propagation", () => {
         expect(help.docsSlug).toBe("row_matrix");
     });
 
-    it("property help carries the resolved container's docsSlug", () => {
+    it("property help carries the resolved container's docsSlug", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
-        const help = helpAt(source, source.length);
+        const help = await helpAt(source, source.length);
         if (help.kind !== "property") {
             expect.fail(`expected property help, got ${help.kind}`);
             return;
@@ -675,13 +686,13 @@ describe("computeContextHelp — docsSlug propagation", () => {
 });
 
 describe("computeContextHelpForCompletion", () => {
-    it("returns element help for a `property`-kind completion when cursor is not in a refMember context", () => {
+    it("returns element help for a `property`-kind completion when cursor is not in a refMember context", async () => {
         // `<a|` — author is typing an element name. The LSP layer tags
         // element-schema completions with `kind: Property` (lowercased
         // `"property"` in CodeMirror). The dispatcher should treat this
         // as an element lookup.
         const source = `<a`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "abs",
             type: "property",
         });
@@ -691,12 +702,12 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns refMember property help for a `property`-kind completion inside a refMember context", () => {
+    it("returns refMember property help for a `property`-kind completion inside a refMember context", async () => {
         // `$m.|` — element-property completions surface here with the same
         // `property` kind; disambiguation comes from the cursor's completion
         // context (refMember vs body).
         const source = `<math name="m">x</math>\n$m.`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "displayDecimals",
             type: "property",
         });
@@ -709,9 +720,9 @@ describe("computeContextHelpForCompletion", () => {
         }
     });
 
-    it("returns attribute help for an `enum`-kind attribute-name completion", () => {
+    it("returns attribute help for an `enum`-kind attribute-name completion", async () => {
         const source = `<math `;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "simplify",
             type: "enum",
         });
@@ -722,9 +733,9 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns attribute help for a `value`-kind attribute-value completion (no per-value help)", () => {
+    it("returns attribute help for a `value`-kind attribute-value completion (no per-value help)", async () => {
         const source = `<math simplify="`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "full",
             type: "value",
         });
@@ -735,13 +746,13 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("falls back to element help for a `value`-kind completion on an unknown attribute (`<math bad=foo`)", () => {
+    it("falls back to element help for a `value`-kind completion on an unknown attribute (`<math bad=foo`)", async () => {
         // When the user types `<math bad=foo`, the autocomplete fires with
         // a value-kind row (`"foo"`) highlighted. The cursor-driven path
         // would show element help here; the completion path must agree
         // rather than blanking out.
         const source = `<math bad=foo`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: '"foo"',
             type: "value",
         });
@@ -751,11 +762,11 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("falls back to element help for an `enum`-kind completion on an unknown attribute name", () => {
+    it("falls back to element help for an `enum`-kind completion on an unknown attribute name", async () => {
         // Defensive: if a producer ever surfaces an unknown attribute label
         // in an enum-kind completion, we shouldn't blank the panel.
         const source = `<math `;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "definitelyNotARealAttribute",
             type: "enum",
         });
@@ -765,12 +776,12 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns attribute help for a `value`-kind completion on an unquoted partial value", () => {
+    it("returns attribute help for a `value`-kind completion on an unquoted partial value", async () => {
         // Autocomplete fires for `<math simplify=f|` even though there's no
         // opening quote — the help panel should still resolve back through
         // the unquoted-spillover detection to show `simplify` help.
         const source = `<math simplify=f`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "full",
             type: "value",
         });
@@ -781,9 +792,9 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns refName help for a `reference`-kind completion", () => {
+    it("returns refName help for a `reference`-kind completion", async () => {
         const source = `<math name="m">x</math>\n$`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "m",
             type: "reference",
         });
@@ -794,9 +805,9 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("strips a leading `$` from reference completion labels defensively", () => {
+    it("strips a leading `$` from reference completion labels defensively", async () => {
         const source = `<math name="m">x</math>\n$`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "$m",
             type: "reference",
         });
@@ -807,11 +818,11 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns snippet help with description and template text for a snippet completion", () => {
+    it("returns snippet help with description and template text for a snippet completion", async () => {
         // `answer-labeled` is a stable snippet in the bundled set (see
         // packages/static-assets/src/generated/completion-snippets.json).
         const source = ``;
-        const help = helpForCompletionAt(source, 0, {
+        const help = await helpForCompletionAt(source, 0, {
             label: "answer-labeled",
             type: "snippet",
         });
@@ -826,13 +837,13 @@ describe("computeContextHelpForCompletion", () => {
         expect(help.snippetText).toContain("<label>");
     });
 
-    it("returns element help for a close-tag `property`-kind completion (`/math>`)", () => {
+    it("returns element help for a close-tag `property`-kind completion (`/math>`)", async () => {
         // The LSP layer emits close-tag completions with `kind: Property`
         // and labels like `/math>`. The dispatcher must recognize the
         // `/` prefix and resolve through the surrounding element rather
         // than treating the label as an element name.
         const source = `<math>x`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "/math>",
             type: "property",
         });
@@ -842,12 +853,12 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns refName help for a `reference`-kind `name[]` completion (takesIndex)", () => {
+    it("returns refName help for a `reference`-kind `name[]` completion (takesIndex)", async () => {
         // For `takesIndex` referents (repeat, select, …) the LSP emits an
         // extra `name[]` row alongside the bare `name` row. Both should
         // resolve to the same target.
         const source = `<repeatForSequence name="rep"><math>x</math></repeatForSequence>\n$`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "rep[]",
             type: "reference",
         });
@@ -858,18 +869,18 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns NONE for an unknown completion label", () => {
+    it("returns NONE for an unknown completion label", async () => {
         const source = `<a`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "definitelyNotAnElement",
             type: "property",
         });
         expect(help.kind).toBe("none");
     });
 
-    it("returns NONE for a completion with no type", () => {
+    it("returns NONE for a completion with no type", async () => {
         const source = `<a`;
-        const help = helpForCompletionAt(source, source.length, {
+        const help = await helpForCompletionAt(source, source.length, {
             label: "abs",
         });
         expect(help.kind).toBe("none");

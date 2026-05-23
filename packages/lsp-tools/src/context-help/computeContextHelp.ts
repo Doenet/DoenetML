@@ -4,7 +4,7 @@ import {
     type ElementSchema,
     type SchemaAttribute,
     type SchemaProperty,
-} from "@doenet/lsp-tools";
+} from "../auto-completer";
 import { HelpContent } from "./types";
 
 /**
@@ -57,10 +57,10 @@ function resolveEntriesForNode(
     return [ownEntry, effective];
 }
 
-export function computeContextHelp(
+export async function computeContextHelp(
     completer: AutoCompleter,
     offset: number,
-): HelpContent {
+): Promise<HelpContent> {
     const { node, cursorPosition } =
         completer.sourceObj.elementAtOffsetWithContext(offset);
 
@@ -123,7 +123,7 @@ export function computeContextHelp(
         return helpForRefName(completer, offset, ctx);
     }
     if (ctx.cursorPos === "refMember") {
-        return helpForRefMember(completer, offset, ctx);
+        return await helpForRefMember(completer, offset, ctx);
     }
 
     return NONE;
@@ -239,7 +239,7 @@ function helpForAttribute(
     };
 }
 
-function helpForRefMember(
+async function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
     ctx: {
@@ -249,7 +249,7 @@ function helpForRefMember(
         pathPartHasIndex: boolean[];
         rawPathParts: string[];
     },
-): HelpContent {
+): Promise<HelpContent> {
     const memberName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
@@ -257,7 +257,7 @@ function helpForRefMember(
         isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!memberName) return NONE;
-    return helpForRefMemberByName(completer, offset, ctx, memberName);
+    return await helpForRefMemberByName(completer, offset, ctx, memberName);
 }
 
 /**
@@ -266,7 +266,7 @@ function helpForRefMember(
  * the completion-driven path passes the autocomplete row's label directly so
  * the help mirrors exactly what would be inserted.
  */
-function helpForRefMemberByName(
+async function helpForRefMemberByName(
     completer: AutoCompleter,
     offset: number,
     ctx: {
@@ -275,8 +275,14 @@ function helpForRefMemberByName(
         rawPathParts: string[];
     },
     memberName: string,
-): HelpContent {
-    const resolved = completer.resolveRefMemberContainerAtOffset(
+): Promise<HelpContent> {
+    // Await the resolver call. The previous JS-only call site silently treated
+    // the returned Promise as a truthy object and never read `.node`, which is
+    // the root cause of issue #1086 — multi-segment refs never resolved even
+    // when a Rust adapter was attached. With the help logic now running inside
+    // the LSP worker (which has a Rust adapter), awaiting this is what lights
+    // up multi-part chains like `$rep[1].point1.x`.
+    const resolved = await completer.resolveRefMemberContainerAtOffset(
         offset,
         ctx.pathParts,
         ctx.pathPartHasIndex,
@@ -286,8 +292,7 @@ function helpForRefMemberByName(
     // resolver adapter is configured (browser-only setups). Restricted to
     // length-2 chains because the JS path resolves only `pathParts[0]` and
     // would otherwise look up the cursor identifier on the root referent,
-    // producing wrong help for `$a.b.c`. Multi-part resolution is tracked in
-    // #1086.
+    // producing wrong help for `$a.b.c`.
     let containerNode = resolved.node;
     if (!containerNode) {
         if (ctx.pathParts.length === 2) {
@@ -364,10 +369,9 @@ function helpForRefMemberByName(
  * Help for a bare `$name` cursor. Uses the AST-only parent-chain walk in
  * `AutoCompleter.resolveRefNameForHelp`, which finds elements via a `name=`
  * attribute up the parent chain. It does NOT see repeat-introduced names
- * (`valueName`/`indexName`) — those need the Rust resolver, which is not
- * wired into the editor's context-help instance. Cursor on a `name` segment
- * inside a deeper chain like `$container.name.descendant` would likewise
- * need resolver-backed multi-part walking. Both gaps are tracked in #1086.
+ * (`valueName`/`indexName`) — those need the Rust resolver. The LSP-hosted
+ * version of context help inherits the LSP's Rust adapter, so this gap
+ * closes automatically once Option 4 is wired through.
  */
 function helpForRefName(
     completer: AutoCompleter,
@@ -447,11 +451,11 @@ export type ContextHelpCompletion = {
  * and ref-member properties use it) and is disambiguated by inspecting the
  * cursor's completion context.
  */
-export function computeContextHelpForCompletion(
+export async function computeContextHelpForCompletion(
     completer: AutoCompleter,
     offset: number,
     completion: ContextHelpCompletion,
-): HelpContent {
+): Promise<HelpContent> {
     const rawLabel = completion.label;
     if (!rawLabel) return NONE;
     const type = completion.type;
@@ -477,7 +481,12 @@ export function computeContextHelpForCompletion(
         // all share `kind: Property` in the LSP layer.
         const ctx = completer.getCompletionContext(offset);
         if (ctx.cursorPos === "refMember") {
-            return helpForRefMemberByName(completer, offset, ctx, rawLabel);
+            return await helpForRefMemberByName(
+                completer,
+                offset,
+                ctx,
+                rawLabel,
+            );
         }
         if (rawLabel.startsWith("/")) {
             // Close-tag completion (label like `/math>`): show help for the

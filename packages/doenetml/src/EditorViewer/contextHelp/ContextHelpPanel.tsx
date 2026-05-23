@@ -2,7 +2,7 @@ import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
-import { HelpContent } from "./types";
+import { HelpContent } from "@doenet/lsp-tools";
 import "./context-help-panel.css";
 
 /**

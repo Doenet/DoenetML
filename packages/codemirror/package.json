@@ -49,6 +49,7 @@
             "dependencies": [
                 "../parser:build",
                 "../lsp:build",
+                "../lsp-tools:build",
                 "../utils:build"
             ]
         }
