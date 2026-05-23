@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<publication>
+    <common>
+		<chunking level="0" />
+		<exercise-inline statement="yes" hint="yes" answer="no" solution="no" />
+		<exercise-divisional statement="yes" hint="yes" />
+	</common>
+    <html platform="web">
+		<knowl theorem="no" proof="no" definition="no" example="no" example-solution="no" project="no" task="no" remark="no" objectives="no" outcomes="no" figure="no" table="no" listing="no" list="no" exercise-inline="yes" exercise-divisional="no" exercise-worksheet="no" exercise-readingquestion="no" />
+		<css style="default" colors="blue_red" />
+		<search variant="none" />
+		<calculator model="none" activecode="none" />
+		<webwork inline="dynamic" divisional="static" reading="static" worksheet="static" project="dynamic" />
+	</html>
+    <!-- directories are relative to the main source PreTeXt file -->
+    <source>
+        <directories external="./assets" generated="./generated-assets"/>
+    </source>
+</publication>
