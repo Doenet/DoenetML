@@ -338,6 +338,40 @@ async function helpForRefMemberByName(
         };
     }
 
+    // The container has no named child matching `memberName`. Before
+    // falling through to property lookup, check whether the container is a
+    // `<repeat>`/`<repeatForSequence>` that introduces `memberName` as a
+    // `valueName`/`indexName` binding — the resolver augments
+    // `visibleDescendantNames` with these for indexed access (`$r[1].v`)
+    // even though they're not in the `name=` attribute tree.  Without this
+    // the panel goes blank for `$r[1].v` even though the autocomplete
+    // dropdown offered `v` as a completion.
+    const derivedOnContainer = completer.resolveDerivedRepeatNameOnElement(
+        containerNode,
+        memberName,
+    );
+    if (derivedOnContainer) {
+        const ownerEntry = completer.findSchemaElement(containerNode.name);
+        const displayPath = [
+            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
+            formatPathSegment(memberName),
+        ].join(".");
+        return {
+            kind: "refName",
+            refName: memberName,
+            displayPath,
+            targetElementName: containerNode.name,
+            summary: ownerEntry?.summary ?? null,
+            line: derivedOnContainer.line,
+            docsSlug: ownerEntry?.docsSlug ?? null,
+            derivedFrom: {
+                role: derivedOnContainer.role,
+                ownerElementName: containerNode.name,
+                ownerLine: derivedOnContainer.line,
+            },
+        };
+    }
+
     const ownEntry = completer.findSchemaElement(containerNode.name);
     if (!ownEntry) return NONE;
 
@@ -371,10 +405,13 @@ async function helpForRefMemberByName(
 /**
  * Help for a bare `$name` cursor. Uses the AST-only parent-chain walk in
  * `AutoCompleter.resolveRefNameForHelp`, which finds elements via a `name=`
- * attribute up the parent chain. It does NOT see repeat-introduced names
- * (`valueName`/`indexName`) — those need the Rust resolver. The LSP-hosted
- * version of context help inherits the LSP's Rust adapter, so this gap
- * closes automatically once Option 4 is wired through.
+ * attribute up the parent chain. Repeat-introduced names
+ * (`valueName`/`indexName`) miss that walk, so we fall through to
+ * `resolveDerivedRepeatNameForHelp` — also AST-only — and annotate the
+ * payload with `derivedFrom`. The companion `$r[N].v` case is handled in
+ * `helpForRefMemberByName` via `resolveDerivedRepeatNameOnElement`.
+ * Multi-part chains *through* repeat-introduced names without an index
+ * (e.g. `$v.x`) still depend on the Rust resolver and remain a known gap.
  */
 function helpForRefName(
     completer: AutoCompleter,
@@ -404,17 +441,40 @@ function helpForRefNameByName(
     refName: string,
 ): HelpContent {
     const resolved = completer.resolveRefNameForHelp(offset, refName);
-    if (!resolved) return NONE;
+    if (resolved) {
+        const { referent, line, effectiveEntry } = resolved;
+        return {
+            kind: "refName",
+            refName,
+            displayPath: formatPathSegment(refName),
+            targetElementName: referent.name,
+            summary: effectiveEntry?.summary ?? null,
+            line,
+            docsSlug: effectiveEntry?.docsSlug ?? null,
+        };
+    }
 
-    const { referent, line, effectiveEntry } = resolved;
+    // Fall through to the repeat-binding walk. Aligns the help panel with
+    // the autocomplete dropdown, which already injects `valueName`/`indexName`
+    // via `AutoCompleter.getAdditionalRefNames`.
+    const derived = completer.resolveDerivedRepeatNameForHelp(offset, refName);
+    if (!derived) return NONE;
+    const ownerEntry = completer.findSchemaElement(derived.owner.name);
     return {
         kind: "refName",
         refName,
         displayPath: formatPathSegment(refName),
-        targetElementName: referent.name,
-        summary: effectiveEntry?.summary ?? null,
-        line,
-        docsSlug: effectiveEntry?.docsSlug ?? null,
+        // `targetElementName` is the binding's introducer — the only static,
+        // always-correct answer (the iteration value's type is dynamic).
+        targetElementName: derived.owner.name,
+        summary: ownerEntry?.summary ?? null,
+        line: derived.line,
+        docsSlug: ownerEntry?.docsSlug ?? null,
+        derivedFrom: {
+            role: derived.role,
+            ownerElementName: derived.owner.name,
+            ownerLine: derived.line,
+        },
     };
 }
 
@@ -471,10 +531,33 @@ export async function computeContextHelpForCompletion(
         // Strip a leading `$` defensively, then a trailing `[]` — the LSP
         // layer emits an extra `name[]` row for `takesIndex` referents
         // (repeat, select, …) that resolves to the same target as the bare
-        // `name` row.
+        // `name` row.  (`[]` is only emitted for bare-ref completions, not
+        // member-ref ones, so this stripping is harmless in either branch.)
         let refName = rawLabel.startsWith("$") ? rawLabel.slice(1) : rawLabel;
         if (refName.endsWith("[]")) {
             refName = refName.slice(0, -2);
+        }
+        // Descendant reference names emitted in a `$container.member`
+        // context (see `createReferenceCompletionItems` at the
+        // `cursorPos === "refMember"` branch in `get-completion-items.ts`)
+        // must resolve via the container, not via a document-wide bare-ref
+        // lookup.  This matters in two cases:
+        //   - `$r[1].v` where `v` is a `valueName` of the enclosing repeat:
+        //     `resolveRefNameForHelp` looks for a `name="v"` element from
+        //     the cursor's position (outside the repeat) and finds none,
+        //     blanking the help while the dropdown shows `v` as a valid row.
+        //   - Ambiguous descendant names: `$sec.bi` when another `bi` lives
+        //     elsewhere in the document — the bare-ref path would surface
+        //     the wrong one (or NONE, since `getNamedDescendant` requires
+        //     uniqueness); the member path correctly resolves through `sec`.
+        const ctx = completer.getCompletionContext(offset);
+        if (ctx.cursorPos === "refMember") {
+            return await helpForRefMemberByName(
+                completer,
+                offset,
+                ctx,
+                refName,
+            );
         }
         return helpForRefNameByName(completer, offset, refName);
     }

@@ -116,6 +116,18 @@ export type RefHelpInfo = {
     effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
 };
 
+/**
+ * Repeat-introduced binding visible at a cursor offset: the `<repeat>` /
+ * `<repeatForSequence>` ancestor that declares `valueName` or `indexName`,
+ * plus which role the name plays. Pure-AST — no rust resolver needed.
+ */
+export type DerivedRepeatNameInfo = {
+    owner: DastElement;
+    role: "valueName" | "indexName";
+    /** 1-indexed source line of the introducing repeat. */
+    line: number | undefined;
+};
+
 export type AutoCompleterOptions = {
     sourceObj?: DoenetSourceObject;
     rustResolverAdapter?: RustResolverAdapter;
@@ -434,12 +446,87 @@ export class AutoCompleter {
      *
      * Uses the AST-only parent-chain walk in `getReferentAtOffset`, so it
      * finds elements with a `name` attribute but does not see repeat-introduced
-     * names (`valueName`/`indexName`); those require the Rust resolver.
+     * names (`valueName`/`indexName`). For those, see
+     * `resolveDerivedRepeatNameForHelp`.
      */
     resolveRefNameForHelp(offset: number, name: string): RefHelpInfo | null {
         const referent = this.sourceObj.getReferentAtOffset(offset, name);
         if (!referent) return null;
         return this._buildRefHelpInfo(referent);
+    }
+
+    /**
+     * Look up a bare ref `$name` at `offset` against repeat-introduced
+     * bindings only. Walks the parent chain from `offset` and, for each
+     * ancestor `<repeat>` / `<repeatForSequence>`, checks whether its
+     * `valueName` or `indexName` attribute literal equals `name`.
+     *
+     * Returns `null` when no enclosing repeat binds `name`. Companion to
+     * `resolveRefNameForHelp` — the help layer tries the named-element
+     * path first (richer schema metadata) and falls through here for
+     * repeat-introduced names that the runtime resolver would see but the
+     * DAST-by-name walk misses.
+     *
+     * Pure AST — no rust resolver involved. Available as soon as the
+     * editor has parsed the document, so help for `$i` inside a repeat
+     * works during the cold-start window too.
+     */
+    resolveDerivedRepeatNameForHelp(
+        offset: number,
+        name: string,
+    ): DerivedRepeatNameInfo | null {
+        let current: DastElement | undefined =
+            this.sourceObj.elementAtOffset(offset) ?? undefined;
+        while (current) {
+            const match = this.resolveDerivedRepeatNameOnElement(current, name);
+            if (match) return match;
+            const parent = this.sourceObj.getParent(current);
+            current =
+                parent && parent.type === "element"
+                    ? (parent as DastElement)
+                    : undefined;
+        }
+        return null;
+    }
+
+    /**
+     * Check whether `element` itself introduces `name` as a `valueName` or
+     * `indexName` binding. Returns `null` for non-repeat elements or when
+     * neither attribute matches.
+     *
+     * Companion to `resolveDerivedRepeatNameForHelp` for cases where the
+     * caller already has the candidate element — e.g. the resolver-returned
+     * container for `$r[1].v`, where the runtime resolver augments
+     * `visibleDescendantNames` with the repeat's `valueName`/`indexName`
+     * (see `rust-resolver-adapter._resolveRefMemberContainer`) but the
+     * named-descendant tree-walk in `resolveRefMemberDescendantHelp` misses
+     * them because they're not in the `name=` attribute tree.
+     */
+    resolveDerivedRepeatNameOnElement(
+        element: DastElement,
+        name: string,
+    ): DerivedRepeatNameInfo | null {
+        if (element.name !== "repeat" && element.name !== "repeatForSequence") {
+            return null;
+        }
+        for (const role of ["valueName", "indexName"] as const) {
+            const attr = element.attributes[role];
+            if (
+                attr &&
+                attr.children.length === 1 &&
+                attr.children[0].type === "text" &&
+                attr.children[0].value === name
+            ) {
+                const startOffset = element.position?.start.offset;
+                const line =
+                    startOffset != null &&
+                    startOffset < this.sourceObj.source.length
+                        ? this.sourceObj.offsetToRowCol(startOffset).line
+                        : undefined;
+                return { owner: element, role, line };
+            }
+        }
+        return null;
     }
 
     /**

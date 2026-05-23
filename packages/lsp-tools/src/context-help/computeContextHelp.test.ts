@@ -934,3 +934,91 @@ describe("computeContextHelpForCompletion", () => {
         expect(help.kind).toBe("none");
     });
 });
+
+describe("computeContextHelp — repeat-introduced names (valueName/indexName)", () => {
+    it("returns refName help with derivedFrom for a valueName binding", async () => {
+        // `$v` inside the repeat body resolves to the iteration value;
+        // `getReferentAtOffset` misses it (no `name="v"` anywhere), so the
+        // derived-repeat fallback supplies the binding info. Pure AST —
+        // works without any resolver attached.
+        const source = `<repeatForSequence name="rep" from="1" to="3" valueName="v">$v</repeatForSequence>`;
+        const offset = source.indexOf("$v") + 2;
+        const help = await helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "v",
+            targetElementName: "repeatForSequence",
+            derivedFrom: {
+                role: "valueName",
+                ownerElementName: "repeatForSequence",
+                ownerLine: 1,
+            },
+        });
+    });
+
+    it("returns refName help with derivedFrom for an indexName binding on <repeat>", async () => {
+        const source = `<repeat name="rep" for="1 2 3" indexName="i">$i</repeat>`;
+        const offset = source.indexOf("$i") + 2;
+        const help = await helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "i",
+            targetElementName: "repeat",
+            derivedFrom: { role: "indexName", ownerElementName: "repeat" },
+        });
+    });
+
+    it("returns NONE when a derived name is referenced outside its repeat scope", async () => {
+        // `$v` after the repeat closes is out of scope — neither the
+        // named-element walk nor the derived-repeat walk should find it.
+        const source = `<repeatForSequence name="rep" from="1" to="3" valueName="v"><math>x</math></repeatForSequence>\n$v`;
+        const help = await helpAt(source, source.length);
+        expect(help.kind).toBe("none");
+    });
+
+    it("returns derivedFrom for a `reference`-kind completion on a valueName row", async () => {
+        // Mirrors how the autocomplete dropdown surfaces the binding. Both
+        // the cursor-driven and completion-driven help paths feed through
+        // `helpForRefNameByName`, so the derivedFrom annotation appears for
+        // both — the panel agrees with the highlighted row.
+        const source = `<repeatForSequence name="rep" from="1" to="3" valueName="v">$</repeatForSequence>`;
+        const offset = source.indexOf("$") + 1;
+        const help = await helpForCompletionAt(source, offset, {
+            label: "v",
+            type: "reference",
+        });
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "v",
+            derivedFrom: { role: "valueName" },
+        });
+    });
+
+    it("returns derivedFrom for a `reference`-kind completion at $r[1].| highlighting valueName `v`", async () => {
+        // The user's #1086 regression report: at `$r[1].` with the
+        // autocomplete dropdown open and the `v` row highlighted (down-arrowed
+        // but not yet inserted), the help panel was blank because the
+        // `reference`-kind branch routed through `helpForRefNameByName` —
+        // which then looked up `v` as a bare ref from the cursor's position
+        // (OUTSIDE the repeat) and found no enclosing ancestor with
+        // `valueName="v"`.  Routing through `helpForRefMemberByName` in
+        // `refMember` context resolves through the container instead, and
+        // the derived-repeat-on-container fallback recovers the help.
+        const source = `<repeatForSequence name="r" from="1" to="5" valueName="v"><p><math name="myMath" simplify>2$v</math></p></repeatForSequence>\n$r[1].`;
+        const help = await helpForCompletionAt(source, source.length, {
+            label: "v",
+            type: "reference",
+        });
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "v",
+            displayPath: "r[1].v",
+            targetElementName: "repeatForSequence",
+            derivedFrom: {
+                role: "valueName",
+                ownerElementName: "repeatForSequence",
+                ownerLine: 1,
+            },
+        });
+    });
+});

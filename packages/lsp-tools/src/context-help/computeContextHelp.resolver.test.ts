@@ -136,4 +136,40 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             expect(help.propertyName.toLowerCase()).toBe("x");
         }
     });
+
+    it("resolves $r[1].v to the repeat's valueName binding with derivedFrom", async () => {
+        // `$r[1].v` is the most subtle case in the resolver-backed set:
+        // the adapter chops the last segment so the resolver only walks
+        // `["r"]`, landing on the `<repeatForSequence>` (the resolved part
+        // HAS an index, so the takesIndex-with-index branch of
+        // `_resolveRefMemberContainer` runs and augments
+        // `visibleDescendantNames` with the repeat's `valueName`/`indexName`).
+        // The help layer then needs to know `v` is a derived-repeat binding
+        // — `getNamedDescendant` misses it (no `name="v"` anywhere) and
+        // `findSchemaProperty(repeatForSequence, "v")` misses it too.  The
+        // derived-repeat-on-container fallback recovers the help so the
+        // panel agrees with the autocomplete dropdown that offered `.v`.
+        const source = `<repeatForSequence name="r" from="1" to="5" valueName="v"><p><math name="myMath" simplify>2$v</math></p></repeatForSequence>\n$r[1].v`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0, // repeatForSequence (the only takesIndex composite)
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "r" }],
+            },
+            takesIndexComponentTypes: new Set(["repeatForSequence"]),
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "v",
+            displayPath: "r[1].v",
+            targetElementName: "repeatForSequence",
+            derivedFrom: {
+                role: "valueName",
+                ownerElementName: "repeatForSequence",
+                ownerLine: 1,
+            },
+        });
+    });
 });

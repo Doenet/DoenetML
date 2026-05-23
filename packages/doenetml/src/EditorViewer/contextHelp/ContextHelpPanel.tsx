@@ -87,8 +87,14 @@ export function ContextHelpPanel({
             );
 
         case "refName": {
-            const { displayPath, targetElementName, summary, line, docsSlug } =
-                content;
+            const {
+                displayPath,
+                targetElementName,
+                summary,
+                line,
+                docsSlug,
+                derivedFrom,
+            } = content;
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">
@@ -96,6 +102,16 @@ export function ContextHelpPanel({
                         <code>{`<${targetElementName}>`}</code>
                         {line !== undefined ? ` on line ${line}` : ""}.
                     </p>
+                    {derivedFrom && (
+                        <p className="help-ref-derived">
+                            Introduced by{" "}
+                            <code>{`<${derivedFrom.ownerElementName}>`}</code>
+                            {derivedFrom.ownerLine !== undefined
+                                ? ` on line ${derivedFrom.ownerLine}`
+                                : ""}{" "}
+                            as <code>{derivedFrom.role}</code>.
+                        </p>
+                    )}
                     {summary && (
                         <p className="help-description">
                             {renderInlineMarkdown(summary)}
