@@ -4,7 +4,7 @@ export default class Cascade extends SectioningComponent {
     static componentType = "cascade";
 
     static componentDocs = {
-        summary: "Conditional cascade for showing content step-by-step.",
+        summary: "Sectional component that reveals its children step-by-step",
     };
     static rendererType = "section";
 

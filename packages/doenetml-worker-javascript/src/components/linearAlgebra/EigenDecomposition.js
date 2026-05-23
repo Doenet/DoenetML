@@ -11,8 +11,7 @@ export default class EigenDecomposition extends BaseComponent {
     static rendererType = undefined;
 
     static componentDocs = {
-        summary:
-            "Computes the eigenvalues and eigenvectors of a square matrix child.",
+        summary: "Computes the eigenvalues and eigenvectors of a square matrix",
     };
 
     static createAttributesObject() {

@@ -18,7 +18,7 @@ export default class BlockQuote extends BlockComponent {
     static includeBlankStringChildren = true;
 
     static componentDocs = {
-        summary: "A block-level quotation containing arbitrary content.",
+        summary: "A block-level quotation",
     };
 
     static returnChildGroups() {

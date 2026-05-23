@@ -14,7 +14,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static componentType = "sampleRandomNumbers";
 
     static componentDocs = {
-        summary: "Samples random numbers from a distribution.",
+        summary: "Samples random numbers from a distribution",
     };
     static takesIndex = true;
 

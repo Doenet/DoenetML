@@ -7,7 +7,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
     static componentDocs = {
         summary:
-            "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled.",
+            "Selects a fixed set of random numbers to create document variants",
     };
     static takesIndex = true;
 

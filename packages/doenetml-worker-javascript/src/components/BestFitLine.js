@@ -6,7 +6,7 @@ export default class BestFitLine extends Line {
     static componentType = "bestFitLine";
 
     static componentDocs = {
-        summary: "The best-fit line for a set of points.",
+        summary: "The best-fit line for a set of points",
     };
     static rendererType = "line";
 

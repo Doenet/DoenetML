@@ -6,7 +6,7 @@ export default class VariantControl extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "Configures how variants are generated for the enclosing document or section.",
+            "Configures how variants are generated for the enclosing document or section",
     };
 
     static createAttributesObject() {

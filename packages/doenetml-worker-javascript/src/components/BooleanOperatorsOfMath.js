@@ -4,7 +4,7 @@ export class IsInteger extends BooleanBaseOperatorOfMath {
     static componentType = "isInteger";
 
     static componentDocs = {
-        summary: "True when the math child evaluates to an integer.",
+        summary: "True when the math child evaluates to an integer",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -50,7 +50,7 @@ export class IsNumber extends BooleanBaseOperatorOfMath {
     static componentType = "isNumber";
 
     static componentDocs = {
-        summary: "True when the math child evaluates to a finite number.",
+        summary: "True when the math child evaluates to a finite number",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -82,7 +82,7 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
     static componentType = "isBetween";
 
     static componentDocs = {
-        summary: "True when a math value is between two given bounds.",
+        summary: "True when a math value is between two given bounds",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

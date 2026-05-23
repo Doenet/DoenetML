@@ -12,7 +12,7 @@ export default class IntervalList extends CompositeComponent {
     static componentType = "intervalList";
 
     static componentDocs = {
-        summary: "A list of intervals.",
+        summary: "A list of intervals",
     };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

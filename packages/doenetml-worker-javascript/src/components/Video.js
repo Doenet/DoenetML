@@ -27,7 +27,7 @@ export default class Video extends BlockComponent {
     static componentType = "video";
 
     static componentDocs = {
-        summary: "Embeds a video player.",
+        summary: "Embeds a video player",
     };
     static renderChildren = true;
 

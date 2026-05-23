@@ -17,7 +17,7 @@ export default class Atom extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties.",
+            "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties",
     };
 
     static primaryStateVariableForDefinition = "atomicNumberShadow";

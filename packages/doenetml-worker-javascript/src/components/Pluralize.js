@@ -11,7 +11,7 @@ export default class Pluralize extends Text {
 
     static componentDocs = {
         summary:
-            "Renders a word in its singular or plural form based on a count.",
+            "Renders a word in its singular or plural form based on a count",
     };
     static rendererType = "text";
 

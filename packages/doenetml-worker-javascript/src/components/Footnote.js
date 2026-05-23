@@ -7,7 +7,7 @@ export default class Footnote extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "Inline footnote whose body is shown on demand and is auto-numbered in the document.",
+            "Inline footnote whose body is shown on demand and is auto-numbered in the document",
     };
 
     static includeBlankStringChildren = true;

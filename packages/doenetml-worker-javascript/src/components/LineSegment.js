@@ -25,7 +25,7 @@ export default class LineSegment extends GraphicalComponent {
     static componentType = "lineSegment";
 
     static componentDocs = {
-        summary: "A line segment between two endpoints.",
+        summary: "A line segment between two endpoints",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

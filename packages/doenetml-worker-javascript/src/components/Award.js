@@ -13,8 +13,7 @@ export default class Award extends BaseComponent {
     static componentType = "award";
 
     static componentDocs = {
-        summary:
-            "An award rule within an `<answer>` that grants credit when matched.",
+        summary: "Specifies conditions for awarding credit in an answer",
     };
     static rendererType = undefined;
 

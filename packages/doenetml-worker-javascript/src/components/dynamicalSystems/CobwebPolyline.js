@@ -12,7 +12,7 @@ export default class CobwebPolyline extends Polyline {
 
     static componentDocs = {
         summary:
-            "An interactive cobweb diagram for visualizing iteration of a one-variable function.",
+            "An interactive cobweb diagram for visualizing iteration of a one-variable function",
     };
 
     static createAttributesObject() {

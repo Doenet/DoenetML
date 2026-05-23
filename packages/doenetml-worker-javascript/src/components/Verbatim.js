@@ -17,7 +17,7 @@ export class Pre extends BlockComponent {
     static componentType = "pre";
 
     static componentDocs = {
-        summary: "A preformatted block preserving whitespace.",
+        summary: "A preformatted block preserving whitespace",
     };
     static renderChildren = true;
 
@@ -90,8 +90,7 @@ export class DisplayDoenetML extends InlineComponent {
     static rendererType = "text";
 
     static componentDocs = {
-        summary:
-            "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it.",
+        summary: "Displays a DoenetML source string verbatim",
     };
 
     static keepChildrenSerialized({ serializedComponent }) {

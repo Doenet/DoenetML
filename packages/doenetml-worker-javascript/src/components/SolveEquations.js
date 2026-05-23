@@ -11,7 +11,7 @@ export default class SolveEquations extends InlineComponent {
     static componentType = "solveEquations";
 
     static componentDocs = {
-        summary: "Numerically solves a system of equations.",
+        summary: "Numerically solves a system of equations",
     };
     static rendererType = undefined;
 

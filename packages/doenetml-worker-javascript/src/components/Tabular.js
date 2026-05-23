@@ -12,7 +12,7 @@ export default class Tabular extends BlockComponent {
     static componentType = "tabular";
 
     static componentDocs = {
-        summary: "A simple tabular layout of cells without table semantics.",
+        summary: "A simple tabular layout of cells",
     };
     static rendererType = "tabular";
     static renderChildren = true;

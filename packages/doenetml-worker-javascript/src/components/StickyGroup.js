@@ -17,7 +17,7 @@ export default class StickyGroup extends GraphicalComponent {
 
     static componentDocs = {
         summary:
-            "Constrains group members to attract to each other when nearby.",
+            "Constrains group members to attract to each other when nearby",
     };
     static rendererType = "containerInline";
     static renderChildren = true;

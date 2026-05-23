@@ -21,7 +21,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
     static componentType = "subsetOfRealsInput";
 
     static componentDocs = {
-        summary: "An interactive input for entering a subset of real numbers.",
+        summary: "An interactive input for entering a subset of real numbers",
     };
     static variableForImplicitProp = "subsetValue";
 

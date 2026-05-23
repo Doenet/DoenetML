@@ -29,7 +29,8 @@ export default class CallAction extends InlineComponent {
     static componentType = "callAction";
 
     static componentDocs = {
-        summary: "Invokes a named action on a target component.",
+        summary:
+            "Triggers an action when clicked or in response to a specified user interaction",
     };
     static rendererType = "button";
 

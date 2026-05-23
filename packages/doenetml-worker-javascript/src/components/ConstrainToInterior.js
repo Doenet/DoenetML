@@ -6,7 +6,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Constrains a graphical component's position to lie inside a region.",
+            "Constrains a graphical component's position to lie inside a region",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

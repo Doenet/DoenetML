@@ -17,7 +17,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
     static componentDocs = {
-        summary: "Randomly selects prime numbers from a range.",
+        summary:
+            "Randomly selects prime numbers from a range to create document variants",
     };
     static takesIndex = true;
 

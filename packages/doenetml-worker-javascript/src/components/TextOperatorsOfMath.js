@@ -5,7 +5,7 @@ export class ExtractMathOperator extends TextBaseOperatorOfMath {
 
     static componentDocs = {
         summary:
-            'Returns the top-level operator of a math expression as text (e.g. "+", "vector").',
+            'Returns the top-level operator of a math expression as text (e.g. "+", "vector")',
     };
 
     static applyTextOperator(values) {

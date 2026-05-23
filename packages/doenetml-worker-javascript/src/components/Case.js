@@ -4,7 +4,7 @@ export default class Case extends BaseComponent {
     static componentType = "case";
 
     static componentDocs = {
-        summary: "A single conditional branch within `<conditionalContent>`.",
+        summary: "A single conditional branch within `<conditionalContent>`",
     };
     static rendererType = undefined;
 

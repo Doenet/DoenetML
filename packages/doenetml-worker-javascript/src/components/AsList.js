@@ -5,7 +5,7 @@ export default class AsList extends InlineComponent {
     static componentType = "asList";
 
     static componentDocs = {
-        summary: "Renders its children as a comma-separated list.",
+        summary: "Renders its children as a comma-separated list",
     };
     static renderChildren = true;
     static canDisplayChildErrors = true;

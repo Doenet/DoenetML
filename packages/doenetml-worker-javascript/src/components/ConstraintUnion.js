@@ -7,7 +7,7 @@ export default class ConstraintUnion extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "A constraint that is satisfied if any of its child constraints are satisfied.",
+            "A constraint that is satisfied if any of its child constraints are satisfied",
     };
     static returnChildGroups() {
         return [

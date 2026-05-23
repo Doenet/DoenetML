@@ -46,7 +46,7 @@ export default class MathInput extends Input {
     static componentType = "mathInput";
 
     static componentDocs = {
-        summary: "An interactive math input.",
+        summary: "An interactive math input",
     };
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";

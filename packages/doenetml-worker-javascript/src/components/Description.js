@@ -13,7 +13,7 @@ export default class Description extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "Extra information about an enclosing component, shown to all users in a popup or disclosure.",
+            "Extra information about an enclosing component, shown to all users in a popup or disclosure",
     };
     static rendererType = "containerBlock";
     static renderChildren = true;

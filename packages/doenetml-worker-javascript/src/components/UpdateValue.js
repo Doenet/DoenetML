@@ -29,7 +29,7 @@ export default class UpdateValue extends InlineComponent {
     static componentType = "updateValue";
 
     static componentDocs = {
-        summary: "Updates one or more state variables on a target component.",
+        summary: "Updates one or more state variables on a target component",
     };
     static rendererType = "button";
 

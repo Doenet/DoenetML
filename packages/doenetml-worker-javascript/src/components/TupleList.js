@@ -6,7 +6,7 @@ export default class TupleList extends MathList {
 
     static componentDocs = {
         summary:
-            "A list of math tuples, parsed from parenthesized comma-separated pieces.",
+            "A list of math tuples, parsed from parenthesized comma-separated pieces",
     };
 
     static includeBlankStringChildren = false;

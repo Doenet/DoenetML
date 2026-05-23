@@ -5,7 +5,7 @@ export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
     static componentDocs = {
-        summary: "The intersection of subsets or regions.",
+        summary: "Renders intersections between graphical objects",
     };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 

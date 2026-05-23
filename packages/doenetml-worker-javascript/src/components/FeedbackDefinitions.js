@@ -5,7 +5,7 @@ export class FeedbackDefinition extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "A reusable feedback definition referenced by other components.",
+            "A reusable feedback definition referenced by other components",
     };
     static rendererType = undefined;
 

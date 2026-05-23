@@ -18,7 +18,7 @@ export default class Spreadsheet extends BlockComponent {
     static componentType = "spreadsheet";
 
     static componentDocs = {
-        summary: "An interactive spreadsheet input.",
+        summary: "An interactive spreadsheet",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

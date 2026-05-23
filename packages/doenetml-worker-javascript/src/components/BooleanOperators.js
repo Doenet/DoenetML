@@ -5,7 +5,7 @@ export class Not extends BooleanBaseOperatorOneInput {
     static componentType = "not";
 
     static componentDocs = {
-        summary: "Logical negation of a boolean value.",
+        summary: "Logical negation of a boolean value",
     };
 
     static applyBooleanOperator(value) {
@@ -18,7 +18,7 @@ export class And extends BooleanBaseOperator {
 
     static componentDocs = {
         summary:
-            "Logical AND: true only when all child boolean values are true.",
+            "Logical AND: true only when all child boolean values are true",
     };
 
     static applyBooleanOperator(values) {
@@ -31,7 +31,7 @@ export class Or extends BooleanBaseOperator {
 
     static componentDocs = {
         summary:
-            "Logical OR: true when at least one child boolean value is true.",
+            "Logical OR: true when at least one child boolean value is true",
     };
 
     static applyBooleanOperator(values) {
@@ -44,7 +44,7 @@ export class Xor extends BooleanBaseOperator {
 
     static componentDocs = {
         summary:
-            "Logical exclusive OR: true when exactly one child boolean value is true.",
+            "Logical exclusive OR: true when exactly one child boolean value is true",
     };
 
     static applyBooleanOperator(values) {

@@ -6,8 +6,7 @@ export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
 
     static componentDocs = {
-        summary:
-            "A reusable style definition referenced by graphical components.",
+        summary: "A reusable style definition referenced by other components",
     };
     static rendererType = undefined;
 

@@ -13,7 +13,7 @@ export default class Evaluate extends MathComponent {
     static componentType = "evaluate";
 
     static componentDocs = {
-        summary: "Evaluates a function at a math input.",
+        summary: "Evaluates a function at a math value",
     };
     static rendererType = "math";
 

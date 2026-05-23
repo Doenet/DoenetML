@@ -16,7 +16,8 @@ export default class Rectangle extends Polygon {
     static componentType = "rectangle";
 
     static componentDocs = {
-        summary: "A rectangle defined by corner points.",
+        summary:
+            "A rectangle, potentially defined by width, height, center and/or corner vertices",
     };
     static rendererType = "polygon";
 

@@ -7,7 +7,7 @@ export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
     static componentDocs = {
-        summary: "Sorts a list according to a comparison function.",
+        summary: "Sorts a list according to a comparison function",
     };
     static takesIndex = true;
 

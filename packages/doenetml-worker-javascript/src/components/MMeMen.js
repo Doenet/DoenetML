@@ -25,7 +25,7 @@ export class M extends InlineComponent {
     static componentType = "m";
 
     static componentDocs = {
-        summary: "Inline math rendered with LaTeX.",
+        summary: "Inline math rendered with LaTeX",
     };
     static rendererType = "math";
 
@@ -313,7 +313,7 @@ export class Me extends M {
     static componentType = "me";
 
     static componentDocs = {
-        summary: "Display math rendered with LaTeX.",
+        summary: "Display math rendered with LaTeX",
     };
     static canBeInList = false;
 
@@ -331,7 +331,7 @@ export class Men extends M {
     static componentType = "men";
 
     static componentDocs = {
-        summary: "Numbered display math rendered with LaTeX.",
+        summary: "Numbered display math rendered with LaTeX",
     };
     static canBeInList = false;
 

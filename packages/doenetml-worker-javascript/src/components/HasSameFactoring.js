@@ -6,7 +6,7 @@ export default class HasSameFactoring extends BooleanComponent {
     static componentType = "hasSameFactoring";
 
     static componentDocs = {
-        summary: "Boolean condition that tests for equivalent factoring.",
+        summary: "Boolean condition that tests for equivalent factoring",
     };
     static rendererType = "boolean";
 
