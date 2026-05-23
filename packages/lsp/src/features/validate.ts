@@ -12,7 +12,11 @@ import {
     documentSettings,
     documents,
 } from "../globals";
-import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
+import {
+    AutoCompleter,
+    DOENET_LSP_METHODS,
+    RustResolverAdapter,
+} from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
@@ -42,7 +46,7 @@ export function addValidationSupport(
     });
 
     connection.onRequest(
-        "doenet/setAdditionalDiagnostics",
+        DOENET_LSP_METHODS.setAdditionalDiagnostics,
         (params: { uri: string; additionalDiagnostics: Diagnostic[] }) => {
             const { uri, additionalDiagnostics } = params;
             const info = documentInfo.get(uri);

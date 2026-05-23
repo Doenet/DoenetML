@@ -7,6 +7,7 @@ import util from "util";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { initWorker } from "./utils/init-message-connection";
+import { DOENET_LSP_METHODS } from "@doenet/lsp-tools";
 import type {
     CompletionItem,
     Diagnostic,
@@ -261,7 +262,7 @@ describe("Doenet Language Server", async () => {
             },
             severity: 1,
         };
-        workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
+        workerConn.sendRequest(DOENET_LSP_METHODS.setAdditionalDiagnostics, {
             uri: "file:///test2.doenet",
             additionalDiagnostics: [diagnostic],
         });
@@ -349,7 +350,7 @@ describe("Doenet Language Server", async () => {
             severity: 1,
         };
 
-        workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
+        workerConn.sendRequest(DOENET_LSP_METHODS.setAdditionalDiagnostics, {
             uri,
             additionalDiagnostics: [externalDiagnostic],
         });

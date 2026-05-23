@@ -15,7 +15,11 @@ import {
     Position,
     CompletionContext,
 } from "vscode-languageserver-protocol/browser";
-import type { ContextHelpCompletion, HelpContent } from "@doenet/lsp-tools";
+import {
+    DOENET_LSP_METHODS,
+    type ContextHelpCompletion,
+    type HelpContent,
+} from "@doenet/lsp-tools";
 
 // Re-export the help-payload types so editor code that already depends on
 // `@doenet/codemirror` for the LSP integration can pick up the types from
@@ -263,13 +267,18 @@ export class LSP {
     ): Promise<void> {
         await this.initPromise.promise;
         if (!this.workerConn) {
-            console.warn("Cannot send additional diagnostics without lspConn");
+            console.warn(
+                "Cannot send additional diagnostics without workerConn",
+            );
             return;
         }
-        await this.workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
-            uri,
-            additionalDiagnostics,
-        });
+        await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.setAdditionalDiagnostics,
+            {
+                uri,
+                additionalDiagnostics,
+            },
+        );
     }
 
     /**
@@ -288,13 +297,16 @@ export class LSP {
     ): Promise<HelpContent> {
         await this.initPromise.promise;
         if (!this.workerConn) {
-            console.warn("Cannot request context help without lspConn");
+            console.warn("Cannot request context help without workerConn");
             return HELP_NONE;
         }
-        return await this.workerConn.sendRequest("doenet/contextHelp", {
-            uri,
-            offset,
-        });
+        return await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.contextHelp,
+            {
+                uri,
+                offset,
+            },
+        );
     }
 
     /**
@@ -311,12 +323,12 @@ export class LSP {
         await this.initPromise.promise;
         if (!this.workerConn) {
             console.warn(
-                "Cannot request context help for completion without lspConn",
+                "Cannot request context help for completion without workerConn",
             );
             return HELP_NONE;
         }
         return await this.workerConn.sendRequest(
-            "doenet/contextHelpForCompletion",
+            DOENET_LSP_METHODS.contextHelpForCompletion,
             { uri, offset, completion },
         );
     }

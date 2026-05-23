@@ -642,63 +642,68 @@ export const EditorViewer = React.forwardRef<
         updateValueTimer.current = null;
     }, []);
 
-    // Help-RPC helpers.  Each bumps `helpRequestIdRef` and captures its own
-    // ID; the response only commits to state if the captured ID is still
-    // current and the help tab is still visible.  Newest-request-wins
+    // Help-RPC plumbing.  Every send bumps `helpRequestIdRef` and captures
+    // its own ID; the response only commits to state if the captured ID is
+    // still current and the help tab is still visible.  Newest-request-wins
     // ordering, no JSON-RPC cancellation needed (issue #1086 / Option 4).
-    const requestHelpForCursor = useCallback(async (offset: number) => {
-        const myId = ++helpRequestIdRef.current;
-        const bundle = lspRef.current;
-        if (!bundle) {
-            // Symmetry with the post-await branches: only commit state
-            // when the help panel is actually visible.  An invisible
-            // panel already shows HELP_NONE, and the visibility-becomes-
-            // visible effect will re-fetch on its own when the panel
-            // opens.
-            if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
-            return;
-        }
-        try {
-            const result = await bundle.lsp.requestContextHelp(
-                bundle.documentUri,
-                offset,
-            );
-            if (myId !== helpRequestIdRef.current) return;
-            if (!helpIsVisibleRef.current) return;
-            setHelpContent(result);
-        } catch (err) {
-            if (myId !== helpRequestIdRef.current) return;
-            console.warn("contextHelp request failed", err);
-            if (!helpIsVisibleRef.current) return;
-            setHelpContent(HELP_NONE);
-        }
-    }, []);
-
-    const requestHelpForCompletion = useCallback(
-        async (offset: number, completion: Completion) => {
+    //
+    // The two flavours (cursor-driven and completion-driven) share the
+    // ID/visibility/error guards via `runHelpRequest` — only the underlying
+    // RPC call differs.  Keeping the guards in one place means a fix in
+    // either dimension (e.g. revising stale-drop policy) doesn't have to
+    // be mirrored.
+    const runHelpRequest = useCallback(
+        async (
+            warnLabel: string,
+            rpc: (bundle: {
+                lsp: LSP;
+                documentUri: string;
+            }) => Promise<HelpContent>,
+        ) => {
             const myId = ++helpRequestIdRef.current;
             const bundle = lspRef.current;
             if (!bundle) {
+                // Symmetry with the post-await branches: only commit
+                // state when the help panel is actually visible.  An
+                // invisible panel already shows HELP_NONE, and the
+                // visibility-becomes-visible effect will re-fetch on its
+                // own when the panel opens.
                 if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
                 return;
             }
             try {
-                const result = await bundle.lsp.requestContextHelpForCompletion(
-                    bundle.documentUri,
-                    offset,
-                    { label: completion.label, type: completion.type },
-                );
+                const result = await rpc(bundle);
                 if (myId !== helpRequestIdRef.current) return;
                 if (!helpIsVisibleRef.current) return;
                 setHelpContent(result);
             } catch (err) {
                 if (myId !== helpRequestIdRef.current) return;
-                console.warn("contextHelpForCompletion request failed", err);
+                console.warn(`${warnLabel} request failed`, err);
                 if (!helpIsVisibleRef.current) return;
                 setHelpContent(HELP_NONE);
             }
         },
         [],
+    );
+
+    const requestHelpForCursor = useCallback(
+        (offset: number) =>
+            runHelpRequest("contextHelp", (bundle) =>
+                bundle.lsp.requestContextHelp(bundle.documentUri, offset),
+            ),
+        [runHelpRequest],
+    );
+
+    const requestHelpForCompletion = useCallback(
+        (offset: number, completion: Completion) =>
+            runHelpRequest("contextHelpForCompletion", (bundle) =>
+                bundle.lsp.requestContextHelpForCompletion(
+                    bundle.documentUri,
+                    offset,
+                    { label: completion.label, type: completion.type },
+                ),
+            ),
+        [runHelpRequest],
     );
 
     const onCursorChange = useCallback(

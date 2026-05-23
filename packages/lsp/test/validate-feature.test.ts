@@ -112,6 +112,15 @@ vi.mock("@doenet/lsp-tools", () => {
     return {
         AutoCompleter,
         RustResolverAdapter,
+        // Mirror the real export so `validate.ts` can register its
+        // `setAdditionalDiagnostics` handler under the same method name
+        // the worker-side client sends.  Kept in sync by hand because
+        // the mock deliberately doesn't pull in the real module.
+        DOENET_LSP_METHODS: {
+            setAdditionalDiagnostics: "doenet/setAdditionalDiagnostics",
+            contextHelp: "doenet/contextHelp",
+            contextHelpForCompletion: "doenet/contextHelpForCompletion",
+        },
     };
 });
 

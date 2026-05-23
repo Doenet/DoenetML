@@ -10,7 +10,7 @@
  * race, and error-path graceful degradation.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AutoCompleter } from "@doenet/lsp-tools";
+import { AutoCompleter, DOENET_LSP_METHODS } from "@doenet/lsp-tools";
 import { addContextHelpSupport } from "../src/features/context-help";
 
 type Handler = (params: any) => Promise<any>;
@@ -29,9 +29,23 @@ function registerHandlers(documentInfo: Map<string, unknown>) {
     };
     addContextHelpSupport(connection as any, documentInfo as any);
     return {
-        contextHelp: handlers["doenet/contextHelp"],
-        contextHelpForCompletion: handlers["doenet/contextHelpForCompletion"],
+        contextHelp: handlers[DOENET_LSP_METHODS.contextHelp],
+        contextHelpForCompletion:
+            handlers[DOENET_LSP_METHODS.contextHelpForCompletion],
     };
+}
+
+/**
+ * Drain the microtask queue so any promise that didn't await an external
+ * signal would have settled by now.  Used by the rust-boot-wait tests to
+ * assert the handler is *still pending* before `rustReady` resolves —
+ * without this, a buggy handler that returned synchronously could fool
+ * the test by settling on the next microtask before `await pending`.
+ */
+async function flushMicrotasks() {
+    for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+    }
 }
 
 describe("addContextHelpSupport — doenet/contextHelp", () => {
@@ -89,11 +103,26 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         // Fire the request while rust is still initializing.  The handler
         // must wait for `rustReady` rather than bailing immediately —
         // otherwise it would close the help session before the resolver
-        // can answer.  Without an adapter actually wired in here we don't
-        // get real property help (post-Option-2 the JS fallback is gone),
-        // but the response is still well-formed and the request didn't
-        // resolve before the boot completed.
-        const pending = contextHelp({ uri, offset: source.length });
+        // can answer.  Track settled-ness via a `.then` callback so we
+        // can prove the request is still pending below.
+        let settled = false;
+        const pending = contextHelp({
+            uri,
+            offset: source.length,
+        }).then((r) => {
+            settled = true;
+            return r;
+        });
+
+        // Drain microtasks so any handler that returned synchronously
+        // (without awaiting `rustReady`) would have settled by now.  A
+        // correct handler is suspended inside `Promise.race([rustReady,
+        // setTimeout(...)])`; neither leg has fired, so `settled` stays
+        // false.  This is the assertion the original test was missing —
+        // without it, resolving `rustReady` before `await pending` would
+        // mask a handler that ignored the wait.
+        await flushMicrotasks();
+        expect(settled).toBe(false);
 
         // Boot completes — adapter becomes ready and rustReady settles.
         docEntry.rustState = "ready";
@@ -101,6 +130,11 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
         resolveRustReady();
 
         const result = await pending;
+        expect(settled).toBe(true);
+        // Without an actual adapter wired in here we don't get real
+        // property help (post-Option-2 the JS fallback is gone), but the
+        // response is still well-formed and — critically — the request
+        // didn't resolve before the boot completed.
         expect(result).toMatchObject({ kind: expect.any(String) });
     });
 
@@ -194,11 +228,11 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
 
     it("waits for the rust boot before answering a refMember completion query", async () => {
         // Mirrors the cursor-side `waits for the rust boot...` test —
-        // `waitForRustIfRefContext` is shared between the two RPCs, so a
-        // regression there must be caught on both code paths.  The
-        // dropdown's highlighted-row help should not resolve before the
-        // resolver has had a chance to answer; otherwise the panel commits
-        // a stale NONE while the dropdown shows real completions.
+        // the wait helper is shared between the two RPCs, so a regression
+        // there must be caught on both code paths.  The dropdown's
+        // highlighted-row help should not resolve before the resolver
+        // has had a chance to answer; otherwise the panel commits a
+        // stale NONE while the dropdown shows real completions.
         const uri = "file:///t.doenet";
         const source = `<math name="m">x</math>\n$m.`;
         let resolveRustReady!: () => void;
@@ -216,11 +250,22 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
             new Map([[uri, docEntry]]),
         );
 
+        let settled = false;
         const pending = contextHelpForCompletion({
             uri,
             offset: source.length,
             completion: { label: "displayDecimals", type: "property" },
+        }).then((r) => {
+            settled = true;
+            return r;
         });
+
+        // Same pendingness assertion as the cursor-side test — without
+        // this, a handler that ignored `rustReady` and resolved on the
+        // next microtask would still pass because `resolveRustReady()`
+        // runs before `await pending`.
+        await flushMicrotasks();
+        expect(settled).toBe(false);
 
         // Boot completes — adapter becomes ready and rustReady settles.
         docEntry.rustState = "ready";
@@ -228,6 +273,7 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
         resolveRustReady();
 
         const result = await pending;
+        expect(settled).toBe(true);
         expect(result).toMatchObject({ kind: expect.any(String) });
     });
 
