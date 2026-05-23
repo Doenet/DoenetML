@@ -28,6 +28,7 @@ import type {
     Position as LSPPosition,
     Range as LSPRange,
 } from "vscode-languageserver";
+import type { SyntaxNode } from "@lezer/common";
 import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
 import {
     findAttributeContainingOffset,
@@ -367,9 +368,7 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Comparison is case-sensitive to match XML/DoenetML semantics.
      */
-    _isCloseTagStolenFromAncestor(
-        elementNode: NonNullable<ReturnType<typeof this._lezerCursor>["node"]>,
-    ): boolean {
+    _isCloseTagStolenFromAncestor(elementNode: SyntaxNode): boolean {
         const openTag = elementNode.getChild("OpenTag");
         const tagNameNode = openTag?.getChild("TagName");
         if (!tagNameNode) {
