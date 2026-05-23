@@ -17,7 +17,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Repeats template content for each value in an arithmetic sequence.",
+            "Repeats template content for each value in an arithmetic sequence",
     };
     static takesIndex = true;
 

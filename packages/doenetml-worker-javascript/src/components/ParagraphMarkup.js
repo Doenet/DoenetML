@@ -4,7 +4,7 @@ export class Em extends InlineRenderInlineChildren {
     static componentType = "em";
 
     static componentDocs = {
-        summary: "Emphasized inline text (italic by default).",
+        summary: "Emphasized inline text (italic by default)",
     };
 }
 
@@ -12,7 +12,7 @@ export class Alert extends InlineRenderInlineChildren {
     static componentType = "alert";
 
     static componentDocs = {
-        summary: "Inline text styled as an alert.",
+        summary: "Bold text",
     };
 }
 
@@ -20,7 +20,7 @@ export class Q extends InlineRenderInlineChildren {
     static componentType = "q";
 
     static componentDocs = {
-        summary: "Inline double-quoted text.",
+        summary: "Inline double-quoted text",
     };
     static beginTextDelimiter = '"';
     static endTextDelimiter = '"';
@@ -30,7 +30,7 @@ export class SQ extends InlineRenderInlineChildren {
     static componentType = "sq";
 
     static componentDocs = {
-        summary: "Inline single-quoted text.",
+        summary: "Inline single-quoted text",
     };
     static beginTextDelimiter = "'";
     static endTextDelimiter = "'";
@@ -40,7 +40,7 @@ export class Term extends InlineRenderInlineChildren {
     static componentType = "term";
 
     static componentDocs = {
-        summary: "An inline term, styled distinctively.",
+        summary: "An inline term, styled distinctively",
     };
     static rendererType = "alert";
 }
@@ -49,7 +49,7 @@ export class C extends InlineRenderInlineChildren {
     static componentType = "c";
 
     static componentDocs = {
-        summary: "Inline code text.",
+        summary: "Inline code text",
     };
 }
 
@@ -57,7 +57,7 @@ export class Tag extends InlineRenderInlineChildren {
     static componentType = "tag";
 
     static componentDocs = {
-        summary: "Renders an XML/HTML tag-like inline.",
+        summary: "Renders enclosed text as an opening tag, `< >`",
     };
     static rendererType = "tag";
     static beginTextDelimiter = "<";
@@ -68,7 +68,7 @@ export class Tage extends InlineRenderInlineChildren {
     static componentType = "tage";
 
     static componentDocs = {
-        summary: "Renders an empty XML/HTML tag-like inline.",
+        summary: "Renders enclosed text as a self-closing tag, `< />`",
     };
     static rendererType = "tag";
     static beginTextDelimiter = "<";
@@ -89,7 +89,7 @@ export class Tagc extends InlineRenderInlineChildren {
     static componentType = "tagc";
 
     static componentDocs = {
-        summary: "Renders a closing XML/HTML tag-like inline.",
+        summary: "Renders enclosed text as a closing tag, `</ >`",
     };
     static rendererType = "tag";
     static beginTextDelimiter = "</";
@@ -110,7 +110,7 @@ export class Attr extends InlineRenderInlineChildren {
     static componentType = "attr";
 
     static componentDocs = {
-        summary: "Renders an attribute name as an inline.",
+        summary: "Renders a styled attribute name",
     };
     static rendererType = "c";
 }

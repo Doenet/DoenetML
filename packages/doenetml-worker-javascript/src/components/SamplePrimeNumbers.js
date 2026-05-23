@@ -14,7 +14,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static componentType = "samplePrimeNumbers";
 
     static componentDocs = {
-        summary: "Samples random prime numbers.",
+        summary: "Samples random prime numbers",
     };
     static takesIndex = true;
 

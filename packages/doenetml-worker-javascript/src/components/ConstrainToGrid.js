@@ -5,8 +5,7 @@ export default class ConstrainToGrid extends ConstraintComponent {
     static componentType = "constrainToGrid";
 
     static componentDocs = {
-        summary:
-            "Constrains a graphical component's position to lie on a grid.",
+        summary: "Constrains a graphical component's position to lie on a grid",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

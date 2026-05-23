@@ -195,6 +195,21 @@ type ComponentClass = {
          */
         docsSlug?: string | null;
         /**
+         * Author-facing tag name to show in the docs index instead of the
+         * internal `componentType`. Set on alias targets (e.g. `matrixRow` has
+         * `displayName: "row"`) so the index displays the user-written tag
+         * rather than the implementation-detail componentType. When undefined,
+         * the docs renderer falls back to `componentType`.
+         */
+        displayName?: string;
+        /**
+         * Disambiguation phrase appended in parentheses after the displayed
+         * tag in the docs index — e.g. `<row>` gets `displayContext: "in a
+         * table"` and `matrixRow` gets `displayContext: "in a matrix"` so the
+         * two entries render as `<row> (in a table)` and `<row> (in a matrix)`.
+         */
+        displayContext?: string;
+        /**
          * Map from child component type → alias target component type. When
          * the editor shows help for a child whose component type is in this
          * map, the help is taken from the alias target instead. Used to
@@ -335,6 +350,19 @@ type SchemaElement = {
      */
     docsSlug: string | null;
     /**
+     * Author-facing tag name shown in the docs index in place of `name`.
+     * Present only when the class declares `componentDocs.displayName` (e.g.
+     * `matrixRow → "row"`). Undefined means "use `name` as-is".
+     */
+    displayName?: string;
+    /**
+     * Parenthetical disambiguator appended to the displayed tag in the docs
+     * index, e.g. `displayContext: "in a table"` renders as `<row> (in a
+     * table)`. Used alongside `displayName` to distinguish multiple entries
+     * that share an author-facing tag.
+     */
+    displayContext?: string;
+    /**
      * Map from child component type → alias element name in `aliasedElements`.
      * When editor help is computed for a child of this element whose
      * component type is in this map, the help is read from the alias instead.
@@ -351,6 +379,10 @@ type AliasedSchemaElement = {
     name: string;
     summary: string;
     docsSlug: string | null;
+    /** See `SchemaElement.displayName`. */
+    displayName?: string;
+    /** See `SchemaElement.displayContext`. */
+    displayContext?: string;
     attributes: SchemaAttribute[];
     properties: PropertyDescription[];
 };
@@ -728,7 +760,12 @@ export function getSchema(
 
         const out: Pick<
             SchemaElement,
-            "attributes" | "properties" | "summary" | "docsSlug"
+            | "attributes"
+            | "properties"
+            | "summary"
+            | "docsSlug"
+            | "displayName"
+            | "displayContext"
         > = {
             attributes,
             properties,
@@ -739,6 +776,15 @@ export function getSchema(
         const declaredSlug = getDeclaredDocsSlug(cClass.componentDocs, type);
         if (declaredSlug !== null && getExistingDocSlugs().has(declaredSlug)) {
             out.docsSlug = declaredSlug;
+        }
+        // Author-facing label overrides for the docs index. Both are optional
+        // and only emitted when declared on the class — most components leave
+        // `name` as the displayed tag and have no parenthetical disambiguator.
+        if (typeof cClass.componentDocs?.displayName === "string") {
+            out.displayName = cClass.componentDocs.displayName;
+        }
+        if (typeof cClass.componentDocs?.displayContext === "string") {
+            out.displayContext = cClass.componentDocs.displayContext;
         }
         return out;
     }
@@ -879,6 +925,12 @@ export function getSchema(
             docsSlug: helpPayload.docsSlug,
             summary: helpPayload.summary,
         };
+        if (helpPayload.displayName !== undefined) {
+            element.displayName = helpPayload.displayName;
+        }
+        if (helpPayload.displayContext !== undefined) {
+            element.displayContext = helpPayload.displayContext;
+        }
 
         elements.push(element);
     }
@@ -904,13 +956,20 @@ export function getSchema(
             const targetClass = allClassesIncludingExcluded[targetName];
             if (!targetClass) continue;
             const payload = buildHelpPayloadForClass(targetName, targetClass);
-            aliasedElements[targetName] = {
+            const aliased: AliasedSchemaElement = {
                 name: targetName,
                 attributes: payload.attributes,
                 properties: payload.properties,
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
             };
+            if (payload.displayName !== undefined) {
+                aliased.displayName = payload.displayName;
+            }
+            if (payload.displayContext !== undefined) {
+                aliased.displayContext = payload.displayContext;
+            }
+            aliasedElements[targetName] = aliased;
         }
     }
 

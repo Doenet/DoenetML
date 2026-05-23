@@ -4,8 +4,7 @@ export default class Pegboard extends GraphicalComponent {
     static componentType = "pegboard";
 
     static componentDocs = {
-        summary:
-            "Renders a grid of pegs on a graph that other graphical objects can snap to.",
+        summary: "Renders a grid of pegs on a graph",
     };
 
     static createAttributesObject() {

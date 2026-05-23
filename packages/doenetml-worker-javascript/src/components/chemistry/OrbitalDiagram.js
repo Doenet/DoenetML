@@ -13,7 +13,7 @@ export default class OrbitalDiagram extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes.",
+            "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes",
     };
 
     static variableForImplicitProp = "value";

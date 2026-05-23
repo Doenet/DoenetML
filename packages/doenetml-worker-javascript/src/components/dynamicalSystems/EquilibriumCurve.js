@@ -6,7 +6,7 @@ export default class EquilibriumCurve extends Curve {
 
     static componentDocs = {
         summary:
-            "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable.",
+            "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable",
     };
 
     static createAttributesObject() {

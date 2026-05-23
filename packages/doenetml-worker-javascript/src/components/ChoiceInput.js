@@ -34,7 +34,8 @@ export default class Choiceinput extends Input {
     static componentType = "choiceInput";
 
     static componentDocs = {
-        summary: "A multiple-choice or checkbox input from a list of choices.",
+        summary:
+            "A multiple-choice input, allowing selection from a list of choices",
     };
     static renderChildren = true;
 

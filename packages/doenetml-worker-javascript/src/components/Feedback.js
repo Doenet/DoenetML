@@ -12,8 +12,7 @@ export default class Feedback extends BlockComponent {
     static componentType = "feedback";
 
     static componentDocs = {
-        summary:
-            "Targeted feedback shown when conditions are met after an answer is submitted.",
+        summary: "Targeted feedback shown when conditions are met",
     };
     static renderChildren = true;
 

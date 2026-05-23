@@ -35,7 +35,7 @@ export default class Point extends GraphicalComponent {
 
     static componentDocs = {
         summary:
-            "A point with coordinates that can be displayed and dragged on a graph.",
+            "A point with coordinates that can be displayed and dragged on a graph",
     };
     static canBeInList = true;
 

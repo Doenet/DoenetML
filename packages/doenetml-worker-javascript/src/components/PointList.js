@@ -13,7 +13,7 @@ export default class PointList extends CompositeComponent {
     static componentType = "pointList";
 
     static componentDocs = {
-        summary: "A list of points.",
+        summary: "A list of points",
     };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

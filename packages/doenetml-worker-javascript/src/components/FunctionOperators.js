@@ -7,7 +7,7 @@ export class ClampFunction extends FunctionBaseOperator {
     static componentType = "clampFunction";
 
     static componentDocs = {
-        summary: "A function clamped to a specified output range.",
+        summary: "A function clamped to a specified output range",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -95,7 +95,7 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
     static componentType = "wrapFunctionPeriodic";
 
     static componentDocs = {
-        summary: "A function wrapped into a periodic output range.",
+        summary: "A function wrapped into a periodic output range",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -181,7 +181,7 @@ export class Derivative extends FunctionBaseOperator {
     static componentType = "derivative";
 
     static componentDocs = {
-        summary: "The derivative of a function.",
+        summary: "The derivative of a function",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

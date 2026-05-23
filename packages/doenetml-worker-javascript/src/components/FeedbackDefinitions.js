@@ -5,7 +5,7 @@ export class FeedbackDefinition extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "A reusable feedback definition referenced by other components.",
+            "A reusable feedback definition referenced by other components",
     };
     static rendererType = undefined;
 
@@ -71,10 +71,7 @@ export class FeedbackDefinition extends BaseComponent {
 export class FeedbackDefinitions extends BaseComponent {
     static componentType = "feedbackDefinitions";
 
-    static componentDocs = {
-        summary: "A container of reusable feedback definitions.",
-    };
     static rendererType = undefined;
 
-    static excludeFromSchema = [];
+    static excludeFromSchema = true;
 }

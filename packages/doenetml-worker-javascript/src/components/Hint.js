@@ -13,7 +13,7 @@ export default class Hint extends BlockComponent {
     static componentType = "hint";
 
     static componentDocs = {
-        summary: "Hint shown on demand to help with an exercise.",
+        summary: "Hint shown on demand to help with an exercise",
     };
     static renderChildren = true;
     static canDisplayChildErrors = true;

@@ -6,7 +6,7 @@ export default class Lorem extends CompositeComponent {
     static componentType = "lorem";
 
     static componentDocs = {
-        summary: "Generates lorem ipsum placeholder text.",
+        summary: "Generates lorem ipsum placeholder text",
     };
     static allowInSchemaAsComponent = ["text", "p"];
 

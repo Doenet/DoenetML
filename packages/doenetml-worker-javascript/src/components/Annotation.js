@@ -4,7 +4,7 @@ export default class Annotation extends BaseComponent {
     static componentType = "annotation";
 
     static componentDocs = {
-        summary: "An annotation for screen reader navigation of a graph.",
+        summary: "An annotation for screen reader navigation of a graph",
     };
     static rendererType = undefined;
 

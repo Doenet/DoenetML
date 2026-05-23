@@ -7,7 +7,7 @@ export default class Group extends CompositeComponent {
     static componentType = "group";
 
     static componentDocs = {
-        summary: "A logical grouping of components.",
+        summary: "A logical grouping of components",
     };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 

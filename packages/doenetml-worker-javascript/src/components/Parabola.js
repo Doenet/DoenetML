@@ -10,7 +10,7 @@ export default class Parabola extends Curve {
     static componentType = "parabola";
 
     static componentDocs = {
-        summary: "A parabola defined by formula or geometric parameters.",
+        summary: "A parabola defined by formula or geometric parameters",
     };
     static rendererType = "curve";
 

@@ -18,7 +18,7 @@ export default class ODESystem extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable.",
+            "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable",
     };
 
     static createAttributesObject() {

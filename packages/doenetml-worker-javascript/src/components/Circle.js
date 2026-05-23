@@ -22,7 +22,8 @@ export default class Circle extends Curve {
     static componentType = "circle";
 
     static componentDocs = {
-        summary: "A circle defined by center and radius (or other parameters).",
+        summary:
+            "A circle, potentially defined by center, radius, and/or points on the circle",
     };
     static rendererType = "circle";
     static representsClosedPath = true;

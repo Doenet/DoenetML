@@ -6,7 +6,7 @@ export default class EquilibriumPoint extends Point {
 
     static componentDocs = {
         summary:
-            "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable.",
+            "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable",
     };
 
     static createAttributesObject() {

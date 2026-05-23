@@ -5,7 +5,7 @@ export default class Module extends Group {
 
     static componentDocs = {
         summary:
-            "A reusable group with parameterized attributes; can be referenced or extended elsewhere.",
+            "A reusable group with parameterized attributes; can be copied elsewhere with new parameter values",
     };
 
     static acceptAnyAttribute = true;

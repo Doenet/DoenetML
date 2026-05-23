@@ -558,8 +558,9 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         expect(help).toMatchObject({
             kind: "element",
             elementName: "column",
-            // matrixColumn points its slug at the matrix docs page.
-            docsSlug: "matrix",
+            // The author wrote <column>, so display "column" — but the docs link
+            // and summary come from matrixColumn.
+            docsSlug: "column_matrix",
         });
     });
 

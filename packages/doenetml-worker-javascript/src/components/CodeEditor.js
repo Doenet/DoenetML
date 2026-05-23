@@ -13,7 +13,7 @@ export default class CodeEditor extends BlockComponent {
     static componentType = "codeEditor";
 
     static componentDocs = {
-        summary: "An interactive code editor.",
+        summary: "An interactive DoenetML code editor",
     };
     static variableForImplicitProp = "value";
 

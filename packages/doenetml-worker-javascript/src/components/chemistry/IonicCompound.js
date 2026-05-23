@@ -11,7 +11,7 @@ export default class IonicCompound extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "Forms a balanced ionic compound from constituent ions and renders its chemical formula.",
+            "Forms a balanced ionic compound from constituent ions and renders its chemical formula",
     };
 
     static createAttributesObject() {

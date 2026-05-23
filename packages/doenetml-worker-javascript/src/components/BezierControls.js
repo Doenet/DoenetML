@@ -6,8 +6,7 @@ export default class BezierControls extends InlineComponent {
     static componentType = "bezierControls";
 
     static componentDocs = {
-        summary:
-            "Defines Bezier control vectors at vertices of a polyline or curve.",
+        summary: "Defines Bezier control vectors at points along a curve",
     };
     static rendererType = "containerInline";
 

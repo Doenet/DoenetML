@@ -13,7 +13,7 @@ export default class Sequence extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step.",
+            "Generates a sequence of numbers, math expressions, or letters",
     };
 
     static takesIndex = true;

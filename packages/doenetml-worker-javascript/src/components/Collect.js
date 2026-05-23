@@ -7,7 +7,7 @@ export default class Collect extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Collects descendants matching a component type from another component.",
+            "Collects descendants of a component matching a specified component type",
     };
     static takesIndex = true;
 

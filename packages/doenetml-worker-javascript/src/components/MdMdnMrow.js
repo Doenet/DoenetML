@@ -25,7 +25,7 @@ export class Md extends InlineComponent {
     static componentType = "md";
 
     static componentDocs = {
-        summary: "Display math with multiple aligned rows.",
+        summary: "Display math with multiple aligned rows",
     };
     static rendererType = "math";
 
@@ -293,7 +293,7 @@ export class Mdn extends Md {
     static componentType = "mdn";
 
     static componentDocs = {
-        summary: "Numbered display math with multiple aligned rows.",
+        summary: "Numbered display math with multiple aligned rows",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -311,7 +311,7 @@ export class Mrow extends M {
     static componentType = "mrow";
 
     static componentDocs = {
-        summary: "A row of math within an aligned display.",
+        summary: "A row of math within an aligned display",
     };
     static canBeInList = false;
 

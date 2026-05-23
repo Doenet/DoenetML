@@ -22,7 +22,8 @@ export default class Document extends BaseComponent {
     static componentType = "document";
 
     static componentDocs = {
-        summary: "The top-level container for a DoenetML document.",
+        summary:
+            "The top-level container for a DoenetML document (added implicitly if not present)",
     };
     static rendererType = "section";
     static renderChildren = true;

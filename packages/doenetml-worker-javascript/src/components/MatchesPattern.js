@@ -7,7 +7,7 @@ export default class MatchesPattern extends BooleanComponent {
 
     static componentDocs = {
         summary:
-            "Boolean condition that tests whether input matches a math pattern.",
+            "Boolean condition that tests whether input matches a math pattern",
     };
     static rendererType = "boolean";
 

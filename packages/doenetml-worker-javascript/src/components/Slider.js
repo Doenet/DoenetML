@@ -22,7 +22,7 @@ export default class Slider extends BaseComponent {
     static componentType = "slider";
 
     static componentDocs = {
-        summary: "An interactive slider input.",
+        summary: "An interactive slider input",
     };
     static variableForImplicitProp = "value";
 

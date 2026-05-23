@@ -6,7 +6,7 @@ export default class EquilibriumLine extends Line {
 
     static componentDocs = {
         summary:
-            "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable.",
+            "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable",
     };
 
     static createAttributesObject() {

@@ -5,7 +5,7 @@ export default class Coords extends MathComponent {
     static rendererType = "math";
 
     static componentDocs = {
-        summary: "A math expression treated as a vector of coordinates.",
+        summary: "A math expression treated as a vector of coordinates",
     };
 
     static createAttributesObject() {

@@ -5,7 +5,7 @@ export default class Interval extends MathComponent {
     static rendererType = "math";
 
     static componentDocs = {
-        summary: "A math expression treated as an interval of real numbers.",
+        summary: "A math expression treated as an interval of real numbers",
     };
 
     static createAttributesObject() {

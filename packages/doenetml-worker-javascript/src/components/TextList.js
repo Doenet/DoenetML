@@ -7,7 +7,7 @@ export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
     static componentDocs = {
-        summary: "A list of texts.",
+        summary: "A list of texts",
     };
     static takesIndex = true;
 

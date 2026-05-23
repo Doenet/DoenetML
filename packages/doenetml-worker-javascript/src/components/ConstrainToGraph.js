@@ -6,7 +6,7 @@ export default class ConstrainToGraph extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Constrains a graphical component's position to lie within a graph's bounds.",
+            "Constrains a graphical component's position to lie within a graph's bounds",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

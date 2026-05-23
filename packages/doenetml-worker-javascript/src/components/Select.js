@@ -11,7 +11,8 @@ export default class Select extends CompositeComponent {
     static componentType = "select";
 
     static componentDocs = {
-        summary: "Randomly selects components from a list of children.",
+        summary:
+            "Randomly selects components from a list of children to create document variants",
     };
     static takesIndex = true;
 

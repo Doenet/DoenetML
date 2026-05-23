@@ -38,7 +38,7 @@ export default class Textinput extends Input {
     static componentType = "textInput";
 
     static componentDocs = {
-        summary: "An interactive text input.",
+        summary: "An interactive text input",
     };
     static variableForImplicitProp = "value";
 

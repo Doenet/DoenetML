@@ -23,7 +23,7 @@ export default class AnimateFromSequence extends BaseComponent {
     static componentType = "animateFromSequence";
 
     static componentDocs = {
-        summary: "Animates a value through a sequence over time.",
+        summary: "Animates a value through a sequence over time",
     };
     static rendererType = undefined;
 

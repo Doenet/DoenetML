@@ -17,7 +17,7 @@ export default class Polygon extends Polyline {
     static componentType = "polygon";
 
     static componentDocs = {
-        summary: "A polygon defined by a list of vertices.",
+        summary: "A polygon defined by a list of vertices",
     };
     static representsClosedPath = true;
 

@@ -6,8 +6,7 @@ export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
 
     static componentDocs = {
-        summary:
-            "A reusable style definition referenced by graphical components.",
+        summary: "A reusable style definition referenced by other components",
     };
     static rendererType = undefined;
 
@@ -87,10 +86,7 @@ export class StyleDefinition extends BaseComponent {
 export class StyleDefinitions extends BaseComponent {
     static componentType = "styleDefinitions";
 
-    static componentDocs = {
-        summary: "A container of reusable style definitions.",
-    };
     static rendererType = undefined;
 
-    static excludeFromSchema = [];
+    static excludeFromSchema = true;
 }

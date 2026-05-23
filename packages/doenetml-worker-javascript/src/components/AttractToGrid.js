@@ -6,7 +6,7 @@ export default class AttractToGrid extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Attracts a graphical component's position to grid lines when nearby.",
+            "Attracts a graphical component's position to grid lines when nearby",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

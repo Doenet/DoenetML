@@ -35,7 +35,7 @@ export default class Graph extends BlockComponent {
     static componentType = "graph";
 
     static componentDocs = {
-        summary: "A coordinate-axis graph that contains graphical objects.",
+        summary: "A 2D coordinate-axis graph",
     };
     static renderChildren = true;
 

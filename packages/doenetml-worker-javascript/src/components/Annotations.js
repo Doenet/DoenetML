@@ -6,7 +6,7 @@ export default class Annotations extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "A container of annotation children for screen reader navigation of a graph.",
+            "A container of annotation children for screen reader navigation of a graph",
     };
 
     static returnChildGroups() {
