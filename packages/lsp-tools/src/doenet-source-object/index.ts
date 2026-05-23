@@ -321,6 +321,15 @@ export class DoenetSourceObject extends LazyDataObject {
                 }
                 if (!lezerNodeParent?.getChild("CloseTag")) {
                     closed = false;
+                } else if (
+                    this._isCloseTagStolenFromAncestor(lezerNodeParent)
+                ) {
+                    // The parser found a CloseTag for us, but its stack-based
+                    // matching has likely "stolen" what the user intended as
+                    // an ancestor's close tag for this inner element
+                    // (issue #1117). Treat as unclosed so callers (auto-close
+                    // and `</` completion) insert / suggest a fresh close tag.
+                    closed = false;
                 }
                 break;
             }
@@ -339,6 +348,61 @@ export class DoenetSourceObject extends LazyDataObject {
         }
 
         return { tagComplete, closed };
+    }
+
+    /**
+     * Walk up the contiguous chain of same-name ancestor `Element` nodes
+     * starting from `elementNode`'s parent. Returns true if any of those
+     * same-name ancestors is missing its `CloseTag` — meaning the parser's
+     * stack-based matching has shifted close tags down a level and the
+     * close tag the parser attributed to `elementNode` was, from the user's
+     * perspective, "stolen" from an ancestor (issue #1117).
+     *
+     * Stops at the first ancestor with a different tag name (or at the
+     * root): the stealing pattern only happens through a same-name chain,
+     * because that's the only configuration where the parser stack can
+     * shuffle close tags. For example, `<p><div><p></p></div>` does NOT
+     * trigger — `<div>` breaks the chain and the inner `</p>` is
+     * genuinely the inner `<p>`'s own.
+     *
+     * Comparison is case-sensitive to match XML/DoenetML semantics.
+     */
+    _isCloseTagStolenFromAncestor(
+        elementNode: NonNullable<ReturnType<typeof this._lezerCursor>["node"]>,
+    ): boolean {
+        const openTag = elementNode.getChild("OpenTag");
+        const tagNameNode = openTag?.getChild("TagName");
+        if (!tagNameNode) {
+            return false;
+        }
+        const tagName = this.source.slice(tagNameNode.from, tagNameNode.to);
+        if (!tagName) {
+            return false;
+        }
+
+        let ancestor = elementNode.parent;
+        while (ancestor) {
+            if (ancestor.type.name !== "Element") {
+                return false;
+            }
+            const ancestorOpenTag = ancestor.getChild("OpenTag");
+            const ancestorTagNameNode = ancestorOpenTag?.getChild("TagName");
+            if (!ancestorTagNameNode) {
+                return false;
+            }
+            const ancestorName = this.source.slice(
+                ancestorTagNameNode.from,
+                ancestorTagNameNode.to,
+            );
+            if (ancestorName !== tagName) {
+                return false;
+            }
+            if (!ancestor.getChild("CloseTag")) {
+                return true;
+            }
+            ancestor = ancestor.parent;
+        }
+        return false;
     }
 
     /**
