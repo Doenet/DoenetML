@@ -3,7 +3,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrPropDisplay } from "../../components"
 
 
-# `<column>{:dn}`
+# `<column>{:dn}` (in a table)
 
 
 `<column>{:dn}` is a container for a column of [`<cell>{:dn}`](cell) children
@@ -11,10 +11,11 @@ inside a [`<spreadsheet>{:dn}`](spreadsheet). It is the column-oriented
 counterpart to [`<row>{:dn}`](row_table): each child `<cell>{:dn}` populates
 the next row of the same column.
 
-A `<column>{:dn}` also exists as a child of [`<matrix>{:dn}`](matrix), where
-the parser sugars `<column>{:dn}` into the matrix-specific
-`<matrixColumn>{:dn}`. The example pages on this site that build matrices
-column-by-column use that sugar.
+Unlike [`<row>{:dn}`](row_table), which is also accepted inside a
+[`<tabular>{:dn}`](tabular), `<column>{:dn}` is only valid as a child of
+[`<spreadsheet>{:dn}`](spreadsheet) in non-matrix contexts. For
+column-by-column construction of a matrix, see
+[`<column>{:dn}` (in a matrix)](column_matrix).
 
 
 <AttrPropDisplay name='column'/>
