@@ -152,6 +152,10 @@ describe("addContextHelpSupport — doenet/contextHelp", () => {
 });
 
 describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it("returns NONE for missing documents", async () => {
         const { contextHelpForCompletion } = registerHandlers(new Map());
         const result = await contextHelpForCompletion({
@@ -186,5 +190,74 @@ describe("addContextHelpSupport — doenet/contextHelpForCompletion", () => {
             kind: "element",
             elementName: "abs",
         });
+    });
+
+    it("waits for the rust boot before answering a refMember completion query", async () => {
+        // Mirrors the cursor-side `waits for the rust boot...` test —
+        // `waitForRustIfRefContext` is shared between the two RPCs, so a
+        // regression there must be caught on both code paths.  The
+        // dropdown's highlighted-row help should not resolve before the
+        // resolver has had a chance to answer; otherwise the panel commits
+        // a stale NONE while the dropdown shows real completions.
+        const uri = "file:///t.doenet";
+        const source = `<math name="m">x</math>\n$m.`;
+        let resolveRustReady!: () => void;
+        const rustReady = new Promise<void>((resolve) => {
+            resolveRustReady = resolve;
+        });
+        const docEntry = {
+            autoCompleter: new AutoCompleter(source),
+            additionalDiagnostics: [],
+            rustState: "initializing",
+            rustAdapter: undefined as unknown,
+            rustReady,
+        };
+        const { contextHelpForCompletion } = registerHandlers(
+            new Map([[uri, docEntry]]),
+        );
+
+        const pending = contextHelpForCompletion({
+            uri,
+            offset: source.length,
+            completion: { label: "displayDecimals", type: "property" },
+        });
+
+        // Boot completes — adapter becomes ready and rustReady settles.
+        docEntry.rustState = "ready";
+        docEntry.rustAdapter = {};
+        resolveRustReady();
+
+        const result = await pending;
+        expect(result).toMatchObject({ kind: expect.any(String) });
+    });
+
+    it("times out the rust-boot wait and returns NONE for refMember completion queries", async () => {
+        // Mirrors the cursor-side timeout test.  A broken worker only
+        // settles `rustReady` after the spawn timeout — far past what a
+        // completion should hang on — so past the 5 s cap the handler
+        // computes with whatever's ready and surfaces a NONE rather than
+        // wedging the popup's help.
+        vi.useFakeTimers();
+        const uri = "file:///t.doenet";
+        const source = `<math name="m">x</math>\n$m.`;
+        const docEntry = {
+            autoCompleter: new AutoCompleter(source),
+            additionalDiagnostics: [],
+            rustState: "initializing",
+            rustAdapter: undefined,
+            // Broken worker — never settles.
+            rustReady: new Promise<void>(() => {}),
+        };
+        const { contextHelpForCompletion } = registerHandlers(
+            new Map([[uri, docEntry]]),
+        );
+        const pending = contextHelpForCompletion({
+            uri,
+            offset: source.length,
+            completion: { label: "displayDecimals", type: "property" },
+        });
+        await vi.advanceTimersByTimeAsync(5_000);
+        const result = await pending;
+        expect(result).toEqual({ kind: "none" });
     });
 });

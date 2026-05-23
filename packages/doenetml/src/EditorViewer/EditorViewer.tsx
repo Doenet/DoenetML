@@ -650,7 +650,12 @@ export const EditorViewer = React.forwardRef<
         const myId = ++helpRequestIdRef.current;
         const bundle = lspRef.current;
         if (!bundle) {
-            setHelpContent(HELP_NONE);
+            // Symmetry with the post-await branches: only commit state
+            // when the help panel is actually visible.  An invisible
+            // panel already shows HELP_NONE, and the visibility-becomes-
+            // visible effect will re-fetch on its own when the panel
+            // opens.
+            if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
             return;
         }
         try {
@@ -664,6 +669,7 @@ export const EditorViewer = React.forwardRef<
         } catch (err) {
             if (myId !== helpRequestIdRef.current) return;
             console.warn("contextHelp request failed", err);
+            if (!helpIsVisibleRef.current) return;
             setHelpContent(HELP_NONE);
         }
     }, []);
@@ -673,7 +679,7 @@ export const EditorViewer = React.forwardRef<
             const myId = ++helpRequestIdRef.current;
             const bundle = lspRef.current;
             if (!bundle) {
-                setHelpContent(HELP_NONE);
+                if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
                 return;
             }
             try {
@@ -688,6 +694,7 @@ export const EditorViewer = React.forwardRef<
             } catch (err) {
                 if (myId !== helpRequestIdRef.current) return;
                 console.warn("contextHelpForCompletion request failed", err);
+                if (!helpIsVisibleRef.current) return;
                 setHelpContent(HELP_NONE);
             }
         },

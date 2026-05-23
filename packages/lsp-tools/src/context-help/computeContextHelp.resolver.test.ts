@@ -107,30 +107,31 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         expect(help).toEqual({ kind: "none" });
     });
 
-    it("resolves a 3-part chain with a leading bracket index ($rep[1].myMath.x)", async () => {
+    it("resolves a 3-part chain with a leading bracket index ($rep[1].myPoint.x)", async () => {
         // Companion to the takesIndex-block tests: with `[1]` supplying the
         // index, the same chain resolves all the way through to a property
-        // of `<math>` (`x`).  Confirms the resolver path produces the help
+        // of `<point>` (`x`).  Confirms the resolver path produces the help
         // the JS-only fallback couldn't (and that we don't regress it while
-        // tightening the unindexed case).
-        const source = `<repeatForSequence name="rep" from="1" to="3"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath.x`;
+        // tightening the unindexed case).  `point.x` is the canonical
+        // multi-part-chain shape the PR changeset advertises.
+        const source = `<repeatForSequence name="rep" from="1" to="3"><point name="myPoint">(1,2)</point></repeatForSequence>\n$rep[1].myPoint.x`;
         const completer = await buildCompleterWithAdapter(source, {
-            // Tell the mock resolver it lands on <math>; the adapter
+            // Tell the mock resolver it lands on <point>; the adapter
             // matches by source position and exposes its properties.
             resolveResult: {
-                nodeIdx: 1, // math (repeatForSequence is 0, math is 1)
+                nodeIdx: 1, // point (repeatForSequence is 0, point is 1)
                 nodesInResolvedPath: [0, 1],
                 unresolvedPath: null,
-                originalPath: [{ name: "rep" }, { name: "myMath" }],
+                originalPath: [{ name: "rep" }, { name: "myPoint" }],
             },
             takesIndexComponentTypes: new Set(["repeatForSequence"]),
         });
         const help = await computeContextHelp(completer, source.length);
-        // `x` is a math property; the chain renders with the authored
+        // `x` is a point property; the chain renders with the authored
         // bracket index preserved.
         expect(help).toMatchObject({
             kind: "property",
-            elementName: "math",
+            elementName: "point",
         });
         if (help.kind === "property") {
             expect(help.propertyName.toLowerCase()).toBe("x");
