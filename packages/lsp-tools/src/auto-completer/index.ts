@@ -13,6 +13,11 @@ import {
 } from "./methods/get-completion-context";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
+// Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
+// can type a precomputed completion context they thread into
+// `computeContextHelp` to avoid a redundant schema walk per RPC.
+export { type CompletionContext };
+
 /**
  * Per-attribute fields surfaced in autocomplete and the help panel.
  *

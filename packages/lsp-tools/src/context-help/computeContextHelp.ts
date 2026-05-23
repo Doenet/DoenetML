@@ -1,6 +1,7 @@
 import {
     AutoCompleter,
     type AliasedElementSchema,
+    type CompletionContext,
     type ElementSchema,
     type SchemaAttribute,
     type SchemaProperty,
@@ -57,9 +58,21 @@ function resolveEntriesForNode(
     return [ownEntry, effective];
 }
 
+/**
+ * Compute the context-help payload for a cursor offset.
+ *
+ * `precomputedCtx`, when provided, is the completion context for `offset`
+ * that the caller has already computed (e.g. the LSP's
+ * `prepareForRefContext`, which computes ctx to decide whether to wait for
+ * the rust boot).  Passing it avoids a redundant
+ * `getCompletionContext` call in the ref-context branches.  Must be valid
+ * for the same `offset` and the current document state — pass `undefined`
+ * if either may have changed since the ctx was computed.
+ */
 export async function computeContextHelp(
     completer: AutoCompleter,
     offset: number,
+    precomputedCtx?: CompletionContext,
 ): Promise<HelpContent> {
     const { node, cursorPosition } =
         completer.sourceObj.elementAtOffsetWithContext(offset);
@@ -118,7 +131,7 @@ export async function computeContextHelp(
         }
     }
 
-    const ctx = completer.getCompletionContext(offset);
+    const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
     if (ctx.cursorPos === "refName") {
         return helpForRefName(completer, offset, ctx);
     }
@@ -513,11 +526,14 @@ export type ContextHelpCompletion = {
  * lower-cased). The `"property"` kind is ambiguous (both element schema items
  * and ref-member properties use it) and is disambiguated by inspecting the
  * cursor's completion context.
+ *
+ * `precomputedCtx` — see `computeContextHelp` for the contract.
  */
 export async function computeContextHelpForCompletion(
     completer: AutoCompleter,
     offset: number,
     completion: ContextHelpCompletion,
+    precomputedCtx?: CompletionContext,
 ): Promise<HelpContent> {
     const rawLabel = completion.label;
     if (!rawLabel) return NONE;
@@ -526,6 +542,13 @@ export async function computeContextHelpForCompletion(
     if (type === "snippet") {
         return helpForSnippet(completer, rawLabel);
     }
+
+    // Computed lazily so the snippet branch above (and any future
+    // context-independent kinds) don't pay for a `getCompletionContext`
+    // call they don't need.  Only one of the kind-branches below executes
+    // per call, so a single helper is enough — no memoization needed.
+    const getCtx = (): CompletionContext =>
+        precomputedCtx ?? completer.getCompletionContext(offset);
 
     if (type === "reference") {
         // Strip a leading `$` defensively, then a trailing `[]` — the LSP
@@ -550,7 +573,7 @@ export async function computeContextHelpForCompletion(
         //     elsewhere in the document — the bare-ref path would surface
         //     the wrong one (or NONE, since `getNamedDescendant` requires
         //     uniqueness); the member path correctly resolves through `sec`.
-        const ctx = completer.getCompletionContext(offset);
+        const ctx = getCtx();
         if (ctx.cursorPos === "refMember") {
             return await helpForRefMemberByName(
                 completer,
@@ -565,7 +588,7 @@ export async function computeContextHelpForCompletion(
     if (type === "property") {
         // Element schema items, ref-member properties, and close-tag rows
         // all share `kind: Property` in the LSP layer.
-        const ctx = completer.getCompletionContext(offset);
+        const ctx = getCtx();
         if (ctx.cursorPos === "refMember") {
             return await helpForRefMemberByName(
                 completer,

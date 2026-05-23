@@ -2,6 +2,7 @@ import { Connection } from "vscode-languageserver/browser";
 import {
     computeContextHelp,
     computeContextHelpForCompletion,
+    type CompletionContext,
     type ContextHelpCompletion,
     type HelpContent,
 } from "@doenet/lsp-tools";
@@ -53,10 +54,11 @@ export function addContextHelpSupport(
             const info = documentInfo.get(params.uri);
             if (!info) return NONE;
             try {
-                await waitForRustIfRefContext(info, params.offset);
+                const ctx = await prepareForRefContext(info, params.offset);
                 return await computeContextHelp(
                     info.autoCompleter,
                     params.offset,
+                    ctx,
                 );
             } catch (err) {
                 connection.console.warn(
@@ -77,11 +79,12 @@ export function addContextHelpSupport(
             const info = documentInfo.get(params.uri);
             if (!info) return NONE;
             try {
-                await waitForRustIfRefContext(info, params.offset);
+                const ctx = await prepareForRefContext(info, params.offset);
                 return await computeContextHelpForCompletion(
                     info.autoCompleter,
                     params.offset,
                     params.completion,
+                    ctx,
                 );
             } catch (err) {
                 connection.console.warn(
@@ -94,17 +97,23 @@ export function addContextHelpSupport(
 }
 
 /**
- * If the cursor is at a ref-resolution position and the rust resolver is
- * mid-boot, await its readiness (bounded by `RUST_BOOT_WAIT_MS`).  Mirrors
- * the dance in `completions.ts` so help and completions agree on when
- * resolver-backed answers are available.  For non-ref positions and for
- * already-ready / unavailable cases this returns immediately.
+ * Compute the completion context at `offset` and, if the cursor is at a
+ * ref-resolution position with the rust resolver mid-boot, await its
+ * readiness (bounded by `RUST_BOOT_WAIT_MS`) before recomputing the
+ * context against the post-wait document state.  Mirrors the dance in
+ * `completions.ts` so help and completions agree on when resolver-backed
+ * answers are available.  For non-ref positions and for already-ready /
+ * unavailable cases this returns the initial context immediately.
+ *
+ * The returned context is then threaded into `computeContextHelp` /
+ * `computeContextHelpForCompletion` so the help layer doesn't redo the
+ * same schema walk.
  */
-async function waitForRustIfRefContext(
+async function prepareForRefContext(
     info: NonNullable<ReturnType<DocumentInfo["get"]>>,
     offset: number,
-) {
-    const ctx = info.autoCompleter.getCompletionContext(offset);
+): Promise<CompletionContext> {
+    let ctx = info.autoCompleter.getCompletionContext(offset);
     const isRefContext =
         ctx.cursorPos === "refName" || ctx.cursorPos === "refMember";
     if (isRefContext && info.rustState === "initializing" && info.rustReady) {
@@ -116,5 +125,10 @@ async function waitForRustIfRefContext(
             }),
         ]);
         clearTimeout(waitTimer);
+        // Document may have changed while we awaited — recompute so the
+        // help layer sees the same state the wait settled against.  Matches
+        // `completions.ts`'s post-wait recompute.
+        ctx = info.autoCompleter.getCompletionContext(offset);
     }
+    return ctx;
 }
