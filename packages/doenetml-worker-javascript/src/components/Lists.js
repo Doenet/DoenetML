@@ -18,7 +18,7 @@ export class Ol extends BlockComponent {
     static componentType = "ol";
 
     static componentDocs = {
-        summary: "An ordered list.",
+        summary: "An ordered list",
     };
     static rendererType = "list";
     static renderChildren = true;
@@ -140,7 +140,7 @@ export class Ul extends Ol {
     static componentType = "ul";
 
     static componentDocs = {
-        summary: "An unordered list.",
+        summary: "An unordered list",
     };
     static rendererType = "list";
 
@@ -169,7 +169,7 @@ export class Li extends BaseComponent {
     static componentType = "li";
 
     static componentDocs = {
-        summary: "A list item within `<ol>` / `<ul>`.",
+        summary: "A list item within `<ol>` / `<ul>`",
     };
     static rendererType = "list";
     static renderChildren = true;

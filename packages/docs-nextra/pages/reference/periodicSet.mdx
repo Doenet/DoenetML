@@ -1,0 +1,127 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<periodicSet>{:dn}`
+
+
+`<periodicSet>{:dn}` represents an infinite set of real numbers of the form
+$\\{ o_k + n p : n \in \mathbb{Z}, \, k = 1, \ldots, m \\}$ — that is, a list of
+offsets repeated with a fixed period. The classic use case is comparing
+families of angles modulo $\pi$ or $2\pi$ in trigonometry: the set of
+solutions to $\sin(x) = \frac{1}{2}$, for example, is the periodic set with
+offsets $\pi/6,\ 5\pi/6$ and period $2\pi$.
+
+Two `<periodicSet>{:dn}` values compare equal when they describe the same set
+of real numbers, regardless of which representative offsets are chosen. That
+makes it the right tool for answer-validation of trigonometric solution sets.
+
+
+<AttrPropDisplay name='periodicSet'/>
+
+
+---
+
+### Example: Solutions of a trigonometric equation
+
+
+```doenet-editor-horiz
+<p>Solve <m>\sin(x) = \tfrac{1}{2}</m>. Enter all solutions as a comma-separated
+list of offsets, and the period.</p>
+
+<p><mathInput name="o"><label>Offsets</label></mathInput></p>
+<p><mathInput name="p"><label>Period</label></mathInput></p>
+
+<answer name="ans">
+  <award>
+    <when>
+      <periodicSet offsets="$o" period="$p" />
+      =
+      <periodicSet offsets="pi/6 5pi/6" period="2 pi" />
+    </when>
+  </award>
+</answer>
+```
+
+
+The learner-entered offsets and period define one `<periodicSet>{:dn}`; the
+correct set is defined inline as another. The `=` operator compares the two
+*sets*, so equivalent representations are accepted: e.g. writing `13pi/6`
+in place of `pi/6` (shifted by `+2 pi`), `-7pi/6` in place of `5pi/6`
+(shifted by `-2 pi`), or listing the two offsets in either order.
+
+Note the missing space in `5pi/6`: the `offsets` attribute is a
+[`mathList`](mathList) — a *space-separated* list of math expressions — so
+an inner space would split that value into two offsets (`5` and `pi/6`).
+The `period` attribute is a single [`math`](math), so spaces inside it
+(`2 pi`) are fine.
+
+
+
+---
+
+### Example: List representative values
+
+
+```doenet-editor-horiz
+<setup>
+  <periodicSet name="s" offsets="pi/4 3pi/4" period="pi"
+    minIndexAsList="0" maxIndexAsList="2" />
+</setup>
+
+<p>The set <m>s</m> contains: $s.asList</p>
+<p>Number of offsets within one period: $s.numOffsets</p>
+```
+
+
+The `asList` property returns a comma-separated list of representative
+values, with `minIndexAsList` and `maxIndexAsList` controlling how many
+periods are listed. `numOffsets` returns the number of distinct offsets
+within a single period.
+
+
+
+---
+
+### Attribute Example: offsets and period
+
+
+```doenet-editor-horiz
+<setup>
+  <periodicSet name="s" offsets="0 pi" period="2 pi"
+    minIndexAsList="-1" maxIndexAsList="1" />
+</setup>
+
+<p>Set: $s.asList</p>
+```
+
+
+`offsets` is a space-separated list of offsets within one period; `period` is
+the spacing. Together they parametrize the entire set.
+
+
+
+---
+
+### Attribute Example: minIndexAsList, maxIndexAsList
+
+
+```doenet-editor-horiz
+<setup>
+  <periodicSet name="s" offsets="0" period="1" />
+  <periodicSet name="sShort" extend="$s"
+    minIndexAsList="0" maxIndexAsList="3" />
+  <periodicSet name="sLong" extend="$s"
+    minIndexAsList="-2" maxIndexAsList="2" />
+</setup>
+
+<p>Short listing: $sShort.asList</p>
+<p>Longer listing: $sLong.asList</p>
+```
+
+
+`minIndexAsList` and `maxIndexAsList` control the range of period indices
+included when the set is rendered as a list. Both default to ±1, so a
+periodic set with one offset renders as three representative values by
+default.

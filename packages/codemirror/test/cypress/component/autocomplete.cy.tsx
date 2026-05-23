@@ -165,6 +165,33 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("have.text", `<matrix></matrix>`);
     });
 
+    it("completes closing tag for inner same-name element when parent stole close (#1117)", () => {
+        // Parser stack-matches the only </matrix> to the inner <matrix>.
+        // Without the stolen-close-tag heuristic, no `/matrix>` suggestion
+        // would appear because the inner element looks already-closed.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror
+                    value={`<matrix><matrix></matrix>`}
+                    doenetWorkerUrl={doenetWorkerUrl}
+                />
+            </div>,
+        );
+
+        // Position cursor in the body of the inner <matrix>, between its
+        // opening `<matrix>` (ending at offset 16) and the `</matrix>`.
+        cy.get(".cm-content")
+            .click()
+            .type("{home}" + "{rightArrow}".repeat(16) + "<", {
+                force: true,
+            });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").first().click();
+        cy.get(".cm-line").should(
+            "have.text",
+            `<matrix><matrix></matrix></matrix>`,
+        );
+    });
+
     it("inserts element snippets", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
@@ -555,7 +582,16 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
 
         cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
         openAutocomplete();
-        cy.get(".cm-content").type("{enter}", { force: true });
+        // Click the `myMath` completion directly rather than relying on
+        // `{enter}` to accept the selected item: openAutocomplete() only
+        // waits for the tooltip element to exist, but the LSP-provided
+        // items can still be populating (and the keyboard selection may
+        // not yet be on the desired item). The .contains() retry also
+        // gives the LSP time to render the label before we click it.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("myMath")
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "$myMath");
 
         // Reproduce a delete-then-dot transition ending at the same final text.
         cy.get(".cm-content").type("x{backspace}.", { force: true });

@@ -11,7 +11,7 @@ export default class Ref extends InlineComponent {
     static componentType = "ref";
 
     static componentDocs = {
-        summary: "A link to a component reference or to a URL.",
+        summary: "A link to a component reference or to a URL",
     };
     static renderChildren = true;
 

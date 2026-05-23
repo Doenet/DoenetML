@@ -6,7 +6,7 @@ export default class Endpoint extends Point {
 
     static componentDocs = {
         summary:
-            "A point that marks the endpoint of an interval, rendered open or closed.",
+            "A point that marks the endpoint of an interval, rendered open or closed",
     };
 
     static createAttributesObject() {

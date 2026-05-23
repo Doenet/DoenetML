@@ -4,7 +4,7 @@ export default class Setup extends CompositeComponent {
     static componentType = "setup";
 
     static componentDocs = {
-        summary: "Container for components used for setup but not rendered.",
+        summary: "Container for components used for setup but not rendered",
     };
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();

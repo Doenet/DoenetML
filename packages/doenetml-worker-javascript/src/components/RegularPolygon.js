@@ -16,7 +16,7 @@ export default class RegularPolygon extends Polygon {
     static componentType = "regularPolygon";
 
     static componentDocs = {
-        summary: "A regular polygon with a given number of sides.",
+        summary: "A regular polygon with a given number of sides",
     };
     static rendererType = "polygon";
 

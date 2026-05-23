@@ -20,8 +20,7 @@ export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";
 
     static componentDocs = {
-        summary:
-            "A function defined piecewise from sub-functions on intervals.",
+        summary: "A function defined piecewise from sub-functions on intervals",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

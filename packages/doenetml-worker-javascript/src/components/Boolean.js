@@ -10,7 +10,7 @@ export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
 
     static componentDocs = {
-        summary: "A boolean value.",
+        summary: "A boolean value",
     };
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;

@@ -4,7 +4,7 @@ export default class RegionBetweenCurves extends GraphicalComponent {
     static componentType = "regionBetweenCurves";
 
     static componentDocs = {
-        summary: "A region bounded between two curves.",
+        summary: "A region bounded between two curves",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

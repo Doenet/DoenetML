@@ -55,7 +55,7 @@ export class MatrixInput extends Input {
 
     static componentDocs = {
         summary:
-            "An interactive matrix input where each cell accepts a math value.",
+            "An interactive matrix input where each cell accepts a math value",
     };
     static variableForImplicitProp = "value";
 

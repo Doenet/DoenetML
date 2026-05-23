@@ -3,6 +3,10 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class DataFrame extends BaseComponent {
     static componentType = "dataFrame";
 
+    // Experimental — not surfaced via the schema/autocomplete/reference
+    // docs until the data-source story is implemented.
+    static excludeFromSchema = true;
+
     static componentDocs = {
         summary: "A 2D table of typed data values.",
     };

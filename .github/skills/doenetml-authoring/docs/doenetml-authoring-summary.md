@@ -41,6 +41,9 @@
 - Do not omit explicit validation logic for graded prompts.
 - Do not leave reused components unnamed when they are referenced later.
 - Do not ship snippets with unresolved `$name` references or malformed nesting.
+- Do not extend an array/list state variable with a scalar component. Match the extend tag to the type — `<mathList extend="$x.someList"/>` for a list of maths, not `<math extend="$x.someList"/>`. Same for `<textList>`, `<numberList>`, `<vectorList>`, `<booleanList>`, `<pointList>`.
+- Do not chain references across component boundaries. `$user.value.latex` does not work — `.value` produces a fresh `<math>` and the resolver does not then dereference its `.latex`. If you need this, name the intermediate (`<math name="userMath" extend="$user.value"/>`, then `$userMath.latex`). Index chains within one array state variable's `indexAliases` (`$myLine.points[1].x`, `$myVector.head.x`) do work.
+- Do not say "macro" — the `$foo` mechanism is a *reference*.
 
 ## Pre-Delivery Self-Check
 

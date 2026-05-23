@@ -1,0 +1,105 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<extractMathOperator>{:dn}`
+
+
+`<extractMathOperator>{:dn}` returns the top-level operator of a math
+expression as a text value. For a sum it returns `"+"`, for a product
+`"*"`, for an equation `"="`, for a vector `"vector"`, and so on. If the
+expression is a single value (number, variable, or constant) with no
+top-level operator, the result is the empty string.
+
+Unlike [`<extractMath>{:dn}`](extractMath), which pulls out *operands* or
+*function names* and returns them as math expressions,
+`<extractMathOperator>{:dn}` returns the *operator itself* as plain text —
+useful for branching on the kind of expression you have.
+
+
+<AttrPropDisplay name='extractMathOperator'/>
+
+
+---
+
+### Example: Operator of a sum, product, and equation
+
+
+```doenet-editor-horiz
+<p>
+  <math name="m1">x + y + z</math>:
+  operator is <c><extractMathOperator>$m1</extractMathOperator></c>
+</p>
+<p>
+  <math name="m2">3 x y</math>:
+  operator is <c><extractMathOperator>$m2</extractMathOperator></c>
+</p>
+<p>
+  <math name="m3">x^2 = 4</math>:
+  operator is <c><extractMathOperator>$m3</extractMathOperator></c>
+</p>
+```
+
+
+For each expression the top-level operator (`+`, `*`, or `=`) is returned as
+text. The result of `<extractMathOperator>{:dn}` is a regular
+[`<text>{:dn}`](text) value, so it can be compared, displayed, or used in a
+condition.
+
+
+
+---
+
+### Example: Operator from a `<mathInput>{:dn}`
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="user" prefill="(1, 2, 3)">
+    <label>Enter a math expression</label>
+  </mathInput>
+</p>
+
+<p>
+  Top-level operator:
+  <c><extractMathOperator name="op">$user</extractMathOperator></c>
+</p>
+```
+
+
+The operator updates live as the learner edits the input — try entering a
+vector `(1,2,3)`, a function call `f(x)`, a power `x^2`, or just a single
+number to see how the operator changes.
+
+
+
+---
+
+### Example: Branch on the kind of expression
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="user" prefill="x + 1">
+    <label>Enter an expression</label>
+  </mathInput>
+</p>
+
+<setup>
+  <extractMathOperator name="op">$user</extractMathOperator>
+</setup>
+
+<conditionalContent>
+  <case condition="$op = +"><p>You entered a sum.</p></case>
+  <case condition="$op = *"><p>You entered a product.</p></case>
+  <case condition="$op = ^"><p>You entered a power.</p></case>
+  <case condition="$op = ="><p>You entered an equation.</p></case>
+  <else><p>You entered something else (operator <c>$op</c>).</p></else>
+</conditionalContent>
+```
+
+
+Comparing the result of `<extractMathOperator>{:dn}` against string literals
+lets `<conditionalContent>{:dn}` show different content for different kinds
+of expressions.

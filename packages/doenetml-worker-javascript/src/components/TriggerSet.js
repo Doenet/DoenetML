@@ -28,7 +28,8 @@ export default class triggerSet extends InlineComponent {
     static componentType = "triggerSet";
 
     static componentDocs = {
-        summary: "Triggers a set of update actions on demand.",
+        summary:
+            "Groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition",
     };
     static rendererType = "button";
 

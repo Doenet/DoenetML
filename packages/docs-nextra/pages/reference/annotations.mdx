@@ -1,0 +1,86 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<annotations>{:dn}`
+
+
+`<annotations>{:dn}` is the container element placed inside a
+[`<graph>{:dn}`](graph) to hold one or more
+[`<annotation>{:dn}`](annotation) children. It tells the Prefigure backend
+how the graph should be described and navigated by assistive technology.
+
+Only graphs rendered with `renderer="prefigure"` consult this container.
+Other renderers ignore it.
+
+If multiple `<annotations>{:dn}` components are present, only the last one
+is used; the earlier ones are ignored.
+
+Tip: use the `<annotations-skeleton>` snippet to prefill the
+`<annotations>{:dn}` with one `<annotation>{:dn}` for each object in the
+graph.
+
+
+<AttrPropDisplay name='annotations'/>
+
+
+---
+
+### Example: Add annotations to a Prefigure graph
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph with two labelled points.</shortDescription>
+  <point name="A" fixed>(-1, 1)</point>
+  <point name="B" fixed>(2, -1)</point>
+  <annotations>
+    <annotation text="Two points A and B">
+      <annotation ref="$A" text="Point A in the second quadrant." />
+      <annotation ref="$B" text="Point B in the fourth quadrant." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+
+The `<annotations>{:dn}` element wraps one root `<annotation>{:dn}` child
+that describes the entire graph. Inside that root, additional
+`<annotation>{:dn}` components describe individual graph elements to screen
+readers.
+
+
+
+---
+
+### Example: Group annotations hierarchically
+
+
+```doenet-editor-horiz
+<graph name="g" renderer="prefigure" xmin="-3" xmax="6" ymin="-3" ymax="6">
+  <shortDescription>Two clusters of points.</shortDescription>
+  <point name="P1">(0, 0)</point>
+  <point name="P2">(1, 0)</point>
+  <point name="P3">(4, 4)</point>
+  <point name="P4">(5, 4)</point>
+  <annotations>
+    <annotation text="Two clusters of points, each containing two points">
+      <annotation text="Lower-left cluster.">
+        <annotation ref="$P1" text="First point of the lower cluster." />
+        <annotation ref="$P2" text="Second point of the lower cluster." />
+      </annotation>
+      <annotation text="Upper-right cluster.">
+        <annotation ref="$P3" text="First point of the upper cluster." />
+        <annotation ref="$P4" text="Second point of the upper cluster." />
+      </annotation>
+    </annotation>
+  </annotations>
+</graph>
+```
+
+
+The root `<annotation>{:dn}` may contain a tree of nested
+`<annotation>{:dn}` elements that mirrors the logical structure of the
+graph, so screen-reader users can drill down from groups to individual
+elements.

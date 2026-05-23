@@ -6,7 +6,7 @@ export default class ConsiderAsResponses extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "Marks its children as response components for assessment in an enclosing answer.",
+            "Marks its children as response components for an enclosing answer",
     };
 
     static inSchemaOnlyInheritAs = [];

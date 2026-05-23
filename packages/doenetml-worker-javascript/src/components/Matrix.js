@@ -6,7 +6,7 @@ export default class Matrix extends MathComponent {
     static componentType = "matrix";
 
     static componentDocs = {
-        summary: "A matrix of math values.",
+        summary: "A matrix of math values",
         // `<row>` and `<column>` children are sugared to `<matrixRow>` and
         // `<matrixColumn>` at runtime. Editor help follows the same indirection
         // so authors see the matrix-aware description rather than the tabular

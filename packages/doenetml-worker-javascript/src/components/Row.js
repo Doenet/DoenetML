@@ -3,9 +3,14 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class Row extends BaseComponent {
     static componentType = "row";
 
+    // `<row>` is also accepted inside `<matrix>`, where it sugars into
+    // `<matrixRow>`. Both entries appear in the docs index disambiguated by
+    // `displayContext`: this one is `<row> (in a table)`; the matrix-flavored
+    // alias (in `Aliases.js`) is `<row> (in a matrix)`.
     static componentDocs = {
-        summary: "A row within a tabular layout.",
+        summary: "A row within a tabular layout",
         docsSlug: "row_table",
+        displayContext: "in a table",
     };
     static rendererType = "row";
     static renderChildren = true;

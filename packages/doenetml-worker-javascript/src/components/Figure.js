@@ -11,7 +11,7 @@ export default class Figure extends BlockComponent {
     static componentType = "figure";
 
     static componentDocs = {
-        summary: "A figure container holding graphical content with a caption.",
+        summary: "A figure container holding graphical content with a caption",
     };
     static renderChildren = true;
     static canDisplayChildErrors = true;

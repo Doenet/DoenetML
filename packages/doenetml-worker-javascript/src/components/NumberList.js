@@ -14,7 +14,7 @@ export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
     static componentDocs = {
-        summary: "A list of numbers.",
+        summary: "A list of numbers",
     };
     static takesIndex = true;
 

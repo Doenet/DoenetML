@@ -558,8 +558,9 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         expect(help).toMatchObject({
             kind: "element",
             elementName: "column",
-            // matrixColumn points its slug at the matrix docs page.
-            docsSlug: "matrix",
+            // The author wrote <column>, so display "column" — but the docs link
+            // and summary come from matrixColumn.
+            docsSlug: "column_matrix",
         });
     });
 
@@ -632,20 +633,6 @@ describe("computeContextHelp — docsSlug propagation", () => {
         const help = helpAt(source, 3);
         if (help.kind === "element") {
             expect(help.docsSlug).toBe("answer1");
-        } else {
-            expect.fail(`expected element help, got ${help.kind}`);
-        }
-    });
-
-    it("emits null docsSlug for components without a real /reference page", () => {
-        // <codeEditor> is on the undocumented allow-list (no .mdx file), so
-        // the schema generator clamps docsSlug to null and the help UI
-        // suppresses the link.
-        const source = `<codeEditor/>`;
-        const offset = source.indexOf("codeEditor") + 3;
-        const help = helpAt(source, offset);
-        if (help.kind === "element") {
-            expect(help.docsSlug).toBeNull();
         } else {
             expect.fail(`expected element help, got ${help.kind}`);
         }

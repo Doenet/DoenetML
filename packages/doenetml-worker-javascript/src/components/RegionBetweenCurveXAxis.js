@@ -4,7 +4,7 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
     static componentType = "regionBetweenCurveXAxis";
 
     static componentDocs = {
-        summary: "A region bounded between a curve and the x-axis.",
+        summary: "A region bounded between a curve and the x-axis",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

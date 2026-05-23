@@ -132,7 +132,7 @@ export default class Pretzel extends BlockScoredComponent {
 
     static componentDocs = {
         summary:
-            "A figure for visualizing logical compositions of subsets of the reals.",
+            "A response-matching component where students enter a sequence to match statements and answers",
     };
     static renderChildren = true;
 

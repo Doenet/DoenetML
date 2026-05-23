@@ -18,6 +18,9 @@
 - Don't force publication-only PreTeXt patterns into interactive DoenetML flows.
 - Don't assume static numbering/cross-reference behavior like PreTeXt.
 - Don't use `<m>`/`<md>` when you need computed state.
+- Don't extend an array/list state variable with a scalar component (use `<mathList extend="$x.someList"/>`, not `<math extend>`; same for `<textList>`/`<numberList>`/`<vectorList>`/`<booleanList>`/`<pointList>`).
+- Don't write cross-component reference chains (`$user.value.latex` doesn't work; name the intermediate or pick a property that exists directly). Coordinate-style chains within one array's `indexAliases` (`$myLine.points[1].x`) *do* work.
+- Don't call `$foo` a "macro" in prose, comments, or commit messages — the term is *reference*.
 
 ## Final Check Before Sending
 

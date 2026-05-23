@@ -11,7 +11,7 @@ export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
 
     static componentDocs = {
-        summary: "List of values produced by iterating a function.",
+        summary: "List of values produced by iterating a function",
     };
     static rendererType = undefined;
 

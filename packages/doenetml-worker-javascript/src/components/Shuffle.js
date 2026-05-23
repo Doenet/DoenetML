@@ -9,7 +9,7 @@ export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
 
     static componentDocs = {
-        summary: "Randomly shuffles its children.",
+        summary: "Randomly shuffles its children",
     };
     static takesIndex = true;
 

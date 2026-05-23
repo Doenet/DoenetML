@@ -28,7 +28,7 @@ export default class Text extends InlineComponent {
     static componentType = "text";
 
     static componentDocs = {
-        summary: "A text string.",
+        summary: "A text string",
     };
     static includeBlankStringChildren = true;
 

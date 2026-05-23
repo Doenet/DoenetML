@@ -25,7 +25,7 @@ export default class Label extends InlineComponent {
     static componentType = "label";
 
     static componentDocs = {
-        summary: "A label for an input, answer, button, or graphical object.",
+        summary: "A label for an input, answer, button, or graphical object",
     };
     static rendererType = "label";
 

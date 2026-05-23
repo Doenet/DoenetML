@@ -23,7 +23,7 @@ Use this skill when creating or editing DoenetML content for interactive browser
 
 1. Write with interactive intent: inputs, feedback, dynamic math, and reactive state.
 2. Use component names (`name="..."`) whenever values are reused.
-3. Reference named components via `$name` (and properties like `$point1.x`) for reactivity.
+3. Reference named components via `$name` (and properties like `$point1.x`) for reactivity. (The `$foo` mechanism is called a *reference*. Do not call it a "macro" — that older term has been retired.)
 4. Use `<answer>` patterns appropriate to validation goals (symbolic, numeric, logic-based awards).
 5. Use `<math>` for stored/computed expressions and `<m>`/`<md>` for rendered math display.
 6. Keep graphs meaningful and accessible (include labels/short descriptions where relevant).
@@ -37,6 +37,8 @@ Use this skill when creating or editing DoenetML content for interactive browser
 4. Do not leave reused values unnamed. Missing `name` attributes are a common source of broken `$name` references.
 5. Do not ship inaccessible graph interactions. Include labels/descriptions and avoid color-only distinctions.
 6. Do not produce non-runnable snippets with dangling references or missing closing tags.
+7. Do not extend an array/list state variable with a scalar component. If `$x.foo` is a list (e.g. `$solve.solutions`, `$collect.results`), use the matching list component: `<mathList extend="$solve.solutions"/>`, not `<math extend="$solve.solutions"/>`. Same for `<textList>`, `<numberList>`, `<vectorList>`, `<booleanList>`, `<pointList>`, etc. The rule is *match the extend tag to the type of the state variable*.
+8. Do not write reference chains that cross component boundaries. `$user.value.latex` does **not** work — `.value` resolves to a fresh `<math>` component, but the resolver does not then dereference that math's `.latex`. If you need a cross-boundary chain, name the intermediate (`<math name="userMath" extend="$user.value"/>`, then `$userMath.latex`). Chains *within* a single array state variable's `indexAliases` *do* work and are the right way to access coordinates — e.g. `$myLine.points[1].x`, `$myVector.head.x`, `$myCircle.center.y`.
 
 ## Difference Emphasis (DoenetML vs PreTeXt)
 

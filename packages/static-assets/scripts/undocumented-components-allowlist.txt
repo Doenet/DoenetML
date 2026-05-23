@@ -8,31 +8,3 @@
 # class to point to an existing page) and delete the line here.
 #
 # Lines starting with `#` and blank lines are ignored.
-
-annotation
-annotations
-cascade
-cascadeMessage
-cellBlock
-clampFunction
-codeEditor
-column
-dataFrame
-displayDoenetML
-extractMathOperator
-feedbackDefinition
-givenAnswer
-latex
-lcm
-markers
-note
-periodicSet
-pluralize
-solveEquations
-subsetOfRealsInput
-summaryStatistics
-tagc
-tage
-topic
-variantControl
-wrapFunctionPeriodic

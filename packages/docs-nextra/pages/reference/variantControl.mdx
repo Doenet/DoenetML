@@ -1,0 +1,167 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<variantControl>{:dn}`
+
+
+`<variantControl>{:dn}` configures how variants are generated for a
+[`<document>{:dn}`](document) or sectional component. *Variants* are
+deterministic randomizations of a document: each variant index is a fixed
+seed that produces the same content every time, so a class of learners can
+each receive a different randomized version that is reproducible by the
+author.
+
+Place `<variantControl>{:dn}` near the top of the document or section whose
+variants you want to control. The component itself does not render anything;
+it only sets the parameters that drive the random selects and samples inside
+the enclosing scope.
+
+### Unique variants
+
+When a document is randomized, each variant index ideally gives the learner
+a version distinguishable from the others — Doenet calls this *unique
+variants*. By default, Doenet tries to deliver unique variants: it counts
+the distinguishable combinations the document's randomizing components
+could produce and arranges the variant indices to hit a different one each
+time.
+
+This isn't always possible. If a randomizing component's settings can't be
+pinned down before variants are generated, or if the combinations multiply
+out into too large a space to enumerate, Doenet falls back to drawing each
+variant's randomness independently. In that case, two variant indices
+might happen to produce identical output — though the chance grows
+smaller the larger the combination space.
+
+
+<AttrPropDisplay name='variantControl'/>
+
+
+---
+
+### Example: Limit the number of variants
+
+
+```doenet-editor-horiz
+<variantControl numVariants="5" />
+
+<problem>
+  <p>Random letter:
+    <selectFromSequence type="letters" name="x" from="a" to="z" />
+  </p>
+  <p>
+    <answer>
+      <label>Type the letter shown above</label>
+      $x
+    </answer>
+  </p>
+</problem>
+```
+
+
+Without `<variantControl>{:dn}` the document would generate many more
+variants than five. Setting `numVariants="5"` caps the available variants to
+the first five seeds, which is useful when assigning the document to a small
+class.
+
+
+
+---
+
+### Attribute Example: uniqueVariants
+
+
+```doenet-editor-horiz
+<variantControl numVariants="10" />
+
+<problem>
+  <p>Random letter:
+    <selectFromSequence type="letters" name="x" from="u" to="z" />
+  </p>
+</problem>
+```
+
+
+Even though `numVariants="10"` asks for ten variants, the random letter is
+drawn from only six choices (`u` through `z`), so there are only six
+distinguishable outputs. With the default unique-variant behavior in
+effect, Doenet delivers only those six variants; the four extras requested
+are dropped. Cycle through the variant picker and you will see six
+variants, not ten.
+
+
+```doenet-editor-horiz
+<variantControl numVariants="10" uniqueVariants="false" />
+
+<problem>
+  <p>Random letter:
+    <selectFromSequence type="letters" name="x" from="u" to="z" />
+  </p>
+</problem>
+```
+
+
+Setting `uniqueVariants="false"` opts out of the unique-variant behavior:
+Doenet now draws each variant index's letter independently. All ten
+requested variants are delivered, but because there are still only six
+letters to choose from, some variant indices will produce the same letter
+as others — the ten variants are no longer guaranteed to be
+distinguishable from each other. And because each draw is independent,
+there's no guarantee every letter appears at all: cycling through the
+ten variants here, some of the six letters show up several times while
+others don't show up at all.
+
+Setting `uniqueVariants="true"` explicitly is harmless but typically
+redundant, since Doenet already tries the unique-variant behavior by
+default; the explicit form is useful as a hint to readers that the
+activity is meant to deliver distinguishable variants.
+
+
+
+---
+
+### Attribute Example: variantNames
+
+
+```doenet-editor-horiz
+<variantControl numVariants="3"
+  variantNames="alpha, beta, gamma" />
+
+<problem>
+  <p>Random number:
+    <selectFromSequence name="n" from="1" to="100" />
+  </p>
+</problem>
+```
+
+
+`variantNames` assigns memorable names to the variants. Authors and
+instructors can then refer to variants by name (e.g. "give me the *beta*
+variant") rather than by integer index. The named variants also become
+the keys used by the [`<option selectForVariants="...">{:dn}`](option)
+attribute, which pins specific options to specific named variants
+instead of leaving the selection to chance.
+
+
+
+---
+
+### Attribute Example: variantsToInclude, variantsToExclude
+
+
+```doenet-editor-horiz
+<variantControl numVariants="10"
+  variantsToInclude="1, 3, 5, 7, 9" />
+
+<problem>
+  <p>Random odd-indexed variant:
+    <selectFromSequence name="n" from="1" to="100" />
+  </p>
+</problem>
+```
+
+
+`variantsToInclude` restricts which of the generated variants are actually
+delivered; `variantsToExclude` does the opposite. Both accept either integer
+indices or variant names (when `variantNames` is set).

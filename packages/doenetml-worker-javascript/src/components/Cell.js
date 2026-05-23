@@ -7,7 +7,7 @@ export default class Cell extends BaseComponent {
     static componentType = "cell";
 
     static componentDocs = {
-        summary: "A single cell within a table or tabular layout.",
+        summary: "A single cell within a tabular layout or spreadsheet",
     };
     static rendererType = "cell";
     static renderChildren = true;

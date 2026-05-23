@@ -12,7 +12,7 @@ export default class SubsetOfReals extends MathComponent {
 
     static componentDocs = {
         summary:
-            "A subset of the real numbers, defined by intervals and points.",
+            "A subset of the real numbers, defined by intervals and points",
     };
     static rendererType = "math";
 

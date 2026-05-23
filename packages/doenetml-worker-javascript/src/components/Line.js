@@ -28,7 +28,7 @@ export default class Line extends GraphicalComponent {
     static componentType = "line";
 
     static componentDocs = {
-        summary: "A line through two points or defined by an equation.",
+        summary: "A line through two points or defined by an equation",
     };
     static canBeInList = true;
 

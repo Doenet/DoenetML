@@ -6,7 +6,7 @@ export default class ShortDescription extends TextOrInline {
 
     static componentDocs = {
         summary:
-            "A short accessibility description for an enclosing component.",
+            "A short accessibility description (e.g. for a `<graph>`) read by screen readers",
     };
     // A short description is never rendered visually — it is consumed only
     // by assistive technology, through its `text` state variable.

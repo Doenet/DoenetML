@@ -13,7 +13,7 @@ export class Solution extends BlockComponent {
     static componentType = "solution";
 
     static componentDocs = {
-        summary: "A solution to an exercise, shown on demand.",
+        summary: "A solution to an exercise, shown on demand",
     };
     static rendererType = "solution";
     static renderChildren = true;
@@ -351,7 +351,7 @@ export class GivenAnswer extends Solution {
 
     static componentDocs = {
         summary:
-            'A solution-style block labeled "Answer" rather than "Solution".',
+            'A sectional component that renders an expandable block labeled "Answer"',
     };
 
     static returnStateVariableDefinitions() {

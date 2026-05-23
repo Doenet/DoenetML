@@ -28,7 +28,7 @@ export default class Image extends BlockComponent {
     static componentType = "image";
 
     static componentDocs = {
-        summary: "Displays a static image.",
+        summary: "Displays a static image",
     };
     static renderChildren = true;
 

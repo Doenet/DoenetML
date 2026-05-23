@@ -5,7 +5,7 @@ export default class Option extends BaseComponent {
     static componentType = "option";
 
     static componentDocs = {
-        summary: "A single option within a select-style input.",
+        summary: "A single option within a `<select>` block",
     };
     static rendererType = undefined;
 

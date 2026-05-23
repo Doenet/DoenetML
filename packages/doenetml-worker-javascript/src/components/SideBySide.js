@@ -13,7 +13,7 @@ export class SideBySide extends BlockComponent {
     static componentType = "sideBySide";
 
     static componentDocs = {
-        summary: "Lays children out side-by-side.",
+        summary: "Renders children in a side-by-side horizontal layout",
     };
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -1259,7 +1259,7 @@ export class SbsGroup extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "A group of `<sideBySide>` components that share alignment and spacing.",
+            "A group of `<sideBySide>` components that share alignment and spacing",
     };
 
     static createAttributesObject() {
@@ -2362,7 +2362,8 @@ export class Stack extends BlockComponent {
     static canDisplayChildErrors = true;
 
     static componentDocs = {
-        summary: "A vertical stack layout for arranging children.",
+        summary:
+            "A vertical container element for organizing content within a `<sideBySide>`",
     };
 
     static includeBlankStringChildren = true;

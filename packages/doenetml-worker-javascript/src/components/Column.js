@@ -4,8 +4,14 @@ import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils
 export default class Column extends BaseComponent {
     static componentType = "column";
 
+    // `<column>` is also accepted inside `<matrix>`, where it sugars into
+    // `<matrixColumn>`. Both entries appear in the docs index disambiguated
+    // by `displayContext`: this one is `<column> (in a table)`; the
+    // matrix-flavored alias (in `Aliases.js`) is `<column> (in a matrix)`.
     static componentDocs = {
-        summary: "A column within a tabular layout.",
+        summary: "A column of cells within a `<spreadsheet>`",
+        docsSlug: "column_table",
+        displayContext: "in a table",
     };
     static rendererType = "containerBlock";
     static renderChildren = true;

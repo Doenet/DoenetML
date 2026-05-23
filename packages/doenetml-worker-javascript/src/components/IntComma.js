@@ -9,7 +9,7 @@ export default class IntComma extends Text {
 
     static componentDocs = {
         summary:
-            "Renders a numeric value with thousands separators (e.g. 1,000,000).",
+            "Renders a numeric value with thousands separators (e.g. 1,000,000)",
     };
 
     static returnStateVariableDefinitions() {

@@ -9,6 +9,13 @@ import { AttrPropDisplay } from "../../components"
 `<feedback>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) 
 component that renders a boxed section of content that can be triggered by predefined user interactions. 
 
+For short, reusable feedback messages keyed by a *code* rather than a
+condition, see [`<feedbackDefinition>{:dn}`](feedbackDefinition) — it pairs
+with the `feedbackCodes` attribute on [`<award>{:dn}`](award2b) and
+[`<choice>{:dn}`](choice) and includes four
+[built-in codes](feedbackDefinition#built-in-feedback-codes)
+(`goodJob`, `numericalError`, `oneSignError`, `twoSignErrors`).
+
 <AttrPropDisplay name='feedback'/>
 
 

@@ -8,14 +8,18 @@ import { AttrPropDisplay } from "../../components"
 
 
 `<row>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component that functions as a container element for the individual [`<cell>{:dn}`](cell.mdx) elements of  a [`<tabular>{:dn}`](tabular.mdx). 
+component that functions as a container element for the individual [`<cell>{:dn}`](cell.mdx) elements of a [`<tabular>{:dn}`](tabular.mdx) or a [`<spreadsheet>{:dn}`](spreadsheet.mdx).
+
+`<row>{:dn}` is also accepted inside a [`<matrix>{:dn}`](matrix.mdx), where it
+defines a row of math values; see [`<row>{:dn}` (in a matrix)](row_matrix) for
+that flavor.
 
 <AttrPropDisplay name='row'/>
 
 
 ---
 
-### Example: a `<row>{:dn}` without attributes
+### Example: a `<row>{:dn}` inside a `<tabular>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -37,8 +41,37 @@ component that functions as a container element for the individual [`<cell>{:dn}
 
 
 
-The basic, unformatted structure of a `<table>{:dn}` is illustrated. Individual rows are contained 
+The basic, unformatted structure of a `<table>{:dn}` is illustrated. Individual rows are contained
 within a `<tabular>{:dn}`, and individual cells are contained within a `<row>{:dn}`.
+
+
+
+---
+
+### Example: a `<row>{:dn}` inside a `<spreadsheet>{:dn}`
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <row>
+    <cell>Name</cell>
+    <cell>Score</cell>
+  </row>
+  <row>
+    <cell>Alice</cell>
+    <cell>85</cell>
+  </row>
+  <row>
+    <cell>Bob</cell>
+    <cell>92</cell>
+  </row>
+</spreadsheet>
+```
+
+
+`<row>{:dn}` also populates a [`<spreadsheet>{:dn}`](spreadsheet) row by row.
+Compare with [`<column>{:dn}`](column_table), which populates a spreadsheet
+column by column.
 
 
 

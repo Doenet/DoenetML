@@ -13,7 +13,7 @@ export default class Triangle extends Polygon {
     static componentType = "triangle";
 
     static componentDocs = {
-        summary: "A triangle defined by three vertices.",
+        summary: "A triangle defined by three vertices",
     };
     static rendererType = "polygon";
 

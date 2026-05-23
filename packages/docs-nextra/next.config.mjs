@@ -1,6 +1,7 @@
 import nextraConfig from "nextra";
 import {
     autoInsertAttrPropDescriptions,
+    expandComponentListings,
     wrapDoenetExample,
     wrapDoenetEditor,
     wrapDoenetEditorHorizontal,
@@ -79,6 +80,11 @@ const withNextra = nextraConfig({
             },
         },
         remarkPlugins: [
+            // `expandComponentListings` runs first so `<ComponentIndex/>` and
+            // `<ComponentTable .../>` are turned into real markdown headings
+            // and tables before `autoInsertAttrPropDescriptions` walks the
+            // tree looking for other MDX flow elements.
+            expandComponentListings,
             autoInsertAttrPropDescriptions,
             wrapDoenetExample,
             wrapDoenetEditor,

@@ -14,7 +14,7 @@ export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
     static componentDocs = {
-        summary: "Repeats template content for each item in a source.",
+        summary: "Repeats template content for each item in a source",
     };
     static takesIndex = true;
 

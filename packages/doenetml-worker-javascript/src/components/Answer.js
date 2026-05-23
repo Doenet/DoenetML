@@ -23,7 +23,7 @@ export default class Answer extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "An assessable answer that compares student input against awards.",
+            "Assigns credit to student responses based on matches or logical rules",
         docsSlug: "answer1",
     };
     // Include children that can be added due to sugar

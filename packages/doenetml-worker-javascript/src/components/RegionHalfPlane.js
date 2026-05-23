@@ -4,7 +4,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
     static componentType = "regionHalfPlane";
 
     static componentDocs = {
-        summary: "A half-plane region bounded by a line.",
+        summary: "A half-plane region bounded by a line",
     };
     static rendererType = undefined;
 

@@ -1,0 +1,51 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<tage>{:dn}`
+
+
+`<tage>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders its content as a self-closing tag (`<.../>`). It is
+the empty-tag counterpart to [`<tag>{:dn}`](tag) (which renders an opening
+tag `<...>`) and [`<tagc>{:dn}`](tagc) (which renders a closing tag `</...>`).
+
+Use these markers in prose when you need to *display* tag names without the
+surrounding markdown trying to parse them as actual DoenetML.
+
+
+<AttrPropDisplay name='tage'/>
+
+
+---
+
+### Example: Refer to a self-closing tag in prose
+
+
+```doenet-editor-horiz
+<p>To insert an image inline, use <tage>image</tage> with a <attr>source</attr>
+attribute.</p>
+```
+
+
+`<tage>image</tage>{:dn}` renders as `<image/>`, the self-closing form of the
+element. Compare with `<tag>image</tag>{:dn}`, which renders as `<image>`.
+
+
+
+---
+
+### Example: Mix tag forms in one sentence
+
+
+```doenet-editor-horiz
+<p>Block-level inputs such as <tage>mathInput</tage> typically appear inside
+a <tag>p</tag> paragraph that ends with <tagc>p</tagc>.</p>
+```
+
+
+All three forms — [`<tag>{:dn}`](tag) (opening), `<tage>{:dn}` (self-closing),
+and [`<tagc>{:dn}`](tagc) (closing) — can be mixed freely in prose. Each
+produces only the surrounding delimiters and the bare tag name; neither
+parses the content as DoenetML nor produces a working element.

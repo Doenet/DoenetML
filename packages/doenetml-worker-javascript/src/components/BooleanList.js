@@ -7,7 +7,7 @@ export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
     static componentDocs = {
-        summary: "A list of booleans.",
+        summary: "A list of booleans",
     };
     static takesIndex = true;
 

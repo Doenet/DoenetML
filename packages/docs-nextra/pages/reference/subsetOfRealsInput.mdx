@@ -1,0 +1,129 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<subsetOfRealsInput>{:dn}`
+
+
+`<subsetOfRealsInput>{:dn}` is a block-level interactive widget that renders
+a number line on which the learner builds a subset of the real numbers. The
+learner can click to add or remove points, drag to extend intervals, and
+toggle endpoints between open and closed.
+
+The value of the widget is a [`<subsetOfReals>{:dn}`](subsetOfReals) — so it
+compares equal to another subset when the two represent the same set, and
+can be plugged into a [`<when>{:dn}`](when) condition for answer validation.
+
+A few caveats unusual among Doenet's input-shaped components:
+
+- Despite its name, `<subsetOfRealsInput>{:dn}` does **not** inherit from
+  the `Input` base class. As a result it cannot be placed *inside* an
+  [`<answer>{:dn}`](answer1); for answer validation, name it, leave it
+  outside the `<answer>{:dn}`, and reference it from an
+  [`<award>{:dn}`](award2b) via `referencesAreResponses` plus a
+  [`<when>{:dn}`](when) check.
+- It is block-level, so it cannot sit inside a [`<p>{:dn}`](p).
+- It currently accepts no children — including no
+  [`<label>{:dn}`](label) or [`<shortDescription>{:dn}`](shortDescription).
+  Place any prompt text in a sibling `<p>{:dn}` above the widget. See
+  [Doenet/DoenetML#1167](https://github.com/Doenet/DoenetML/issues/1167)
+  for the accessibility follow-up.
+
+
+<AttrPropDisplay name='subsetOfRealsInput'/>
+
+
+---
+
+### Example: A simple subset input
+
+
+```doenet-example
+<p>Build a subset of the real line:</p>
+
+<subsetOfRealsInput name="S" />
+
+<p>You selected <m>S = $S</m>.</p>
+```
+
+
+The default `<subsetOfRealsInput>{:dn}` shows a number line from $-10$ to
+$10$ on which the learner can build a subset. The current value is referenced
+with `$S`, returning a [`<subsetOfReals>{:dn}`](subsetOfReals).
+
+
+
+---
+
+### Example: Use in answer validation
+
+
+```doenet-example
+<p>Shade the set of <m>x</m> for which <m>x^2 \leq 4</m>.</p>
+
+<subsetOfRealsInput name="userSet" />
+
+<answer name="ans">
+  <award referencesAreResponses="$userSet">
+    <when>
+      $userSet = <subsetOfReals>[-2, 2]</subsetOfReals>
+    </when>
+  </award>
+</answer>
+```
+
+
+The widget itself sits *outside* the `<answer>{:dn}` (placing it inside
+would render nothing — see the caveat above). The
+[`<award>{:dn}`](award2b) names `$userSet` as a *response* via
+`referencesAreResponses`, then a [`<when>{:dn}`](when) child compares the
+referenced subset against the expected `[-2, 2]`. Any equivalent
+representation of $[-2, 2]$ is accepted because `=` on subsets compares the
+*sets*, not their syntactic form.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<p>Edit the prefilled subset:</p>
+
+<subsetOfRealsInput name="S" prefill="(-1, 3]" />
+
+<p><m>S = $S</m></p>
+```
+
+
+`prefill` provides an initial subset (in the input's `format`). The learner
+sees the prefilled subset and can edit it from there.
+
+
+
+---
+
+### Attribute Example: variable
+
+
+```doenet-example
+<p>Choose a set of times <m>t</m>:</p>
+
+<subsetOfRealsInput name="S" variable="t" prefill="t > 0" />
+
+<p>As an interval: <m>S = $S</m></p>
+<p>As inequalities:
+  <m><subsetOfReals extend="$S" displayMode="inequalities"/></m>
+</p>
+```
+
+
+`variable` does two things. It names the symbol the input expects when
+parsing a `prefill` string — with `variable="t"` set, `prefill="t > 0"`
+parses to the set $\\{t : t > 0\\} = (0, \infty)$; with the default `x` it
+would fail because `t` would be an unknown symbol. And it propagates
+through `extend` to a [`<subsetOfReals>{:dn}`](subsetOfReals), so rendering
+the same subset with `displayMode="inequalities"` uses `t` for the
+variable in the inequality.

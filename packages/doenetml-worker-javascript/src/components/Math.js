@@ -47,7 +47,7 @@ export default class MathComponent extends InlineComponent {
     static componentType = "math";
 
     static componentDocs = {
-        summary: "A math expression.",
+        summary: "A math expression",
     };
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "unnormalizedValue";

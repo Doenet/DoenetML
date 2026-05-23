@@ -15,7 +15,7 @@ export default class MathList extends CompositeComponent {
     static componentType = "mathList";
 
     static componentDocs = {
-        summary: "A list of math expressions.",
+        summary: "A list of math expressions",
     };
     static takesIndex = true;
 

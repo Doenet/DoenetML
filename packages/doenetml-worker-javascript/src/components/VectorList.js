@@ -13,7 +13,7 @@ export default class VectorListComponent extends CompositeComponent {
     static componentType = "vectorList";
 
     static componentDocs = {
-        summary: "A list of vectors.",
+        summary: "A list of vectors",
     };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

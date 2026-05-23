@@ -1,0 +1,93 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrPropDisplay } from "../../components"
+
+
+# `<cellBlock>{:dn}`
+
+
+`<cellBlock>{:dn}` is a container for grouping
+[`<cell>{:dn}`](cell), [`<row>{:dn}`](row_table), [`<column>{:dn}`](column_table),
+or other `<cellBlock>{:dn}` children inside a
+[`<spreadsheet>{:dn}`](spreadsheet), with an optional starting row and column.
+It lets you populate a rectangular block of cells without naming every cell's
+location individually — the cells inside the block fill in relative to the
+block's origin.
+
+
+<AttrPropDisplay name='cellBlock'/>
+
+
+---
+
+### Example: A block of cells anchored at row 2, column B
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="5" minNumColumns="5">
+  <cellBlock rowNum="2" colNum="B">
+    <row>
+      <cell>x</cell>
+      <cell>y</cell>
+    </row>
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+    </row>
+    <row>
+      <cell>3</cell>
+      <cell>4</cell>
+    </row>
+  </cellBlock>
+</spreadsheet>
+```
+
+
+The block's `rowNum` and `colNum` attributes place the top-left corner of the
+block at row 2, column B. Cells inside fill the block relative to that
+starting point.
+
+
+
+---
+
+### Example: Multiple `<cellBlock>{:dn}`s in one spreadsheet
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="6" minNumColumns="5">
+  <cellBlock rowNum="1" colNum="A">
+    <row>
+      <cell>Name</cell>
+      <cell>Score</cell>
+    </row>
+    <row>
+      <cell>Alice</cell>
+      <cell>85</cell>
+    </row>
+    <row>
+      <cell>Bob</cell>
+      <cell>92</cell>
+    </row>
+  </cellBlock>
+
+  <cellBlock rowNum="1" colNum="D">
+    <row>
+      <cell>Name</cell>
+      <cell>Score</cell>
+    </row>
+    <row>
+      <cell>Carol</cell>
+      <cell>78</cell>
+    </row>
+    <row>
+      <cell>Dave</cell>
+      <cell>88</cell>
+    </row>
+  </cellBlock>
+</spreadsheet>
+```
+
+
+Two `<cellBlock>{:dn}` elements place data tables side-by-side in the same
+`<spreadsheet>{:dn}`. Each block sets its own starting row and column.

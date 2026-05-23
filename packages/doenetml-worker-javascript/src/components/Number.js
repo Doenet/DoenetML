@@ -37,7 +37,7 @@ export default class NumberComponent extends InlineComponent {
     static componentType = "number";
 
     static componentDocs = {
-        summary: "A numeric value.",
+        summary: "A numeric floating point value",
     };
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;

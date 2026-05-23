@@ -10,7 +10,7 @@ export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
 
     static componentDocs = {
-        summary: "A periodic set of real numbers.",
+        summary: "A periodic set of real numbers",
     };
     static rendererType = undefined;
 
