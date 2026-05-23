@@ -111,7 +111,7 @@ describe("Doenet Language Server", async () => {
             {
               "documentation": {
                 "kind": "markdown",
-                "value": "A coordinate-axis graph that contains graphical objects.",
+                "value": "A 2D coordinate-axis graph",
               },
               "kind": 10,
               "label": "graph",
@@ -157,7 +157,7 @@ describe("Doenet Language Server", async () => {
             {
               "documentation": {
                 "kind": "markdown",
-                "value": "A coordinate-axis graph that contains graphical objects.",
+                "value": "A 2D coordinate-axis graph",
               },
               "kind": 10,
               "label": "graph",
