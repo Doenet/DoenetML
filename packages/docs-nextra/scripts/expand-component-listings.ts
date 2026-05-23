@@ -24,6 +24,10 @@ import {
     Link,
     InlineCode,
     PhrasingContent,
+    RootContent,
+    Table,
+    TableCell,
+    TableRow,
     Text,
 } from "mdast";
 import "mdast-util-mdx-jsx";
@@ -178,28 +182,31 @@ function makeComponentCellChildren(entry: Entry): PhrasingContent[] {
  * header — remark-gfm marks the first row as the thead at parse/serialize
  * time, and the mdast `table` node follows the same convention.
  */
-function makeTable(entries: Entry[]): any {
-    const header = {
+function makeTable(entries: Entry[]): Table {
+    const header: TableRow = {
         type: "tableRow",
         children: [
             {
                 type: "tableCell",
                 children: [{ type: "text", value: "Component" }],
-            },
+            } satisfies TableCell,
             {
                 type: "tableCell",
                 children: [{ type: "text", value: "Description" }],
-            },
+            } satisfies TableCell,
         ],
     };
-    const rows = entries.map((e) => ({
+    const rows: TableRow[] = entries.map((e) => ({
         type: "tableRow",
         children: [
-            { type: "tableCell", children: makeComponentCellChildren(e) },
+            {
+                type: "tableCell",
+                children: makeComponentCellChildren(e),
+            } satisfies TableCell,
             {
                 type: "tableCell",
                 children: [{ type: "text", value: e.summary }],
-            },
+            } satisfies TableCell,
         ],
     }));
     return {
@@ -235,9 +242,9 @@ function getDocumentedSorted(): Entry[] {
  * Expand a `<ComponentIndex/>` placeholder into a `## Letter` heading +
  * markdown table for each non-empty letter group.
  */
-function expandComponentIndex(): any[] {
+function expandComponentIndex(): RootContent[] {
     const documented = getDocumentedSorted();
-    const nodes: any[] = [];
+    const nodes: RootContent[] = [];
     for (const group of LETTER_GROUPS) {
         const inGroup = documented.filter((e) =>
             group.includes(e.name[0].toUpperCase()),
@@ -301,17 +308,20 @@ export const expandComponentListings: Plugin<void[], MdastRoot, MdastRoot> =
     function () {
         return (tree) => {
             const replacements: {
-                parent: any;
+                parent: { children: RootContent[] };
                 index: number;
-                nodes: any[];
+                nodes: RootContent[];
             }[] = [];
             visit(tree, (node, index, parent) => {
                 if (node.type !== "mdxJsxFlowElement") return;
                 const flow = node as MdxJsxFlowElement;
                 if (typeof index !== "number" || !parent) return;
+                // `unist-util-visit` only knows that `parent.children` is
+                // `Node[]`; inside an mdast tree they're always `RootContent`.
+                const mdastParent = parent as { children: RootContent[] };
                 if (flow.name === "ComponentIndex") {
                     replacements.push({
-                        parent,
+                        parent: mdastParent,
                         index,
                         nodes: expandComponentIndex(),
                     });
@@ -320,7 +330,7 @@ export const expandComponentListings: Plugin<void[], MdastRoot, MdastRoot> =
                     if (!specs) return;
                     const entries = specs.map(resolveSpec);
                     replacements.push({
-                        parent,
+                        parent: mdastParent,
                         index,
                         nodes: [makeTable(entries)],
                     });

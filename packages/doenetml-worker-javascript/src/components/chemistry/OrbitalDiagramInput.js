@@ -23,7 +23,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows",
+            "An interactive widget where students fill in an orbital diagram by adding boxes, rows, and up/down arrows (block-level; does not inherit from Input)",
     };
 
     static variableForImplicitProp = "value";

@@ -9,8 +9,7 @@ export default class Column extends BaseComponent {
     // by `displayContext`: this one is `<column> (in a table)`; the
     // matrix-flavored alias (in `Aliases.js`) is `<column> (in a matrix)`.
     static componentDocs = {
-        summary:
-            "A column of cells within a `<spreadsheet>` or a column of math values within a `<matrix>`",
+        summary: "A column of cells within a `<spreadsheet>`",
         docsSlug: "column_table",
         displayContext: "in a table",
     };
