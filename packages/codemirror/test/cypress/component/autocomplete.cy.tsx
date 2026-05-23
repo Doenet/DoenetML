@@ -165,6 +165,33 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("have.text", `<matrix></matrix>`);
     });
 
+    it("completes closing tag for inner same-name element when parent stole close (#1117)", () => {
+        // Parser stack-matches the only </matrix> to the inner <matrix>.
+        // Without the stolen-close-tag heuristic, no `/matrix>` suggestion
+        // would appear because the inner element looks already-closed.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror
+                    value={`<matrix><matrix></matrix>`}
+                    doenetWorkerUrl={doenetWorkerUrl}
+                />
+            </div>,
+        );
+
+        // Position cursor in the body of the inner <matrix>, between its
+        // opening `<matrix>` (ending at offset 16) and the `</matrix>`.
+        cy.get(".cm-content")
+            .click()
+            .type("{home}" + "{rightArrow}".repeat(16) + "<", {
+                force: true,
+            });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").first().click();
+        cy.get(".cm-line").should(
+            "have.text",
+            `<matrix><matrix></matrix></matrix>`,
+        );
+    });
+
     it("inserts element snippets", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
