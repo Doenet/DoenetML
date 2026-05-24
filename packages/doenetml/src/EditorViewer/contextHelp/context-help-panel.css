@@ -78,13 +78,28 @@
     margin: 0;
 }
 
+/*
+ * Secondary annotation under the primary ref sentence — used when the bare
+ * `$name` is a repeat-introduced binding (valueName/indexName) rather than a
+ * `name=` attribute. Lighter weight than the main sentence so the eye lands
+ * on the primary referent first.
+ */
+.editor-panel .help-ref-derived {
+    margin: 0;
+    color: #475467;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
 .editor-panel .help-description code,
-.editor-panel .help-ref-sentence code {
+.editor-panel .help-ref-sentence code,
+.editor-panel .help-ref-derived code {
     background: var(--mainGray);
     padding: 0 0.25rem;
     border-radius: 0.2rem;
     font-family: monospace;
     font-size: 0.85em;
+    font-style: normal;
 }
 
 .editor-panel .help-detail {

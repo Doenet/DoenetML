@@ -21,6 +21,7 @@ import { addDocumentFormattingSupport } from "./features/formatting";
 import { addValidationSupport } from "./features/validate";
 import { addDocumentCompletionSupport } from "./features/completions";
 import { addDocumentHoverSupport } from "./features/hover";
+import { addContextHelpSupport } from "./features/context-help";
 
 try {
     // @ts-ignore
@@ -123,6 +124,7 @@ addDocumentSymbolsSupport(connection, documentInfo);
 addDocumentFormattingSupport(connection, documentInfo);
 addDocumentCompletionSupport(connection, documentInfo);
 addDocumentHoverSupport(connection, documentInfo);
+addContextHelpSupport(connection, documentInfo);
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events

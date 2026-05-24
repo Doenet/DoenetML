@@ -28,12 +28,7 @@ import {
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
-import { AutoCompleter } from "@doenet/lsp-tools";
-import {
-    computeContextHelp,
-    computeContextHelpForCompletion,
-} from "./contextHelp/computeContextHelp";
-import type { HelpContent } from "./contextHelp/types";
+import type { HelpContent } from "@doenet/lsp-tools";
 import { EditorSelection } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
@@ -290,7 +285,6 @@ export const EditorViewer = React.forwardRef<
         useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
 
-    const completerRef = useRef(new AutoCompleter(initialDoenetML));
     const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
     const cursorDebounceTimer = useRef<number | undefined>(undefined);
     // Tracks the last cursor offset reported by CodeMirror, so the help
@@ -306,6 +300,11 @@ export const EditorViewer = React.forwardRef<
     // row instead of the cursor position. Tracked as a ref (not state) so the
     // stable cursor handler can early-return without re-binding.
     const selectedCompletionRef = useRef<Completion | null>(null);
+    // Monotonic counter for help RPCs.  Every cursor/completion change bumps
+    // it; only responses whose captured ID still matches `current` commit
+    // their `HelpContent` to state.  Drops stale responses without needing
+    // JSON-RPC cancellation (issue #1086 / Option 4).
+    const helpRequestIdRef = useRef(0);
 
     // When all tabs are disabled, the panel pair isn't rendered, so the
     // store's selectedId is unobservable — `undefined` is fine.
@@ -582,11 +581,14 @@ export const EditorViewer = React.forwardRef<
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
         setEditorDoenetML(initialDoenetML);
-        completerRef.current.setSource(initialDoenetML);
-        // Cancel any in-flight cursor debounce so a pending callback
-        // can't fire `computeContextHelp` with a stale offset against
-        // the new source.
+        // Cancel any in-flight cursor debounce so a pending callback can't
+        // fire a help RPC with a stale offset against the new source.  The
+        // LSP-side source is kept in sync via the CodeMirror plugin's normal
+        // `updateDocument` path; no local completer to refresh.
         window.clearTimeout(cursorDebounceTimer.current);
+        // Bump the request ID so any in-flight help RPC's response is
+        // dropped on arrival rather than overwriting the reset state.
+        helpRequestIdRef.current += 1;
         setHelpContent(HELP_NONE);
     }, [initialDoenetML]);
 
@@ -601,7 +603,9 @@ export const EditorViewer = React.forwardRef<
     const onEditorChange = useCallback((value: string) => {
         if (editorDoenetMLRef.current !== value) {
             editorDoenetMLRef.current = value;
-            completerRef.current.setSource(value);
+            // The LSP-side `AutoCompleter` is kept in sync by the CodeMirror
+            // plugin's `updateDocument` path; no local completer to refresh
+            // here (issue #1086 / Option 4).
 
             if (!codeChangedRef.current) {
                 setCodeChanged(true);
@@ -638,25 +642,92 @@ export const EditorViewer = React.forwardRef<
         updateValueTimer.current = null;
     }, []);
 
-    const onCursorChange = useCallback((selection: EditorSelection) => {
-        const offset = selection.main.head;
-        lastCursorOffsetRef.current = offset;
-        window.clearTimeout(cursorDebounceTimer.current);
-        // Skip the parse/schema walk when no one's looking — the help-becoming-
-        // visible effect below will compute on demand for the current cursor.
-        if (!helpIsVisibleRef.current) return;
-        // Completion-driven help wins while the autocomplete popup is open.
-        // The completion change handler is authoritative; don't overwrite or
-        // schedule a debounced overwrite from the cursor.
-        if (selectedCompletionRef.current) return;
-        cursorDebounceTimer.current = window.setTimeout(() => {
-            setHelpContent(computeContextHelp(completerRef.current, offset));
-        }, 150);
-    }, []);
+    // Help-RPC plumbing.  Every send bumps `helpRequestIdRef` and captures
+    // its own ID; the response only commits to state if the captured ID is
+    // still current and the help tab is still visible.  Newest-request-wins
+    // ordering, no JSON-RPC cancellation needed (issue #1086 / Option 4).
+    //
+    // The two flavours (cursor-driven and completion-driven) share the
+    // ID/visibility/error guards via `runHelpRequest` — only the underlying
+    // RPC call differs.  Keeping the guards in one place means a fix in
+    // either dimension (e.g. revising stale-drop policy) doesn't have to
+    // be mirrored.
+    const runHelpRequest = useCallback(
+        async (
+            warnLabel: string,
+            rpc: (bundle: {
+                lsp: LSP;
+                documentUri: string;
+            }) => Promise<HelpContent>,
+        ) => {
+            const myId = ++helpRequestIdRef.current;
+            const bundle = lspRef.current;
+            if (!bundle) {
+                // Symmetry with the post-await branches: only commit
+                // state when the help panel is actually visible.  An
+                // invisible panel already shows HELP_NONE, and the
+                // visibility-becomes-visible effect will re-fetch on its
+                // own when the panel opens.
+                if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
+                return;
+            }
+            try {
+                const result = await rpc(bundle);
+                if (myId !== helpRequestIdRef.current) return;
+                if (!helpIsVisibleRef.current) return;
+                setHelpContent(result);
+            } catch (err) {
+                if (myId !== helpRequestIdRef.current) return;
+                console.warn(`${warnLabel} request failed`, err);
+                if (!helpIsVisibleRef.current) return;
+                setHelpContent(HELP_NONE);
+            }
+        },
+        [],
+    );
+
+    const requestHelpForCursor = useCallback(
+        (offset: number) =>
+            runHelpRequest("contextHelp", (bundle) =>
+                bundle.lsp.requestContextHelp(bundle.documentUri, offset),
+            ),
+        [runHelpRequest],
+    );
+
+    const requestHelpForCompletion = useCallback(
+        (offset: number, completion: Completion) =>
+            runHelpRequest("contextHelpForCompletion", (bundle) =>
+                bundle.lsp.requestContextHelpForCompletion(
+                    bundle.documentUri,
+                    offset,
+                    { label: completion.label, type: completion.type },
+                ),
+            ),
+        [runHelpRequest],
+    );
+
+    const onCursorChange = useCallback(
+        (selection: EditorSelection) => {
+            const offset = selection.main.head;
+            lastCursorOffsetRef.current = offset;
+            window.clearTimeout(cursorDebounceTimer.current);
+            // Skip the RPC when no one's looking — the help-becoming-visible
+            // effect below will compute on demand for the current cursor.
+            if (!helpIsVisibleRef.current) return;
+            // Completion-driven help wins while the autocomplete popup is open.
+            // The completion change handler is authoritative; don't overwrite
+            // or schedule a debounced overwrite from the cursor.
+            if (selectedCompletionRef.current) return;
+            cursorDebounceTimer.current = window.setTimeout(() => {
+                void requestHelpForCursor(offset);
+            }, 150);
+        },
+        [requestHelpForCursor],
+    );
 
     // Fires when the highlighted autocomplete option changes (including
-    // popup open/close). Computes help synchronously — no debounce — so
-    // arrow-key navigation in the popup feels immediate.
+    // popup open/close).  No debounce — arrow-key navigation in the popup
+    // should surface its docs immediately.
     const onSelectedCompletionChange = useCallback(
         (completion: Completion | null) => {
             selectedCompletionRef.current = completion;
@@ -665,26 +736,17 @@ export const EditorViewer = React.forwardRef<
             // and clobber the completion-driven help.
             window.clearTimeout(cursorDebounceTimer.current);
             const offset = lastCursorOffsetRef.current;
+            if (offset == null) return;
             if (completion) {
-                if (offset == null) return;
-                setHelpContent(
-                    computeContextHelpForCompletion(
-                        completerRef.current,
-                        offset,
-                        completion,
-                    ),
-                );
+                void requestHelpForCompletion(offset, completion);
             } else {
                 // Popup closed — revert to cursor-based help for the current
-                // position. No debounce: this is a discrete transition, not
+                // position.  No debounce: this is a discrete transition, not
                 // a stream of cursor moves.
-                if (offset == null) return;
-                setHelpContent(
-                    computeContextHelp(completerRef.current, offset),
-                );
+                void requestHelpForCursor(offset);
             }
         },
-        [],
+        [requestHelpForCursor, requestHelpForCompletion],
     );
 
     // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
@@ -700,6 +762,10 @@ export const EditorViewer = React.forwardRef<
             // and repopulate state for an invisible panel (flashing on next
             // open).
             window.clearTimeout(cursorDebounceTimer.current);
+            // Bump the request ID so any in-flight RPC's response is dropped
+            // when it resolves (the visibility guard also drops it, but this
+            // makes the intent explicit).
+            helpRequestIdRef.current += 1;
             setHelpContent(HELP_NONE);
             return;
         }
@@ -707,17 +773,16 @@ export const EditorViewer = React.forwardRef<
         if (offset == null) return;
         const completion = selectedCompletionRef.current;
         if (completion) {
-            setHelpContent(
-                computeContextHelpForCompletion(
-                    completerRef.current,
-                    offset,
-                    completion,
-                ),
-            );
+            void requestHelpForCompletion(offset, completion);
         } else {
-            setHelpContent(computeContextHelp(completerRef.current, offset));
+            void requestHelpForCursor(offset);
         }
-    }, [infoPanelIsOpen, selectedTabId]);
+    }, [
+        infoPanelIsOpen,
+        selectedTabId,
+        requestHelpForCursor,
+        requestHelpForCompletion,
+    ]);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {

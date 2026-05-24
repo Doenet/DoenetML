@@ -15,6 +15,24 @@ import {
     Position,
     CompletionContext,
 } from "vscode-languageserver-protocol/browser";
+import {
+    DOENET_LSP_METHODS,
+    type ContextHelpCompletion,
+    type HelpContent,
+} from "@doenet/lsp-tools";
+
+// Re-export the help-payload types so editor code that already depends on
+// `@doenet/codemirror` for the LSP integration can pick up the types from
+// the same place as `class LSP` (without growing a separate `@doenet/lsp-tools`
+// import for the help feature).
+export type { ContextHelpCompletion, HelpContent };
+
+/**
+ * Inert default payload returned to callers when the LSP can't be reached
+ * (e.g. init hasn't completed and `workerConn` is unavailable).  Matches the
+ * shape the server returns for the same fallback cases.
+ */
+const HELP_NONE: HelpContent = { kind: "none" };
 
 /**
  * Create a promise with its resolver.
@@ -249,12 +267,69 @@ export class LSP {
     ): Promise<void> {
         await this.initPromise.promise;
         if (!this.workerConn) {
-            console.warn("Cannot send additional diagnostics without lspConn");
+            console.warn(
+                "Cannot send additional diagnostics without workerConn",
+            );
             return;
         }
-        await this.workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
-            uri,
-            additionalDiagnostics,
-        });
+        await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.setAdditionalDiagnostics,
+            {
+                uri,
+                additionalDiagnostics,
+            },
+        );
+    }
+
+    /**
+     * Ask the LSP server for the context-sensitive help payload at the given
+     * cursor `offset`.  Implements the editor side of issue #1086 / Option 4:
+     * help derivation runs in the LSP worker (which already holds a Rust
+     * resolver adapter), so multi-segment refs like `$rep[1].point1.x`
+     * resolve correctly here even though the editor itself has no resolver.
+     *
+     * Returns `{ kind: "none" }` if the LSP hasn't been wired up yet — the
+     * editor renders an empty help panel rather than throwing.
+     */
+    async requestContextHelp(
+        uri: string,
+        offset: number,
+    ): Promise<HelpContent> {
+        await this.initPromise.promise;
+        if (!this.workerConn) {
+            console.warn("Cannot request context help without workerConn");
+            return HELP_NONE;
+        }
+        return await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.contextHelp,
+            {
+                uri,
+                offset,
+            },
+        );
+    }
+
+    /**
+     * Ask the LSP server for the context-sensitive help payload for the
+     * currently-highlighted autocomplete row.  Used while the popup is open:
+     * the help panel mirrors the highlighted entry so arrow-key navigation
+     * surfaces its docs immediately.
+     */
+    async requestContextHelpForCompletion(
+        uri: string,
+        offset: number,
+        completion: ContextHelpCompletion,
+    ): Promise<HelpContent> {
+        await this.initPromise.promise;
+        if (!this.workerConn) {
+            console.warn(
+                "Cannot request context help for completion without workerConn",
+            );
+            return HELP_NONE;
+        }
+        return await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.contextHelpForCompletion,
+            { uri, offset, completion },
+        );
     }
 }

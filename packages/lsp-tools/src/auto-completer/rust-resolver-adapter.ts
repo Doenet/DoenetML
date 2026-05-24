@@ -1,5 +1,6 @@
 import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
+import { isRepeatLikeElement } from "./repeat-elements";
 import type {
     RefMemberContainerResolution,
     ResolveRefMemberContainer,
@@ -139,7 +140,7 @@ function collectNamesFromCompositeChildren(
  * repeat or repeatForSequence element. Returns an empty array for other elements.
  */
 function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
-    if (el.name !== "repeat" && el.name !== "repeatForSequence") {
+    if (!isRepeatLikeElement(el)) {
         return [];
     }
     const names: string[] = [];

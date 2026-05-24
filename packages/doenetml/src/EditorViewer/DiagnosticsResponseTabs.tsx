@@ -14,7 +14,7 @@ import {
     WarningRecord,
 } from "@doenet/utils";
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
-import type { HelpContent } from "./contextHelp/types";
+import type { HelpContent } from "@doenet/lsp-tools";
 import { ContextHelpPanel } from "./contextHelp/ContextHelpPanel";
 
 type SubmittedResponse = {

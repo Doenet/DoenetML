@@ -66,6 +66,21 @@ export type HelpContent =
           line: number | undefined;
           /** Reference-page slug for the referent's element type. */
           docsSlug: string | null;
+          /**
+           * Set when `refName` is introduced by an enclosing `<repeat>` /
+           * `<repeatForSequence>` via `valueName` or `indexName` rather
+           * than a `name=` attribute on a regular element. The panel
+           * renders an extra annotation in this case so the user can see
+           * *why* the name is in scope.
+           *
+           * Other consumers can safely ignore this field — the rest of
+           * the payload still describes the introducing element.
+           */
+          derivedFrom?: {
+              role: "valueName" | "indexName";
+              ownerElementName: string;
+              ownerLine: number | undefined;
+          };
       }
     /**
      * Cursor is on a `$a.b.c…` chain that the JS-only resolver can't follow.
