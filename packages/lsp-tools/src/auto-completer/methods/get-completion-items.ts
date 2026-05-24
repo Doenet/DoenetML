@@ -17,6 +17,7 @@ import type {
 import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
+import { walkIndexAliases } from "../index-aliases";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
@@ -493,6 +494,114 @@ function createPropertyCompletionItems(
 }
 
 /**
+ * Build alias-name completions for a `$container.arrayProp[…].` chain that
+ * the resolver couldn't walk but the schema's `indexAliases` table covers.
+ * Returns `null` (not `[]`) when this branch doesn't apply, so the caller
+ * can fall through to its existing "no completions" path; returns `[]`
+ * when the chain matches an array prop but every dimension is already
+ * consumed (e.g. `$vector.head.x.`), so we stop offering anything rather
+ * than fall through to descendant/property lookup that doesn't apply
+ * here. Issue #1180.
+ */
+function indexAliasCompletionItems(
+    autoCompleter: AutoCompleter,
+    containerNode: DastElement | null,
+    unresolvedPathParts: string[],
+    completionContext: CompletionContext & {
+        cursorPos: "refMember";
+        pathParts: string[];
+        pathPartHasIndex: boolean[];
+        typedPrefix: string;
+        replaceFromOffset: number;
+    },
+    offset: number,
+    toRefMemberInsertText: (name: string) => string,
+): CompletionItem[] | null {
+    if (!containerNode || unresolvedPathParts.length === 0) return null;
+
+    const componentType = autoCompleter.normalizeElementName(
+        containerNode.name,
+    );
+    const schema = autoCompleter.schemaElementsByName[componentType];
+    if (!schema) return null;
+
+    // Mirror the alias-aware property lookup used elsewhere — a child
+    // addressed via its alias-redirected parent (e.g. `<row>` inside
+    // `<matrix>`) should still see the right schema.
+    const helpSchema = autoCompleter.resolveEffectiveSchemaElement(
+        schema,
+        getParentName(autoCompleter, containerNode),
+    );
+    const arrayName = unresolvedPathParts[0];
+    const arrayProp = helpSchema?.properties?.find(
+        (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
+    );
+    if (!arrayProp) return null;
+
+    // Locate the array-prop segment in the caller's flags. `pathParts` is
+    //   [...resolvedSegments, ...unresolvedPathParts, typedPrefix]
+    // so the array-prop segment lives at
+    //   pathParts.length - 1 - unresolvedPathParts.length
+    // (the last entry is always the empty typedPrefix at the cursor).
+    const arrayPropPathIndex =
+        completionContext.pathParts.length - 1 - unresolvedPathParts.length;
+    if (arrayPropPathIndex < 0) return null;
+
+    const segments: Array<{ name: string; hasIndex: boolean }> = [
+        {
+            name: arrayName,
+            hasIndex:
+                completionContext.pathPartHasIndex[arrayPropPathIndex] ?? false,
+        },
+    ];
+    for (let i = 1; i < unresolvedPathParts.length; i++) {
+        segments.push({
+            name: unresolvedPathParts[i],
+            hasIndex:
+                completionContext.pathPartHasIndex[arrayPropPathIndex + i] ??
+                false,
+        });
+    }
+
+    const walked = walkIndexAliases(arrayProp, segments);
+    // `null` here means the chain so far is invalid (e.g. an unindexed
+    // segment whose name isn't a known alias). Returning `[]` rather than
+    // falling through suppresses noisy guesses — the resolver already
+    // declared the path unresolvable, and the alias chase is the only
+    // remaining well-defined source of completions in this branch.
+    if (!walked) return [];
+    if (walked.dim >= walked.numDims) {
+        // Every dimension already consumed — nothing further to offer.
+        return [];
+    }
+
+    const aliasesForDim =
+        arrayProp.indexAliases?.[walked.dim] ?? ([] as readonly string[]);
+    if (aliasesForDim.length === 0) return [];
+
+    const prefix = completionContext.typedPrefix.toLowerCase();
+    const filtered = aliasesForDim.filter((name) =>
+        prefix ? name.toLowerCase().startsWith(prefix) : true,
+    );
+    if (filtered.length === 0) return [];
+
+    const detail = `Alias for ${arrayProp.name} (dim ${walked.dim + 1} of ${walked.numDims})`;
+    return filtered.map((label) => ({
+        label,
+        kind: CompletionItemKind.Reference,
+        detail,
+        textEdit: {
+            range: createTextEditRange(
+                autoCompleter.sourceObj,
+                completionContext.replaceFromOffset,
+                offset,
+            ),
+            newText: toRefMemberInsertText(label),
+        },
+    }));
+}
+
+/**
  * Get a list of completion items at the given offset in the source document.
  *
  * This function analyzes the cursor context to determine what type of completions
@@ -700,6 +809,23 @@ export async function getCompletionItems(
         const resolvedNode = resolved.node;
 
         if (!resolvedNode) {
+            // Before giving up, see whether the chain is a coordinate-style
+            // walk through an array property's `indexAliases` table — e.g.
+            // the user typed `$vector.head.` and we should offer `x/y/z`
+            // even though the resolver couldn't walk through `head`. The
+            // helper mirrors the help-side chase: the first unresolved
+            // segment names an array prop on the partially-resolved
+            // container, and bracket indices / alias names on the way
+            // each consume one dimension. Issue #1180.
+            const aliasItems = indexAliasCompletionItems(
+                this,
+                resolved.partiallyResolvedNode ?? null,
+                resolved.unresolvedPathParts,
+                completionContext,
+                offset,
+                toRefMemberInsertText,
+            );
+            if (aliasItems) return aliasItems;
             return [];
         }
 
