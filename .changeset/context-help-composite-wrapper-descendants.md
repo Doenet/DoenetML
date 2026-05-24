@@ -10,6 +10,6 @@ Fix the editor's context-sensitive help for `$container.member` access through c
 
 Example: a `<select name="s">` with two `<option>` branches each containing `<text name="t">`. The autocomplete dropdown correctly offered `t` at `$s[1].`, but the help panel went blank — `getNamedDescendant` requires a uniquely-addressable name and saw two matches.
 
-The resolver already includes such names in `visibleDescendantNames` for indexed access through a composite (walking `<case>` / `<else>` / `<option>` wrappers transparently via `collectNamesFromCompositeChildren`). The help-side descendant lookup in `resolveRefMemberDescendantHelp` now mirrors that wrapper walk and returns the first match: sibling-replicated descendants of those wrappers share schemas, so any one match yields the right help payload.
+The resolver already includes such names in `visibleDescendantNames` for indexed access through a composite (walking `<case>` / `<else>` / `<option>` wrappers transparently via `collectNamesFromCompositeChildren`). The help-side descendant lookup in `resolveRefMemberDescendantHelp` now mirrors that wrapper walk and returns the first match — but only when every branch resolves the name to the same component type. When branches diverge (e.g. one `<option><math name="t">` and another `<option><text name="t">`), the help layer can't statically tell which branch the runtime will pick, so the panel stays blank rather than guessing.
 
 Closes #1179.

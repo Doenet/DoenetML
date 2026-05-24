@@ -163,14 +163,21 @@ function findNamedDescendant(
 
 /**
  * For composite wrappers (`<select>`, `<conditionalContent>`, …) whose
- * children are `<case>` / `<else>` / `<option>` branches, return the first
- * named descendant found by walking the wrapper subtrees. Returns `null`
- * when `container` has no wrapper children.
+ * children are `<case>` / `<else>` / `<option>` branches, return the
+ * first named descendant found by walking the wrapper subtrees — **but
+ * only when every wrapper that contains `target` resolves it to the
+ * same component type**. The help layer has no static way to know which
+ * branch the runtime will pick (`<option>` is index-addressable but the
+ * help call site doesn't carry the index; `<case>` is predicate-gated),
+ * so when branches diverge in component type we'd be guessing at the
+ * schema — return `null` and let the panel go blank instead.
  *
- * Used as a fallback when `getNamedDescendant` returns `null` because two
- * sibling branches each declared the same name — the runtime picks one
- * branch by index, and sibling-replicated descendants carry identical
- * schemas, so any match produces the right help payload. Parallels
+ * Returns `null` when `container` has no wrapper children, when no
+ * wrapper contains `target`, or when matches across wrappers disagree
+ * on element name.
+ *
+ * Used as a fallback when `getNamedDescendant` returns `null` because
+ * two sibling branches each declared the same name. Parallels
  * `collectNamesFromCompositeChildren` in `rust-resolver-adapter.ts`,
  * which is what put `target` into `visibleDescendantNames` in the first
  * place (so this only runs when the resolver already affirmed the name
@@ -180,13 +187,19 @@ function findDescendantViaCompositeWrappers(
     container: DastElement,
     target: string,
 ): DastElement | null {
+    const matches: DastElement[] = [];
     for (const child of container.children) {
         if (child.type !== "element") continue;
         if (!COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
         const match = findNamedDescendant(child, target);
-        if (match) return match;
+        if (match) matches.push(match);
     }
-    return null;
+    if (matches.length === 0) return null;
+    const firstName = matches[0].name;
+    for (let i = 1; i < matches.length; i++) {
+        if (matches[i].name !== firstName) return null;
+    }
+    return matches[0];
 }
 
 /**
@@ -606,12 +619,14 @@ export class AutoCompleter {
         // Composite-wrapper fallback: for `<select>` / `<conditionalContent>`
         // where multiple `<option>` / `<case>` / `<else>` branches each declare
         // a descendant with the same `name`, `getNamedDescendant` returns
-        // `null` because the name is not uniquely addressable. But the runtime
-        // picks one branch by index (`$s[1].t`) and the resolver already
-        // included the name in `visibleDescendantNames` (gating this call)
-        // via `collectNamesFromCompositeChildren` — sibling-replicated
-        // descendants carry identical schemas, so any one match produces the
-        // right help payload.
+        // `null` because the name is not uniquely addressable. The resolver
+        // already included the name in `visibleDescendantNames` (gating this
+        // call) via `collectNamesFromCompositeChildren`. The fallback walks
+        // the wrapper subtrees and returns the first match — but only when
+        // all matching branches resolve the name to the same component type,
+        // since the help layer can't tell which branch the runtime will pick.
+        // Heterogeneous branches yield `null` (panel blank) rather than wrong
+        // help.
         const compositeMatch = findDescendantViaCompositeWrappers(
             container,
             memberName,
