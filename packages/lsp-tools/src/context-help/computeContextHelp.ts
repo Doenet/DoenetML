@@ -197,6 +197,20 @@ function isParenthesizedSegment(
 
 const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
+/** Global match for individual `[...]` groups so we can count them per segment. */
+const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
+
+/**
+ * Count the bracket-index groups on a raw path segment — `foo` → 0,
+ * `foo[1]` → 1, `controlVectors[0][2]` → 2. Used by the `indexAliases`
+ * chase to consume the right number of dimensions per segment (a
+ * boolean "has any index" loses the count and under-consumes dims on
+ * 3D arrays like `Curve.controlVectors`).
+ */
+function countBracketIndices(rawSegment: string | undefined): number {
+    if (!rawSegment) return 0;
+    return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
+}
 
 /**
  * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
@@ -307,33 +321,44 @@ function tryArrayEntryHelp(
     );
     if (!arrayProp) return null;
 
-    // Locate the array-prop segment's index flag in the caller's
-    // `pathPartHasIndex` array. `pathParts` is
+    // Locate the array-prop segment in the caller's path. `pathParts` is
     //   [...resolvedSegments, ...unresolvedPathParts, memberName]
     // so the array-prop segment lives at
     //   pathParts.length - 1 - unresolvedPathParts.length
-    // (the last entry is always `memberName`).
+    // (the last entry is always `memberName`). `rawPathParts` is
+    // position-aligned with `pathParts` and preserves bracket indices
+    // verbatim, so we count brackets per raw segment to consume the
+    // correct number of dims (a single boolean would under-consume on
+    // 3D arrays where one segment carries `[i][j]`).
     const arrayPropPathIndex =
         ctx.pathParts.length - 1 - unresolvedPathParts.length;
     if (arrayPropPathIndex < 0) return null;
-    const arrayHasIndex = ctx.pathPartHasIndex[arrayPropPathIndex] ?? false;
 
     // Build the segment list the chase walks. First entry is the array
-    // prop itself (with its bracket-index flag); subsequent entries are the
-    // remaining unresolved parts plus the cursor segment, each with its
-    // own bracket-index flag pulled from `pathPartHasIndex`.
-    const segments: Array<{ name: string; hasIndex: boolean }> = [
-        { name: arrayName, hasIndex: arrayHasIndex },
+    // prop itself; subsequent entries are the remaining unresolved parts
+    // plus the cursor segment, each carrying its bracket-index count
+    // pulled from `rawPathParts`.
+    const segments: Array<{ name: string; numIndices: number }> = [
+        {
+            name: arrayName,
+            numIndices: countBracketIndices(
+                ctx.rawPathParts[arrayPropPathIndex],
+            ),
+        },
     ];
     for (let i = 1; i < unresolvedPathParts.length; i++) {
         segments.push({
             name: unresolvedPathParts[i],
-            hasIndex: ctx.pathPartHasIndex[arrayPropPathIndex + i] ?? false,
+            numIndices: countBracketIndices(
+                ctx.rawPathParts[arrayPropPathIndex + i],
+            ),
         });
     }
     segments.push({
         name: memberName,
-        hasIndex: ctx.pathPartHasIndex[ctx.pathParts.length - 1] ?? false,
+        numIndices: countBracketIndices(
+            ctx.rawPathParts[ctx.pathParts.length - 1],
+        ),
     });
 
     const chased = chaseIndexAliases(arrayProp, segments);

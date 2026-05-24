@@ -39,6 +39,20 @@ function asMarkdown(text: string): MarkupContent {
     return { kind: MarkupKind.Markdown, value: text };
 }
 
+/** Global match for individual `[...]` groups; used to count brackets per raw segment. */
+const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
+
+/**
+ * Count the bracket-index groups on a raw path segment — `foo` → 0,
+ * `foo[1]` → 1, `controlVectors[0][2]` → 2. Mirrors
+ * `computeContextHelp.countBracketIndices` so the autocomplete chase
+ * consumes the same number of dimensions the help chase does.
+ */
+function countBracketIndices(rawSegment: string | undefined): number {
+    if (!rawSegment) return 0;
+    return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
+}
+
 /**
  * Get the name of the parent of `node`, or `undefined` when the parent is the
  * document root (no `name` field).
@@ -511,6 +525,7 @@ function indexAliasCompletionItems(
         cursorPos: "refMember";
         pathParts: string[];
         pathPartHasIndex: boolean[];
+        rawPathParts: string[];
         typedPrefix: string;
         replaceFromOffset: number;
     },
@@ -538,29 +553,33 @@ function indexAliasCompletionItems(
     );
     if (!arrayProp) return null;
 
-    // Locate the array-prop segment in the caller's flags. `pathParts` is
+    // Locate the array-prop segment in the caller's path. `pathParts` is
     //   [...resolvedSegments, ...unresolvedPathParts, typedPrefix]
     // so the array-prop segment lives at
     //   pathParts.length - 1 - unresolvedPathParts.length
     // (the last entry is the in-progress typed prefix at the cursor —
     // empty right after a `.`, or a partial alias name like `x` mid-type).
+    // We count bracket groups on the raw segment so multi-index segments
+    // like `controlVectors[0][2]` consume the right number of dims
+    // (a single boolean would under-consume on 3D arrays).
     const arrayPropPathIndex =
         completionContext.pathParts.length - 1 - unresolvedPathParts.length;
     if (arrayPropPathIndex < 0) return null;
 
-    const segments: Array<{ name: string; hasIndex: boolean }> = [
+    const segments: Array<{ name: string; numIndices: number }> = [
         {
             name: arrayName,
-            hasIndex:
-                completionContext.pathPartHasIndex[arrayPropPathIndex] ?? false,
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex],
+            ),
         },
     ];
     for (let i = 1; i < unresolvedPathParts.length; i++) {
         segments.push({
             name: unresolvedPathParts[i],
-            hasIndex:
-                completionContext.pathPartHasIndex[arrayPropPathIndex + i] ??
-                false,
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex + i],
+            ),
         });
     }
 

@@ -17,22 +17,23 @@ import type { SchemaProperty } from "./index";
 /**
  * Walk a `$container.arrayProp[…].alias…` chain against an array
  * property's `indexAliases` table. The first segment is the array prop
- * itself; if it carries a bracket index (`arrayProp[1]`), that consumes
- * one dimension. Each subsequent segment then consumes one more dimension
- * via either:
- *   - a bracket index (always valid, no name check), or
- *   - a name that appears in `indexAliases[currentDim]`.
+ * itself; each `[…]` it carries consumes one dimension (`points[1]`
+ * consumes 1; `controlVectors[0][2]` consumes 2 — important for 3D arrays
+ * like `Curve.controlVectors` whose `indexAliases` is `[[], [], ["x","y","z"]]`).
+ * Each subsequent segment then consumes dimensions via either:
+ *   - one or more bracket indices (consume `numIndices` dims, name unused), or
+ *   - a name that appears in `indexAliases[currentDim]` (consumes 1 dim).
  *
  * Returns the number of dims consumed and the alias names captured (in dim
- * order), or `null` on any mismatch (e.g. an unindexed segment whose name
- * isn't in the alias table for the current dim, or more segments than the
- * array has dims). The caller decides whether `dim === numDims` is required
- * (help: a full chase) or whether a partial walk is OK (autocomplete:
- * needs the dim cursor so it can offer the next dim's aliases).
+ * order), or `null` on any mismatch — an unindexed segment whose name
+ * isn't in the alias table for the current dim, or indices that push past
+ * the array's `numDimensions`. The caller decides whether `dim === numDims`
+ * is required (help: a full chase) or whether a partial walk is OK
+ * (autocomplete: needs the dim cursor so it can offer the next dim's aliases).
  */
 export function walkIndexAliases(
     arrayProp: SchemaProperty,
-    segments: Array<{ name: string; hasIndex: boolean }>,
+    segments: Array<{ name: string; numIndices: number }>,
 ): { dim: number; numDims: number; aliasPath: string[] } | null {
     // `isArray` is optional on the local schema type but always defined for
     // generator-emitted props — treat anything missing as not-an-array.
@@ -44,25 +45,24 @@ export function walkIndexAliases(
     if (!aliases || aliases.length === 0) return null;
     if (segments.length === 0) return null;
 
-    let dim = 0;
+    // First segment is the array-prop name itself; only its bracket
+    // indices consume dims (the name IS the array prop).
+    let dim = segments[0].numIndices;
+    if (dim > numDims) return null;
     const aliasPath: string[] = [];
 
-    // First segment is the array-prop name itself; consume a dim only if
-    // it carried a bracket index (e.g. `points[1]`).
-    if (segments[0].hasIndex) {
-        dim++;
-    }
-
     for (let i = 1; i < segments.length; i++) {
-        if (dim >= numDims) return null;
         const seg = segments[i];
-        if (seg.hasIndex) {
-            // Numeric index — consumes a dim regardless of name. Don't
-            // record an aliasPath entry; the panel's `arrayHasIndex` plus
-            // the rendered `[N]` already carry the information.
-            dim++;
+        if (seg.numIndices > 0) {
+            // One or more numeric indices — each consumes a dim regardless
+            // of name. The author's literal bracket values survive in the
+            // panel via the resolver's `displayTail` (built from
+            // `rawPathParts`), so we don't need to record anything here.
+            dim += seg.numIndices;
+            if (dim > numDims) return null;
             continue;
         }
+        if (dim >= numDims) return null;
         const aliasesForDim = aliases[dim] ?? [];
         if (!aliasesForDim.includes(seg.name)) return null;
         aliasPath.push(seg.name);
@@ -78,7 +78,7 @@ export function walkIndexAliases(
  */
 export function chaseIndexAliases(
     arrayProp: SchemaProperty,
-    segments: Array<{ name: string; hasIndex: boolean }>,
+    segments: Array<{ name: string; numIndices: number }>,
 ): { aliasPath: string[] } | null {
     const walked = walkIndexAliases(arrayProp, segments);
     if (!walked) return null;
@@ -87,11 +87,16 @@ export function chaseIndexAliases(
 }
 
 /**
- * Pull the innermost (deepest) entry type from `indexedArrayDescription`.
- * For a 1-dim array (`head`), this is the single entry's `type`; for a
- * 2-dim array (`points`), it's the inner-slice type ("point" for a
- * `points[1]` slice, which is what authors see when chasing through). May
- * return undefined when the array slot was emitted without a
+ * Pull the leaf (fully-consumed) entry type from `indexedArrayDescription`.
+ * Each entry in `indexedArrayDescription` describes one dimension's slice;
+ * the last entry is the scalar that remains after every dim is consumed.
+ * For `<vector>.head` (1D) that's `"math"`; for `<line>.points` (2D) it's
+ * also `"math"` (the coord scalar inside `points[1].x`), NOT `"point"`
+ * (the 1D slice at `points[1]`). The panel uses this to label
+ * `$line.points[1].x` as `Type: <math>`, which is what the author actually
+ * gets at runtime.
+ *
+ * May return undefined when the array slot was emitted without a
  * `createComponentOfType` — the schema generator's
  * `createArrayElementDescription` legitimately omits `type` in that case.
  *

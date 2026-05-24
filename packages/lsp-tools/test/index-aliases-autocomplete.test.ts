@@ -149,6 +149,29 @@ describe("autocomplete — indexAliases chase (#1180)", () => {
         expect(items).toEqual([]);
     });
 
+    it("offers x/y/z for $curve.controlVectors[0][2]. (multi-bracket segment on a 3D array)", async () => {
+        // `controlVectors` is 3D with `indexAliases: [[], [], ["x","y","z"]]`.
+        // The two `[…]` groups on the same authored segment must BOTH
+        // consume dims so that `.` after them sits at dim 2, offering the
+        // x/y/z aliases. A boolean `hasIndex` would only consume 1 dim
+        // and incorrectly leave dim 1 as the cursor (empty alias list).
+        const source = `<curve name="c" through="(0,0) (1,1) (2,0)" />\n$c.controlVectors[0][2].`;
+        const completer = new AutoCompleter(source);
+        const curve = completer.sourceObj.getReferentAtOffset(
+            source.indexOf("$c.controlVectors"),
+            "c",
+        );
+        adapterReturning(completer, {
+            node: null,
+            partiallyResolvedNode: curve,
+            unresolvedPathParts: ["controlVectors"],
+        });
+
+        const items = await completer.getCompletionItems(source.length);
+        const aliasLabels = labelsOfKind(items, CompletionItemKind.Reference);
+        expect(aliasLabels).toEqual(expect.arrayContaining(["x", "y", "z"]));
+    });
+
     it("offers nothing when every dim is already consumed ($vector.head.x.)", async () => {
         // The chase walks `head.x` successfully (1-dim head, "x" consumes
         // dim 0). No remaining dims means no further aliases to offer —

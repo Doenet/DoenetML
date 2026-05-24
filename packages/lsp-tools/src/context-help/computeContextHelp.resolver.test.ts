@@ -280,7 +280,32 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         });
     });
 
-    it("returns NONE for $vector.head.hidden — non-alias name on an array prop must not resolve (issue #1180)", async () => {
+    it("resolves $curve.controlVectors[0][2].x via a multi-bracket segment on a 3D array (issue #1180)", async () => {
+        // `controlVectors` is a 3D array on `<curve>` with
+        // `indexAliases: [[], [], ["x","y","z"]]`. The single authored
+        // segment `controlVectors[0][2]` carries TWO `[…]` groups, both of
+        // which must consume dims so that `.x` lands on dim 2's alias
+        // table. The display tail preserves both authored brackets.
+        const source = `<curve name="c" through="(0,0) (1,1) (2,0)" />\n$c.controlVectors[0][2].x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "controlVectors" }],
+                originalPath: [{ name: "c" }, { name: "controlVectors" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "arrayEntry",
+            elementName: "curve",
+            arrayName: "controlVectors",
+            aliasPath: ["x"],
+            displayTail: "controlVectors[0][2].x",
+        });
+    });
+
+    it("renders unsupported-chain placeholder for $vector.head.hidden — non-alias name on an array prop must not resolve (issue #1180)", async () => {
         // The design constraint: never chase through `SchemaProperty.type`
         // to expose `<point>`'s own properties. `hidden` IS a property of
         // `<point>` (head's `type`), but it isn't in `head`'s alias table
@@ -302,7 +327,7 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         expect(help).toEqual({ kind: "unsupportedRefChain" });
     });
 
-    it("returns NONE for $line.points.x — alias on numeric-only outer dim must not resolve (issue #1180)", async () => {
+    it("renders unsupported-chain placeholder for $line.points.x — alias on numeric-only outer dim must not resolve (issue #1180)", async () => {
         // `points` is 2-dim with `indexAliases: [[], ["x","y","z"]]`. The
         // outer dim is numeric-only (empty alias list), so `points.x`
         // without a bracket index leaves dim 1 unreachable — `x` would
@@ -323,7 +348,7 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         expect(help).toEqual({ kind: "unsupportedRefChain" });
     });
 
-    it("returns NONE for $text.value.latex — non-array property doesn't trigger the chase (issue #1180)", async () => {
+    it("renders unsupported-chain placeholder for $text.value.latex — non-array property doesn't trigger the chase (issue #1180)", async () => {
         // `value` on `<text>` isn't an array, so the chase short-circuits
         // even though `latex` would be a sensible-looking continuation.
         // Confirms the gating on `isArray + indexAliases` works.
