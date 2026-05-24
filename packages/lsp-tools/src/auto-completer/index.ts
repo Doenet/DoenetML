@@ -11,7 +11,11 @@ import {
     getCompletionContext,
     type CompletionContext,
 } from "./methods/get-completion-context";
-import type { RustResolverAdapter } from "./rust-resolver-adapter";
+import {
+    COMPOSITE_WRAPPER_NAMES,
+    getElementNameAttributeValue,
+    type RustResolverAdapter,
+} from "./rust-resolver-adapter";
 import { isRepeatLikeElement } from "./repeat-elements";
 
 // Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
@@ -141,15 +145,6 @@ export type AutoCompleterOptions = {
 };
 
 /**
- * Wrapper elements whose children should be treated as direct children of
- * the composite for ref-resolution purposes. Kept in sync with
- * `COMPOSITE_WRAPPER_NAMES` in `rust-resolver-adapter.ts`; the resolver
- * walks names through wrappers transparently when it computes
- * `visibleDescendantNames`, and the help-side descendant lookup must too.
- */
-const COMPOSITE_WRAPPER_NAMES_FOR_HELP = new Set(["case", "else", "option"]);
-
-/**
  * Walk the subtree rooted at `node` and return the first descendant element
  * whose `name` attribute equals `target`, or `null` if none exists.
  */
@@ -159,14 +154,7 @@ function findNamedDescendant(
 ): DastElement | null {
     for (const child of node.children) {
         if (child.type !== "element") continue;
-        const nameAttr = child.attributes?.name;
-        const nameVal =
-            nameAttr &&
-            nameAttr.children?.length === 1 &&
-            nameAttr.children[0].type === "text"
-                ? nameAttr.children[0].value
-                : undefined;
-        if (nameVal === target) return child;
+        if (getElementNameAttributeValue(child) === target) return child;
         const inner = findNamedDescendant(child, target);
         if (inner) return inner;
     }
@@ -185,7 +173,8 @@ function findNamedDescendant(
  * schemas, so any match produces the right help payload. Parallels
  * `collectNamesFromCompositeChildren` in `rust-resolver-adapter.ts`,
  * which is what put `target` into `visibleDescendantNames` in the first
- * place.
+ * place (so this only runs when the resolver already affirmed the name
+ * is reachable through a wrapper).
  */
 function findDescendantViaCompositeWrappers(
     container: DastElement,
@@ -193,7 +182,7 @@ function findDescendantViaCompositeWrappers(
 ): DastElement | null {
     for (const child of container.children) {
         if (child.type !== "element") continue;
-        if (!COMPOSITE_WRAPPER_NAMES_FOR_HELP.has(child.name)) continue;
+        if (!COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
         const match = findNamedDescendant(child, target);
         if (match) return match;
     }

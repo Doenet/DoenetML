@@ -9,10 +9,32 @@ import type {
 
 /**
  * Wrapper elements whose children should be treated as direct children of
- * the composite for autocomplete purposes.  At runtime, sugar inserts these
- * wrappers and then strips them during replacement expansion.
+ * the composite for ref-resolution purposes.  At runtime, sugar inserts
+ * these wrappers and then strips them during replacement expansion.
+ *
+ * Exported so the help-side descendant walk in `auto-completer/index.ts`
+ * mirrors the resolver's wrapper handling from a single source of truth.
  */
-const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+export const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+
+/**
+ * Return the literal `name` attribute value for an element, if present.
+ *
+ * Exported so callers in other modules (notably the help-side descendant
+ * walk in `auto-completer/index.ts`) reuse the same single-text-child
+ * extraction this file relies on, instead of re-inlining it.
+ */
+export function getElementNameAttributeValue(el: DastElement): string | null {
+    const nameAttr = el.attributes?.name;
+    if (
+        nameAttr &&
+        nameAttr.children?.length === 1 &&
+        nameAttr.children[0].type === "text"
+    ) {
+        return nameAttr.children[0].value;
+    }
+    return null;
+}
 
 /**
  * Walk all descendants of `root`, returning an array of `{ name, element }`
@@ -24,17 +46,9 @@ function collectAllNamedDescendants(
     const result: Array<{ name: string; element: DastElement }> = [];
     function walk(node: DastNodes) {
         if (node.type === "element") {
-            const nameAttr = node.attributes?.name;
-            if (nameAttr) {
-                // name attribute value is stored in children[0].value
-                const nameVal =
-                    nameAttr.children?.length === 1 &&
-                    nameAttr.children[0].type === "text"
-                        ? nameAttr.children[0].value
-                        : undefined;
-                if (nameVal) {
-                    result.push({ name: nameVal, element: node });
-                }
+            const nameVal = getElementNameAttributeValue(node);
+            if (nameVal) {
+                result.push({ name: nameVal, element: node });
             }
             for (const child of node.children) {
                 walk(child as DastNodes);
@@ -87,13 +101,7 @@ function collectNamesFromCompositeChildren(
         if (child.type !== "element") continue;
         if (COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
 
-        const nameAttr = child.attributes?.name;
-        const nameVal =
-            nameAttr &&
-            nameAttr.children?.length === 1 &&
-            nameAttr.children[0].type === "text"
-                ? nameAttr.children[0].value
-                : undefined;
+        const nameVal = getElementNameAttributeValue(child);
         if (nameVal) {
             directChildNameCounts.set(
                 nameVal,
@@ -115,13 +123,7 @@ function collectNamesFromCompositeChildren(
             // Direct child of composite (not a wrapper): include its own name
             // only when unique among direct siblings, and always collect
             // unique descendant names from within the child subtree.
-            const nameAttr = child.attributes?.name;
-            const nameVal =
-                nameAttr &&
-                nameAttr.children?.length === 1 &&
-                nameAttr.children[0].type === "text"
-                    ? nameAttr.children[0].value
-                    : undefined;
+            const nameVal = getElementNameAttributeValue(child);
             if (nameVal && directChildNameCounts.get(nameVal) === 1) {
                 result.add(nameVal);
             }
@@ -155,19 +157,6 @@ function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
         }
     }
     return names;
-}
-
-/** Return the literal `name` attribute value for an element, if present. */
-function getElementNameAttributeValue(el: DastElement): string | null {
-    const nameAttr = el.attributes?.name;
-    if (
-        nameAttr &&
-        nameAttr.children?.length === 1 &&
-        nameAttr.children[0].type === "text"
-    ) {
-        return nameAttr.children[0].value;
-    }
-    return null;
 }
 
 /**
