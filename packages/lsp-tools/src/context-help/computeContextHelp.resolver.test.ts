@@ -173,4 +173,61 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             },
         });
     });
+
+    it("returns NONE when option branches resolve the same descendant name to different component types", async () => {
+        // Heterogeneous wrapper branches: `<option><math name="t">` and
+        // `<option><text name="t">`. The resolver still puts "t" in
+        // `visibleDescendantNames` (it's unique within each `<option>`),
+        // so `resolveRefMemberDescendantHelp` is called and the
+        // composite-wrapper fallback fires. But the matches across
+        // branches disagree on component type — the help layer can't
+        // tell whether the runtime will pick the `<math>` or the
+        // `<text>` branch (`<option>` index isn't propagated to the
+        // help call site; the resolver landed on `<select>` itself).
+        // The fallback returns null and the panel goes blank, rather
+        // than guessing at the schema and surfacing wrong help.
+        // Tightens the fix from #1182 in response to a Copilot review.
+        const source = `<select name="s"><option><math name="t">x</math></option><option><text name="t">b</text></option></select>\n$s[1].t`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0, // <select>
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s" }],
+            },
+            takesIndexComponentTypes: new Set(["select"]),
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({ kind: "none" });
+    });
+
+    it("resolves $s[1].t on a <select> whose option branches each declare the same descendant name", async () => {
+        // Two `<option>` branches each declare `<text name="t">`. The
+        // resolver walks wrapper children transparently
+        // (`collectNamesFromCompositeChildren`) so "t" lands in
+        // `visibleDescendantNames` — but `getNamedDescendant` on the
+        // `<select>` returns null because "t" isn't uniquely addressable.
+        // The composite-wrapper fallback in `resolveRefMemberDescendantHelp`
+        // walks `<option>` / `<case>` / `<else>` subtrees and returns the
+        // first match: sibling-replicated descendants of those wrappers
+        // share schemas, so either match yields the right help payload.
+        // Closes #1179.
+        const source = `<select name="s"><option><text name="t">a</text></option><option><text name="t">b</text></option></select>\n$s[1].t`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0, // <select>
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s" }],
+            },
+            takesIndexComponentTypes: new Set(["select"]),
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "t",
+            displayPath: "s[1].t",
+            targetElementName: "text",
+        });
+    });
 });
