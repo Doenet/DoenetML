@@ -132,6 +132,8 @@ This checkout may use a personal fork as `origin` and the canonical `Doenet/Doen
 - Before pushing, run `npm run prettier:format` on modified files.
 - Before creating the PR, confirm only intended files are staged — this repository often has unrelated local work in the tree.
 - After creating the PR, verify the branch has been pushed to `origin` and the PR links to the correct target branch (`Doenet/DoenetML:main`).
+- **Do not put the issue number in the PR title.** PRs are squash-merged, and GitHub auto-appends ` (#<PR-number>)` to the squashed commit subject. A title like `fix: ... (#1179)` would produce a confusing `fix: ... (#1179) (#1182)` after merge. Reference issues from the PR body instead (e.g. `Closes #1179.`).
+- The same applies to the **commit subject** of any commit in the branch — squash-merge often seeds the merge subject from the PR title, but a branch with a clean per-commit subject avoids confusion if the PR is ever rebase-merged or cherry-picked.
 
 ## Changesets
 
