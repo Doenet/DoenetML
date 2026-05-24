@@ -542,7 +542,8 @@ function indexAliasCompletionItems(
     //   [...resolvedSegments, ...unresolvedPathParts, typedPrefix]
     // so the array-prop segment lives at
     //   pathParts.length - 1 - unresolvedPathParts.length
-    // (the last entry is always the empty typedPrefix at the cursor).
+    // (the last entry is the in-progress typed prefix at the cursor —
+    // empty right after a `.`, or a partial alias name like `x` mid-type).
     const arrayPropPathIndex =
         completionContext.pathParts.length - 1 - unresolvedPathParts.length;
     if (arrayPropPathIndex < 0) return null;

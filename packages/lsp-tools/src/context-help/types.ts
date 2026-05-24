@@ -59,15 +59,18 @@ export type HelpContent =
           /**
            * Path of alias names consumed after the array prop (e.g. `["x"]`
            * for `$vector.head.x`, `["x"]` for `$line.points[1].x`). Empty if
-           * every dimension was consumed by numeric indices.
+           * every dimension was consumed by numeric indices. Used to render
+           * the "Coordinate:" / "Coordinates:" detail row.
            */
           aliasPath: string[];
           /**
-           * Whether the chain authored a bracket index on the array prop
-           * itself (e.g. `head[1]` vs bare `head`). The panel uses this to
-           * render `head[1].x` vs `head.x` in the title.
+           * The chain past the container, pre-rendered with the author's
+           * exact bracket-index values preserved (e.g. `"head.x"`,
+           * `"points[1].x"`, `"arr[0][2].z"`). Built from `rawPathParts`
+           * so the title shows what the author actually typed rather than
+           * a `[…]` placeholder. The panel renders this verbatim.
            */
-          arrayHasIndex: boolean;
+          displayTail: string;
           /** Array property description from the schema. */
           description: string;
           /**

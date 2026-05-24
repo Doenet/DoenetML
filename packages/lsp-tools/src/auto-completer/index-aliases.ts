@@ -102,6 +102,5 @@ export function deepestArrayEntryType(
 ): string | undefined {
     const desc = arrayProp.indexedArrayDescription;
     if (!desc || desc.length === 0) return undefined;
-    const leaf = desc[desc.length - 1] as { type?: string } | undefined;
-    return leaf?.type;
+    return desc[desc.length - 1]?.type;
 }

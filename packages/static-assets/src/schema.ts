@@ -30,6 +30,19 @@ export function isMathDefaultValue(val: unknown): val is MathDefaultValue {
     );
 }
 
+/**
+ * Per-dimension entry shape emitted by `get-schema.ts:singlePropFromDescription`
+ * for each slot of an array property — the public mirror of the generator's
+ * local `ArrayElementDescription`. `type` is optional for the same reason as
+ * `SchemaProperty.type`: an unwrapped array slot whose parent state variable
+ * lacks `createComponentOfType` has no type.
+ */
+export type ArrayElementDescription = {
+    type?: string;
+    isArray: boolean;
+    numDimensions?: number;
+};
+
 export type SchemaProperty = {
     name: string;
     /**
@@ -40,7 +53,7 @@ export type SchemaProperty = {
     type?: string;
     isArray: boolean;
     numDimensions?: number;
-    indexedArrayDescription?: unknown[];
+    indexedArrayDescription?: ArrayElementDescription[];
     /**
      * Per-dimension alias table for array properties — emitted by
      * `get-schema.ts:singlePropFromDescription` from the runtime's

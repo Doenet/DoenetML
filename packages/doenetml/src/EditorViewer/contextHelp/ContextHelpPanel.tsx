@@ -225,19 +225,16 @@ export function ContextHelpPanel({
         case "arrayEntry": {
             const {
                 elementName,
-                arrayName,
                 aliasPath,
-                arrayHasIndex,
+                displayTail,
                 description,
                 leafType,
                 docsSlug,
             } = content;
-            // Mirror what the author actually typed: `head.x`, `points[1].x`,
-            // or `center.y`. Bracket index is collapsed to a literal `[…]`
-            // because the help layer doesn't carry the index value.
-            const accessTail = [arrayHasIndex ? `${arrayName}[…]` : arrayName]
-                .concat(aliasPath)
-                .join(".");
+            // `displayTail` is pre-rendered by the help layer from
+            // `rawPathParts`, so the title shows the author's literal
+            // bracket-index values (`points[1].x`) rather than a `[…]`
+            // placeholder.
             return (
                 <div className="help-panel">
                     <div className="help-title">
@@ -245,7 +242,9 @@ export function ContextHelpPanel({
                             {`<${elementName}>`}
                         </span>
                         <span className="help-kind-label">array entry</span>
-                        <span className="help-property-name">{accessTail}</span>
+                        <span className="help-property-name">
+                            {displayTail}
+                        </span>
                     </div>
                     <p className="help-description">
                         {renderInlineMarkdown(description)}

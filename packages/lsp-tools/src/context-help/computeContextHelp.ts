@@ -339,12 +339,25 @@ function tryArrayEntryHelp(
     const chased = chaseIndexAliases(arrayProp, segments);
     if (!chased) return null;
 
+    // Pre-render the title's access tail from `rawPathParts` so the
+    // author's literal bracket-index values survive (e.g. `points[1].x`
+    // rather than `points[…].x`, and `arr[0][2].z` rather than collapsing
+    // both indices). `rawPathParts` is position-aligned with `pathParts`,
+    // so slicing from `arrayPropPathIndex` picks the array-prop segment
+    // through the cursor's `memberName`. Hyphenated names are paren-wrapped
+    // by `formatPathSegment` so the rendering matches what the author
+    // would actually have to type.
+    const displayTail = ctx.rawPathParts
+        .slice(arrayPropPathIndex)
+        .map(formatPathSegment)
+        .join(".");
+
     return {
         kind: "arrayEntry",
         elementName: ownEntry.name,
         arrayName: arrayProp.name,
         aliasPath: chased.aliasPath,
-        arrayHasIndex,
+        displayTail,
         // `description` is required on the schema-generator side (the
         // generator throws if any public state var is missing one), but the
         // local lsp-tools `SchemaProperty` type marks it optional — fall

@@ -40,6 +40,18 @@ export type SchemaAttribute = {
 };
 
 /**
+ * Per-dimension entry shape mirrored from the schema generator's
+ * `ArrayElementDescription` (see `static-assets/src/schema.ts`). `type` is
+ * optional because an unwrapped array slot without `createComponentOfType`
+ * has no type.
+ */
+export type ArrayElementDescription = {
+    type?: string;
+    isArray: boolean;
+    numDimensions?: number;
+};
+
+/**
  * Per-property fields. `type`/`isArray` are help-only metadata.
  * `numDimensions`, `indexedArrayDescription`, and `indexAliases` are
  * carried only for array properties so the editor can chase coordinate
@@ -52,7 +64,7 @@ export type SchemaProperty = {
     type?: string;
     isArray?: boolean;
     numDimensions?: number;
-    indexedArrayDescription?: unknown[];
+    indexedArrayDescription?: ArrayElementDescription[];
     indexAliases?: readonly (readonly string[])[];
 };
 

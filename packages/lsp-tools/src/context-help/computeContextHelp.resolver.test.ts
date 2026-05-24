@@ -224,7 +224,7 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             elementName: "vector",
             arrayName: "head",
             aliasPath: ["x"],
-            arrayHasIndex: false,
+            displayTail: "head.x",
         });
         if (help.kind === "arrayEntry") {
             expect(help.description).toBeTruthy();
@@ -252,7 +252,8 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             elementName: "line",
             arrayName: "points",
             aliasPath: ["x"],
-            arrayHasIndex: true,
+            // Authored bracket value preserved — not `points[…].x`.
+            displayTail: "points[1].x",
         });
     });
 
@@ -275,7 +276,7 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             elementName: "circle",
             arrayName: "center",
             aliasPath: ["y"],
-            arrayHasIndex: false,
+            displayTail: "center.y",
         });
     });
 
@@ -298,6 +299,27 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         // For a chain of length > 2 the help layer falls back to the
         // `unsupportedRefChain` placeholder when nothing matches — the
         // panel renders an explanatory message rather than going blank.
+        expect(help).toEqual({ kind: "unsupportedRefChain" });
+    });
+
+    it("returns NONE for $line.points.x — alias on numeric-only outer dim must not resolve (issue #1180)", async () => {
+        // `points` is 2-dim with `indexAliases: [[], ["x","y","z"]]`. The
+        // outer dim is numeric-only (empty alias list), so `points.x`
+        // without a bracket index leaves dim 1 unreachable — `x` would
+        // need to consume dim 0, but `x` isn't in `aliases[0]`. The chase
+        // must reject this, matching the runtime: `$l.points.x` won't
+        // resolve there either. Pins the "every dim consumed exactly once"
+        // rule on `chaseIndexAliases`.
+        const source = `<line name="l" through="(0,0) (1,1)" />\n$l.points.x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "points" }],
+                originalPath: [{ name: "l" }, { name: "points" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
         expect(help).toEqual({ kind: "unsupportedRefChain" });
     });
 
