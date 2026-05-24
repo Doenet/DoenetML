@@ -222,6 +222,68 @@ export function ContextHelpPanel({
             );
         }
 
+        case "arrayEntry": {
+            const {
+                elementName,
+                arrayName,
+                aliasPath,
+                arrayHasIndex,
+                description,
+                leafType,
+                docsSlug,
+            } = content;
+            // Mirror what the author actually typed: `head.x`, `points[1].x`,
+            // or `center.y`. Bracket index is collapsed to a literal `[…]`
+            // because the help layer doesn't carry the index value.
+            const accessTail = [arrayHasIndex ? `${arrayName}[…]` : arrayName]
+                .concat(aliasPath)
+                .join(".");
+            return (
+                <div className="help-panel">
+                    <div className="help-title">
+                        <span className="help-element-name">
+                            {`<${elementName}>`}
+                        </span>
+                        <span className="help-kind-label">array entry</span>
+                        <span className="help-property-name">{accessTail}</span>
+                    </div>
+                    <p className="help-description">
+                        {renderInlineMarkdown(description)}
+                    </p>
+                    {aliasPath.length > 0 && (
+                        <div className="help-detail">
+                            <span className="help-detail-label">
+                                {aliasPath.length === 1
+                                    ? "Coordinate:"
+                                    : "Coordinates:"}
+                            </span>
+                            <span className="help-detail-value">
+                                {aliasPath.join(", ")}
+                            </span>
+                        </div>
+                    )}
+                    {leafType && (
+                        <div className="help-detail">
+                            <span className="help-detail-label">Type:</span>
+                            <span className="help-detail-value">
+                                {`<${leafType}>`}
+                            </span>
+                        </div>
+                    )}
+                    {docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsBase}/reference/${docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
+                    )}
+                </div>
+            );
+        }
+
         case "property": {
             const {
                 elementName,

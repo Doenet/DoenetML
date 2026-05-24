@@ -201,6 +201,123 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         expect(help).toEqual({ kind: "none" });
     });
 
+    it("resolves $vector.head.x via the indexAliases chase (issue #1180)", async () => {
+        // `head` is an array state variable on `<vector>` with
+        // `indexAliases: [["x","y","z"]]` (Vector.js:1730). The runtime
+        // resolver can't walk through `head` as a named descendant (it's a
+        // state variable, not an element), so the resolver returns
+        // `unresolvedPath: ["head"]` with the vector as the partially
+        // resolved node. The help layer then chases `x` against the alias
+        // table for dim 0 and surfaces an `arrayEntry` payload.
+        const source = `<vector name="v" />\n$v.head.x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0, // <vector>; "head" is reported as unresolved
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "head" }],
+                originalPath: [{ name: "v" }, { name: "head" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "arrayEntry",
+            elementName: "vector",
+            arrayName: "head",
+            aliasPath: ["x"],
+            arrayHasIndex: false,
+        });
+        if (help.kind === "arrayEntry") {
+            expect(help.description).toBeTruthy();
+        }
+    });
+
+    it("resolves $line.points[1].x via the indexAliases chase (issue #1180)", async () => {
+        // `points` is a 2-dim array on `<line>` with
+        // `indexAliases: [[], ["x","y","z"]]`. The `[1]` consumes the
+        // outer dim, then `.x` resolves against the inner dim's alias
+        // table. The resolver fails on `points` (state variable) and the
+        // chase consumes both dims.
+        const source = `<line name="l" through="(0,0) (1,1)" />\n$l.points[1].x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0, // <line>; "points" is reported as unresolved
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "points" }],
+                originalPath: [{ name: "l" }, { name: "points" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "arrayEntry",
+            elementName: "line",
+            arrayName: "points",
+            aliasPath: ["x"],
+            arrayHasIndex: true,
+        });
+    });
+
+    it("resolves $circle.center.y via the indexAliases chase (issue #1180)", async () => {
+        // `center` is a 1-dim array on `<circle>` with
+        // `indexAliases: [["x","y","z"]]` (Circle.js). Same shape as the
+        // `$vector.head.x` case — confirms the chase isn't vector-specific.
+        const source = `<circle name="c" />\n$c.center.y`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "center" }],
+                originalPath: [{ name: "c" }, { name: "center" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toMatchObject({
+            kind: "arrayEntry",
+            elementName: "circle",
+            arrayName: "center",
+            aliasPath: ["y"],
+            arrayHasIndex: false,
+        });
+    });
+
+    it("returns NONE for $vector.head.hidden — non-alias name on an array prop must not resolve (issue #1180)", async () => {
+        // The design constraint: never chase through `SchemaProperty.type`
+        // to expose `<point>`'s own properties. `hidden` IS a property of
+        // `<point>` (head's `type`), but it isn't in `head`'s alias table
+        // — so the runtime doesn't resolve `$vector.head.hidden` and the
+        // help layer must agree.
+        const source = `<vector name="v" />\n$v.head.hidden`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "head" }],
+                originalPath: [{ name: "v" }, { name: "head" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        // For a chain of length > 2 the help layer falls back to the
+        // `unsupportedRefChain` placeholder when nothing matches — the
+        // panel renders an explanatory message rather than going blank.
+        expect(help).toEqual({ kind: "unsupportedRefChain" });
+    });
+
+    it("returns NONE for $text.value.latex — non-array property doesn't trigger the chase (issue #1180)", async () => {
+        // `value` on `<text>` isn't an array, so the chase short-circuits
+        // even though `latex` would be a sensible-looking continuation.
+        // Confirms the gating on `isArray + indexAliases` works.
+        const source = `<text name="t">hi</text>\n$t.value.latex`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: [{ name: "value" }],
+                originalPath: [{ name: "t" }, { name: "value" }],
+            },
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({ kind: "unsupportedRefChain" });
+    });
+
     it("resolves $s[1].t on a <select> whose option branches each declare the same descendant name", async () => {
         // Two `<option>` branches each declare `<text name="t">`. The
         // resolver walks wrapper children transparently
