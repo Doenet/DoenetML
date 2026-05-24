@@ -18,6 +18,7 @@ import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { walkIndexAliases } from "../index-aliases";
+import { hasImplicitSingleIndex } from "../select-family";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
@@ -436,10 +437,16 @@ function toRefSegmentInsertText(label: string) {
  * Determine which descendant and property names should be visible for a resolved
  * element, respecting takesIndex and per-segment index semantics.
  *
- * - For `takesIndex` composites without a bracket index: descendants are hidden,
- *   only properties are shown.
- * - For `takesIndex` composites with a bracket index: descendants are shown
- *   (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites without a bracket index AND without the
+ *   implicit-single-index shorthand: descendants are hidden, only properties
+ *   are shown.
+ * - For `takesIndex` composites with an authored bracket index: descendants
+ *   are shown (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites whose count attribute carries the implicit
+ *   shorthand (`numToSelect="1"`, or absent — issue #1181): descendants AND
+ *   properties are both shown.  The shorthand only commits to descendant
+ *   resolution; the author can still type `$s.numToSelect` to read a state
+ *   variable on the composite itself.
  * - For regular elements: both descendants and properties are shown.
  *
  * Note: Invalid access (non-takesIndex element with an index) is handled upstream
@@ -448,21 +455,20 @@ function toRefSegmentInsertText(label: string) {
 function determineVisibleNames(
     takesIndex: boolean,
     resolvedPartHasIndex: boolean,
+    implicitSingleIndex: boolean,
     visibleDescendantNames: string[],
     schema: { properties?: { name: string }[] } | undefined,
 ): { descendantNames: Set<string>; propertyNames: string[] } {
-    // For a takesIndex composite:
-    //   - Without an index ($rep.): descendants are inaccessible via bare dot
-    //     access, so hide them and show only schema properties.
-    //   - With an index ($rep[1]. or $sec.rep[1].): the cursor is after a
-    //     replacement child of unknown component type, so show descendant
-    //     names but hide schema properties (they describe the composite, not
-    //     the replacement).
+    // Descendants gate: hidden only when takesIndex AND neither an authored
+    // bracket nor the implicit-single-index shorthand applies.
     const descendantNames =
-        takesIndex && !resolvedPartHasIndex
+        takesIndex && !resolvedPartHasIndex && !implicitSingleIndex
             ? new Set<string>()
             : new Set(visibleDescendantNames);
 
+    // Properties gate: hidden only when an authored bracket explicitly
+    // dereferences a replacement (the schema would describe the composite,
+    // not the replacement).  The implicit shorthand does NOT hide them.
     const propertyNames =
         takesIndex && resolvedPartHasIndex
             ? []
@@ -870,6 +876,13 @@ export async function getCompletionItems(
             completionContext.pathPartHasIndex?.[
                 completionContext.pathParts.length - 2
             ] ?? false;
+        // Strict-rule shorthand from issue #1181: a select-family container
+        // whose count attribute is absent or literal "1" lets `$s.t` resolve
+        // descendants like `$s[1].t`.  We surface the predicate to
+        // `determineVisibleNames` rather than collapsing it into
+        // `resolvedPartHasIndex` so the shorthand offers descendants AND keeps
+        // the composite's own properties (e.g. `$s.numToSelect`) accessible.
+        const implicitSingleIndex = hasImplicitSingleIndex(resolvedNode);
 
         // When the resolved element does NOT take an index but the user
         // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
@@ -880,6 +893,7 @@ export async function getCompletionItems(
         const { descendantNames, propertyNames } = determineVisibleNames(
             takesIndex,
             resolvedPartHasIndex,
+            implicitSingleIndex,
             resolved.visibleDescendantNames,
             schema,
         );

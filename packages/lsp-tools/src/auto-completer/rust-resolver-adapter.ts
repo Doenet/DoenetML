@@ -1,6 +1,7 @@
 import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
 import { isRepeatLikeElement } from "./repeat-elements";
+import { hasImplicitSingleIndex } from "./select-family";
 import type {
     RefMemberContainerResolution,
     ResolveRefMemberContainer,
@@ -503,6 +504,11 @@ export class RustResolverAdapter {
             // completions for that path. Indexed traversal must use
             // $rep[n].member.  Separately validate that non-takesIndex segments
             // do not have indices (false positives worse than false negatives).
+            //
+            // Select-family containers with a literal `numToSelect="1"` (or no
+            // attribute) carry an implicit `[1]` per the strict rule in issue
+            // #1181, so they pass the takesIndex-without-index check as if
+            // the bracket were authored.
             if (resolution.nodesInResolvedPath.length > 1) {
                 // Rust includes the origin in nodesInResolvedPath, but when
                 // the origin is also the first resolved segment it may not be
@@ -524,10 +530,13 @@ export class RustResolverAdapter {
                     );
                     const segmentHasIndex =
                         effectivePathPartHasIndex[pathPartIndex] ?? false;
+                    const segmentHasEffectiveIndex =
+                        segmentHasIndex ||
+                        (pathNode != null && hasImplicitSingleIndex(pathNode));
                     if (
                         pathNode &&
                         this._componentTakesIndex(pathNode.name) &&
-                        !segmentHasIndex
+                        !segmentHasEffectiveIndex
                     ) {
                         return {
                             node: null,
@@ -557,13 +566,20 @@ export class RustResolverAdapter {
             const resolvedPathPartIndex = lookupParts.length - 1;
             const resolvedPartHasIndex =
                 effectivePathPartHasIndex[resolvedPathPartIndex] ?? false;
+            // Strict-rule shorthand from issue #1181: a select-family
+            // container whose count attribute is absent or literal "1"
+            // resolves `$s.t` like `$s[1].t`. Both the takesIndex-block
+            // and the composite-children branches treat that as if the
+            // bracket index were authored.
+            const resolvedPartHasEffectiveIndex =
+                resolvedPartHasIndex || hasImplicitSingleIndex(resolvedNode);
 
             // When the resolved element takes an index, descendants
             // are only accessible via $name[n].member — suppress them
             // unless the user has already provided a bracket index.
             if (
                 this._componentTakesIndex(resolvedNode.name) &&
-                !resolvedPartHasIndex
+                !resolvedPartHasEffectiveIndex
             ) {
                 return {
                     node: resolvedNode,
@@ -592,7 +608,7 @@ export class RustResolverAdapter {
             // (case/else/option) transparently.
             if (
                 resolvedNode.name === "conditionalContent" ||
-                (resolvedPartHasIndex &&
+                (resolvedPartHasEffectiveIndex &&
                     this._componentTakesIndex(resolvedNode.name))
             ) {
                 const names = collectNamesFromCompositeChildren(resolvedNode);
