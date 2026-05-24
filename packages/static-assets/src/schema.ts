@@ -41,6 +41,18 @@ export type SchemaProperty = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: unknown[];
+    /**
+     * Per-dimension alias table for array properties — emitted by
+     * `get-schema.ts:singlePropFromDescription` from the runtime's
+     * `theStateDef.indexAliases`. Each entry `indexAliases[dim]` lists
+     * the alias names that select positions 0..N within that dimension
+     * (e.g. `[["x","y","z"]]` for a 1-dim point coordinate;
+     * `[[], ["x","y","z"]]` for a 2-dim `points` array whose outer
+     * dim is numeric-only). Read by the editor's autocomplete and
+     * context-help to chase coordinate chains (`$vector.head.x`,
+     * `$line.points[1].x`) without traversing the entry's `type`.
+     */
+    indexAliases?: readonly (readonly string[])[];
     description: string;
     fromAttribute?: boolean;
 };
