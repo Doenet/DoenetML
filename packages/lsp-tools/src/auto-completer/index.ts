@@ -40,13 +40,32 @@ export type SchemaAttribute = {
 };
 
 /**
+ * Per-dimension entry shape mirrored from the schema generator's
+ * `ArrayElementDescription` (see `static-assets/src/schema.ts`). `type` is
+ * optional because an unwrapped array slot without `createComponentOfType`
+ * has no type.
+ */
+export type ArrayElementDescription = {
+    type?: string;
+    isArray: boolean;
+    numDimensions?: number;
+};
+
+/**
  * Per-property fields. `type`/`isArray` are help-only metadata.
+ * `numDimensions`, `indexedArrayDescription`, and `indexAliases` are
+ * carried only for array properties so the editor can chase coordinate
+ * chains (`$vector.head.x`) through the alias table — see
+ * `auto-completer/index-aliases.ts`.
  */
 export type SchemaProperty = {
     name: string;
     description?: string;
     type?: string;
     isArray?: boolean;
+    numDimensions?: number;
+    indexedArrayDescription?: ArrayElementDescription[];
+    indexAliases?: readonly (readonly string[])[];
 };
 
 export type ElementSchema = {
@@ -102,6 +121,17 @@ export type ResolveRefMemberContainerArgs = {
 export type RefMemberContainerResolution = {
     node: DastElement | null;
     unresolvedPathParts: string[];
+    /**
+     * When the lookup partially resolved (i.e. `node` is null because of a
+     * trailing unresolved segment), this is the deepest node that DID
+     * resolve. Used by the help layer to perform an `indexAliases`
+     * chase: e.g. for `$vector.head.x` the resolver returns `node: null`
+     * with `unresolvedPathParts: ["head"]` and
+     * `partiallyResolvedNode: <vector>`, and the help layer then checks
+     * whether `head` is an array property of `<vector>` whose alias
+     * table covers `x`. Unset (or `null`) when no node resolved.
+     */
+    partiallyResolvedNode?: DastElement | null;
     /**
      * Descendant names that are actually visible from the resolved node (respecting
      * visibility rules like `ChildrenInvisibleToTheirGrandparents`).

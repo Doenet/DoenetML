@@ -1,3 +1,4 @@
+import type { DastElement } from "@doenet/parser";
 import {
     AutoCompleter,
     type AliasedElementSchema,
@@ -6,6 +7,10 @@ import {
     type SchemaAttribute,
     type SchemaProperty,
 } from "../auto-completer";
+import {
+    chaseIndexAliases,
+    deepestArrayEntryType,
+} from "../auto-completer/index-aliases";
 import { HelpContent } from "./types";
 
 /**
@@ -192,6 +197,20 @@ function isParenthesizedSegment(
 
 const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
+/** Global match for individual `[...]` groups so we can count them per segment. */
+const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
+
+/**
+ * Count the bracket-index groups on a raw path segment — `foo` → 0,
+ * `foo[1]` → 1, `controlVectors[0][2]` → 2. Used by the `indexAliases`
+ * chase to consume the right number of dimensions per segment (a
+ * boolean "has any index" loses the count and under-consumes dims on
+ * 3D arrays like `Curve.controlVectors`).
+ */
+function countBracketIndices(rawSegment: string | undefined): number {
+    if (!rawSegment) return 0;
+    return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
+}
 
 /**
  * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
@@ -252,6 +271,129 @@ function helpForAttribute(
     };
 }
 
+/**
+ * Try to build an `arrayEntry` help payload from a partially-resolved
+ * container plus the resolver's unresolved trailing segments.
+ *
+ * Inputs:
+ *   - `containerNode`: the deepest node the rust resolver did resolve
+ *     (e.g. `<vector name="v">`). Null when nothing resolved.
+ *   - `unresolvedPathParts`: trailing segment names the resolver couldn't
+ *     walk (e.g. `["head"]` for `$v.head.x`). The first entry, when
+ *     present, is the candidate array-prop name to chase.
+ *   - `ctx`: the caller's `{pathParts, pathPartHasIndex, rawPathParts}`,
+ *     used to align bracket-index flags with the unresolved segments and
+ *     to build the panel's display path.
+ *   - `memberName`: the cursor segment (e.g. `"x"`), already extracted by
+ *     `helpForRefMemberByName`.
+ *
+ * Returns null when no chase applies — the caller then falls back to the
+ * unsupported-chain placeholder or NONE.
+ */
+function tryArrayEntryHelp(
+    completer: AutoCompleter,
+    containerNode: DastElement | null,
+    unresolvedPathParts: string[],
+    ctx: {
+        pathParts: string[];
+        pathPartHasIndex: boolean[];
+        rawPathParts: string[];
+    },
+    memberName: string,
+): HelpContent | null {
+    if (!containerNode || unresolvedPathParts.length === 0) return null;
+
+    const arrayName = unresolvedPathParts[0];
+    const ownEntry = completer.findSchemaElement(containerNode.name);
+    if (!ownEntry) return null;
+
+    // Mirror the alias-aware property lookup used by the regular property
+    // branch below, so a child element addressed via its alias-redirected
+    // parent (e.g. `<row>` inside `<matrix>`) still sees the right schema.
+    const parent = completer.sourceObj.getParent(containerNode);
+    const parentName = parent && "name" in parent ? parent.name : undefined;
+    const effectiveEntry =
+        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
+        ownEntry;
+
+    const arrayProp = effectiveEntry.properties?.find(
+        (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
+    );
+    if (!arrayProp) return null;
+
+    // Locate the array-prop segment in the caller's path. `pathParts` is
+    //   [...resolvedSegments, ...unresolvedPathParts, memberName]
+    // so the array-prop segment lives at
+    //   pathParts.length - 1 - unresolvedPathParts.length
+    // (the last entry is always `memberName`). `rawPathParts` is
+    // position-aligned with `pathParts` and preserves bracket indices
+    // verbatim, so we count brackets per raw segment to consume the
+    // correct number of dims (a single boolean would under-consume on
+    // 3D arrays where one segment carries `[i][j]`).
+    const arrayPropPathIndex =
+        ctx.pathParts.length - 1 - unresolvedPathParts.length;
+    if (arrayPropPathIndex < 0) return null;
+
+    // Build the segment list the chase walks. First entry is the array
+    // prop itself; subsequent entries are the remaining unresolved parts
+    // plus the cursor segment, each carrying its bracket-index count
+    // pulled from `rawPathParts`.
+    const segments: Array<{ name: string; numIndices: number }> = [
+        {
+            name: arrayName,
+            numIndices: countBracketIndices(
+                ctx.rawPathParts[arrayPropPathIndex],
+            ),
+        },
+    ];
+    for (let i = 1; i < unresolvedPathParts.length; i++) {
+        segments.push({
+            name: unresolvedPathParts[i],
+            numIndices: countBracketIndices(
+                ctx.rawPathParts[arrayPropPathIndex + i],
+            ),
+        });
+    }
+    segments.push({
+        name: memberName,
+        numIndices: countBracketIndices(
+            ctx.rawPathParts[ctx.pathParts.length - 1],
+        ),
+    });
+
+    const chased = chaseIndexAliases(arrayProp, segments);
+    if (!chased) return null;
+
+    // Pre-render the title's access tail from `rawPathParts` so the
+    // author's literal bracket-index values survive (e.g. `points[1].x`
+    // rather than `points[…].x`, and `arr[0][2].z` rather than collapsing
+    // both indices). `rawPathParts` is position-aligned with `pathParts`,
+    // so slicing from `arrayPropPathIndex` picks the array-prop segment
+    // through the cursor's `memberName`. Hyphenated names are paren-wrapped
+    // by `formatPathSegment` so the rendering matches what the author
+    // would actually have to type.
+    const displayTail = ctx.rawPathParts
+        .slice(arrayPropPathIndex)
+        .map(formatPathSegment)
+        .join(".");
+
+    return {
+        kind: "arrayEntry",
+        elementName: ownEntry.name,
+        arrayName: arrayProp.name,
+        aliasPath: chased.aliasPath,
+        displayTail,
+        // `description` is required on the schema-generator side (the
+        // generator throws if any public state var is missing one), but the
+        // local lsp-tools `SchemaProperty` type marks it optional — fall
+        // back to "" so the panel still renders the title/coordinates row
+        // even if a bespoke test schema omits it.
+        description: arrayProp.description ?? "",
+        leafType: deepestArrayEntryType(arrayProp),
+        docsSlug: effectiveEntry.docsSlug ?? null,
+    };
+}
+
 async function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
@@ -306,6 +448,23 @@ async function helpForRefMemberByName(
 
     const containerNode = resolved.node;
     if (!containerNode) {
+        // Before declaring the chain unresolved, see whether it's a
+        // coordinate-style access through an array property's `indexAliases`
+        // table (e.g. `$vector.head.x`, `$line.points[1].x`). The resolver
+        // exposes the deepest node it DID resolve as `partiallyResolvedNode`
+        // and the trailing unresolved segments as `unresolvedPathParts`.
+        // The first unresolved segment, plus the cursor's `memberName`, plus
+        // any indices authored on the way, give us the chain to walk against
+        // the schema's alias table. Issue #1180.
+        const arrayEntry = tryArrayEntryHelp(
+            completer,
+            resolved.partiallyResolvedNode ?? null,
+            resolved.unresolvedPathParts,
+            ctx,
+            memberName,
+        );
+        if (arrayEntry) return arrayEntry;
+
         // No-adapter / unresolved path. For deep chains, surface the
         // placeholder so a user staring at `$a.b.c` knows *something* about
         // the cursor position; for shorter chains, just blank the panel.

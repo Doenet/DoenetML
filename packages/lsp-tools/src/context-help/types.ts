@@ -41,6 +41,48 @@ export type HelpContent =
           type?: string;
           isArray: boolean;
       }
+    /**
+     * A coordinate-style access chased through an array property's
+     * `indexAliases` table — e.g. `$vector.head.x`, `$line.points[1].x`,
+     * `$circle.center.y`. The chase is exact-match on the alias table only;
+     * it never consults the array entry's `type` to look up properties of
+     * the represented inner component (e.g. `<point>`). That keeps the help
+     * layer in lockstep with the runtime, which also doesn't resolve
+     * non-alias members of an array slot. Issue #1180.
+     */
+    | {
+          kind: "arrayEntry";
+          /** Owning element's tag name (e.g. `vector`). */
+          elementName: string;
+          /** Array property name (e.g. `head`). */
+          arrayName: string;
+          /**
+           * Path of alias names consumed after the array prop (e.g. `["x"]`
+           * for `$vector.head.x`, `["x"]` for `$line.points[1].x`). Empty if
+           * every dimension was consumed by numeric indices. Used to render
+           * the "Coordinate:" / "Coordinates:" detail row.
+           */
+          aliasPath: string[];
+          /**
+           * The chain past the container, pre-rendered with the author's
+           * exact bracket-index values preserved (e.g. `"head.x"`,
+           * `"points[1].x"`, `"arr[0][2].z"`). Built from `rawPathParts`
+           * so the title shows what the author actually typed rather than
+           * a `[…]` placeholder. The panel renders this verbatim.
+           */
+          displayTail: string;
+          /** Array property description from the schema. */
+          description: string;
+          /**
+           * Innermost entry type from `indexedArrayDescription` — display
+           * only (e.g. `point` for `points[1]`, `math` for `head.x`). Not
+           * a license to chase through it. May be undefined when the array
+           * slot lacked a `createComponentOfType`.
+           */
+          leafType?: string;
+          /** Reference-page slug for the owning element. */
+          docsSlug: string | null;
+      }
     | {
           kind: "refName";
           /**

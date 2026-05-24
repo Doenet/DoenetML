@@ -222,6 +222,67 @@ export function ContextHelpPanel({
             );
         }
 
+        case "arrayEntry": {
+            const {
+                elementName,
+                aliasPath,
+                displayTail,
+                description,
+                leafType,
+                docsSlug,
+            } = content;
+            // `displayTail` is pre-rendered by the help layer from
+            // `rawPathParts`, so the title shows the author's literal
+            // bracket-index values (`points[1].x`) rather than a `[…]`
+            // placeholder.
+            return (
+                <div className="help-panel">
+                    <div className="help-title">
+                        <span className="help-element-name">
+                            {`<${elementName}>`}
+                        </span>
+                        <span className="help-kind-label">array entry</span>
+                        <span className="help-property-name">
+                            {displayTail}
+                        </span>
+                    </div>
+                    <p className="help-description">
+                        {renderInlineMarkdown(description)}
+                    </p>
+                    {aliasPath.length > 0 && (
+                        <div className="help-detail">
+                            <span className="help-detail-label">
+                                {aliasPath.length === 1
+                                    ? "Coordinate:"
+                                    : "Coordinates:"}
+                            </span>
+                            <span className="help-detail-value">
+                                {aliasPath.join(", ")}
+                            </span>
+                        </div>
+                    )}
+                    {leafType && (
+                        <div className="help-detail">
+                            <span className="help-detail-label">Type:</span>
+                            <span className="help-detail-value">
+                                {`<${leafType}>`}
+                            </span>
+                        </div>
+                    )}
+                    {docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsBase}/reference/${docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
+                    )}
+                </div>
+            );
+        }
+
         case "property": {
             const {
                 elementName,

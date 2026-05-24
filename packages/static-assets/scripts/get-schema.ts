@@ -237,6 +237,17 @@ type PropertyDescription = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
+    /**
+     * Per-dimension alias table for array state variables — copied verbatim
+     * from the runtime's `theStateDef.indexAliases` via
+     * `BaseComponent.returnStateVariableInfo`. Each entry indexes a
+     * dimension and lists the alias names that select position 0..N within
+     * it (e.g. `[["x","y","z"]]` for a 1-dim point coordinate).  Used by
+     * the editor's autocomplete and context-help to chase coordinate
+     * chains like `$vector.head.x` or `$line.points[1].x` without ever
+     * resolving through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
 };
@@ -286,6 +297,15 @@ type PublicStateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
+    /**
+     * Per-dimension alias table populated by the runtime in
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `indexAliases` (e.g. `Vector.head` carries `[["x","y","z"]]`).
+     * Surfaced into the schema by `singlePropFromDescription` so the editor
+     * can resolve `$vector.head.x` and `$line.points[1].x` without chasing
+     * through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
     /**
@@ -1101,6 +1121,17 @@ function singlePropFromDescription({
 
         prop.numDimensions = numDimensions;
         prop.indexedArrayDescription = [];
+
+        // Carry the runtime-side per-dimension alias table onto the schema
+        // so editor autocomplete / context-help can chase coordinate chains
+        // like `$vector.head.x` and `$line.points[1].x` purely through the
+        // alias table — never through the array slot's `type`, which is the
+        // entry's representation, not a license to expose the inner
+        // component's properties.  Only emitted when the runtime declared
+        // it on the state var.
+        if (description.indexAliases) {
+            prop.indexAliases = description.indexAliases;
+        }
 
         const wrappingComponents = description.wrappingComponents || [];
 

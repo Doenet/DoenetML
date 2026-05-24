@@ -482,12 +482,18 @@ export class RustResolverAdapter {
                 (p) => p.name,
             );
 
-            // When there are unresolved parts, the path is invalid —
-            // return null so the caller offers no completions.
+            // When there are unresolved parts, the path is invalid for
+            // descendant/property lookup — return `node: null` so the
+            // caller offers no descendant completions / no property help.
+            // Expose `partiallyResolvedNode` so the help layer can still
+            // run an `indexAliases` chase for coordinate chains like
+            // `$vector.head.x` (resolves to `<vector>` with `head`
+            // unresolved as an array state-variable name).
             if (unresolvedPathParts.length > 0) {
                 return {
                     node: null,
                     unresolvedPathParts,
+                    partiallyResolvedNode: resolvedNode,
                     visibleDescendantNames: [],
                 };
             }
