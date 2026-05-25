@@ -91,7 +91,7 @@ function renderViewerWithFunctionProps(...args: (string | Function)[]) {
 // rationale — nothing inside is expected to throw, but an unhandled
 // rejection inside the iframe is hard to diagnose, so log locally and
 // try to surface an error to the parent.
-void (async () => {
+(async () => {
     if (await waitForStandaloneBundle(60_000)) {
         messageParentFromViewer({ iframeReady: true });
     } else {

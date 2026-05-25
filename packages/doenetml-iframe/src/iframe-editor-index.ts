@@ -231,7 +231,7 @@ function renderWithLastAugmentedProps() {
 // an unhandled rejection inside the iframe is hard to diagnose. Log
 // locally and try to surface an error to the parent so the wrapper can
 // move the user out of the silent-stuck state.
-void (async () => {
+(async () => {
     if (await waitForStandaloneBundle(60_000)) {
         messageParentFromEditor({ iframeReady: true });
     } else {
