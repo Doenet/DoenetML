@@ -1,5 +1,8 @@
 import BaseComponent from "./BaseComponent";
-import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
+import {
+    returnSelectedStyleStateVariableDefinition,
+    styleOverrideAttributes,
+} from "@doenet/utils";
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
@@ -32,6 +35,18 @@ export default class GraphicalComponent extends BaseComponent {
             description:
                 "Z-order layer index used to stack graphical components (higher values render on top).",
         };
+
+        // Per-component non-color style overrides (e.g. markerStyle, lineWidth).
+        // Colors stay <styleDefinition>-only so per-styleNumber WCAG contrast
+        // diagnostics remain authoritative.
+        for (const styleAttr in styleOverrideAttributes) {
+            attributes[styleAttr] = {
+                createComponentOfType:
+                    styleOverrideAttributes[styleAttr].componentType,
+                description: styleOverrideAttributes[styleAttr].description,
+            };
+        }
+
         return attributes;
     }
 
@@ -48,7 +63,9 @@ export default class GraphicalComponent extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         let selectedStyleDefinition =
-            returnSelectedStyleStateVariableDefinition();
+            returnSelectedStyleStateVariableDefinition({
+                overrideAttributeNames: Object.keys(styleOverrideAttributes),
+            });
 
         Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
