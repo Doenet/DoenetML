@@ -67,6 +67,33 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
                 ),
             ).toBe(true);
         });
+
+        // Empty and whitespace-only attribute values flow through
+        // `getElementAttributeValue`, which returns `undefined` for empty
+        // trimmed content.  The predicate then treats them as "attribute
+        // absent" → shorthand applies.  Pinned here so a future change to
+        // the helper's empty-value handling doesn't silently flip the rule.
+        it('accepts numToSelect="" (empty value treated as absent)', () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(
+                        `<select name="s" numToSelect="" />`,
+                        "select",
+                    ),
+                ),
+            ).toBe(true);
+        });
+
+        it('accepts numToSelect="   " (whitespace-only treated as absent)', () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(
+                        `<select name="s" numToSelect="   " />`,
+                        "select",
+                    ),
+                ),
+            ).toBe(true);
+        });
     });
 
     describe("anything else → false", () => {

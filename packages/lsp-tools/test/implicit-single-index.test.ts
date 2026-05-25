@@ -74,18 +74,20 @@ async function buildCompleter(source: string) {
     return { completer, adapter };
 }
 
+/** Run autocomplete at the end of `source` and return the raw items. */
+async function completionItemsAtEnd(source: string) {
+    const { completer } = await buildCompleter(source);
+    return completer.getCompletionItems(source.length);
+}
+
 /** All completion labels at `offset` after autocomplete runs. */
 async function completionLabels(source: string): Promise<string[]> {
-    const { completer } = await buildCompleter(source);
-    const items = await completer.getCompletionItems(source.length);
-    return items.map((i) => i.label);
+    return (await completionItemsAtEnd(source)).map((i) => i.label);
 }
 
 /** Just the descendant-reference labels (`CompletionItemKind.Reference`). */
 async function referenceLabels(source: string): Promise<string[]> {
-    const { completer } = await buildCompleter(source);
-    const items = await completer.getCompletionItems(source.length);
-    return items
+    return (await completionItemsAtEnd(source))
         .filter((i) => i.kind === CompletionItemKind.Reference)
         .map((i) => i.label);
 }
