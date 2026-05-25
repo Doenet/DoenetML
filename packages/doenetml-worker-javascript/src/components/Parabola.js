@@ -8,6 +8,8 @@ import me from "math-expressions";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
+    // Overrides Curve's ["line", "fill"]: parabolas are open.
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
         summary: "A parabola defined by formula or geometric parameters",

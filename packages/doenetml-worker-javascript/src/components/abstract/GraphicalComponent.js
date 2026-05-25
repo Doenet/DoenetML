@@ -1,15 +1,34 @@
 import BaseComponent from "./BaseComponent";
 import {
+    STYLE_OVERRIDE_CATEGORIES,
     returnSelectedStyleStateVariableDefinition,
-    styleOverrideAttributes,
 } from "@doenet/utils";
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
 } from "../../utils/label";
 
+/**
+ * Resolves the override attribute groups a subclass opts into. `this` is the
+ * class itself in static methods, so the lookup walks the prototype chain and
+ * picks up a subclass's `static styleOverrideCategories` if present.
+ */
+function resolveOverrideGroups(cls) {
+    const categories = cls.styleOverrideCategories ?? [];
+    return categories.map((cat) => STYLE_OVERRIDE_CATEGORIES[cat]);
+}
+
 export default class GraphicalComponent extends BaseComponent {
     static componentType = "_graphical";
+
+    /**
+     * Subclasses opt into per-component style overrides by listing the
+     * groups they use, e.g. `static styleOverrideCategories = ["marker"]`
+     * for point-like components, `["line", "fill"]` for closed shapes.
+     * Leaving this empty (the default) keeps the component as a pure
+     * `<styleDefinition>` consumer with no per-component override surface.
+     */
+    static styleOverrideCategories = [];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -36,24 +55,27 @@ export default class GraphicalComponent extends BaseComponent {
                 "Z-order layer index used to stack graphical components (higher values render on top).",
         };
 
-        // Per-component non-color style overrides (e.g. markerStyle, lineWidth).
-        // Colors stay <styleDefinition>-only so per-styleNumber WCAG contrast
+        // Per-component non-color style overrides — only the groups this
+        // subclass opts into via `static styleOverrideCategories`. Colors
+        // stay <styleDefinition>-only so per-styleNumber WCAG contrast
         // diagnostics remain authoritative.
-        for (const styleAttr in styleOverrideAttributes) {
-            const spec = styleOverrideAttributes[styleAttr];
-            const attr = {
-                createComponentOfType: spec.componentType,
-                description: spec.description,
-            };
-            // Forward enumeration metadata so the schema generator can surface
-            // a `type: "keyword"` enum with autocomplete entries.
-            if (spec.validValues) {
-                attr.validValues = spec.validValues;
+        for (const group of resolveOverrideGroups(this)) {
+            for (const styleAttr in group) {
+                const spec = group[styleAttr];
+                const attr = {
+                    createComponentOfType: spec.componentType,
+                    description: spec.description,
+                };
+                // Forward enumeration metadata so the schema generator can
+                // surface a `type: "keyword"` enum with autocomplete entries.
+                if (spec.validValues) {
+                    attr.validValues = spec.validValues;
+                }
+                if (spec.toLowerCase) {
+                    attr.toLowerCase = spec.toLowerCase;
+                }
+                attributes[styleAttr] = attr;
             }
-            if (spec.toLowerCase) {
-                attr.toLowerCase = spec.toLowerCase;
-            }
-            attributes[styleAttr] = attr;
         }
 
         return attributes;
@@ -71,9 +93,13 @@ export default class GraphicalComponent extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        const overrideAttributeNames = resolveOverrideGroups(this).flatMap(
+            (group) => Object.keys(group),
+        );
+
         let selectedStyleDefinition =
             returnSelectedStyleStateVariableDefinition({
-                overrideAttributeNames: Object.keys(styleOverrideAttributes),
+                overrideAttributeNames,
             });
 
         Object.assign(stateVariableDefinitions, selectedStyleDefinition);

@@ -203,23 +203,77 @@ describe("Per-component style override tests @group4", async () => {
         expect(G.stateValues.selectedStyle.fillOpacity).eq(0.5);
     });
 
-    it("colors stay <styleDefinition>-only: markerColor attribute on point is not exposed", async () => {
-        // Color attributes are intentionally NOT in styleOverrideAttributes,
-        // so they're not declared on GraphicalComponent.
+    it("colors stay <styleDefinition>-only: color attributes are never exposed on graphical components", async () => {
         const Point = (await import("../../components/Point.js")).default;
         const pointAttrs = Point.createAttributesObject();
-        // Non-color override attribute IS present:
-        expect(pointAttrs.markerStyle).toBeDefined();
-        expect(pointAttrs.markerSize).toBeDefined();
-        expect(pointAttrs.lineWidth).toBeDefined();
-        expect(pointAttrs.fillOpacity).toBeDefined();
-        // Color attributes are NOT present:
+        // Color attributes are NOT present on any graphical component.
         expect(pointAttrs.markerColor).toBeUndefined();
         expect(pointAttrs.lineColor).toBeUndefined();
         expect(pointAttrs.fillColor).toBeUndefined();
         expect(pointAttrs.textColor).toBeUndefined();
         expect(pointAttrs.backgroundColor).toBeUndefined();
         expect(pointAttrs.highContrastColor).toBeUndefined();
+    });
+
+    it("per-component attribute curation: each leaf only exposes the categories it uses", async () => {
+        // marker-only components
+        const Point = (await import("../../components/Point.js")).default;
+        const pointAttrs = Point.createAttributesObject();
+        expect(pointAttrs.markerStyle).toBeDefined();
+        expect(pointAttrs.markerSize).toBeDefined();
+        expect(pointAttrs.markerOpacity).toBeDefined();
+        expect(pointAttrs.markerFilled).toBeDefined();
+        expect(pointAttrs.lineWidth).toBeUndefined();
+        expect(pointAttrs.lineStyle).toBeUndefined();
+        expect(pointAttrs.fillOpacity).toBeUndefined();
+
+        // line-only components
+        const Line = (await import("../../components/Line.js")).default;
+        const lineAttrs = Line.createAttributesObject();
+        expect(lineAttrs.lineWidth).toBeDefined();
+        expect(lineAttrs.lineStyle).toBeDefined();
+        expect(lineAttrs.lineOpacity).toBeDefined();
+        expect(lineAttrs.markerStyle).toBeUndefined();
+        expect(lineAttrs.markerSize).toBeUndefined();
+        expect(lineAttrs.fillOpacity).toBeUndefined();
+
+        // line+fill components
+        const Polygon = (await import("../../components/Polygon.js")).default;
+        const polyAttrs = Polygon.createAttributesObject();
+        expect(polyAttrs.lineWidth).toBeDefined();
+        expect(polyAttrs.lineStyle).toBeDefined();
+        expect(polyAttrs.fillOpacity).toBeDefined();
+        expect(polyAttrs.markerStyle).toBeUndefined();
+
+        // Curve is line+fill (closed-curve case); Parabola overrides to line-only
+        const Curve = (await import("../../components/Curve.js")).default;
+        const curveAttrs = Curve.createAttributesObject();
+        expect(curveAttrs.fillOpacity).toBeDefined();
+        const Parabola = (await import("../../components/Parabola.js")).default;
+        const parAttrs = Parabola.createAttributesObject();
+        expect(parAttrs.lineWidth).toBeDefined();
+        expect(parAttrs.fillOpacity).toBeUndefined();
+
+        // Subclasses inherit their parent's category:
+        // - Triangle/Rectangle/RegularPolygon inherit Polygon's line+fill
+        // - Circle inherits Curve's line+fill
+        // - BestFitLine inherits Line's line-only
+        // - CobwebPolyline inherits Polyline's line-only (no fill)
+        const Triangle = (await import("../../components/Triangle.js")).default;
+        expect(Triangle.createAttributesObject().fillOpacity).toBeDefined();
+        const Circle = (await import("../../components/Circle.js")).default;
+        expect(Circle.createAttributesObject().fillOpacity).toBeDefined();
+        const BestFitLine = (await import("../../components/BestFitLine.js"))
+            .default;
+        const bflAttrs = BestFitLine.createAttributesObject();
+        expect(bflAttrs.lineWidth).toBeDefined();
+        expect(bflAttrs.fillOpacity).toBeUndefined();
+        const CobwebPolyline = (
+            await import("../../components/dynamicalSystems/CobwebPolyline.js")
+        ).default;
+        const cobwebAttrs = CobwebPolyline.createAttributesObject();
+        expect(cobwebAttrs.lineWidth).toBeDefined();
+        expect(cobwebAttrs.fillOpacity).toBeUndefined();
     });
 
     it("markerStyle and lineStyle are declared as keyword/enum attributes", async () => {
@@ -254,8 +308,12 @@ describe("Per-component style override tests @group4", async () => {
             expect(markerValues).toContain(v);
         }
 
-        expect(pointAttrs.lineStyle.toLowerCase).toBe(true);
-        const lineValues = pointAttrs.lineStyle.validValues.map(
+        // Per the per-component attribute curation, lineStyle lives on
+        // line-family components — Point only carries marker* overrides.
+        const Line = (await import("../../components/Line.js")).default;
+        const lineAttrs = Line.createAttributesObject();
+        expect(lineAttrs.lineStyle.toLowerCase).toBe(true);
+        const lineValues = lineAttrs.lineStyle.validValues.map(
             (v: { value: string }) => v.value,
         );
         for (const v of ["solid", "dashed", "dotted"]) {

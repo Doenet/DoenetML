@@ -229,35 +229,70 @@ export const markerStyleValuesWithFillVariants =
     );
 
 /**
- * Style-attribute keys that may be overridden directly on a component (e.g.
- * `<point markerStyle="square">`). Color keys are intentionally excluded —
- * color authoring stays exclusive to `<styleDefinition>` so the per-styleNumber
- * WCAG contrast diagnostics remain authoritative. `*Word` descriptors are also
- * excluded: they're derived from the underlying value (e.g. `markerStyle`
- * "circle" → `markerStyleWord` "point") and authors with niche vocabulary
- * needs can either compose their own description text or override the word
- * inside a `<styleDefinition>`.
+ * Per-category groupings of overridable style attributes. Each graphical
+ * component opts into the categories its renderer actually uses (via
+ * `static styleOverrideCategories` on the class — see GraphicalComponent),
+ * keeping the per-component attribute schema honest. Color keys are
+ * intentionally excluded from every group — color authoring stays exclusive to
+ * `<styleDefinition>` so the per-styleNumber WCAG contrast diagnostics remain
+ * authoritative. `*Word` descriptors are also excluded: they're derived from
+ * the underlying value (e.g. `markerStyle` "circle" → `markerStyleWord`
+ * "point") and authors with niche vocabulary needs can override them inside a
+ * `<styleDefinition>`.
  */
-const STYLE_OVERRIDE_KEYS = [
-    "lineOpacity",
-    "lineWidth",
-    "lineStyle",
-    "markerOpacity",
+const MARKER_OVERRIDE_KEYS = [
     "markerStyle",
     "markerSize",
+    "markerOpacity",
     "markerFilled",
+] as const satisfies readonly StyleDefinitionKey[];
+
+const LINE_OVERRIDE_KEYS = [
+    "lineStyle",
+    "lineWidth",
+    "lineOpacity",
+] as const satisfies readonly StyleDefinitionKey[];
+
+const FILL_OVERRIDE_KEYS = [
     "fillOpacity",
 ] as const satisfies readonly StyleDefinitionKey[];
 
-/**
- * Subset of {@link styleAttributes} exposed as per-component override attributes
- * on graphical components. Single source of truth so the GraphicalComponent
- * attribute list stays in lockstep with the dependencies wired into
- * {@link returnSelectedStyleStateVariableDefinition}.
- */
-export const styleOverrideAttributes: StyleAttributes = Object.fromEntries(
-    STYLE_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+/** Marker-shape / size / opacity / fill toggles for point-like components. */
+export const markerOverrideAttributes: StyleAttributes = Object.fromEntries(
+    MARKER_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
 );
+
+/** Stroke style / width / opacity for any component that renders an outline. */
+export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
+    LINE_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+);
+
+/** Fill toggles for closed-shape components. */
+export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
+    FILL_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+);
+
+/**
+ * Union of every per-component override attribute (marker + line + fill).
+ * Retained as the single iterable used by callers (e.g. tests) that need to
+ * know "what's overridable in principle" without caring which category each
+ * key belongs to. Per-component dispatch goes through the category-specific
+ * exports above.
+ */
+export const styleOverrideAttributes: StyleAttributes = {
+    ...markerOverrideAttributes,
+    ...lineOverrideAttributes,
+    ...fillOverrideAttributes,
+};
+
+/** Registry consumed by GraphicalComponent's per-category dispatch. */
+export const STYLE_OVERRIDE_CATEGORIES = {
+    marker: markerOverrideAttributes,
+    line: lineOverrideAttributes,
+    fill: fillOverrideAttributes,
+} as const;
+
+export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
 
 /**
  * Baseline style used when a style number references no explicit definition.

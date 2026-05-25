@@ -32,6 +32,7 @@ export default class Point extends GraphicalComponent {
         });
     }
     static componentType = "point";
+    static styleOverrideCategories = ["marker"];
 
     static componentDocs = {
         summary:
