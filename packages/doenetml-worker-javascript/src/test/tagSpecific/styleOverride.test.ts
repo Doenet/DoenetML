@@ -156,6 +156,32 @@ describe("Per-component style override tests @group4", async () => {
         expect(R.stateValues.selectedStyle.markerFilled).eq(true);
     });
 
+    it("plain point has no `open` state variable; endpoint and equilibriumPoint do (renderer invariant)", async () => {
+        // The point renderer (`packages/doenetml/src/Viewer/renderers/point.tsx`)
+        // uses `SVs.open === undefined` to detect "plain point" and only then
+        // honors `selectedStyle.markerFilled`. This pins that contract so a
+        // future point-like subclass that forgets to define an `open` state
+        // variable would surface here rather than silently picking up
+        // markerFilled semantics it doesn't want.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P" />
+<endpoint name="E">(0,0)</endpoint>
+<graph><equilibriumPoint name="Q">(0,0)</equilibriumPoint></graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        const E = stateVariables[await resolvePathToNodeIdx("E")];
+        const Q = stateVariables[await resolvePathToNodeIdx("Q")];
+        // Plain point has no semantic open/closed state.
+        expect(P.stateValues.open).toBeUndefined();
+        // Subclasses with their own semantic state expose `open` as a boolean.
+        expect(typeof E.stateValues.open).eq("boolean");
+        expect(typeof Q.stateValues.open).eq("boolean");
+    });
+
     it("endpoint and equilibriumPoint suppress markerFilled; equilibriumLine/Curve suppress lineStyle", async () => {
         const Endpoint = (await import("../../components/Endpoint.js")).default;
         const EquilibriumPoint = (

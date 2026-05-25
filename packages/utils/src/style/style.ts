@@ -441,43 +441,27 @@ function addMissingChildStyleColorFields(
  * override path so the two share identical word-derivation rules.
  */
 function deriveMissingStyleWords(styleDef: StyleDefinition): void {
-    const widthItems = ["line"] as const;
-    for (const item of widthItems) {
-        const widthKey = `${item}Width` as StyleDefinitionKey;
-        const widthWordKey = `${widthKey}Word` as StyleDefinitionKey;
-
-        if (widthKey in styleDef && !(widthWordKey in styleDef)) {
-            const widthValue = getStyleValueNumber(styleDef, widthKey);
-            if (widthValue === undefined) {
-                continue;
-            }
-
-            const widthPosition = styleDef[widthKey]?.position;
+    if ("lineWidth" in styleDef && !("lineWidthWord" in styleDef)) {
+        const widthValue = getStyleValueNumber(styleDef, "lineWidth");
+        if (widthValue !== undefined) {
+            const widthPosition = styleDef.lineWidth?.position;
             const word =
                 widthValue >= 4 ? "thick" : widthValue <= 1 ? "thin" : "";
-            setStyleValue(styleDef, widthWordKey, word, widthPosition);
+            setStyleValue(styleDef, "lineWidthWord", word, widthPosition);
         }
     }
 
-    const lineStyleItems = ["line"] as const;
-    for (const item of lineStyleItems) {
-        const styleKey = `${item}Style` as StyleDefinitionKey;
-        const styleWordKey = `${styleKey}Word` as StyleDefinitionKey;
-
-        if (styleKey in styleDef && !(styleWordKey in styleDef)) {
-            const lineStyle = getStyleValueString(styleDef, styleKey);
-            if (!lineStyle) {
-                continue;
-            }
-
-            const lineStylePosition = styleDef[styleKey]?.position;
+    if ("lineStyle" in styleDef && !("lineStyleWord" in styleDef)) {
+        const lineStyle = getStyleValueString(styleDef, "lineStyle");
+        if (lineStyle) {
+            const lineStylePosition = styleDef.lineStyle?.position;
             const word =
                 lineStyle === "dashed"
                     ? "dashed"
                     : lineStyle === "dotted"
                       ? "dotted"
                       : "";
-            setStyleValue(styleDef, styleWordKey, word, lineStylePosition);
+            setStyleValue(styleDef, "lineStyleWord", word, lineStylePosition);
         }
     }
 

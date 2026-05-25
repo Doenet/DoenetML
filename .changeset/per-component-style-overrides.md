@@ -26,6 +26,7 @@ Behavior:
 - The component-level override wins over any inherited `<styleDefinition>` value for that key.
 - Sibling components without the attribute still inherit normally from the styleDefinition.
 - `*Word` descriptors are re-derived from the override value using the same rules as `<styleDefinition>` (e.g. `lineWidth=1` → `lineWidthWord="thin"`, `markerStyle="circle"` → `markerStyleWord="point"`, `markerStyle="triangleUp"` → `markerStyleWord="triangle"`).
+- Re-derivation replaces any inherited custom `*Word` — including when the new value falls outside a named range. For example, an inherited `lineWidthWord="hairline"` paired with a component-level `lineWidth="2"` re-derives to `lineWidthWord=""` (2 is neither "thin" nor "thick"). The trade-off is intentional: shipping a stale custom descriptor alongside a different underlying value would be misleading. If you need a custom descriptor vocabulary across multiple components, author `lineWidth`/`lineWidthWord` together inside a `<styleDefinition>` instead of overriding at the component.
 - The override values flow through `selectedStyle`; they aren't exposed as separate top-level state variables, so existing renderer code (`SVs.selectedStyle.markerStyle`, etc.) consumes them without change.
 
 `markerStyle` and `lineStyle` are declared as keyword/enum attributes in the schema so editors offer autocomplete and surface invalid values:
