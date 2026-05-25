@@ -104,6 +104,12 @@ export type AliasedElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children?: string[];
+    /**
+     * Populated for parity with `ElementSchema` and consumed by downstream
+     * tools (e.g. doc generators); the LSP's validation/completion paths
+     * don't read this field directly yet — they only consult `children`
+     * and `attributes` when resolving an alias.
+     */
     acceptsStringChildren?: boolean;
 };
 
@@ -447,8 +453,9 @@ export class AutoCompleter {
         // `UNKNOWN_NAME` by `normalizeAttributeName`, short-circuiting the
         // alias-aware checks in `isAllowedAttribute` /
         // `getAttributeAllowedValues` before they ever ran.  Canonical
-        // entries are seeded first so on a casing collision the canonical
-        // capitalization wins.
+        // entries are seeded last so that on a casing collision the
+        // canonical capitalization wins (`Object.fromEntries` lets the
+        // later entry overwrite the earlier one).
         this.schemaAttributesLowerToUpper = Object.fromEntries([
             ...Object.values(this.schemaAliasedElementsByName).flatMap((e) =>
                 e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
@@ -523,10 +530,15 @@ export class AutoCompleter {
     /**
      * Convenience over `resolveEffectiveSchemaElement` that accepts an
      * element name (canonical or author-cased) rather than a pre-fetched
-     * own entry. Returns the alias-aware effective entry — the alias when
+     * own entry. Returns the alias-aware effective entry: the alias when
      * the (grand)parent declares a `childContextHelp` redirect for this
-     * element, otherwise the element's own canonical entry. Returns
-     * `undefined` only when the element name itself is unrecognized.
+     * element, otherwise the element's own canonical entry.
+     *
+     * Callers that need to branch on whether an alias actually applied
+     * can compare `result.name` to the normalized input name: when they
+     * differ, an alias took effect; when they match, this returned the
+     * canonical passthrough. Returns `undefined` only when the element
+     * name itself is unrecognized.
      */
     _resolveEffectiveByName(
         elementName: string,
