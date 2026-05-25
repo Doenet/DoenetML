@@ -17,6 +17,10 @@ import {
     type RustResolverAdapter,
 } from "./rust-resolver-adapter";
 import { isRepeatLikeElement } from "./repeat-elements";
+import {
+    collectModuleInstancesWithCopyOrExtend,
+    getEffectiveModuleAttributeNames,
+} from "./module-attributes";
 
 // Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
 // can type a precomputed completion context they thread into
@@ -323,6 +327,31 @@ export class AutoCompleter {
      */
     snippetsByKey: Map<string, ProcessedSnippet> = new Map();
 
+    /**
+     * Per-instance allow-list of attribute names declared by the `<module>`
+     * a given `<module copy="$x" .../>` (or `extend=`) site resolves to
+     * (issue #1154 out-of-scope extension).  Keyed by the DAST element of
+     * the copy-site, mapping to lowercased declared names.
+     *
+     * Populated by `_refreshModuleInstanceAttributes()` once per source
+     * revision; the validation and completion paths consult this map
+     * synchronously to augment their canonical-schema decisions for the
+     * specific instance.  Sites that don't resolve, target a non-`<module>`,
+     * or hit a `<module>` without `<moduleAttributes>` are NOT in the map
+     * (per scope-lock: canonical schema applies as-is in those cases).
+     */
+    _moduleInstanceAttributeAllowlist: Map<DastElement, Set<string>> =
+        new Map();
+
+    /**
+     * `_sourceRevision` snapshot from the rust adapter that the per-instance
+     * allowlist was last computed against.  Starts at `-1` so the first
+     * refresh always runs.  When the adapter's revision matches, the
+     * refresh returns early — back-to-back validation + completion calls
+     * between edits do at most one resolver round-trip per site total.
+     */
+    _moduleInstanceAllowlistSourceRevision = -1;
+
     constructor(
         source?: string,
         schema: ElementSchema[] = doenetSchema.elements,
@@ -405,6 +434,49 @@ export class AutoCompleter {
             unresolvedPathParts,
             visibleDescendantNames: [],
         };
+    }
+
+    /**
+     * Rebuild `_moduleInstanceAttributeAllowlist` for every `<module copy=…>`
+     * (or `extend=`) site in the current source.  Issued in parallel via
+     * `Promise.all`, so a document with N module-copy sites pays one
+     * resolver round-trip per site total — not per validation/completion
+     * call.
+     *
+     * Coalesces by `_sourceRevision` from the rust adapter: when the source
+     * hasn't changed since the last refresh, this returns immediately.  Two
+     * back-to-back callers (validation then completion) thus do at most one
+     * resolution per site between each edit, and rapid keystroke bursts
+     * drain in one batch when the typing pauses.
+     *
+     * Disabled when the rust adapter is absent (cold start, tests without
+     * WASM) — the allowlist is cleared, and validation/completion fall
+     * through to canonical-only behavior identical to today.
+     */
+    async _refreshModuleInstanceAttributes(): Promise<void> {
+        if (!this._rustResolverAdapter) {
+            this._moduleInstanceAttributeAllowlist.clear();
+            this._moduleInstanceAllowlistSourceRevision = -1;
+            return;
+        }
+        const rev = this._rustResolverAdapter._sourceRevision;
+        if (rev === this._moduleInstanceAllowlistSourceRevision) return;
+
+        const adapter = this._rustResolverAdapter;
+        const instances = collectModuleInstancesWithCopyOrExtend(
+            this.sourceObj.dast,
+        );
+        const entries = await Promise.all(
+            instances.map(async (el) => {
+                const set = await getEffectiveModuleAttributeNames(el, adapter);
+                return [el, set] as const;
+            }),
+        );
+        this._moduleInstanceAttributeAllowlist.clear();
+        for (const [el, set] of entries) {
+            if (set) this._moduleInstanceAttributeAllowlist.set(el, set);
+        }
+        this._moduleInstanceAllowlistSourceRevision = rev;
     }
 
     /**
@@ -855,11 +927,19 @@ export class AutoCompleter {
      * `<matrix>` → `matrixRow`), the check runs against the alias target's
      * attribute set — so `unordered` on `<row>` inside `<matrix>` is allowed
      * even though it isn't an attribute of the tabular `<row>` (#1174).
+     *
+     * When `perInstanceAllowlist` is provided (currently only for
+     * `<module copy="$x" .../>` sites whose target's `<moduleAttributes>`
+     * declared `attributeName`), the check returns true if the lowercased
+     * attribute name is in the allowlist OR the canonical/alias check
+     * passes — union semantics, since canonical attributes like `hide` /
+     * `name` remain valid regardless of what the target declared (#1154).
      */
     isAllowedAttribute(
         elementName: string,
         attributeName: string,
         parentName?: string,
+        perInstanceAllowlist?: ReadonlySet<string>,
     ): boolean {
         const normalizedElement = this.normalizeElementName(elementName);
         const normalizedAttribute = this.normalizeAttributeName(attributeName);
@@ -868,6 +948,12 @@ export class AutoCompleter {
             normalizedAttribute === "UNKNOWN_NAME"
         ) {
             return false;
+        }
+        if (
+            perInstanceAllowlist &&
+            perInstanceAllowlist.has(normalizedAttribute.toLowerCase())
+        ) {
+            return true;
         }
         if (parentName) {
             const effective = this._resolveEffectiveByName(

@@ -92,7 +92,7 @@ vi.mock("@doenet/lsp-tools", () => {
 
         setRustResolverAdapter(_adapter: unknown) {}
 
-        getSchemaViolations() {
+        async getSchemaViolations() {
             return [];
         }
     }
@@ -157,7 +157,7 @@ describe("addValidationSupport", () => {
             sourceObj: { dast: {} },
             setSource: vi.fn(),
             setRustResolverAdapter: vi.fn(),
-            getSchemaViolations: vi.fn(() => []),
+            getSchemaViolations: vi.fn(async () => []),
         };
         const documentInfo = new Map([
             [
@@ -190,6 +190,12 @@ describe("addValidationSupport", () => {
         onDidChangeContentHandler!({ document: activeDocument });
 
         // Validation should run immediately, without waiting for Rust init.
+        // `getSchemaViolations` is async (it awaits the per-instance module
+        // attribute precompute), so the sendDiagnostics call lands one
+        // microtask after the synchronous handler entry.  The handler
+        // doesn't await the rust init though, so this still resolves
+        // independently of `getRustCoreMock` settling.
+        await flushMicrotasks();
         expect(sendDiagnostics).toHaveBeenCalledTimes(1);
         expect(getRustCoreMock).toHaveBeenCalledTimes(1);
         expect(documentInfo.get(uri)?.rustState).toBe("initializing");
@@ -211,7 +217,7 @@ describe("addValidationSupport", () => {
             sourceObj: { dast: {} },
             setSource: vi.fn(),
             setRustResolverAdapter: vi.fn(),
-            getSchemaViolations: vi.fn(() => []),
+            getSchemaViolations: vi.fn(async () => []),
         };
         const documentInfo = new Map([
             [
@@ -267,7 +273,7 @@ describe("addValidationSupport", () => {
                 sourceObj: { dast: {} },
                 setSource: vi.fn(),
                 setRustResolverAdapter: vi.fn(),
-                getSchemaViolations: vi.fn(() => []),
+                getSchemaViolations: vi.fn(async () => []),
             },
             additionalDiagnostics: [],
             rustState: "uninitialized" as const,

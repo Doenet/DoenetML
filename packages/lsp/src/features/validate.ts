@@ -196,7 +196,7 @@ export function addValidationSupport(
             return diagnostic;
         });
 
-        const schemaErrors = info.autoCompleter.getSchemaViolations();
+        const schemaErrors = await info.autoCompleter.getSchemaViolations();
         diagnostics.push(...schemaErrors);
 
         diagnostics.push(...info.additionalDiagnostics);

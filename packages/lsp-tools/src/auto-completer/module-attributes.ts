@@ -26,7 +26,7 @@
  * `_rustIndexToDastElement` map the rust-resolver-adapter already maintains).
  */
 
-import type { DastElement } from "@doenet/parser";
+import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import type { SchemaAttribute } from "./index";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
 import { findAttributeKey } from "./dast-attribute-utils";
@@ -265,4 +265,40 @@ export async function getEffectiveModuleAttributeNames(
     const declared = getModuleDeclaredAttributeNames(target);
     if (declared.size === 0) return null;
     return declared;
+}
+
+/**
+ * Walk a DAST tree and return every `<module>` element that authored a
+ * `copy=` or `extend=` attribute (case-insensitive on the element name AND
+ * the attribute key — `findAttributeKey` already does the latter).  Used
+ * by the precompute pass on `AutoCompleter` so we only fire per-instance
+ * resolution for sites that could be augmented, not every `<module>` in
+ * the document.
+ *
+ * Definition sites (`<module name="m">...</module>` without a copy/extend
+ * reference) are intentionally skipped: there's no target to resolve, and
+ * the `<moduleAttributes>` block inside them is consumed by other
+ * validation paths (it lives as a child, not a reference target).
+ */
+export function collectModuleInstancesWithCopyOrExtend(
+    root: DastRoot | DastElement,
+): DastElement[] {
+    const out: DastElement[] = [];
+    const walk = (node: DastNodes) => {
+        if (node.type !== "element") return;
+        if (
+            node.name.toLowerCase() === "module" &&
+            (findAttributeKey(node, "copy") !== undefined ||
+                findAttributeKey(node, "extend") !== undefined)
+        ) {
+            out.push(node);
+        }
+        for (const child of node.children) {
+            walk(child as DastNodes);
+        }
+    };
+    for (const child of root.children) {
+        walk(child as DastNodes);
+    }
+    return out;
 }
