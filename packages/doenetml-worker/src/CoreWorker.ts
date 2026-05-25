@@ -365,8 +365,8 @@ export class CoreWorker {
         if (this.core_type === "javascript") {
             // The JS core doesn't expose a normalized DAST today; the LSP's
             // resolver path uses the rust core, so this is unreachable for
-            // resolver consumers — fall back to the same shape minimally.
-            return { nodes: [], children: [], sources: [] };
+            // resolver consumers — return the minimal shape consumers expect.
+            return { nodes: [] };
         }
         return this.doenetCore.return_normalized_dast_root();
     }

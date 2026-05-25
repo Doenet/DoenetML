@@ -352,6 +352,15 @@ export class AutoCompleter {
      */
     _moduleInstanceAllowlistSourceRevision = -1;
 
+    /**
+     * In-flight refresh promise so concurrent callers (e.g. validation and
+     * completion awaited in parallel) join the same `Promise.all` batch
+     * instead of each firing their own.  Cleared in a `finally` so the
+     * next post-edit call starts a fresh round.  Sequential coalescing
+     * still hinges on `_moduleInstanceAllowlistSourceRevision` above.
+     */
+    _moduleInstanceAllowlistRefreshInFlight: Promise<void> | null = null;
+
     constructor(
         source?: string,
         schema: ElementSchema[] = doenetSchema.elements,
@@ -462,21 +471,38 @@ export class AutoCompleter {
         const rev = this._rustResolverAdapter._sourceRevision;
         if (rev === this._moduleInstanceAllowlistSourceRevision) return;
 
-        const adapter = this._rustResolverAdapter;
-        const instances = collectModuleInstancesWithCopyOrExtend(
-            this.sourceObj.dast,
-        );
-        const entries = await Promise.all(
-            instances.map(async (el) => {
-                const set = await getEffectiveModuleAttributeNames(el, adapter);
-                return [el, set] as const;
-            }),
-        );
-        this._moduleInstanceAttributeAllowlist.clear();
-        for (const [el, set] of entries) {
-            if (set) this._moduleInstanceAttributeAllowlist.set(el, set);
+        // Concurrent callers (validation + completion awaited in parallel)
+        // would otherwise each issue a full `Promise.all` batch since the
+        // revision check passes before either has finished writing.  Stash
+        // the in-flight promise so they share one round-trip per site.
+        if (this._moduleInstanceAllowlistRefreshInFlight) {
+            return this._moduleInstanceAllowlistRefreshInFlight;
         }
-        this._moduleInstanceAllowlistSourceRevision = rev;
+
+        const adapter = this._rustResolverAdapter;
+        const refresh = (async () => {
+            const instances = collectModuleInstancesWithCopyOrExtend(
+                this.sourceObj.dast,
+            );
+            const entries = await Promise.all(
+                instances.map(async (el) => {
+                    const set = await getEffectiveModuleAttributeNames(
+                        el,
+                        adapter,
+                    );
+                    return [el, set] as const;
+                }),
+            );
+            this._moduleInstanceAttributeAllowlist.clear();
+            for (const [el, set] of entries) {
+                if (set) this._moduleInstanceAttributeAllowlist.set(el, set);
+            }
+            this._moduleInstanceAllowlistSourceRevision = rev;
+        })();
+        this._moduleInstanceAllowlistRefreshInFlight = refresh.finally(() => {
+            this._moduleInstanceAllowlistRefreshInFlight = null;
+        });
+        return this._moduleInstanceAllowlistRefreshInFlight;
     }
 
     /**
@@ -941,6 +967,18 @@ export class AutoCompleter {
         parentName?: string,
         perInstanceAllowlist?: ReadonlySet<string>,
     ): boolean {
+        // Check the per-instance allowlist against the raw (author-typed)
+        // attribute name BEFORE normalizing — an author-declared name need
+        // not exist anywhere else in the schema (e.g. `balloonShape`), in
+        // which case `normalizeAttributeName` would yield `UNKNOWN_NAME`
+        // and the early-return below would block it.  The allowlist is
+        // stored lowercased to match the runtime's case-insensitive lookup.
+        if (
+            perInstanceAllowlist &&
+            perInstanceAllowlist.has(attributeName.toLowerCase())
+        ) {
+            return true;
+        }
         const normalizedElement = this.normalizeElementName(elementName);
         const normalizedAttribute = this.normalizeAttributeName(attributeName);
         if (
@@ -948,12 +986,6 @@ export class AutoCompleter {
             normalizedAttribute === "UNKNOWN_NAME"
         ) {
             return false;
-        }
-        if (
-            perInstanceAllowlist &&
-            perInstanceAllowlist.has(normalizedAttribute.toLowerCase())
-        ) {
-            return true;
         }
         if (parentName) {
             const effective = this._resolveEffectiveByName(

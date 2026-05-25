@@ -561,6 +561,30 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 expect(afterFirst).toBe(1);
                 expect(afterSecond).toBe(1);
             });
+
+            it("concurrent getSchemaViolations() calls share one resolver round-trip", async () => {
+                // Without the in-flight coalescing, two parallel callers
+                // both observe `rev !== _moduleInstanceAllowlistSourceRevision`
+                // and each fire a full `Promise.all` batch.  The in-flight
+                // promise lets them join the same round.
+                const source = `<setup><module name="m"><moduleAttributes><text name="t">x</text></moduleAttributes></module></setup>
+<module copy="$m" t="x" />`;
+                const { completer, adapter } = await buildCompleter(source);
+
+                let callCount = 0;
+                const orig = adapter.resolveBarePathAtOrigin.bind(adapter);
+                adapter.resolveBarePathAtOrigin = (async (...args: any[]) => {
+                    callCount++;
+                    return (orig as any)(...args);
+                }) as any;
+
+                await Promise.all([
+                    completer.getSchemaViolations(),
+                    completer.getSchemaViolations(),
+                ]);
+
+                expect(callCount).toBe(1);
+            });
         });
     },
 );

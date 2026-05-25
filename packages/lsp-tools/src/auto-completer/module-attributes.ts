@@ -142,9 +142,8 @@ export function getModuleDeclaredAttributeNames(
  *     representation for the synthesized entry.
  *   - `description`: a fixed placeholder.  The author's component type
  *     (e.g. "point" for `<point name="center">`) would be useful UX but
- *     would require the helper to take the child elements, not just names,
- *     and is intentionally left for a later UX pass per the plan's
- *     open-questions section.
+ *     would require the helper to take the child elements, not just names.
+ *     Tracked in issue #1189 — surfaces both completion and help.
  *
  * No `values` or `autocompleteValues` (names-only scope, per plan).
  */
@@ -193,6 +192,9 @@ function readBareReferencePath(
     const children = moduleElement.attributes[key]?.children;
     if (!children || children.length !== 1) return undefined;
     const only = children[0];
+    // Only bare-name macros (`$x`, `$s.m`).  Function-macro values
+    // (`copy="$$f(x)"`) and plain-text values are intentional fallthroughs:
+    // the caller treats `undefined` as "no augmentation applies".
     if (only.type !== "macro") return undefined;
     if (only.path.length === 0) return undefined;
     const names: string[] = [];
