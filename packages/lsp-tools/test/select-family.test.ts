@@ -241,31 +241,26 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
         });
     });
 
-    describe("element & attribute names are case-insensitive (matches worker)", () => {
-        it("recognizes <SELECT> as select", () => {
-            expect(
-                hasImplicitSingleIndex(
-                    elementNamed(`<SELECT name="s" />`, "SELECT"),
-                ),
-            ).toBe(true);
-        });
+    describe("attribute names are case-insensitive (mirrors worker)", () => {
+        // The worker lowercases attribute names in
+        // `expandAllUnflattenedAttributes`, so `<select NumToSelect="2">` IS
+        // valid runtime and resolves the same as `<select numToSelect="2">`.
+        // A case-sensitive LSP lookup would miss the mixed-case attribute,
+        // treat it as absent, and wrongly surface descendants — the bug class
+        // issue #1179 closed.
 
-        it('rejects <SELECT NumToSelect="2"> — attribute lookup is case-insensitive', () => {
-            // The pre-existing bug: a case-sensitive attribute lookup would
-            // miss `NumToSelect`, treat the attribute as absent, and wrongly
-            // surface descendants for `<SELECT NumToSelect="2">$s.t` even
-            // though the worker resolves it as numToSelect=2.
+        it('rejects <select NumToSelect="2"> (mixed-case attribute)', () => {
             expect(
                 hasImplicitSingleIndex(
                     elementNamed(
-                        `<SELECT name="s" NumToSelect="2" />`,
-                        "SELECT",
+                        `<select name="s" NumToSelect="2" />`,
+                        "select",
                     ),
                 ),
             ).toBe(false);
         });
 
-        it('accepts <select NUMTOSELECT="1">', () => {
+        it('accepts <select NUMTOSELECT="1"> (all-caps attribute)', () => {
             expect(
                 hasImplicitSingleIndex(
                     elementNamed(
@@ -276,13 +271,32 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
             ).toBe(true);
         });
 
-        it('accepts <SamplePrimeNumbers NUMSAMPLES="1">', () => {
+        it('accepts <samplePrimeNumbers NumSamples="1"> (mixed-case count attribute)', () => {
             expect(
                 hasImplicitSingleIndex(
                     elementNamed(
-                        `<SamplePrimeNumbers name="s" NUMSAMPLES="1" />`,
-                        "SamplePrimeNumbers",
+                        `<samplePrimeNumbers name="s" NumSamples="1" />`,
+                        "samplePrimeNumbers",
                     ),
+                ),
+            ).toBe(true);
+        });
+    });
+
+    describe("element names are lowercased defensively (consistent with LSP `normalizeElementName`, NOT the worker)", () => {
+        // The worker rejects mixed-case element names as invalid components
+        // (`<SELECT>` → "Invalid component type" in convertNormalizedDast).
+        // But the LSP autocompleter's `normalizeElementName` lowercases element
+        // names before schema lookup, so a mixed-case element flowing through
+        // the LSP gets canonicalized.  The predicate matches that LSP-side
+        // convention so the autocomplete decision stays consistent for the
+        // same element across the predicate and the schema lookup, even though
+        // the source itself wouldn't render.
+
+        it("treats <SELECT> as select for the predicate (matches LSP normalization)", () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(`<SELECT name="s" />`, "SELECT"),
                 ),
             ).toBe(true);
         });

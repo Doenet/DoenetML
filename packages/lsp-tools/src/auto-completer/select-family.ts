@@ -16,9 +16,13 @@
  * "autocomplete promises a member the runtime can't resolve" class of bug
  * that issue #1179 closed.
  *
- * Element names AND attribute names are matched case-insensitively to mirror
- * the worker, which normalizes both before resolving (`<SELECT NUMTOSELECT=…>`
- * is the same as `<select numToSelect=…>` at runtime).
+ * Attribute names are matched case-insensitively to mirror the worker, which
+ * runs a lowercase mapping in `expandAllUnflattenedAttributes` so e.g.
+ * `<select NumToSelect="2">` resolves the same as `<select numToSelect="2">`.
+ * Element names are NOT case-insensitive at the worker (`<SELECT>` is rejected
+ * as an invalid component type), but the predicate lowercases them anyway as
+ * harmless LSP defensiveness — an invalid element wouldn't reach the resolver
+ * in any case.
  */
 
 import type { DastElement } from "@doenet/parser";
@@ -61,8 +65,8 @@ const SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER: Readonly<Record<string, string>> =
  * source text, trimmed, equals exactly `"1"`.
  *
  * Accepted: attribute absent, `numToSelect="1"`, `numToSelect=" 1 "`,
- * `<SELECT NumToSelect="1">` (element and attribute name are case-insensitive
- * to match the worker).
+ * `<select NumToSelect="1">` (attribute name is case-insensitive to match the
+ * worker).
  * Rejected: `numToSelect="2"`, `"$n"`, `"01"`, `"1.0"`, `"One"`.
  *
  * The rule is a pure DAST text check; there is no state-variable lookup
