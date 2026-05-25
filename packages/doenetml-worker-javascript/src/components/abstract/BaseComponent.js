@@ -1175,6 +1175,16 @@ export default class BaseComponent {
                         stateVariableDescriptions[varName].description =
                             attrObj.description;
                     }
+                    // Note: `stateVarExcludeFromSchema` (the
+                    // "keep-attribute / hide-companion-state-var" lever
+                    // for #1089) is handled in `get-schema.ts` by scanning
+                    // attribute objects directly — see the
+                    // `excludedStateVariableNames` loop in
+                    // `buildHelpPayloadForClass`. We intentionally do not
+                    // propagate it onto the state variable description
+                    // here, to keep attribute-derived flags in the
+                    // attribute layer and state-def-derived flags (handled
+                    // below) in the state-def layer.
                 }
             }
         }
@@ -1189,6 +1199,18 @@ export default class BaseComponent {
                 };
                 if (theStateDef.description !== undefined) {
                     aliases[varName].description = theStateDef.description;
+                }
+                // Surface the alias's own `excludeFromSchema` flag so the
+                // schema generator can drop the alias without forcing its
+                // (still-author-facing) target to be hidden too. Used for
+                // aliases that exist only as a runtime convenience. No
+                // production state defs set this today; the lever is
+                // exercised synthetically in
+                // `packages/static-assets/test/schema-exclude-state-vars.test.ts`
+                // ("drops an alias marked excludeFromSchema …"), which is
+                // the contract for future callers.
+                if (theStateDef.excludeFromSchema) {
+                    aliases[varName].excludeFromSchema = true;
                 }
                 continue;
             }
@@ -1213,6 +1235,18 @@ export default class BaseComponent {
                 if (theStateDef.description !== undefined) {
                     stateVariableDescriptions[varName].description =
                         theStateDef.description;
+                }
+                // Propagate the state def's `excludeFromSchema` flag so the
+                // schema generator can drop this state variable from the
+                // author-facing properties list while leaving it usable at
+                // runtime. Used for plumbing state vars (renamed-aside
+                // `Original`/`Preliminary` forms, internal coordination
+                // state) that should not appear in autocomplete or context
+                // help. Companion to the attribute-level
+                // `excludeFromSchema` (which hides both attribute and
+                // state var, #1090).
+                if (theStateDef.excludeFromSchema) {
+                    stateVariableDescriptions[varName].excludeFromSchema = true;
                 }
                 // Surface the resting/default value the runtime falls back to
                 // when nothing else (attribute, child, parent) sets the
