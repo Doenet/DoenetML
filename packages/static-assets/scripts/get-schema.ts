@@ -922,6 +922,15 @@ export function getSchema(
             // Skip aliases that point at an excluded state variable; they
             // would otherwise act as a backdoor for the same excluded property.
             if (allExcluded.has(aliasTargetName)) continue;
+            // Defensive: also skip if the alias *name* itself is in the
+            // excluded set. In normal use this cannot fire — the runtime
+            // populates `aliases` and `stateVariableDescriptions` from a
+            // single switch in `BaseComponent.returnStateVariableInfo`, so a
+            // name lives in exactly one of those maps. The check guards
+            // against a future code path where an attribute's
+            // `createStateVariable` (which feeds `allExcluded`) collides
+            // with an alias name; without it, such a collision would
+            // resurrect the excluded property under its aliased form.
             if (allExcluded.has(aliasName)) continue;
             // An alias may also be excluded on its own (independent of its
             // target), e.g. a runtime-convenience alias.
@@ -952,6 +961,14 @@ export function getSchema(
                     ) {
                         const arrayEntry = arrayEntryPrefixes[prefix];
                         const arrayVariableName = arrayEntry.arrayVariableName;
+                        // Honor the underlying array state var's exclusion
+                        // here too — otherwise an alias whose target points
+                        // at an entry of an excluded array (e.g.
+                        // `someExcludedArray1`) would leak the array's
+                        // contents back into the schema. Today's audit
+                        // shows no such case, but future renames may
+                        // introduce one.
+                        if (allExcluded.has(arrayVariableName)) break;
                         const arrayStateVarDescription =
                             publicStateVariableDescriptions[arrayVariableName];
 
@@ -1165,6 +1182,10 @@ function singlePropFromDescription({
     // state vars, aliases, and array-entry-prefix aliases — the existing
     // fallback assembly (`aliasInfo.description ?? arrayStateVarDescription.description`)
     // is preserved upstream, so this only fires when *every* candidate is empty.
+    //
+    // Plumbing state vars marked `excludeFromSchema` short-circuit upstream
+    // in `buildHelpPayloadForClass` (via the `allExcluded` gate) and never
+    // reach this function, so they don't need to invent author-facing copy.
     if (
         typeof description.description !== "string" ||
         description.description.trim() === ""

@@ -26,6 +26,13 @@ describe("excludeFromSchema on state variables (#1089)", () => {
     const infoObjects = createComponentInfoObjects();
     let restore: () => void = () => {};
 
+    // Several cases below mutate shared structures on `infoObjects` (cached
+    // `publicStateVariableInfo` entries, or a component class's
+    // `returnStateVariableDefinitions`) to exercise specific exclusion
+    // paths, then restore them in `afterEach`. This relies on Vitest's
+    // default of running tests within a file sequentially — do NOT flip
+    // this `describe` to `.concurrent`, or the restores will race the next
+    // test's mutation.
     afterEach(() => {
         restore();
         restore = () => {};
