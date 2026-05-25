@@ -691,19 +691,27 @@ export function DocViewer({
             docId,
         });
 
-        let renderPromises = [];
+        let rendererLoaders: Array<() => Promise<any>> = [];
         let rendererClassNames = [];
         // console.log('rendererTypesInDocument');
         // console.log(">>>core.rendererTypesInDocument",core.rendererTypesInDocument);
         for (let rendererClassName of coreInfo.current
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
-            renderPromises.push(import(`./renderers/${rendererClassName}.tsx`));
+            // Capture as a factory so `renderersLoadComponent` can drive the
+            // retry-on-transient-failure path (see issue #1190): a bare
+            // `import(...)` promise created here would already be settling
+            // before the loader attaches its handler, which under Cypress
+            // turned the rare dev-server hiccup into an unhandled rejection
+            // that failed the spec.
+            rendererLoaders.push(
+                () => import(`./renderers/${rendererClassName}.tsx`),
+            );
         }
 
         let documentComponentInstructions = coreInfo.current.documentToRender;
 
-        renderersLoadComponent(renderPromises, rendererClassNames)
+        renderersLoadComponent(rendererLoaders, rendererClassNames)
             .then((newRendererClasses) => {
                 rendererClasses.current = newRendererClasses;
                 let documentRendererClass =
@@ -1433,19 +1441,102 @@ export function DocViewer({
     );
 }
 
+/**
+ * True when `error` matches the transient dynamic-import failures we see when
+ * Vite's dev server hiccups (Cypress component-test runs) or a network blip
+ * interrupts a renderer-chunk fetch in production. The browsers emit slightly
+ * different wording for the same condition, so we check several phrasings.
+ */
+function isTransientDynamicImportError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return (
+        /Failed to fetch dynamically imported module/i.test(message) ||
+        /Importing a module script failed/i.test(message) ||
+        /error loading dynamically imported module/i.test(message) ||
+        /dynamically imported module/i.test(message)
+    );
+}
+
+/**
+ * Call `loader()` (a dynamic `import()` factory), retrying with exponential
+ * backoff on transient failure. See issue #1190.
+ */
+async function importRendererWithRetry<T>(
+    loader: () => Promise<T>,
+    name: string,
+    retries = 3,
+    delayMs = 100,
+): Promise<T> {
+    try {
+        return await loader();
+    } catch (error) {
+        if (retries > 0 && isTransientDynamicImportError(error)) {
+            console.warn(
+                `Transient failure loading renderer "${name}" — retrying (${retries} left).`,
+                error,
+            );
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            return importRendererWithRetry(
+                loader,
+                name,
+                retries - 1,
+                delayMs * 2,
+            );
+        }
+        throw error;
+    }
+}
+
+/**
+ * Inline placeholder rendered in place of a renderer that ultimately failed
+ * to load (after retries). Keeps the surrounding document mounted and avoids
+ * an unhandled rejection — what used to happen when a viewer renderer chunk
+ * failed to fetch.
+ */
+function RendererLoadFailed(props: {
+    componentInstructions?: { id?: string };
+}) {
+    return (
+        <div
+            id={props.componentInstructions?.id}
+            style={{
+                backgroundColor: "#ff9999",
+                borderWidth: 3,
+                borderStyle: "solid",
+                padding: "0.5em",
+                textAlign: "center",
+            }}
+        >
+            <b>Error</b>: a renderer failed to load. Please reload the page.
+        </div>
+    );
+}
+
 export async function renderersLoadComponent(
-    promises: Promise<any>[],
+    loaders: Array<() => Promise<any>>,
     rendererClassNames: string[],
 ) {
-    var rendererClasses: Record<string, any> = {};
-    for (let [index, promise] of promises.entries()) {
-        try {
-            let module = await promise;
-            rendererClasses[rendererClassNames[index]] = module.default;
-        } catch (error) {
-            console.log("here:", error);
-            throw Error(`loading ${rendererClassNames[index]} failed.`);
-        }
+    const rendererClasses: Record<string, any> = {};
+    // Settle every loader in parallel with handlers attached up-front so a
+    // late rejection from one renderer can't surface as an unhandled
+    // promise rejection while we are still awaiting an earlier one.
+    const settled = await Promise.all(
+        loaders.map((loader, index) => {
+            const name = rendererClassNames[index];
+            return importRendererWithRetry(loader, name).then(
+                (module) => ({ name, component: module.default }),
+                (error) => {
+                    console.error(
+                        `Failed to load renderer "${name}" after retries:`,
+                        error,
+                    );
+                    return { name, component: RendererLoadFailed };
+                },
+            );
+        }),
+    );
+    for (const { name, component } of settled) {
+        rendererClasses[name] = component;
     }
     return rendererClasses;
 }
