@@ -29,6 +29,10 @@ import {
     UniqueActionIdentifier,
     useAppDispatch,
 } from "../state";
+import { renderersLoadComponent } from "./renderersLoadComponent";
+
+// Re-export for back-compat: `useDoenetRenderer` imports it from `./DocViewer`.
+export { renderersLoadComponent } from "./renderersLoadComponent";
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
@@ -691,11 +695,9 @@ export function DocViewer({
             docId,
         });
 
-        let rendererLoaders: Array<() => Promise<any>> = [];
-        let rendererClassNames = [];
-        // console.log('rendererTypesInDocument');
-        // console.log(">>>core.rendererTypesInDocument",core.rendererTypesInDocument);
-        for (let rendererClassName of coreInfo.current
+        const rendererLoaders: Array<() => Promise<any>> = [];
+        const rendererClassNames: string[] = [];
+        for (const rendererClassName of coreInfo.current
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
             // Capture as a factory so `renderersLoadComponent` can drive the
@@ -709,36 +711,46 @@ export function DocViewer({
             );
         }
 
-        let documentComponentInstructions = coreInfo.current.documentToRender;
+        const documentComponentInstructions = coreInfo.current.documentToRender;
 
         renderersLoadComponent(rendererLoaders, rendererClassNames)
-            .then((newRendererClasses) => {
-                rendererClasses.current = newRendererClasses;
-                let documentRendererClass =
-                    newRendererClasses[
-                        documentComponentInstructions.rendererType
-                    ];
+            .then(
+                ({ rendererClasses: newRendererClasses, failedRenderers }) => {
+                    if (failedRenderers.length > 0) {
+                        // Some renderer chunks ultimately failed to load even
+                        // after retries; their placeholders are in
+                        // newRendererClasses, but flag this so we re-initialize
+                        // on the next core reconcile rather than skip it.
+                        errorInitializingRenderers.current = true;
+                    }
+                    rendererClasses.current = newRendererClasses;
+                    const documentRendererClass =
+                        newRendererClasses[
+                            documentComponentInstructions.rendererType
+                        ];
 
-                setDocumentRenderer(
-                    React.createElement(documentRendererClass, {
-                        key:
-                            coreId.current +
-                            documentComponentInstructions.componentIdx,
-                        componentInstructions: documentComponentInstructions,
-                        rendererClasses: newRendererClasses,
-                        flags,
-                        coreId: coreId.current,
-                        docId,
-                        activityId,
-                        callAction,
-                        doenetViewerUrl,
-                        fetchExternalDoenetML,
-                        requestScrollTo,
-                    }),
-                );
+                    setDocumentRenderer(
+                        React.createElement(documentRendererClass, {
+                            key:
+                                coreId.current +
+                                documentComponentInstructions.componentIdx,
+                            componentInstructions:
+                                documentComponentInstructions,
+                            rendererClasses: newRendererClasses,
+                            flags,
+                            coreId: coreId.current,
+                            docId,
+                            activityId,
+                            callAction,
+                            doenetViewerUrl,
+                            fetchExternalDoenetML,
+                            requestScrollTo,
+                        }),
+                    );
 
-                // renderersInitializedCallback?.();
-            })
+                    // renderersInitializedCallback?.();
+                },
+            )
             .catch((e) => {
                 errorInitializingRenderers.current = true;
             });
@@ -1439,106 +1451,6 @@ export function DocViewer({
             </div>
         </ErrorBoundary>
     );
-}
-
-/**
- * True when `error` matches the transient dynamic-import failures we see when
- * Vite's dev server hiccups (Cypress component-test runs) or a network blip
- * interrupts a renderer-chunk fetch in production. The browsers emit slightly
- * different wording for the same condition, so we check several phrasings.
- */
-function isTransientDynamicImportError(error: unknown): boolean {
-    const message = error instanceof Error ? error.message : String(error);
-    return (
-        /Failed to fetch dynamically imported module/i.test(message) ||
-        /Importing a module script failed/i.test(message) ||
-        /error loading dynamically imported module/i.test(message) ||
-        /dynamically imported module/i.test(message)
-    );
-}
-
-/**
- * Call `loader()` (a dynamic `import()` factory), retrying with exponential
- * backoff on transient failure. See issue #1190.
- */
-async function importRendererWithRetry<T>(
-    loader: () => Promise<T>,
-    name: string,
-    retries = 3,
-    delayMs = 100,
-): Promise<T> {
-    try {
-        return await loader();
-    } catch (error) {
-        if (retries > 0 && isTransientDynamicImportError(error)) {
-            console.warn(
-                `Transient failure loading renderer "${name}" — retrying (${retries} left).`,
-                error,
-            );
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-            return importRendererWithRetry(
-                loader,
-                name,
-                retries - 1,
-                delayMs * 2,
-            );
-        }
-        throw error;
-    }
-}
-
-/**
- * Inline placeholder rendered in place of a renderer that ultimately failed
- * to load (after retries). Keeps the surrounding document mounted and avoids
- * an unhandled rejection — what used to happen when a viewer renderer chunk
- * failed to fetch.
- */
-function RendererLoadFailed(props: {
-    componentInstructions?: { id?: string };
-}) {
-    return (
-        <div
-            id={props.componentInstructions?.id}
-            style={{
-                backgroundColor: "#ff9999",
-                borderWidth: 3,
-                borderStyle: "solid",
-                padding: "0.5em",
-                textAlign: "center",
-            }}
-        >
-            <b>Error</b>: a renderer failed to load. Please reload the page.
-        </div>
-    );
-}
-
-export async function renderersLoadComponent(
-    loaders: Array<() => Promise<any>>,
-    rendererClassNames: string[],
-) {
-    const rendererClasses: Record<string, any> = {};
-    // Settle every loader in parallel with handlers attached up-front so a
-    // late rejection from one renderer can't surface as an unhandled
-    // promise rejection while we are still awaiting an earlier one.
-    const settled = await Promise.all(
-        loaders.map((loader, index) => {
-            const name = rendererClassNames[index];
-            return importRendererWithRetry(loader, name).then(
-                (module) => ({ name, component: module.default }),
-                (error) => {
-                    console.error(
-                        `Failed to load renderer "${name}" after retries:`,
-                        error,
-                    );
-                    return { name, component: RendererLoadFailed };
-                },
-            );
-        }),
-    );
-    for (const { name, component } of settled) {
-        rendererClasses[name] = component;
-    }
-    return rendererClasses;
 }
 
 type ErrorProps = {

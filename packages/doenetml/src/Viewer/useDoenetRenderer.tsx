@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { renderersLoadComponent } from "./DocViewer";
+import { renderersLoadComponent } from "./renderersLoadComponent";
 import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 import { DoenetMLFlags } from "../doenetml";
 
@@ -113,14 +113,16 @@ export default function useDoenetRenderer<SVs = Record<string, any>>(
     }
 
     useEffect(() => {
-        if (Object.keys(renderersToLoad).length > 0) {
-            renderersLoadComponent(
-                Object.values(renderersToLoad),
-                Object.keys(renderersToLoad),
-            ).then((newRendererClasses) => {
-                Object.assign(props.rendererClasses, newRendererClasses);
-                setRenderersToLoad({});
-            });
+        const entries = Object.entries(renderersToLoad);
+        if (entries.length > 0) {
+            const names = entries.map(([name]) => name);
+            const loaders = entries.map(([, loader]) => loader);
+            renderersLoadComponent(loaders, names).then(
+                ({ rendererClasses: newRendererClasses }) => {
+                    Object.assign(props.rendererClasses, newRendererClasses);
+                    setRenderersToLoad({});
+                },
+            );
         }
     }, [renderersToLoad, props.rendererClasses]);
 
