@@ -100,7 +100,6 @@ export async function renderersLoadComponent(
     loaders: Array<() => Promise<any>>,
     rendererClassNames: string[],
 ): Promise<RenderersLoadResult> {
-    const failedRenderers: string[] = [];
     const settled = await Promise.all(
         loaders.map((loader, index) => {
             const name = rendererClassNames[index];
@@ -111,15 +110,21 @@ export async function renderersLoadComponent(
                         `Failed to load renderer "${name}" after retries:`,
                         error,
                     );
-                    failedRenderers.push(name);
                     return { name, component: RendererLoadFailed };
                 },
             );
         }),
     );
+    // Derive `failedRenderers` from the settled array in loader order rather
+    // than mutating from inside the parallel handlers — order is deterministic
+    // and matches `rendererClassNames` regardless of resolution timing.
     const rendererClasses: Record<string, any> = {};
+    const failedRenderers: string[] = [];
     for (const { name, component } of settled) {
         rendererClasses[name] = component;
+        if (component === RendererLoadFailed) {
+            failedRenderers.push(name);
+        }
     }
     return { rendererClasses, failedRenderers };
 }

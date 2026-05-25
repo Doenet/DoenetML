@@ -162,6 +162,38 @@ describe("renderersLoadComponent", () => {
         expect(result.failedRenderers).toEqual(["fail"]);
     });
 
+    it("reports failedRenderers in loader-input order, not resolution-timing order", async () => {
+        // Even though the second loader rejects synchronously and the first
+        // rejects only after a delay, `failedRenderers` should match the
+        // order the names were passed in. (Derivation is from the post-await
+        // `settled` array rather than push-from-handler.)
+        const slowFail = () =>
+            new Promise((_, reject) =>
+                setTimeout(
+                    () =>
+                        reject(
+                            new Error(
+                                "Failed to fetch dynamically imported module: slow",
+                            ),
+                        ),
+                    50,
+                ),
+            );
+        const fastFail = () =>
+            Promise.reject(
+                new Error("Failed to fetch dynamically imported module: fast"),
+            );
+
+        const promise = renderersLoadComponent(
+            [slowFail, fastFail],
+            ["slow", "fast"],
+        );
+        await flush();
+        const result = await promise;
+
+        expect(result.failedRenderers).toEqual(["slow", "fast"]);
+    });
+
     it("never surfaces an unhandled rejection while loaders are still in flight", async () => {
         // Regression guard for #1190: with pre-started promises, the late
         // rejection from a slow-failing loader would fire before the loop

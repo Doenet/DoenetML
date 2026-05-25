@@ -31,7 +31,9 @@ import {
 } from "../state";
 import { renderersLoadComponent } from "./renderersLoadComponent";
 
-// Re-export for back-compat: `useDoenetRenderer` imports it from `./DocViewer`.
+// Re-export for back-compat: `renderersLoadComponent` was previously defined
+// here, and external consumers may deep-import it from
+// `@doenet/doenetml/Viewer/DocViewer` via the package's `./*` exports map.
 export { renderersLoadComponent } from "./renderersLoadComponent";
 
 export const DocContext = createContext<{
