@@ -99,8 +99,8 @@ export function synthesizeStrippedAttribute(
 
 /**
  * Walk back from `from` over attribute-name chars; return the start of
- * the identifier run (== `from` when there is no run).  Mirrors the
- * forward equivalent in `extendIdentifierForward`.
+ * the identifier run (== `from` when there is no run).  Mirrors
+ * `scanIdentifierForward` in the other direction.
  */
 function scanIdentifierBackward(source: string, from: number): number {
     let offset = from;
@@ -146,6 +146,35 @@ export function identifierAtOffset(
     if (start === end) return null;
     if (start > 0 && source.charAt(start - 1) === "<") return null;
     return { start, end };
+}
+
+/**
+ * Return the bounds of the identifier token ending at (or to the left of)
+ * `offset`, skipping any whitespace between the identifier and `offset`.
+ * Returns null if no identifier is found.
+ *
+ * Used by the stripped-pair fallback in `attributeAtOffset` to recover
+ * the assign-half identifier from the `=` offset even when whitespace
+ * separates the two — `<math simplify = full>` is the motivating shape;
+ * the lezer parser still strips both halves into a bare-value pair, but
+ * `identifierAtOffset(source, equalsOffset)` would see whitespace at
+ * `source[equalsOffset - 1]` and fail to walk to `simplify`.
+ *
+ * Rejects a run that begins immediately after `<` for the same reason
+ * `identifierAtOffset` does — never synthesize a tag name as an attribute.
+ */
+export function identifierPrecedingOffset(
+    source: string,
+    offset: number,
+): { start: number; end: number } | null {
+    let scan = offset;
+    while (scan > 0 && /\s/.test(source.charAt(scan - 1))) {
+        scan--;
+    }
+    const start = scanIdentifierBackward(source, scan);
+    if (start === scan) return null;
+    if (start > 0 && source.charAt(start - 1) === "<") return null;
+    return { start, end: scan };
 }
 
 /**

@@ -222,6 +222,22 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
+    it("keeps attribute help when whitespace surrounds `=` (`simplify = full`)", async () => {
+        // #1197 stripped-pair fallback variant: parser strips both halves
+        // of the bare-value pair, so `attributeAtOffset` walks back from
+        // the `=` to find the assign-half identifier. The identifier
+        // lookup must skip whitespace before scanning backward —
+        // otherwise `source[equalsOffset - 1]` is a space and the panel
+        // falls back to element help on `<math simplify = full>`.
+        const source = `<math simplify = full`;
+        const help = await helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "math",
+            attributeName: "simplify",
+        });
+    });
+
     it("keeps attribute help via the bare-value-after-`=` fallback when no attribute contains the cursor", async () => {
         // Mirrors the fallback documented in `get-completion-items.ts` for
         // states where the typed bare value doesn't fall inside any

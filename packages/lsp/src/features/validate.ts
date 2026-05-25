@@ -178,9 +178,27 @@ export function addValidationSupport(
         }
         const errors = extractDastErrors(info.autoCompleter.sourceObj.dast);
         const diagnostics: Diagnostic[] = errors.map((error) => {
+            // Honor the DAST node's `error_type`: the parser emits
+            // `error_type: "warning"` for soft diagnostics (the unified
+            // unquoted-attribute warning from #1197 is the canonical
+            // case).  Without this mapping, every DAST error rendered as
+            // a red error squiggle even when the producing layer chose
+            // `warning`/`info`.  Default to `Error` for legacy nodes
+            // that omit the field.
+            let severity: DiagnosticSeverity;
+            switch (error.error_type) {
+                case "warning":
+                    severity = DiagnosticSeverity.Warning;
+                    break;
+                case "info":
+                    severity = DiagnosticSeverity.Information;
+                    break;
+                default:
+                    severity = DiagnosticSeverity.Error;
+            }
             const diagnostic: Diagnostic = {
                 message: error.message,
-                severity: DiagnosticSeverity.Error,
+                severity,
                 range: {
                     start: textDocument.positionAt(
                         error.position?.start?.offset || 0,

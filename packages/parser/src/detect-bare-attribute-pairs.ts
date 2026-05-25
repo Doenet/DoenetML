@@ -2,7 +2,7 @@ import { DastAttribute } from "./types";
 
 /**
  * The runtime and LSP both emit a single diagnostic for unquoted attribute
- * values; this constant pins the wording so they stay textually identical.
+ * values; this helper pins the wording so they stay textually identical.
  * Use as ``unquotedAttributeValueMessage("name", "foo")``.
  */
 export function unquotedAttributeValueMessage(

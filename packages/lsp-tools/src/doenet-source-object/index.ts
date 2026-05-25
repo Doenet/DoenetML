@@ -34,6 +34,7 @@ import {
     findAttributeContainingOffset,
     findPrecedingEqualsForBareValue,
     identifierAtOffset,
+    identifierPrecedingOffset,
     synthesizeStrippedAttribute,
 } from "./methods/attribute-helpers";
 
@@ -261,10 +262,15 @@ export class DoenetSourceObject extends LazyDataObject {
                 // half of `<math simplify=full>` is removed from
                 // `node.attributes` by the parser, so the `=` lookup above
                 // misses on the value side.  Walk back over the assign
-                // half's identifier token and synthesize a virtual
-                // `DastAttribute` so context-help / autocomplete still
-                // resolve the attribute the cursor is conceptually on.
-                const ident = identifierAtOffset(this.source, equalsOffset);
+                // half's identifier token (skipping any whitespace between
+                // it and `=`, so `<math simplify = full>` still resolves)
+                // and synthesize a virtual `DastAttribute` so context-help
+                // / autocomplete still resolve the attribute the cursor is
+                // conceptually on.
+                const ident = identifierPrecedingOffset(
+                    this.source,
+                    equalsOffset,
+                );
                 if (ident) {
                     return synthesizeStrippedAttribute(
                         this.source,
