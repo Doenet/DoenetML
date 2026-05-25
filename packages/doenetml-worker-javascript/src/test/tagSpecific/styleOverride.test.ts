@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -329,5 +330,74 @@ describe("Per-component style override tests @group4", async () => {
         expect(defAttrs.markerStyle.validValues).toBeDefined();
         expect(defAttrs.lineStyle.toLowerCase).toBe(true);
         expect(defAttrs.lineStyle.validValues).toBeDefined();
+    });
+
+    it("override of underlying value overwrites a styleDefinition-supplied custom *Word", async () => {
+        // styleDefinition ships a custom lineWidthWord ("hairline"). A component
+        // override of `lineWidth` re-derives lineWidthWord from the new value
+        // (1 → "thin"), replacing the inherited custom word. This pins the
+        // documented trade-off: *Word isn't itself overridable on the
+        // component, and re-derivation is preferred over keeping a stale word
+        // that no longer matches the new value.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" lineWidth="10" lineWidthWord="hairline" />
+  </styleDefinitions>
+</setup>
+<line name="L1" through="(0,0) (1,1)" styleNumber="7" />
+<line name="L2" through="(0,0) (1,1)" styleNumber="7" lineWidth="1" />
+<line name="L3" through="(0,0) (1,1)" styleNumber="7" lineWidth="2" />
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const L1 = stateVariables[await resolvePathToNodeIdx("L1")];
+        const L2 = stateVariables[await resolvePathToNodeIdx("L2")];
+        const L3 = stateVariables[await resolvePathToNodeIdx("L3")];
+        // No-override sibling keeps the custom word.
+        expect(L1.stateValues.selectedStyle.lineWidth).eq(10);
+        expect(L1.stateValues.selectedStyle.lineWidthWord).eq("hairline");
+        // Override at <=1 re-derives "thin", replacing "hairline".
+        expect(L2.stateValues.selectedStyle.lineWidth).eq(1);
+        expect(L2.stateValues.selectedStyle.lineWidthWord).eq("thin");
+        // Override in the un-named middle range (between thin and thick) still
+        // erases the inherited custom word — it derives the empty descriptor
+        // because the new width doesn't match either threshold, and shipping
+        // a stale "hairline" alongside the new value would be misleading.
+        expect(L3.stateValues.selectedStyle.lineWidth).eq(2);
+        expect(L3.stateValues.selectedStyle.lineWidthWord).eq("");
+    });
+
+    it("cross-category overrides are rejected as invalid attributes", async () => {
+        // The per-component override surface is curated by category, so
+        // `<point lineWidth=...>` and `<line markerStyle=...>` aren't valid
+        // attributes — the schema generator surfaces them as unknown.
+        let { core } = await createTestCore({
+            doenetML: `
+<point name="P" lineWidth="3" />
+<line name="L" through="(0,0) (1,1)" markerStyle="square" />
+`,
+        });
+
+        const errors = getDiagnosticsByType(core).errors;
+        const messages = errors.map((e) => e.message);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes('Invalid attribute "lineWidth"') &&
+                    m.includes("<point>"),
+            ),
+            `expected lineWidth-on-point error; got: ${JSON.stringify(messages)}`,
+        ).toBe(true);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes('Invalid attribute "markerStyle"') &&
+                    m.includes("<line>"),
+            ),
+            `expected markerStyle-on-line error; got: ${JSON.stringify(messages)}`,
+        ).toBe(true);
     });
 });

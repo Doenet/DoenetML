@@ -295,6 +295,32 @@ export const STYLE_OVERRIDE_CATEGORIES = {
 export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
 
 /**
+ * Translates a {@link styleAttributes} entry into the attribute-spec shape
+ * consumed by `createAttributesObject` on components. Forwards optional
+ * `validValues` / `toLowerCase` so the schema generator can surface
+ * `type: "keyword"` enums with autocomplete entries.
+ *
+ * Single source of truth for both `<styleDefinition>` (in `StyleDefinitions.js`)
+ * and the per-component override path (in `GraphicalComponent.js`) so the two
+ * can't drift when a new metadata field is added.
+ */
+export function attributeSpecFromStyleAttribute(
+    spec: StyleAttributes[string],
+): Record<string, unknown> {
+    const attr: Record<string, unknown> = {
+        createComponentOfType: spec.componentType,
+        description: spec.description,
+    };
+    if (spec.validValues) {
+        attr.validValues = spec.validValues;
+    }
+    if (spec.toLowerCase) {
+        attr.toLowerCase = spec.toLowerCase;
+    }
+    return attr;
+}
+
+/**
  * Baseline style used when a style number references no explicit definition.
  *
  * Color words are intentionally omitted here and injected on demand so there is
@@ -833,7 +859,16 @@ export function returnSelectedStyleStateVariableDefinition(
                         if (value === undefined || value === null) {
                             continue;
                         }
-                        if (typeof value === "string") {
+                        // Mirror the `<styleDefinition>` normalization in
+                        // `StyleDefinitions.js`: only lowercase when the
+                        // attribute spec opts in (e.g. enum-typed `markerStyle`
+                        // / `lineStyle`). Free-form text attributes wouldn't
+                        // want their casing flattened.
+                        if (
+                            typeof value === "string" &&
+                            styleAttributes[name as StyleDefinitionKey]
+                                ?.toLowerCase
+                        ) {
                             value = value.toLowerCase();
                         }
 

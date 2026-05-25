@@ -174,21 +174,6 @@ export function getStyleValueNumber(
 }
 
 /**
- * Reads a style value as a boolean from a style definition.
- *
- * @param styleDef - Style definition map.
- * @param key - Style key to read.
- * @returns Boolean value when present and of boolean type, otherwise undefined.
- */
-export function getStyleValueBoolean(
-    styleDef: StyleDefinition,
-    key: StyleDefinitionKey,
-): boolean | undefined {
-    const value = styleDef[key]?.style;
-    return typeof value === "boolean" ? value : undefined;
-}
-
-/**
  * Sets a style value on a style definition using wrapped object form.
  *
  * @param styleDef - Style definition object to mutate.

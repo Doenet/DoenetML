@@ -1,6 +1,9 @@
 import BaseComponent from "./abstract/BaseComponent";
 
-import { styleAttributes } from "@doenet/utils";
+import {
+    attributeSpecFromStyleAttribute,
+    styleAttributes,
+} from "@doenet/utils";
 
 export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
@@ -25,20 +28,9 @@ export class StyleDefinition extends BaseComponent {
         };
 
         for (let styleAttr in styleAttributes) {
-            const spec = styleAttributes[styleAttr];
-            const attr = {
-                createComponentOfType: spec.componentType,
-                description: spec.description,
-            };
-            // Forward enumeration metadata so the schema generator can surface
-            // a `type: "keyword"` enum with autocomplete entries.
-            if (spec.validValues) {
-                attr.validValues = spec.validValues;
-            }
-            if (spec.toLowerCase) {
-                attr.toLowerCase = spec.toLowerCase;
-            }
-            attributes[styleAttr] = attr;
+            attributes[styleAttr] = attributeSpecFromStyleAttribute(
+                styleAttributes[styleAttr],
+            );
         }
 
         return attributes;
@@ -68,6 +60,13 @@ export class StyleDefinition extends BaseComponent {
                         const value =
                             dependencyValues[styleAttr].stateValues.value;
 
+                        // Historical behavior: every string value gets
+                        // lowercased here, which is what makes color names
+                        // (`lineColor="RED"` → `"red"`) case-insensitive. The
+                        // per-component override path in `style.ts` is newer
+                        // and gates on the spec's explicit `toLowerCase` flag
+                        // (only enum-typed attributes opt in); don't tighten
+                        // this path without auditing color-name lookups first.
                         if (typeof value === "string") {
                             styleDefinition[styleAttr] = {
                                 style: value.toLowerCase(),

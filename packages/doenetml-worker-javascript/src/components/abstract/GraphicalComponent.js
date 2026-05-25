@@ -1,6 +1,7 @@
 import BaseComponent from "./BaseComponent";
 import {
     STYLE_OVERRIDE_CATEGORIES,
+    attributeSpecFromStyleAttribute,
     returnSelectedStyleStateVariableDefinition,
 } from "@doenet/utils";
 import {
@@ -61,20 +62,9 @@ export default class GraphicalComponent extends BaseComponent {
         // diagnostics remain authoritative.
         for (const group of resolveOverrideGroups(this)) {
             for (const styleAttr in group) {
-                const spec = group[styleAttr];
-                const attr = {
-                    createComponentOfType: spec.componentType,
-                    description: spec.description,
-                };
-                // Forward enumeration metadata so the schema generator can
-                // surface a `type: "keyword"` enum with autocomplete entries.
-                if (spec.validValues) {
-                    attr.validValues = spec.validValues;
-                }
-                if (spec.toLowerCase) {
-                    attr.toLowerCase = spec.toLowerCase;
-                }
-                attributes[styleAttr] = attr;
+                attributes[styleAttr] = attributeSpecFromStyleAttribute(
+                    group[styleAttr],
+                );
             }
         }
 
