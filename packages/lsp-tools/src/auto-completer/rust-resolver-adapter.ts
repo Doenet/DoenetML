@@ -180,14 +180,36 @@ export interface ResolverCore {
      */
     setFlags(args: { flags: Record<string, unknown> }): Promise<void>;
     /**
-     * Trigger core initialization and return the flat DAST.  The adapter
-     * matches the returned elements against the JS-side DAST by source
-     * position to build its index mappings.
+     * Trigger core initialization and return the flat (post-expansion)
+     * DAST.  Used to initialize the rust core.  When `returnNormalizedDastRoot`
+     * is also provided, the adapter prefers the normalized DAST for its
+     * index mappings (it contains every source element with the resolver-
+     * known id, including reference-making composites like
+     * `<module copy="$x">` that may be replaced with error entries in
+     * the expanded flat DAST).
      */
     returnDast(): Promise<{
         elements: Array<{
-            data: { id: number };
+            data?: { id?: number };
             position?: { start: { offset?: number } };
+        }>;
+    }>;
+    /**
+     * Return the pre-expansion normalized DAST: every source element
+     * with its resolver-known id and source position, plus error nodes.
+     * Optional for backward compatibility with pure-JS test mocks that
+     * only implement `returnDast`; when present, the adapter uses this
+     * as the authoritative source for its `_dastElementToRustIndex`
+     * mapping so that reference-making elements like
+     * `<module copy="$x">` are mapped even when their expansion errors
+     * (which would replace them with id-less error entries in the
+     * post-expansion flat DAST).
+     */
+    returnNormalizedDastRoot?(): Promise<{
+        nodes: Array<{
+            idx: number;
+            name?: string;
+            position?: { start?: { offset?: number } };
         }>;
     }>;
     /** Resolve `path` starting from `origin`, following core scoping rules. */
@@ -331,8 +353,20 @@ export class RustResolverAdapter {
             });
             // Empty flags are sufficient for path-resolution-only use.
             await this._core.setFlags({ flags: {} });
+            // `returnDast` triggers core initialization (required before
+            // `resolvePath` can run).  Its post-expansion output is fine
+            // for elements that survive expansion, but replaces composites
+            // whose extension errored with id-less error entries — making
+            // them invisible to position-based mapping.  When the core
+            // exposes the pre-expansion normalized DAST, prefer that: it
+            // includes EVERY source element with its resolver-known id,
+            // so reference-making elements like `<module copy="$x">` are
+            // mapped even when their expansion errors.
             const flatDast = await this._core.returnDast();
-            this._buildMappings(flatDast);
+            const normalizedNodes = this._core.returnNormalizedDastRoot
+                ? (await this._core.returnNormalizedDastRoot()).nodes
+                : null;
+            this._buildMappings(flatDast, normalizedNodes);
             this._enabled = true;
         } catch (e) {
             console.warn("RustResolverAdapter: failed to sync source:", e);
@@ -357,15 +391,29 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Build bidirectional mappings between Rust flat indices and JS DAST
-     * elements by matching on source position (start offset).
+     * Build bidirectional mappings between Rust indices and JS DAST elements
+     * by matching on source position (start offset).
+     *
+     * When `normalizedNodes` is provided (preferred), uses the pre-expansion
+     * source-level DAST so reference-making elements like
+     * `<module copy="$x">` are mapped even when their post-expansion entry
+     * is an id-less error.  Otherwise falls back to the flat (post-expansion)
+     * DAST — sufficient for pure-JS test mocks and for elements that survive
+     * expansion.
      */
-    _buildMappings(flatDast: {
-        elements: Array<{
-            data: { id: number };
-            position?: { start: { offset?: number } };
-        }>;
-    }): void {
+    _buildMappings(
+        flatDast: {
+            elements: Array<{
+                data?: { id?: number };
+                position?: { start: { offset?: number } };
+            }>;
+        },
+        normalizedNodes: Array<{
+            idx: number;
+            name?: string;
+            position?: { start?: { offset?: number } };
+        }> | null,
+    ): void {
         this._rustIndexToDastElement.clear();
         this._dastElementToRustIndex.clear();
 
@@ -386,7 +434,25 @@ export class RustResolverAdapter {
             collectElements(child as DastNodes);
         }
 
-        // Match flat DAST elements to JS DAST elements by start offset.
+        if (normalizedNodes) {
+            // Normalized DAST: every source element has an `idx` and a
+            // position.  Error nodes (no `name`) are skipped — their idx
+            // wouldn't be a useful resolver origin anyway.
+            for (const node of normalizedNodes) {
+                if (node.name == null) continue;
+                const startOffset = node.position?.start?.offset;
+                if (startOffset == null) continue;
+                const dastElm = dastByStartOffset.get(startOffset);
+                if (!dastElm) continue;
+                this._rustIndexToDastElement.set(node.idx, dastElm);
+                this._dastElementToRustIndex.set(dastElm, node.idx);
+            }
+            return;
+        }
+
+        // Fallback: match flat (post-expansion) DAST elements to JS DAST
+        // elements by start offset.  Used by pure-JS test mocks that
+        // don't implement `returnNormalizedDastRoot`.
         for (const flatElm of flatDast.elements) {
             const startOffset = flatElm.position?.start?.offset;
             if (startOffset == null) continue;
@@ -465,14 +531,13 @@ export class RustResolverAdapter {
         if (!this._enabled || !this._core) return null;
         if (names.length === 0 || names.some((n) => !n)) return null;
 
-        // Composite elements like `<module>` are typically expanded at
-        // flat-DAST time, so the source `<module>` element often has no
-        // matching entry in `_dastElementToRustIndex` (the map is built by
-        // start-offset match against the rust flat DAST).  Fall back to
-        // the document-root origin, same as `_getOriginIndex` does at
-        // line 708 — the resolver's parent-search semantics still find
-        // top-level named elements (including those scoped inside
-        // `<setup>`) from the root.
+        // Direct map lookup: the resolver expects the reference-making
+        // element itself as origin, so it can search from that element's
+        // scope outward (siblings, then parent's siblings, …).  Thanks
+        // to the normalized-DAST-backed mapping, even composites whose
+        // expansion errors get mapped here.  Root fallback covers edge
+        // cases (malformed source, pure-JS test mocks without a
+        // normalized DAST).
         const originIndex =
             this._dastElementToRustIndex.get(originDastElement) ??
             this._getRootOriginIndex();

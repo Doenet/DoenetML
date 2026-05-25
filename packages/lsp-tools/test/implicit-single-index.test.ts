@@ -56,6 +56,8 @@ function wrapWasmCore(wasm: any): ResolverCore {
         setSource: async ({ source, dast }) => wasm.set_source(dast, source),
         setFlags: async ({ flags }) => wasm.set_flags(JSON.stringify(flags)),
         returnDast: async () => wasm.return_dast(),
+        returnNormalizedDastRoot: async () =>
+            wasm.return_normalized_dast_root(),
         resolvePath: async ({ path, origin, skipParentSearch }) =>
             wasm.resolve_path(path, origin, skipParentSearch),
     };

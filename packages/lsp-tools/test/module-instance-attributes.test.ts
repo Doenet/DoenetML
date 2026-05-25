@@ -56,22 +56,33 @@ function wrapWasmCore(wasm: any): ResolverCore {
         setSource: async ({ source, dast }) => wasm.set_source(dast, source),
         setFlags: async ({ flags }) => wasm.set_flags(JSON.stringify(flags)),
         returnDast: async () => wasm.return_dast(),
+        // Pre-expansion source-level DAST; used by the adapter to map
+        // reference-making composites (like `<module copy="$x">`) that
+        // are id-less in the post-expansion flat DAST.
+        returnNormalizedDastRoot: async () =>
+            wasm.return_normalized_dast_root(),
         resolvePath: async ({ path, origin, skipParentSearch }) =>
             wasm.resolve_path(path, origin, skipParentSearch),
     };
 }
 
 async function buildCompleter(source: string) {
-    const sourceObj = new DoenetSourceObject(source);
+    // Crucially, the AutoCompleter and the RustResolverAdapter must
+    // share the SAME `DoenetSourceObject` — otherwise the adapter builds
+    // its `_dastElementToRustIndex` map against a different parsed DAST
+    // than the elements `_refreshModuleInstanceAttributes` later looks up,
+    // and every lookup misses (falling through to the root-origin
+    // fallback and silently losing scope context).  Production wires
+    // them this way at `packages/lsp/src/features/validate.ts`.
     const completer = new AutoCompleter(source);
     const core = wrapWasmCore(PublicDoenetMLCore.new());
-    const adapter = new RustResolverAdapter(sourceObj, {
+    const adapter = new RustResolverAdapter(completer.sourceObj, {
         core,
         takesIndexComponentTypes: takesIndexSet,
     });
     await adapter.init();
     completer.setRustResolverAdapter(adapter);
-    return { completer, adapter, sourceObj };
+    return { completer, adapter, sourceObj: completer.sourceObj };
 }
 
 /** Run validation and return the diagnostic messages that mention an
@@ -196,6 +207,116 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // canonical attribute list.
                 const source = `<section name="s"><module name="m"><moduleAttributes><text name="kept">x</text></moduleAttributes></module></section>
 <module copy="$s[0].m" kept="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "kept"),
+                ).toHaveLength(1);
+            });
+        });
+
+        describe("validation: resolver scoping rules (#1154 follow-up)", () => {
+            // These mirror the user-reported scenarios in #1154 / PR #1188:
+            // the LSP must use the *same* origin scope the runtime would,
+            // not always fall back to the document root.  Falling back to
+            // root means `<module copy="$m">` inside a section picks an
+            // arbitrary `m` (whichever has the smallest rust id), so two
+            // sections with same-named modules but DIFFERENT declared
+            // attributes would silently agree on either's declarations.
+
+            it("inner `$m` resolves to the SIBLING module (declared attr accepted)", async () => {
+                // Two sibling sections, each with a `<module name="m">`.
+                // s1's m declares `n`; s2's m declares `k` (DIFFERENT).
+                // Inside s1, `<module copy="$m" n="3">` must resolve to s1's
+                // m (n is declared there) — root-origin resolution would
+                // pick whichever m comes first and we'd accept the wrong
+                // attribute set.
+                const source = `<section name="s1">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" n="3" />
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="k">1</number></moduleAttributes></module>
+<module copy="$m" k="3" />
+</section>`;
+                expect(await moduleAttrDiagnostics(source, "n")).toEqual([]);
+                expect(await moduleAttrDiagnostics(source, "k")).toEqual([]);
+            });
+
+            it("inner `$m` rejects attrs declared only by the OTHER section's m", async () => {
+                // Mirror image of the above: writing `k` inside s1 (where
+                // only `n` is declared) must warn, even though s2's m
+                // declares `k`.
+                const source = `<section name="s1">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" k="3" />
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="k">1</number></moduleAttributes></module>
+</section>`;
+                expect(await moduleAttrDiagnostics(source, "k")).toHaveLength(
+                    1,
+                );
+            });
+
+            it("`$s1.m` from outside resolves to s1's module unambiguously", async () => {
+                const source = `<section name="s1">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="k">1</number></moduleAttributes></module>
+</section>
+<module copy="$s1.m" n="3" />`;
+                expect(await moduleAttrDiagnostics(source, "n")).toEqual([]);
+            });
+
+            it("user-reported full source: scoping + ambiguity all work together", async () => {
+                // Verbatim from the user's follow-up on PR #1188.  Three
+                // sections; two of them share the name `s2`.  Each section
+                // has a sibling `<module copy="$m">` that must resolve to
+                // its OWN section's `m`.  Outside, `$s1.m` resolves; `$s2.m`
+                // is ambiguous and must NOT augment.  Every inner `m`
+                // declares `n`, so the inner copies should accept `n=`
+                // (scope resolves to the right section); the outer `$s2.m`
+                // copy must warn on `n=` (ambiguous → no augmentation).
+                const source = `<section name="s1">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" n="3" />
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" n="3" />
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" n="3" />
+</section>
+<module copy="$s1.m" n="3" />
+<module copy="$s2.m" n="3" />`;
+                const { completer } = await buildCompleter(source);
+                const diags = await completer.getSchemaViolations();
+                const nWarnings = diags
+                    .map((d) => d.message)
+                    .filter(
+                        (m) =>
+                            /Element `<module>`/.test(m) &&
+                            /attribute called `n`/.test(m),
+                    );
+                // Exactly one warning: the outer `<module copy="$s2.m" n="3" />`.
+                // The three inner copies and the `$s1.m` copy all augment.
+                expect(nWarnings).toHaveLength(1);
+            });
+
+            it("ambiguous `$s2.m` (two sibling sections share a name) gets no augmentation", async () => {
+                // Two `<section name="s2">` siblings make `$s2` ambiguous
+                // at root; the resolver should fail (or not yield a single
+                // target), so per-instance augmentation must not apply and
+                // the warning fires.
+                const source = `<section name="s2">
+<module name="m"><moduleAttributes><number name="kept">1</number></moduleAttributes></module>
+</section>
+<section name="s2">
+<module name="m"><moduleAttributes><number name="kept">1</number></moduleAttributes></module>
+</section>
+<module copy="$s2.m" kept="3" />`;
                 expect(
                     await moduleAttrDiagnostics(source, "kept"),
                 ).toHaveLength(1);
