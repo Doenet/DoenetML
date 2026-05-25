@@ -145,6 +145,23 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     const attrName = attrTag.getChild("AttributeName");
                     const attrValue = attrTag.getChild("AttributeValue");
                     if (!attrName) {
+                        // Defensive: surface errors that live inside an
+                        // AttributeName-less Attribute even though it's
+                        // skipped in the second pass.  Empirically the
+                        // grammar `Attribute { AttributeName (Is
+                        // AttributeValue)? }` forces lezer to commit to
+                        // an AttributeName before opening an Attribute
+                        // node, so errors of this shape consistently
+                        // land at OpenTag level (e.g. `<a =bar />`) and
+                        // never reach this branch — but the
+                        // `isInsideAttribute` gate above would silently
+                        // drop one if lezer ever produced it.
+                        const error = findFirstErrorInChild(attrTag);
+                        if (error) {
+                            children.push(
+                                createErrorNode(error, source, offsetMap),
+                            );
+                        }
                         continue;
                     }
                     let attrChildren: DastAttribute["children"] = attrValue
