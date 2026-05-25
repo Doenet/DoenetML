@@ -185,6 +185,70 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
             });
         });
 
+        describe("validation: canonical docs example end-to-end", () => {
+            it("packages/docs-nextra/pages/reference/module.mdx example has no spurious <module> attribute warnings", async () => {
+                // The verbatim example from
+                // packages/docs-nextra/pages/reference/module.mdx:19-60.
+                // This is the source the docs ship as the canonical
+                // module-with-author-attributes pattern; issue #1154
+                // was opened because LSP validation flagged
+                // `center` / `color` / `radius` on the three copy sites
+                // as unknown attributes.  After per-instance augmentation,
+                // there must be zero `Element \`<module>\` doesn't have an
+                // attribute called ...` warnings on any of those sites.
+                const source = `<setup>
+<module name="drawBalloon">
+  <moduleAttributes>
+     <point name="center">(0,2)</point>
+     <number name="color">2</number>
+     <number name="radius">4</number>
+  </moduleAttributes>
+
+  <lineSegment
+    endpoints="($center.x, $center.y - $radius) (1,-7)"
+    styleNumber="5"
+  />
+  <circle
+    center="$center"
+    radius="$radius"
+    styleNumber="$color"
+    filled
+  />
+</module>
+</setup>
+
+<graph
+    ymin="-8"
+    ymax="8"
+    displayXAxis="false"
+    displayYAxis="false">
+  <shortDescription>A graph of balloons</shortDescription>
+  <module copy="$drawBalloon"/>
+  <module
+    copy="$drawBalloon"
+    center="(-5,0)"
+    color="1"
+  />
+  <module
+    copy="$drawBalloon"
+    center="(5,1)"
+    color="3"
+    radius="3"
+  />
+</graph>`;
+                const { completer } = await buildCompleter(source);
+                const diags = await completer.getSchemaViolations();
+                const moduleAttrWarnings = diags
+                    .map((d) => d.message)
+                    .filter(
+                        (m) =>
+                            /Element `<module>`/.test(m) &&
+                            /attribute called `/.test(m),
+                    );
+                expect(moduleAttrWarnings).toEqual([]);
+            });
+        });
+
         describe("validation: definition sites are unaffected", () => {
             it("the <module name=...> definition itself triggers no per-instance check", async () => {
                 // Definition site has no copy/extend, so it shouldn't even
