@@ -100,8 +100,8 @@ export let styleAttributes: StyleAttributes = {
         description: "Marker shape.",
         toLowerCase: true,
         validValues: [
-            { value: "circle", description: "Filled circular marker." },
-            { value: "square", description: "Filled square marker." },
+            { value: "circle", description: "Circular marker." },
+            { value: "square", description: "Square marker." },
             {
                 value: "triangle",
                 description:
@@ -123,7 +123,7 @@ export let styleAttributes: StyleAttributes = {
                 value: "triangleRight",
                 description: "Triangular marker pointing right.",
             },
-            { value: "diamond", description: "Filled diamond marker." },
+            { value: "diamond", description: "Diamond-shaped marker." },
             { value: "cross", description: "Cross-shaped marker (×)." },
             { value: "plus", description: "Plus-shaped marker (+)." },
         ],
