@@ -11,6 +11,7 @@ import {
     chaseIndexAliases,
     deepestArrayEntryType,
 } from "../auto-completer/index-aliases";
+import { mergeDeclaredIntoSchemaAttributes } from "../auto-completer/module-attributes";
 import { HelpContent } from "./types";
 
 /**
@@ -36,6 +37,38 @@ function findSchemaProperty(
 ): SchemaProperty | undefined {
     const lower = name.toLowerCase();
     return el.properties?.find((p) => p.name.toLowerCase() === lower);
+}
+
+/**
+ * For a `<module copy="$x" .../>` site, return a shallow-cloned schema
+ * entry whose `attributes` list includes synthesized entries for each
+ * per-instance declared name not already in the canonical list.  When the
+ * allowlist is absent / empty, returns the input unchanged so the hot
+ * path stays a no-op for every other element.
+ *
+ * Mirrors the merge `get-completion-items.ts` does for the autocomplete
+ * dropdown — keeping the two layers consuming the same synthesized
+ * entries means the dropdown's "author-declared module attribute" text
+ * and the help panel's description can't drift apart (#1154).
+ */
+function augmentWithPerInstanceAttributes(
+    effective: SchemaEntryForHelp | undefined,
+    perInstanceAllowlist: ReadonlySet<string> | undefined,
+): SchemaEntryForHelp | undefined {
+    if (
+        !effective ||
+        !perInstanceAllowlist ||
+        perInstanceAllowlist.size === 0
+    ) {
+        return effective;
+    }
+    return {
+        ...effective,
+        attributes: mergeDeclaredIntoSchemaAttributes(
+            effective.attributes,
+            perInstanceAllowlist,
+        ),
+    };
 }
 
 /**
@@ -79,6 +112,13 @@ export async function computeContextHelp(
     offset: number,
     precomputedCtx?: CompletionContext,
 ): Promise<HelpContent> {
+    // Ensure the per-instance `<module>` attribute allowlist is fresh
+    // before the attribute branch consults it.  Coalesces with the
+    // matching call in `getCompletionItems` / `getSchemaViolations` via
+    // `_sourceRevision`, so a help request after autocomplete or
+    // validation costs no extra resolver round-trips (#1154).
+    await completer._refreshModuleInstanceAttributes();
+
     const { node, cursorPosition } =
         completer.sourceObj.elementAtOffsetWithContext(offset);
 
@@ -112,9 +152,25 @@ export async function computeContextHelp(
             // any of these cursor positions and `null` otherwise.
             const attr = completer.sourceObj.attributeAtOffset(offset);
             if (attr) {
+                // For `<module copy="$x" .../>` (or `extend=`) sites, merge
+                // per-instance author-declared attribute names into the
+                // effective entry's attribute list so `helpForAttribute`
+                // finds them by the same lookup it uses for canonical
+                // entries.  The synthesized SchemaAttribute carries a
+                // placeholder description so the help panel renders the
+                // same "Author-declared module attribute" text the
+                // autocomplete dropdown shows (#1154).  No augmentation
+                // applies for non-`<module>` nodes or sites whose
+                // reference doesn't resolve to a `<module>` with declared
+                // attributes — the canonical effective entry decides as
+                // before.
+                const helpEntry = augmentWithPerInstanceAttributes(
+                    effectiveEntry,
+                    completer._moduleInstanceAttributeAllowlist.get(node),
+                );
                 const attrHelp = helpForAttribute(
                     ownEntry,
-                    effectiveEntry,
+                    helpEntry,
                     attr.name,
                 );
                 if (attrHelp.kind !== "none") return attrHelp;

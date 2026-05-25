@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
+import { computeContextHelp } from "../src/context-help/computeContextHelp";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
@@ -309,6 +310,56 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // augmentation by spot-checking a sentinel name we never
                 // declared anywhere.
                 expect(labels).not.toContain("balloonShape");
+            });
+        });
+
+        describe("context-help on declared attributes", () => {
+            it("returns an attribute help payload when the cursor sits on a per-instance declared attribute", async () => {
+                // Reproduces the user-reported follow-up: the cursor is
+                // inside the `n` attribute on the copy site; the help
+                // panel previously returned NONE because `helpForAttribute`
+                // only consulted the canonical/alias schema entry.
+                const source = `<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" n="3" />`;
+                const { completer } = await buildCompleter(source);
+                // Offset inside the `n` attribute name on the copy site.
+                const offset = source.indexOf('n="3"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.elementName).toBe("module");
+                expect(help.attributeName.toLowerCase()).toBe("n");
+                expect(help.description).toBe(
+                    "Author-declared module attribute",
+                );
+            });
+
+            it("still returns canonical help for canonical attributes on the same site", async () => {
+                const source = `<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$m" name="instance" n="3" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('name="instance"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.attributeName.toLowerCase()).toBe("name");
+                // Canonical entries have their real description, NOT the
+                // synthesized placeholder.
+                expect(help.description).not.toBe(
+                    "Author-declared module attribute",
+                );
+            });
+
+            it("returns NONE for an unknown attribute when the reference doesn't resolve", async () => {
+                const source = `<module copy="$missing" wibble="x" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf("wibble");
+                const help = await computeContextHelp(completer, offset);
+                // No per-instance augmentation, no canonical match: fall
+                // back to element-level help (the help layer's existing
+                // "keep something on screen" behavior) rather than a
+                // synthesized attribute payload.
+                expect(help.kind).not.toBe("attribute");
             });
         });
 

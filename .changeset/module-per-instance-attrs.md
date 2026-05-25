@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-Editor: stop warning on author-declared attributes of `<module copy="$x" .../>` (or `extend=`) when `$x` resolves to a `<module>` whose `<moduleAttributes>` declares them, and surface those declared names in the attribute-name autocomplete dropdown alongside `<module>`'s canonical attributes.
+Editor: stop warning on author-declared attributes of `<module copy="$x" .../>` (or `extend=`) when `$x` resolves to a `<module>` whose `<moduleAttributes>` declares them, surface those declared names in the attribute-name autocomplete dropdown alongside `<module>`'s canonical attributes, and show the same description in the context-help panel when the cursor sits on one.
 
 The runtime accepts arbitrary author-defined attributes on a `<module>` instance — the names that count as valid are whatever the referenced module's `<moduleAttributes>` declares — but the editor previously had no way to know that and flagged author-declared names like `center`, `color`, `radius` as unknown. Now, for each `<module copy=…>` / `<module extend=…>` site, the editor resolves the reference through the same Rust resolver the runtime uses, walks the target's `<moduleAttributes>` for direct children with a primitive `name` attribute, and treats those names (case-insensitively) as valid attributes on the instance.
 
