@@ -49,6 +49,13 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
             public: true,
+            // The runtime stores the raw attribute value under
+            // `colorCorrectnessPreliminary` so a derived `colorCorrectness`
+            // state def can combine it with the ancestor's setting. Authors
+            // should see only the derived `colorCorrectness` property, so
+            // hide the plumbing-named state var from the schema while
+            // keeping the attribute itself author-facing. See #1089.
+            stateVarExcludeFromSchema: true,
             description:
                 "Whether to color-code the response based on its correctness.",
         },

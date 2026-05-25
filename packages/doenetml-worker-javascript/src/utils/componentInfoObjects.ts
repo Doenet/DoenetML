@@ -67,6 +67,13 @@ type StateVariableInfo = {
 export type AliasDescription = {
     target: string;
     description?: string;
+    /**
+     * If `true`, this alias is excluded from the author-facing schema even
+     * though it still resolves at runtime. Mirrors `excludeFromSchema` on
+     * regular state variables; see `StateVariableDescription` for the
+     * broader rationale.
+     */
+    excludeFromSchema?: boolean;
 };
 
 /**
@@ -94,6 +101,18 @@ type StateVariableDescription = {
      * than the attribute declaration).
      */
     defaultValue?: unknown;
+    /**
+     * If `true`, this state variable is excluded from the author-facing
+     * schema even though it remains usable at runtime. Set on a state def
+     * (in `returnStateVariableDefinitions`) when the variable is plumbing —
+     * a renamed-aside `Original`/`Preliminary` form, or an internal
+     * coordination state — that authors should not see in autocomplete or
+     * context-help. Mirrors `excludeFromSchema` on attributes (which hides
+     * both the attribute and its companion state variable, #1090); this
+     * field is the standalone analogue for state variables that are not
+     * attribute-derived, addressing the second scope item of #1089.
+     */
+    excludeFromSchema?: boolean;
 };
 
 /**

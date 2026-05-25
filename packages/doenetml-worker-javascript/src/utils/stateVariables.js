@@ -8,6 +8,15 @@ export function renameStateVariable({
         stateVariableDefinitions[oldName]);
     delete stateVariableDefinitions[oldName];
 
+    // The renamed entry is, by construction, the runtime plumbing form of a
+    // state variable whose author-facing name has been claimed by a derived
+    // definition (e.g. `disabled` → `disabledOriginal`, `value` →
+    // `valuePreRound`). Hide it from the author-facing schema so it doesn't
+    // surface in autocomplete or context-help next to its derived
+    // counterpart. The runtime still uses the renamed entry; only the
+    // schema layer drops it. See #1089.
+    stateVarDef.excludeFromSchema = true;
+
     // second, check if name is in additionalStateVariablesDefined
     if (stateVarDef.additionalStateVariablesDefined) {
         let ind = stateVarDef.additionalStateVariablesDefined.indexOf(oldName);

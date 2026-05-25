@@ -121,6 +121,18 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
+    /**
+     * Asymmetric companion to `excludeFromSchema`: hide the attribute's
+     * companion state variable (`createStateVariable`) from the schema
+     * while leaving the attribute itself author-facing. Used when an
+     * attribute is public but its `createStateVariable` points at a
+     * plumbing-named state var (e.g. `<answer>`'s `colorCorrectness`
+     * attribute → `colorCorrectnessPreliminary` state var, with a
+     * separate same-named state def computing the author-facing value).
+     * The runtime still creates and reads the state var; only the schema
+     * layer drops it. See #1089.
+     */
+    stateVarExcludeFromSchema?: boolean;
     validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
@@ -282,6 +294,16 @@ type StateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
     description: string;
     fromAttribute?: boolean;
+    /**
+     * If `true`, this state variable is excluded from the author-facing
+     * schema even though it remains usable at runtime. Set by the runtime
+     * for plumbing state vars (renamed-aside `Original`/`Preliminary`
+     * forms, internal coordination state) that should not appear in
+     * autocomplete or context help. Companion to
+     * `AttributeObject.excludeFromSchema` (which hides the attribute and
+     * its companion state var, #1090). See #1089.
+     */
+    excludeFromSchema?: boolean;
 };
 
 type PublicStateVariableDescription = {
@@ -318,6 +340,8 @@ type PublicStateVariableDescription = {
      * `displayDigits`, whose default lives on the state variable).
      */
     defaultValue?: unknown;
+    /** See `StateVariableDescription.excludeFromSchema`. */
+    excludeFromSchema?: boolean;
 };
 
 type SchemaAttribute = {
@@ -616,17 +640,33 @@ export function getSchema(
     > {
         const attributes: SchemaAttribute[] = [];
         const attrObj = cClass.createAttributesObject();
-        // Collect state-variable names produced by attributes that are
-        // themselves excluded from the schema. Their companion properties
-        // should be excluded too — otherwise `<booleanInput>`'s already
-        // hidden `collaborateGroups` attribute leaks back into the schema
-        // as a property. Tracked in #1089; the broader proposal is to also
-        // honor an explicit `excludeFromSchema` flag on state-variable
-        // definitions for properties not derived from attributes.
+        // Collect state-variable names that must be excluded from the
+        // schema. Three sources, all merged into one set so the property /
+        // alias loops can filter through a single check:
+        //
+        //   (a) Attribute is excluded *and* declares a `createStateVariable`
+        //       — hides the companion state var alongside the attribute
+        //       (PR #1090; covers `<booleanInput>`'s `collaborateGroups`).
+        //
+        //   (b) Attribute declares `stateVarExcludeFromSchema` — keeps the
+        //       attribute author-facing but hides its plumbing-named
+        //       companion state var (e.g. `<answer>`'s `colorCorrectness`
+        //       attribute → `colorCorrectnessPreliminary` state var).
+        //
+        //   (c) State variable itself carries `excludeFromSchema: true`,
+        //       propagated by `BaseComponent.returnStateVariableInfo` from
+        //       the state def — covers directly-defined plumbing vars,
+        //       most prominently the renamed-aside entries produced by
+        //       `renameStateVariable` (`disabledOriginal`, `valuePreRound`,
+        //       …). See #1089.
         const excludedStateVariableNames = new Set<string>();
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
-            if (attrDef.excludeFromSchema && attrDef.createStateVariable) {
+            if (
+                (attrDef.excludeFromSchema ||
+                    attrDef.stateVarExcludeFromSchema) &&
+                attrDef.createStateVariable
+            ) {
                 excludedStateVariableNames.add(attrDef.createStateVariable);
             }
         }
@@ -842,10 +882,24 @@ export function getSchema(
                 PublicStateVariableDescription
             >;
 
+        // Mutable working copy so we can fold in state-def-level
+        // `excludeFromSchema` flags (source (c) in the caller's comment)
+        // alongside whatever the caller already passed in. Done here rather
+        // than in the caller because the merged set must also gate alias
+        // resolution below — an alias whose *target* is excluded should be
+        // dropped too, regardless of which source put the target in the
+        // set.
+        const allExcluded = new Set(excludedStateVariableNames);
+        for (const varName in publicStateVariableDescriptions) {
+            if (publicStateVariableDescriptions[varName].excludeFromSchema) {
+                allExcluded.add(varName);
+            }
+        }
+
         const properties: PropertyDescription[] = [];
 
         for (const varName in publicStateVariableDescriptions) {
-            if (excludedStateVariableNames.has(varName)) continue;
+            if (allExcluded.has(varName)) continue;
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
@@ -867,8 +921,11 @@ export function getSchema(
             const aliasTargetName = aliasInfo.target;
             // Skip aliases that point at an excluded state variable; they
             // would otherwise act as a backdoor for the same excluded property.
-            if (excludedStateVariableNames.has(aliasTargetName)) continue;
-            if (excludedStateVariableNames.has(aliasName)) continue;
+            if (allExcluded.has(aliasTargetName)) continue;
+            if (allExcluded.has(aliasName)) continue;
+            // An alias may also be excluded on its own (independent of its
+            // target), e.g. a runtime-convenience alias.
+            if (aliasInfo.excludeFromSchema) continue;
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
