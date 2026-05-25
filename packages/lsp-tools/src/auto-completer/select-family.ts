@@ -26,7 +26,10 @@
  */
 
 import type { DastElement } from "@doenet/parser";
-import { getElementAttributeValue } from "./dast-attribute-utils";
+import {
+    findAttributeKey,
+    getElementAttributeValue,
+} from "./dast-attribute-utils";
 
 /**
  * Maps a select-family element name to the attribute that controls how many
@@ -67,15 +70,26 @@ const SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER: Readonly<Record<string, string>> =
  * Accepted: attribute absent, `numToSelect="1"`, `numToSelect=" 1 "`,
  * `<select NumToSelect="1">` (attribute name is case-insensitive to match the
  * worker).
- * Rejected: `numToSelect="2"`, `"$n"`, `"01"`, `"1.0"`, `"One"`.
+ * Rejected: `numToSelect="2"`, `"$n"`, `"01"`, `"1.0"`, `"One"`, and
+ * present-but-empty `numToSelect=""` / `"   "` — the runtime treats those as
+ * "nothing selected" (no replacement is produced), so `$s.t` won't resolve.
+ * The predicate mirrors that by rejecting the shorthand: the autocomplete
+ * dropdown and context-help panel surface no descendants, matching what the
+ * worker will actually do.
  *
  * The rule is a pure DAST text check; there is no state-variable lookup
- * and no reactivity.
+ * and no reactivity.  Note: the predicate distinguishes absent from
+ * present-but-empty by calling `findAttributeKey` directly rather than
+ * relying on `getElementAttributeValue`'s `undefined`-on-empty contract.
  */
 export function hasImplicitSingleIndex(element: DastElement): boolean {
     const attrName =
         SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER[element.name.toLowerCase()];
     if (attrName === undefined) return false;
-    const raw = getElementAttributeValue(element, attrName);
-    return raw === undefined || raw === "1";
+    // Absent attribute → defaults to 1 at runtime → shorthand applies.
+    if (findAttributeKey(element, attrName) === undefined) return true;
+    // Present attribute → only the literal "1" (with optional surrounding
+    // whitespace) qualifies.  Present-but-empty rejects because the runtime
+    // treats it as "nothing selected", not as if-absent.
+    return getElementAttributeValue(element, attrName) === "1";
 }
