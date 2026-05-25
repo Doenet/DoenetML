@@ -245,6 +245,29 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         expectTooltipForLintRange(".cm-lintRange-warning", "wrong-attr");
     });
 
+    it("renders a warning squiggle for an unquoted attribute value (#1104)", () => {
+        // `<math name=foo />` — the lezer parser splits the unquoted
+        // assignment into two value-less attributes; the schema-violation
+        // pass detects that pair and emits a warning naming the
+        // corrected form (`name="foo"`) so the author can fix it from
+        // the hover without opening the autocomplete menu.
+        mountEditor(`<math name=foo />`);
+
+        waitForDiagnosticDom();
+
+        // The yellow squiggle covers the bare token `foo`; the parser's
+        // own zero-width "missing value" red squiggle sits next to it.
+        cy.get(".cm-lintRange-warning").should("have.text", "foo");
+
+        // The tooltip renders the diagnostic's markdown — backticks
+        // become inline code styling and drop out of `.text`. Assert on
+        // the rendered substring.
+        expectTooltipForLintRange(
+            ".cm-lintRange-warning",
+            'Attribute values must be enclosed in quotes: name="foo"',
+        );
+    });
+
     it("clearing additional diagnostics preserves existing base diagnostics", () => {
         // Start with invalid markup so we have a base warning diagnostic.
         mountEditor("<graph wrong='x' />");

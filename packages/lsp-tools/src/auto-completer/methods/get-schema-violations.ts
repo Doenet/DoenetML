@@ -145,8 +145,51 @@ export async function getSchemaViolations(
             const perInstanceAllowlist =
                 this._moduleInstanceAttributeAllowlist.get(node) ?? null;
 
+            // Pre-pass for unquoted attribute values (#1104).
+            //
+            // The lezer grammar parses `<math name=foo>` as two value-less
+            // attributes side-by-side: `name` (source spans `name=`) and `foo`
+            // (source spans the bare token).  Detect that pairing so we can
+            // emit one helpful warning on the bare token and suppress the
+            // spurious "unknown attribute" warning the standard loop would
+            // otherwise produce on the bare half.  Two consecutive unquoted
+            // values (`<a x=foo y=bar>`) are not picked up here — the parser
+            // already emits a quote-mismatch error covering the whole run, so
+            // a second diagnostic would just add noise.
+            const bareValuePairs = findBareAttributeValuePairs(
+                node,
+                this.sourceObj.source,
+            );
+            const bareValueByAttr = new Map(
+                bareValuePairs.map(({ valueAttr, assignAttr }) => [
+                    valueAttr,
+                    assignAttr,
+                ]),
+            );
+
             for (const attr of Object.values(node.attributes)) {
                 const attrName = this.normalizeAttributeName(attr.name);
+
+                // Unquoted value: point at the bare token, name the
+                // corrected form, and skip the standard attribute-name
+                // validation (which would otherwise flag this half as an
+                // unknown attribute on the parent element).
+                const assignAttr = bareValueByAttr.get(attr);
+                if (assignAttr) {
+                    const startOffset = attr.position?.start.offset ?? 0;
+                    const endOffset = attr.position?.end.offset ?? 0;
+                    ret.push({
+                        range: {
+                            start: this.sourceObj.offsetToLSPPosition(
+                                startOffset,
+                            ),
+                            end: this.sourceObj.offsetToLSPPosition(endOffset),
+                        },
+                        message: `Attribute values must be enclosed in quotes: \`${assignAttr.name}="${attr.name}"\``,
+                        severity: DiagnosticSeverity.Warning,
+                    });
+                    continue;
+                }
 
                 // Make sure that `name` attributes start with a letter.
                 if (attrName === "name") {
@@ -277,6 +320,59 @@ function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
     });
 
     return ret;
+}
+
+/**
+ * Identify `<element name=foo>`-style unquoted attribute values.
+ *
+ * The lezer grammar splits an unquoted assignment into two parsed
+ * `DastAttribute`s side-by-side: an "assignment" half whose source ends
+ * with `=` (after optional whitespace) and a value-less "bare value" half
+ * carrying the unquoted token as its `name`.  Returns each such pair so
+ * the diagnostics path can warn on the bare half and suppress the
+ * spurious unknown-attribute warning that would otherwise fire on it.
+ *
+ * Cases the parser does NOT split this way are intentionally skipped
+ * here, since they already surface as parser-level errors:
+ *   - `<a x=$y>` — the `$y` gets absorbed as an element child.
+ *   - `<a x=23>` — numeric-leading tokens can't form an attribute name.
+ *   - `<a x=foo y=bar>` — the parser greedily reads through the second
+ *     `=` and reports a quote-mismatch over the whole run.
+ */
+function findBareAttributeValuePairs(
+    node: DastElement,
+    source: string,
+): { assignAttr: DastAttribute; valueAttr: DastAttribute }[] {
+    const sorted = Object.values(node.attributes)
+        .filter((a) => a.position?.start.offset != null)
+        .sort(
+            (a, b) =>
+                (a.position!.start.offset ?? 0) -
+                (b.position!.start.offset ?? 0),
+        );
+    const pairs: { assignAttr: DastAttribute; valueAttr: DastAttribute }[] = [];
+    for (let i = 1; i < sorted.length; i++) {
+        const prev = sorted[i - 1];
+        const curr = sorted[i];
+        if (prev.children.length !== 0) {
+            continue;
+        }
+        const prevStart = prev.position?.start.offset;
+        const prevEnd = prev.position?.end.offset;
+        if (prevStart == null || prevEnd == null) {
+            continue;
+        }
+        // `=` must be the last non-whitespace character of `prev`'s source
+        // — this is what distinguishes `<a x=foo>` (where `x`'s source is
+        // `x=` or `x = `) from the unrelated `<a x foo>` (where `x`'s
+        // source is just `x`).
+        const prevSrc = source.slice(prevStart, prevEnd);
+        if (!/=\s*$/.test(prevSrc)) {
+            continue;
+        }
+        pairs.push({ assignAttr: prev, valueAttr: curr });
+    }
+    return pairs;
 }
 
 /**
