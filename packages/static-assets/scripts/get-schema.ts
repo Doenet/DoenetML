@@ -659,7 +659,12 @@ export function getSchema(
         //       most prominently the renamed-aside entries produced by
         //       `renameStateVariable` (`disabledOriginal`, `valuePreRound`,
         //       …). See #1089.
-        const excludedStateVariableNames = new Set<string>();
+        // Only sources (a)/(b) — both attribute-derived — can be computed
+        // here. Source (c) lives on the state def and is folded in by
+        // `buildPropertiesForType` below, which has access to the state
+        // variable descriptions. The merged set is then used to gate both
+        // properties and aliases inside that function.
+        const attributeExcludedStateVariableNames = new Set<string>();
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
             if (
@@ -667,7 +672,9 @@ export function getSchema(
                     attrDef.stateVarExcludeFromSchema) &&
                 attrDef.createStateVariable
             ) {
-                excludedStateVariableNames.add(attrDef.createStateVariable);
+                attributeExcludedStateVariableNames.add(
+                    attrDef.createStateVariable,
+                );
             }
         }
         // Map state variable name → its essential `defaultValue`, when the
@@ -815,7 +822,7 @@ export function getSchema(
 
         const properties = buildPropertiesForType(
             type,
-            excludedStateVariableNames,
+            attributeExcludedStateVariableNames,
         );
 
         // Hard-fail on missing summary. Fires for every class that reaches
@@ -862,7 +869,7 @@ export function getSchema(
 
     function buildPropertiesForType(
         type: string,
-        excludedStateVariableNames: ReadonlySet<string> = new Set(),
+        attributeExcludedStateVariableNames: ReadonlySet<string> = new Set(),
     ): PropertyDescription[] {
         const info = componentInfoObjects.publicStateVariableInfo[type];
         if (!info) return [];
@@ -882,14 +889,15 @@ export function getSchema(
                 PublicStateVariableDescription
             >;
 
-        // Mutable working copy so we can fold in state-def-level
-        // `excludeFromSchema` flags (source (c) in the caller's comment)
-        // alongside whatever the caller already passed in. Done here rather
-        // than in the caller because the merged set must also gate alias
-        // resolution below — an alias whose *target* is excluded should be
-        // dropped too, regardless of which source put the target in the
-        // set.
-        const allExcluded = new Set(excludedStateVariableNames);
+        // Build the full excluded set by folding the state-def-level
+        // `excludeFromSchema` flags (source (c) in the caller's comment) in
+        // with the attribute-derived names (sources (a)/(b)) the caller
+        // already passed in. Done here rather than in the caller because
+        // the merged set must gate alias resolution below — an alias whose
+        // *target* is excluded should be dropped too, regardless of which
+        // source put the target in the set — and the caller doesn't have
+        // `publicStateVariableDescriptions` in hand to make that decision.
+        const allExcluded = new Set(attributeExcludedStateVariableNames);
         for (const varName in publicStateVariableDescriptions) {
             if (publicStateVariableDescriptions[varName].excludeFromSchema) {
                 allExcluded.add(varName);

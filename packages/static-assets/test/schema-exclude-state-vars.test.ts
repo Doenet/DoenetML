@@ -158,6 +158,54 @@ describe("excludeFromSchema on state variables (#1089)", () => {
         });
     });
 
+    describe("aliased elements (childAliases path)", () => {
+        // `<matrix>` declares `childAliases: { row: "matrixRow", column:
+        // "matrixColumn" }`. `<matrixRow>` and `<matrixColumn>` are
+        // `excludeFromSchema = true` at the class level, so the main schema
+        // skips them — but `getSchema` re-emits them via the second consumer
+        // of `buildHelpPayloadForClass` (the `aliasedElements` loop).
+        // Re-run the source-(a) audit against that second consumer so
+        // future changes to the alias path can't quietly re-leak excluded
+        // BaseComponent attributes.
+        it("drops globally-excluded attributes on matrixRow/matrixColumn (re-runs source (a) audit on the alias path)", () => {
+            const schema = getSchema(infoObjects);
+            const aliasedNames = ["matrixRow", "matrixColumn"] as const;
+            for (const name of aliasedNames) {
+                const aliased = schema.aliasedElements[name];
+                expect(
+                    aliased,
+                    `${name} should be emitted via aliasedElements`,
+                ).toBeDefined();
+                expect(
+                    aliased.attributes.find((a) => a.name === "permid"),
+                    `${name}.permid attribute should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    aliased.attributes.find(
+                        (a) => a.name === "isPotentialResponse",
+                    ),
+                    `${name}.isPotentialResponse attribute should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    aliased.properties.find((p) => p.name === "permid"),
+                    `${name}.permid property should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    aliased.properties.find(
+                        (p) => p.name === "isPotentialResponse",
+                    ),
+                    `${name}.isPotentialResponse property should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    aliased.properties.find(
+                        (p) => p.name === "modifyIndirectly",
+                    ),
+                    `${name}.modifyIndirectly property should be excluded`,
+                ).toBe(undefined);
+            }
+        });
+    });
+
     describe("excluded vars don't need a description", () => {
         // The schema generator hard-fails on missing descriptions for
         // every property that reaches `singlePropFromDescription`. Excluded

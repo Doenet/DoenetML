@@ -1203,7 +1203,12 @@ export default class BaseComponent {
                 // Surface the alias's own `excludeFromSchema` flag so the
                 // schema generator can drop the alias without forcing its
                 // (still-author-facing) target to be hidden too. Used for
-                // aliases that exist only as a runtime convenience.
+                // aliases that exist only as a runtime convenience. No
+                // production state defs set this today; the lever is
+                // exercised synthetically in
+                // `packages/static-assets/test/schema-exclude-state-vars.test.ts`
+                // ("drops an alias marked excludeFromSchema …"), which is
+                // the contract for future callers.
                 if (theStateDef.excludeFromSchema) {
                     aliases[varName].excludeFromSchema = true;
                 }
