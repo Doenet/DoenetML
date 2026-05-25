@@ -127,9 +127,15 @@ async function referenceLabels(source: string): Promise<string[]> {
             it("samplePrimeNumbers default uses numSamples", async () => {
                 // numSamples (not numToSelect) is the count attribute here —
                 // confirms the SELECT_FAMILY mapping picks the right one.
+                // samplePrimeNumbers has no named-child shape, so the
+                // implicit-single-index branch flips the takesIndex gate
+                // but exposes zero descendant references; schema properties
+                // still come through, so `labels` is non-empty.
                 const source = `<samplePrimeNumbers name="s" />\n$s.`;
                 const labels = await completionLabels(source);
                 expect(labels.length).toBeGreaterThan(0);
+                const refs = await referenceLabels(source);
+                expect(refs).toEqual([]);
             });
         });
 
@@ -154,6 +160,17 @@ async function referenceLabels(source: string): Promise<string[]> {
 
             it('numToSelect="1.0" (non-canonical literal — strict rule rejects)', async () => {
                 const source = `<select name="s" numToSelect="1.0"><option><text name="t">a</text></option></select>\n$s.`;
+                const labels = await referenceLabels(source);
+                expect(labels).not.toContain("t");
+            });
+
+            it('NumToSelect="2" (non-canonical attribute case) still rejects — case-insensitive lookup', async () => {
+                // Worker resolves attribute names case-insensitively, so a
+                // case-sensitive DAST lookup would mis-treat this as
+                // "attribute absent" → shorthand applies → descendants
+                // surfaced that the worker won't resolve.  The shared
+                // case-insensitive helper closes that gap.
+                const source = `<select name="s" NumToSelect="2"><option><text name="t">a</text></option><option><text name="t">b</text></option></select>\n$s.`;
                 const labels = await referenceLabels(source);
                 expect(labels).not.toContain("t");
             });

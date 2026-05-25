@@ -5,19 +5,24 @@
  * The runtime renders a `<select numToSelect="1">` (or one of its siblings)
  * as a single replacement, so `$s.t` and `$s[1].t` resolve to the same
  * referent at runtime.  This module exposes a textual DAST check that the
- * autocomplete and context-help layers consult so both layers agree, by
- * construction, on which authored sources qualify for the shorthand.
+ * autocomplete and context-help layers consult — through the shared
+ * resolver-adapter — so both layers agree, by construction, on which
+ * authored sources qualify for the shorthand.
  *
  * The rule is intentionally textual and strict.  Dynamic `numToSelect`
  * (e.g. `numToSelect="$n"`) and non-canonical literals (`"01"`, `"1.0"`)
  * deliberately do NOT qualify, even when they'd evaluate to 1 at runtime —
- * dropping that case keeps the predicate single-source between layers and
- * avoids the "autocomplete promises a member the runtime can't resolve"
- * class of bug that issue #1179 closed.
+ * dropping that case keeps the predicate single-source and avoids the
+ * "autocomplete promises a member the runtime can't resolve" class of bug
+ * that issue #1179 closed.
+ *
+ * Element names AND attribute names are matched case-insensitively to mirror
+ * the worker, which normalizes both before resolving (`<SELECT NUMTOSELECT=…>`
+ * is the same as `<select numToSelect=…>` at runtime).
  */
 
-import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
+import { getElementAttributeValue } from "./dast-attribute-utils";
 
 /**
  * Maps a select-family element name to the attribute that controls how many
@@ -28,6 +33,10 @@ import type { DastElement } from "@doenet/parser";
  * (Select.js, SamplePrimeNumbers.js, …) — the issue text in #1181 lists
  * `numToSample`, but the runtime actually uses `numToSelect` for the four
  * `select*` tags and `numSamples` for the two `sample*` tags.
+ *
+ * The exported table preserves canonical case (it's what tests and other
+ * consumers see); the case-insensitive lookup happens against a private
+ * lowercase-keyed mirror below.
  */
 export const SELECT_FAMILY_COUNT_ATTRIBUTE: Readonly<Record<string, string>> = {
     select: "numToSelect",
@@ -38,36 +47,31 @@ export const SELECT_FAMILY_COUNT_ATTRIBUTE: Readonly<Record<string, string>> = {
     sampleRandomNumbers: "numSamples",
 };
 
-/**
- * Returns the trimmed source text of `element.attributes[attributeName]`,
- * or `undefined` if the attribute is absent or has empty content.  Mirrors
- * `getElementAttributeValue` in `methods/get-completion-items.ts`.
- */
-export function getElementAttributeRawValue(
-    element: DastElement,
-    attributeName: string,
-): string | undefined {
-    const attr = element.attributes[attributeName];
-    if (!attr) return undefined;
-    const value = toXml(attr.children).trim();
-    return value.length > 0 ? value : undefined;
-}
+const SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER: Readonly<Record<string, string>> =
+    Object.fromEntries(
+        Object.entries(SELECT_FAMILY_COUNT_ATTRIBUTE).map(([k, v]) => [
+            k.toLowerCase(),
+            v,
+        ]),
+    );
 
 /**
  * Strict-rule predicate from issue #1181: a select-family container has an
  * implicit single index iff the count attribute is either absent OR its
  * source text, trimmed, equals exactly `"1"`.
  *
- * Accepted: attribute absent, `numToSelect="1"`, `numToSelect=" 1 "`.
+ * Accepted: attribute absent, `numToSelect="1"`, `numToSelect=" 1 "`,
+ * `<SELECT NumToSelect="1">` (element and attribute name are case-insensitive
+ * to match the worker).
  * Rejected: `numToSelect="2"`, `"$n"`, `"01"`, `"1.0"`, `"One"`.
  *
  * The rule is a pure DAST text check; there is no state-variable lookup
- * and no reactivity.  Same predicate runs in the autocomplete layer and
- * the context-help layer so they cannot diverge on a given source.
+ * and no reactivity.
  */
 export function hasImplicitSingleIndex(element: DastElement): boolean {
-    const attrName = SELECT_FAMILY_COUNT_ATTRIBUTE[element.name];
+    const attrName =
+        SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER[element.name.toLowerCase()];
     if (attrName === undefined) return false;
-    const raw = getElementAttributeRawValue(element, attrName);
+    const raw = getElementAttributeValue(element, attrName);
     return raw === undefined || raw === "1";
 }

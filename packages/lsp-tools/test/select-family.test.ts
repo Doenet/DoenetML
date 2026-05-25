@@ -213,4 +213,51 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
             ).toBe(false);
         });
     });
+
+    describe("element & attribute names are case-insensitive (matches worker)", () => {
+        it("recognizes <SELECT> as select", () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(`<SELECT name="s" />`, "SELECT"),
+                ),
+            ).toBe(true);
+        });
+
+        it('rejects <SELECT NumToSelect="2"> — attribute lookup is case-insensitive', () => {
+            // The pre-existing bug: a case-sensitive attribute lookup would
+            // miss `NumToSelect`, treat the attribute as absent, and wrongly
+            // surface descendants for `<SELECT NumToSelect="2">$s.t` even
+            // though the worker resolves it as numToSelect=2.
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(
+                        `<SELECT name="s" NumToSelect="2" />`,
+                        "SELECT",
+                    ),
+                ),
+            ).toBe(false);
+        });
+
+        it('accepts <select NUMTOSELECT="1">', () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(
+                        `<select name="s" NUMTOSELECT="1" />`,
+                        "select",
+                    ),
+                ),
+            ).toBe(true);
+        });
+
+        it('accepts <SamplePrimeNumbers NUMSAMPLES="1">', () => {
+            expect(
+                hasImplicitSingleIndex(
+                    elementNamed(
+                        `<SamplePrimeNumbers name="s" NUMSAMPLES="1" />`,
+                        "SamplePrimeNumbers",
+                    ),
+                ),
+            ).toBe(true);
+        });
+    });
 });

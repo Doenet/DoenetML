@@ -14,11 +14,11 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { walkIndexAliases } from "../index-aliases";
 import { hasImplicitSingleIndex } from "../select-family";
+import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
@@ -245,19 +245,6 @@ function createSnippetCompletionItems(
                 : {}),
         };
     });
-}
-
-function getElementAttributeValue(
-    element: DastElement,
-    attributeName: string,
-): string | undefined {
-    const attr = element.attributes[attributeName];
-    if (!attr) {
-        return undefined;
-    }
-
-    const value = toXml(attr.children).trim();
-    return value.length > 0 ? value : undefined;
 }
 
 function isPrefigureGraphElement(

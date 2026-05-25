@@ -1,6 +1,6 @@
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
-import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
+import { getElementAttributeValue } from "../dast-attribute-utils";
 
 const CURSOR_MARKER = "__ANNOTATION_SKELETON_CURSOR__";
 
@@ -42,19 +42,6 @@ export type ProcessedSnippet = {
     description: string;
     cursor?: CompletionSnippetCursor;
 };
-
-function getAttributeValue(
-    element: DastElement,
-    attributeName: string,
-): string | undefined {
-    const attr = element.attributes[attributeName];
-    if (!attr) {
-        return undefined;
-    }
-
-    const value = toXml(attr.children).trim();
-    return value.length > 0 ? value : undefined;
-}
 
 function escapeXmlAttributeValue(value: string): string {
     return value
@@ -123,7 +110,7 @@ export function extractGraphicalChildren(
         if (GRAPHICAL_COMPONENT_TYPES.has(normalizedType)) {
             graphicalComponents.push({
                 type: normalizedType,
-                name: getAttributeValue(element, "name"),
+                name: getElementAttributeValue(element, "name"),
             });
         }
 
