@@ -73,17 +73,18 @@ describe("Per-component style override tests @group4", async () => {
         expect(Q.stateValues.selectedStyle.markerStyleWord).eq("triangle");
     });
 
-    it("explicit markerStyleWord override is not overwritten by derivation", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<point name="P" markerStyle="circle" markerStyleWord="custom" />
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const P = stateVariables[await resolvePathToNodeIdx("P")];
-        expect(P.stateValues.selectedStyle.markerStyle).eq("circle");
-        expect(P.stateValues.selectedStyle.markerStyleWord).eq("custom");
+    it("*Word descriptors are not exposed as per-component override attributes", async () => {
+        // Authors customize descriptive wording via <styleDefinition> on the
+        // rare occasions they need to. Per-component overrides intentionally
+        // omit markerStyleWord/lineStyleWord/lineWidthWord so the attribute
+        // surface stays small; derived words still flow through selectedStyle.
+        const Point = (await import("../../components/Point.js")).default;
+        const Line = (await import("../../components/Line.js")).default;
+        const pointAttrs = Point.createAttributesObject();
+        const lineAttrs = Line.createAttributesObject();
+        expect(pointAttrs.markerStyleWord).toBeUndefined();
+        expect(lineAttrs.lineStyleWord).toBeUndefined();
+        expect(lineAttrs.lineWidthWord).toBeUndefined();
     });
 
     it("lineWidth override on line derives lineWidthWord=thin", async () => {

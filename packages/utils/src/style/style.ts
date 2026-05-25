@@ -211,19 +211,20 @@ export let styleAttributes: StyleAttributes = {
 
 /**
  * Style-attribute keys that may be overridden directly on a component (e.g.
- * `<point markerStyle="square">`). Color and color-word keys are intentionally
- * excluded — color authoring stays exclusive to `<styleDefinition>` so the
- * per-styleNumber WCAG contrast diagnostics remain authoritative.
+ * `<point markerStyle="square">`). Color keys are intentionally excluded —
+ * color authoring stays exclusive to `<styleDefinition>` so the per-styleNumber
+ * WCAG contrast diagnostics remain authoritative. `*Word` descriptors are also
+ * excluded: they're derived from the underlying value (e.g. `markerStyle`
+ * "circle" → `markerStyleWord` "point") and authors with niche vocabulary
+ * needs can either compose their own description text or override the word
+ * inside a `<styleDefinition>`.
  */
 const STYLE_OVERRIDE_KEYS = [
     "lineOpacity",
     "lineWidth",
-    "lineWidthWord",
     "lineStyle",
-    "lineStyleWord",
     "markerOpacity",
     "markerStyle",
-    "markerStyleWord",
     "markerSize",
     "fillOpacity",
 ] as const satisfies readonly StyleDefinitionKey[];
