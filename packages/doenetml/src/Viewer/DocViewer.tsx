@@ -29,6 +29,12 @@ import {
     UniqueActionIdentifier,
     useAppDispatch,
 } from "../state";
+import { renderersLoadComponent } from "./renderersLoadComponent";
+
+// Re-export for back-compat: `renderersLoadComponent` was previously defined
+// here, and external consumers may deep-import it from
+// `@doenet/doenetml/Viewer/DocViewer` via the package's `./*` exports map.
+export { renderersLoadComponent } from "./renderersLoadComponent";
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
@@ -691,46 +697,62 @@ export function DocViewer({
             docId,
         });
 
-        let renderPromises = [];
-        let rendererClassNames = [];
-        // console.log('rendererTypesInDocument');
-        // console.log(">>>core.rendererTypesInDocument",core.rendererTypesInDocument);
-        for (let rendererClassName of coreInfo.current
+        const rendererLoaders: Array<() => Promise<any>> = [];
+        const rendererClassNames: string[] = [];
+        for (const rendererClassName of coreInfo.current
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
-            renderPromises.push(import(`./renderers/${rendererClassName}.tsx`));
+            // Capture as a factory so `renderersLoadComponent` can drive the
+            // retry-on-transient-failure path (see issue #1190): a bare
+            // `import(...)` promise created here would already be settling
+            // before the loader attaches its handler, which under Cypress
+            // turned the rare dev-server hiccup into an unhandled rejection
+            // that failed the spec.
+            rendererLoaders.push(
+                () => import(`./renderers/${rendererClassName}.tsx`),
+            );
         }
 
-        let documentComponentInstructions = coreInfo.current.documentToRender;
+        const documentComponentInstructions = coreInfo.current.documentToRender;
 
-        renderersLoadComponent(renderPromises, rendererClassNames)
-            .then((newRendererClasses) => {
-                rendererClasses.current = newRendererClasses;
-                let documentRendererClass =
-                    newRendererClasses[
-                        documentComponentInstructions.rendererType
-                    ];
+        renderersLoadComponent(rendererLoaders, rendererClassNames)
+            .then(
+                ({ rendererClasses: newRendererClasses, failedRenderers }) => {
+                    if (failedRenderers.length > 0) {
+                        // Some renderer chunks ultimately failed to load even
+                        // after retries; their placeholders are in
+                        // newRendererClasses, but flag this so we re-initialize
+                        // on the next core reconcile rather than skip it.
+                        errorInitializingRenderers.current = true;
+                    }
+                    rendererClasses.current = newRendererClasses;
+                    const documentRendererClass =
+                        newRendererClasses[
+                            documentComponentInstructions.rendererType
+                        ];
 
-                setDocumentRenderer(
-                    React.createElement(documentRendererClass, {
-                        key:
-                            coreId.current +
-                            documentComponentInstructions.componentIdx,
-                        componentInstructions: documentComponentInstructions,
-                        rendererClasses: newRendererClasses,
-                        flags,
-                        coreId: coreId.current,
-                        docId,
-                        activityId,
-                        callAction,
-                        doenetViewerUrl,
-                        fetchExternalDoenetML,
-                        requestScrollTo,
-                    }),
-                );
+                    setDocumentRenderer(
+                        React.createElement(documentRendererClass, {
+                            key:
+                                coreId.current +
+                                documentComponentInstructions.componentIdx,
+                            componentInstructions:
+                                documentComponentInstructions,
+                            rendererClasses: newRendererClasses,
+                            flags,
+                            coreId: coreId.current,
+                            docId,
+                            activityId,
+                            callAction,
+                            doenetViewerUrl,
+                            fetchExternalDoenetML,
+                            requestScrollTo,
+                        }),
+                    );
 
-                // renderersInitializedCallback?.();
-            })
+                    // renderersInitializedCallback?.();
+                },
+            )
             .catch((e) => {
                 errorInitializingRenderers.current = true;
             });
@@ -1431,23 +1453,6 @@ export function DocViewer({
             </div>
         </ErrorBoundary>
     );
-}
-
-export async function renderersLoadComponent(
-    promises: Promise<any>[],
-    rendererClassNames: string[],
-) {
-    var rendererClasses: Record<string, any> = {};
-    for (let [index, promise] of promises.entries()) {
-        try {
-            let module = await promise;
-            rendererClasses[rendererClassNames[index]] = module.default;
-        } catch (error) {
-            console.log("here:", error);
-            throw Error(`loading ${rendererClassNames[index]} failed.`);
-        }
-    }
-    return rendererClasses;
 }
 
 type ErrorProps = {
