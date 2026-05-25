@@ -2770,6 +2770,40 @@ describe("AutoCompleter", () => {
             expect(labels).toContain("header");
             expect(labels).not.toContain("unordered");
         });
+
+        it("Falls back to canonical children when the alias entry omits `children`", async () => {
+            // Backward-compat path: an alias built from an older schema
+            // snapshot may only carry attributes/help text and no
+            // `children` field (which `AliasedElementSchema` explicitly
+            // permits).  In that case the canonical entry's children
+            // should still surface in completions — empty alias children
+            // must not silently strip them.  Mirrors the existing
+            // fallthrough in `isAllowedChild`.
+            const aliasedElementsSparse = {
+                matrixRow: {
+                    name: "matrixRow",
+                    summary: "A row inside a matrix.",
+                    attributes: [
+                        {
+                            name: "unordered",
+                            description: "Mathlist is unordered.",
+                            values: ["true", "false"],
+                        },
+                    ],
+                    // intentionally no `children`
+                },
+            };
+            const source = `<doc><matrix><row><`;
+            const ac = new AutoCompleter(source, aliasSchema);
+            ac.setSchema(aliasSchema, aliasedElementsSparse);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            // Canonical `<row>` children (`["cell"]`) should still surface
+            // because the alias didn't declare its own child set.
+            expect(labels).toContain("cell");
+        });
     });
 
     describe("Bundled Doenet schema: matrix alias-aware completions (#1174, #1092)", () => {

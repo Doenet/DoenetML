@@ -521,10 +521,20 @@ export class AutoCompleter {
      * inside `<matrix>` → `matrixRow`), the alias target's children are
      * returned instead of the canonical entry's — so in-tag completions
      * for `<row>` inside `<matrix>` offer `<math>`, not `<cell>` (#1174).
+     *
+     * When the resolved alias entry omits `children` (allowed by
+     * `AliasedElementSchema` for backward compatibility with consumers
+     * that build aliases from older schema snapshots), fall back to the
+     * canonical entry's children rather than returning `[]` — matching
+     * the symmetric fallback in `isAllowedChild`.
      */
     _getAllowedChildren(elementName: string, parentName?: string): string[] {
         const effective = this._resolveEffectiveByName(elementName, parentName);
-        return effective?.children || [];
+        if (effective?.children) {
+            return effective.children;
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return this.schemaElementsByName[normalized]?.children || [];
     }
 
     /**
