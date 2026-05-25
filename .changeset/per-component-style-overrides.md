@@ -10,8 +10,8 @@ Allow per-component overrides for non-color style attributes on graphical compon
 
 The overridable set is split into three groups; each graphical component opts into the groups its renderer actually uses via `static styleOverrideCategories`:
 
-- **marker** (`markerStyle`, `markerSize`, `markerOpacity`, `markerFilled`) — `<point>`, `<endpoint>`, `<equilibriumPoint>`.
-- **line** (`lineStyle`, `lineWidth`, `lineOpacity`) — `<line>`, `<lineSegment>`, `<ray>`, `<vector>`, `<polyline>`, `<parabola>`, `<bestFitLine>`, `<equilibriumLine>`, `<cobwebPolyline>`.
+- **marker** (`markerStyle`, `markerSize`, `markerFilled`) — `<point>`, `<endpoint>`, `<equilibriumPoint>`.
+- **line** (`lineStyle`, `lineWidth`) — `<line>`, `<lineSegment>`, `<ray>`, `<vector>`, `<polyline>`, `<parabola>`, `<bestFitLine>`, `<equilibriumLine>`, `<cobwebPolyline>`.
 - **line + fill** (line group + `fillOpacity`) — `<polygon>`, `<triangle>`, `<rectangle>`, `<regularPolygon>`, `<curve>`, `<circle>`, `<equilibriumCurve>`.
 
 So `<point lineWidth="3">` and `<line markerStyle="square">` are now schema errors, in line with what the renderer actually consumes.
@@ -21,6 +21,8 @@ So `<point lineWidth="3">` and `<line markerStyle="square">` are now schema erro
 `*Word` descriptors (`markerStyleWord`, `lineStyleWord`, `lineWidthWord`) intentionally aren't part of the per-component override surface: they're derived from the underlying value (e.g. `markerStyle="circle"` → `markerStyleWord="point"`), and authors needing custom descriptor vocabulary can author it once inside `<styleDefinition>` instead.
 
 Color attributes are intentionally excluded: `markerColor`, `lineColor`, `fillColor`, `textColor`, `backgroundColor`, `highContrastColor` (and their `*Word` / `*DarkMode` variants) remain authorable only via `<styleDefinition>`, so the per-styleNumber WCAG contrast diagnostics stay authoritative.
+
+`lineOpacity` and `markerOpacity` are also excluded for the same reason: the contrast diagnostic feeds them in as an `opacityMultiplier` on the foreground alpha, so they participate in the effective-color check just like colors do. Only `fillOpacity` is contrast-irrelevant and overridable per-component.
 
 Behavior:
 - The component-level override wins over any inherited `<styleDefinition>` value for that key.

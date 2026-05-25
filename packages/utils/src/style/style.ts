@@ -232,25 +232,29 @@ export const markerStyleValuesWithFillVariants =
  * Per-category groupings of overridable style attributes. Each graphical
  * component opts into the categories its renderer actually uses (via
  * `static styleOverrideCategories` on the class — see GraphicalComponent),
- * keeping the per-component attribute schema honest. Color keys are
- * intentionally excluded from every group — color authoring stays exclusive to
- * `<styleDefinition>` so the per-styleNumber WCAG contrast diagnostics remain
- * authoritative. `*Word` descriptors are also excluded: they're derived from
- * the underlying value (e.g. `markerStyle` "circle" → `markerStyleWord`
- * "point") and authors with niche vocabulary needs can override them inside a
- * `<styleDefinition>`.
+ * keeping the per-component attribute schema honest.
+ *
+ * Intentional exclusions:
+ * - **Color keys** (`*Color`, `*ColorDarkMode`, etc.) stay `<styleDefinition>`-
+ *   only so the per-styleNumber WCAG contrast diagnostics remain authoritative.
+ * - **`lineOpacity` and `markerOpacity`** stay `<styleDefinition>`-only for the
+ *   same reason — `styleContrastAccessibility.ts` feeds them in as an
+ *   `opacityMultiplier` on the foreground alpha, so they participate in the
+ *   effective-color contrast check just like the color itself. (`fillOpacity`
+ *   is decorative and not part of the contrast check, so it stays overridable.)
+ * - **`*Word` descriptors** are derived from the underlying value (e.g.
+ *   `markerStyle` "circle" → `markerStyleWord` "point") and authors with niche
+ *   vocabulary needs can override them inside a `<styleDefinition>`.
  */
 const MARKER_OVERRIDE_KEYS = [
     "markerStyle",
     "markerSize",
-    "markerOpacity",
     "markerFilled",
 ] as const satisfies readonly StyleDefinitionKey[];
 
 const LINE_OVERRIDE_KEYS = [
     "lineStyle",
     "lineWidth",
-    "lineOpacity",
 ] as const satisfies readonly StyleDefinitionKey[];
 
 const FILL_OVERRIDE_KEYS = [
@@ -295,17 +299,21 @@ export const STYLE_OVERRIDE_CATEGORIES = {
 export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
 
 /**
- * Module-load guard against future drift. The override path in
- * `returnSelectedStyleStateVariableDefinition` only lowercases string values
- * when the attribute spec opts in via `toLowerCase: true`, but the parallel
- * `<styleDefinition>` path in `StyleDefinitions.js` lowercases every string
- * unconditionally (preserving case-insensitive color-name lookups). Color
- * keys are deliberately excluded from the override surface, so the asymmetry
- * is harmless today — this check fails loudly if someone later widens the
- * override surface in a way that would re-introduce the gap:
- * - any text-typed override key must declare `toLowerCase: true`, or
- * - the override key's name must not contain "color" (we never want a color
- *   key in the override surface unless we also reconcile the lowercase paths).
+ * Module-load guard against future drift. Three constraints are enforced:
+ *
+ * 1. **No color keys.** Color authoring stays `<styleDefinition>`-only so
+ *    per-styleNumber WCAG contrast diagnostics remain authoritative.
+ * 2. **No contrast-feeding opacity keys.** `lineOpacity` and `markerOpacity`
+ *    are fed into the contrast diagnostic as `opacityMultiplier` on the
+ *    foreground alpha (see `styleContrastAccessibility.ts`), so they
+ *    participate in the effective-color check just like the color itself.
+ *    Only `fillOpacity` is contrast-irrelevant and overridable.
+ * 3. **Text-typed keys must opt in to lowercase.** The override path in
+ *    `returnSelectedStyleStateVariableDefinition` only lowercases string
+ *    values when the attribute spec sets `toLowerCase: true`, but the
+ *    parallel `<styleDefinition>` path lowercases unconditionally. Today's
+ *    text-typed override keys (`markerStyle`, `lineStyle`) all opt in; the
+ *    guard fails loudly if a new one slips in without opting in.
  */
 for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
     for (const [key, spec] of Object.entries(group)) {
@@ -314,6 +322,13 @@ for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
                 `Style override category "${category}" contains color-related key "${key}"; ` +
                     `colors stay <styleDefinition>-only so per-styleNumber WCAG contrast diagnostics remain authoritative. ` +
                     `If this is intentional, also reconcile the lowercase asymmetry in returnSelectedStyleStateVariableDefinition.`,
+            );
+        }
+        if (key.endsWith("Opacity") && key !== "fillOpacity") {
+            throw new Error(
+                `Style override category "${category}" contains contrast-feeding opacity key "${key}"; ` +
+                    `lineOpacity and markerOpacity feed the WCAG contrast diagnostic as an opacityMultiplier on the foreground alpha, ` +
+                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity is contrast-irrelevant and overridable.`,
             );
         }
         if (spec.componentType === "text" && !spec.toLowerCase) {

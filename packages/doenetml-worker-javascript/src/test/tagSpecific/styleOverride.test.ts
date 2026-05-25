@@ -248,8 +248,12 @@ describe("Per-component style override tests @group4", async () => {
         const pointAttrs = Point.createAttributesObject();
         expect(pointAttrs.markerStyle).toBeDefined();
         expect(pointAttrs.markerSize).toBeDefined();
-        expect(pointAttrs.markerOpacity).toBeDefined();
         expect(pointAttrs.markerFilled).toBeDefined();
+        // markerOpacity stays <styleDefinition>-only — it feeds the WCAG
+        // contrast diagnostic as an opacityMultiplier on the foreground alpha
+        // (see styleContrastAccessibility.ts), so allowing per-component
+        // override would let geometry differ from what the contrast check sees.
+        expect(pointAttrs.markerOpacity).toBeUndefined();
         expect(pointAttrs.lineWidth).toBeUndefined();
         expect(pointAttrs.lineStyle).toBeUndefined();
         expect(pointAttrs.fillOpacity).toBeUndefined();
@@ -259,7 +263,9 @@ describe("Per-component style override tests @group4", async () => {
         const lineAttrs = Line.createAttributesObject();
         expect(lineAttrs.lineWidth).toBeDefined();
         expect(lineAttrs.lineStyle).toBeDefined();
-        expect(lineAttrs.lineOpacity).toBeDefined();
+        // lineOpacity stays <styleDefinition>-only for the same reason as
+        // markerOpacity — it feeds the contrast diagnostic.
+        expect(lineAttrs.lineOpacity).toBeUndefined();
         expect(lineAttrs.markerStyle).toBeUndefined();
         expect(lineAttrs.markerSize).toBeUndefined();
         expect(lineAttrs.fillOpacity).toBeUndefined();
@@ -424,6 +430,42 @@ describe("Per-component style override tests @group4", async () => {
                     m.includes("<line>"),
             ),
             `expected markerStyle-on-line error; got: ${JSON.stringify(messages)}`,
+        ).toBe(true);
+    });
+
+    it("contrast-feeding opacities (lineOpacity, markerOpacity) are rejected as invalid attributes", async () => {
+        // lineOpacity and markerOpacity feed the WCAG contrast diagnostic as
+        // an opacityMultiplier on the foreground alpha (see
+        // styleContrastAccessibility.ts). They stay <styleDefinition>-only
+        // alongside colors so the per-styleNumber contrast check sees the
+        // same effective color as the renderer. fillOpacity is decorative
+        // and not part of the contrast check — it remains overridable
+        // (asserted separately in the "fillOpacity override flows through to
+        // selectedStyle" test above).
+        let { core } = await createTestCore({
+            doenetML: `
+<point name="P" markerOpacity="0.5" />
+<line name="L" through="(0,0) (1,1)" lineOpacity="0.5" />
+`,
+        });
+
+        const errors = getDiagnosticsByType(core).errors;
+        const messages = errors.map((e) => e.message);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes('Invalid attribute "markerOpacity"') &&
+                    m.includes("<point>"),
+            ),
+            `expected markerOpacity-on-point error; got: ${JSON.stringify(messages)}`,
+        ).toBe(true);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes('Invalid attribute "lineOpacity"') &&
+                    m.includes("<line>"),
+            ),
+            `expected lineOpacity-on-line error; got: ${JSON.stringify(messages)}`,
         ).toBe(true);
     });
 });
