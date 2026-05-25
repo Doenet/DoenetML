@@ -428,4 +428,178 @@ describe("AutoCompleter", () => {
         const diagnostics = autoCompleter.getSchemaViolations();
         expect(diagnostics).toMatchInlineSnapshot("[]");
     });
+
+    describe("childContextHelp alias-aware validation (#1174, #1092)", () => {
+        // Schema with the same `<matrix>` / `<row>` / `<matrixRow>` shape as
+        // the runtime: `<row>` inside `<matrix>` is the `matrixRow` alias,
+        // whose children are `<math>` and whose attributes include
+        // `unordered` (with an enumerated value set). The non-alias-aware
+        // path (`<row>` at the top of the doc) still validates against the
+        // tabular `<row>` schema (children `cell`, no `unordered`).
+        const aliasSchema = [
+            {
+                name: "doc",
+                children: ["matrix", "row"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "matrix",
+                children: ["row"],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: false,
+                childContextHelp: { row: "matrixRow" },
+            },
+            {
+                name: "row",
+                children: ["cell"],
+                attributes: [{ name: "rowNum", values: ["1", "2"] }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "cell",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "math",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+        ];
+        const aliasedElements = {
+            matrixRow: {
+                name: "matrixRow",
+                attributes: [
+                    {
+                        name: "unordered",
+                        values: ["true", "false"],
+                    },
+                ],
+                children: ["math"],
+                acceptsStringChildren: false,
+            },
+        };
+
+        function createAliasAutoCompleter(source: string) {
+            const ac = new AutoCompleter(source, aliasSchema);
+            ac.setSchema(aliasSchema, aliasedElements);
+            return ac;
+        }
+
+        it("Accepts alias-permitted children that the canonical entry forbids (#1174)", () => {
+            // `<math>` inside `<row>` inside `<matrix>` is allowed by the
+            // `matrixRow` alias (`children: ["math"]`), even though the
+            // tabular `<row>`'s canonical entry only accepts `<cell>`.
+            const source = `<doc><matrix><row><math></math></row></matrix></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            expect(ac.getSchemaViolations()).toMatchInlineSnapshot("[]");
+        });
+
+        it("Accepts alias-permitted attributes that the canonical entry forbids (#1174)", () => {
+            // `unordered` only exists on `matrixRow`; the tabular `<row>`'s
+            // canonical entry doesn't declare it.  An explicit value from
+            // the alias's values list passes through clean.
+            const source = `<doc><matrix><row unordered="true"></row></matrix></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            expect(ac.getSchemaViolations()).toMatchInlineSnapshot("[]");
+        });
+
+        it("Flags alias-attribute values that aren't in the alias's enumeration (#1092)", () => {
+            // `unordered`'s enumeration is "true" / "false" — `"maybe"`
+            // must trip the value diagnostic via the alias-aware path,
+            // not silently fall back to a permissive canonical lookup.
+            const source = `<doc><matrix><row unordered="maybe"></row></matrix></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            const diags = ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                'Attribute `unordered` of element `<row>` must be one of: "true", "false"',
+            );
+        });
+
+        it("Still flags children invalid for both canonical and alias entries", () => {
+            // `<cell>` is fine inside the tabular `<row>` but NOT inside
+            // `<row>` when nested in `<matrix>` (the alias's children are
+            // `["math"]`).  This pins the alias's child set as
+            // authoritative — the canonical fallback must not leak in.
+            const source = `<doc><matrix><row><cell></cell></row></matrix></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            const diags = ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                "Element `<cell>` is not allowed inside of `<row>`.",
+            );
+        });
+
+        it("Falls back to the canonical entry when no alias applies", () => {
+            // `<row>` at the top of the doc has no `<matrix>` parent, so
+            // the canonical `row` entry validates it: `<cell>` is OK,
+            // `<math>` is not.
+            const source = `<doc><row><cell></cell><math></math></row></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            const diags = ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                "Element `<math>` is not allowed inside of `<row>`.",
+            );
+        });
+
+        it("Falls back to the canonical entry's attribute set when no alias applies", () => {
+            // `<row unordered>` outside `<matrix>` is invalid — the tabular
+            // `<row>`'s canonical attribute set excludes `unordered`.
+            const source = `<doc><row unordered="true"></row></doc>`;
+            const ac = createAliasAutoCompleter(source);
+            const diags = ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                "Element `<row>` doesn't have an attribute called `unordered`.",
+            );
+        });
+    });
+
+    describe("Bundled Doenet schema: matrix/row/column alias validation (#1174)", () => {
+        // The end-to-end version of the focused tests above: drive the
+        // bundled `doenetSchema` (with `matrix`/`row`/`column` carrying
+        // real `childContextHelp` redirects) against the exact authoring
+        // shape from the row_matrix.mdx / column_matrix.mdx docs that
+        // motivated #1174, and confirm no spurious diagnostics fire.
+        it("Accepts <math> children inside <row>/<column> inside <matrix>", () => {
+            const source = `<matrix><row><math>x</math></row><column><math>y</math></column></matrix>`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            // No "not allowed inside" or "doesn't have an attribute"
+            // diagnostics on the row/column/math triplets.
+            expect(
+                messages.filter(
+                    (m) =>
+                        m.includes("<row>") ||
+                        m.includes("<column>") ||
+                        m.includes("<math>"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("Accepts matrix-flavored attributes on <row>/<column> inside <matrix>", () => {
+            const source = `<matrix><row unordered="true" maxNumber="3"><math>x</math></row></matrix>`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = ac.getSchemaViolations();
+            expect(
+                diags
+                    .map((d) => d.message)
+                    .filter(
+                        (m) =>
+                            m.includes("unordered") || m.includes("maxNumber"),
+                    ),
+            ).toEqual([]);
+        });
+    });
 });

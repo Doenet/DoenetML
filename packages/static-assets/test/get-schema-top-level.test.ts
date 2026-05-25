@@ -98,4 +98,29 @@ describe("generated schema top-level elements", () => {
         expect(gridAttribute.values).toBeUndefined();
         expect(gridAttribute.autocompleteValues).toBeUndefined();
     });
+
+    describe("aliased elements carry children for context-aware LSP validation (#1174)", () => {
+        // Before #1174, `AliasedSchemaElement` only carried help text. The
+        // LSP fix needs `children` + `acceptsStringChildren` on the alias
+        // entries so it can validate `<row>` inside `<matrix>` against the
+        // alias target's child set rather than the tabular `<row>`'s.
+        it("matrixRow declares the MathList child set, not the tabular row's", () => {
+            const { aliasedElements } = getSchema();
+            const matrixRow = aliasedElements.matrixRow;
+            expect(matrixRow).toBeDefined();
+            // MathList accepts `<math>` (and friends inheriting from it).
+            expect(matrixRow.children).toContain("math");
+            // MathList accepts string-content children (used to wrap math
+            // text like `<row>x y z</row>`).
+            expect(matrixRow.acceptsStringChildren).toBe(true);
+        });
+
+        it("matrixColumn declares the MathList child set", () => {
+            const { aliasedElements } = getSchema();
+            const matrixColumn = aliasedElements.matrixColumn;
+            expect(matrixColumn).toBeDefined();
+            expect(matrixColumn.children).toContain("math");
+            expect(matrixColumn.acceptsStringChildren).toBe(true);
+        });
+    });
 });

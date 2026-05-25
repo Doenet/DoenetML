@@ -970,8 +970,13 @@ export async function getCompletionItems(
         containingElement.node &&
         prevChar === "<"
     ) {
+        // Pass the parent name so the alias-aware lookup uses the right
+        // child set when the containing element is itself a `childContextHelp`
+        // target (e.g. `<row>` inside `<matrix>` should offer `<math>` from
+        // `matrixRow`, not `<cell>` from the tabular `<row>`) — #1174.
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
+            getParentName(this, containingElement.node),
         );
         const completionItems = createElementAndSnippetCompletionItems(
             this,
@@ -1023,7 +1028,13 @@ export async function getCompletionItems(
         if (!parent || parent.type === "root") {
             allowedElements = this.schemaTopAllowedElements;
         } else {
-            allowedElements = this._getAllowedChildren(parent.name);
+            // Same alias-aware handoff as the `body`/`<` branch above:
+            // a `<row>` inside `<matrix>` is the `matrixRow` alias, so
+            // its in-tag completions must come from MathList's children.
+            allowedElements = this._getAllowedChildren(
+                parent.name,
+                getParentName(this, parent),
+            );
         }
 
         // For openTagName context, we need to replace from the opening '<' to the cursor.
@@ -1078,24 +1089,21 @@ export async function getCompletionItems(
             ownEntry,
             getParentName(this, element),
         );
-        // Build a description lookup from the alias-aware help entry so
-        // attributes on `<row>` inside `<matrix>` show `matrixRow`'s docs.
-        const descriptionByAttrName = new Map<string, string>();
-        for (const attr of helpEntry?.attributes ?? []) {
-            if (attr.description) {
-                descriptionByAttrName.set(attr.name, attr.description);
-            }
-        }
-        const allowedAttributes = ownEntry?.attributes || [];
+        // List the alias's attributes (not the canonical entry's) when the
+        // parent declares a `childContextHelp` redirect — `<row>` inside
+        // `<matrix>` is the `matrixRow` alias, whose attribute set is the
+        // MathList one (`unordered`, `maxNumber`, …), not the tabular
+        // `<row>`'s (#1174).  The `helpEntry` already does the alias
+        // resolution and is the same source the description lookup uses,
+        // so the dropdown's set and the per-row docs can't drift apart.
+        const allowedAttributes = helpEntry?.attributes ?? [];
         return allowedAttributes.map((attr) => {
             const item: CompletionItem = {
                 label: attr.name,
                 kind: CompletionItemKind.Enum,
             };
-            const description =
-                descriptionByAttrName.get(attr.name) ?? attr.description;
-            if (description) {
-                item.documentation = asMarkdown(description);
+            if (attr.description) {
+                item.documentation = asMarkdown(attr.description);
             }
             return item;
         });
@@ -1116,8 +1124,18 @@ export async function getCompletionItems(
             (prevNonWhitespaceChar === "=" || isBareValueAfterEquals))
     ) {
         const elmName = this.normalizeElementName(element.name);
-        const allowedAttributes =
-            this.schemaElementsByName[elmName]?.attributes || [];
+        // Alias-aware: when the parent declares a `childContextHelp`
+        // redirect (e.g. `<row>` inside `<matrix>` → `matrixRow`), values
+        // and `autocompleteValues` come from the alias entry — closes
+        // #1092 (the attribute-value branch was the one surface still
+        // reading from the canonical entry only).  Falls back to the
+        // canonical entry when no parent context applies.
+        const elmEntry =
+            this._resolveEffectiveByName(
+                elmName,
+                getParentName(this, element),
+            ) ?? this.schemaElementsByName[elmName];
+        const allowedAttributes = elmEntry?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);
         let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
