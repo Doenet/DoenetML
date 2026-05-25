@@ -456,7 +456,17 @@ export class RustResolverAdapter {
         if (!this._enabled || !this._core) return null;
         if (!name) return null;
 
-        const originIndex = this._dastElementToRustIndex.get(originDastElement);
+        // Composite elements like `<module>` are typically expanded at
+        // flat-DAST time, so the source `<module>` element often has no
+        // matching entry in `_dastElementToRustIndex` (the map is built by
+        // start-offset match against the rust flat DAST).  Fall back to
+        // the document-root origin, same as `_getOriginIndex` does at
+        // line 708 — the resolver's parent-search semantics still find
+        // top-level named elements (including those scoped inside
+        // `<setup>`) from the root.
+        const originIndex =
+            this._dastElementToRustIndex.get(originDastElement) ??
+            this._getRootOriginIndex();
         if (originIndex == null) return null;
 
         const flatPath: FlatPathPartForResolver[] = [
@@ -479,11 +489,13 @@ export class RustResolverAdapter {
                 return null;
             }
             return this._rustIndexToDastElement.get(resolution.nodeIdx) ?? null;
-        } catch (e) {
-            console.warn(
-                "RustResolverAdapter.resolveBareRefAtOrigin failed:",
-                e,
-            );
+        } catch {
+            // The Rust core throws `NoReferent` (and similar) for
+            // unresolvable bare references (e.g. `<module copy="$missing"/>`).
+            // That's the expected "no target" signal for the caller, not an
+            // adapter-level error — null propagates the failure to
+            // `getEffectiveModuleAttributeNames`, which treats it as "no
+            // per-instance augmentation applies" (canonical schema decides).
             return null;
         }
     }

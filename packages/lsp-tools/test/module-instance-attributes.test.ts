@@ -1,0 +1,277 @@
+/**
+ * Cross-layer integration tests for per-instance `<module>` attribute
+ * validation (issue #1154 out-of-scope extension).
+ *
+ * For a `<module copy="$x" .../>` (or `extend=`) site, the LSP resolves
+ * `$x` via the real WASM resolver and consults the target module's
+ * `<moduleAttributes>` block to decide which attribute names are valid.
+ * These tests pin both the validation diagnostics (`getSchemaViolations`)
+ * and the completion dropdown (`getCompletionItems`) against the same
+ * resolver view so they can't drift apart.
+ *
+ * The pure-helper tests in `test/module-attributes.test.ts` cover the
+ * DAST helpers in isolation; this file covers the end-to-end behavior
+ * through the precompute pass on `AutoCompleter`.
+ */
+import { describe, expect, it } from "vitest";
+import { DoenetSourceObject } from "../src/doenet-source-object";
+import { AutoCompleter, RustResolverAdapter } from "../src";
+import type { ResolverCore } from "../src";
+import { doenetSchema } from "@doenet/static-assets/schema";
+import { CompletionItemKind } from "vscode-languageserver/browser";
+
+// --------------- WASM bootstrap (skips if unavailable) ---------------
+
+let PublicDoenetMLCore: any;
+let wasmAvailable = false;
+
+try {
+    const mod = await import("@doenet/doenetml-worker-rust");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const wasmPath = path.resolve(
+        import.meta.dirname,
+        "../../doenetml-worker-rust/dist/lib_doenetml_worker_bg.wasm",
+    );
+    const wasmBytes = fs.readFileSync(wasmPath);
+    mod.initSync({ module: wasmBytes });
+    PublicDoenetMLCore = mod.PublicDoenetMLCore;
+    wasmAvailable = true;
+} catch (e) {
+    console.warn(
+        "Skipping WASM integration tests — could not load WASM:",
+        (e as Error).message,
+    );
+}
+
+const takesIndexSet = new Set(
+    doenetSchema.elements
+        .filter((el: any) => el.takesIndex)
+        .map((el: any) => el.name as string),
+);
+
+function wrapWasmCore(wasm: any): ResolverCore {
+    return {
+        setSource: async ({ source, dast }) => wasm.set_source(dast, source),
+        setFlags: async ({ flags }) => wasm.set_flags(JSON.stringify(flags)),
+        returnDast: async () => wasm.return_dast(),
+        resolvePath: async ({ path, origin, skipParentSearch }) =>
+            wasm.resolve_path(path, origin, skipParentSearch),
+    };
+}
+
+async function buildCompleter(source: string) {
+    const sourceObj = new DoenetSourceObject(source);
+    const completer = new AutoCompleter(source);
+    const core = wrapWasmCore(PublicDoenetMLCore.new());
+    const adapter = new RustResolverAdapter(sourceObj, {
+        core,
+        takesIndexComponentTypes: takesIndexSet,
+    });
+    await adapter.init();
+    completer.setRustResolverAdapter(adapter);
+    return { completer, adapter, sourceObj };
+}
+
+/** Run validation and return the diagnostic messages that mention an
+ *  attribute called `attrName` on `<module>`. Case-insensitive match on
+ *  the attribute name, because the warning message uses the *normalized*
+ *  canonical-cased name when the attribute exists in some other element's
+ *  schema (e.g. `center` is normalized from `CENTER`), and the raw
+ *  author-typed name otherwise. */
+async function moduleAttrDiagnostics(source: string, attrName: string) {
+    const { completer } = await buildCompleter(source);
+    const diags = await completer.getSchemaViolations();
+    const lowered = attrName.toLowerCase();
+    return diags
+        .map((d) => d.message)
+        .filter((m) => {
+            if (!/Element `<module>`/.test(m)) return false;
+            const match = m.match(/attribute called `([^`]+)`/);
+            return match != null && match[1].toLowerCase() === lowered;
+        });
+}
+
+(wasmAvailable ? describe : describe.skip)(
+    "per-instance <module> attribute validation (#1154)",
+    () => {
+        describe("validation: copy/extend resolves to a <module> with <moduleAttributes>", () => {
+            it("declared attribute names do not warn", async () => {
+                // Canonical docs example shape from
+                // packages/docs-nextra/pages/reference/module.mdx:20-62.
+                const source = `<setup><module name="drawBalloon"><moduleAttributes><point name="center">(0,0)</point><number name="color">2</number><number name="radius">4</number></moduleAttributes></module></setup>
+<module copy="$drawBalloon" center="(-5,0)" color="1" radius="3" />`;
+                expect(await moduleAttrDiagnostics(source, "center")).toEqual(
+                    [],
+                );
+                expect(await moduleAttrDiagnostics(source, "color")).toEqual(
+                    [],
+                );
+                expect(await moduleAttrDiagnostics(source, "radius")).toEqual(
+                    [],
+                );
+            });
+
+            it("undeclared attribute still warns", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="declared">x</text></moduleAttributes></module></setup>
+<module copy="$m" undeclared="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "undeclared"),
+                ).toHaveLength(1);
+            });
+
+            it("canonical <module> attributes (name, hide) still accepted", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="t">x</text></moduleAttributes></module></setup>
+<module copy="$m" name="instance" hide />`;
+                expect(await moduleAttrDiagnostics(source, "name")).toEqual([]);
+                expect(await moduleAttrDiagnostics(source, "hide")).toEqual([]);
+            });
+
+            it("declared attribute matches case-insensitively (runtime semantics)", async () => {
+                // Author declared `Center` (mixed case); the copy uses
+                // lowercase `center`.  The runtime lowercases at
+                // ModuleAttributes.js:107-108; the LSP mirrors that.
+                const source = `<setup><module name="m"><moduleAttributes><point name="Center">(0,0)</point></moduleAttributes></module></setup>
+<module copy="$m" CENTER="(1,1)" />`;
+                expect(await moduleAttrDiagnostics(source, "CENTER")).toEqual(
+                    [],
+                );
+            });
+
+            it("extend= behaves the same as copy=", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="kept">x</text></moduleAttributes></module></setup>
+<module extend="$m" kept="y" undeclared="x" />`;
+                expect(await moduleAttrDiagnostics(source, "kept")).toEqual([]);
+                expect(
+                    await moduleAttrDiagnostics(source, "undeclared"),
+                ).toHaveLength(1);
+            });
+        });
+
+        describe("validation: no augmentation when target doesn't qualify", () => {
+            it("unresolved reference: warning still fires for any author-defined attr", async () => {
+                const source = `<module copy="$missing" item="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "item"),
+                ).toHaveLength(1);
+            });
+
+            it("reference resolves to a non-<module>: no augmentation", async () => {
+                const source = `<text name="t">hi</text>
+<module copy="$t" item="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "item"),
+                ).toHaveLength(1);
+            });
+
+            it("target <module> has no <moduleAttributes>: no augmentation", async () => {
+                const source = `<setup><module name="m"><text>body</text></module></setup>
+<module copy="$m" item="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "item"),
+                ).toHaveLength(1);
+            });
+
+            it('complex reference (`copy="$m.sub"`): no augmentation', async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="item">x</text></moduleAttributes><text name="sub">x</text></module></setup>
+<module copy="$m.sub" item="x" />`;
+                // Scope-lock: only bare-name refs are augmented.  The
+                // resolver might find SOMETHING for `$m.sub`, but the
+                // per-instance path conservatively skips chains so the
+                // warning still fires.
+                expect(
+                    await moduleAttrDiagnostics(source, "item"),
+                ).toHaveLength(1);
+            });
+        });
+
+        describe("validation: definition sites are unaffected", () => {
+            it("the <module name=...> definition itself triggers no per-instance check", async () => {
+                // Definition site has no copy/extend, so it shouldn't even
+                // attempt per-instance resolution.  We assert there are no
+                // spurious warnings on <module> here.
+                const source = `<setup><module name="m"><moduleAttributes><text name="t">x</text></moduleAttributes></module></setup>`;
+                const { completer } = await buildCompleter(source);
+                const diags = await completer.getSchemaViolations();
+                const moduleDiags = diags.filter((d) =>
+                    /<module>/.test(d.message),
+                );
+                expect(moduleDiags).toEqual([]);
+            });
+        });
+
+        describe("completion: attribute-name dropdown for <module copy=...>", () => {
+            it("offers declared names alongside canonical ones", async () => {
+                // Cursor right after the space inside the open tag — the
+                // attribute-name completion branch fires here.
+                const source = `<setup><module name="m"><moduleAttributes><point name="center">(0,0)</point><number name="color">2</number></moduleAttributes></module></setup>
+<module copy="$m" `;
+                const { completer } = await buildCompleter(source);
+                const items = await completer.getCompletionItems(source.length);
+                const labels = items
+                    .filter((i) => i.kind === CompletionItemKind.Enum)
+                    .map((i) => i.label);
+                // Author-declared names.
+                expect(labels).toContain("center");
+                expect(labels).toContain("color");
+                // Canonical <module> attributes still present.
+                expect(labels).toContain("name");
+                expect(labels).toContain("hide");
+            });
+
+            it("without copy=, only canonical attributes are offered", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="item">x</text></moduleAttributes></module></setup>
+<module `;
+                const { completer } = await buildCompleter(source);
+                const items = await completer.getCompletionItems(source.length);
+                const labels = items
+                    .filter((i) => i.kind === CompletionItemKind.Enum)
+                    .map((i) => i.label);
+                expect(labels).not.toContain("item");
+                expect(labels).toContain("name");
+            });
+
+            it("offers no declared names when the reference doesn't resolve", async () => {
+                const source = `<module copy="$missing" `;
+                const { completer } = await buildCompleter(source);
+                const items = await completer.getCompletionItems(source.length);
+                const labels = items
+                    .filter((i) => i.kind === CompletionItemKind.Enum)
+                    .map((i) => i.label);
+                // Canonical still there, no synthesized entries.
+                expect(labels).toContain("name");
+                // The descriptor we synthesize on declared entries would be
+                // absent — assert any label isn't a leftover from a stale
+                // augmentation by spot-checking a sentinel name we never
+                // declared anywhere.
+                expect(labels).not.toContain("balloonShape");
+            });
+        });
+
+        describe("precompute coalescing (sourceRevision)", () => {
+            it("two getSchemaViolations() calls in a row issue resolveBareRefAtOrigin once per site", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><text name="t">x</text></moduleAttributes></module></setup>
+<module copy="$m" t="x" />`;
+                const { completer, adapter } = await buildCompleter(source);
+
+                // Spy on the bridge call.  Two consecutive runs without an
+                // edit must collapse to one resolution (and Promise.all
+                // batches simultaneous instances in each refresh).
+                let callCount = 0;
+                const orig = adapter.resolveBareRefAtOrigin.bind(adapter);
+                adapter.resolveBareRefAtOrigin = (async (...args: any[]) => {
+                    callCount++;
+                    return (orig as any)(...args);
+                }) as any;
+
+                await completer.getSchemaViolations();
+                const afterFirst = callCount;
+                await completer.getSchemaViolations();
+                const afterSecond = callCount;
+
+                expect(afterFirst).toBe(1);
+                expect(afterSecond).toBe(1);
+            });
+        });
+    },
+);
