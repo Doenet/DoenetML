@@ -16,7 +16,7 @@ export type StyleAttributeSpec = {
 
 export type StyleAttributes = Record<string, StyleAttributeSpec>;
 
-export type StyleDefinitionPrimitive = string | number;
+export type StyleDefinitionPrimitive = string | number | boolean;
 
 export type StyleValueWithPosition = {
     style: StyleDefinitionPrimitive;
@@ -43,6 +43,7 @@ export type StyleDefinitionKey =
     | "markerStyle"
     | "markerStyleWord"
     | "markerSize"
+    | "markerFilled"
     | "fillColor"
     | "fillColorWord"
     | "fillColorDarkMode"
@@ -103,6 +104,7 @@ export interface ResolvedStyleDefinition {
     markerStyle: string;
     markerStyleWord: string;
     markerSize: number;
+    markerFilled: boolean;
     fillColor: string;
     fillColorWord: string;
     fillColorDarkMode: string;
@@ -169,6 +171,21 @@ export function getStyleValueNumber(
 ): number | undefined {
     const value = styleDef[key]?.style;
     return typeof value === "number" ? value : undefined;
+}
+
+/**
+ * Reads a style value as a boolean from a style definition.
+ *
+ * @param styleDef - Style definition map.
+ * @param key - Style key to read.
+ * @returns Boolean value when present and of boolean type, otherwise undefined.
+ */
+export function getStyleValueBoolean(
+    styleDef: StyleDefinition,
+    key: StyleDefinitionKey,
+): boolean | undefined {
+    const value = styleDef[key]?.style;
+    return typeof value === "boolean" ? value : undefined;
 }
 
 /**
@@ -294,6 +311,7 @@ export const DEFAULT_STYLE_VALUES = {
     markerStyle: "circle",
     markerStyleWord: "point",
     markerSize: 5,
+    markerFilled: true,
     fillOpacity: 0.3,
     lineColor: "#648FFF",
     lineColorDarkMode: "#648FFF",

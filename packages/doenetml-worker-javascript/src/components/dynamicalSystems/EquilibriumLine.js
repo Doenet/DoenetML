@@ -12,6 +12,11 @@ export default class EquilibriumLine extends Line {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // `stable` is the authoritative source for solid/dashed rendering, so
+        // suppress the inherited lineStyle override to avoid a styleDefinition
+        // value contradicting authored stability.
+        delete attributes.lineStyle;
+
         attributes.stable = {
             createComponentOfType: "boolean",
             createStateVariable: "stable",

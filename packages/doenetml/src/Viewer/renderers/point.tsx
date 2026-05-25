@@ -84,8 +84,17 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
     const { darkMode = undefined } = useContext(DocContext);
 
+    // Components with their own semantic open/closed state (Endpoint.open,
+    // EquilibriumPoint.open) take precedence over selectedStyle.markerFilled —
+    // those subclasses drop markerFilled from their attribute schema, so the
+    // styleDefinition value would otherwise contradict the authored intent.
+    // SVs.open is undefined on plain <point>, where selectedStyle.markerFilled
+    // is the only knob. Cross and plus have no interior to fill, so they're
+    // always treated as open to stay visible.
     const useOpenSymbol =
-        SVs.open || ["cross", "plus"].includes(SVs.selectedStyle.markerStyle); // Cross and plus should always be treated as "open" to remain visible on graph
+        SVs.open ||
+        (SVs.open === undefined && SVs.selectedStyle.markerFilled === false) ||
+        ["cross", "plus"].includes(SVs.selectedStyle.markerStyle);
 
     useBoardPointerTracking(board, dragState);
 

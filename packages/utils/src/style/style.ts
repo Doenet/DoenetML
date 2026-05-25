@@ -136,6 +136,11 @@ export let styleAttributes: StyleAttributes = {
         componentType: "number",
         description: "Marker size in pixels.",
     },
+    markerFilled: {
+        componentType: "boolean",
+        description:
+            "Whether the marker is rendered filled (true) or open (false). Has no effect when markerStyle is cross or plus, which have no interior.",
+    },
     fillColor: {
         componentType: "text",
         description: "Fill color used inside closed shapes (light mode).",
@@ -240,6 +245,7 @@ const STYLE_OVERRIDE_KEYS = [
     "markerOpacity",
     "markerStyle",
     "markerSize",
+    "markerFilled",
     "fillOpacity",
 ] as const satisfies readonly StyleDefinitionKey[];
 

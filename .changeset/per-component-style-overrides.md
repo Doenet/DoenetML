@@ -8,7 +8,9 @@
 
 Allow per-component overrides for non-color style attributes on graphical components (e.g. `<point markerStyle="square" markerSize="10">`, `<line lineWidth="1" lineStyle="dashed">`, `<polygon fillOpacity="0.5">`).
 
-The overridable set is `lineOpacity`, `lineWidth`, `lineStyle`, `markerOpacity`, `markerStyle`, `markerSize`, and `fillOpacity` — declared on `GraphicalComponent`, so every component that extends it (Point, Line, LineSegment, Ray, Vector, Polyline, Polygon, Circle, Curve, Triangle, Rectangle, Parabola, Ellipse, etc.) accepts them.
+The overridable set is `lineOpacity`, `lineWidth`, `lineStyle`, `markerOpacity`, `markerStyle`, `markerSize`, `markerFilled`, and `fillOpacity` — declared on `GraphicalComponent`, so every component that extends it (Point, Line, LineSegment, Ray, Vector, Polyline, Polygon, Circle, Curve, Triangle, Rectangle, Parabola, Ellipse, etc.) accepts them.
+
+`markerFilled` (boolean, default `true`) toggles whether the marker renders as a filled glyph or an open outline. It's a no-op when `markerStyle` is `cross` or `plus`. Components whose semantic state already determines fill — `<endpoint>` (via `open`), `<equilibriumPoint>` (via `stable`) — suppress `markerFilled` so a styleDefinition value can't contradict authored intent. Similarly, `<equilibriumLine>` and `<equilibriumCurve>` suppress `lineStyle` because `stable` already determines solid-vs-dashed rendering.
 
 `*Word` descriptors (`markerStyleWord`, `lineStyleWord`, `lineWidthWord`) intentionally aren't part of the per-component override surface: they're derived from the underlying value (e.g. `markerStyle="circle"` → `markerStyleWord="point"`), and authors needing custom descriptor vocabulary can author it once inside `<styleDefinition>` instead.
 

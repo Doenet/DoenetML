@@ -20,6 +20,10 @@ export default class Endpoint extends Point {
             ...attributes.markerStyle,
             validValues: markerStyleValuesWithFillVariants,
         };
+        // `open` is the authoritative fill toggle here, so suppress the
+        // inherited markerFilled override to avoid a styleDefinition value
+        // contradicting authored open/closed intent.
+        delete attributes.markerFilled;
 
         attributes.open = {
             createComponentOfType: "boolean",

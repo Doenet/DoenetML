@@ -137,6 +137,60 @@ describe("Per-component style override tests @group4", async () => {
         expect(L.stateValues.selectedStyle.lineStyleWord).eq("dashed");
     });
 
+    it("markerFilled defaults to true and flows through to selectedStyle when overridden", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P" />
+<point name="Q" markerFilled="false" />
+<point name="R" markerFilled="true" />
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        const Q = stateVariables[await resolvePathToNodeIdx("Q")];
+        const R = stateVariables[await resolvePathToNodeIdx("R")];
+        expect(P.stateValues.selectedStyle.markerFilled).eq(true);
+        expect(Q.stateValues.selectedStyle.markerFilled).eq(false);
+        expect(R.stateValues.selectedStyle.markerFilled).eq(true);
+    });
+
+    it("endpoint and equilibriumPoint suppress markerFilled; equilibriumLine/Curve suppress lineStyle", async () => {
+        const Endpoint = (await import("../../components/Endpoint.js")).default;
+        const EquilibriumPoint = (
+            await import("../../components/dynamicalSystems/EquilibriumPoint.js")
+        ).default;
+        const EquilibriumLine = (
+            await import("../../components/dynamicalSystems/EquilibriumLine.js")
+        ).default;
+        const EquilibriumCurve = (
+            await import("../../components/dynamicalSystems/EquilibriumCurve.js")
+        ).default;
+
+        expect(Endpoint.createAttributesObject().markerFilled).toBeUndefined();
+        expect(
+            EquilibriumPoint.createAttributesObject().markerFilled,
+        ).toBeUndefined();
+        expect(
+            EquilibriumLine.createAttributesObject().lineStyle,
+        ).toBeUndefined();
+        expect(
+            EquilibriumCurve.createAttributesObject().lineStyle,
+        ).toBeUndefined();
+
+        // Other override attributes are still present on the subclasses.
+        expect(Endpoint.createAttributesObject().markerStyle).toBeDefined();
+        expect(
+            EquilibriumPoint.createAttributesObject().markerSize,
+        ).toBeDefined();
+        expect(
+            EquilibriumLine.createAttributesObject().lineWidth,
+        ).toBeDefined();
+        expect(
+            EquilibriumCurve.createAttributesObject().lineWidth,
+        ).toBeDefined();
+    });
+
     it("fillOpacity override flows through to selectedStyle", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

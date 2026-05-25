@@ -20,6 +20,10 @@ export default class EquilibriumPoint extends Point {
             ...attributes.markerStyle,
             validValues: markerStyleValuesWithFillVariants,
         };
+        // `stable` is the authoritative fill toggle here, so suppress the
+        // inherited markerFilled override to avoid a styleDefinition value
+        // contradicting authored stability.
+        delete attributes.markerFilled;
 
         attributes.stable = {
             createComponentOfType: "boolean",
