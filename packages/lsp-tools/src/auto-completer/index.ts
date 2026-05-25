@@ -87,8 +87,15 @@ export type ElementSchema = {
 /**
  * Help-only payload carrying alias-specific descriptions (e.g. `matrixRow`).
  * Aliased entries are looked up via a parent element's `childContextHelp` and
- * are never themselves valid top-level/child elements, so they only carry the
- * fields used for help/documentation.
+ * are never themselves valid top-level/child elements, but they still carry
+ * the children/attributes used to validate and complete what the author wrote
+ * (e.g. `<row>` inside `<matrix>` accepts `<math>` children and the `MathList`
+ * attribute set, not the tabular `<row>`'s; issue #1174).
+ *
+ * `children` / `acceptsStringChildren` are optional here for backward
+ * compatibility with consumers that build aliased entries from older schema
+ * snapshots and tests that only need help text. The schema generator
+ * populates them on every emitted alias as of #1174.
  */
 export type AliasedElementSchema = {
     name: string;
@@ -96,6 +103,8 @@ export type AliasedElementSchema = {
     docsSlug?: string | null;
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
+    children?: string[];
+    acceptsStringChildren?: boolean;
 };
 
 export type ProcessedSnippet = {
@@ -430,11 +439,24 @@ export class AutoCompleter {
         this.schemaLowerToUpper = Object.fromEntries(
             this.schema.map((e) => [e.name.toLowerCase(), e.name]),
         );
-        this.schemaAttributesLowerToUpper = Object.fromEntries(
-            this.schema.flatMap((e) => {
-                return e.attributes.map((a) => [a.name.toLowerCase(), a.name]);
-            }),
-        );
+        // Seed the attribute-name normalization map from both the canonical
+        // elements and the aliased entries.  Without the alias contribution,
+        // an attribute that exists only on an alias target (e.g. a
+        // hypothetical `<row>` inside `<matrix>` carrying an attribute that
+        // no canonical element declares) would be reported as
+        // `UNKNOWN_NAME` by `normalizeAttributeName`, short-circuiting the
+        // alias-aware checks in `isAllowedAttribute` /
+        // `getAttributeAllowedValues` before they ever ran.  Canonical
+        // entries are seeded first so on a casing collision the canonical
+        // capitalization wins.
+        this.schemaAttributesLowerToUpper = Object.fromEntries([
+            ...Object.values(this.schemaAliasedElementsByName).flatMap((e) =>
+                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
+            ),
+            ...this.schema.flatMap((e) =>
+                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
+            ),
+        ]);
         this.schemaElementsByName = Object.fromEntries(
             this.schema.map((e) => [e.name, e]),
         );
@@ -487,11 +509,33 @@ export class AutoCompleter {
 
     /**
      * Get the children allowed inside an `elementName` named element.
-     * The search is case insensitive.
+     * The search is case insensitive. When `parentName` is provided and
+     * declares a `childContextHelp` alias for `elementName` (e.g. `<row>`
+     * inside `<matrix>` → `matrixRow`), the alias target's children are
+     * returned instead of the canonical entry's — so in-tag completions
+     * for `<row>` inside `<matrix>` offer `<math>`, not `<cell>` (#1174).
      */
-    _getAllowedChildren(elementName: string): string[] {
-        elementName = this.normalizeElementName(elementName);
-        return this.schemaElementsByName[elementName]?.children || [];
+    _getAllowedChildren(elementName: string, parentName?: string): string[] {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        return effective?.children || [];
+    }
+
+    /**
+     * Convenience over `resolveEffectiveSchemaElement` that accepts an
+     * element name (canonical or author-cased) rather than a pre-fetched
+     * own entry. Returns the alias-aware effective entry — the alias when
+     * the (grand)parent declares a `childContextHelp` redirect for this
+     * element, otherwise the element's own canonical entry. Returns
+     * `undefined` only when the element name itself is unrecognized.
+     */
+    _resolveEffectiveByName(
+        elementName: string,
+        parentName?: string,
+    ): ElementSchema | AliasedElementSchema | undefined {
+        const normalized = this.normalizeElementName(elementName);
+        if (normalized === "UNKNOWN_NAME") return undefined;
+        const ownEntry = this.schemaElementsByName[normalized];
+        return this.resolveEffectiveSchemaElement(ownEntry, parentName);
     }
 
     /**
@@ -737,51 +781,148 @@ export class AutoCompleter {
     }
 
     /**
-     * Gets whether the child is allowed inside the parent. This function normalizes the
-     * name of the parent and child before checking.
+     * Gets whether the child is allowed inside the parent. This function
+     * normalizes the name of the parent and child before checking. When
+     * `grandparentName` is provided and declares a `childContextHelp` alias
+     * for `parentName` (e.g. `<row>` inside `<matrix>` → `matrixRow`), the
+     * check runs against the alias target's children — so `<math>` inside
+     * `<row>` inside `<matrix>` is allowed (#1174).
      */
-    isAllowedChild(parentName: string, childName: string): boolean {
-        parentName = this.normalizeElementName(parentName);
-        childName = this.normalizeElementName(childName);
-        if (parentName === "UNKNOWN_NAME" || childName === "UNKNOWN_NAME") {
-            return false;
-        }
-        return this.parentChildMap.get(parentName)?.has(childName) || false;
-    }
-
-    /**
-     * Checks whether the given attribute is allowed on the given element. This function
-     * normalizes the name of the element and attribute before checking.
-     */
-    isAllowedAttribute(elementName: string, attributeName: string): boolean {
-        elementName = this.normalizeElementName(elementName);
-        attributeName = this.normalizeAttributeName(attributeName);
+    isAllowedChild(
+        parentName: string,
+        childName: string,
+        grandparentName?: string,
+    ): boolean {
+        const normalizedParent = this.normalizeElementName(parentName);
+        const normalizedChild = this.normalizeElementName(childName);
         if (
-            elementName === "UNKNOWN_NAME" ||
-            attributeName === "UNKNOWN_NAME"
+            normalizedParent === "UNKNOWN_NAME" ||
+            normalizedChild === "UNKNOWN_NAME"
         ) {
             return false;
         }
+        if (grandparentName) {
+            // Alias-aware path: when the grandparent redirects this
+            // parent's child schema (e.g. `<matrix>` → `matrixRow`), use
+            // the alias target's children rather than the canonical
+            // parent's. Fall through to the canonical map when no alias
+            // applies so the hot path stays a single Set lookup.
+            const effective = this._resolveEffectiveByName(
+                normalizedParent,
+                grandparentName,
+            );
+            if (
+                effective &&
+                effective.name !== normalizedParent &&
+                effective.children
+            ) {
+                return effective.children.includes(normalizedChild);
+            }
+        }
         return (
-            this.nodeAttributeMap.get(elementName)?.has(attributeName) || false
+            this.parentChildMap.get(normalizedParent)?.has(normalizedChild) ||
+            false
+        );
+    }
+
+    /**
+     * Checks whether the given attribute is allowed on the given element.
+     * This function normalizes the name of the element and attribute before
+     * checking. When `parentName` is provided and declares a
+     * `childContextHelp` alias for `elementName` (e.g. `<row>` inside
+     * `<matrix>` → `matrixRow`), the check runs against the alias target's
+     * attribute set — so `unordered` on `<row>` inside `<matrix>` is allowed
+     * even though it isn't an attribute of the tabular `<row>` (#1174).
+     */
+    isAllowedAttribute(
+        elementName: string,
+        attributeName: string,
+        parentName?: string,
+    ): boolean {
+        const normalizedElement = this.normalizeElementName(elementName);
+        const normalizedAttribute = this.normalizeAttributeName(attributeName);
+        if (
+            normalizedElement === "UNKNOWN_NAME" ||
+            normalizedAttribute === "UNKNOWN_NAME"
+        ) {
+            return false;
+        }
+        if (parentName) {
+            const effective = this._resolveEffectiveByName(
+                normalizedElement,
+                parentName,
+            );
+            if (effective && effective.name !== normalizedElement) {
+                // Match case-insensitively so a canonical-cased attribute
+                // (`unordered`) hits an alias entry that happens to have
+                // declared a differently cased name. The canonical map
+                // built in `setSchema` already normalizes via
+                // `normalizeAttributeName`, so this only adds tolerance
+                // for alias-side names.
+                const lower = normalizedAttribute.toLowerCase();
+                return effective.attributes.some(
+                    (a) => a.name.toLowerCase() === lower,
+                );
+            }
+        }
+        return (
+            this.nodeAttributeMap
+                .get(normalizedElement)
+                ?.has(normalizedAttribute) || false
         );
     }
 
     /**
      * Gets the schema for a given attribute of a given element. This function
      * normalizes the name of the element and attribute before checking.
+     * When `parentName` is provided and declares a `childContextHelp` alias,
+     * the attribute's enumerated-values metadata comes from the alias target
+     * — closing the autocomplete-vs-help divergence noted in #1092 for the
+     * value enumeration the same way #1174 closes it for the attribute set.
      */
-    getAttributeAllowedValues(elementName: string, attributeName: string) {
-        elementName = this.normalizeElementName(elementName);
-        attributeName = this.normalizeAttributeName(attributeName);
+    getAttributeAllowedValues(
+        elementName: string,
+        attributeName: string,
+        parentName?: string,
+    ) {
+        const normalizedElement = this.normalizeElementName(elementName);
+        const normalizedAttribute = this.normalizeAttributeName(attributeName);
         if (
-            elementName === "UNKNOWN_NAME" ||
-            attributeName === "UNKNOWN_NAME"
+            normalizedElement === "UNKNOWN_NAME" ||
+            normalizedAttribute === "UNKNOWN_NAME"
         ) {
             return null;
         }
+        if (parentName) {
+            const effective = this._resolveEffectiveByName(
+                normalizedElement,
+                parentName,
+            );
+            if (effective && effective.name !== normalizedElement) {
+                const lower = normalizedAttribute.toLowerCase();
+                const aliasAttr = effective.attributes.find(
+                    (a) => a.name.toLowerCase() === lower,
+                );
+                if (aliasAttr) {
+                    return aliasAttr.values
+                        ? {
+                              correctCase: new Set(aliasAttr.values),
+                              lowerCase: new Set(
+                                  aliasAttr.values.map((v) => v.toLowerCase()),
+                              ),
+                          }
+                        : null;
+                }
+                // The alias entry exists but doesn't declare this
+                // attribute — the canonical lookup is meaningless here
+                // (we're shadowing the canonical entry by alias).
+                return null;
+            }
+        }
         return (
-            this.nodeAttributeMap.get(elementName)?.get(attributeName) || null
+            this.nodeAttributeMap
+                .get(normalizedElement)
+                ?.get(normalizedAttribute) || null
         );
     }
 

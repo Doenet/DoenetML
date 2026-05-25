@@ -2614,4 +2614,180 @@ describe("AutoCompleter", () => {
             expect(secondProbeCount).toBe(2);
         });
     });
+
+    describe("childContextHelp alias-aware completions (#1174, #1092)", () => {
+        // Same fixture as the schema-violations alias-aware tests: a
+        // synthetic schema where `<matrix>` redirects child `<row>` through
+        // the `matrixRow` alias.  The alias declares `<math>` as a valid
+        // child, the `unordered` attribute (with values "true"/"false"),
+        // and a wider attribute set than the tabular `<row>`.
+        const aliasSchema = [
+            {
+                name: "doc",
+                children: ["matrix", "row", "math"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "matrix",
+                children: ["row"],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: false,
+                childContextHelp: { row: "matrixRow" },
+            },
+            {
+                name: "row",
+                children: ["cell"],
+                attributes: [
+                    {
+                        name: "header",
+                        description: "Header row.",
+                        values: ["true", "false"],
+                    },
+                ],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "cell",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "math",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+        ];
+        const aliasedElements = {
+            matrixRow: {
+                name: "matrixRow",
+                summary: "A row inside a matrix.",
+                attributes: [
+                    {
+                        name: "unordered",
+                        description: "Mathlist is unordered.",
+                        values: ["true", "false"],
+                        autocompleteValues: [
+                            {
+                                value: "true",
+                                description: "Treat as unordered.",
+                            },
+                            { value: "false", description: "Keep order." },
+                        ],
+                    },
+                ],
+                children: ["math"],
+                acceptsStringChildren: false,
+            },
+        };
+
+        function createAliasAutoCompleter(source: string) {
+            const ac = new AutoCompleter(source, aliasSchema);
+            ac.setSchema(aliasSchema, aliasedElements);
+            return ac;
+        }
+
+        it("Element-body `<` completions offer alias children (#1174)", async () => {
+            // `<doc><matrix><row><` — the in-tag suggestions for `<row>`
+            // inside `<matrix>` must come from `matrixRow`'s children
+            // (`["math"]`), not the canonical `<row>`'s (`["cell"]`).
+            const source = `<doc><matrix><row><`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            expect(labels).toContain("math");
+            expect(labels).not.toContain("cell");
+        });
+
+        it("openTagName completions inside the alias parent offer alias children (#1174)", async () => {
+            // Same as above but with a partial element name already typed.
+            const source = `<doc><matrix><row><ma`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("math");
+        });
+
+        it("Attribute-name completions inside the alias offer the alias's attribute set (#1174)", async () => {
+            // `<row ` inside `<matrix>` exposes `matrixRow`'s attribute
+            // set — `unordered` is offered, while the canonical `<row>`'s
+            // `header` is not.
+            const source = `<doc><matrix><row `;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toContain("unordered");
+            expect(labels).not.toContain("header");
+        });
+
+        it("Attribute-value completions on alias attributes return the alias's values (#1092)", async () => {
+            // `<row unordered="` inside `<matrix>` — value completions
+            // come from `matrixRow.unordered.autocompleteValues`. The
+            // canonical `<row>` doesn't even declare `unordered`, so this
+            // value-set could only originate from the alias-aware path.
+            const source = `<doc><matrix><row unordered="`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toEqual(["true", "false"]);
+            // The richer per-value descriptions from `autocompleteValues`
+            // should flow through to the dropdown documentation.
+            const trueItem = items.find((i) => i.label === "true");
+            expect(trueItem?.documentation).toEqual({
+                kind: "markdown",
+                value: "Treat as unordered.",
+            });
+        });
+
+        it("Canonical element-body completions are unchanged outside the alias context", async () => {
+            // `<doc><row><` — no `<matrix>` parent, so the canonical
+            // `<row>`'s children (`["cell"]`) are offered.
+            const source = `<doc><row><`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            expect(labels).toContain("cell");
+            expect(labels).not.toContain("math");
+        });
+
+        it("Canonical attribute-name completions are unchanged outside the alias context", async () => {
+            // `<doc><row ` — canonical `<row>` declares `header` but not
+            // `unordered`.
+            const source = `<doc><row `;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toContain("header");
+            expect(labels).not.toContain("unordered");
+        });
+    });
+
+    describe("Bundled Doenet schema: matrix alias-aware completions (#1174, #1092)", () => {
+        // End-to-end smoke against the real schema: confirm the alias path
+        // surfaces matrix-flavored children/attributes that motivated the
+        // bug, mirroring the row_matrix.mdx / column_matrix.mdx examples.
+        it("Offers <math> as a child of <row> inside <matrix>", async () => {
+            const source = `<matrix><row><`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("math");
+        });
+
+        it("Offers `unordered` as an attribute of <row> inside <matrix>", async () => {
+            const source = `<matrix><row `;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("unordered");
+        });
+    });
 });
