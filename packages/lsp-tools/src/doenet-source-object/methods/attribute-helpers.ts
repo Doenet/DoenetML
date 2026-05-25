@@ -54,6 +54,83 @@ export function findPrecedingEqualsForBareValue(
 }
 
 /**
+ * Synthesize a virtual `DastAttribute` from an identifier token in the
+ * source, used when `lezer-to-dast` stripped a bare-value pair
+ * (`<math simplify=full>` — #1197) and `node.attributes` no longer carries
+ * the attribute the cursor is conceptually on.
+ *
+ * `tokenStart` (inclusive) and `tokenEnd` (exclusive) bound the identifier
+ * in `source`.  Callers walk the source themselves to determine those
+ * bounds; this helper just packages the name and a placeholder position
+ * covering the token range.  The caller only reads `.name` (and
+ * occasionally `.position` for downstream lookups), so the synthesized
+ * line/column are left as zeros — callers that need byte-accurate
+ * positions look them up directly on the real attribute.
+ */
+export function synthesizeStrippedAttribute(
+    source: string,
+    tokenStart: number,
+    tokenEnd: number,
+): DastAttribute | null {
+    if (tokenEnd <= tokenStart) {
+        return null;
+    }
+    return {
+        type: "attribute",
+        name: source.slice(tokenStart, tokenEnd),
+        children: [],
+        position: {
+            start: { line: 0, column: 0, offset: tokenStart },
+            end: { line: 0, column: 0, offset: tokenEnd },
+        },
+    };
+}
+
+/**
+ * Walk back from `from` over attribute-name chars; return the start of
+ * the identifier run (== `from` when there is no run).  Mirrors the
+ * forward equivalent in `extendIdentifierForward`.
+ */
+function scanIdentifierBackward(source: string, from: number): number {
+    let offset = from;
+    while (offset > 0 && ATTR_VALUE_CHAR.test(source.charAt(offset - 1))) {
+        offset--;
+    }
+    return offset;
+}
+
+/**
+ * Walk forward from `from` over attribute-name chars; return the end of
+ * the identifier run (== `from` when there is no run).
+ */
+function scanIdentifierForward(source: string, from: number): number {
+    let offset = from;
+    while (
+        offset < source.length &&
+        ATTR_VALUE_CHAR.test(source.charAt(offset))
+    ) {
+        offset++;
+    }
+    return offset;
+}
+
+/**
+ * Return the bounds of the identifier token straddling `offset`, or null
+ * if `offset` is not adjacent to any identifier char.  Combines the
+ * backward and forward scans so a cursor mid-token still recovers the
+ * full identifier.
+ */
+export function identifierAtOffset(
+    source: string,
+    offset: number,
+): { start: number; end: number } | null {
+    const start = scanIdentifierBackward(source, offset);
+    const end = scanIdentifierForward(source, offset);
+    if (start === end) return null;
+    return { start, end };
+}
+
+/**
  * Find the attribute whose source range contains `offset`. Used in three
  * places: the primary cursor-inside-attribute lookup, the unquoted-value
  * spillover heuristic (which excludes the bogus attribute and uses

@@ -33,6 +33,8 @@ import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
 import {
     findAttributeContainingOffset,
     findPrecedingEqualsForBareValue,
+    identifierAtOffset,
+    synthesizeStrippedAttribute,
 } from "./methods/attribute-helpers";
 
 /**
@@ -249,9 +251,41 @@ export class DoenetSourceObject extends LazyDataObject {
                 _offset,
             );
             if (equalsOffset != null) {
-                return findAttributeContainingOffset(attributes, equalsOffset, {
-                    endInclusive: false,
-                });
+                const containing = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false },
+                );
+                if (containing) return containing;
+                // Stripped unquoted-pair fallback (#1197): the bare-value
+                // half of `<math simplify=full>` is removed from
+                // `node.attributes` by the parser, so the `=` lookup above
+                // misses on the value side.  Walk back over the assign
+                // half's identifier token and synthesize a virtual
+                // `DastAttribute` so context-help / autocomplete still
+                // resolve the attribute the cursor is conceptually on.
+                const ident = identifierAtOffset(this.source, equalsOffset);
+                if (ident) {
+                    return synthesizeStrippedAttribute(
+                        this.source,
+                        ident.start,
+                        ident.end,
+                    );
+                }
+                return null;
+            }
+            // Same stripping case, viewed from the assign-half side:
+            // the cursor sits inside the now-removed identifier (e.g.
+            // mid-`bad` in `<math bad=foo`).  If the cursor straddles an
+            // attribute-name token in the source, synthesize from that
+            // token so the panel keeps something useful on screen.
+            const ident = identifierAtOffset(this.source, _offset);
+            if (ident) {
+                return synthesizeStrippedAttribute(
+                    this.source,
+                    ident.start,
+                    ident.end,
+                );
             }
             return null;
         }

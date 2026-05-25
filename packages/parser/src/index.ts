@@ -15,3 +15,7 @@ export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";
 export { filterPositionInfo } from "./dast-to-xml/utils";
 export { normalizeDocumentDast } from "./dast-normalize/normalize-dast";
 export { expandExternalReferences } from "./expand-external-references";
+export {
+    findBareAttributeValuePairs,
+    unquotedAttributeValueMessage,
+} from "./detect-bare-attribute-pairs";
