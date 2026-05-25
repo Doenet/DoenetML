@@ -15,6 +15,15 @@ export function renameStateVariable({
     // surface in autocomplete or context-help next to its derived
     // counterpart. The runtime still uses the renamed entry; only the
     // schema layer drops it. See #1089.
+    //
+    // We mutate the def in place. Callers always come from a
+    // `returnStateVariableDefinitions()` that has just built a fresh per-class
+    // definitions object (typically via `super.returnStateVariableDefinitions()`
+    // which builds anew), so this mutation does not leak across components.
+    // If a future caller genuinely wants the renamed-aside entry to remain
+    // author-facing (uncommon, since the whole point of the rename is to
+    // demote it), they can set `stateVariableDefinitions[newName].excludeFromSchema = false`
+    // after this call.
     stateVarDef.excludeFromSchema = true;
 
     // second, check if name is in additionalStateVariablesDefined

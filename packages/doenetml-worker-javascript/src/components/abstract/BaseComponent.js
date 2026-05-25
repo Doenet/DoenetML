@@ -1175,22 +1175,16 @@ export default class BaseComponent {
                         stateVariableDescriptions[varName].description =
                             attrObj.description;
                     }
-                    // Propagate `stateVarExcludeFromSchema` from the
-                    // attribute onto its companion state variable's
-                    // description. This is the "exclude the state var but
-                    // keep the attribute" lever, used when an attribute is
-                    // public yet its `createStateVariable` points at a
-                    // plumbing-named state var (e.g. `<answer>`'s
-                    // `colorCorrectness` attribute → `colorCorrectnessPreliminary`
-                    // state var, with a separate `colorCorrectness` state
-                    // def computing the author-facing value). The
-                    // already-existing attribute-level `excludeFromSchema`
-                    // hides both attribute and state var (#1090); this
-                    // flag is the asymmetric companion. See #1089.
-                    if (attrObj.stateVarExcludeFromSchema) {
-                        stateVariableDescriptions[varName].excludeFromSchema =
-                            true;
-                    }
+                    // Note: `stateVarExcludeFromSchema` (the
+                    // "keep-attribute / hide-companion-state-var" lever
+                    // for #1089) is handled in `get-schema.ts` by scanning
+                    // attribute objects directly — see the
+                    // `excludedStateVariableNames` loop in
+                    // `buildHelpPayloadForClass`. We intentionally do not
+                    // propagate it onto the state variable description
+                    // here, to keep attribute-derived flags in the
+                    // attribute layer and state-def-derived flags (handled
+                    // below) in the state-def layer.
                 }
             }
         }

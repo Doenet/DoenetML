@@ -64,6 +64,34 @@ describe("excludeFromSchema on state variables (#1089)", () => {
                 ).toBe(undefined);
             }
         });
+
+        it("hides permid and isPotentialResponse globally (both excluded on BaseComponent)", () => {
+            // Both attributes are declared on `BaseComponent` with
+            // `excludeFromSchema: true` and a `createStateVariable`, so
+            // neither their attribute nor their companion state var should
+            // surface anywhere in the schema. Pinned to lock the #1090
+            // residue audit ("no leftover leaks via alias or array-entry
+            // paths") into a regression check.
+            const schema = getSchema(infoObjects);
+            for (const el of schema.elements) {
+                expect(
+                    el.properties.find((p) => p.name === "permid"),
+                    `${el.name}.permid should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    el.properties.find((p) => p.name === "isPotentialResponse"),
+                    `${el.name}.isPotentialResponse should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    el.attributes.find((a) => a.name === "permid"),
+                    `${el.name}.permid attribute should be excluded`,
+                ).toBe(undefined);
+                expect(
+                    el.attributes.find((a) => a.name === "isPotentialResponse"),
+                    `${el.name}.isPotentialResponse attribute should be excluded`,
+                ).toBe(undefined);
+            }
+        });
     });
 
     describe("source (b): attribute stateVarExcludeFromSchema", () => {
