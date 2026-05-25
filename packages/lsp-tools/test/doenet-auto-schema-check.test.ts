@@ -633,4 +633,237 @@ describe("AutoCompleter", () => {
             ).toEqual([]);
         });
     });
+
+    describe("Unquoted attribute values (#1104)", () => {
+        // Catches authors who type `<math name=foo>` and never open the
+        // autocomplete menu (which would have offered the quoted form).
+        // The parser splits the unquoted assignment into two value-less
+        // attributes; the diagnostic points at the bare token and names
+        // the corrected form in the hover message.  The tests use the
+        // top-level test schema's `<a>` element, whose `x`/`y` attributes
+        // both accept arbitrary values — `x=bar` thus exercises the new
+        // warning in isolation without tripping the standard
+        // "unknown attribute" / enumerated-value paths.
+
+        it("warns on a bare attribute value and names the corrected form", async () => {
+            const source = `<a x=bar />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            // Exactly one diagnostic — the "unknown attribute" warning
+            // that would otherwise fire on the bare-value half must be
+            // suppressed.
+            expect(diags).toHaveLength(1);
+            expect(diags[0].severity).toBe(2); // Warning
+            expect(diags[0].message).toBe(
+                'Attribute values must be enclosed in quotes: `x="bar"`',
+            );
+            // Range covers the bare token `bar` (offset 5-8 in the
+            // source `<a x=bar />`).
+            expect(diags[0].range).toEqual({
+                start: { line: 0, character: 5 },
+                end: { line: 0, character: 8 },
+            });
+        });
+
+        it("does not warn when the value is quoted", async () => {
+            const source = `<a x="bar" />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            expect(await ac.getSchemaViolations()).toEqual([]);
+        });
+
+        it("warns on a bare value with whitespace between `=` and the token", async () => {
+            // `<a x=   bar />`: the parser absorbs the trailing spaces
+            // into `x`'s source range (so it ends `x=   `), and `bar`
+            // becomes the value-less follower. Detection must tolerate
+            // the whitespace and still emit the warning.
+            const source = `<a x=   bar />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                'Attribute values must be enclosed in quotes: `x="bar"`',
+            );
+        });
+
+        it("flags only the unquoted attribute when mixed with a quoted one", async () => {
+            // The quoted `y="bar"` parses cleanly and stays quiet; only
+            // the unquoted `x=foo` half fires the new warning.
+            const source = `<a x=foo y="bar" />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(diags).toHaveLength(1);
+            expect(diags[0].message).toBe(
+                'Attribute values must be enclosed in quotes: `x="foo"`',
+            );
+            // The bare `foo` is offset 5-8 in `<a x=foo y="bar" />`.
+            expect(diags[0].range.start.character).toBe(5);
+            expect(diags[0].range.end.character).toBe(8);
+        });
+
+        it("does not flag two attributes separated by whitespace", async () => {
+            // `<a x foo />` — two value-less boolean attributes, NOT an
+            // unquoted assignment. The `x` half doesn't end in `=`, so
+            // no pair forms; only the standard "unknown attribute"
+            // warning on `foo` survives (and `x` itself is a known
+            // attribute on the test `<a>` element).
+            const source = `<a x foo />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).not.toContain(
+                'Attribute values must be enclosed in quotes: `x="foo"`',
+            );
+            // Standard unknown-attribute warning still fires on `foo`.
+            expect(messages).toContain(
+                "Element `<a>` doesn't have an attribute called `foo`.",
+            );
+        });
+
+        it("still warns when the assignment half itself is an unknown attribute", async () => {
+            // `<a foo=bar />` — `foo` is not on `<a>`'s attribute list,
+            // so the standard "unknown attribute" warning still fires
+            // on the `foo=` half (the author should know `foo` isn't a
+            // real attribute) AND the bare-value warning fires on the
+            // `bar` half.  The two diagnostics are independent and both
+            // useful.
+            const source = `<a foo=bar />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message).sort();
+            expect(messages).toEqual([
+                'Attribute values must be enclosed in quotes: `foo="bar"`',
+                "Element `<a>` doesn't have an attribute called `foo`.",
+            ]);
+        });
+
+        it("does not flag the next attribute when the assignment half is empty", async () => {
+            // `<a x= y="bar" />` — `x`'s source is `x= ` (ends in `=`
+            // plus whitespace), but `y="bar"` is a real attribute with
+            // its own quoted value, not a bare token. Flagging the
+            // pair would emit a misleading `x="y"` suggestion; the
+            // value-half-also-empty guard prevents that.
+            const source = `<a x= y="bar" />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).not.toContain(
+                'Attribute values must be enclosed in quotes: `x="y"`',
+            );
+        });
+
+        it("stays silent on macro-valued unquoted assignments", async () => {
+            // `<a x=$y z=foo />` — the lezer parser absorbs `$y` as an
+            // element child and drops `z`/`foo` out of the attribute
+            // list entirely, leaving only `x` as a lone assignment half
+            // with no sibling to pair with.  No bare-value warning
+            // fires, even on the visually-bare `z=foo` portion —
+            // documenting that the pre-pass relies on the parser
+            // surfacing the second half as an attribute slot.
+            const source = `<a x=$y z=foo />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(
+                diags
+                    .map((d) => d.message)
+                    .filter((m) => m.includes("must be enclosed in quotes")),
+            ).toEqual([]);
+        });
+
+        it("does not emit a misleading `name=''` error on the assignment half", async () => {
+            // `<math name=foo />` — the actual #1104 target. The
+            // assignment half (`name=`) has `children.length === 0`, so
+            // the standard `name`-must-start-with-a-letter check would
+            // see `toXml([]) === ""` and emit an Error claiming the
+            // author wrote `name=''`. They didn't — they wrote
+            // `name=foo`, which is already reported by the new
+            // bare-value warning. Suppress the misleading Error on the
+            // paired assignment half.
+            const source = `<math name=foo />`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `name="foo"`',
+            );
+            expect(messages).not.toContain(
+                "Invalid attribute name=''. Names must start with a letter.",
+            );
+        });
+
+        it("tolerates the no-space self-closing form `name=foo/>`", async () => {
+            // `<math name=foo/>` (no space before `/>`) — the form an
+            // author is most likely to type. Lezer tokenizes this
+            // identically to the space-separated `<math name=foo />`
+            // case: the bare token is still `foo`, the assignment half
+            // is still `name=`. Pin the behavior so a future grammar
+            // tweak that absorbs `/` into the token surfaces here
+            // instead of as a garbled hover.
+            const source = `<math name=foo/>`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `name="foo"`',
+            );
+        });
+
+        it("does not emit a bare-value warning for two consecutive unquoted values", async () => {
+            // `<a x=foo y=bar />` — the parser greedily reads through
+            // the second `=` and reports its own quote-mismatch error
+            // covering the whole run; emitting a bare-value warning
+            // here would either misattribute the suggestion
+            // (`x="foo"`? `x="y"`? neither is right) or duplicate the
+            // parser's error.  Documented as out-of-scope on
+            // `findBareAttributeValuePairs`; pin it with a test so a
+            // future grammar change that surfaces clean attribute
+            // slots for this case surfaces here instead of in the
+            // wild.
+            const source = `<a x=foo y=bar />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(
+                diags
+                    .map((d) => d.message)
+                    .filter((m) => m.includes("must be enclosed in quotes")),
+            ).toEqual([]);
+        });
+
+        it("does not emit a misleading enum-mismatch on a paired assignment half", async () => {
+            // `<b mode=foo />` — `mode` has allowedValues
+            // `["none", "full", "true", "false"]`. The standard
+            // enum-mismatch check defaults an empty value to `"true"`,
+            // which IS in the set for `mode` — so this particular
+            // attribute would be silent anyway. But `<b modeOneSided=foo />`
+            // uses `["none", "full", "true"]` (also contains `"true"`),
+            // so neither test schema attribute exercises a default-to-
+            // `"true"` MISS. Use a synthetic schema with an enum that
+            // excludes `"true"` to pin the suppression.
+            const localSchema = {
+                elements: [
+                    {
+                        name: "a",
+                        children: [],
+                        attributes: [
+                            { name: "kind", values: ["one", "two"] },
+                            { name: "k" },
+                        ],
+                        top: true,
+                        acceptsStringChildren: false,
+                    },
+                ],
+            };
+            const source = `<a kind=foo />`;
+            const ac = new AutoCompleter(source, localSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            // The bare-value warning is the only diagnostic — no
+            // "must be one of: ..." warning on the assignment half.
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `kind="foo"`',
+            );
+            expect(
+                messages.filter((m) => m.includes("must be one of")),
+            ).toEqual([]);
+        });
+    });
 });
