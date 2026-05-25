@@ -166,6 +166,15 @@ export async function getSchemaViolations(
                     assignAttr,
                 ]),
             );
+            // Assignment halves that successfully paired with a bare
+            // value.  Standard value-dependent checks (the empty-string
+            // `name=''` error; the "absent value defaults to `true`"
+            // enumerated-value check) would otherwise misfire on these
+            // — the *real* value lives on the bare-value half, and is
+            // already covered by the bare-value warning above.
+            const pairedAssignAttrs = new Set(
+                bareValuePairs.map(({ assignAttr }) => assignAttr),
+            );
 
             for (const attr of Object.values(node.attributes)) {
                 const attrName = this.normalizeAttributeName(attr.name);
@@ -176,6 +185,11 @@ export async function getSchemaViolations(
                 // unknown attribute on the parent element).
                 const assignAttr = bareValueByAttr.get(attr);
                 if (assignAttr) {
+                    // `bareValueByAttr` only ever contains attrs whose
+                    // `position` was non-null at filter time in
+                    // `findBareAttributeValuePairs`; the `?? 0`
+                    // fallbacks here exist for the type checker, not as
+                    // a runtime guard.
                     const startOffset = attr.position?.start.offset ?? 0;
                     const endOffset = attr.position?.end.offset ?? 0;
                     ret.push({
@@ -191,8 +205,14 @@ export async function getSchemaViolations(
                     continue;
                 }
 
+                const isPairedAssignHalf = pairedAssignAttrs.has(attr);
+
                 // Make sure that `name` attributes start with a letter.
-                if (attrName === "name") {
+                // Skip on a paired assignment half: `toXml([])` is `""`,
+                // which would emit a misleading "name=''" error even
+                // though the author *did* write a value (just unquoted)
+                // — already reported as the bare-value warning.
+                if (attrName === "name" && !isPairedAssignHalf) {
                     const value = toXml(attr.children);
                     if (!value.charAt(0).match(/[a-zA-Z]/)) {
                         ret.push({
@@ -268,7 +288,12 @@ export async function getSchemaViolations(
                     );
                     if (
                         !hasMacroOrFunctionChild(attr.children) &&
-                        allowedValues
+                        allowedValues &&
+                        // Paired assignment half: defaulting to `"true"`
+                        // here would emit a spurious enum-mismatch
+                        // warning even though the author *did* write a
+                        // value (just unquoted, on the next attr).
+                        !isPairedAssignHalf
                     ) {
                         // Attributes specified without a value are considered to have a value of "true".
                         const attrValue =
@@ -332,10 +357,12 @@ function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
  * the diagnostics path can warn on the bare half and suppress the
  * spurious unknown-attribute warning that would otherwise fire on it.
  *
- * Cases the parser does NOT split this way are intentionally skipped
- * here, since they already surface as parser-level errors:
- *   - `<a x=$y>` — the `$y` gets absorbed as an element child.
- *   - `<a x=23>` — numeric-leading tokens can't form an attribute name.
+ * Cases the parser does NOT split this way never reach the pair loop —
+ * they're handled at lower layers and we have nothing to add:
+ *   - `<a x=$y>` — the `$y` gets absorbed as an element child, so `x`
+ *     ends up as a lone assignment half with no sibling to pair with.
+ *   - `<a x=23>` — numeric-leading tokens can't form an attribute name,
+ *     so no bare-value half materializes.
  *   - `<a x=foo y=bar>` — the parser greedily reads through the second
  *     `=` and reports a quote-mismatch over the whole run.
  */
@@ -344,11 +371,15 @@ function findBareAttributeValuePairs(
     source: string,
 ): { assignAttr: DastAttribute; valueAttr: DastAttribute }[] {
     const sorted = Object.values(node.attributes)
-        .filter((a) => a.position?.start.offset != null)
+        .filter(
+            (a) =>
+                a.position?.start.offset != null &&
+                a.position?.end.offset != null,
+        )
         .sort(
             (a, b) =>
-                (a.position!.start.offset ?? 0) -
-                (b.position!.start.offset ?? 0),
+                (a.position?.start.offset ?? 0) -
+                (b.position?.start.offset ?? 0),
         );
     const pairs: { assignAttr: DastAttribute; valueAttr: DastAttribute }[] = [];
     for (let i = 1; i < sorted.length; i++) {
@@ -358,20 +389,25 @@ function findBareAttributeValuePairs(
         // rules out `<a x= y="bar" />`, where `x`'s source ends in `= `
         // (matching the regex below) but `y` is a real attribute with
         // its own quoted value — flagging `y` there would emit a
-        // misleading `x="y"` suggestion.
+        // misleading `x="y"` suggestion.  Two adjacent assignment halves
+        // never materialize at this layer: the lezer parser swallows a
+        // trailing `=` into the previous attribute's value (so
+        // `<a x= y= />` parses as a single attribute `x` with source
+        // `x= y= />`), and macro-valued unquoted assignments
+        // (`<a x=$y z=foo />`) drop `$y`/`z`/`foo` out of the attribute
+        // list entirely, leaving only `x` behind.
         if (prev.children.length !== 0 || curr.children.length !== 0) {
             continue;
         }
-        const prevStart = prev.position?.start.offset;
-        const prevEnd = prev.position?.end.offset;
-        if (prevStart == null || prevEnd == null) {
-            continue;
-        }
-        // `=` must be the last non-whitespace character of `prev`'s source
-        // — this is what distinguishes `<a x=foo>` (where `x`'s source is
-        // `x=` or `x = `) from the unrelated `<a x foo>` (where `x`'s
-        // source is just `x`).
-        const prevSrc = source.slice(prevStart, prevEnd);
+        // Filter above guarantees both offsets are present; the `?? 0`
+        // is for the type checker.
+        const prevSrc = source.slice(
+            prev.position?.start.offset ?? 0,
+            prev.position?.end.offset ?? 0,
+        );
+        // `=` as the last non-whitespace character marks `prev` as an
+        // assignment half (`x=` or `x = `), distinguishing `<a x=foo>`
+        // from the unrelated boolean-attribute pair `<a x foo>`.
         if (!/=\s*$/.test(prevSrc)) {
             continue;
         }

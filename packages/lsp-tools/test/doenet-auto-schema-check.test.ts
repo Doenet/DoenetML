@@ -750,5 +750,82 @@ describe("AutoCompleter", () => {
                 'Attribute values must be enclosed in quotes: `x="y"`',
             );
         });
+
+        it("stays silent on macro-valued unquoted assignments", async () => {
+            // `<a x=$y z=foo />` — the lezer parser absorbs `$y` as an
+            // element child and drops `z`/`foo` out of the attribute
+            // list entirely, leaving only `x` as a lone assignment half
+            // with no sibling to pair with.  No bare-value warning
+            // fires, even on the visually-bare `z=foo` portion —
+            // documenting that the pre-pass relies on the parser
+            // surfacing the second half as an attribute slot.
+            const source = `<a x=$y z=foo />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(
+                diags
+                    .map((d) => d.message)
+                    .filter((m) => m.includes("must be enclosed in quotes")),
+            ).toEqual([]);
+        });
+
+        it("does not emit a misleading `name=''` error on the assignment half", async () => {
+            // `<math name=foo />` — the actual #1104 target. The
+            // assignment half (`name=`) has `children.length === 0`, so
+            // the standard `name`-must-start-with-a-letter check would
+            // see `toXml([]) === ""` and emit an Error claiming the
+            // author wrote `name=''`. They didn't — they wrote
+            // `name=foo`, which is already reported by the new
+            // bare-value warning. Suppress the misleading Error on the
+            // paired assignment half.
+            const source = `<math name=foo />`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `name="foo"`',
+            );
+            expect(messages).not.toContain(
+                "Invalid attribute name=''. Names must start with a letter.",
+            );
+        });
+
+        it("does not emit a misleading enum-mismatch on a paired assignment half", async () => {
+            // `<b mode=foo />` — `mode` has allowedValues
+            // `["none", "full", "true", "false"]`. The standard
+            // enum-mismatch check defaults an empty value to `"true"`,
+            // which IS in the set for `mode` — so this particular
+            // attribute would be silent anyway. But `<b modeOneSided=foo />`
+            // uses `["none", "full", "true"]` (also contains `"true"`),
+            // so neither test schema attribute exercises a default-to-
+            // `"true"` MISS. Use a synthetic schema with an enum that
+            // excludes `"true"` to pin the suppression.
+            const localSchema = {
+                elements: [
+                    {
+                        name: "a",
+                        children: [],
+                        attributes: [
+                            { name: "kind", values: ["one", "two"] },
+                            { name: "k" },
+                        ],
+                        top: true,
+                        acceptsStringChildren: false,
+                    },
+                ],
+            };
+            const source = `<a kind=foo />`;
+            const ac = new AutoCompleter(source, localSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            // The bare-value warning is the only diagnostic — no
+            // "must be one of: ..." warning on the assignment half.
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `kind="foo"`',
+            );
+            expect(
+                messages.filter((m) => m.includes("must be one of")),
+            ).toEqual([]);
+        });
     });
 });
