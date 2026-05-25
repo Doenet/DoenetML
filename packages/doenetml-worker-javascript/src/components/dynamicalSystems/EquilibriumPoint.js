@@ -1,4 +1,5 @@
 import Point from "../Point";
+import { markerStyleValuesWithFillVariants } from "@doenet/utils";
 
 export default class EquilibriumPoint extends Point {
     static componentType = "equilibriumPoint";
@@ -11,6 +12,14 @@ export default class EquilibriumPoint extends Point {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        // EquilibriumPoints render open/closed based on the `stable` attribute,
+        // so the markerStyle picker hides shapes whose open/closed states would
+        // be visually indistinguishable (cross, plus — no interior to fill).
+        attributes.markerStyle = {
+            ...attributes.markerStyle,
+            validValues: markerStyleValuesWithFillVariants,
+        };
 
         attributes.stable = {
             createComponentOfType: "boolean",

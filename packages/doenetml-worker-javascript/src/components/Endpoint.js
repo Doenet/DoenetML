@@ -1,4 +1,5 @@
 import Point from "./Point";
+import { markerStyleValuesWithFillVariants } from "@doenet/utils";
 
 export default class Endpoint extends Point {
     static componentType = "endpoint";
@@ -11,6 +12,14 @@ export default class Endpoint extends Point {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        // Endpoints render open/closed based on the `open` attribute, so the
+        // markerStyle picker hides shapes whose open/closed states would be
+        // visually indistinguishable (cross, plus — no interior to fill).
+        attributes.markerStyle = {
+            ...attributes.markerStyle,
+            validValues: markerStyleValuesWithFillVariants,
+        };
 
         attributes.open = {
             createComponentOfType: "boolean",

@@ -73,6 +73,30 @@ describe("Per-component style override tests @group4", async () => {
         expect(Q.stateValues.selectedStyle.markerStyleWord).eq("triangle");
     });
 
+    it("endpoint and equilibriumPoint hide markerStyle values with no fill/unfill distinction", async () => {
+        // Both components render the marker open or closed based on their own
+        // semantic state (Endpoint.open, EquilibriumPoint.stable), so cross
+        // and plus — which have no interior — must not appear in the
+        // markerStyle picker.
+        const Endpoint = (await import("../../components/Endpoint.js")).default;
+        const EquilibriumPoint = (
+            await import("../../components/dynamicalSystems/EquilibriumPoint.js")
+        ).default;
+
+        for (const Cls of [Endpoint, EquilibriumPoint]) {
+            const attrs = Cls.createAttributesObject();
+            const values = attrs.markerStyle.validValues.map(
+                (v: { value: string }) => v.value,
+            );
+            expect(values).not.toContain("cross");
+            expect(values).not.toContain("plus");
+            // Sanity: fill-capable shapes are still present.
+            for (const v of ["circle", "square", "triangle", "diamond"]) {
+                expect(values).toContain(v);
+            }
+        }
+    });
+
     it("*Word descriptors are not exposed as per-component override attributes", async () => {
         // Authors customize descriptive wording via <styleDefinition> on the
         // rare occasions they need to. Per-component overrides intentionally

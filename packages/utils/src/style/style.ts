@@ -210,6 +210,20 @@ export let styleAttributes: StyleAttributes = {
 };
 
 /**
+ * Subset of {@link styleAttributes}.markerStyle.validValues whose shapes have
+ * a meaningful filled-vs-unfilled distinction. Components like `<endpoint>`
+ * and `<equilibriumPoint>` render the marker open or closed based on their
+ * own semantic state (`open` / `stable`), so they should restrict
+ * `markerStyle` to shapes that visually express both variants. `cross` and
+ * `plus` have no interior to fill, so their open/closed semantic would be
+ * invisible — those values are excluded here.
+ */
+export const markerStyleValuesWithFillVariants =
+    styleAttributes.markerStyle.validValues!.filter(
+        (entry) => entry.value !== "cross" && entry.value !== "plus",
+    );
+
+/**
  * Style-attribute keys that may be overridden directly on a component (e.g.
  * `<point markerStyle="square">`). Color keys are intentionally excluded —
  * color authoring stays exclusive to `<styleDefinition>` so the per-styleNumber
