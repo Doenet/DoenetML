@@ -47,27 +47,42 @@ function resolveInitialDoenetMLSource(root: Element): string {
     return initialDoenetMLSource;
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    let pause100 = function () {
-        return new Promise((resolve, _reject) => {
-            setTimeout(resolve, 100);
-        });
-    };
-
-    // wait up to a second window.renderDoenetViewerToContainer to be found
-    for (let i = 0; i < 10; i++) {
-        if (typeof window.renderDoenetViewerToContainer === "function") {
-            break;
+// Wait for the @doenet/standalone bundle to finish evaluating and
+// define `window.renderDoenetEditorToContainer`. Returns true on success,
+// false if the function never appears within `timeoutMs`.
+//
+// `iframeReady` MUST be gated on this. The two scripts in the srcDoc —
+// the standalone bundle (~32 MB) and this inline editor module — load in
+// parallel, and the inline module is tiny enough to finish first. If we
+// signalled ready before the bundle was loaded, the parent's Comlink
+// `renderEditorWithFunctionProps` call could arrive while
+// `window.renderDoenetEditorToContainer` is still undefined; that throws
+// inside the iframe, the parent's wrapper catches the rejection silently
+// (`.catch(logComlinkError(...))`), and the editor never mounts even
+// though the bundle does eventually finish loading.
+//
+// In practice the bundle is ready within a few hundred ms in most
+// contexts. The headroom matters for the iframe-wrapper's srcDoc-rebuild
+// path: on slow CI runners the second iframe's V8 isolate re-parses the
+// 32 MB bundle from scratch (Chrome's bytecode cache for blob: URLs is
+// not always rehydrated across iframe loads) and can take tens of
+// seconds before the function is defined. The 60 s ceiling matches the
+// overall budget the srcDocRebuildReplay test allocates per cypress
+// attempt (REBUILD_INNER_TIMEOUT_MS × (1 + REBUILD_INNER_RETRIES)) —
+// neither side should give up while the other is still trying.
+async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
+    if (typeof window.renderDoenetEditorToContainer === "function") {
+        return true;
+    }
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        if (typeof window.renderDoenetEditorToContainer === "function") {
+            return true;
         }
-        await pause100();
     }
-
-    if (typeof window.renderDoenetEditorToContainer !== "function") {
-        return messageParentFromEditor({
-            error: "Invalid DoenetML version or DoenetML package not found",
-        });
-    }
-});
+    return false;
+}
 
 ComlinkEditor.expose(
     {
@@ -199,7 +214,21 @@ function renderWithLastAugmentedProps() {
     }
 }
 
-messageParentFromEditor({ iframeReady: true });
+// Defer `iframeReady` until the standalone bundle has defined
+// `renderDoenetEditorToContainer`. See `waitForStandaloneBundle` above
+// for why this gate is load-bearing. ComlinkEditor.expose above has
+// already run so the Comlink endpoint is wired and ready for the parent
+// to call as soon as we signal — there's just no point signalling
+// until the function the parent will eventually invoke is in place.
+void (async () => {
+    if (await waitForStandaloneBundle(60_000)) {
+        messageParentFromEditor({ iframeReady: true });
+    } else {
+        messageParentFromEditor({
+            error: "Invalid DoenetML version or DoenetML package not found",
+        });
+    }
+})();
 
 /**
  * Send a message to the parent React component.
