@@ -790,6 +790,44 @@ describe("AutoCompleter", () => {
             );
         });
 
+        it("tolerates the no-space self-closing form `name=foo/>`", async () => {
+            // `<math name=foo/>` (no space before `/>`) — the form an
+            // author is most likely to type. Lezer tokenizes this
+            // identically to the space-separated `<math name=foo />`
+            // case: the bare token is still `foo`, the assignment half
+            // is still `name=`. Pin the behavior so a future grammar
+            // tweak that absorbs `/` into the token surfaces here
+            // instead of as a garbled hover.
+            const source = `<math name=foo/>`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).toContain(
+                'Attribute values must be enclosed in quotes: `name="foo"`',
+            );
+        });
+
+        it("does not emit a bare-value warning for two consecutive unquoted values", async () => {
+            // `<a x=foo y=bar />` — the parser greedily reads through
+            // the second `=` and reports its own quote-mismatch error
+            // covering the whole run; emitting a bare-value warning
+            // here would either misattribute the suggestion
+            // (`x="foo"`? `x="y"`? neither is right) or duplicate the
+            // parser's error.  Documented as out-of-scope on
+            // `findBareAttributeValuePairs`; pin it with a test so a
+            // future grammar change that surfaces clean attribute
+            // slots for this case surfaces here instead of in the
+            // wild.
+            const source = `<a x=foo y=bar />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            expect(
+                diags
+                    .map((d) => d.message)
+                    .filter((m) => m.includes("must be enclosed in quotes")),
+            ).toEqual([]);
+        });
+
         it("does not emit a misleading enum-mismatch on a paired assignment half", async () => {
             // `<b mode=foo />` — `mode` has allowedValues
             // `["none", "full", "true", "false"]`. The standard

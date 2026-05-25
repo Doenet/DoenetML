@@ -192,6 +192,12 @@ export async function getSchemaViolations(
                     // a runtime guard.
                     const startOffset = attr.position?.start.offset ?? 0;
                     const endOffset = attr.position?.end.offset ?? 0;
+                    // Both names are lezer-tokenized identifier tokens
+                    // (no backticks, no `"`), so they interpolate cleanly
+                    // into the markdown code fence below — see the
+                    // unquoted-tag regression test `name=foo/>` (no
+                    // space) for the closest the parser ever gets to
+                    // including punctuation in a bare token.
                     ret.push({
                         range: {
                             start: this.sourceObj.offsetToLSPPosition(
@@ -370,7 +376,15 @@ function findBareAttributeValuePairs(
     node: DastElement,
     source: string,
 ): { assignAttr: DastAttribute; valueAttr: DastAttribute }[] {
-    const sorted = Object.values(node.attributes)
+    // Pair detection needs at least two attributes; skip the sort
+    // allocation in the (overwhelmingly common) zero-or-one case.
+    // This runs once per element on every keystroke-driven validation,
+    // so the early-out matters more than the constant factor suggests.
+    const attrs = Object.values(node.attributes);
+    if (attrs.length < 2) {
+        return [];
+    }
+    const sorted = attrs
         .filter(
             (a) =>
                 a.position?.start.offset != null &&
