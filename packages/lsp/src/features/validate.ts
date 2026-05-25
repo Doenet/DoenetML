@@ -16,6 +16,7 @@ import {
     AutoCompleter,
     DOENET_LSP_METHODS,
     RustResolverAdapter,
+    dedupeLspDiagnostics,
 } from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -219,7 +220,18 @@ export function addValidationSupport(
 
         diagnostics.push(...info.additionalDiagnostics);
 
+        // Dedupe by severity+range+message before sending: the worker's
+        // `_error`-component pipeline re-surfaces every parser DAST
+        // error as a runtime diagnostic and pushes it back through
+        // `additionalDiagnostics`, so without this pass the editor's
+        // hover renders the same record twice (the Diagnostics tab
+        // already dedupes via Core's `DiagnosticsManager`).
+        const deduped = dedupeLspDiagnostics(diagnostics);
+
         // Send the computed diagnostics to VSCode.
-        connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        connection.sendDiagnostics({
+            uri: textDocument.uri,
+            diagnostics: deduped,
+        });
     }
 }

@@ -245,29 +245,33 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         expectTooltipForLintRange(".cm-lintRange-warning", "wrong-attr");
     });
 
-    it("renders a warning squiggle for an unquoted attribute value (#1104, #1197)", () => {
+    it("renders an error squiggle for an unquoted attribute value (#1104, #1197)", () => {
         // `<math name=foo />` — the lezer parser splits the unquoted
         // assignment into two value-less attributes; `lezer-to-dast`
         // detects that pair, strips both halves from `node.attributes`,
-        // and emits a single unified warning naming the corrected form
-        // (`name="foo"`) so the author can fix it from the hover
-        // without opening the autocomplete menu.  The unified warning
+        // and emits a single unified DAST error naming the corrected
+        // form (`name="foo"`) so the author can fix it from the hover
+        // without opening the autocomplete menu.  The unified error
         // replaces the four redundant diagnostics this shape used to
-        // surface (#1197).
+        // surface (#1197).  `error_type` is left undefined (= error)
+        // so the viewer also shows an orange `_error` block, matching
+        // the severity of sibling shapes like `<math name>` and
+        // `<math name="4" />` that the normalize step already treats
+        // as errors.
         mountEditor(`<math name=foo />`);
 
         waitForDiagnosticDom();
 
-        // The yellow squiggle covers the bare token `foo`; with both
+        // The red squiggle covers the bare token `foo`; with both
         // pair halves stripped, no other squiggle fires for this shape.
-        cy.get(".cm-lintRange-warning").should("have.text", "foo");
+        cy.get(".cm-lintRange-error").should("have.text", "foo");
         cy.get(".cm-lintRange").should("have.length", 1);
 
         // The tooltip renders the diagnostic's markdown — backticks
         // become inline code styling and drop out of `.text`. Assert on
         // the rendered substring.
         expectTooltipForLintRange(
-            ".cm-lintRange-warning",
+            ".cm-lintRange-error",
             'Attribute values must be enclosed in quotes: name="foo"',
         );
     });

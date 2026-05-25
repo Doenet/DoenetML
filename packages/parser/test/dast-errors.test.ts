@@ -85,14 +85,19 @@ describe("DAST", async () => {
         );
     });
 
-    it("Emits one unified warning per unquoted attribute pair (#1197)", () => {
+    it("Emits one unified error per unquoted attribute pair (#1197)", () => {
         // `<section name=foo></section>` was the canonical four-error
         // shape (`Invalid attribute "foo"`, two `Invalid attribute
         // name=`, one `Invalid attribute name=''`); `lezer-to-dast` now
         // detects the pair, strips both halves from `node.attributes`,
-        // and emits a single `error_type: "warning"` node naming the
-        // corrected form.  Downstream layers (dast-normalize, the
-        // worker) see no attribute remnant to re-flag.
+        // and emits a single `DastError` node naming the corrected
+        // form.  `error_type` is left undefined (= "error") so the
+        // worker turns it into an `_error` component and the viewer
+        // shows the orange error block — matching the severity of
+        // `<section name>` / `<section name="4" />`, which the
+        // `enforce-valid-names` normalize step already treats as
+        // errors.  Downstream layers (dast-normalize, the worker) see
+        // no attribute remnant to re-flag.
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
 
@@ -103,8 +108,12 @@ describe("DAST", async () => {
         expect(errs[0].message).toBe(
             'Attribute values must be enclosed in quotes: `name="foo"`',
         );
-        expect(errs[0].error_type).toBe("warning");
-        // The warning's position spans the bare-value token (`foo`,
+        // `error_type` is left undefined so consumers default to
+        // "error" — the worker's `convertNormalizedDast` only takes
+        // the `_error`-component branch when `errorType` is not
+        // "warning"/"info".
+        expect(errs[0].error_type).toBeUndefined();
+        // The error's position spans the bare-value token (`foo`,
         // offsets 14-17 in the source) so the editor squiggle covers
         // only what the author needs to fix.
         expect(errs[0].position).toMatchObject({

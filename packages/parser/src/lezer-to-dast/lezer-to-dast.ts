@@ -204,10 +204,16 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // duplicate, pre-bookkeeping-fix), an "Invalid attribute
                 // `foo`" from the worker on the bare half, and an
                 // "Invalid attribute name=''" from `enforce-valid-names`
-                // — with one unified `error_type: "warning"` node spanning
-                // the bare-value token.  Both halves are stripped from
-                // the final attribute list so the downstream layers see
-                // no remnant to re-flag.
+                // — with one unified `DastError` node spanning the
+                // bare-value token.  `error_type` is left undefined
+                // (which the worker reads as `"error"`) so the worker
+                // creates an `_error` component for it and the viewer
+                // renders the familiar orange error block — matching
+                // the severity of related shapes like `<section name>`
+                // and `<section name="4" />` that `enforce-valid-names`
+                // already treats as errors.  Both halves are stripped
+                // from the final attribute list so the downstream
+                // layers see no remnant to re-flag.
                 const bareValuePairs = findBareAttributeValuePairs(
                     attrEntries.map((e) => e.dastAttr),
                     source,
@@ -242,7 +248,6 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         const endPos = pair.valueAttr.position!.end;
                         children.push({
                             type: "error",
-                            error_type: "warning",
                             message: unquotedAttributeValueMessage(
                                 pair.assignAttr.name,
                                 pair.valueAttr.name,
@@ -254,7 +259,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     if (pairedAssignAttrs.has(dastAttr)) {
                         // Handled by the bare-value half above; the
                         // assign half's lezer "missing value" `⚠` is
-                        // subsumed by the unified warning.
+                        // subsumed by the unified error.
                         continue;
                     }
                     const error = findFirstErrorInChild(attrTag);

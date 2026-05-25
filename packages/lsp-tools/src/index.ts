@@ -3,3 +3,4 @@ export * from "./auto-completer";
 export * from "./doenet-to-markdown";
 export * from "./context-help";
 export * from "./lsp-protocol";
+export { dedupeLspDiagnostics } from "./dedupe-lsp-diagnostics";
