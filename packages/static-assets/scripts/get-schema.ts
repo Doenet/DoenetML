@@ -394,6 +394,13 @@ type SchemaElement = {
  * Help payload for an alias-only component (e.g. one with
  * `excludeFromSchema = true` but referenced via `childAliases`). Mirrors the
  * help-relevant fields of `SchemaElement`.
+ *
+ * `children` / `acceptsStringChildren` are populated the same way regular
+ * `SchemaElement`s populate them (via `determineChildren`) so the LSP can
+ * validate the alias's children against the alias target's child groups
+ * rather than against the canonical entry's — e.g. `<row>` inside `<matrix>`
+ * is the `matrixRow` alias (a `MathList`), so its allowed children are
+ * `<math>` etc., not the tabular `<row>`'s `<cell>` (issue #1174).
  */
 type AliasedSchemaElement = {
     name: string;
@@ -405,6 +412,10 @@ type AliasedSchemaElement = {
     displayContext?: string;
     attributes: SchemaAttribute[];
     properties: PropertyDescription[];
+    /** See `SchemaElement.children`. */
+    children: string[];
+    /** See `SchemaElement.acceptsStringChildren`. */
+    acceptsStringChildren: boolean;
 };
 
 /**
@@ -976,12 +987,20 @@ export function getSchema(
             const targetClass = allClassesIncludingExcluded[targetName];
             if (!targetClass) continue;
             const payload = buildHelpPayloadForClass(targetName, targetClass);
+            // Populate `children` / `acceptsStringChildren` from the alias
+            // target's own child groups so the LSP can validate `<row>` inside
+            // `<matrix>` against `matrixRow`'s `MathList` children (math, …)
+            // rather than against the tabular `<row>`'s `<cell>` (#1174).
+            const { children, acceptsStringChildren } =
+                determineChildren(targetClass);
             const aliased: AliasedSchemaElement = {
                 name: targetName,
                 attributes: payload.attributes,
                 properties: payload.properties,
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
+                children,
+                acceptsStringChildren,
             };
             if (payload.displayName !== undefined) {
                 aliased.displayName = payload.displayName;
