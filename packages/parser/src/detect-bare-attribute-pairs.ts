@@ -22,6 +22,12 @@ export function unquotedAttributeValueMessage(
  * the diagnostics path can warn on the bare half and suppress the
  * spurious unknown-attribute warning that would otherwise fire on it.
  *
+ * Takes a `DastAttribute[]` (the raw per-Attribute list `lezer-to-dast`
+ * builds before deduping into `node.attributes`) rather than the element
+ * itself: `node.attributes` is keyed by attribute name and would silently
+ * collapse two attrs that share a name, which is exactly the shape we
+ * need to inspect here.
+ *
  * Cases the parser does NOT split this way never reach the pair loop —
  * they're handled at lower layers and we have nothing to add:
  *   - `<a x=$y>` — the `$y` gets absorbed as an element child, so `x`

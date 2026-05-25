@@ -270,6 +270,7 @@ export class DoenetSourceObject extends LazyDataObject {
                         this.source,
                         ident.start,
                         ident.end,
+                        (o) => this.offsetToRowCol(o),
                     );
                 }
                 return null;
@@ -285,6 +286,7 @@ export class DoenetSourceObject extends LazyDataObject {
                     this.source,
                     ident.start,
                     ident.end,
+                    (o) => this.offsetToRowCol(o),
                 );
             }
             return null;

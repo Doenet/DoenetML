@@ -60,28 +60,33 @@ export function findPrecedingEqualsForBareValue(
  * the attribute the cursor is conceptually on.
  *
  * `tokenStart` (inclusive) and `tokenEnd` (exclusive) bound the identifier
- * in `source`.  Callers walk the source themselves to determine those
- * bounds; this helper just packages the name and a placeholder position
- * covering the token range.  The caller only reads `.name` (and
- * occasionally `.position` for downstream lookups), so the synthesized
- * line/column are left as zeros — callers that need byte-accurate
- * positions look them up directly on the real attribute.
+ * in `source`; `offsetToRowCol` converts those offsets into the 1-indexed
+ * line/column positions DAST uses everywhere else, so a consumer that
+ * reads `.position.start.line` from this synthesized attribute gets the
+ * same shape it would from a real one.
  */
 export function synthesizeStrippedAttribute(
     source: string,
     tokenStart: number,
     tokenEnd: number,
+    offsetToRowCol: (offset: number) => { line: number; column: number },
 ): DastAttribute | null {
     if (tokenEnd <= tokenStart) {
         return null;
     }
+    const start = offsetToRowCol(tokenStart);
+    const end = offsetToRowCol(tokenEnd);
     return {
         type: "attribute",
         name: source.slice(tokenStart, tokenEnd),
         children: [],
         position: {
-            start: { line: 0, column: 0, offset: tokenStart },
-            end: { line: 0, column: 0, offset: tokenEnd },
+            start: {
+                line: start.line,
+                column: start.column,
+                offset: tokenStart,
+            },
+            end: { line: end.line, column: end.column, offset: tokenEnd },
         },
     };
 }
