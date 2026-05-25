@@ -158,6 +158,35 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                     await moduleAttrDiagnostics(source, "undeclared"),
                 ).toHaveLength(1);
             });
+
+            it("copy= wins over extend= when both are present (pinned precedence)", async () => {
+                // Authoring both `copy=` and `extend=` on the same `<module>`
+                // is itself a schema violation (the runtime treats them as
+                // alternatives), so a well-formed document never hits this
+                // branch.  But `resolveCopyExtendReference` needs a
+                // deterministic precedence so a future runtime clarification
+                // (or a typo'd source mid-edit) can't silently flip which
+                // module's declared attributes are accepted.  This test
+                // pins the chosen LSP behavior: `copy=` is read first and
+                // `extend=` is consulted only when `copy=` is absent /
+                // non-bare.  Two modules each declare a unique attribute;
+                // the augmentation must come from the one named in `copy=`.
+                const source = `<setup>
+<module name="viaCopy"><moduleAttributes><text name="onlyInCopy">x</text></moduleAttributes></module>
+<module name="viaExtend"><moduleAttributes><text name="onlyInExtend">x</text></moduleAttributes></module>
+</setup>
+<module copy="$viaCopy" extend="$viaExtend" onlyInCopy="x" onlyInExtend="x" />`;
+                // `onlyInCopy` is accepted because `copy=` resolved to
+                // `viaCopy` and that's whose declarations augment the site.
+                expect(
+                    await moduleAttrDiagnostics(source, "onlyInCopy"),
+                ).toEqual([]);
+                // `onlyInExtend` warns because `extend=` was not consulted
+                // (precedence: `copy=` was present and bare).
+                expect(
+                    await moduleAttrDiagnostics(source, "onlyInExtend"),
+                ).toHaveLength(1);
+            });
         });
 
         describe("validation: no augmentation when target doesn't qualify", () => {
@@ -195,6 +224,21 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // unknown-attribute warning fires correctly.
                 expect(
                     await moduleAttrDiagnostics(source, "item"),
+                ).toHaveLength(1);
+            });
+
+            it("multi-segment path with an unresolved trailing segment: no augmentation", async () => {
+                // `$m` resolves to the `<module>`, but `notThere` doesn't
+                // exist as a named descendant, so the resolver returns a
+                // partial result (`unresolvedPath.length > 0`) — pinned by
+                // `resolveBarePathAtOrigin`'s explicit early-return.  Without
+                // that guard a partial resolution would return whatever
+                // intermediate node the resolver landed on and we'd augment
+                // against the wrong target's declared attrs.
+                const source = `<setup><module name="m"><moduleAttributes><text name="kept">x</text></moduleAttributes></module></setup>
+<module copy="$m.notThere" kept="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "kept"),
                 ).toHaveLength(1);
             });
 

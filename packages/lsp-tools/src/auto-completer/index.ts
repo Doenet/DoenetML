@@ -481,6 +481,17 @@ export class AutoCompleter {
 
         const adapter = this._rustResolverAdapter;
         const refresh = (async () => {
+            // `rev` was captured before any await.  If an `updateSource`
+            // lands during the `Promise.all` below, `adapter._sourceRevision`
+            // will advance past `rev` and `this.sourceObj.dast` may be
+            // re-parsed.  The entries we write here then reference the
+            // OLD parse's DAST elements while consumers look up new-parse
+            // refs and miss — falling back to canonical-only validation
+            // for one cycle.  That's self-correcting: the next refresh
+            // sees `_sourceRevision !== _moduleInstanceAllowlistSourceRevision`
+            // (because we stamp the OLD `rev`, not the current one) and
+            // re-runs against the new parse.  No wrong augmentation can
+            // be produced — only briefly-missing augmentation.
             const instances = collectModuleInstancesWithCopyOrExtend(
                 this.sourceObj.dast,
             );
