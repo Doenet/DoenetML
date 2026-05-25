@@ -85,6 +85,12 @@ function renderViewerWithFunctionProps(...args: (string | Function)[]) {
 
 // Defer `iframeReady` until the standalone bundle has defined
 // `renderDoenetViewerToContainer`. See `waitForStandaloneBundle` above.
+//
+// The trailing `.catch(...)` is required by repo convention (AGENTS.md:
+// no fire-and-forget Promises). See the editor counterpart for the full
+// rationale — nothing inside is expected to throw, but an unhandled
+// rejection inside the iframe is hard to diagnose, so log locally and
+// try to surface an error to the parent.
 void (async () => {
     if (await waitForStandaloneBundle(60_000)) {
         messageParentFromViewer({ iframeReady: true });
@@ -93,7 +99,19 @@ void (async () => {
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
-})();
+})().catch((err) => {
+    console.error(
+        "iframe DoenetViewer: unexpected failure while signalling iframeReady",
+        err,
+    );
+    try {
+        messageParentFromViewer({
+            error: "iframe viewer failed to initialize",
+        });
+    } catch {
+        // Last-resort fallback — see the editor counterpart.
+    }
+});
 
 /**
  * Send a message to the parent React component.

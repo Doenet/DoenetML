@@ -222,6 +222,15 @@ function renderWithLastAugmentedProps() {
 // already run so the Comlink endpoint is wired and ready for the parent
 // to call as soon as we signal — there's just no point signalling
 // until the function the parent will eventually invoke is in place.
+//
+// The trailing `.catch(...)` is required by repo convention (AGENTS.md:
+// no fire-and-forget Promises). Nothing in the IIFE is expected to
+// throw in practice — `waitForStandaloneBundle` only awaits resolved
+// setTimeout Promises, and `messageParentFromEditor` is a postMessage
+// call — but a future change inside the IIFE could introduce one, and
+// an unhandled rejection inside the iframe is hard to diagnose. Log
+// locally and try to surface an error to the parent so the wrapper can
+// move the user out of the silent-stuck state.
 void (async () => {
     if (await waitForStandaloneBundle(60_000)) {
         messageParentFromEditor({ iframeReady: true });
@@ -230,7 +239,20 @@ void (async () => {
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
-})();
+})().catch((err) => {
+    console.error(
+        "iframe DoenetEditor: unexpected failure while signalling iframeReady",
+        err,
+    );
+    try {
+        messageParentFromEditor({
+            error: "iframe editor failed to initialize",
+        });
+    } catch {
+        // Last-resort fallback — if even postMessage is unavailable
+        // here, there's nothing more we can do from inside the iframe.
+    }
+});
 
 /**
  * Send a message to the parent React component.
