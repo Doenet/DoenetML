@@ -18,6 +18,7 @@ import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { walkIndexAliases } from "../index-aliases";
 import { hasImplicitSingleIndex } from "../select-family";
+import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
 import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
@@ -659,6 +660,14 @@ export async function getCompletionItems(
         offset = this.sourceObj.rowColToOffset(offset);
     }
 
+    // Ensure the per-instance `<module>` attribute allowlist is up to date
+    // for the current source revision before the attribute-name branch
+    // consults it.  Coalesces with the matching call in `getSchemaViolations`
+    // (validation typically runs first), so back-to-back validation +
+    // completion between edits costs at most one resolver round-trip per
+    // `<module copy=…>` site total.
+    await this._refreshModuleInstanceAttributes();
+
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
     let prevNonWhitespaceCharOffset = offset - 1;
@@ -1096,7 +1105,24 @@ export async function getCompletionItems(
         // `<row>`'s (#1174).  The `helpEntry` already does the alias
         // resolution and is the same source the description lookup uses,
         // so the dropdown's set and the per-row docs can't drift apart.
-        const allowedAttributes = helpEntry?.attributes ?? [];
+        const canonicalAttributes = helpEntry?.attributes ?? [];
+        // Per-instance augmentation for `<module copy="$x" .../>` sites
+        // (issue #1154): when the precompute pass resolved `$x` to a
+        // `<module>` definition with declared `<moduleAttributes>`,
+        // synthesize completion entries for each declared name so the
+        // dropdown lists `center` / `color` / `radius` alongside the
+        // canonical `<module>` attributes.  Falls through to canonical-only
+        // when no entry exists in the map.
+        const perInstanceAllowlist =
+            elmName === "module"
+                ? this._moduleInstanceAttributeAllowlist.get(element)
+                : undefined;
+        const allowedAttributes = perInstanceAllowlist
+            ? mergeDeclaredIntoSchemaAttributes(
+                  canonicalAttributes,
+                  perInstanceAllowlist,
+              )
+            : canonicalAttributes;
         return allowedAttributes.map((attr) => {
             const item: CompletionItem = {
                 label: attr.name,
