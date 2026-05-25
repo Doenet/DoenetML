@@ -28,6 +28,7 @@
 
 import type { DastElement } from "@doenet/parser";
 import type { SchemaAttribute } from "./index";
+import type { RustResolverAdapter } from "./rust-resolver-adapter";
 import { findAttributeKey } from "./dast-attribute-utils";
 
 /**
@@ -165,4 +166,103 @@ export function mergeDeclaredIntoSchemaAttributes(
         });
     }
     return merged;
+}
+
+/**
+ * Read a single bare reference name (e.g. `$drawBalloon`) from an attribute's
+ * children, returning the bare name without the `$`.  Returns `undefined`
+ * when the attribute is anything more complex (multiple children, text,
+ * `$obj.sub`, `$arr[0]`, ...).
+ *
+ * The runtime resolver handles arbitrarily complex reference values, but the
+ * per-instance attribute augmentation only fires for the bare-name case
+ * (`copy="$x"`) — anything else is conservatively skipped per the plan's
+ * scope-lock, so the LSP never silently augments a site whose runtime
+ * resolution we can't follow exactly.
+ */
+function readBareReferenceAttribute(
+    moduleElement: DastElement,
+    attributeName: string,
+): string | undefined {
+    const key = findAttributeKey(moduleElement, attributeName);
+    if (key === undefined) return undefined;
+    const children = moduleElement.attributes[key]?.children;
+    if (!children || children.length !== 1) return undefined;
+    const only = children[0];
+    if (only.type !== "macro") return undefined;
+    if (only.path.length !== 1) return undefined;
+    const part = only.path[0];
+    if (part.index.length !== 0) return undefined;
+    const name = part.name;
+    return name && name.length > 0 ? name : undefined;
+}
+
+/**
+ * Resolve a `<module copy="$x" .../>` (or `extend=`) instance to the
+ * `<module name="x">` declaration's DAST node via the rust resolver bridge.
+ *
+ * Returns `null` when:
+ *   - `moduleElement` is not a `<module>` element,
+ *   - neither `copy=` nor `extend=` is present,
+ *   - the attribute value is not a single bare-name reference,
+ *   - the resolver returns nothing,
+ *   - the resolved target is not a `<module>` element,
+ *   - the resolved target IS `moduleElement` itself (self-copy guard).
+ *
+ * `copy=` is consulted first; `extend=` is consulted only when `copy=` is
+ * absent / non-bare.  Both have equivalent effect on `<moduleAttributes>`
+ * consumption at runtime, so reading either is sufficient — the precedence
+ * here matches what the runtime would resolve given both.
+ *
+ * Intentionally non-recursive: this function follows exactly one
+ * `copy`/`extend` edge.  Cycles (`a` copies `b` copies `a`) and chains
+ * (`a` -> `b` -> `c`) are out of scope; the runtime collapses chains
+ * through a different mechanism the LSP doesn't reproduce.
+ */
+export async function resolveCopyExtendReference(
+    moduleElement: DastElement,
+    adapter: RustResolverAdapter,
+): Promise<DastElement | null> {
+    if (moduleElement.name.toLowerCase() !== "module") return null;
+
+    const referenceName =
+        readBareReferenceAttribute(moduleElement, "copy") ??
+        readBareReferenceAttribute(moduleElement, "extend");
+    if (!referenceName) return null;
+
+    const target = await adapter.resolveBareRefAtOrigin(
+        moduleElement,
+        referenceName,
+    );
+    if (!target) return null;
+    if (target === moduleElement) return null;
+    if (target.name.toLowerCase() !== "module") return null;
+
+    return target;
+}
+
+/**
+ * For a `<module copy="$x" .../>` instance, return the lowercased set of
+ * attribute names declared by `$x`'s `<moduleAttributes>` block.
+ *
+ * Returns `null` (NOT an empty set) when no augmentation applies — the
+ * caller distinguishes "fall back to canonical" from "augmentation
+ * succeeded but the declared set was empty", and only the former is
+ * meaningful here (an empty declared set means the target had no
+ * additional attributes, so the canonical list is already complete and
+ * augmentation would be a no-op).
+ *
+ * Per scope-lock: no wildcard fallback.  When this returns `null`, the
+ * canonical `<module>` attribute list applies as-is and any unknown
+ * attribute remains a (correct) warning.
+ */
+export async function getEffectiveModuleAttributeNames(
+    moduleInstance: DastElement,
+    adapter: RustResolverAdapter,
+): Promise<Set<string> | null> {
+    const target = await resolveCopyExtendReference(moduleInstance, adapter);
+    if (!target) return null;
+    const declared = getModuleDeclaredAttributeNames(target);
+    if (declared.size === 0) return null;
+    return declared;
 }
