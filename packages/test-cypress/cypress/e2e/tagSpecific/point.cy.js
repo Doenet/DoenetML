@@ -170,4 +170,87 @@ describe("Point Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get("#p").should("contain.text", "(3,5)");
     });
+
+    it("markerFilled='false' renders point as open (canvas fill, marker-color stroke)", () => {
+        // Pins the renderer's `useOpenSymbol` derivation: the override path
+        // (selectedStyle.markerFilled === false on a plain <point> where
+        // SVs.open is undefined) must flip JSXGraph's fill/stroke the same
+        // way `<endpoint open>` does. Without this guard, a regression to
+        // `useOpenSymbol = SVs.open` (the pre-PR form) would still pass the
+        // worker unit tests but render the point as a filled glyph.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<graph name="g">
+    <point name="filled" labelIsName>(1,1)</point>
+    <point name="open" labelIsName markerFilled="false">(2,2)</point>
+</graph>
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#g").should("exist");
+
+        // Wait for both JXG points to materialize.
+        cy.get("#g").find(".JXGtext").should("have.length.greaterThan", 1);
+
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const boardRegistry =
+                    win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+                const board = Object.values(boardRegistry).find(
+                    (b) => b?.containerObj === $g[0],
+                );
+                expect(board, "JSXGraph board for graph g").to.exist;
+
+                // Each <point> creates a visible main point plus a transparent
+                // shadow point for hit-testing (fillopacity=0). Filter shadows
+                // out so we're only asserting on what the user sees.
+                const visiblePointsByName = Object.fromEntries(
+                    Object.values(board.objects)
+                        .filter(
+                            (o) =>
+                                o?.elType === "point" &&
+                                o?.name &&
+                                o?.visProp?.fillopacity !== 0,
+                        )
+                        .map((p) => [p.name, p]),
+                );
+
+                expect(
+                    visiblePointsByName.filled,
+                    "visible main JXG point named 'filled'",
+                ).to.exist;
+                expect(
+                    visiblePointsByName.open,
+                    "visible main JXG point named 'open'",
+                ).to.exist;
+
+                // Default markerFilled=true: solid marker-color fill, no
+                // outline stroke.
+                expect(visiblePointsByName.filled.visProp.fillcolor).not.eq(
+                    "var(--canvas)",
+                );
+                expect(visiblePointsByName.filled.visProp.strokecolor).eq(
+                    "none",
+                );
+
+                // markerFilled=false: canvas-color fill (so the glyph reads as
+                // hollow against the background) with marker-color stroke as
+                // the outline.
+                expect(visiblePointsByName.open.visProp.fillcolor).eq(
+                    "var(--canvas)",
+                );
+                expect(visiblePointsByName.open.visProp.strokecolor).not.eq(
+                    "none",
+                );
+                expect(visiblePointsByName.open.visProp.strokecolor).eq(
+                    visiblePointsByName.filled.visProp.fillcolor,
+                );
+            });
+        });
+    });
 });

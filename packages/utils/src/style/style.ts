@@ -295,6 +295,37 @@ export const STYLE_OVERRIDE_CATEGORIES = {
 export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
 
 /**
+ * Module-load guard against future drift. The override path in
+ * `returnSelectedStyleStateVariableDefinition` only lowercases string values
+ * when the attribute spec opts in via `toLowerCase: true`, but the parallel
+ * `<styleDefinition>` path in `StyleDefinitions.js` lowercases every string
+ * unconditionally (preserving case-insensitive color-name lookups). Color
+ * keys are deliberately excluded from the override surface, so the asymmetry
+ * is harmless today — this check fails loudly if someone later widens the
+ * override surface in a way that would re-introduce the gap:
+ * - any text-typed override key must declare `toLowerCase: true`, or
+ * - the override key's name must not contain "color" (we never want a color
+ *   key in the override surface unless we also reconcile the lowercase paths).
+ */
+for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
+    for (const [key, spec] of Object.entries(group)) {
+        if (key.toLowerCase().includes("color")) {
+            throw new Error(
+                `Style override category "${category}" contains color-related key "${key}"; ` +
+                    `colors stay <styleDefinition>-only so per-styleNumber WCAG contrast diagnostics remain authoritative. ` +
+                    `If this is intentional, also reconcile the lowercase asymmetry in returnSelectedStyleStateVariableDefinition.`,
+            );
+        }
+        if (spec.componentType === "text" && !spec.toLowerCase) {
+            throw new Error(
+                `Style override key "${key}" in category "${category}" is text-typed but missing toLowerCase: true. ` +
+                    `Add toLowerCase: true to its styleAttributes entry, or move it out of the override surface.`,
+            );
+        }
+    }
+}
+
+/**
  * Translates a {@link styleAttributes} entry into the attribute-spec shape
  * consumed by `createAttributesObject` on components. Forwards optional
  * `validValues` / `toLowerCase` so the schema generator can surface
