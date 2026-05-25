@@ -735,5 +735,20 @@ describe("AutoCompleter", () => {
                 "Element `<a>` doesn't have an attribute called `foo`.",
             ]);
         });
+
+        it("does not flag the next attribute when the assignment half is empty", async () => {
+            // `<a x= y="bar" />` — `x`'s source is `x= ` (ends in `=`
+            // plus whitespace), but `y="bar"` is a real attribute with
+            // its own quoted value, not a bare token. Flagging the
+            // pair would emit a misleading `x="y"` suggestion; the
+            // value-half-also-empty guard prevents that.
+            const source = `<a x= y="bar" />`;
+            const ac = new AutoCompleter(source, schema.elements);
+            const diags = await ac.getSchemaViolations();
+            const messages = diags.map((d) => d.message);
+            expect(messages).not.toContain(
+                'Attribute values must be enclosed in quotes: `x="y"`',
+            );
+        });
     });
 });

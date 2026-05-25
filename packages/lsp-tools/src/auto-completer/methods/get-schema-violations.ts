@@ -354,7 +354,12 @@ function findBareAttributeValuePairs(
     for (let i = 1; i < sorted.length; i++) {
         const prev = sorted[i - 1];
         const curr = sorted[i];
-        if (prev.children.length !== 0) {
+        // Both halves must be value-less.  `curr.children.length === 0`
+        // rules out `<a x= y="bar" />`, where `x`'s source ends in `= `
+        // (matching the regex below) but `y` is a real attribute with
+        // its own quoted value — flagging `y` there would emit a
+        // misleading `x="y"` suggestion.
+        if (prev.children.length !== 0 || curr.children.length !== 0) {
             continue;
         }
         const prevStart = prev.position?.start.offset;
