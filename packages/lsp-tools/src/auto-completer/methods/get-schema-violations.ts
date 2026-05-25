@@ -17,8 +17,17 @@ import { AutoCompleter } from "..";
 
 /**
  * Get a list of places where the schema is violated.
+ *
+ * Async because `_refreshModuleInstanceAttributes` issues resolver
+ * round-trips per `<module copy=…>` (or `extend=`) site to populate the
+ * per-instance allowlist used below.  See `AutoCompleter._refreshModuleInstanceAttributes`
+ * for the coalescing strategy — back-to-back violation runs between edits
+ * pay one round-trip per site total.
  */
-export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
+export async function getSchemaViolations(
+    this: AutoCompleter,
+): Promise<Diagnostic[]> {
+    await this._refreshModuleInstanceAttributes();
     /**
      * Get all pairs of elements and their parent.
      */
@@ -127,6 +136,15 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
             //
             // Check attributes
             //
+            // For `<module copy="$x" .../>` (or `extend=`) sites, pick up the
+            // per-instance allowlist of names declared by `$x`'s
+            // `<moduleAttributes>` block (issue #1154).  The allowlist is keyed
+            // lowercased; `null` here means "no augmentation applies", in
+            // which case the canonical schema decides as today and unknown
+            // attributes remain a (correct) warning.
+            const perInstanceAllowlist =
+                this._moduleInstanceAttributeAllowlist.get(node) ?? null;
+
             for (const attr of Object.values(node.attributes)) {
                 const attrName = this.normalizeAttributeName(attr.name);
 
@@ -149,6 +167,19 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                     }
                 }
 
+                // Author-declared module attribute (e.g. `color` on a
+                // `<module copy="$drawBalloon" color="1" />` where the target
+                // declared `<number name="color"/>`).  Bypass both the
+                // UNKNOWN_NAME branch (the name may not exist in the global
+                // schema at all — `color` doesn't) and the canonical
+                // attribute check.  Names-only scope: no value validation.
+                if (
+                    perInstanceAllowlist &&
+                    perInstanceAllowlist.has(attr.name.toLowerCase())
+                ) {
+                    continue;
+                }
+
                 if (attrName === "UNKNOWN_NAME") {
                     ret.push({
                         range: {
@@ -163,7 +194,12 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                         severity: DiagnosticSeverity.Warning,
                     });
                 } else if (
-                    !this.isAllowedAttribute(name, attrName, directParentName)
+                    !this.isAllowedAttribute(
+                        name,
+                        attrName,
+                        directParentName,
+                        perInstanceAllowlist ?? undefined,
+                    )
                 ) {
                     ret.push({
                         range: {

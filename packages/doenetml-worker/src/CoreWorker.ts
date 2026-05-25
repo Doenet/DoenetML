@@ -350,6 +350,28 @@ export class CoreWorker {
     }
 
     /**
+     * Return the pre-expansion normalized DAST (every source element keeps its
+     * resolver-known id even when its expansion errors).  Used by the LSP's
+     * `RustResolverAdapter` to map reference-making composites like
+     * `<module copy="$x">` that would otherwise be replaced with id-less error
+     * entries in the post-expansion `returnDast` output (#1154).
+     */
+    async returnNormalizedDastRoot() {
+        if (!this.source_set || !this.doenetCore) {
+            throw Error(
+                "Cannot return normalized dast root before setting source",
+            );
+        }
+        if (this.core_type === "javascript") {
+            // The JS core doesn't expose a normalized DAST today; the LSP's
+            // resolver path uses the rust core, so this is unreachable for
+            // resolver consumers — return the minimal shape consumers expect.
+            return { nodes: [] };
+        }
+        return this.doenetCore.return_normalized_dast_root();
+    }
+
+    /**
      * Transform the initial output of the JavaScript core into the flat data structure
      * produces by the rust core and expected by the `doenetml-prototype`
      */
