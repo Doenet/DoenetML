@@ -169,43 +169,55 @@ export function mergeDeclaredIntoSchemaAttributes(
 }
 
 /**
- * Read a single bare reference name (e.g. `$drawBalloon`) from an attribute's
- * children, returning the bare name without the `$`.  Returns `undefined`
- * when the attribute is anything more complex (multiple children, text,
- * `$obj.sub`, `$arr[0]`, ...).
+ * Read a bare-name reference path (e.g. `$drawBalloon` or `$s.m`) from an
+ * attribute's children, returning the segment names as an array (one
+ * element for `$drawBalloon`, two for `$s.m`, …).  Returns `undefined` when
+ * the attribute is anything more complex than a bare-name macro path:
+ * multiple children, text, any segment carrying a bracket index (`$arr[0]`),
+ * or a missing segment name.
  *
  * The runtime resolver handles arbitrarily complex reference values, but the
- * per-instance attribute augmentation only fires for the bare-name case
- * (`copy="$x"`) — anything else is conservatively skipped per the plan's
+ * per-instance attribute augmentation only fires for bare-name paths —
+ * bracket-bearing segments are conservatively skipped per the plan's
  * scope-lock, so the LSP never silently augments a site whose runtime
- * resolution we can't follow exactly.
+ * resolution we can't follow exactly (the takesIndex semantics under a
+ * sectioning parent are subtle enough that bracket support is its own
+ * follow-up rather than a freebie of multi-segment lookup).
  */
-function readBareReferenceAttribute(
+function readBareReferencePath(
     moduleElement: DastElement,
     attributeName: string,
-): string | undefined {
+): string[] | undefined {
     const key = findAttributeKey(moduleElement, attributeName);
     if (key === undefined) return undefined;
     const children = moduleElement.attributes[key]?.children;
     if (!children || children.length !== 1) return undefined;
     const only = children[0];
     if (only.type !== "macro") return undefined;
-    if (only.path.length !== 1) return undefined;
-    const part = only.path[0];
-    if (part.index.length !== 0) return undefined;
-    const name = part.name;
-    return name && name.length > 0 ? name : undefined;
+    if (only.path.length === 0) return undefined;
+    const names: string[] = [];
+    for (const part of only.path) {
+        if (part.index.length !== 0) return undefined;
+        if (!part.name) return undefined;
+        names.push(part.name);
+    }
+    return names;
 }
 
 /**
  * Resolve a `<module copy="$x" .../>` (or `extend=`) instance to the
  * `<module name="x">` declaration's DAST node via the rust resolver bridge.
  *
+ * Multi-segment paths (`copy="$s.m"`) are supported: the resolver walks
+ * the path the same way the runtime does, including descending into named
+ * descendants of a `<section>`/`<group>`/etc. parent.
+ *
  * Returns `null` when:
  *   - `moduleElement` is not a `<module>` element,
  *   - neither `copy=` nor `extend=` is present,
- *   - the attribute value is not a single bare-name reference,
- *   - the resolver returns nothing,
+ *   - the attribute value is not a bare-name path (any segment with a
+ *     bracket index, text content, or empty path returns undefined),
+ *   - the resolver returns nothing or partially resolves the path,
  *   - the resolved target is not a `<module>` element,
  *   - the resolved target IS `moduleElement` itself (self-copy guard).
  *
@@ -215,9 +227,9 @@ function readBareReferenceAttribute(
  * here matches what the runtime would resolve given both.
  *
  * Intentionally non-recursive: this function follows exactly one
- * `copy`/`extend` edge.  Cycles (`a` copies `b` copies `a`) and chains
- * (`a` -> `b` -> `c`) are out of scope; the runtime collapses chains
- * through a different mechanism the LSP doesn't reproduce.
+ * `copy`/`extend` edge.  Cycles (`a` copies `b` copies `a`) are out of
+ * scope; the runtime collapses chains through a different mechanism the
+ * LSP doesn't reproduce.
  */
 export async function resolveCopyExtendReference(
     moduleElement: DastElement,
@@ -225,14 +237,14 @@ export async function resolveCopyExtendReference(
 ): Promise<DastElement | null> {
     if (moduleElement.name.toLowerCase() !== "module") return null;
 
-    const referenceName =
-        readBareReferenceAttribute(moduleElement, "copy") ??
-        readBareReferenceAttribute(moduleElement, "extend");
-    if (!referenceName) return null;
+    const referencePath =
+        readBareReferencePath(moduleElement, "copy") ??
+        readBareReferencePath(moduleElement, "extend");
+    if (!referencePath) return null;
 
-    const target = await adapter.resolveBareRefAtOrigin(
+    const target = await adapter.resolveBarePathAtOrigin(
         moduleElement,
-        referenceName,
+        referencePath,
     );
     if (!target) return null;
     if (target === moduleElement) return null;

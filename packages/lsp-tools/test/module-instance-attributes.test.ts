@@ -173,16 +173,69 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 ).toHaveLength(1);
             });
 
-            it('complex reference (`copy="$m.sub"`): no augmentation', async () => {
+            it("chain reference whose target isn't a <module>: no augmentation", async () => {
                 const source = `<setup><module name="m"><moduleAttributes><text name="item">x</text></moduleAttributes><text name="sub">x</text></module></setup>
 <module copy="$m.sub" item="x" />`;
-                // Scope-lock: only bare-name refs are augmented.  The
-                // resolver might find SOMETHING for `$m.sub`, but the
-                // per-instance path conservatively skips chains so the
-                // warning still fires.
+                // Multi-segment paths ARE resolved (issue #1154 follow-up
+                // for `$s.m`), but the target-must-be-a-`<module>` guard
+                // still rejects when the resolved element is something
+                // else — here `$m.sub` resolves to the `<text name="sub">`
+                // inside the module, so no augmentation applies and the
+                // unknown-attribute warning fires correctly.
                 expect(
                     await moduleAttrDiagnostics(source, "item"),
                 ).toHaveLength(1);
+            });
+
+            it('bracket-bearing segment (`copy="$s[0].m"`): conservatively skipped', async () => {
+                // Bracket-bearing segments stay out-of-scope for the
+                // textual predicate — the runtime's takesIndex semantics
+                // under a sectioning parent are subtle enough that "exact-
+                // match the simple textual cases" remains the right rule.
+                // Authors who need bracketed access can keep using the
+                // canonical attribute list.
+                const source = `<section name="s"><module name="m"><moduleAttributes><text name="kept">x</text></moduleAttributes></module></section>
+<module copy="$s[0].m" kept="x" />`;
+                expect(
+                    await moduleAttrDiagnostics(source, "kept"),
+                ).toHaveLength(1);
+            });
+        });
+
+        describe("validation: multi-segment references (`$s.m`)", () => {
+            it('`copy="$s.m"` through a <section> resolves and augments declared attrs', async () => {
+                // The exact source the user reported as missing
+                // augmentation before this commit landed.
+                const source = `<section name="s">
+<module name="m">
+  <moduleAttributes>
+    <number name="n">1</number>
+  </moduleAttributes>
+  <number>2$n</number>
+</module>
+<module copy="$s.m" n="3" />
+</section>`;
+                expect(await moduleAttrDiagnostics(source, "n")).toEqual([]);
+            });
+
+            it("undeclared attribute on a $s.m site still warns", async () => {
+                const source = `<section name="s">
+<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
+<module copy="$s.m" undeclared="x" />
+</section>`;
+                expect(
+                    await moduleAttrDiagnostics(source, "undeclared"),
+                ).toHaveLength(1);
+            });
+
+            it('deeper chain `copy="$outer.s.m"` works through nested sections', async () => {
+                const source = `<section name="outer">
+<section name="s">
+<module name="m"><moduleAttributes><number name="kept">1</number></moduleAttributes></module>
+</section>
+</section>
+<module copy="$outer.s.m" kept="9" />`;
+                expect(await moduleAttrDiagnostics(source, "kept")).toEqual([]);
             });
         });
 
@@ -364,7 +417,7 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("precompute coalescing (sourceRevision)", () => {
-            it("two getSchemaViolations() calls in a row issue resolveBareRefAtOrigin once per site", async () => {
+            it("two getSchemaViolations() calls in a row issue resolveBarePathAtOrigin once per site", async () => {
                 const source = `<setup><module name="m"><moduleAttributes><text name="t">x</text></moduleAttributes></module></setup>
 <module copy="$m" t="x" />`;
                 const { completer, adapter } = await buildCompleter(source);
@@ -373,8 +426,8 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // edit must collapse to one resolution (and Promise.all
                 // batches simultaneous instances in each refresh).
                 let callCount = 0;
-                const orig = adapter.resolveBareRefAtOrigin.bind(adapter);
-                adapter.resolveBareRefAtOrigin = (async (...args: any[]) => {
+                const orig = adapter.resolveBarePathAtOrigin.bind(adapter);
+                adapter.resolveBarePathAtOrigin = (async (...args: any[]) => {
                     callCount++;
                     return (orig as any)(...args);
                 }) as any;

@@ -430,23 +430,32 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Resolve a single bare name (`pathParts = [name]`) starting from the
-     * Rust index of `originDastElement`, and return the resolved JS DAST
-     * element.  Returns `null` on any resolution failure (adapter disabled,
-     * origin not in the index map, core resolution returned unresolved
-     * parts, resolved index not mapped back to a JS DAST element).
+     * Resolve a bare-name path (`pathParts = names`, each segment a bare
+     * name with no bracket index) starting from the Rust index of
+     * `originDastElement`, and return the resolved JS DAST element.
+     * Returns `null` on any resolution failure (adapter disabled, origin
+     * not in the index map, core resolution returned unresolved parts,
+     * resolved index not mapped back to a JS DAST element, empty `names`).
+     *
+     * "Bare path" means every segment is a plain identifier — e.g.
+     * `["s", "m"]` for `$s.m`.  Bracket-bearing segments are the caller's
+     * responsibility to filter out before calling; the shim itself doesn't
+     * thread index values through (the runtime's takesIndex semantics under
+     * a sectioning parent are subtle enough that "exact-match the simple
+     * textual cases" stays the right rule — same posture PR #1185 took for
+     * `numToSelect`).
      *
      * Thin specialization of `_core.resolvePath` reusing the same
      * `_rustIndexToDastElement` mapping used by member-completion resolution
      * at lines 477-480.  Intentionally does not run any of the
      * member-completion-specific work (descendant probing, takesIndex gating,
-     * composite-wrapper walk) — this is the minimal "give me the node $name
-     * points at" primitive consumed by per-instance `<module>` attribute
+     * composite-wrapper walk) — this is the minimal "give me the node the
+     * path points at" primitive consumed by per-instance `<module>` attribute
      * augmentation in `module-attributes.ts` (issue #1154).
      */
-    async resolveBareRefAtOrigin(
+    async resolveBarePathAtOrigin(
         originDastElement: DastElement,
-        name: string,
+        names: string[],
     ): Promise<DastElement | null> {
         // Same sync-await contract as member-container resolution: without
         // this, the JS index mappings and the rust-side source can diverge
@@ -454,7 +463,7 @@ export class RustResolverAdapter {
         // updateSource is still draining a burst of edits).
         await this._pendingSync;
         if (!this._enabled || !this._core) return null;
-        if (!name) return null;
+        if (names.length === 0 || names.some((n) => !n)) return null;
 
         // Composite elements like `<module>` are typically expanded at
         // flat-DAST time, so the source `<module>` element often has no
@@ -469,9 +478,11 @@ export class RustResolverAdapter {
             this._getRootOriginIndex();
         if (originIndex == null) return null;
 
-        const flatPath: FlatPathPartForResolver[] = [
-            { type: "flatPathPart" as const, name, index: [] },
-        ];
+        const flatPath: FlatPathPartForResolver[] = names.map((name) => ({
+            type: "flatPathPart" as const,
+            name,
+            index: [],
+        }));
 
         try {
             const resolution = await this._core.resolvePath({
@@ -479,9 +490,10 @@ export class RustResolverAdapter {
                 origin: originIndex,
                 skipParentSearch: false,
             });
-            // A bare name has to resolve fully; any leftover parts mean the
-            // path was wrong (e.g. resolved to a takesIndex container without
-            // an index).  Caller treats partial resolutions as "no target".
+            // A bare path has to resolve fully; any leftover parts mean
+            // the path was wrong (e.g. resolved to a takesIndex container
+            // without an index, or named a descendant the parent doesn't
+            // expose).  Caller treats partial resolutions as "no target".
             if (
                 resolution.unresolvedPath &&
                 resolution.unresolvedPath.length > 0
