@@ -805,9 +805,13 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
  * depends on those attribute components on the host component and merges any
  * authored values on top of the styleNumber-based definition. The override
  * layer mirrors how `<styleDefinition>` attributes are read in
- * `StyleDefinitions.js`: string values are lowercased, source positions are
- * preserved, and missing `*Word` descriptors get re-derived from the underlying
- * value via {@link deriveMissingStyleWords}.
+ * `StyleDefinitions.js`, with one deliberate divergence: string values here
+ * are lowercased only when the spec opts in via `toLowerCase: true` (today
+ * just the enum-typed `markerStyle` / `lineStyle`), whereas the
+ * `<styleDefinition>` path lowercases unconditionally to keep color-name
+ * lookups case-insensitive. Source positions are preserved, and missing
+ * `*Word` descriptors get re-derived from the underlying value via
+ * {@link deriveMissingStyleWords}.
  *
  * Callers that don't opt in (the default) preserve today's behavior exactly —
  * `selectedStyle` is the unwrapped/resolved styleNumber lookup.
@@ -897,9 +901,12 @@ export function returnSelectedStyleStateVariableDefinition(
 
                     if (Object.keys(overrideStyleDef).length > 0) {
                         // Derive `*Word` descriptors from override values
-                        // before merging, so e.g. authored `lineWidth=2`
-                        // produces `lineWidthWord="thin"` even when the
-                        // inherited styleDefinition shipped a different word.
+                        // before merging, so authored values flow through the
+                        // same thresholds as `<styleDefinition>` (e.g.
+                        // `lineWidth=1` → `lineWidthWord="thin"`,
+                        // `lineWidth=4` → `"thick"`, `lineWidth=2` → `""`)
+                        // and replace any custom word the inherited
+                        // styleDefinition shipped.
                         deriveMissingStyleWords(overrideStyleDef);
                         // Clone so we don't mutate the ancestor's styleDefinitions map.
                         selectedStyle = Object.assign(

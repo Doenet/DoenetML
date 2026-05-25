@@ -20,9 +20,13 @@ export default class EquilibriumPoint extends Point {
             ...attributes.markerStyle,
             validValues: markerStyleValuesWithFillVariants,
         };
-        // `stable` is the authoritative fill toggle here, so suppress the
-        // inherited markerFilled override to avoid a styleDefinition value
-        // contradicting authored stability.
+        // `stable` is the authoritative fill toggle here. Drop the per-component
+        // `markerFilled` attribute so authors can't write a confusing-but-inert
+        // `<equilibriumPoint markerFilled="false">` on a point whose fill is
+        // already controlled by `stable`. A styleDefinition can still populate
+        // `selectedStyle.markerFilled` via inheritance — the point renderer
+        // ignores it when SVs.open is defined (and `open` here derives from
+        // `stable`).
         delete attributes.markerFilled;
 
         attributes.stable = {
