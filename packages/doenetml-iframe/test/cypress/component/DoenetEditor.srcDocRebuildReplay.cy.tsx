@@ -103,7 +103,17 @@ function freshCssBlobUrl(): string {
 // keeps this spec at the same outer CI cost as before. Bump via
 // `CYPRESS_REPRO_REBUILDS=N npx cypress run …` to drive multiple
 // rebuilds per cypress attempt when chasing a regression locally.
-const REPRO_REBUILDS = Math.max(1, Number(Cypress.env("REPRO_REBUILDS") ?? 1));
+//
+// Defend against `CYPRESS_REPRO_REBUILDS=foo`: Number("foo") is NaN,
+// `for (… iter <= NaN …)` would silently run zero iterations and the
+// test would "pass" without doing anything post-initial-boot. Fall back
+// to 1 if the value isn't a finite positive number.
+const REPRO_REBUILDS = (() => {
+    const raw = Cypress.env("REPRO_REBUILDS");
+    if (raw === undefined) return 1;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+})();
 // How many extra rebuild attempts the test will make from inside a single
 // cypress attempt before giving up. The flake is bimodal: a rebuilt iframe
 // either renders within ~3s or hangs forever (Chrome leaves the standalone
@@ -203,11 +213,17 @@ function waitForRebuiltCmContentWithRetry(
 ): Cypress.Chainable {
     let attemptIdx = 0;
     let preRebuildStamp = initialPreRebuildStamp;
+    // Per-attempt timing for the final error message — knowing whether each
+    // attempt timed out at full budget vs. exited early on a different cause
+    // is essential if this flake recurs and we have to diagnose from CI logs
+    // alone.
+    const attemptElapsedMs: number[] = [];
     function runOneAttempt(): Cypress.Chainable {
         return waitForRebuildAttempt(
             preRebuildStamp,
             REBUILD_INNER_TIMEOUT_MS,
         ).then((result) => {
+            attemptElapsedMs.push(result.elapsedMs);
             if (result.ok) {
                 return cy
                     .get("iframe", { log: false })
@@ -215,10 +231,13 @@ function waitForRebuiltCmContentWithRetry(
                     .find(".cm-content", { log: false });
             }
             if (attemptIdx >= REBUILD_INNER_RETRIES) {
+                const timings = attemptElapsedMs
+                    .map((ms, i) => `#${i + 1}=${ms}ms`)
+                    .join(", ");
                 throw new Error(
                     `Rebuilt iframe (iter ${iter}) never produced .cm-content ` +
-                        `after ${attemptIdx + 1} attempts × ${REBUILD_INNER_TIMEOUT_MS}ms ` +
-                        `(final state: rebuilt=${result.rebuilt}, ` +
+                        `after ${attemptIdx + 1} attempts (budget ${REBUILD_INNER_TIMEOUT_MS}ms each; ` +
+                        `actual: ${timings}; final state: rebuilt=${result.rebuilt}, ` +
                         `hasCmContent=${result.hasCmContent}).`,
                 );
             }

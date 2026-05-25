@@ -66,10 +66,12 @@ function resolveInitialDoenetMLSource(root: Element): string {
 // path: on slow CI runners the second iframe's V8 isolate re-parses the
 // 32 MB bundle from scratch (Chrome's bytecode cache for blob: URLs is
 // not always rehydrated across iframe loads) and can take tens of
-// seconds before the function is defined. The 60 s ceiling matches the
-// overall budget the srcDocRebuildReplay test allocates per cypress
-// attempt (REBUILD_INNER_TIMEOUT_MS × (1 + REBUILD_INNER_RETRIES)) —
-// neither side should give up while the other is still trying.
+// seconds before the function is defined. The 60 s ceiling comfortably
+// exceeds the srcDocRebuildReplay test's per-cypress-attempt budget
+// (REBUILD_INNER_TIMEOUT_MS=15 s) so a healthy-but-slow boot has room
+// to finish before either side gives up; the test handles each rebuild
+// in a fresh iframe, so this ceiling only needs to cover one boot, not
+// a sum across retries.
 async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
     if (typeof window.renderDoenetEditorToContainer === "function") {
         return true;
