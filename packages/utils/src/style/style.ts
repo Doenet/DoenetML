@@ -57,7 +57,19 @@ export let styleAttributes: StyleAttributes = {
     },
     lineStyle: {
         componentType: "text",
-        description: "Stroke style for lines (e.g. solid, dashed, dotted).",
+        description: "Stroke style for lines.",
+        toLowerCase: true,
+        validValues: [
+            { value: "solid", description: "Continuous, unbroken stroke." },
+            {
+                value: "dashed",
+                description: "Stroke composed of evenly-spaced dashes.",
+            },
+            {
+                value: "dotted",
+                description: "Stroke composed of evenly-spaced dots.",
+            },
+        ],
     },
     lineStyleWord: {
         componentType: "text",
@@ -85,8 +97,36 @@ export let styleAttributes: StyleAttributes = {
     },
     markerStyle: {
         componentType: "text",
-        description:
-            "Marker shape (e.g. cross, circle, square, plus, diamond, triangle).",
+        description: "Marker shape.",
+        toLowerCase: true,
+        validValues: [
+            { value: "circle", description: "Filled circular marker." },
+            { value: "square", description: "Filled square marker." },
+            {
+                value: "triangle",
+                description:
+                    'Triangular marker pointing up (alias for "triangleUp").',
+            },
+            {
+                value: "triangleUp",
+                description: "Triangular marker pointing up.",
+            },
+            {
+                value: "triangleDown",
+                description: "Triangular marker pointing down.",
+            },
+            {
+                value: "triangleLeft",
+                description: "Triangular marker pointing left.",
+            },
+            {
+                value: "triangleRight",
+                description: "Triangular marker pointing right.",
+            },
+            { value: "diamond", description: "Filled diamond marker." },
+            { value: "cross", description: "Cross-shaped marker (×)." },
+            { value: "plus", description: "Plus-shaped marker (+)." },
+        ],
     },
     markerStyleWord: {
         componentType: "text",

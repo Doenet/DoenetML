@@ -142,4 +142,55 @@ describe("Per-component style override tests @group4", async () => {
         expect(pointAttrs.backgroundColor).toBeUndefined();
         expect(pointAttrs.highContrastColor).toBeUndefined();
     });
+
+    it("markerStyle and lineStyle are declared as keyword/enum attributes", async () => {
+        // The schema generator surfaces attributes with `validValues` as
+        // `type: "keyword"` with autocomplete entries. Asserting on the
+        // attribute spec keeps both the GraphicalComponent and
+        // StyleDefinitions paths honest without re-reading the generated
+        // JSON.
+        const Point = (await import("../../components/Point.js")).default;
+        const pointAttrs = Point.createAttributesObject();
+
+        expect(pointAttrs.markerStyle.toLowerCase).toBe(true);
+        const markerValues = pointAttrs.markerStyle.validValues.map(
+            (v: { value: string }) => v.value,
+        );
+        // Values are declared in camelCase for readability; the
+        // `preprocessAttributesObject` helper lowercases them at component
+        // init time. `createAttributesObject` returns the pre-preprocessed
+        // spec, so we assert on the declared forms.
+        for (const v of [
+            "circle",
+            "square",
+            "triangle",
+            "triangleUp",
+            "triangleDown",
+            "triangleLeft",
+            "triangleRight",
+            "diamond",
+            "cross",
+            "plus",
+        ]) {
+            expect(markerValues).toContain(v);
+        }
+
+        expect(pointAttrs.lineStyle.toLowerCase).toBe(true);
+        const lineValues = pointAttrs.lineStyle.validValues.map(
+            (v: { value: string }) => v.value,
+        );
+        for (const v of ["solid", "dashed", "dotted"]) {
+            expect(lineValues).toContain(v);
+        }
+
+        // <styleDefinition> path forwards the same enum metadata.
+        const StyleDefinitionsModule =
+            await import("../../components/StyleDefinitions.js");
+        const StyleDefinition = StyleDefinitionsModule.StyleDefinition;
+        const defAttrs = StyleDefinition.createAttributesObject();
+        expect(defAttrs.markerStyle.toLowerCase).toBe(true);
+        expect(defAttrs.markerStyle.validValues).toBeDefined();
+        expect(defAttrs.lineStyle.toLowerCase).toBe(true);
+        expect(defAttrs.lineStyle.validValues).toBeDefined();
+    });
 });

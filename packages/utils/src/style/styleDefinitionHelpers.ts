@@ -1,9 +1,20 @@
 import type { Position } from "@doenet/parser";
 
-export type StyleAttributes = Record<
-    string,
-    { componentType: string; description?: string }
->;
+/**
+ * Author-facing metadata for a single style attribute. `validValues` /
+ * `toLowerCase` are forwarded by `StyleDefinitions` and `GraphicalComponent`
+ * into the attribute spec consumed by `createAttributesObject`, which is what
+ * the schema generator inspects to surface a `type: "keyword"` enum with
+ * autocomplete entries.
+ */
+export type StyleAttributeSpec = {
+    componentType: string;
+    description?: string;
+    validValues?: { value: string; description: string }[];
+    toLowerCase?: boolean;
+};
+
+export type StyleAttributes = Record<string, StyleAttributeSpec>;
 
 export type StyleDefinitionPrimitive = string | number;
 

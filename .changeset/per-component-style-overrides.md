@@ -18,3 +18,9 @@ Behavior:
 - Missing `*Word` descriptors are re-derived from the override value using the same rules as `<styleDefinition>` (e.g. `lineWidth=1` → `lineWidthWord="thin"`, `markerStyle="circle"` → `markerStyleWord="point"`, `markerStyle="triangleUp"` → `markerStyleWord="triangle"`).
 - Explicitly authored `*Word` overrides (e.g. `<point markerStyleWord="custom">`) are preserved.
 - The override values flow through `selectedStyle`; they aren't exposed as separate top-level state variables, so existing renderer code (`SVs.selectedStyle.markerStyle`, etc.) consumes them without change.
+
+`markerStyle` and `lineStyle` are declared as keyword/enum attributes in the schema so editors offer autocomplete and surface invalid values:
+- `markerStyle`: `circle`, `square`, `triangle`, `triangleUp`, `triangleDown`, `triangleLeft`, `triangleRight`, `diamond`, `cross`, `plus` (case-insensitive).
+- `lineStyle`: `solid`, `dashed`, `dotted` (case-insensitive).
+
+The enum metadata is forwarded by both the new `GraphicalComponent` override path and the existing `<styleDefinition>` attribute path, so both routes get the same schema-level validation and autocomplete.

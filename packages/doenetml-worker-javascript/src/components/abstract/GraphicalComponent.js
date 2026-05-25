@@ -40,11 +40,20 @@ export default class GraphicalComponent extends BaseComponent {
         // Colors stay <styleDefinition>-only so per-styleNumber WCAG contrast
         // diagnostics remain authoritative.
         for (const styleAttr in styleOverrideAttributes) {
-            attributes[styleAttr] = {
-                createComponentOfType:
-                    styleOverrideAttributes[styleAttr].componentType,
-                description: styleOverrideAttributes[styleAttr].description,
+            const spec = styleOverrideAttributes[styleAttr];
+            const attr = {
+                createComponentOfType: spec.componentType,
+                description: spec.description,
             };
+            // Forward enumeration metadata so the schema generator can surface
+            // a `type: "keyword"` enum with autocomplete entries.
+            if (spec.validValues) {
+                attr.validValues = spec.validValues;
+            }
+            if (spec.toLowerCase) {
+                attr.toLowerCase = spec.toLowerCase;
+            }
+            attributes[styleAttr] = attr;
         }
 
         return attributes;

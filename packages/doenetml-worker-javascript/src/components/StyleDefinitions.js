@@ -25,10 +25,20 @@ export class StyleDefinition extends BaseComponent {
         };
 
         for (let styleAttr in styleAttributes) {
-            attributes[styleAttr] = {
-                createComponentOfType: styleAttributes[styleAttr].componentType,
-                description: styleAttributes[styleAttr].description,
+            const spec = styleAttributes[styleAttr];
+            const attr = {
+                createComponentOfType: spec.componentType,
+                description: spec.description,
             };
+            // Forward enumeration metadata so the schema generator can surface
+            // a `type: "keyword"` enum with autocomplete entries.
+            if (spec.validValues) {
+                attr.validValues = spec.validValues;
+            }
+            if (spec.toLowerCase) {
+                attr.toLowerCase = spec.toLowerCase;
+            }
+            attributes[styleAttr] = attr;
         }
 
         return attributes;
