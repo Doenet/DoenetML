@@ -213,19 +213,16 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 for (const { attrTag, dastAttr } of attrEntries) {
                     const pair = pairByValueAttr.get(dastAttr);
                     if (pair) {
-                        // Filter inside `findBareAttributeValuePairs`
-                        // guarantees both halves have positions; the
-                        // `?? …` fallbacks are for the type checker.
-                        const startPos = pair.valueAttr.position?.start ?? {
-                            offset: 0,
-                            line: 1,
-                            column: 1,
-                        };
-                        const endPos = pair.valueAttr.position?.end ?? {
-                            offset: 0,
-                            line: 1,
-                            column: 1,
-                        };
+                        // The filter inside `findBareAttributeValuePairs`
+                        // drops any attr without a position, so a paired
+                        // valueAttr is guaranteed to have one — assert
+                        // rather than fall back to a `{offset:0, line:1,
+                        // column:1}` placeholder, so a future change to
+                        // that filter trips here instead of silently
+                        // emitting a 0-length warning at the document
+                        // start.
+                        const startPos = pair.valueAttr.position!.start;
+                        const endPos = pair.valueAttr.position!.end;
                         children.push({
                             type: "error",
                             error_type: "warning",

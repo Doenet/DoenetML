@@ -64,6 +64,12 @@ export function findPrecedingEqualsForBareValue(
  * line/column positions DAST uses everywhere else, so a consumer that
  * reads `.position.start.line` from this synthesized attribute gets the
  * same shape it would from a real one.
+ *
+ * The returned attribute carries `children: []` (the value half was
+ * stripped along with the assign half, and we never reconstructed it).
+ * Consumers that need the typed value should slice the source around
+ * the synthesized `position` themselves — `toXml(attr.children)` will
+ * just yield `""`.
  */
 export function synthesizeStrippedAttribute(
     source: string,
@@ -124,6 +130,12 @@ function scanIdentifierForward(source: string, from: number): number {
  * if `offset` is not adjacent to any identifier char.  Combines the
  * backward and forward scans so a cursor mid-token still recovers the
  * full identifier.
+ *
+ * Rejects a run that begins immediately after `<` so the helper never
+ * synthesizes a tag name (e.g. `math` in `<math …>`) as an attribute.
+ * Callers in `attributeAtOffset` are already gated by `cursorPosition`,
+ * but error-state parser output can mislabel `openTag`/`unknown` here,
+ * and a stale tag-name identifier would otherwise leak into the panel.
  */
 export function identifierAtOffset(
     source: string,
@@ -132,6 +144,7 @@ export function identifierAtOffset(
     const start = scanIdentifierBackward(source, offset);
     const end = scanIdentifierForward(source, offset);
     if (start === end) return null;
+    if (start > 0 && source.charAt(start - 1) === "<") return null;
     return { start, end };
 }
 
