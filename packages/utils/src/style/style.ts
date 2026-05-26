@@ -386,7 +386,16 @@ export function attributeSpecFromStyleAttribute(
  */
 let defaultStyle: RawStyleDefinition = { ...DEFAULT_STYLE_VALUES };
 
-const coloredItemsForWords = [
+/**
+ * The "item" prefixes used to build every color-bearing styleAttribute key:
+ * `${item}Color`, `${item}ColorDarkMode`, `${item}ColorWord`,
+ * `${item}ColorWordDarkMode`. Exported so the LSP-side active-default hint
+ * (#1198) can identify color attributes by canonical key rather than a
+ * name-shape regex — the schema's `componentType` is "text" for everything
+ * (colors included), so this list is the only place that knows which keys
+ * carry hex/color-word data.
+ */
+export const coloredItemsForWords = [
     "line",
     "marker",
     "fill",
@@ -449,8 +458,15 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 /**
  * For selected color items, adds missing dark-mode color values (mirroring light mode)
  * and color-word fields without overwriting authored word overrides.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
+ * apply the same per-block normalization the worker runs before merging an
+ * authored `<styleDefinition>` into the inherited map. Without it, the active
+ * default for derived fields (e.g. `markerColorWord` when the block sets
+ * `markerColor` but not the word) would lag behind the runtime by reflecting
+ * the previously-resolved word instead of the freshly-derived one.
  */
-function addMissingChildStyleColorFields(
+export function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
 ): StyleDefinition {
     for (const item of coloredItemsForWords) {
@@ -497,8 +513,14 @@ function addMissingChildStyleColorFields(
  *
  * Used both by the styleDefinitions-merge path and by the per-component
  * override path so the two share identical word-derivation rules.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198)
+ * can run the same per-block derivation the worker uses; otherwise the
+ * active default for e.g. `lineWidthWord` would surface the preset's
+ * `"thick"` even after the same block sets `lineWidth=2` (which the
+ * runtime derives back to `""`).
  */
-function deriveMissingStyleWords(styleDef: StyleDefinition): void {
+export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
     if ("lineWidth" in styleDef && !("lineWidthWord" in styleDef)) {
         const widthValue = getStyleValueNumber(styleDef, "lineWidth");
         if (widthValue !== undefined) {
@@ -567,8 +589,21 @@ function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  *
  * Preset color-word fields are injected in a second pass from the corresponding
  * color values.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
+ * seed its inheritance walk with the same 6 numbered presets the runtime uses
+ * before merging author-defined `<styleDefinition>` blocks. Keeping the LSP in
+ * lockstep with the runtime here means an authored override falls back to the
+ * same preset the runtime would.
+ *
+ * IMPORTANT: this function is lazily cached on the LSP side (see
+ * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
+ * stay pure w.r.t. mutable module state. Today it spreads
+ * `DEFAULT_STYLE_VALUES` directly; do not switch it to read from the
+ * mutable `defaultStyle` variable without first dropping that cache or the
+ * LSP will silently desync from runtime mutations.
  */
-function returnDefaultStyleDefinitions(): StyleDefinitions {
+export function returnDefaultStyleDefinitions(): StyleDefinitions {
     return addMissingColorWordsToStyleDefinitions(
         normalizeStyleDefinitionsValues({
             1: { ...DEFAULT_STYLE_VALUES },
