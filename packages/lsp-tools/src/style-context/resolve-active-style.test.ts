@@ -296,4 +296,82 @@ describe("resolveActiveStyleAttributeValue", () => {
         );
         expect(result).toBeUndefined();
     });
+
+    it("attaches colorWord for a hex color attribute (built-in styleNumber=1 default lineColor)", () => {
+        // Built-in styleNumber=1 ships lineColor="#648FFF"; the resolver
+        // should ride along the styleDefinition's own number (1) and pair
+        // the hex with whatever word `colorValueToWord` derives.
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="1"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            sd,
+            "lineColor",
+            { excludeNode: sd },
+        );
+        expect(result?.value).toBe("#648FFF");
+        // The derived word is whatever the nearest-canonical-color lookup
+        // returns; just assert it's present and not the raw hex.
+        expect(typeof result?.colorWord).toBe("string");
+        expect(result?.colorWord).not.toBe(result?.value);
+    });
+
+    it("suppresses colorWord when the value already IS a CSS named color", () => {
+        // <styleDefinition lineColor="red"/> excluded from itself falls back
+        // to the styleNumber=1 preset (a hex) — to actually exercise the
+        // named-color path, point the resolver at an ancestor whose authored
+        // styleDefinition supplies the named color.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" lineColor="red"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            point,
+            "lineColor",
+        );
+        expect(result?.value).toBe("red");
+        // "red" → "red" — no point repeating the word in parens.
+        expect(result?.colorWord).toBeUndefined();
+    });
+
+    it("does not attach colorWord for *Word color attributes (already the word)", () => {
+        // lineColorWord is itself a word; we don't compute a "word of the
+        // word".  Built-in styleNumber=1's lineColorWord derives to a CSS
+        // name, but the active-default surface should leave colorWord
+        // unset on the *Word keys.
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="1"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            sd,
+            "lineColorWord",
+            { excludeNode: sd },
+        );
+        // The word itself comes back, but no `colorWord` companion is set.
+        expect(typeof result?.value).toBe("string");
+        expect(result?.colorWord).toBeUndefined();
+    });
+
+    it("does not attach colorWord for non-color style attributes", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="1"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            sd,
+            "markerStyle",
+            { excludeNode: sd },
+        );
+        expect(result?.colorWord).toBeUndefined();
+    });
 });

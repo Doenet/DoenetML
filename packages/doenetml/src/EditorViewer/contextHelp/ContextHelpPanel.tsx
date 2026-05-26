@@ -173,14 +173,20 @@ export function ContextHelpPanel({
                         // static schema fallback vs. the live inherited
                         // value. The styleNumber annotation lets them trace
                         // the value back to the ancestor that supplied it.
+                        //
+                        // For color attributes (`lineColor`, `fillColorDarkMode`,
+                        // etc.) the LSP also ships `colorWord` — the human
+                        // word `colorValueToWord` derives. We pair it with
+                        // the hex in parens and paint both with the resolved
+                        // color (via `renderActiveDefaultValue`), so the
+                        // viewer sees the color it's reading about rather
+                        // than just decoding the hex.
                         <div className="help-detail">
                             <span className="help-detail-label">
                                 Active default:
                             </span>
                             <div className="help-values-list">
-                                <span className="help-value-item">
-                                    {formatValue(activeDefault.value)}
-                                </span>
+                                {renderActiveDefaultValue(activeDefault)}
                                 <span className="help-detail-annotation">
                                     {` (styleNumber ${activeDefault.styleNumber})`}
                                 </span>
@@ -352,6 +358,40 @@ export function ContextHelpPanel({
             );
         }
     }
+}
+
+/**
+ * Render the value pill for the "Active default:" row. For color attributes
+ * the LSP attaches a `colorWord` (e.g. `lineColor` → "cornflower"); we pair
+ * it with the hex in parens and use the resolved color as the text color for
+ * both, so the panel actually *shows* the color it's describing rather than
+ * forcing the author to translate `#648FFF` in their head. The gray pill
+ * background still provides a contrast surface for very light colors, but
+ * extremely light values may still read faintly — acceptable for a hint, and
+ * the parenthesized word makes the intent clear regardless. Non-color
+ * activeDefault values fall through to plain `formatValue` rendering.
+ */
+function renderActiveDefaultValue(activeDefault: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode {
+    if (activeDefault.colorWord && typeof activeDefault.value === "string") {
+        const colorText = resolveCssVariables(activeDefault.value);
+        const colorStyle = { color: colorText };
+        return (
+            <span className="help-value-item">
+                <span style={colorStyle}>{colorText}</span>
+                <span
+                    style={colorStyle}
+                >{` (${activeDefault.colorWord})`}</span>
+            </span>
+        );
+    }
+    return (
+        <span className="help-value-item">
+            {formatValue(activeDefault.value)}
+        </span>
+    );
 }
 
 function formatValue(val: unknown): React.ReactNode {

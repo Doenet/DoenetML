@@ -336,7 +336,13 @@ type ActiveDefaultContext = {
 function computeActiveDefaultForAttribute(
     schemaAttr: SchemaAttribute,
     ctx: ActiveDefaultContext | undefined,
-): { value: string | number | boolean; styleNumber: number } | undefined {
+):
+    | {
+          value: string | number | boolean;
+          styleNumber: number;
+          colorWord?: string;
+      }
+    | undefined {
     if (!ctx) return undefined;
     if (!isStyleAttributeName(schemaAttr.name)) return undefined;
     const insideStyleDefinition = ctx.node.name === "styleDefinition";
@@ -354,7 +360,20 @@ function computeActiveDefaultForAttribute(
     // / boolean), and a strict-equal fast path keeps the hot help-panel
     // request from doing structural comparison.
     if (resolved.value === schemaAttr.defaultValue) return undefined;
-    return resolved;
+    // Forward the resolver's optional `colorWord` (set only for non-word
+    // color attributes with a value distinct from its derived word). Built
+    // as a fresh object so an absent `colorWord` doesn't leak `undefined`
+    // into the payload and trip strict-equality assertions in tests.
+    const out: {
+        value: string | number | boolean;
+        styleNumber: number;
+        colorWord?: string;
+    } = {
+        value: resolved.value,
+        styleNumber: resolved.styleNumber,
+    };
+    if (resolved.colorWord !== undefined) out.colorWord = resolved.colorWord;
+    return out;
 }
 
 function helpForAttribute(

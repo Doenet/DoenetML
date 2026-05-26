@@ -27,6 +27,7 @@ import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
 import {
     DEFAULT_STYLE_VALUES,
+    colorValueToWord,
     returnDefaultStyleDefinitions,
     styleAttributes,
     type StyleAttributes,
@@ -74,6 +75,20 @@ export function canonicalStyleAttributeKey(
     attributeName: string,
 ): StyleDefinitionKey | undefined {
     return STYLE_ATTRIBUTE_KEY_BY_LOWER.get(attributeName.toLowerCase());
+}
+
+/**
+ * True when `key` is one of the hex-bearing color attribute keys —
+ * `lineColor`, `lineColorDarkMode`, `fillColor`, etc. — and NOT one of the
+ * `*Word` companions (those carry the human-readable name directly, no
+ * derivation needed). Used by the active-default surface to decide whether
+ * to compute a parenthesized color word alongside the raw hex value.
+ *
+ * Match is on the canonical (camel-case) key, since callers route through
+ * `canonicalStyleAttributeKey` before checking — that already case-folds.
+ */
+export function isColorAttributeKey(key: StyleDefinitionKey): boolean {
+    return /Color(DarkMode)?$/.test(key) && !key.includes("Word");
 }
 
 /** Look up an attribute on `element` case-insensitively and return its
@@ -329,6 +344,28 @@ export function resolveActiveStyle(
 }
 
 /**
+ * Resolved value plus styleNumber for the active-default surface. For color
+ * attributes (`lineColor`, `fillColorDarkMode`, etc.), also carries the
+ * human-readable `colorWord` derived via `colorValueToWord` — the help
+ * panel renders it in parens next to the hex so authors don't have to
+ * eyeball "#648FFF" to remember it's the cornflower-ish default.
+ *
+ * `colorWord` is suppressed when the resolved value is itself a CSS named
+ * color (e.g. `lineColor="red"`) since `red (red)` would just be noise.
+ * Detected by string equality after lowercasing both sides, mirroring the
+ * worker's `<styleDefinition>` lowercase-on-read normalization.
+ */
+export interface ActiveStyleAttributeValue {
+    value: StyleDefinitionPrimitive;
+    styleNumber: number;
+    /** Present only for non-word color attributes whose word differs from
+     *  the raw value. The help panel pairs it with `value` in the
+     *  "Active default" row and applies the value's hex as the text color
+     *  so the word and hex render in the color they describe. */
+    colorWord?: string;
+}
+
+/**
  * Convenience: return the resolved value for `attributeName` at `element`'s
  * scope, or undefined if the name isn't a styleAttribute. Used by the
  * context-help layer to populate `activeDefault` only for style attributes.
@@ -338,14 +375,28 @@ export function resolveActiveStyleAttributeValue(
     element: DastElement,
     attributeName: string,
     options: { excludeNode?: DastElement } = {},
-): { value: StyleDefinitionPrimitive; styleNumber: number } | undefined {
+): ActiveStyleAttributeValue | undefined {
     const key = canonicalStyleAttributeKey(attributeName);
     if (key === undefined) return undefined;
     const resolved = resolveActiveStyle(sourceObj, element, options);
     if (!resolved) return undefined;
     const value = resolved.style[key];
     if (value === undefined) return undefined;
-    return { value, styleNumber: resolved.styleNumber };
+    const result: ActiveStyleAttributeValue = {
+        value,
+        styleNumber: resolved.styleNumber,
+    };
+    if (isColorAttributeKey(key) && typeof value === "string") {
+        const word = colorValueToWord(value);
+        // Skip when the value already IS the word (CSS named color) — no
+        // point rendering "red (red)" — or when the word came back empty
+        // (invalid color values; the resolver returns "" rather than a
+        // misleading guess).
+        if (word && word.toLowerCase() !== value.toLowerCase()) {
+            result.colorWord = word;
+        }
+    }
+    return result;
 }
 
 // Re-exports for tests / consumers that don't import @doenet/utils directly.

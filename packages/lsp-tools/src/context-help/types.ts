@@ -48,6 +48,15 @@ export type HelpContent =
           activeDefault?: {
               value: string | number | boolean;
               styleNumber: number;
+              /**
+               * Human-readable color word derived from `value` when the
+               * attribute is a non-word color key (`lineColor`,
+               * `fillColorDarkMode`, etc.). The help panel renders it in
+               * parens next to the hex and styles both with the resolved
+               * color. Absent for non-color attributes and for color values
+               * that already are their own word (CSS named colors).
+               */
+              colorWord?: string;
           };
       }
     | {
