@@ -10,13 +10,13 @@ Allow per-component overrides for non-color style attributes on graphical compon
 
 Each component opts into the categories its renderer uses via `static styleOverrideCategories`:
 
-- **marker** (`markerStyle`, `markerSize`, `markerFilled`) — `<point>`, `<endpoint>`, `<equilibriumPoint>`.
-- **line** (`lineStyle`, `lineWidth`) — `<line>`, `<lineSegment>`, `<ray>`, `<vector>`, `<polyline>`, `<parabola>`, `<bestFitLine>`, `<equilibriumLine>`, `<cobwebPolyline>`.
-- **line + fill** (line group + `fillOpacity`) — `<polygon>`, `<triangle>`, `<rectangle>`, `<regularPolygon>`, `<curve>`, `<circle>`, `<equilibriumCurve>`.
+- **marker** (`markerStyle`, `markerSize`, `markerFilled`) — `<point>`; `<endpoint>` and `<equilibriumPoint>` (both minus `markerFilled` — their `open` / `stable` already control fill).
+- **line** (`lineStyle`, `lineWidth`) — `<line>`, `<lineSegment>`, `<ray>`, `<vector>`, `<polyline>`, `<parabola>`, `<bestFitLine>`, `<cobwebPolyline>`; `<equilibriumLine>` (minus `lineStyle` — `stable` forces dashed rendering).
+- **line + fill** (line group + `fillOpacity`) — `<polygon>`, `<triangle>`, `<rectangle>`, `<regularPolygon>`, `<curve>`, `<circle>`; `<equilibriumCurve>` (minus `lineStyle`, same reason).
 
 Cross-category use is a schema error: `<point lineWidth="3">` and `<line markerStyle="square">` are now rejected.
 
-**New attribute `markerFilled`** (boolean, default `true`) toggles filled vs. open marker rendering; no-op for `cross` / `plus`. Subclasses whose semantic state already controls fill (`<endpoint>` via `open`, `<equilibriumPoint>` via `stable`) drop the per-component attribute to avoid confusing-but-inert overrides; same pattern suppresses `lineStyle` on `<equilibriumLine>` / `<equilibriumCurve>` where `stable` forces dashed rendering.
+**New attribute `markerFilled`** (boolean, default `true`) toggles filled vs. open marker rendering on `<point>`; no-op for `markerStyle="cross"` / `"plus"`.
 
 **Exclusions.** Color attributes (`*Color`, `*ColorDarkMode`, `*ColorWord`) and the contrast-feeding opacities (`lineOpacity`, `markerOpacity`) stay `<styleDefinition>`-only so the per-styleNumber WCAG contrast diagnostics remain authoritative. `fillOpacity` is contrast-irrelevant and overridable. `*Word` descriptors (`markerStyleWord`, `lineStyleWord`, `lineWidthWord`) are derived from the underlying value rather than independently overridable — overriding `lineWidth=2` re-derives `lineWidthWord=""` even when a `<styleDefinition>` shipped a custom `"hairline"`, since a stale descriptor next to a different value would mislead.
 
