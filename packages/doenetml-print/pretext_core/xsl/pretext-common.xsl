@@ -1166,7 +1166,12 @@ Book (with parts), "section" at level 3
 <xsl:template match="md[mrow]" mode="displaymath-alignment">
     <xsl:param name="b-needs-tags" select="true()" />
     <xsl:choose>
-        <!-- look for @alignment override, possibly bad -->
+        <!-- Honor the @alignment override.  The schema restricts the   -->
+        <!-- value to one of these three.  The trailing "@alignment"    -->
+        <!-- catch-all is reached only by schema-bypassed input; it     -->
+        <!-- emits a literal token so LaTeX (or MathJax) errors out on  -->
+        <!-- an unknown environment rather than silently falling        -->
+        <!-- through to the ampersand-sniff branch.                     -->
         <xsl:when test="@alignment='gather'">
             <xsl:text>gather</xsl:text>
         </xsl:when>
@@ -1177,8 +1182,6 @@ Book (with parts), "section" at level 3
             <xsl:text>align</xsl:text>
         </xsl:when>
         <xsl:when test="@alignment">
-            <xsl:message>PTX:ERROR: display math @alignment attribute "<xsl:value-of select="@alignment" />" is not recognized (should be "align", "gather", "alignat")</xsl:message>
-            <xsl:apply-templates select="." mode="location-report" />
             <xsl:text>bad-alignment-choice</xsl:text>
         </xsl:when>
         <!-- perhaps authored as obviously one-line (no alignment) -->
@@ -5785,24 +5788,14 @@ Book (with parts), "section" at level 3
 <!-- SidebySide Layout Utilities -->
 <!-- ########################### -->
 
-<!-- From a space-separated list of vertical alignments -->
-<!-- create error-checked result tree fragment          -->
+<!-- From a space-separated list of vertical alignments       -->
+<!-- create a result tree fragment.  The schema enforces      -->
+<!-- "top" | "middle" | "bottom" on each list item, so no     -->
+<!-- defensive value check is needed here.                    -->
 <xsl:template name="decompose-valigns">
     <xsl:param name="valigns" />
     <xsl:variable name="the-valign" select="substring-before($valigns, ' ')" />
     <xsl:if test="not($the-valign = '')">
-        <!-- error-check, since list bypasses schema -->
-        <!-- "top" is default, so check first        -->
-        <xsl:choose>
-            <xsl:when test="$the-valign = 'top'" />
-            <xsl:when test="$the-valign = 'bottom'" />
-            <xsl:when test="$the-valign = 'middle'" />
-            <xsl:otherwise>
-                <xsl:message>PTX:ERROR:   @valign(s) ("<xsl:value-of select="$the-valign" />") in &lt;sidebyside&gt; or &lt;sbsgroup&gt; is not "top," "middle" or "bottom"</xsl:message>
-                <xsl:apply-templates select="." mode="location-report" />
-            </xsl:otherwise>
-        </xsl:choose>
-        <!-- okay, output element -->
         <valign>
             <xsl:value-of select="$the-valign" />
         </valign>
@@ -6159,27 +6152,20 @@ Book (with parts), "section" at level 3
     </xsl:choose>
 </xsl:template>
 
-<!-- CSS class for multi-column lists -->
-<!-- Context is element with potential "cols" attribute -->
-<!-- Return value is "colsN" with 2 <= N <= 6           -->
-<!-- @cols absent produces no result (i.e. classless)   -->
-<!-- @cols = 1 produces no result (i.e. classless)      -->
-<!-- Error message if out-of-range, could be made fatal -->
-<!-- Schema should enforce this restriction also        -->
+<!-- CSS class for multi-column lists.  Context is an element with -->
+<!-- a potential "cols" attribute.  Return value is "colsN" with   -->
+<!-- 2 <= N <= 6, or empty when @cols is absent.                   -->
+<!-- Schema enforces @cols to be one of "2", "3", "4", "5", "6"    -->
+<!-- on each of "ol", "ul", and "exercisegroup" (and on the        -->
+<!-- variant of "ol" used inside exercise statements), so this     -->
+<!-- template just emits the class string whenever @cols is        -->
+<!-- present.                                                      -->
 <xsl:template match="ol|ul|exercisegroup" mode="number-cols-CSS-class">
-    <xsl:choose>
-        <xsl:when test="not(@cols)"/>
-        <xsl:when test="@cols = 1"/>
-        <xsl:when test="(@cols = 2) or (@cols = 3) or (@cols = 4) or (@cols = 5) or (@cols = 6)">
-            <xsl:text>cols</xsl:text>
-            <xsl:value-of select="@cols" />
-            <xsl:text> multicolumn</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:message>PTX:ERROR:   @cols attribute of lists or exercise groups, must be between 1 and 6 (inclusive), not "cols=<xsl:value-of select="@cols" />"</xsl:message>
-            <xsl:apply-templates select="." mode="location-report" />
-        </xsl:otherwise>
-    </xsl:choose>
+    <xsl:if test="@cols">
+        <xsl:text>cols</xsl:text>
+        <xsl:value-of select="@cols" />
+        <xsl:text> multicolumn</xsl:text>
+    </xsl:if>
 </xsl:template>
 
 <!-- ################## -->
@@ -8267,10 +8253,13 @@ Book (with parts), "section" at level 3
 <!-- functions for the construction of tables.    -->
 <!-- Document uses carefully when newly employed. -->
 
-<!-- Translate thickness attribute value to integer short name -->
-<!-- HTML: makes portion of CSS class names for cells          -->
-<!-- PG: makes portion of optional parameter for DataTable     -->
-<!-- macro from niceTable.pl for thickness of table cells      -->
+<!-- Translate thickness attribute value to integer short name.  -->
+<!-- HTML: makes portion of CSS class names for cells.           -->
+<!-- PG: makes portion of optional parameter for DataTable       -->
+<!-- macro from niceTable.pl for thickness of table cells.       -->
+<!-- The schema restricts callers' @top, @bottom, @left, @right  -->
+<!-- (on "tabular", "row", "col", "cell") to these four values,  -->
+<!-- so no defensive otherwise is needed.                        -->
 <xsl:template name="thickness-specification">
     <xsl:param name="width" />
     <xsl:choose>
@@ -8286,17 +8275,17 @@ Book (with parts), "section" at level 3
         <xsl:when test="$width='major'">
             <xsl:text>3</xsl:text>
         </xsl:when>
-        <xsl:otherwise>
-            <xsl:message>PTX:WARNING: tabular rule thickness not recognized: use none, minor, medium, major</xsl:message>
-        </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
 
-<!-- Translate horizontal alignment to CSS short name    -->
-<!-- HTML:  makes portion of CSS class names for cells   -->
-<!-- LaTeX: provides standard LaTeX horizontal alignment -->
-<!-- PG: provide LaTeX-style alignment string for        -->
-<!-- DataTable macro from niceTable.pl                   -->
+<!-- Translate horizontal alignment to CSS short name.            -->
+<!-- HTML:  makes portion of CSS class names for cells.           -->
+<!-- LaTeX: provides standard LaTeX horizontal alignment.         -->
+<!-- PG: provide LaTeX-style alignment string for the             -->
+<!-- DataTable macro from niceTable.pl.                           -->
+<!-- The schema restricts callers' @halign (on "tabular", "row",  -->
+<!-- "col", "cell") to these four values, so no defensive         -->
+<!-- otherwise is needed.                                         -->
 <xsl:template name="halign-specification">
     <xsl:param name="align" />
     <xsl:choose>
@@ -8309,17 +8298,16 @@ Book (with parts), "section" at level 3
         <xsl:when test="$align='right'">
             <xsl:text>r</xsl:text>
         </xsl:when>
-        <xsl:otherwise>
-            <xsl:message>PTX:WARNING: tabular horizontal alignment attribute not recognized: use left, center, right, justify</xsl:message>
-        </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
 
-<!-- Translate vertical alignment to CSS short name         -->
-<!-- HTML:  makes portion of CSS class names for cells      -->
-<!-- LaTeX: provides one standard LaTeX vertical alignment  -->
-<!-- PG: provide LaTeX-style alignment string for           -->
-<!-- DataTable macro from niceTable.pl                      -->
+<!-- Translate vertical alignment to CSS short name.              -->
+<!-- HTML:  makes portion of CSS class names for cells.           -->
+<!-- LaTeX: provides one standard LaTeX vertical alignment.       -->
+<!-- PG: provide LaTeX-style alignment string for the             -->
+<!-- DataTable macro from niceTable.pl.                           -->
+<!-- The schema restricts callers' @valign (on "tabular", "row")  -->
+<!-- to these three values, so no defensive otherwise is needed.  -->
 <xsl:template name="valign-specification">
     <xsl:param name="align" />
     <xsl:choose>
@@ -8332,9 +8320,6 @@ Book (with parts), "section" at level 3
         <xsl:when test="$align='bottom'">
             <xsl:text>b</xsl:text>
         </xsl:when>
-        <xsl:otherwise>
-            <xsl:message>PTX:WARNING: tabular vertical alignment attribute not recognized: use top, middle, bottom</xsl:message>
-        </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
 
@@ -11032,11 +11017,34 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
     </xsl:choose>
 </xsl:template>
 
-<!-- We search up the tree, looking for something -->
-<!-- an author will recognize, and then report it -->
-<!-- Useful for warnings that do not contain any  -->
-<!-- identifying information themselves           -->
+<!-- Report the location of an element or attribute, for use after a   -->
+<!-- warning that does not itself contain identifying information.     -->
+<!-- Prints two lines: a structural path of element local-names from   -->
+<!-- the root, useful for diagnosing structural problems; then the     -->
+<!-- nearest @xml:id or "title" up the ancestor chain, useful for the  -->
+<!-- author to locate the issue in their source.                       -->
 <xsl:template match="*|@*" mode="location-report">
+    <!-- structural path: "pretext/book/chapter/.../element" -->
+    <!-- attributes display as a trailing "@name" step       -->
+    <xsl:message>
+        <xsl:text>             located at: </xsl:text>
+        <xsl:for-each select="ancestor::*">
+            <xsl:value-of select="local-name(.)"/>
+            <xsl:text>/</xsl:text>
+        </xsl:for-each>
+        <xsl:if test="not(self::*)">
+            <xsl:text>@</xsl:text>
+        </xsl:if>
+        <xsl:value-of select="local-name(.)"/>
+    </xsl:message>
+    <!-- nearest @xml:id or "title" for author orientation -->
+    <xsl:apply-templates select="." mode="named-ancestor-report"/>
+</xsl:template>
+
+<!-- Walk up the ancestor chain, looking for the first element with     -->
+<!-- @xml:id or "title", and report it.  Companion to "location-report" -->
+<!-- so the structural path is printed once while this walk continues.  -->
+<xsl:template match="*|@*" mode="named-ancestor-report">
     <xsl:choose>
         <xsl:when test="@xml:id or title">
             <!-- print information about location -->
@@ -11057,12 +11065,16 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
                 </xsl:if>
             </xsl:message>
         </xsl:when>
-        <xsl:when test="mathbook|pretext">
-            <!-- at root, fail with no action -->
+        <xsl:when test="self::mathbook or self::pretext">
+            <!-- at the document root, fail with no action.  Earlier  -->
+            <!-- this test used "mathbook|pretext", which matched any -->
+            <!-- ancestor that happened to *contain* a "pretext/" or  -->
+            <!-- "mathbook/" empty element (the project-name marker)  -->
+            <!-- and halted the walk prematurely.                     -->
         </xsl:when>
         <xsl:otherwise>
             <!-- pop up a level and try again -->
-            <xsl:apply-templates select="parent::*[1]" mode="location-report" />
+            <xsl:apply-templates select="parent::*[1]" mode="named-ancestor-report" />
         </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
@@ -12325,9 +12337,10 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
 <!-- then translate all asterisks to octothorpes.  The left margin -->
 <!-- becomes three octothorpes to not be confused with metadata    -->
 <!-- This can revert to  -perl  if the editor changes              -->
+<!-- 2026-05-22: removed dates, too much noise in diffs            -->
 <xsl:template name="converter-blurb-webwork">
     <xsl:variable name="blurb">
-        <xsl:call-template name="converter-blurb">
+        <xsl:call-template name="converter-blurb-no-date">
             <xsl:with-param name="lead-in"  select="'##'" />
             <xsl:with-param name="lead-out" select="'XXX'" />
         </xsl:call-template>
