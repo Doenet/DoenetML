@@ -25,11 +25,12 @@ exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format 
 
 In document: $ci.choiceTexts <alert name="in_alert">$ci.choiceTexts</alert>
 <blockquote name="in_blockquote">$ci.choiceTexts</blockquote>
-<c name="in_c">$ci.choiceTexts</c><caption name="in_caption">
-    $ci.choiceTexts
-</caption><cell name="in_cell">$ci.choiceTexts</cell>
+<c name="in_c">$ci.choiceTexts</c>
+<caption name="in_caption">$ci.choiceTexts</caption>
+<cell name="in_cell">$ci.choiceTexts</cell>
 <choice name="in_choice">$ci.choiceTexts</choice>
-<span name="in_span">$ci.choiceTexts</span><em name="in_em">$ci.choiceTexts</em>
+<span name="in_span">$ci.choiceTexts</span>
+<em name="in_em">$ci.choiceTexts</em>
 <feedback name="in_feedback">$ci.choiceTexts</feedback>
 <footnote name="in_footnote">$ci.choiceTexts</footnote>
 <hint name="in_hint_w_title">
@@ -65,4 +66,133 @@ In document: $ci.choiceTexts <alert name="in_alert">$ci.choiceTexts</alert>
 
     <li name="in_li">$ci.choiceTexts</li>
 </ol>"
+`;
+
+exports[`Prettier > pretty-print-2-inline-only.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<p>Plain text with <em>emphasis</em> and <m>x^2</m> inline.</p>
+<p>A short sentence with one ref: $myRef.</p>
+<p>
+    <text>
+        Wrapped <em>inline</em> content stays on the same line if it fits.
+    </text>
+</p>
+<p>
+    This paragraph is intentionally long enough to exceed the print width so we
+    can verify that prose wrapping uses fill() and breaks at word boundaries
+    cleanly.
+</p>"
+`;
+
+exports[`Prettier > pretty-print-3-mixed-block-inline.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<section name="s">
+    <title>A title with <m>x^2</m> math</title>
+    <p>First paragraph with <em>some</em> emphasis.</p>
+    <p>Second paragraph.</p>
+    <ol>
+        <li>Item one</li>
+        <li>Item two has <c>code</c> in it.</li>
+    </ol>
+    <graph>
+        <point coords="(1,2)" />
+        <line through="$a $b" />
+    </graph>
+</section>"
+`;
+
+exports[`Prettier > pretty-print-4-deeply-nested.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<problem>
+    <title>Nested problem</title>
+    <p>Solve for <m>x</m>:</p>
+    <solution>
+        <hint>
+            <p>Think about <em>multiplication</em> first.</p>
+            <p>Then <m>x = \\frac{1}{2}</m>.</p>
+        </hint>
+        <p>The answer is <m>x = \\frac{1}{2}</m>.</p>
+    </solution>
+</problem>"
+`;
+
+exports[`Prettier > pretty-print-5-blank-lines.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<p>No blank line after this.</p>
+<p>Adjacent paragraph.</p>
+
+<p>One blank line above; one should be preserved.</p>
+
+<p>Three blank lines above; should collapse to one.</p>
+<p>Adjacent again.</p>"
+`;
+
+exports[`Prettier > pretty-print-6-long-attrs.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<mathinput
+    name="mn1"
+    prefill="2"
+    minValue="0"
+    maxValue="100"
+    displayDigits="6"
+/>
+<mathinput
+    name="mn2"
+    prefill="3"
+    minValue="-10"
+    maxValue="10"
+    displayDigits="6"
+    labelIsName="true"
+/>
+<p>
+    Inline element with many attributes:
+    <text
+        name="t"
+        hide="false"
+        fixed="true"
+        disabled="false"
+        prefill="some default text here"
+    >
+        overridden
+    </text>
+</p>"
+`;
+
+exports[`Prettier > pretty-print-7-attr-macros.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<graph>
+    <point name="A" coords="(1,2)" />
+    <point name="B" coords="(3,4)" />
+    <line through="$A $B" />
+</graph>
+<p>Reference to <ref to="$s.title">the section</ref> via macro.</p>
+<p>Function macro: $$f($x, $y) and chained: $a.b.c[0].d</p>"
+`;
+
+exports[`Prettier > pretty-print-8-table.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<table>
+    <row>
+        <cell>R1C1</cell>
+        <cell>R1C2</cell>
+        <cell>R1C3</cell>
+    </row>
+    <row>
+        <cell><m>x_1</m></cell>
+        <cell>middle cell</cell>
+        <cell>$ref</cell>
+    </row>
+</table>"
+`;
+
+exports[`Prettier > pretty-print-9-self-closing.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<p>Before break.</p>
+<hr />
+<p>After break.</p>
+<image source="a.png" />
+<br />
+<p>End.</p>"
+`;
+
+exports[`Prettier > pretty-print-10-root-bare-text.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"Some bare top-level text with <em>inline</em> emphasis.
+<p>Then a paragraph.</p>
+More bare text, with $ref macro.
+<section>
+    <title>A section</title>
+    <p>Section content.</p>
+</section>"
 `;

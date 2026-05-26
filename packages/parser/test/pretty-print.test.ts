@@ -121,6 +121,14 @@ describe("Prettier", async () => {
                 });
                 //origLog(prettyPrinted);
                 expect(prettyPrinted).toMatchSnapshot();
+                // Idempotence: re-formatting must produce the same output.
+                // Catches a whole class of layout-oscillation bugs that the
+                // snapshot alone misses.
+                const reformatted = await prettyPrint(prettyPrinted, {
+                    doenetSyntax: false,
+                    printWidth: 80,
+                });
+                expect(reformatted).toEqual(prettyPrinted);
             });
         }
     }

@@ -1,6 +1,7 @@
 import { Plugin, unified } from "unified";
 import { DastRoot } from "../../types";
 import { expandCdataPlugin } from "./plugin-expand-cdata";
+import { markBlankLinesPlugin } from "./plugin-mark-blank-lines";
 import { mergeAdjacentTextPlugin } from "./plugin-merge-adjacent-text";
 import { mergeWhitespacePlugin } from "./plugin-merge-whitespace";
 import { removeEmptyTextNodesPlugin } from "./plugin-remove-empty-text-nodes";
@@ -17,6 +18,7 @@ export const normalizeDoenetMlPlugin: Plugin<void[], DastRoot, DastRoot> =
             .use(expandCdataPlugin)
             .use(mergeAdjacentTextPlugin)
             .use(mergeWhitespacePlugin)
+            .use(markBlankLinesPlugin)
             .use(removeInternodeWhitespacePlugin)
             .use(trimWhitespacePlugin)
             .use(removeEmptyTextNodesPlugin);
