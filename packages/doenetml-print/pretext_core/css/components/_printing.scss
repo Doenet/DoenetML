@@ -1,0 +1,42 @@
+// Basic rules for printing a standard PreTeXt page
+
+// Get rid of UI elements.
+// Leave margin fiddling for system print dialog.
+
+// Worksheet and handout printing is handled in print-worksheet.scss
+
+@media print {
+  .pretext .ptx-masthead,
+  .pretext .ptx-navbar,
+  body.pretext > a.assistive,
+  .pretext .ptx-page > .ptx-sidebar,
+  .pretext  .ptx-page-footer,
+  .pretext .ptx-main > div.ptx-content-footer {
+    display:none;
+  }
+
+  .ptx-page, .ptx-main, .ptx-main .ptx-content {
+    all: unset !important;
+    width: 100%;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ptx-sagecell, .tabular, .table-like, .figure-like, .exercise-like {
+    break-inside: avoid;
+  }
+
+  .heading {
+    break-after: avoid;
+  }
+
+  .code-inline {
+    border: unset;
+    background: unset;
+  }
+
+  @page {
+    margin: 0.75in 0.75in 0.75in 0.75in;
+  }
+}

@@ -1,0 +1,246 @@
+//Some basic variables
+$centered-content: true !default;
+$scrolling-toc: true !default;
+$nav-height: 36px !default;
+$navbar-breakpoint: 800px !default;
+
+//The following variables represent the *max* width of everything.  When the screen shrinks, we will reduce some of these.
+
+// The sidebar contains the TOC. It is left of the page, with a right-margin to separate it.
+$sidebar-width: 240px !default;
+$sidebar-right-margin: 80px !default;
+$sidebar-total-width: $sidebar-width + $sidebar-right-margin;
+
+// ptx-content contains the main content.  It is contained in ptx-main
+$content-width: 600px !default;
+$content-side-padding: 120px !default;
+$content-side-padding-tight: 20px !default;
+
+$sidebar-breakpoint: $content-width + $sidebar-total-width + 24px; // a little extra for padding
+
+// ptx-main contains the ptx-content and footer.  It has a width equal to the content plus the content's margins.
+// There is a right margin that counters the size of the sidebar+sidebarmargin.
+$main-width: $content-width + (2 * $content-side-padding);
+$main-right-margin: $sidebar-total-width;
+
+// ptx-page contains the sidebar and ptx-main.  It's width is the sum of main, main-right-margin, and sidebar-total-width.
+$page-width: $sidebar-total-width + $main-width + $main-right-margin;
+
+@use 'components/page-parts/body' with (
+  $max-width: $page-width,
+  $content-width: $content-width,
+  $content-side-padding: $content-side-padding,
+  $centered-content: $centered-content,
+);
+
+@use 'components/page-parts/banner' with (
+  $max-width: $main-width,
+  $navbar-breakpoint: $navbar-breakpoint,
+);
+
+@use 'components/page-parts/navbar' with (
+  $max-width: $main-width,
+  $nav-height: $nav-height,
+  $navbar-breakpoint: $navbar-breakpoint,
+);
+
+@use 'components/page-parts/toc-default' with (
+  $scrolling: $scrolling-toc,
+  $sidebar-width: $sidebar-width,
+  $sidebar-breakpoint: $sidebar-breakpoint,
+  $navbar-breakpoint: $navbar-breakpoint,
+);
+
+@use 'components/page-parts/extras/toc-hidden-scrollbar';
+
+//@use 'summary-links';
+@use 'components/page-parts/footer' with (
+  $navbar-breakpoint: $navbar-breakpoint,
+);
+
+@use '../salem/rs-widen';
+
+// now handle smaller screens for rs elements
+@media (width < 850px) {
+  @include rs-widen.smaller-screen-widening;
+}
+
+
+.ptx-main {
+  margin-right: $sidebar-total-width;
+}
+
+.ptx-sidebar.hidden + .ptx-main {
+  margin-left: $sidebar-total-width;
+}
+
+
+// .ptx-main is the center column - apply page shadow to it
+.ptx-main {
+  // The color of the shadow is mostly gray, but with a slight tint of the primary color
+  box-shadow: 5px 10px 40px -10px var(--primary-color-gray-80);
+}
+@media (prefers-color-scheme: dark) {
+  .ptx-main {
+    // Dark mode shadow is just black
+    box-shadow: 5px 10px 40px -10px black;
+  }
+}
+
+
+
+// visually shift the sidebar off the page
+.ptx-sidebar {
+  //transform: translateX(-$sidebar-right-margin);
+  margin-right: $sidebar-right-margin;
+}
+
+.ptx-navbar {
+  border: none;
+
+  // move contents button out of navbar-contents and align with sidebar
+  .toc-toggle {
+    transform: translateX(-$sidebar-total-width);
+    position: absolute;
+    left: 0;
+    justify-content: left;
+  }
+}
+
+.ptx-toc {
+  border: none;
+  position: sticky;
+  top: $nav-height;
+}
+
+// Make expanded parts of TOC look more like subsections
+.toc-item.visible {
+  font-size: .95em;
+  padding-left: 8px;
+}
+
+.ptx-page {
+    margin-top: 36px;
+    margin-bottom: 36px;
+}
+
+// Sidebar hits the left side of page - need to lock it in place
+$sidebar-lock-breakpoint: $main-width + 2 * $sidebar-total-width;
+// @debug "$sidebar-lock-breakpoint: #{$sidebar-lock-breakpoint}";
+@media screen and (width <= $sidebar-lock-breakpoint) {
+  .ptx-page {
+    margin-left: 0;
+    max-width: 100%;
+  }
+  .ptx-main {
+    margin-right: calc(100% - $main-width - $sidebar-total-width);
+    max-width: $main-width;
+  }
+  .ptx-sidebar.hidden + .ptx-main {
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .ptx-navbar .ptx-navbar-contents {
+    margin-left: $sidebar-total-width;
+  }
+}
+
+// When the the main content is almost to the edge of the screen, we remove the drop-shadow
+// and change the layout strategy to center the content in what space is available
+// Sidebar no only consumes minimum required space as whitespace on left/right of main should be equal
+$page-border-breakpoint: $main-width + $sidebar-width + 2 * $sidebar-right-margin;
+// @debug "page-border-breakpoint: #{$page-border-breakpoint}";
+@media screen and (width <= $page-border-breakpoint) {
+  // main is centered in page
+  .ptx-main {
+    box-shadow: unset;
+    margin-right: auto;
+
+    // shrink content padding
+    .ptx-content {
+      padding-left: $content-side-padding-tight;
+      padding-right: $content-side-padding-tight;
+      max-width: calc($content-width + 2 * $content-side-padding-tight);
+    }
+  }
+
+  .ptx-sidebar {
+    margin-right: 0;
+  }
+
+  // align toc-toggle with right edge of sidebar
+  .ptx-navbar .ptx-navbar-contents {
+    margin-left: $sidebar-width;
+  }
+  .ptx-navbar .toc-toggle {
+    transform: translateX(-$sidebar-width);
+    justify-content: center;
+  }
+
+  // Reset margins for page now that we don't show box-shadow
+  .ptx-page {
+    margin-top: unset;
+    margin-bottom: unset;
+  }
+
+  // And lower TOC accordingly
+  .ptx-toc {
+    padding-top: 36px;
+
+  }
+
+}
+
+
+// Now it is time to hide the sidebar unless requested
+$sidebar-hide-breakpoint: $content-width + 2 * $content-side-padding-tight + $sidebar-width;
+// @debug "sidebar-hide-breakpoint: #{$sidebar-hide-breakpoint}";
+@media screen and (width <= $sidebar-hide-breakpoint) {
+  .ptx-sidebar {
+    display: none;
+  }
+}
+
+//Adjust again when navbar moves to bottom.
+@media screen and (max-width: $navbar-breakpoint) {
+  // Undo modifications to toc-toggle and margin that held space for it
+  .ptx-navbar .ptx-navbar-contents {
+    margin-left: 0;
+  }
+  .ptx-navbar .toc-toggle {
+      transform: none;
+      position: relative;
+      justify-content: center;
+  }
+
+  .ptx-content-footer {
+    padding-left: $content-side-padding-tight;
+    padding-right: $content-side-padding-tight;
+  }
+}
+
+
+// TOC hover spans entire width of TOC item
+.toc-item:is(:hover, :focus) {
+  color: var(--tocitem-highlight-text-color);
+  background-color: var(--tocitem-highlight-background);
+  border-color: var(--tocitem-highlight-border-color);
+}
+
+
+.standalone-page {
+  margin: 0;
+  padding: 0;
+
+  .ptx-page {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .ptx-main {
+    margin-right: auto;
+    margin-left: auto;
+    box-shadow: none;
+    max-width: 100%;
+  }
+}

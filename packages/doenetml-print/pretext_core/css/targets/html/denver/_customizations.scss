@@ -1,0 +1,48 @@
+$color: var(--primary-color) !default;
+$text-color: white !default;
+
+@use 'components/page-parts/extras/toc-expand-chevrons';
+
+
+.hide-type .codenumber:not(:empty)::after {
+    content: " ";
+}
+
+
+//Give navbar a gradient background
+.ptx-navbar {
+    background: linear-gradient(to bottom, var(--banner-background), var(--navbar-background));
+
+    .button:not(.copy-embed-button) {
+        background: linear-gradient(to bottom, var(--banner-background), var(--navbar-background));
+
+        // Turn off background-image (linear gradient) on hover so it behaves like a solid color button
+        &:hover:not(.disabled) {
+            background-image: none;
+        }
+
+        &.open {
+            background-image: none;
+        }
+
+    }
+}
+
+
+// Apply blocks of colors to headings when not in dark mode
+//:root {
+//  &:not(.dark-mode) {
+//    section > .heading{
+//      background: var(--primary-color-white-30);
+//      padding: 5px;
+//      padding-left: 15px;
+//      color: var(--page-color);
+//      border-radius: 2px;
+//    }
+
+//    // Section heading is extra dark
+//    section.section > .heading{
+//      background-color: var(--primary-color);
+//    }
+//  }
+//}
