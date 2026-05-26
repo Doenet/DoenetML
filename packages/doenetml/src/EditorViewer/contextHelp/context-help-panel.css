@@ -136,6 +136,16 @@
     font-size: 0.85rem;
 }
 
+/*
+ * Subtle annotation next to a value item (e.g. the `(styleNumber N)` tag on
+ * the "Active default:" row, #1198). Muted color and slightly smaller text so
+ * it reads as metadata rather than competing with the value itself.
+ */
+.editor-panel .help-detail-annotation {
+    color: #667085;
+    font-size: 0.8rem;
+}
+
 /* Allowed-values row stacks label above the definition list. */
 .editor-panel .help-allowed-values {
     flex-direction: column;

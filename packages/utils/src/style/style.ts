@@ -567,8 +567,14 @@ function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  *
  * Preset color-word fields are injected in a second pass from the corresponding
  * color values.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
+ * seed its inheritance walk with the same 6 numbered presets the runtime uses
+ * before merging author-defined `<styleDefinition>` blocks. Keeping the LSP in
+ * lockstep with the runtime here means an authored override falls back to the
+ * same preset the runtime would.
  */
-function returnDefaultStyleDefinitions(): StyleDefinitions {
+export function returnDefaultStyleDefinitions(): StyleDefinitions {
     return addMissingColorWordsToStyleDefinitions(
         normalizeStyleDefinitionsValues({
             1: { ...DEFAULT_STYLE_VALUES },

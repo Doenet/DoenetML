@@ -139,6 +139,7 @@ export function ContextHelpPanel({
                 docsSlug,
                 allowedValues,
                 defaultValue,
+                activeDefault,
             } = content;
             return (
                 <div className="help-panel">
@@ -160,6 +161,28 @@ export function ContextHelpPanel({
                             <div className="help-values-list">
                                 <span className="help-value-item">
                                     {formatValue(defaultValue)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                    {activeDefault && (
+                        // Surfaces the styleDefinition-resolved value the
+                        // attribute inherits at this cursor scope (#1198).
+                        // Rendered as a separate row from "Default:" so the
+                        // author can tell at a glance which signal is the
+                        // static schema fallback vs. the live inherited
+                        // value. The styleNumber annotation lets them trace
+                        // the value back to the ancestor that supplied it.
+                        <div className="help-detail">
+                            <span className="help-detail-label">
+                                Active default:
+                            </span>
+                            <div className="help-values-list">
+                                <span className="help-value-item">
+                                    {formatValue(activeDefault.value)}
+                                </span>
+                                <span className="help-detail-annotation">
+                                    {` (styleNumber ${activeDefault.styleNumber})`}
                                 </span>
                             </div>
                         </div>

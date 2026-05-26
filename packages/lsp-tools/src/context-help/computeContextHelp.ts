@@ -12,6 +12,10 @@ import {
     deepestArrayEntryType,
 } from "../auto-completer/index-aliases";
 import { mergeDeclaredIntoSchemaAttributes } from "../auto-completer/module-attributes";
+import {
+    isStyleAttributeName,
+    resolveActiveStyleAttributeValue,
+} from "../style-context/resolve-active-style";
 import { HelpContent } from "./types";
 
 /**
@@ -172,6 +176,7 @@ export async function computeContextHelp(
                     ownEntry,
                     helpEntry,
                     attr.name,
+                    { completer, node },
                 );
                 if (attrHelp.kind !== "none") return attrHelp;
                 // The cursor is inside an attribute the element doesn't know
@@ -298,15 +303,75 @@ function helpForElement(
     };
 }
 
+/**
+ * Optional context for active-default resolution. The cursor's DAST element
+ * and the completer (carrier of the source object) let `helpForAttribute`
+ * compute the styleDefinition-resolved value at the cursor's scope and
+ * surface it as `activeDefault` when the attribute is a style attribute
+ * (issue #1198).
+ *
+ * Optional because the autocomplete-row paths (`type === "enum"` etc.)
+ * always know both — the cursor branch through `computeContextHelp` only
+ * has the node when the cursor sits inside an attribute, which is
+ * exactly when it should be set.
+ */
+type ActiveDefaultContext = {
+    completer: AutoCompleter;
+    node: DastElement;
+};
+
+/**
+ * Compute the `activeDefault` field for a style attribute, or undefined when
+ * the attribute isn't a style attribute, the resolver returns nothing, or
+ * the resolved value matches the schema's static `defaultValue` (in which
+ * case the existing "Default:" row already conveys it — surfacing both
+ * rows with the same value adds noise without information).
+ *
+ * Inside a `<styleDefinition>` we exclude the styleDefinition itself from
+ * the merge so the displayed value reflects what *other* sources (siblings,
+ * ancestors, the built-in preset) supply for that styleNumber. This is the
+ * "what would this resolve to if I didn't set it here" hint the secondary
+ * scope of issue #1198 calls for.
+ */
+function computeActiveDefaultForAttribute(
+    schemaAttr: SchemaAttribute,
+    ctx: ActiveDefaultContext | undefined,
+): { value: string | number | boolean; styleNumber: number } | undefined {
+    if (!ctx) return undefined;
+    if (!isStyleAttributeName(schemaAttr.name)) return undefined;
+    const insideStyleDefinition = ctx.node.name === "styleDefinition";
+    const resolved = resolveActiveStyleAttributeValue(
+        ctx.completer.sourceObj,
+        ctx.node,
+        schemaAttr.name,
+        insideStyleDefinition ? { excludeNode: ctx.node } : undefined,
+    );
+    if (!resolved) return undefined;
+    // Suppress redundant rows. The schema's `defaultValue` is encoded
+    // (e.g. `isMathDefaultValue`) and the active value is a raw primitive,
+    // so we compare via strict equality on the primitive form only — good
+    // enough for the style attributes we surface (all are string / number
+    // / boolean), and a strict-equal fast path keeps the hot help-panel
+    // request from doing structural comparison.
+    if (resolved.value === schemaAttr.defaultValue) return undefined;
+    return resolved;
+}
+
 function helpForAttribute(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
     rawAttributeName: string,
+    activeDefaultCtx?: ActiveDefaultContext,
 ): HelpContent {
     if (!ownEntry || !effectiveEntry) return NONE;
 
     const schemaAttr = findSchemaAttribute(effectiveEntry, rawAttributeName);
     if (!schemaAttr?.description) return NONE;
+
+    const activeDefault = computeActiveDefaultForAttribute(
+        schemaAttr,
+        activeDefaultCtx,
+    );
 
     return {
         kind: "attribute",
@@ -324,6 +389,7 @@ function helpForAttribute(
         // are kept out of `autocompleteValues` by the schema generator.
         allowedValues: schemaAttr.autocompleteValues,
         defaultValue: schemaAttr.defaultValue,
+        ...(activeDefault ? { activeDefault } : {}),
     };
 }
 
@@ -847,7 +913,10 @@ export async function computeContextHelpForCompletion(
             completer,
             node,
         );
-        const attrHelp = helpForAttribute(ownEntry, effectiveEntry, rawLabel);
+        const attrHelp = helpForAttribute(ownEntry, effectiveEntry, rawLabel, {
+            completer,
+            node,
+        });
         // If the highlighted attribute name isn't in the schema, fall back to
         // element help so the panel stays anchored to the element rather than
         // blanking out.
@@ -871,6 +940,7 @@ export async function computeContextHelpForCompletion(
                 ownEntry,
                 effectiveEntry,
                 attr.name,
+                { completer, node },
             );
             if (attrHelp.kind !== "none") return attrHelp;
         }
