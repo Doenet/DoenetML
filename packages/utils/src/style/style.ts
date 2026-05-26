@@ -261,17 +261,29 @@ const FILL_OVERRIDE_KEYS = [
     "fillOpacity",
 ] as const satisfies readonly StyleDefinitionKey[];
 
-/** Marker-shape / size / opacity / fill toggles for point-like components. */
+/**
+ * Marker shape / size / filled-vs-open toggles for point-like components.
+ * `markerOpacity` is intentionally NOT here — it feeds the WCAG contrast
+ * diagnostic (see the module-load guard below) and stays `<styleDefinition>`-only.
+ */
 export const markerOverrideAttributes: StyleAttributes = Object.fromEntries(
     MARKER_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
 );
 
-/** Stroke style / width / opacity for any component that renders an outline. */
+/**
+ * Stroke style / width for any component that renders an outline.
+ * `lineOpacity` is intentionally NOT here — it feeds the WCAG contrast
+ * diagnostic (see the module-load guard below) and stays `<styleDefinition>`-only.
+ */
 export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
     LINE_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
 );
 
-/** Fill toggles for closed-shape components. */
+/**
+ * Fill toggles for closed-shape components. Only `fillOpacity` is included —
+ * it's decorative and not part of the contrast check, unlike `lineOpacity` /
+ * `markerOpacity`.
+ */
 export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
     FILL_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
 );
@@ -832,7 +844,9 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
  * `selectedStyle` is the unwrapped/resolved styleNumber lookup.
  */
 export function returnSelectedStyleStateVariableDefinition(
-    options: { overrideAttributeNames?: readonly string[] } = {},
+    options: {
+        overrideAttributeNames?: readonly StyleDefinitionKey[];
+    } = {},
 ): StateVariableDefinitions {
     const overrideAttributeNames = options.overrideAttributeNames ?? [];
 
@@ -900,15 +914,14 @@ export function returnSelectedStyleStateVariableDefinition(
                         // want their casing flattened.
                         if (
                             typeof value === "string" &&
-                            styleAttributes[name as StyleDefinitionKey]
-                                ?.toLowerCase
+                            styleAttributes[name]?.toLowerCase
                         ) {
                             value = value.toLowerCase();
                         }
 
                         setStyleValue(
                             overrideStyleDef,
-                            name as StyleDefinitionKey,
+                            name,
                             value,
                             dep.position,
                         );

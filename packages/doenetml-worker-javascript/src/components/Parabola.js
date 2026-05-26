@@ -8,7 +8,7 @@ import me from "math-expressions";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
-    // Overrides Curve's ["line", "fill"]: parabolas are open.
+    // Overrides Curve's ["line", "fill"]: parabolas have no enclosed interior to fill.
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {

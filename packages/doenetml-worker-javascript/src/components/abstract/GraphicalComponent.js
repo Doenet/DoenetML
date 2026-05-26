@@ -13,10 +13,26 @@ import {
  * Resolves the override attribute groups a subclass opts into. `this` is the
  * class itself in static methods, so the lookup walks the prototype chain and
  * picks up a subclass's `static styleOverrideCategories` if present.
+ *
+ * Validates each category name up front so a typo (e.g. `["marker", "fil"]`)
+ * fails loudly at component init with a message naming the bad category and
+ * the offending componentType, instead of producing a downstream
+ * `for…in undefined` TypeError when `createAttributesObject` iterates the
+ * resolved group.
  */
 function resolveOverrideGroups(cls) {
     const categories = cls.styleOverrideCategories ?? [];
-    return categories.map((cat) => STYLE_OVERRIDE_CATEGORIES[cat]);
+    return categories.map((cat) => {
+        const group = STYLE_OVERRIDE_CATEGORIES[cat];
+        if (!group) {
+            const valid = Object.keys(STYLE_OVERRIDE_CATEGORIES).join(", ");
+            throw new Error(
+                `Component "${cls.componentType}" lists unknown style override category "${cat}" in static styleOverrideCategories. ` +
+                    `Valid categories are: ${valid}.`,
+            );
+        }
+        return group;
+    });
 }
 
 export default class GraphicalComponent extends BaseComponent {
