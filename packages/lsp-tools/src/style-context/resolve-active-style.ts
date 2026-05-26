@@ -23,7 +23,7 @@
  *     current parse contains, including incomplete styleDefinitions.
  */
 
-import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
+import type { DastElement, DastRoot } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
 // Pulled from `@doenet/utils/style` rather than `@doenet/utils` so the LSP
 // worker bundle stays slim — the root export drags in math-expressions / AST
@@ -34,6 +34,7 @@ import {
     DEFAULT_STYLE_VALUES,
     addMissingChildStyleColorFields,
     colorValueToWord,
+    coloredItemsForWords,
     deriveMissingStyleWords,
     resolveStyleDefinition,
     returnDefaultStyleDefinitions,
@@ -80,24 +81,39 @@ export function isStyleAttributeName(attributeName: string): boolean {
 }
 
 /** Canonical (camel-case) `styleAttributes` key for a case-insensitive name. */
-export function canonicalStyleAttributeKey(
+function canonicalStyleAttributeKey(
     attributeName: string,
 ): StyleDefinitionKey | undefined {
     return STYLE_ATTRIBUTE_KEY_BY_LOWER.get(attributeName.toLowerCase());
 }
 
 /**
- * True when `key` is one of the hex-bearing color attribute keys —
- * `lineColor`, `lineColorDarkMode`, `fillColor`, etc. — and NOT one of the
- * `*Word` companions (those carry the human-readable name directly, no
- * derivation needed). Used by the active-default surface to decide whether
- * to compute a parenthesized color word alongside the raw hex value.
+ * Set of hex-bearing color attribute keys derived from the runtime's
+ * canonical `coloredItemsForWords` list — `lineColor`, `lineColorDarkMode`,
+ * `fillColor`, `fillColorDarkMode`, etc. Excludes the `*Word` companions
+ * (those carry the human-readable name directly, no derivation needed).
+ *
+ * Built from the runtime list rather than a name-shape regex so a future
+ * color-bearing item (e.g. a hypothetical `gridColor`) only needs adding
+ * to `coloredItemsForWords` to be recognized by the active-default surface.
+ */
+const COLOR_ATTRIBUTE_KEYS: ReadonlySet<StyleDefinitionKey> = new Set(
+    coloredItemsForWords.flatMap((item) => [
+        `${item}Color` as StyleDefinitionKey,
+        `${item}ColorDarkMode` as StyleDefinitionKey,
+    ]),
+);
+
+/**
+ * True when `key` names a hex-bearing color attribute (not a `*Word`
+ * companion). Used by the active-default surface to decide whether to
+ * compute a parenthesized color word alongside the raw hex value.
  *
  * Match is on the canonical (camel-case) key, since callers route through
  * `canonicalStyleAttributeKey` before checking — that already case-folds.
  */
-export function isColorAttributeKey(key: StyleDefinitionKey): boolean {
-    return /Color(DarkMode)?$/.test(key) && !key.includes("Word");
+function isColorAttributeKey(key: StyleDefinitionKey): boolean {
+    return COLOR_ATTRIBUTE_KEYS.has(key);
 }
 
 /** Look up an attribute on `element` case-insensitively and return its
@@ -314,17 +330,15 @@ function buildStyleDefinitionBlock(
  * style map. Authored values win; only keys present on the block move into
  * the target. (Other keys keep whatever the cumulative map already had —
  * inherited from the preset seed or an earlier merge in the chain.)
+ *
+ * Defers to `unwrapStyleDefinition` so the wrapper shape stays a detail of
+ * `@doenet/utils/style` rather than something this layer reaches into.
  */
 function mergeBlockInto(
     target: PrimitiveStyleDefinition,
     block: StyleDefinition,
 ): void {
-    for (const key of Object.keys(block) as StyleDefinitionKey[]) {
-        const value = block[key]?.style;
-        if (value !== undefined) {
-            target[key] = value;
-        }
-    }
+    Object.assign(target, unwrapStyleDefinition(block));
 }
 
 /**
@@ -334,13 +348,21 @@ function mergeBlockInto(
  * position-wrapped runtime shape; we unwrap to primitives because the LSP
  * doesn't need source positions for the active-default hint.
  */
-let _builtInPresetsCache: Map<number, PrimitiveStyleDefinition> | undefined;
-function builtInPresets(): Map<number, PrimitiveStyleDefinition> {
+let _builtInPresetsCache:
+    | ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>>
+    | undefined;
+function builtInPresets(): ReadonlyMap<
+    number,
+    Readonly<PrimitiveStyleDefinition>
+> {
     if (_builtInPresetsCache) return _builtInPresetsCache;
     const wrapped = returnDefaultStyleDefinitions();
-    const out = new Map<number, PrimitiveStyleDefinition>();
+    const out = new Map<number, Readonly<PrimitiveStyleDefinition>>();
     for (const [k, def] of Object.entries(wrapped)) {
-        out.set(Number(k), unwrapStyleDefinition(def));
+        // Freeze the cached value so a caller that forgets to clone (via
+        // `seedStyleDefinition`'s spread) gets a crash on write rather than
+        // silently mutating the shared preset for every subsequent lookup.
+        out.set(Number(k), Object.freeze(unwrapStyleDefinition(def)));
     }
     _builtInPresetsCache = out;
     return out;
@@ -388,14 +410,15 @@ export interface ExcludeAttribute {
  *      `ResolvedStyleDefinition` shape is populated — the same fallback
  *      pass the runtime uses for `selectedStyle`.
  *
- * Returns null only when `element` isn't part of a parsed DAST chain (no
- * parent map entry), in which case there's nothing useful to show.
+ * Always returns a resolution: an orphan element (one not parented in the
+ * DAST) gets an empty ancestor chain, so the result is the bare built-in
+ * preset for the resolved styleNumber.
  */
 export function resolveActiveStyle(
     sourceObj: DoenetSourceObject,
     element: DastElement,
     options: { excludeAttribute?: ExcludeAttribute } = {},
-): ActiveStyleResolution | null {
+): ActiveStyleResolution {
     const styleNumber = resolveActiveStyleNumber(sourceObj, element);
 
     const merged = seedStyleDefinition(styleNumber);
@@ -456,7 +479,6 @@ export function resolveActiveStyleAttributeValue(
     const key = canonicalStyleAttributeKey(attributeName);
     if (key === undefined) return undefined;
     const resolved = resolveActiveStyle(sourceObj, element, options);
-    if (!resolved) return undefined;
     const value = resolved.style[key];
     if (value === undefined) return undefined;
     const result: ActiveStyleAttributeValue = {
@@ -475,6 +497,3 @@ export function resolveActiveStyleAttributeValue(
     }
     return result;
 }
-
-// Re-exports for tests / consumers that don't import @doenet/utils directly.
-export type { DastNodes };

@@ -386,7 +386,16 @@ export function attributeSpecFromStyleAttribute(
  */
 let defaultStyle: RawStyleDefinition = { ...DEFAULT_STYLE_VALUES };
 
-const coloredItemsForWords = [
+/**
+ * The "item" prefixes used to build every color-bearing styleAttribute key:
+ * `${item}Color`, `${item}ColorDarkMode`, `${item}ColorWord`,
+ * `${item}ColorWordDarkMode`. Exported so the LSP-side active-default hint
+ * (#1198) can identify color attributes by canonical key rather than a
+ * name-shape regex — the schema's `componentType` is "text" for everything
+ * (colors included), so this list is the only place that knows which keys
+ * carry hex/color-word data.
+ */
+export const coloredItemsForWords = [
     "line",
     "marker",
     "fill",
