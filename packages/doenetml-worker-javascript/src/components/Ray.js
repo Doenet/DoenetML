@@ -19,6 +19,7 @@ export default class Ray extends GraphicalComponent {
         });
     }
     static componentType = "ray";
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
         summary: "A ray starting at one point passing through another",

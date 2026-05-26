@@ -23,6 +23,7 @@ export default class LineSegment extends GraphicalComponent {
         });
     }
     static componentType = "lineSegment";
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
         summary: "A line segment between two endpoints",

@@ -57,7 +57,19 @@ export let styleAttributes: StyleAttributes = {
     },
     lineStyle: {
         componentType: "text",
-        description: "Stroke style for lines (e.g. solid, dashed, dotted).",
+        description: "Stroke style for lines.",
+        toLowerCase: true,
+        validValues: [
+            { value: "solid", description: "Continuous, unbroken stroke." },
+            {
+                value: "dashed",
+                description: "Stroke composed of evenly-spaced dashes.",
+            },
+            {
+                value: "dotted",
+                description: "Stroke composed of evenly-spaced dots.",
+            },
+        ],
     },
     lineStyleWord: {
         componentType: "text",
@@ -85,8 +97,36 @@ export let styleAttributes: StyleAttributes = {
     },
     markerStyle: {
         componentType: "text",
-        description:
-            "Marker shape (e.g. cross, circle, square, plus, diamond, triangle).",
+        description: "Marker shape.",
+        toLowerCase: true,
+        validValues: [
+            { value: "circle", description: "Circular marker." },
+            { value: "square", description: "Square marker." },
+            {
+                value: "triangle",
+                description:
+                    'Triangular marker pointing up (alias for "triangleUp").',
+            },
+            {
+                value: "triangleUp",
+                description: "Triangular marker pointing up.",
+            },
+            {
+                value: "triangleDown",
+                description: "Triangular marker pointing down.",
+            },
+            {
+                value: "triangleLeft",
+                description: "Triangular marker pointing left.",
+            },
+            {
+                value: "triangleRight",
+                description: "Triangular marker pointing right.",
+            },
+            { value: "diamond", description: "Diamond-shaped marker." },
+            { value: "cross", description: "Cross-shaped marker (×)." },
+            { value: "plus", description: "Plus-shaped marker (+)." },
+        ],
     },
     markerStyleWord: {
         componentType: "text",
@@ -95,6 +135,11 @@ export let styleAttributes: StyleAttributes = {
     markerSize: {
         componentType: "number",
         description: "Marker size in pixels.",
+    },
+    markerFilled: {
+        componentType: "boolean",
+        description:
+            "Whether the marker is rendered filled (true) or open (false). Has no effect when markerStyle is cross or plus, which have no interior.",
     },
     fillColor: {
         componentType: "text",
@@ -168,6 +213,170 @@ export let styleAttributes: StyleAttributes = {
         description: "Human-readable name of the background color (dark mode).",
     },
 };
+
+/**
+ * Subset of {@link styleAttributes}.markerStyle.validValues whose shapes have
+ * a meaningful filled-vs-unfilled distinction. Components like `<endpoint>`
+ * and `<equilibriumPoint>` render the marker open or closed based on their
+ * own semantic state (`open` / `stable`), so they should restrict
+ * `markerStyle` to shapes that visually express both variants. `cross` and
+ * `plus` have no interior to fill, so their open/closed semantic would be
+ * invisible — those values are excluded here.
+ */
+export const markerStyleValuesWithFillVariants =
+    styleAttributes.markerStyle.validValues!.filter(
+        (entry) => entry.value !== "cross" && entry.value !== "plus",
+    );
+
+/**
+ * Per-category groupings of overridable style attributes. Each graphical
+ * component opts into the categories its renderer actually uses (via
+ * `static styleOverrideCategories` on the class — see GraphicalComponent),
+ * keeping the per-component attribute schema honest.
+ *
+ * Intentional exclusions:
+ * - **Color keys** (`*Color`, `*ColorDarkMode`, etc.) stay `<styleDefinition>`-
+ *   only so the per-styleNumber WCAG contrast diagnostics remain authoritative.
+ * - **`lineOpacity` and `markerOpacity`** stay `<styleDefinition>`-only for the
+ *   same reason — `styleContrastAccessibility.ts` feeds them in as an
+ *   `opacityMultiplier` on the foreground alpha, so they participate in the
+ *   effective-color contrast check just like the color itself. (`fillOpacity`
+ *   is decorative and not part of the contrast check, so it stays overridable.)
+ * - **`*Word` descriptors** are derived from the underlying value (e.g.
+ *   `markerStyle` "circle" → `markerStyleWord` "point") and authors with niche
+ *   vocabulary needs can override them inside a `<styleDefinition>`.
+ */
+const MARKER_OVERRIDE_KEYS = [
+    "markerStyle",
+    "markerSize",
+    "markerFilled",
+] as const satisfies readonly StyleDefinitionKey[];
+
+const LINE_OVERRIDE_KEYS = [
+    "lineStyle",
+    "lineWidth",
+] as const satisfies readonly StyleDefinitionKey[];
+
+const FILL_OVERRIDE_KEYS = [
+    "fillOpacity",
+] as const satisfies readonly StyleDefinitionKey[];
+
+/**
+ * Marker shape / size / filled-vs-open toggles for point-like components.
+ * `markerOpacity` is intentionally NOT here — it feeds the WCAG contrast
+ * diagnostic (see the module-load guard below) and stays `<styleDefinition>`-only.
+ */
+export const markerOverrideAttributes: StyleAttributes = Object.fromEntries(
+    MARKER_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+);
+
+/**
+ * Stroke style / width for any component that renders an outline.
+ * `lineOpacity` is intentionally NOT here — it feeds the WCAG contrast
+ * diagnostic (see the module-load guard below) and stays `<styleDefinition>`-only.
+ */
+export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
+    LINE_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+);
+
+/**
+ * Fill toggles for closed-shape components. Only `fillOpacity` is included —
+ * it's decorative and not part of the contrast check, unlike `lineOpacity` /
+ * `markerOpacity`.
+ */
+export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
+    FILL_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
+);
+
+/**
+ * Union of every per-component override attribute (marker + line + fill).
+ * Retained as the single iterable used by callers (e.g. tests) that need to
+ * know "what's overridable in principle" without caring which category each
+ * key belongs to. Per-component dispatch goes through the category-specific
+ * exports above.
+ */
+export const styleOverrideAttributes: StyleAttributes = {
+    ...markerOverrideAttributes,
+    ...lineOverrideAttributes,
+    ...fillOverrideAttributes,
+};
+
+/** Registry consumed by GraphicalComponent's per-category dispatch. */
+export const STYLE_OVERRIDE_CATEGORIES = {
+    marker: markerOverrideAttributes,
+    line: lineOverrideAttributes,
+    fill: fillOverrideAttributes,
+} as const;
+
+export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
+
+/**
+ * Module-load guard against future drift. Three constraints are enforced:
+ *
+ * 1. **No color keys.** Color authoring stays `<styleDefinition>`-only so
+ *    per-styleNumber WCAG contrast diagnostics remain authoritative.
+ * 2. **No contrast-feeding opacity keys.** `lineOpacity` and `markerOpacity`
+ *    are fed into the contrast diagnostic as `opacityMultiplier` on the
+ *    foreground alpha (see `styleContrastAccessibility.ts`), so they
+ *    participate in the effective-color check just like the color itself.
+ *    Only `fillOpacity` is contrast-irrelevant and overridable.
+ * 3. **Text-typed keys must opt in to lowercase.** The override path in
+ *    `returnSelectedStyleStateVariableDefinition` only lowercases string
+ *    values when the attribute spec sets `toLowerCase: true`, but the
+ *    parallel `<styleDefinition>` path lowercases unconditionally. Today's
+ *    text-typed override keys (`markerStyle`, `lineStyle`) all opt in; the
+ *    guard fails loudly if a new one slips in without opting in.
+ */
+for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
+    for (const [key, spec] of Object.entries(group)) {
+        if (key.toLowerCase().includes("color")) {
+            throw new Error(
+                `Style override category "${category}" contains color-related key "${key}"; ` +
+                    `colors stay <styleDefinition>-only so per-styleNumber WCAG contrast diagnostics remain authoritative. ` +
+                    `If this is intentional, also reconcile the lowercase asymmetry in returnSelectedStyleStateVariableDefinition.`,
+            );
+        }
+        if (key.endsWith("Opacity") && key !== "fillOpacity") {
+            throw new Error(
+                `Style override category "${category}" contains contrast-feeding opacity key "${key}"; ` +
+                    `lineOpacity and markerOpacity feed the WCAG contrast diagnostic as an opacityMultiplier on the foreground alpha, ` +
+                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity is contrast-irrelevant and overridable.`,
+            );
+        }
+        if (spec.componentType === "text" && !spec.toLowerCase) {
+            throw new Error(
+                `Style override key "${key}" in category "${category}" is text-typed but missing toLowerCase: true. ` +
+                    `Add toLowerCase: true to its styleAttributes entry, or move it out of the override surface.`,
+            );
+        }
+    }
+}
+
+/**
+ * Translates a {@link styleAttributes} entry into the attribute-spec shape
+ * consumed by `createAttributesObject` on components. Forwards optional
+ * `validValues` / `toLowerCase` so the schema generator can surface
+ * `type: "keyword"` enums with autocomplete entries.
+ *
+ * Single source of truth for both `<styleDefinition>` (in `StyleDefinitions.js`)
+ * and the per-component override path (in `GraphicalComponent.js`) so the two
+ * can't drift when a new metadata field is added.
+ */
+export function attributeSpecFromStyleAttribute(
+    spec: StyleAttributes[string],
+): Record<string, unknown> {
+    const attr: Record<string, unknown> = {
+        createComponentOfType: spec.componentType,
+        description: spec.description,
+    };
+    if (spec.validValues) {
+        attr.validValues = spec.validValues;
+    }
+    if (spec.toLowerCase) {
+        attr.toLowerCase = spec.toLowerCase;
+    }
+    return attr;
+}
 
 /**
  * Baseline style used when a style number references no explicit definition.
@@ -273,6 +482,84 @@ function addMissingChildStyleColorFields(
     }
 
     return addMissingColorWordsToStyleDefinition(styleDef);
+}
+
+/**
+ * Fills any missing `*Word` descriptor fields derivable from the corresponding
+ * underlying values on `styleDef`. Authored words are preserved.
+ *
+ * Derivations:
+ * - `lineWidth` (number) → `lineWidthWord`: `"thick"` (>=4), `"thin"` (<=1),
+ *   else `""`.
+ * - `lineStyle` (text) → `lineStyleWord`: `"dashed"`, `"dotted"`, else `""`.
+ * - `markerStyle` (text) → `markerStyleWord`: copies the value, then normalizes
+ *   `"circle"` → `"point"` and any `"triangle*"` → `"triangle"`.
+ *
+ * Used both by the styleDefinitions-merge path and by the per-component
+ * override path so the two share identical word-derivation rules.
+ */
+function deriveMissingStyleWords(styleDef: StyleDefinition): void {
+    if ("lineWidth" in styleDef && !("lineWidthWord" in styleDef)) {
+        const widthValue = getStyleValueNumber(styleDef, "lineWidth");
+        if (widthValue !== undefined) {
+            const widthPosition = styleDef.lineWidth?.position;
+            const word =
+                widthValue >= 4 ? "thick" : widthValue <= 1 ? "thin" : "";
+            setStyleValue(styleDef, "lineWidthWord", word, widthPosition);
+        }
+    }
+
+    if ("lineStyle" in styleDef && !("lineStyleWord" in styleDef)) {
+        const lineStyle = getStyleValueString(styleDef, "lineStyle");
+        if (lineStyle) {
+            const lineStylePosition = styleDef.lineStyle?.position;
+            const word =
+                lineStyle === "dashed"
+                    ? "dashed"
+                    : lineStyle === "dotted"
+                      ? "dotted"
+                      : "";
+            setStyleValue(styleDef, "lineStyleWord", word, lineStylePosition);
+        }
+    }
+
+    if ("markerStyle" in styleDef && !("markerStyleWord" in styleDef)) {
+        const markerStyle = getStyleValueString(styleDef, "markerStyle");
+        const markerStylePosition = styleDef.markerStyle?.position;
+
+        if (markerStyle) {
+            setStyleValue(
+                styleDef,
+                "markerStyleWord",
+                markerStyle,
+                markerStylePosition,
+            );
+        }
+
+        const markerStyleWord = getStyleValueString(
+            styleDef,
+            "markerStyleWord",
+        );
+
+        if (markerStyleWord === "circle") {
+            setStyleValue(
+                styleDef,
+                "markerStyleWord",
+                "point",
+                markerStylePosition,
+            );
+        } else if (
+            markerStyleWord &&
+            markerStyleWord.slice(0, 8) === "triangle"
+        ) {
+            setStyleValue(
+                styleDef,
+                "markerStyleWord",
+                "triangle",
+                markerStylePosition,
+            );
+        }
+    }
 }
 
 /**
@@ -490,9 +777,6 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
             }
 
-            const widthItems = ["line"] as const;
-            const lineStyleItems = ["line"] as const;
-
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;
                 let styleDef = styleDefinitions[styleNumber];
@@ -521,132 +805,7 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
 
                 addMissingChildStyleColorFields(theNewDef);
-
-                for (const item of widthItems) {
-                    const widthKey = `${item}Width` as StyleDefinitionKey;
-                    const widthWordKey =
-                        `${widthKey}Word` as StyleDefinitionKey;
-
-                    if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
-                        const widthValue = getStyleValueNumber(
-                            theNewDef,
-                            widthKey,
-                        );
-                        if (widthValue === undefined) {
-                            continue;
-                        }
-
-                        const widthPosition = theNewDef[widthKey]?.position;
-
-                        if (widthValue >= 4) {
-                            setStyleValue(
-                                theNewDef,
-                                widthWordKey,
-                                "thick",
-                                widthPosition,
-                            );
-                        } else if (widthValue <= 1) {
-                            setStyleValue(
-                                theNewDef,
-                                widthWordKey,
-                                "thin",
-                                widthPosition,
-                            );
-                        } else {
-                            setStyleValue(
-                                theNewDef,
-                                widthWordKey,
-                                "",
-                                widthPosition,
-                            );
-                        }
-                    }
-                }
-
-                for (const item of lineStyleItems) {
-                    const styleKey = `${item}Style` as StyleDefinitionKey;
-                    const styleWordKey =
-                        `${styleKey}Word` as StyleDefinitionKey;
-
-                    if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
-                        const lineStyle = getStyleValueString(
-                            theNewDef,
-                            styleKey,
-                        );
-                        if (!lineStyle) {
-                            continue;
-                        }
-
-                        const lineStylePosition = theNewDef[styleKey]?.position;
-
-                        if (lineStyle === "dashed") {
-                            setStyleValue(
-                                theNewDef,
-                                styleWordKey,
-                                "dashed",
-                                lineStylePosition,
-                            );
-                        } else if (lineStyle === "dotted") {
-                            setStyleValue(
-                                theNewDef,
-                                styleWordKey,
-                                "dotted",
-                                lineStylePosition,
-                            );
-                        } else {
-                            setStyleValue(
-                                theNewDef,
-                                styleWordKey,
-                                "",
-                                lineStylePosition,
-                            );
-                        }
-                    }
-                }
-
-                if (
-                    "markerStyle" in theNewDef &&
-                    !("markerStyleWord" in theNewDef)
-                ) {
-                    const markerStyle = getStyleValueString(
-                        theNewDef,
-                        "markerStyle",
-                    );
-                    const markerStylePosition = theNewDef.markerStyle?.position;
-
-                    if (markerStyle) {
-                        setStyleValue(
-                            theNewDef,
-                            "markerStyleWord",
-                            markerStyle,
-                            markerStylePosition,
-                        );
-                    }
-
-                    const markerStyleWord = getStyleValueString(
-                        theNewDef,
-                        "markerStyleWord",
-                    );
-
-                    if (markerStyleWord === "circle") {
-                        setStyleValue(
-                            theNewDef,
-                            "markerStyleWord",
-                            "point",
-                            markerStylePosition,
-                        );
-                    } else if (
-                        markerStyleWord &&
-                        markerStyleWord.slice(0, 8) === "triangle"
-                    ) {
-                        setStyleValue(
-                            theNewDef,
-                            "markerStyleWord",
-                            "triangle",
-                            markerStylePosition,
-                        );
-                    }
-                }
+                deriveMissingStyleWords(theNewDef);
 
                 Object.assign(styleDef, theNewDef);
             }
@@ -668,22 +827,55 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
 /**
  * State-variable definition that resolves the currently selected style object.
+ *
+ * When `overrideAttributeNames` is supplied, the returned `selectedStyle` also
+ * depends on those attribute components on the host component and merges any
+ * authored values on top of the styleNumber-based definition. The override
+ * layer mirrors how `<styleDefinition>` attributes are read in
+ * `StyleDefinitions.js`, with one deliberate divergence: string values here
+ * are lowercased only when the spec opts in via `toLowerCase: true` (today
+ * just the enum-typed `markerStyle` / `lineStyle`), whereas the
+ * `<styleDefinition>` path lowercases unconditionally to keep color-name
+ * lookups case-insensitive. Source positions are preserved, and missing
+ * `*Word` descriptors get re-derived from the underlying value via
+ * {@link deriveMissingStyleWords}.
+ *
+ * Callers that don't opt in (the default) preserve today's behavior exactly —
+ * `selectedStyle` is the unwrapped/resolved styleNumber lookup.
  */
-export function returnSelectedStyleStateVariableDefinition(): StateVariableDefinitions {
+export function returnSelectedStyleStateVariableDefinition(
+    options: {
+        overrideAttributeNames?: readonly StyleDefinitionKey[];
+    } = {},
+): StateVariableDefinitions {
+    const overrideAttributeNames = options.overrideAttributeNames ?? [];
+
     return {
         selectedStyle: {
             forRenderer: true,
             willNeverBeEssential: true,
-            returnDependencies: () => ({
-                styleNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "styleNumber",
-                },
-                ancestorWithStyle: {
-                    dependencyType: "ancestor",
-                    variableNames: ["styleDefinitions"],
-                },
-            }),
+            returnDependencies: () => {
+                const dependencies: Record<string, any> = {
+                    styleNumber: {
+                        dependencyType: "stateVariable",
+                        variableName: "styleNumber",
+                    },
+                    ancestorWithStyle: {
+                        dependencyType: "ancestor",
+                        variableNames: ["styleDefinitions"],
+                    },
+                };
+
+                for (const name of overrideAttributeNames) {
+                    dependencies[name] = {
+                        dependencyType: "attributeComponent",
+                        attributeName: name,
+                        variableNames: ["value"],
+                    };
+                }
+
+                return dependencies;
+            },
             definition: function ({
                 dependencyValues,
             }: {
@@ -701,6 +893,56 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
 
                 if (selectedStyle === undefined) {
                     selectedStyle = cloneDefaultStyleWithMissingColorWords();
+                }
+
+                if (overrideAttributeNames.length > 0) {
+                    const overrideStyleDef: StyleDefinition = {};
+                    for (const name of overrideAttributeNames) {
+                        const dep = dependencyValues[name];
+                        if (dep == null) {
+                            continue;
+                        }
+
+                        let value = dep.stateValues.value;
+                        if (value === undefined || value === null) {
+                            continue;
+                        }
+                        // Mirror the `<styleDefinition>` normalization in
+                        // `StyleDefinitions.js`: only lowercase when the
+                        // attribute spec opts in (e.g. enum-typed `markerStyle`
+                        // / `lineStyle`). Free-form text attributes wouldn't
+                        // want their casing flattened.
+                        if (
+                            typeof value === "string" &&
+                            styleAttributes[name]?.toLowerCase
+                        ) {
+                            value = value.toLowerCase();
+                        }
+
+                        setStyleValue(
+                            overrideStyleDef,
+                            name,
+                            value,
+                            dep.position,
+                        );
+                    }
+
+                    if (Object.keys(overrideStyleDef).length > 0) {
+                        // Derive `*Word` descriptors from override values
+                        // before merging, so authored values flow through the
+                        // same thresholds as `<styleDefinition>` (e.g.
+                        // `lineWidth=1` → `lineWidthWord="thin"`,
+                        // `lineWidth=4` → `"thick"`, `lineWidth=2` → `""`)
+                        // and replace any custom word the inherited
+                        // styleDefinition shipped.
+                        deriveMissingStyleWords(overrideStyleDef);
+                        // Clone so we don't mutate the ancestor's styleDefinitions map.
+                        selectedStyle = Object.assign(
+                            {},
+                            selectedStyle,
+                            overrideStyleDef,
+                        );
+                    }
                 }
 
                 return {
