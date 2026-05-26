@@ -213,8 +213,13 @@ describe("resolveActiveStyle — ancestor <styleDefinition> merge", () => {
     });
 });
 
-describe("resolveActiveStyle — exclude self", () => {
-    it("excludes the queried <styleDefinition>'s own values so the active default reflects only peers/presets", () => {
+describe("resolveActiveStyle — exclude attribute", () => {
+    it("excludes only the queried attribute, leaving the rest of the block in effect", () => {
+        // Authoring inside <styleDefinition markerStyle="diamond" lineWidth="6"/>,
+        // cursor on markerStyle. The active default for markerStyle should
+        // be the inherited preset (this block doesn't contribute markerStyle
+        // any more), but lineWidth=6 still applies (other attributes on the
+        // block weren't dropped).
         const source = `
             <setup>
                 <styleDefinition styleNumber="1" markerStyle="diamond" lineWidth="6"/>
@@ -222,15 +227,14 @@ describe("resolveActiveStyle — exclude self", () => {
         `;
         const sourceObj = new DoenetSourceObject(source);
         const sd = findElement(sourceObj, "styleDefinition");
-        const resolved = resolveActiveStyle(sourceObj, sd, { excludeNode: sd });
-        // The styleDefinition itself sets markerStyle=diamond, but the resolver
-        // is asked to ignore *self* — so we fall back to the built-in
-        // styleNumber=1 preset (circle / lineWidth=4).
+        const resolved = resolveActiveStyle(sourceObj, sd, {
+            excludeAttribute: { node: sd, attributeName: "markerStyle" },
+        });
         expect(resolved!.style.markerStyle).toBe("circle");
-        expect(resolved!.style.lineWidth).toBe(4);
+        expect(resolved!.style.lineWidth).toBe(6);
     });
 
-    it("still picks up peer <styleDefinition> values when excluding self", () => {
+    it("still picks up peer <styleDefinition> values when excluding an attribute on the current node", () => {
         const source = `
             <setup>
                 <styleDefinition styleNumber="1" markerStyle="square"/>
@@ -248,12 +252,128 @@ describe("resolveActiveStyle — exclude self", () => {
                     c.type === "element" && c.name === "styleDefinition",
             );
         const peerExcluded = resolveActiveStyle(sourceObj, sds[1], {
-            excludeNode: sds[1],
+            excludeAttribute: { node: sds[1], attributeName: "lineWidth" },
         });
-        // Peer supplies markerStyle, lineWidth falls back to built-in (the
-        // queried styleDefinition's own value is excluded).
+        // Peer (sibling) supplies markerStyle, lineWidth on the current
+        // node is excluded so it falls back to the preset.
         expect(peerExcluded!.style.markerStyle).toBe("square");
         expect(peerExcluded!.style.lineWidth).toBe(4);
+    });
+
+    it("matches excludeAttribute.attributeName case-insensitively", () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerStyle="diamond"/>
+            </setup>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const sd = findElement(sourceObj, "styleDefinition");
+        const resolved = resolveActiveStyle(sourceObj, sd, {
+            excludeAttribute: { node: sd, attributeName: "MARKERSTYLE" },
+        });
+        expect(resolved!.style.markerStyle).toBe("circle");
+    });
+});
+
+describe("resolveActiveStyle — runtime per-block derivation", () => {
+    it("derives *ColorWord from the same-block *Color when only the color is authored", () => {
+        // The runtime's `addMissingColorWordsToStyleDefinition` fills in
+        // markerColorWord whenever markerColor is set but the word isn't,
+        // overriding any inherited word. The LSP resolver must do the same
+        // or the active default for markerColorWord would lag behind.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        // The hex itself comes through verbatim.
+        expect(resolved!.style.markerColor).toBe("#ff0000");
+        // The word is derived from the hex via colorValueToWord — for
+        // pure red the canonical word should be "red".
+        expect(resolved!.style.markerColorWord).toBe("red");
+    });
+
+    it("preserves an explicit *ColorWord when both the color and the word are authored on the same block", () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000" markerColorWord="crimson"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved!.style.markerColorWord).toBe("crimson");
+    });
+
+    it("falls back to derivation when excluding the explicit *ColorWord (cursor-on-word case)", () => {
+        // Authoring inside <styleDefinition markerColor="#FF0000" markerColorWord="custom"/>,
+        // cursor on markerColorWord — the active default should reflect
+        // "what would this resolve to if I removed markerColorWord", which
+        // is the word derived from the color, not the inherited preset.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000" markerColorWord="custom"/>
+            </setup>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const sd = findElement(sourceObj, "styleDefinition");
+        const resolved = resolveActiveStyle(sourceObj, sd, {
+            excludeAttribute: { node: sd, attributeName: "markerColorWord" },
+        });
+        expect(resolved!.style.markerColorWord).toBe("red");
+    });
+
+    it('derives lineWidthWord from same-block lineWidth (lineWidth=2 → "" )', () => {
+        // The styleNumber=1 preset has lineWidthWord="thick", but a block
+        // setting lineWidth=2 derives lineWidthWord="" (2 is neither thick
+        // (>=4) nor thin (<=1)). The LSP must show the derived value.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" lineWidth="2"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved!.style.lineWidth).toBe(2);
+        expect(resolved!.style.lineWidthWord).toBe("");
+    });
+
+    it('derives markerStyleWord from same-block markerStyle (triangleUp → "triangle")', () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerStyle="triangleUp"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved!.style.markerStyle).toBe("triangleup");
+        // `markerStyle` "triangle*" → markerStyleWord "triangle".
+        expect(resolved!.style.markerStyleWord).toBe("triangle");
+    });
+
+    it("fills missing dark-mode color from same-block light-mode color", () => {
+        // The runtime's `addMissingChildStyleColorFields` mirrors light → dark
+        // when the dark value isn't explicit on the block.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved!.style.markerColorDarkMode).toBe("#ff0000");
+        expect(resolved!.style.markerColorWordDarkMode).toBe("red");
     });
 });
 
@@ -309,7 +429,7 @@ describe("resolveActiveStyleAttributeValue", () => {
             sourceObj,
             sd,
             "lineColor",
-            { excludeNode: sd },
+            { excludeAttribute: { node: sd, attributeName: "lineColor" } },
         );
         expect(result?.value).toBe("#648FFF");
         // The derived word is whatever the nearest-canonical-color lookup
@@ -354,7 +474,7 @@ describe("resolveActiveStyleAttributeValue", () => {
             sourceObj,
             sd,
             "lineColorWord",
-            { excludeNode: sd },
+            { excludeAttribute: { node: sd, attributeName: "lineColorWord" } },
         );
         // The word itself comes back, but no `colorWord` companion is set.
         expect(typeof result?.value).toBe("string");
@@ -370,7 +490,7 @@ describe("resolveActiveStyleAttributeValue", () => {
             sourceObj,
             sd,
             "markerStyle",
-            { excludeNode: sd },
+            { excludeAttribute: { node: sd, attributeName: "markerStyle" } },
         );
         expect(result?.colorWord).toBeUndefined();
     });

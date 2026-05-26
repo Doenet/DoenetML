@@ -27,16 +27,20 @@ import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
 import {
     DEFAULT_STYLE_VALUES,
+    addMissingChildStyleColorFields,
     colorValueToWord,
+    deriveMissingStyleWords,
+    resolveStyleDefinition,
     returnDefaultStyleDefinitions,
+    setStyleValue,
     styleAttributes,
-    type StyleAttributes,
-    type StyleDefinitionKey,
-    type StyleDefinitionPrimitive,
+    unwrapStyleDefinition,
     type PrimitiveStyleDefinition,
     type ResolvedStyleDefinition,
-    unwrapStyleDefinition,
-    resolveStyleDefinition,
+    type StyleAttributes,
+    type StyleDefinition,
+    type StyleDefinitionKey,
+    type StyleDefinitionPrimitive,
 } from "@doenet/utils";
 import type { DoenetSourceObject } from "../doenet-source-object";
 
@@ -253,23 +257,68 @@ function parseStyleAttributeText(
 }
 
 /**
- * Merge the parsed attribute values of one `<styleDefinition>` element into
- * the running primitive style map. Unknown keys (not in `styleAttributes`)
- * are ignored — they aren't part of the contract and the LSP shouldn't
- * invent meaning the runtime won't honor.
+ * Build a single `<styleDefinition>` block's contribution as a wrapped
+ * `StyleDefinition`, ready to be normalized with the worker's runtime
+ * helpers. Unknown keys (not in `styleAttributes`) are ignored — they
+ * aren't part of the contract and the LSP shouldn't invent meaning the
+ * runtime won't honor.
+ *
+ * `excludeAttributeName`, when set, drops the named attribute from the
+ * block — used by the active-default hint inside a `<styleDefinition>` to
+ * answer "what would the value be if I removed *just this attribute*"
+ * (the rest of the block still participates in derivation, so authoring
+ * `markerColor` and querying `markerColorWord` sees the derived word
+ * instead of the inherited one).
  */
-function mergeStyleDefinitionInto(
-    target: PrimitiveStyleDefinition,
+function buildStyleDefinitionBlock(
     styleDef: DastElement,
-): void {
+    excludeAttributeName: string | undefined,
+): StyleDefinition {
+    const block: StyleDefinition = {};
+    const excludeLower = excludeAttributeName?.toLowerCase();
     for (const attrName of Object.keys(styleDef.attributes)) {
+        if (
+            excludeLower !== undefined &&
+            attrName.toLowerCase() === excludeLower
+        ) {
+            continue;
+        }
         const key = canonicalStyleAttributeKey(attrName);
         if (key === undefined) continue;
         const raw = readAttributeText(styleDef, attrName);
         if (raw === undefined) continue;
         const parsed = parseStyleAttributeText(key, raw, styleAttributes);
         if (parsed === undefined) continue;
-        target[key] = parsed;
+        setStyleValue(block, key, parsed);
+    }
+    // Mirror the worker's per-block normalization in
+    // `returnStyleDefinitionStateVariables`: dark-mode fallback +
+    // `*ColorWord` derivation, then `lineWidthWord` / `lineStyleWord` /
+    // `markerStyleWord` derivation from underlying values. Run on the
+    // block (with `excludeAttribute` already dropped) so the cumulative
+    // map below sees the right values for cross-attribute relationships
+    // — e.g. setting `markerColor="#123456"` re-derives `markerColorWord`
+    // to the new hex's word, replacing whatever the preset shipped.
+    addMissingChildStyleColorFields(block);
+    deriveMissingStyleWords(block);
+    return block;
+}
+
+/**
+ * Merge one normalized `<styleDefinition>` block into the running primitive
+ * style map. Authored values win; only keys present on the block move into
+ * the target. (Other keys keep whatever the cumulative map already had —
+ * inherited from the preset seed or an earlier merge in the chain.)
+ */
+function mergeBlockInto(
+    target: PrimitiveStyleDefinition,
+    block: StyleDefinition,
+): void {
+    for (const key of Object.keys(block) as StyleDefinitionKey[]) {
+        const value = block[key]?.style;
+        if (value !== undefined) {
+            target[key] = value;
+        }
     }
 }
 
@@ -304,14 +353,32 @@ function seedStyleDefinition(styleNumber: number): PrimitiveStyleDefinition {
 }
 
 /**
+ * Identifies a single attribute on a single `<styleDefinition>` node to drop
+ * from the merge — the active-default hint excludes the attribute the cursor
+ * is currently editing so the displayed value is "what would this resolve to
+ * if I removed *just this attribute*". Per-attribute (not per-node) so that
+ * inter-attribute derivations within the same block still take effect: an
+ * author editing `markerColorWord` inside
+ * `<styleDefinition markerColor="#123456" markerColorWord="custom">` sees the
+ * word derived from `#123456`, not the inherited preset.
+ */
+export interface ExcludeAttribute {
+    node: DastElement;
+    attributeName: string;
+}
+
+/**
  * Resolve the active style at `element`'s scope. The walk:
  *   1. Determine the styleNumber active at `element`.
  *   2. Seed a primitive style map from the built-in preset for that number
  *      (or the global default if the number is unknown).
- *   3. Walk ancestors root-to-leaf; for each, merge `<styleDefinition>`
- *      blocks whose `styleNumber` matches, in source order so later wins.
- *      Skip `options.excludeNode` so callers inside a `<styleDefinition>`
- *      see what their *peers* contribute, not what they themselves do.
+ *   3. Walk ancestors root-to-leaf; for each, build a normalized
+ *      `<styleDefinition>` block (per-block dark-mode + word derivation,
+ *      mirroring the worker's `returnStyleDefinitionStateVariables`) for
+ *      every block whose `styleNumber` matches, skipping
+ *      `options.excludeAttribute.attributeName` on the matching node so the
+ *      hint reflects "what if I removed just this attribute". Merge in
+ *      source order so later wins.
  *   4. Pass through `resolveStyleDefinition` so every key in the
  *      `ResolvedStyleDefinition` shape is populated — the same fallback
  *      pass the runtime uses for `selectedStyle`.
@@ -322,7 +389,7 @@ function seedStyleDefinition(styleNumber: number): PrimitiveStyleDefinition {
 export function resolveActiveStyle(
     sourceObj: DoenetSourceObject,
     element: DastElement,
-    options: { excludeNode?: DastElement } = {},
+    options: { excludeAttribute?: ExcludeAttribute } = {},
 ): ActiveStyleResolution | null {
     const styleNumber = resolveActiveStyleNumber(sourceObj, element);
 
@@ -330,10 +397,15 @@ export function resolveActiveStyle(
 
     for (const ancestor of ancestorChainRootToLeaf(sourceObj, element)) {
         for (const styleDef of findOwnedStyleDefinitions(ancestor)) {
-            if (styleDef === options.excludeNode) continue;
             const sdNumber = parseStyleNumberAttribute(styleDef) ?? 1;
             if (sdNumber !== styleNumber) continue;
-            mergeStyleDefinitionInto(merged, styleDef);
+            const excludeAttrName =
+                options.excludeAttribute &&
+                styleDef === options.excludeAttribute.node
+                    ? options.excludeAttribute.attributeName
+                    : undefined;
+            const block = buildStyleDefinitionBlock(styleDef, excludeAttrName);
+            mergeBlockInto(merged, block);
         }
     }
 
@@ -374,7 +446,7 @@ export function resolveActiveStyleAttributeValue(
     sourceObj: DoenetSourceObject,
     element: DastElement,
     attributeName: string,
-    options: { excludeNode?: DastElement } = {},
+    options: { excludeAttribute?: ExcludeAttribute } = {},
 ): ActiveStyleAttributeValue | undefined {
     const key = canonicalStyleAttributeKey(attributeName);
     if (key === undefined) return undefined;

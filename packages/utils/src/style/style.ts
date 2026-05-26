@@ -449,8 +449,15 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 /**
  * For selected color items, adds missing dark-mode color values (mirroring light mode)
  * and color-word fields without overwriting authored word overrides.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
+ * apply the same per-block normalization the worker runs before merging an
+ * authored `<styleDefinition>` into the inherited map. Without it, the active
+ * default for derived fields (e.g. `markerColorWord` when the block sets
+ * `markerColor` but not the word) would lag behind the runtime by reflecting
+ * the previously-resolved word instead of the freshly-derived one.
  */
-function addMissingChildStyleColorFields(
+export function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
 ): StyleDefinition {
     for (const item of coloredItemsForWords) {
@@ -497,8 +504,14 @@ function addMissingChildStyleColorFields(
  *
  * Used both by the styleDefinitions-merge path and by the per-component
  * override path so the two share identical word-derivation rules.
+ *
+ * Exported so the LSP-side static styleDefinition resolver (issue #1198)
+ * can run the same per-block derivation the worker uses; otherwise the
+ * active default for e.g. `lineWidthWord` would surface the preset's
+ * `"thick"` even after the same block sets `lineWidth=2` (which the
+ * runtime derives back to `""`).
  */
-function deriveMissingStyleWords(styleDef: StyleDefinition): void {
+export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
     if ("lineWidth" in styleDef && !("lineWidthWord" in styleDef)) {
         const widthValue = getStyleValueNumber(styleDef, "lineWidth");
         if (widthValue !== undefined) {

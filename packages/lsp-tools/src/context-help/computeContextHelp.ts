@@ -345,12 +345,26 @@ function computeActiveDefaultForAttribute(
     | undefined {
     if (!ctx) return undefined;
     if (!isStyleAttributeName(schemaAttr.name)) return undefined;
+    // Inside a `<styleDefinition>`, exclude just the queried attribute on
+    // this node so the hint answers "what if I removed this attribute"
+    // rather than "what if I removed this entire styleDefinition". The
+    // resolver still runs runtime per-block derivation on the remaining
+    // attributes, so authoring e.g. `markerColor="#123456"` and querying
+    // `markerColorWord` surfaces the derived word rather than the
+    // inherited preset's stale one.
     const insideStyleDefinition = ctx.node.name === "styleDefinition";
     const resolved = resolveActiveStyleAttributeValue(
         ctx.completer.sourceObj,
         ctx.node,
         schemaAttr.name,
-        insideStyleDefinition ? { excludeNode: ctx.node } : undefined,
+        insideStyleDefinition
+            ? {
+                  excludeAttribute: {
+                      node: ctx.node,
+                      attributeName: schemaAttr.name,
+                  },
+              }
+            : undefined,
     );
     if (!resolved) return undefined;
     // Suppress redundant rows. The schema's `defaultValue` is encoded
