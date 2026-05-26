@@ -95,8 +95,14 @@ describe("resolveActiveStyle — built-in presets", () => {
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
         expect(resolved!.styleNumber).toBe(9);
-        // DEFAULT_STYLE_VALUES — same shape as styleNumber=1's defaults.
-        expect(resolved!.style.markerStyle).toBe("circle");
+        // Assert against a field where the preset path and the bare-fallback
+        // path differ. styleNumber=1's preset runs through
+        // `addMissingColorWordsToStyleDefinition`, so its `lineColorWord`
+        // is the word derived from `#648FFF`. The unknown-styleNumber
+        // fallback skips that derivation and `resolveStyleDefinition` fills
+        // the missing word with `""`. Asserting on `markerStyle="circle"`
+        // alone wouldn't distinguish the paths since both seeds share it.
+        expect(resolved!.style.lineColorWord).toBe("");
     });
 });
 

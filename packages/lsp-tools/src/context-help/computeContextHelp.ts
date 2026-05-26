@@ -367,13 +367,22 @@ function computeActiveDefaultForAttribute(
             : undefined,
     );
     if (!resolved) return undefined;
-    // Suppress redundant rows. The schema's `defaultValue` is encoded
-    // (e.g. `isMathDefaultValue`) and the active value is a raw primitive,
-    // so we compare via strict equality on the primitive form only — good
-    // enough for the style attributes we surface (all are string / number
-    // / boolean), and a strict-equal fast path keeps the hot help-panel
-    // request from doing structural comparison.
-    if (resolved.value === schemaAttr.defaultValue) return undefined;
+    // Suppress redundant rows when the active value matches the schema's
+    // static default. The schema's `defaultValue` is `unknown` and may be a
+    // wrapped/encoded shape (e.g. `isMathDefaultValue`); strict equality with
+    // a wrapped default would always be false and the suppression would
+    // silently stop working. Guard the comparison to the primitive shapes
+    // the resolver actually produces — anything else falls through and the
+    // row is shown.
+    const defaultValue = schemaAttr.defaultValue;
+    if (
+        (typeof defaultValue === "string" ||
+            typeof defaultValue === "number" ||
+            typeof defaultValue === "boolean") &&
+        resolved.value === defaultValue
+    ) {
+        return undefined;
+    }
     // Forward the resolver's optional `colorWord` (set only for non-word
     // color attributes with a value distinct from its derived word). Built
     // as a fresh object so an absent `colorWord` doesn't leak `undefined`

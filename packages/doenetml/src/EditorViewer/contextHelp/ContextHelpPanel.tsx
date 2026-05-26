@@ -166,21 +166,9 @@ export function ContextHelpPanel({
                         </div>
                     )}
                     {activeDefault && (
-                        // Surfaces the styleDefinition-resolved value the
-                        // attribute inherits at this cursor scope (#1198).
-                        // Rendered as a separate row from "Default:" so the
-                        // author can tell at a glance which signal is the
-                        // static schema fallback vs. the live inherited
-                        // value. The styleNumber annotation lets them trace
-                        // the value back to the ancestor that supplied it.
-                        //
-                        // For color attributes (`lineColor`, `fillColorDarkMode`,
-                        // etc.) the LSP also ships `colorWord` — the human
-                        // word `colorValueToWord` derives. We pair it with
-                        // the hex in parens and paint both with the resolved
-                        // color (via `renderActiveDefaultValue`), so the
-                        // viewer sees the color it's reading about rather
-                        // than just decoding the hex.
+                        // Separate row from "Default:" so the author can tell
+                        // the static schema fallback from the live inherited
+                        // value (#1198).
                         <div className="help-detail">
                             <span className="help-detail-label">
                                 Active default:
@@ -360,17 +348,9 @@ export function ContextHelpPanel({
     }
 }
 
-/**
- * Render the value pill for the "Active default:" row. For color attributes
- * the LSP attaches a `colorWord` (e.g. `lineColor` → "cornflower"); we pair
- * it with the hex in parens and use the resolved color as the text color for
- * both, so the panel actually *shows* the color it's describing rather than
- * forcing the author to translate `#648FFF` in their head. The gray pill
- * background still provides a contrast surface for very light colors, but
- * extremely light values may still read faintly — acceptable for a hint, and
- * the parenthesized word makes the intent clear regardless. Non-color
- * activeDefault values fall through to plain `formatValue` rendering.
- */
+// Paint hex and derived word in the resolved color for color attributes so
+// authors don't have to decode the hex. Non-color values fall through to
+// `formatValue`.
 function renderActiveDefaultValue(activeDefault: {
     value: string | number | boolean;
     colorWord?: string;
