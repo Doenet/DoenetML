@@ -196,9 +196,11 @@ function ancestorChainRootToLeaf(
  *   - direct child of the ancestor, or
  *   - direct child of a `<setup>` child of the ancestor.
  *
- * The legacy `<styleDefinitions>` (plural) wrapper is sugar-flattened by the
- * worker's `Setup` sugar; we walk into it explicitly so the LSP picks up the
- * same blocks even on documents that haven't been sugar-rewritten yet.
+ * The legacy `<styleDefinitions>` (plural) wrapper is a `<setup>`-sugar
+ * construct — the worker's `Setup` sugar flattens it before resolving — so
+ * we only walk into it when it sits inside `<setup>`. A top-level
+ * `<styleDefinitions>` would be ignored by the runtime too, so we don't
+ * surface those blocks here.
  *
  * Returned in source order so callers that need last-wins semantics (e.g.
  * two siblings with the same styleNumber) get the same answer the runtime
@@ -326,11 +328,6 @@ function buildStyleDefinitionBlock(
 }
 
 /**
- * Merge one normalized `<styleDefinition>` block into the running primitive
- * style map. Authored values win; only keys present on the block move into
- * the target. (Other keys keep whatever the cumulative map already had —
- * inherited from the preset seed or an earlier merge in the chain.)
- *
  * Defers to `unwrapStyleDefinition` so the wrapper shape stays a detail of
  * `@doenet/utils/style` rather than something this layer reaches into.
  */

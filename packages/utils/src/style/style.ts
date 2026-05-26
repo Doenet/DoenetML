@@ -595,6 +595,13 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  * before merging author-defined `<styleDefinition>` blocks. Keeping the LSP in
  * lockstep with the runtime here means an authored override falls back to the
  * same preset the runtime would.
+ *
+ * IMPORTANT: this function is lazily cached on the LSP side (see
+ * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
+ * stay pure w.r.t. mutable module state. Today it spreads
+ * `DEFAULT_STYLE_VALUES` directly; do not switch it to read from the
+ * mutable `defaultStyle` variable without first dropping that cache or the
+ * LSP will silently desync from runtime mutations.
  */
 export function returnDefaultStyleDefinitions(): StyleDefinitions {
     return addMissingColorWordsToStyleDefinitions(

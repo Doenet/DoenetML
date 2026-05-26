@@ -373,7 +373,10 @@ function computeActiveDefaultForAttribute(
     // a wrapped default would always be false and the suppression would
     // silently stop working. Guard the comparison to the primitive shapes
     // the resolver actually produces — anything else falls through and the
-    // row is shown.
+    // row is shown. If a style attribute is ever declared with a wrapped
+    // default (no such case exists today), extend this branch with a
+    // shape-aware comparison so the row is suppressed when semantically
+    // equal.
     const defaultValue = schemaAttr.defaultValue;
     if (
         (typeof defaultValue === "string" ||
