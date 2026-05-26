@@ -14,6 +14,7 @@ export default defineConfig({
                 diagnosticMarkdown:
                     "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
                 parseInlineMarkdown: "./src/markdown/parseInlineMarkdown.ts",
+                style: "./src/style/index.ts",
             },
             formats: ["es"],
         },

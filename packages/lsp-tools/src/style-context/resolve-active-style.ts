@@ -25,6 +25,11 @@
 
 import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
+// Pulled from `@doenet/utils/style` rather than `@doenet/utils` so the LSP
+// worker bundle stays slim — the root export drags in math-expressions / AST
+// helpers / URL utilities the resolver doesn't need, and the worker is loaded
+// on the critical path before the editor can answer cursor-help requests
+// (boot lag here surfaces as flaky "no help on first cursor change" in CI).
 import {
     DEFAULT_STYLE_VALUES,
     addMissingChildStyleColorFields,
@@ -41,7 +46,7 @@ import {
     type StyleDefinition,
     type StyleDefinitionKey,
     type StyleDefinitionPrimitive,
-} from "@doenet/utils";
+} from "@doenet/utils/style";
 import type { DoenetSourceObject } from "../doenet-source-object";
 
 /**
