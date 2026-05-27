@@ -3959,14 +3959,16 @@ describe("ChoiceInput tag tests @group4", async () => {
         expect(diagnosticsByType.accessibility[0].message).contain(
             `\`<choiceInput>\` must have a short description or a label`,
         );
+        // Diagnostic range is narrowed to the opening tag, so the end
+        // position now sits on the same line as the start.
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
-        expect(diagnosticsByType.accessibility[0].position.end.line).eq(5);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
         expect(diagnosticsByType.accessibility[1].message).contain(
             `\`<choiceInput>\` must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[1].position.start.line).eq(18);
-        expect(diagnosticsByType.accessibility[1].position.end.line).eq(21);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(18);
     });
 
     it("warning if labelPosition is used on non-inline choiceInput, with attribute-level position", async () => {

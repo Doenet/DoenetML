@@ -178,9 +178,11 @@ describe("Video tag tests @group1", async () => {
         expect(diagnosticsByType.accessibility[0].message).contain(
             "`<video>` must have a short description",
         );
+        // Diagnostic range is narrowed to the opening tag (`<video`) so the
+        // editor squiggle and hover only cover the tag name itself.
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
         expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
-        expect(diagnosticsByType.accessibility[0].position.end.column).eq(24);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(7);
     });
 });
