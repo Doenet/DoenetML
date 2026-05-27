@@ -603,6 +603,13 @@ export const EditorViewer = React.forwardRef<
     const onEditorChange = useCallback((value: string) => {
         if (editorDoenetMLRef.current !== value) {
             editorDoenetMLRef.current = value;
+            // Keep React state in sync with the CodeMirror buffer so the
+            // controlled `value` prop reflects what the user actually has.
+            // If we only update the ref, then after an undo (or any keystroke)
+            // a subsequent format whose output equals the stale state is a
+            // no-op — `setEditorDoenetML` bails on `Object.is`, CM never sees
+            // a new `value`, and the format button silently does nothing.
+            setEditorDoenetML(value);
             // The LSP-side `AutoCompleter` is kept in sync by the CodeMirror
             // plugin's `updateDocument` path; no local completer to refresh
             // here (issue #1086 / Option 4).
