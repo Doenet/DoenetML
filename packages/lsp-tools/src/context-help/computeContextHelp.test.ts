@@ -1428,3 +1428,65 @@ describe("computeContextHelp — repeat-introduced names (valueName/indexName)",
         });
     });
 });
+
+describe("computeContextHelp — functionNamesBreakdown on <mathInput> (#1205)", () => {
+    it("populates functionNamesBreakdown when cursor is on additionalFunctionNames", async () => {
+        const source = `<mathInput additionalFunctionNames="erf" removedFunctionNames="min"/>`;
+        const offset = source.indexOf("additionalFunctionNames") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.functionNamesBreakdown) {
+            expect.fail("expected attribute help with functionNamesBreakdown");
+            return;
+        }
+        expect(help.functionNamesBreakdown.added).toEqual(["erf"]);
+        expect(help.functionNamesBreakdown.removed).toEqual(["min"]);
+        const names = new Set(help.functionNamesBreakdown.names);
+        // Authored addition is in the effective list, authored removal is not,
+        // and untouched defaults like `sin` and `max` survive the merge.
+        expect(names.has("erf")).toBe(true);
+        expect(names.has("min")).toBe(false);
+        expect(names.has("sin")).toBe(true);
+        expect(names.has("max")).toBe(true);
+    });
+
+    it("populates functionNamesBreakdown when cursor is on removedFunctionNames", async () => {
+        const source = `<mathInput additionalFunctionNames="erf" removedFunctionNames="min max"/>`;
+        const offset = source.indexOf("removedFunctionNames") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.functionNamesBreakdown) {
+            expect.fail("expected attribute help with functionNamesBreakdown");
+            return;
+        }
+        expect(help.functionNamesBreakdown.removed).toEqual(["min", "max"]);
+        const names = new Set(help.functionNamesBreakdown.names);
+        expect(names.has("min")).toBe(false);
+        expect(names.has("max")).toBe(false);
+        expect(names.has("erf")).toBe(true);
+        expect(names.has("sin")).toBe(true);
+    });
+
+    it("works when only one of the two attributes is authored", async () => {
+        const source = `<mathInput removedFunctionNames="min"/>`;
+        const offset = source.indexOf("removedFunctionNames") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.functionNamesBreakdown) {
+            expect.fail("expected attribute help with functionNamesBreakdown");
+            return;
+        }
+        expect(help.functionNamesBreakdown.added).toEqual([]);
+        expect(help.functionNamesBreakdown.removed).toEqual(["min"]);
+        expect(help.functionNamesBreakdown.names).not.toContain("min");
+        expect(help.functionNamesBreakdown.names).toContain("sin");
+    });
+
+    it("does not populate functionNamesBreakdown on unrelated attributes", async () => {
+        const source = `<mathInput prefill="x"/>`;
+        const offset = source.indexOf("prefill") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.functionNamesBreakdown).toBeUndefined();
+    });
+});

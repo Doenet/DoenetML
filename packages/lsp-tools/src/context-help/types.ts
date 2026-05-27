@@ -112,6 +112,24 @@ export type HelpContent =
            * the cursor sits on a `<styleDefinition>` tag name).
            */
           styleBreakdown?: StyleBreakdownPayload;
+          /**
+           * Effective MathQuill function-name list at the cursor's scope
+           * (issue #1205). Populated only when the cursor sits on
+           * `additionalFunctionNames` or `removedFunctionNames` of a
+           * `<mathInput>`. The author writes deltas on either attribute and
+           * sees the merged list — defaults plus this element's
+           * `additionalFunctionNames`, minus its `removedFunctionNames`.
+           *
+           * `added` / `removed` are the deltas exactly as authored on this
+           * element (after dedupe and case-sensitive matching), so the
+           * panel can call out the changes alongside the resolved set.
+           * `removed` wins over `added` when the same name appears in both.
+           */
+          functionNamesBreakdown?: {
+              names: string[];
+              added: string[];
+              removed: string[];
+          };
       }
     | {
           kind: "property";

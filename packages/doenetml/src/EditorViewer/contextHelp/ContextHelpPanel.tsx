@@ -143,6 +143,7 @@ export function ContextHelpPanel({
                 defaultValue,
                 activeDefault,
                 styleBreakdown,
+                functionNamesBreakdown,
             } = content;
             return (
                 <div className="help-panel">
@@ -185,6 +186,8 @@ export function ContextHelpPanel({
                         </div>
                     )}
                     {styleBreakdown && renderStyleBreakdown(styleBreakdown)}
+                    {functionNamesBreakdown &&
+                        renderFunctionNamesBreakdown(functionNamesBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -430,6 +433,60 @@ function renderStyleBreakdown(breakdown: {
                     </React.Fragment>
                 ))}
             </dl>
+        </div>
+    );
+}
+
+/**
+ * "Resolved function names" section surfaced when the cursor sits on
+ * `additionalFunctionNames` or `removedFunctionNames` of a `<mathInput>`
+ * (#1205). The author writes deltas on either attribute and sees the
+ * merged effective list, plus the deltas they authored (if any) so they
+ * can spot when an entry was overridden or no-oped.
+ */
+function renderFunctionNamesBreakdown(breakdown: {
+    names: string[];
+    added: string[];
+    removed: string[];
+}): React.ReactNode {
+    return (
+        <div className="help-detail help-function-names-breakdown">
+            <span className="help-detail-label">Resolved function names:</span>
+            <div className="help-values-list">
+                {breakdown.names.map((name) => (
+                    <span key={name} className="help-value-item">
+                        {name}
+                    </span>
+                ))}
+            </div>
+            {breakdown.added.length > 0 && (
+                <>
+                    <span className="help-detail-label">
+                        Added on this input:
+                    </span>
+                    <div className="help-values-list">
+                        {breakdown.added.map((name) => (
+                            <span key={name} className="help-value-item">
+                                {name}
+                            </span>
+                        ))}
+                    </div>
+                </>
+            )}
+            {breakdown.removed.length > 0 && (
+                <>
+                    <span className="help-detail-label">
+                        Removed on this input:
+                    </span>
+                    <div className="help-values-list">
+                        {breakdown.removed.map((name) => (
+                            <span key={name} className="help-value-item">
+                                {name}
+                            </span>
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     );
 }

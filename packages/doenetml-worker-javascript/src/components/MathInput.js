@@ -100,6 +100,27 @@ export default class MathInput extends Input {
             defaultValue: ["f", "g"],
             public: true,
         };
+        attributes.additionalFunctionNames = {
+            description:
+                "Identifiers to additionally auto-format as built-in " +
+                "function names in the editor (e.g., 'erf'). Removed " +
+                "entries from removedFunctionNames win on conflict.",
+            createComponentOfType: "textList",
+            createStateVariable: "additionalFunctionNames",
+            defaultValue: [],
+            public: true,
+            forRenderer: true,
+        };
+        attributes.removedFunctionNames = {
+            description:
+                "Built-in function names to stop auto-formatting in the " +
+                "editor (e.g., 'min' so 'kg/min' can be typed as a unit).",
+            createComponentOfType: "textList",
+            createStateVariable: "removedFunctionNames",
+            defaultValue: [],
+            public: true,
+            forRenderer: true,
+        };
         attributes.splitSymbols = {
             description:
                 "Whether multi-character symbols are split into a product of single-character variables.",

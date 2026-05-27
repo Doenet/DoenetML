@@ -1,4 +1,5 @@
 import React, {
+    useMemo,
     useRef,
     useState,
     FocusEventHandler,
@@ -14,6 +15,7 @@ import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
+import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
 
 import { MathJax } from "better-react-mathjax";
 
@@ -360,6 +362,8 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
+    additionalFunctionNames: string[];
+    removedFunctionNames: string[];
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
@@ -407,6 +411,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
     if (!ignoreUpdate) {
         rendererValue.current = SVs.rawRendererValue;
     }
+
+    const autoOperatorNames = useMemo(
+        () =>
+            buildEffectiveMathInputFunctionNames({
+                additional: SVs.additionalFunctionNames,
+                removed: SVs.removedFunctionNames,
+            }).join(" "),
+        [SVs.additionalFunctionNames, SVs.removedFunctionNames],
+    );
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
@@ -748,16 +761,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     config={{
                         autoCommands:
                             "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
-                        autoOperatorNames:
-                            "arg deg det dim exp gcd hom ker lg lim ln log max min" +
-                            " Pr" +
-                            " cos cosh acos acosh arccos arccosh" +
-                            " cot coth acot acoth arccot arccoth" +
-                            " csc csch acsc acsch arccsc arccsch" +
-                            " sec sech asec asech arcsec arcsech" +
-                            " sin sinh asin asinh arcsin arcsinh" +
-                            " tan tanh atan atanh arctan arctanh" +
-                            " nPr nCr",
+                        autoOperatorNames,
                         handlers: {
                             enter: handlePressEnter,
                         },

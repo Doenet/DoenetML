@@ -1,4 +1,6 @@
 import type { DastElement } from "@doenet/parser";
+import { toXml } from "@doenet/parser";
+import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
 import {
     AutoCompleter,
     type AliasedElementSchema,
@@ -503,6 +505,69 @@ function computeStyleBreakdownForAttribute(
     return breakdown;
 }
 
+/**
+ * Names of the two `<mathInput>` attributes whose help payload carries a
+ * resolved function-names breakdown (issue #1205). Lowercased so the
+ * attribute-name comparison stays case-insensitive — the schema lookup
+ * elsewhere in this file is already case-folded.
+ */
+const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
+    "additionalfunctionnames",
+    "removedfunctionnames",
+]);
+
+/**
+ * Read a `textList`-shaped attribute on a DAST element by splitting its
+ * literal text on whitespace, mirroring how the runtime parses these
+ * attributes (`TextListFromString`). Returns an empty array if the
+ * attribute is absent or its text content is blank.
+ */
+function readTextListAttribute(
+    element: DastElement,
+    attributeName: string,
+): string[] {
+    const target = attributeName.toLowerCase();
+    const key = Object.keys(element.attributes).find(
+        (k) => k.toLowerCase() === target,
+    );
+    if (key === undefined) return [];
+    const attr = element.attributes[key];
+    if (!attr) return [];
+    return toXml(attr.children)
+        .split(/\s+/)
+        .filter((s) => s.length > 0);
+}
+
+/**
+ * Build the `functionNamesBreakdown` payload for a `<mathInput>` cursor
+ * sitting on `additionalFunctionNames` or `removedFunctionNames` — both
+ * lists are read off the same element, then merged with the built-in
+ * defaults via the shared helper so the LSP and the renderer can't
+ * drift apart on the resolution rule.
+ *
+ * Returns undefined when the cursor isn't on one of the two attributes or
+ * when the AST context is missing — every other attribute help payload
+ * leaves this field absent.
+ */
+function computeFunctionNamesBreakdownForAttribute(
+    elementName: string,
+    schemaAttr: SchemaAttribute,
+    ctx: ActiveDefaultContext | undefined,
+): { names: string[]; added: string[]; removed: string[] } | undefined {
+    if (!ctx) return undefined;
+    if (elementName !== "mathInput") return undefined;
+    if (!MATH_INPUT_FUNCTION_NAME_ATTRS.has(schemaAttr.name.toLowerCase())) {
+        return undefined;
+    }
+    const added = readTextListAttribute(ctx.node, "additionalFunctionNames");
+    const removed = readTextListAttribute(ctx.node, "removedFunctionNames");
+    const names = buildEffectiveMathInputFunctionNames({
+        additional: added,
+        removed,
+    });
+    return { names, added, removed };
+}
+
 function helpForAttribute(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
@@ -526,6 +591,12 @@ function helpForAttribute(
         activeDefaultCtx,
     );
 
+    const functionNamesBreakdown = computeFunctionNamesBreakdownForAttribute(
+        ownEntry.name,
+        schemaAttr,
+        activeDefaultCtx,
+    );
+
     return {
         kind: "attribute",
         elementName: ownEntry.name,
@@ -544,6 +615,7 @@ function helpForAttribute(
         defaultValue: schemaAttr.defaultValue,
         ...(activeDefault ? { activeDefault } : {}),
         ...(styleBreakdown ? { styleBreakdown } : {}),
+        ...(functionNamesBreakdown ? { functionNamesBreakdown } : {}),
     };
 }
 

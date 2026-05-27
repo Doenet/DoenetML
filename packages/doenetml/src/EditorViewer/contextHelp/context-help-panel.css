@@ -227,6 +227,18 @@
     width: fit-content;
 }
 
+/*
+ * Resolved function-names breakdown (#1205). Stacks a label/values pair —
+ * optionally repeated for `Added on this input:` and `Removed on this
+ * input:` rows — vertically so the chip list wraps without competing
+ * with the labels.
+ */
+.editor-panel .help-function-names-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
 .editor-panel .help-docs-link {
     color: var(--mainBlue);
     text-decoration: none;
