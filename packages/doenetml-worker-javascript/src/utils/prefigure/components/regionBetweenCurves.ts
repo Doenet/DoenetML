@@ -1,71 +1,17 @@
-import me from "math-expressions";
 import { asFiniteNumber, escapeXml, pushWarning } from "../common";
+import {
+    parseFormulaDefinition,
+    rewriteExpressionVariable,
+} from "../formulaUtils";
 import type { ConverterArgs, CurveFunctionDefinition } from "../types";
 
-interface ParsedFormula {
-    variableName: string;
-    expression: string;
-}
-
-function astToExpressionString(ast: unknown): string | null {
-    try {
-        return me
-            .fromAst(ast as any)
-            .toString({ explicitMultiplicationSymbols: true });
-    } catch (_e) {
-        return null;
-    }
-}
-
-function escapeRegex(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function rewriteExpressionVariable({
-    expression,
-    fromVariable,
-    toVariable,
-}: {
-    expression: string;
-    fromVariable: string;
-    toVariable: string;
-}): string {
-    if (!fromVariable || fromVariable === toVariable) {
-        return expression;
-    }
-
-    const escaped = escapeRegex(fromVariable);
-    const symbolPattern = new RegExp(
-        `(^|[^A-Za-z0-9_])(${escaped})(?=$|[^A-Za-z0-9_])`,
-        "g",
-    );
-
-    return expression.replace(symbolPattern, `$1${toVariable}`);
-}
-
-function parseFunctionFormula(definition: unknown): ParsedFormula | null {
-    if (!definition || typeof definition !== "object") {
-        return null;
-    }
-    const def = definition as CurveFunctionDefinition;
-    if (def.functionType !== "formula") {
-        return null;
-    }
-
-    const expression = astToExpressionString(def.formula);
-    if (!expression) {
-        return null;
-    }
-
-    const variables = Array.isArray(def.variables) ? def.variables : [];
-    const variableExpression = variables.length
-        ? astToExpressionString(variables[0])
+/** Coerce an entry from `fDefinitions` to a typed function definition. */
+function asCurveFunctionDefinition(
+    definition: unknown,
+): CurveFunctionDefinition | null {
+    return definition && typeof definition === "object"
+        ? (definition as CurveFunctionDefinition)
         : null;
-
-    return {
-        variableName: variableExpression || "x",
-        expression,
-    };
 }
 
 /**
@@ -112,8 +58,14 @@ export function convertRegionBetweenCurvesToPrefigure({
         return null;
     }
 
-    const f1 = parseFunctionFormula(fDefinitions[0]);
-    const f2 = parseFunctionFormula(fDefinitions[1]);
+    const f1 = parseFormulaDefinition(
+        asCurveFunctionDefinition(fDefinitions[0]),
+        "x",
+    );
+    const f2 = parseFormulaDefinition(
+        asCurveFunctionDefinition(fDefinitions[1]),
+        "x",
+    );
 
     if (!f1 || !f2) {
         pushWarning({
@@ -124,6 +76,9 @@ export function convertRegionBetweenCurvesToPrefigure({
         return null;
     }
 
+    // PreFigure's <area-between-curves> references two named functions, each
+    // declared via a sibling <definition>. The names live in the same PreFigure
+    // namespace, so suffix them with the descendant handle to avoid collisions.
     const fName1 = `${handle}_f1`;
     const fName2 = `${handle}_f2`;
 
