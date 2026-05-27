@@ -186,6 +186,47 @@
     font-size: 0.85em;
 }
 
+/*
+ * Per-styleNumber breakdown row (#1204). Stacks a header line above a
+ * two-column key/value listing so authors can scan the resolved style
+ * attributes without horizontal scrolling.
+ */
+.editor-panel .help-style-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.editor-panel .help-style-breakdown-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.15rem;
+    margin: 0;
+    width: 100%;
+}
+
+.editor-panel .help-style-breakdown-list dt {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #344054;
+    align-self: center;
+    justify-self: start;
+}
+
+.editor-panel .help-style-breakdown-list dd {
+    margin: 0;
+    align-self: center;
+    /* Same pill styling as help-value-item so the key/value rendering
+     * matches the rest of the panel. */
+    background: var(--mainGray);
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    width: fit-content;
+}
+
 .editor-panel .help-docs-link {
     color: var(--mainBlue);
     text-decoration: none;

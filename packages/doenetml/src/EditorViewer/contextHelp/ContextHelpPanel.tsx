@@ -73,6 +73,8 @@ export function ContextHelpPanel({
                     <p className="help-description">
                         {renderInlineMarkdown(content.summary)}
                     </p>
+                    {content.styleBreakdown &&
+                        renderStyleBreakdown(content.styleBreakdown)}
                     {content.docsSlug && (
                         <a
                             className="help-docs-link"
@@ -140,6 +142,7 @@ export function ContextHelpPanel({
                 allowedValues,
                 defaultValue,
                 activeDefault,
+                styleBreakdown,
             } = content;
             return (
                 <div className="help-panel">
@@ -181,6 +184,7 @@ export function ContextHelpPanel({
                             </div>
                         </div>
                     )}
+                    {styleBreakdown && renderStyleBreakdown(styleBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -348,29 +352,85 @@ export function ContextHelpPanel({
     }
 }
 
+/**
+ * For a color attribute, render the resolved color text alongside the
+ * derived word, both painted in the resolved color so authors can see
+ * what the hex represents at a glance.  Returns `null` when the entry
+ * isn't a recognized color (no `colorWord`, or `value` isn't a string) so
+ * callers can fall back to plain `formatValue` rendering.
+ */
+function renderColorValueContent(entry: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode | null {
+    if (!entry.colorWord || typeof entry.value !== "string") return null;
+    const colorText = resolveCssVariables(entry.value);
+    const colorStyle = { color: colorText };
+    return (
+        <>
+            <span style={colorStyle}>{colorText}</span>
+            <span style={colorStyle}>{` (${entry.colorWord})`}</span>
+        </>
+    );
+}
+
 // Paint hex and derived word in the resolved color for color attributes so
 // authors don't have to decode the hex. Non-color values fall through to
-// `formatValue`.
+// `formatValue`.  The outer `<span class="help-value-item">` supplies the
+// pill background — color rows nest the colored content inside it so the
+// pill stays consistent with non-color rows.
 function renderActiveDefaultValue(activeDefault: {
     value: string | number | boolean;
     colorWord?: string;
 }): React.ReactNode {
-    if (activeDefault.colorWord && typeof activeDefault.value === "string") {
-        const colorText = resolveCssVariables(activeDefault.value);
-        const colorStyle = { color: colorText };
-        return (
-            <span className="help-value-item">
-                <span style={colorStyle}>{colorText}</span>
-                <span
-                    style={colorStyle}
-                >{` (${activeDefault.colorWord})`}</span>
-            </span>
-        );
-    }
+    const colorContent = renderColorValueContent(activeDefault);
     return (
         <span className="help-value-item">
-            {formatValue(activeDefault.value)}
+            {colorContent ?? formatValue(activeDefault.value)}
         </span>
+    );
+}
+
+// One row in the styleNumber breakdown (#1204). Color attributes paint the
+// hex (and word) in the resolved color, mirroring `renderActiveDefaultValue`
+// so the two surfaces look consistent.  The enclosing `<dd>` already
+// supplies the pill styling, so this returns the inner content directly.
+function renderBreakdownValue(entry: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode {
+    return renderColorValueContent(entry) ?? formatValue(entry.value);
+}
+
+/**
+ * "Resolved style" section shared by the attribute and element help branches
+ * (#1204). Renders the styleNumber-labeled header above a two-column
+ * key/value grid for each populated style attribute.  The caller decides
+ * when to mount it; this helper just keeps the markup in one place so the
+ * two trigger sites can't drift in layout or class names.
+ */
+function renderStyleBreakdown(breakdown: {
+    styleNumber: number;
+    entries: Array<{
+        key: string;
+        value: string | number | boolean;
+        colorWord?: string;
+    }>;
+}): React.ReactNode {
+    return (
+        <div className="help-detail help-style-breakdown">
+            <span className="help-detail-label">
+                {`Resolved style (styleNumber ${breakdown.styleNumber}):`}
+            </span>
+            <dl className="help-style-breakdown-list">
+                {breakdown.entries.map((entry) => (
+                    <React.Fragment key={entry.key}>
+                        <dt>{entry.key}</dt>
+                        <dd>{renderBreakdownValue(entry)}</dd>
+                    </React.Fragment>
+                ))}
+            </dl>
+        </div>
     );
 }
 
