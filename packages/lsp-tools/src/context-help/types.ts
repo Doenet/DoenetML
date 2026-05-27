@@ -30,21 +30,23 @@ export type StyleBreakdownPayload = {
 /**
  * Resolved MathQuill function-name list for a `<mathInput>` surfaced on the
  * help panel (issue #1205).  Populated when the cursor sits on
- * `additionalFunctionNames` or `removedFunctionNames`:
+ * `additionalFunctionNames`, `removedFunctionNames`, or `resetFunctionNames`:
  *
- * - `names` is the merged effective list (defaults plus this element's
- *   `additionalFunctionNames`, minus its `removedFunctionNames`), in the
- *   same order MathQuill sees at runtime.
+ * - `names` is the resolved effective list MathQuill sees at runtime.
  * - `added` / `removed` are the deltas exactly as authored on this element
- *   (after dedupe and case-sensitive matching), so the panel can call
- *   out the changes alongside the resolved set.
+ *   (after dedupe and case-sensitive matching).
+ * - `reset`, when present, is the verbatim authored list and signals that
+ *   `resetFunctionNames` overrode both deltas; `names` then equals
+ *   `reset` and `added`/`removed` are inactive (but kept on the payload
+ *   so the panel can flag what the author wrote).
  *
- * `removed` wins over `added` when the same name appears in both.
+ * Precedence: `reset` wins outright. Otherwise `removed` wins over `added`.
  */
 export type FunctionNamesBreakdownPayload = {
     names: string[];
     added: string[];
     removed: string[];
+    reset?: string[];
 };
 
 export type HelpContent =

@@ -68,21 +68,41 @@ export const DEFAULT_MATH_INPUT_FUNCTION_NAMES: readonly string[] = [
 
 /**
  * Build the effective `autoOperatorNames` list for a `<mathInput>` by
- * applying the author's add/remove deltas to {@link DEFAULT_MATH_INPUT_FUNCTION_NAMES}.
+ * applying the author's deltas to {@link DEFAULT_MATH_INPUT_FUNCTION_NAMES}.
  *
- * Removed entries win over added ones if a name appears in both lists,
- * so an author can confidently drop a default even if their own
- * `additionalFunctionNames` accidentally repeats it. Names are matched
- * case-sensitively (MathQuill itself is case-sensitive — `Pr` and `pr`
- * are distinct entries).
+ * Precedence:
+ *   - When `reset` is non-null, it wins outright: the result is the
+ *     deduped `reset` list verbatim, ignoring defaults *and* the
+ *     additional/removed deltas. Passing an empty array reset turns off
+ *     auto-formatting entirely (no identifier is treated as a function).
+ *   - Otherwise, start from defaults, drop entries in `removed`, then
+ *     append entries from `additional` not already in the result.
+ *     Removed entries win over added ones if a name appears in both,
+ *     so an author can confidently drop a default even if their own
+ *     `additionalFunctionNames` accidentally repeats it.
+ *
+ * Names are matched case-sensitively (MathQuill itself is case-sensitive
+ * — `Pr` and `pr` are distinct entries).
  */
 export function buildEffectiveMathInputFunctionNames({
     additional = [],
     removed = [],
+    reset = null,
 }: {
     additional?: readonly string[];
     removed?: readonly string[];
+    reset?: readonly string[] | null;
 }): string[] {
+    if (reset !== null) {
+        const seen = new Set<string>();
+        const out: string[] = [];
+        for (const name of reset) {
+            if (seen.has(name)) continue;
+            seen.add(name);
+            out.push(name);
+        }
+        return out;
+    }
     const removedSet = new Set(removed);
     const seen = new Set<string>();
     const out: string[] = [];

@@ -121,6 +121,18 @@ export default class MathInput extends Input {
             public: true,
             forRenderer: true,
         };
+        attributes.resetFunctionNames = {
+            description:
+                "When set, replaces the entire auto-formatted function " +
+                "name list (defaults, `additionalFunctionNames`, and " +
+                "`removedFunctionNames` are all ignored). Set to an empty " +
+                "value to disable auto-formatting entirely.",
+            createComponentOfType: "textList",
+            createStateVariable: "resetFunctionNames",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
         attributes.splitSymbols = {
             description:
                 "Whether multi-character symbols are split into a product of single-character variables.",

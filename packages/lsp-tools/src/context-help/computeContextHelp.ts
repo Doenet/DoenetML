@@ -8,7 +8,10 @@ import {
     type SchemaAttribute,
     type SchemaProperty,
 } from "../auto-completer";
-import { getElementAttributeValue } from "../auto-completer/dast-attribute-utils";
+import {
+    findAttributeKey,
+    getElementAttributeValue,
+} from "../auto-completer/dast-attribute-utils";
 import {
     chaseIndexAliases,
     deepestArrayEntryType,
@@ -506,7 +509,7 @@ function computeStyleBreakdownForAttribute(
 }
 
 /**
- * Names of the two `<mathInput>` attributes whose help payload carries a
+ * Names of the `<mathInput>` attributes whose help payload carries a
  * resolved function-names breakdown (issue #1205). Lowercased so the
  * attribute-name comparison stays case-insensitive — the schema lookup
  * elsewhere in this file is already case-folded.
@@ -514,6 +517,7 @@ function computeStyleBreakdownForAttribute(
 const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
     "additionalfunctionnames",
     "removedfunctionnames",
+    "resetfunctionnames",
 ]);
 
 /**
@@ -533,14 +537,19 @@ function readTextListAttribute(
 
 /**
  * Build the `functionNamesBreakdown` payload for a `<mathInput>` cursor
- * sitting on `additionalFunctionNames` or `removedFunctionNames` — both
- * lists are read off the same element, then merged with the built-in
- * defaults via the shared helper so the LSP and the renderer can't
- * drift apart on the resolution rule.
+ * sitting on one of the three function-name attributes — all the
+ * authored lists are read off the same element, then merged via the
+ * shared helper so the LSP and the renderer can't drift apart on the
+ * resolution rule.
  *
- * Returns undefined when the cursor isn't on one of the two attributes or
- * when the AST context is missing — every other attribute help payload
- * leaves this field absent.
+ * Returns undefined when the cursor isn't on one of the trigger
+ * attributes or when the AST context is missing — every other attribute
+ * help payload leaves this field absent.
+ *
+ * `resetFunctionNames` is detected by *presence* (via `findAttributeKey`),
+ * not just non-empty text, so `resetFunctionNames=""` correctly resolves
+ * to an empty effective list — matching the runtime's `defaultValue:
+ * null` semantics where attribute-absent and authored-empty are distinct.
  */
 function computeFunctionNamesBreakdownForAttribute(
     elementName: string,
@@ -554,11 +563,22 @@ function computeFunctionNamesBreakdownForAttribute(
     }
     const added = readTextListAttribute(ctx.node, "additionalFunctionNames");
     const removed = readTextListAttribute(ctx.node, "removedFunctionNames");
+    const resetAuthored =
+        findAttributeKey(ctx.node, "resetFunctionNames") !== undefined;
+    const reset = resetAuthored
+        ? readTextListAttribute(ctx.node, "resetFunctionNames")
+        : null;
     const names = buildEffectiveMathInputFunctionNames({
         additional: added,
         removed,
+        reset,
     });
-    return { names, added, removed };
+    return {
+        names,
+        added,
+        removed,
+        ...(reset !== null ? { reset } : {}),
+    };
 }
 
 function helpForAttribute(

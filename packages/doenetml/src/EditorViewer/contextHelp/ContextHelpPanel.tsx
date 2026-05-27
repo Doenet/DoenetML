@@ -462,24 +462,49 @@ function renderLabeledChipList(
 
 /**
  * "Resolved function names" section surfaced when the cursor sits on
- * `additionalFunctionNames` or `removedFunctionNames` of a `<mathInput>`
- * (#1205). The author writes deltas on either attribute and sees the
- * merged effective list, plus the deltas they authored (if any) so they
- * can spot when an entry was overridden or no-oped.
+ * `additionalFunctionNames`, `removedFunctionNames`, or
+ * `resetFunctionNames` of a `<mathInput>` (#1205). The author writes
+ * deltas on those attributes and sees the merged effective list plus
+ * the deltas they authored, so they can spot when an entry was
+ * overridden or no-oped.
+ *
+ * When `resetFunctionNames` is authored (`breakdown.reset` present), the
+ * "Reset list" row replaces the add/remove rows and a hint reminds the
+ * author that the other two attributes are inactive.
  */
 function renderFunctionNamesBreakdown(
     breakdown: FunctionNamesBreakdownPayload,
 ): React.ReactNode {
+    const isReset = breakdown.reset !== undefined;
     return (
         <div className="help-detail help-function-names-breakdown">
             {renderLabeledChipList("Resolved function names:", breakdown.names)}
-            {breakdown.added.length > 0 &&
-                renderLabeledChipList("Added on this input:", breakdown.added)}
-            {breakdown.removed.length > 0 &&
-                renderLabeledChipList(
-                    "Removed on this input:",
-                    breakdown.removed,
-                )}
+            {isReset ? (
+                <>
+                    {renderLabeledChipList(
+                        "Reset list on this input:",
+                        breakdown.reset!,
+                    )}
+                    <span className="help-detail-annotation">
+                        {
+                            "resetFunctionNames overrides additionalFunctionNames and removedFunctionNames."
+                        }
+                    </span>
+                </>
+            ) : (
+                <>
+                    {breakdown.added.length > 0 &&
+                        renderLabeledChipList(
+                            "Added on this input:",
+                            breakdown.added,
+                        )}
+                    {breakdown.removed.length > 0 &&
+                        renderLabeledChipList(
+                            "Removed on this input:",
+                            breakdown.removed,
+                        )}
+                </>
+            )}
         </div>
     );
 }

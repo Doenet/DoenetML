@@ -364,6 +364,7 @@ interface MathInputSVs {
     showPreview: boolean;
     additionalFunctionNames: string[];
     removedFunctionNames: string[];
+    resetFunctionNames: string[] | null;
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
@@ -417,8 +418,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
             buildEffectiveMathInputFunctionNames({
                 additional: SVs.additionalFunctionNames,
                 removed: SVs.removedFunctionNames,
+                reset: SVs.resetFunctionNames,
             }).join(" "),
-        [SVs.additionalFunctionNames, SVs.removedFunctionNames],
+        [
+            SVs.additionalFunctionNames,
+            SVs.removedFunctionNames,
+            SVs.resetFunctionNames,
+        ],
     );
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
