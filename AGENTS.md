@@ -136,31 +136,7 @@ This checkout may use a personal fork as `origin` and the canonical `Doenet/Doen
 
 ## Changesets
 
-The repo uses Changesets for version management. Configuration is in `.changeset/config.json`.
-
-### Fixed Group (synchronized versioning)
-Six packages version together:
-- `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`
-- `@doenet/v06-to-v07`, `@doenet/vscode-extension`, `doenet-vscode-extension`
-
-### Independent Versioning
-- `@doenet/prefigure` versions independently.
-
-### Never Versioned
-`@doenet/lsp-tools` and `@doenet/static-assets` are never published — their source is bundled into `@doenet/doenetml`, so a change to either rides under `@doenet/doenetml`'s version. **Do not list them in any changeset, ever** — not even when files under `packages/lsp-tools/` or `packages/static-assets/` themselves changed.
-
-Don't infer this from `"private": true` alone. Most packages in this repo (including `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, and `@doenet/prefigure`) carry `"private": true` at the root and are still published, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`. The real signal for "never published" is the absence of that transformer in the package's `vite.config.ts` — `@doenet/lsp-tools` and `@doenet/static-assets` are the two packages where it's missing.
-
-### Which packages to list
-
-Propagation is **one-directional — forward to consumers that re-bundle or re-render the change, never back to dependencies of the changed package.** Include a package iff:
-
-1. Its own source changed in this branch (and the package is published), OR
-2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. Look at recent changesets in the same area for the conventional set.
-
-Do **not** include a package just because the changed code imports from it. `@doenet/doenetml` depends on `@doenet/lsp-tools` and `@doenet/static-assets`, which makes them tempting to add to an editor changeset — but they're covered by the rule above: never listed.
-
-Fixed-group members all version together regardless of whether they're listed, but listing controls which package's CHANGELOG the entry lands in — list a fixed-group member only when its users would care to read the entry. Editor/viewer changes typically skip `@doenet/v06-to-v07` for this reason, even though v06-to-v07 versions along with the group.
+The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes (notably adding `@doenet/lsp-tools` or `@doenet/static-assets`) have crept in that way.
 
 ## Key State & Data Flow
 
@@ -181,7 +157,7 @@ The worker receives serialized updates and returns rendered component states. Re
 2. Implement the **UI renderer** in `packages/doenetml/src/Viewer/renderers` or similar
 3. Register the component in `componentInfoObjects` so the worker knows about it; if the component appears in the DAST/normalized-DAST schema, update the relevant schema definitions too
 4. Add **tests** in both Vitest and Cypress
-5. Add a **changeset** if user-facing
+5. Add a **changeset** if user-facing (see the [`changesets`](.github/skills/changesets/SKILL.md) skill for which packages to list)
 
 ### Debug a rendering issue
 1. Start `npm run dev` and inspect the browser console
