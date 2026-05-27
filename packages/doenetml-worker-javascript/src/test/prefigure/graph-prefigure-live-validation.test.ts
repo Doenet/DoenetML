@@ -40,6 +40,12 @@ describe("Graph prefigure renderer live validation @group4", () => {
                     ),
                     expectText: "polygon",
                 },
+                {
+                    doenetML: prefigureGraph(
+                        '<regionBetweenCurves boundaryValues="-1 2"><function>x^2</function><function>x+1</function></regionBetweenCurves>',
+                    ),
+                    expectText: "regionBetweenCurves",
+                },
             ];
 
             for (const c of cases) {

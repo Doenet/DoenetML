@@ -144,6 +144,18 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "hidden",
         ],
     },
+    {
+        key: "regionBetweenCurvesDescendants",
+        componentType: "regionBetweenCurves",
+        variableNames: [
+            "boundaryValues",
+            "flipFunctions",
+            "haveFunctions",
+            "fDefinitions",
+            "selectedStyle",
+            "hidden",
+        ],
+    },
 ];
 
 /**

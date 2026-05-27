@@ -1649,6 +1649,117 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`<group at="curve_0">`);
         expect(pieceCount).eq(8);
     });
+
+    it("renderer=prefigure maps regionBetweenCurves to area-between-curves", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<regionBetweenCurves boundaryValues="-1 2"><function>x^2</function><function>x+1</function></regionBetweenCurves>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=x^2</definition>`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f2(x)=x + 1</definition>`,
+        );
+        expect(prefigureXML).toContain(
+            `<area-between-curves at="regionbetweencurves_0"`,
+        );
+        expect(prefigureXML).toContain(`function1="regionbetweencurves_0_f1"`);
+        expect(prefigureXML).toContain(`function2="regionbetweencurves_0_f2"`);
+        expect(prefigureXML).toContain(`domain="(-1,2)"`);
+    });
+
+    it("renderer=prefigure regionBetweenCurves sorts boundaryValues into ascending domain", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<regionBetweenCurves boundaryValues="3 -2"><function>x^2</function><function>x+1</function></regionBetweenCurves>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`domain="(-2,3)"`);
+        expect(prefigureXML).not.toContain(`domain="(3,-2)"`);
+    });
+
+    it("renderer=prefigure regionBetweenCurves emits fill style attributes", async () => {
+        const prefigureXML = await getPrefigureXML(
+            withStyleDefinitions(
+                '    <styleDefinition styleNumber="3" lineColor="red" fillColor="pink" />',
+                prefigureGraph(
+                    '<regionBetweenCurves styleNumber="3" boundaryValues="0 1"><function>x</function><function>x^2</function></regionBetweenCurves>',
+                ),
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<area-between-curves`);
+        expect(prefigureXML).toContain(`stroke="red"`);
+        expect(prefigureXML).toContain(`fill="pink"`);
+    });
+
+    it("renderer=prefigure regionBetweenCurves warns and skips when flipFunctions is true", async () => {
+        const doenetML = prefigureGraph(
+            '<regionBetweenCurves boundaryValues="-1 2" flipFunctions><function>x^2</function><function>x+1</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<area-between-curves`);
+        expect(prefigureXML).not.toContain(
+            `<definition>regionbetweencurves_0_`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<regionBetweenCurves>") &&
+                    x.message.includes("flipFunctions"),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure regionBetweenCurves warns and skips when child function is not a formula", async () => {
+        const doenetML = prefigureGraph(
+            '<regionBetweenCurves boundaryValues="0 2"><function through="(0,0) (1,1) (2,0)" /><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<area-between-curves`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<regionBetweenCurves>") &&
+                    x.message.includes("only formula-typed child functions"),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure regionBetweenCurves skips silently with only one child function", async () => {
+        const doenetML = prefigureGraph(
+            '<regionBetweenCurves boundaryValues="0 2"><function>x^2</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<area-between-curves`);
+        expect(prefigureXML).not.toContain(`<definition>`);
+    });
+
+    it("renderer=prefigure regionBetweenCurves normalizes the function variable to x", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<regionBetweenCurves boundaryValues="-1 1"><function variable="u">u^2</function><function variable="v">v+1</function></regionBetweenCurves>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=x^2</definition>`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f2(x)=x + 1</definition>`,
+        );
+    });
 });
 
 // ─── point label alignment overflow ──────────────────────────────────────────
