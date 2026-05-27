@@ -39,9 +39,8 @@ function isReady() {
 }
 
 // Inject the YouTube IFrame API <script> tag into <head> if it hasn't been
-// added already. Deferred until a YouTube video is actually about to render
-// so that documents without YouTube videos make no network request to
-// youtube.com (see issue #1202).
+// added already. The DOM check makes this safe to call from multiple
+// components (and across HMR reloads in dev).
 function loadScript() {
     if (document.querySelector(`script[src="${YT_API_SRC}"]`)) {
         return;
@@ -53,14 +52,15 @@ function loadScript() {
 
 /**
  * React hook that returns `true` once the YouTube IFrame Player API is
- * loaded (`window.YT.Player` is available), and `false` until then.
+ * loaded (`window.YT.Player` is available), and `false` until then. Use it
+ * to gate `new window.YT.Player(...)` construction in an effect: the hook
+ * re-renders consumers when the API becomes ready, which is asynchronous
+ * and may not happen by the first render.
  *
- * Pass `shouldLoad=true` to trigger lazy injection of the API <script>;
- * when `false` (the default) the hook is inert and no network request is
- * made. Use this to gate `new window.YT.Player(...)` construction in an
- * effect: the hook re-renders consumers when the API becomes ready, even
- * though it loads asynchronously and may not be present at the first
- * render.
+ * When `shouldLoad` is `true` the hook also injects the API <script> tag on
+ * first call; when `false` (the default) the hook is inert and no network
+ * request to youtube.com is made. This lets callers defer the script load
+ * until a YouTube video is actually about to render.
  */
 export function useYouTubeApi(shouldLoad: boolean = false) {
     const [ready, setReady] = useState(isReady);
