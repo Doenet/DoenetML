@@ -165,6 +165,7 @@ const _ALWAYS_BREAK_PARENTS_SOURCE: readonly string[] = [
     "spreadsheet",
     "codeEditor",
     "paragraphs",
+    "setup",
 ];
 
 export const ALWAYS_BREAK_PARENTS: ReadonlySet<string> = new Set(

@@ -5,3 +5,10 @@
     <select name="pick"><option><text>cat</text></option><option><text>dog</text></option></select>
     <p name="myPara">This is a <em>defined</em> paragraph with bare text and trailing punctuation.</p>
 </setup>
+
+<setup>
+
+  <number>3</number>
+  <math>4x</math>
+
+</setup>

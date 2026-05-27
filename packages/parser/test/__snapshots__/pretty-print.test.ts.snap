@@ -237,5 +237,10 @@ exports[`Prettier > pretty-print-12-setup-children.doenet pretty-prints correctl
         This is a <em>defined</em> paragraph with bare text and trailing
         punctuation.
     </p>
+</setup>
+
+<setup>
+    <number>3</number>
+    <math>4x</math>
 </setup>"
 `;
