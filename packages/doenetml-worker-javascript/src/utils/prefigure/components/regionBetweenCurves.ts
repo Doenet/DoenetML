@@ -3,16 +3,7 @@ import {
     parseFormulaDefinition,
     rewriteExpressionVariable,
 } from "../formulaUtils";
-import type { ConverterArgs, CurveFunctionDefinition } from "../types";
-
-/** Coerce an entry from `fDefinitions` to a typed function definition. */
-function asCurveFunctionDefinition(
-    definition: unknown,
-): CurveFunctionDefinition | null {
-    return definition && typeof definition === "object"
-        ? (definition as CurveFunctionDefinition)
-        : null;
-}
+import type { ConverterArgs } from "../types";
 
 /**
  * Converts a `<regionBetweenCurves>` to a pair of PreFigure `<definition>`
@@ -47,7 +38,7 @@ export function convertRegionBetweenCurvesToPrefigure({
     if (sv.flipFunctions) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: flipFunctions is not supported in the PreFigure renderer; descendant skipped.`,
+            message: `${warningPrefix}: unsupported flipFunctions attribute on regionBetweenCurves; descendant skipped.`,
             position: warningPosition,
         });
         return null;
@@ -58,19 +49,13 @@ export function convertRegionBetweenCurvesToPrefigure({
         return null;
     }
 
-    const f1 = parseFormulaDefinition(
-        asCurveFunctionDefinition(fDefinitions[0]),
-        "x",
-    );
-    const f2 = parseFormulaDefinition(
-        asCurveFunctionDefinition(fDefinitions[1]),
-        "x",
-    );
+    const f1 = parseFormulaDefinition(fDefinitions[0], "x");
+    const f2 = parseFormulaDefinition(fDefinitions[1], "x");
 
     if (!f1 || !f2) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: only formula-typed child functions are supported in the PreFigure renderer; descendant skipped.`,
+            message: `${warningPrefix}: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.`,
             position: warningPosition,
         });
         return null;

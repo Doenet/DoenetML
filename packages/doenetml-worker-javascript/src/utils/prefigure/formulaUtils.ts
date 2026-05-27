@@ -63,26 +63,32 @@ export function rewriteExpressionVariable({
  * Extracts the expression and variable name; returns null if definition
  * is not a formula type or expression conversion fails.
  *
- * @param definition - The curve function definition
+ * Accepts `unknown` so callers can pass raw entries from `fDefinitions`
+ * without an intermediate typecast helper.
+ *
+ * @param definition - The curve function definition (or anything else)
  * @param fallbackVariableName - Variable name to use if not specified (e.g., "x" or "t")
  * @returns Parsed definition with variable and expression, or null
  */
 export function parseFormulaDefinition(
-    definition: CurveFunctionDefinition | null,
+    definition: unknown,
     fallbackVariableName: string,
 ): ParsedFormulaDefinition | null {
-    if (!definition || definition.functionType !== "formula") {
+    if (!definition || typeof definition !== "object") {
         return null;
     }
 
-    const expression = astToExpressionString(definition.formula);
+    const def = definition as CurveFunctionDefinition;
+    if (def.functionType !== "formula") {
+        return null;
+    }
+
+    const expression = astToExpressionString(def.formula);
     if (!expression) {
         return null;
     }
 
-    const variables = Array.isArray(definition.variables)
-        ? definition.variables
-        : [];
+    const variables = Array.isArray(def.variables) ? def.variables : [];
     const variableExpression = variables.length
         ? astToExpressionString(variables[0])
         : null;
