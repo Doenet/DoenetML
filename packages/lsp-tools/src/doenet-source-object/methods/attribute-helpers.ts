@@ -126,26 +126,38 @@ function scanIdentifierForward(source: string, from: number): number {
 }
 
 /**
+ * Wrap a `[start, end)` identifier span: returns `null` for an empty span
+ * (no identifier present) or for a span that begins immediately after `<`
+ * (which would synthesize a tag name as an attribute).  Callers in
+ * `attributeAtOffset` are already gated by `cursorPosition`, but
+ * error-state parser output can mislabel `openTag`/`unknown` here, and a
+ * stale tag-name identifier would otherwise leak into the panel.
+ */
+function nonTagIdentifierSpan(
+    source: string,
+    start: number,
+    end: number,
+): { start: number; end: number } | null {
+    if (start === end) return null;
+    if (start > 0 && source.charAt(start - 1) === "<") return null;
+    return { start, end };
+}
+
+/**
  * Return the bounds of the identifier token straddling `offset`, or null
  * if `offset` is not adjacent to any identifier char.  Combines the
  * backward and forward scans so a cursor mid-token still recovers the
- * full identifier.
- *
- * Rejects a run that begins immediately after `<` so the helper never
- * synthesizes a tag name (e.g. `math` in `<math …>`) as an attribute.
- * Callers in `attributeAtOffset` are already gated by `cursorPosition`,
- * but error-state parser output can mislabel `openTag`/`unknown` here,
- * and a stale tag-name identifier would otherwise leak into the panel.
+ * full identifier.  Rejects tag-name runs via `nonTagIdentifierSpan`.
  */
 export function identifierAtOffset(
     source: string,
     offset: number,
 ): { start: number; end: number } | null {
-    const start = scanIdentifierBackward(source, offset);
-    const end = scanIdentifierForward(source, offset);
-    if (start === end) return null;
-    if (start > 0 && source.charAt(start - 1) === "<") return null;
-    return { start, end };
+    return nonTagIdentifierSpan(
+        source,
+        scanIdentifierBackward(source, offset),
+        scanIdentifierForward(source, offset),
+    );
 }
 
 /**
@@ -159,9 +171,6 @@ export function identifierAtOffset(
  * the lezer parser still strips both halves into a bare-value pair, but
  * `identifierAtOffset(source, equalsOffset)` would see whitespace at
  * `source[equalsOffset - 1]` and fail to walk to `simplify`.
- *
- * Rejects a run that begins immediately after `<` for the same reason
- * `identifierAtOffset` does — never synthesize a tag name as an attribute.
  */
 export function identifierPrecedingOffset(
     source: string,
@@ -171,10 +180,11 @@ export function identifierPrecedingOffset(
     while (scan > 0 && /\s/.test(source.charAt(scan - 1))) {
         scan--;
     }
-    const start = scanIdentifierBackward(source, scan);
-    if (start === scan) return null;
-    if (start > 0 && source.charAt(start - 1) === "<") return null;
-    return { start, end: scan };
+    return nonTagIdentifierSpan(
+        source,
+        scanIdentifierBackward(source, scan),
+        scan,
+    );
 }
 
 /**

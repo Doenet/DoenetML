@@ -244,15 +244,13 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         // that filter trips here instead of silently
                         // emitting a 0-length warning at the document
                         // start.
-                        const startPos = pair.valueAttr.position!.start;
-                        const endPos = pair.valueAttr.position!.end;
                         children.push({
                             type: "error",
                             message: unquotedAttributeValueMessage(
                                 pair.assignAttr.name,
                                 pair.valueAttr.name,
                             ),
-                            position: { start: startPos, end: endPos },
+                            position: pair.valueAttr.position!,
                         });
                         continue;
                     }

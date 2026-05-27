@@ -51,28 +51,24 @@ export type DiagnosticsSummary = {
     accessibilityLevel2Count: number;
 };
 
+/** DAST `type` → LSP `DiagnosticSeverity`.  Accessibility records (also
+ *  `severity: Warning`) take the dedicated branch in `toLspDiagnostic` to
+ *  layer on `code` / `source` / `markClass`, so they aren't in the table. */
+const DIAGNOSTIC_TYPE_TO_LSP_SEVERITY: Record<
+    "error" | "warning" | "info",
+    DiagnosticSeverity
+> = {
+    error: DiagnosticSeverity.Error,
+    warning: DiagnosticSeverity.Warning,
+    info: DiagnosticSeverity.Information,
+};
+
 /**
  * Converts a single editor diagnostic into an LSP-compatible diagnostic.
  * Accessibility diagnostics are surfaced as warnings with custom source/markClass.
  */
 function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
     const range = dastPositionToLspRange(diagnostic.position!);
-
-    if (diagnostic.type === "error") {
-        return {
-            message: diagnostic.message,
-            severity: DiagnosticSeverity.Error,
-            range,
-        };
-    }
-
-    if (diagnostic.type === "info") {
-        return {
-            message: diagnostic.message,
-            severity: DiagnosticSeverity.Information,
-            range,
-        };
-    }
 
     if (isAccessibilityRecord(diagnostic)) {
         return {
@@ -90,7 +86,7 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
 
     return {
         message: diagnostic.message,
-        severity: DiagnosticSeverity.Warning,
+        severity: DIAGNOSTIC_TYPE_TO_LSP_SEVERITY[diagnostic.type],
         range,
     };
 }
