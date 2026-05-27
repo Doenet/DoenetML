@@ -18,6 +18,7 @@ import {
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
 import { convertCurveToPrefigure } from "./components/curve";
+import { convertRegionBetweenCurvesToPrefigure } from "./components/regionBetweenCurves";
 import type {
     Converter,
     Descendant,
@@ -58,6 +59,7 @@ const convertByComponentType: Record<string, Converter> = {
     polygon: convertPolygonToPrefigure,
     angle: convertAngleToPrefigure,
     curve: convertCurveToPrefigure,
+    regionBetweenCurves: convertRegionBetweenCurvesToPrefigure,
     endpoint: convertPointToPrefigure,
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
