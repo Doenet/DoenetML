@@ -242,15 +242,16 @@ function printChildSequenceAsBlock(
     printedChildren: Doc[],
     treatAllElementsAsBlock: boolean = false,
 ): Doc {
-    // Group consecutive non-block children into inline runs. Inline runs
-    // get their fill-content pre-computed so empty ones (e.g. a lone
+    // Group consecutive non-block children into inline runs, then emit each
+    // run separated by a hardline (or two for blank-line markers). Inline
+    // runs are flattened+filled at flush time so empty ones (e.g. a lone
     // whitespace text between two elements promoted to block by
-    // `treatAllElementsAsBlock`) can be dropped before we start emitting
-    // separators — otherwise the separator hardlines stack into spurious
-    // blank lines and break idempotence on the next format pass.
-    type Run =
-        | { kind: "block"; firstNode: DastNodes; printed: Doc }
-        | { kind: "inline"; firstNode: DastNodes; fillContent: Doc[] };
+    // `treatAllElementsAsBlock`) can be dropped before separators are
+    // chosen — otherwise the separator hardlines stack into spurious blank
+    // lines and break idempotence on the next format pass. `firstNode` is
+    // kept per run so the blank-line marker on the run's leading child can
+    // be consulted for the inter-run separator.
+    type Run = { firstNode: DastNodes; doc: Doc };
     const runs: Run[] = [];
     let inlineBuf: { firstNode: DastNodes; printed: Doc[] } | null = null;
     function flushInline() {
@@ -258,9 +259,8 @@ function printChildSequenceAsBlock(
         const fillContent = flattenForFill(inlineBuf.printed);
         if (fillContent.length > 0) {
             runs.push({
-                kind: "inline",
                 firstNode: inlineBuf.firstNode,
-                fillContent,
+                doc: fill(fillContent),
             });
         }
         inlineBuf = null;
@@ -273,7 +273,7 @@ function printChildSequenceAsBlock(
             (treatAllElementsAsBlock && child.type === "element");
         if (childIsBlock) {
             flushInline();
-            runs.push({ kind: "block", firstNode: child, printed });
+            runs.push({ firstNode: child, doc: printed });
         } else {
             if (!inlineBuf) inlineBuf = { firstNode: child, printed: [] };
             inlineBuf.printed.push(printed);
@@ -291,7 +291,7 @@ function printChildSequenceAsBlock(
                     : hardline,
             );
         }
-        parts.push(run.kind === "block" ? run.printed : fill(run.fillContent));
+        parts.push(run.doc);
     }
     return parts;
 }

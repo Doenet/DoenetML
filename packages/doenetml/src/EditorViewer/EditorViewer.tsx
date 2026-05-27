@@ -869,9 +869,11 @@ export const EditorViewer = React.forwardRef<
                     );
                 }
             }
-            // Cancel pending help-debounce so its callback can't fire
-            // setHelpContent on the unmounted component.
+            // Cancel pending help-debounce and post-source-change retry so
+            // their callbacks can't fire setHelpContent on the unmounted
+            // component.
             window.clearTimeout(cursorDebounceTimer.current);
+            window.clearTimeout(helpRetryTimerRef.current);
         };
     }, []);
 
