@@ -146,19 +146,6 @@ export function DoenetViewer({
      */
     onInit?: (elm: HTMLElement) => void;
 }) {
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
-
     const [variants, setVariants] = useState({
         index: 1,
         numVariants: 1,
@@ -449,19 +436,6 @@ export const DoenetEditor = React.forwardRef<
         ],
         [initialDiagnostics, initialErrors, initialWarnings],
     );
-
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
 
     const editor = (
         <EditorViewer
