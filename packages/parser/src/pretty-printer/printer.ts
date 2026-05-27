@@ -242,8 +242,9 @@ export const print: Printer<DastNodes>["print"] = function print(
  * the caller is responsible for surrounding indent/hardlines.
  *
  * When `treatAllElementsAsBlock` is set, every element child gets its own
- * line regardless of its inline/block classification. Used for `<setup>`,
- * whose direct children are a list of definitions with no prose flow.
+ * line regardless of its inline/block classification. Used for the
+ * definitional containers (`<setup>`, `<moduleAttributes>`), whose direct
+ * children are a list of definitions with no prose flow.
  */
 function printChildSequenceAsBlock(
     children: DastNodes[],
@@ -261,7 +262,7 @@ function printChildSequenceAsBlock(
         | { kind: "inline"; firstNode: DastNodes; fillContent: Doc[] };
     const runs: Run[] = [];
     let inlineBuf: { firstNode: DastNodes; printed: Doc[] } | null = null;
-    const flushInline = () => {
+    function flushInline() {
         if (!inlineBuf) return;
         const fillContent = flattenForFill(inlineBuf.printed);
         if (fillContent.length > 0) {
@@ -272,7 +273,7 @@ function printChildSequenceAsBlock(
             });
         }
         inlineBuf = null;
-    };
+    }
     for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const printed = printedChildren[i];
@@ -292,19 +293,14 @@ function printChildSequenceAsBlock(
     const parts: Doc[] = [];
     for (let r = 0; r < runs.length; r++) {
         const run = runs[r];
-        const isFirstRun = r === 0;
-        const wantsBlankLineBefore =
-            !isFirstRun && hasBlankLineBefore(run.firstNode);
-
-        if (!isFirstRun) {
-            parts.push(wantsBlankLineBefore ? [hardline, hardline] : hardline);
+        if (r > 0) {
+            parts.push(
+                hasBlankLineBefore(run.firstNode)
+                    ? [hardline, hardline]
+                    : hardline,
+            );
         }
-
-        if (run.kind === "block") {
-            parts.push(run.printed);
-        } else {
-            parts.push(fill(run.fillContent));
-        }
+        parts.push(run.kind === "block" ? run.printed : fill(run.fillContent));
     }
     return parts;
 }
@@ -332,29 +328,23 @@ function flattenForFill(children: Doc[]): Doc[] {
     // Filter empty strings — these are the artifacts of text-node printing
     // around `line` separators that confuse fill's break heuristic.
     // Preserve hardline runs as-is (double hardlines encode blank lines
-    // from source) but coalesce adjacent soft `line` separators.
+    // from source) but coalesce adjacent soft `line` separators and drop a
+    // leading or trailing one (fill requires content/separator alternation).
     const result: Doc[] = [];
-    let lastWasSoftLine = false;
     for (const item of flat) {
         if (item === "") continue;
-        if (item === line || item === softline) {
-            if (result.length === 0) continue;
-            if (lastWasSoftLine) continue;
-            result.push(item);
-            lastWasSoftLine = true;
-        } else {
-            result.push(item);
-            lastWasSoftLine = false;
+        if (isSoftLine(item)) {
+            const last = result[result.length - 1];
+            if (result.length === 0 || isSoftLine(last)) continue;
         }
+        result.push(item);
     }
-    // Drop trailing soft separator
-    while (result.length > 0) {
-        const last = result[result.length - 1];
-        if (last === line || last === softline) {
-            result.pop();
-        } else {
-            break;
-        }
+    while (result.length > 0 && isSoftLine(result[result.length - 1])) {
+        result.pop();
     }
     return result;
+}
+
+function isSoftLine(item: Doc): boolean {
+    return item === line || item === softline;
 }
