@@ -33,10 +33,10 @@ export type StyleBreakdownPayload = {
  * `additionalFunctionNames`, `removedFunctionNames`, or `resetFunctionNames`:
  *
  * - `names` is the resolved effective list MathQuill sees at runtime.
- * - `added` / `removed` are the deltas exactly as authored on this element
- *   (after dedupe and case-sensitive matching).
- * - `reset`, when present, is the verbatim authored list and signals that
- *   `resetFunctionNames` overrode both deltas; `names` then equals
+ * - `added` / `removed` are the deltas as authored on this element, with
+ *   duplicates dropped (first occurrence wins) and case-sensitive matching.
+ * - `reset`, when present, is the authored list (also deduped) and signals
+ *   that `resetFunctionNames` overrode both deltas; `names` then equals
  *   `reset` and `added`/`removed` are inactive (but kept on the payload
  *   so the panel can flag what the author wrote).
  *

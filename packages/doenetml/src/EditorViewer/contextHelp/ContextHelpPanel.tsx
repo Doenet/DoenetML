@@ -2,7 +2,10 @@ import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
-import { FunctionNamesBreakdownPayload, HelpContent } from "@doenet/lsp-tools";
+import type {
+    FunctionNamesBreakdownPayload,
+    HelpContent,
+} from "@doenet/lsp-tools";
 import "./context-help-panel.css";
 
 /**

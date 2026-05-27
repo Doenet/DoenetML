@@ -769,20 +769,27 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         // tested in `computeContextHelp.test.ts`, but only Cypress
         // exercises the full chain (worker `forRenderer: true`,
         // renderer `useMemo` deps, merge helper, MathQuill mount).
+        //
+        // Three separate mathInputs keep each assertion's input field
+        // single-purpose — typing `min` and then `erf` into one field
+        // would produce `minerf` and depend on MathQuill's internal
+        // tokenization to surface the right spans.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <p><mathInput name="custom" additionalFunctionNames="erf" removedFunctionNames="min" /></p>
     <p><mathInput name="defaults" /></p>
+    <p><mathInput name="removed" removedFunctionNames="min" /></p>
+    <p><mathInput name="added" additionalFunctionNames="erf" /></p>
     `,
                 },
                 "*",
             );
         });
 
-        cy.get("#custom .mq-editable-field").should("exist");
         cy.get("#defaults .mq-editable-field").should("exist");
+        cy.get("#removed .mq-editable-field").should("exist");
+        cy.get("#added .mq-editable-field").should("exist");
 
         // Sanity baseline: in a default mathInput `min` auto-formats.
         cy.get("#defaults textarea").type("min", { force: true });
@@ -790,20 +797,18 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             "exist",
         );
 
-        // Custom mathInput: `removedFunctionNames="min"` drops `min`,
-        // so typing it leaves three plain variables (no operator-name
-        // span on any of them).
-        cy.get("#custom textarea").type("min", { force: true });
-        cy.get("#custom .mq-editable-field").should("contain.text", "min");
-        cy.get("#custom .mq-editable-field .mq-operator-name").should(
+        // `removedFunctionNames="min"` drops `min` so typing it leaves
+        // three plain variables (no operator-name span).
+        cy.get("#removed textarea").type("min", { force: true });
+        cy.get("#removed .mq-editable-field").should("contain.text", "min");
+        cy.get("#removed .mq-editable-field .mq-operator-name").should(
             "not.exist",
         );
 
-        // Same custom mathInput: `additionalFunctionNames="erf"` adds
-        // `erf`, so typing it formats as a function (operator-name
-        // span appears alongside the still-plain `min`).
-        cy.get("#custom textarea").type("erf", { force: true });
-        cy.get("#custom .mq-editable-field .mq-operator-name").should("exist");
+        // `additionalFunctionNames="erf"` adds `erf` to the auto-format
+        // list, so typing it formats as a function.
+        cy.get("#added textarea").type("erf", { force: true });
+        cy.get("#added .mq-editable-field .mq-operator-name").should("exist");
     });
 
     it("resetFunctionNames='' mounts without crashing and disables auto-formatting", () => {

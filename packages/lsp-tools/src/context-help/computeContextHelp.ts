@@ -25,7 +25,7 @@ import {
     resolveActiveStyleBreakdown,
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
-import { FunctionNamesBreakdownPayload, HelpContent } from "./types";
+import type { FunctionNamesBreakdownPayload, HelpContent } from "./types";
 
 /**
  * Schema entry shape used by the help layer. Both real elements and aliased
@@ -525,6 +525,14 @@ const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
  * source text on whitespace, mirroring how the runtime parses these
  * attributes (`TextListFromString`). Returns an empty array if the
  * attribute is absent or its text content is blank.
+ *
+ * Duplicate entries are dropped (first occurrence wins). The shared
+ * resolver `buildEffectiveMathInputFunctionNames` already dedupes its
+ * inputs, but the help payload also surfaces these lists directly to
+ * the panel as React chip lists keyed by name — two identical names
+ * would otherwise produce duplicate React keys. Deduping at the read
+ * site keeps the contract documented on `FunctionNamesBreakdownPayload`
+ * (dedupe applied) consistent with what callers actually receive.
  */
 function readTextListAttribute(
     element: DastElement,
@@ -532,7 +540,14 @@ function readTextListAttribute(
 ): string[] {
     const value = getElementAttributeValue(element, attributeName);
     if (value === undefined) return [];
-    return value.split(/\s+/).filter((s) => s.length > 0);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const entry of value.split(/\s+/)) {
+        if (entry.length === 0 || seen.has(entry)) continue;
+        seen.add(entry);
+        out.push(entry);
+    }
+    return out;
 }
 
 /**
