@@ -299,8 +299,9 @@ export default class MathInput extends Input {
                 const buildMessage = (attr, list) =>
                     `<mathInput>: ignored invalid function name(s) in ` +
                     `${attr}: ${list.map((n) => `'${n}'`).join(", ")}. ` +
-                    `Each name must be at least 2 characters of letters, ` +
-                    `pipes, or dashes.`;
+                    `Each name's display segment must be at least 2 ` +
+                    `characters (letters or dashes); an optional ` +
+                    "`|<mathspeak alternative>` suffix may follow.";
                 // One diagnostic per *contributing* attribute. The
                 // helper already enforces precedence (`reset` wins
                 // over `additional`), so when both are authored only
