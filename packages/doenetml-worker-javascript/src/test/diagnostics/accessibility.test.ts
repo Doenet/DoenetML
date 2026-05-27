@@ -297,6 +297,36 @@ describe("Accessibility diagnostics @group4", async () => {
         expect(diagnosticLines).include(5);
     });
 
+    it("narrows accessibility diagnostic range to the opening tag", async () => {
+        // A `<graph>` missing a short description used to underline the whole
+        // multi-line element, causing the lint hover popup to follow the
+        // cursor around every line.  The range is now shrunk to just
+        // `<graph` so the hover only triggers over the tag name itself.
+        let { core } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <point name="p1">(1, 2)</point>
+      <point name="p2">(3, 4)</point>
+    </graph>
+    `,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+        const graphDiagnostic = diagnosticsByType.accessibility.find(
+            (d) =>
+                d.position.start.line === 2 && d.message.includes("`<graph>`"),
+        );
+        expect(graphDiagnostic).toBeDefined();
+        // Start unchanged (points at `<`), end now sits one past the `h`
+        // in `graph` rather than at `</graph>`.
+        expect(graphDiagnostic!.position.start.line).eq(2);
+        expect(graphDiagnostic!.position.end.line).eq(2);
+        const startCol = graphDiagnostic!.position.start.column;
+        expect(graphDiagnostic!.position.end.column).eq(
+            startCol + "<graph".length,
+        );
+    });
+
     it("rejects accessibility diagnostics without a level", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hello</text>`,

@@ -13,7 +13,10 @@ import {
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
-import { getSourceLocationForComponent } from "./utils/sourceLocation";
+import {
+    getSourceLocationForComponent,
+    narrowPositionToOpeningTag,
+} from "./utils/sourceLocation";
 import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
@@ -645,6 +648,17 @@ export default class Core {
     }
 
     addDiagnostic(diagnostic: any): any {
+        if (diagnostic?.type === "accessibility" && diagnostic.position) {
+            const sourceDoc = diagnostic.sourceDoc ?? 0;
+            const source = this.allDoenetMLs?.[sourceDoc];
+            const narrowed = narrowPositionToOpeningTag(
+                diagnostic.position,
+                source,
+            );
+            if (narrowed !== diagnostic.position) {
+                diagnostic = { ...diagnostic, position: narrowed };
+            }
+        }
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 

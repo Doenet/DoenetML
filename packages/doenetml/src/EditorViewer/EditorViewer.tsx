@@ -284,6 +284,8 @@ export const EditorViewer = React.forwardRef<
     const [receivedDiagnosticsFromViewer, setReceivedDiagnosticsFromViewer] =
         useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
+    const [showAccessibilityAnnotations, setShowAccessibilityAnnotations] =
+        useState(true);
 
     const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
     const cursorDebounceTimer = useRef<number | undefined>(undefined);
@@ -434,13 +436,19 @@ export const EditorViewer = React.forwardRef<
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
             showInfoAnnotations,
+            showAccessibilityAnnotations,
         });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
             lspRef.current.documentUri,
             additionalDiagnostics,
         );
-    }, [initialDiagnostics, diagnostics, showInfoAnnotations]);
+    }, [
+        initialDiagnostics,
+        diagnostics,
+        showInfoAnnotations,
+        showAccessibilityAnnotations,
+    ]);
 
     const {
         warnings: warningsObjs,
@@ -866,6 +874,12 @@ export const EditorViewer = React.forwardRef<
                         showHelp={showHelp}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
+                        showAccessibilityAnnotations={
+                            showAccessibilityAnnotations
+                        }
+                        setShowAccessibilityAnnotations={
+                            setShowAccessibilityAnnotations
+                        }
                         helpContent={helpContent}
                         docsURL={docsURL}
                     />

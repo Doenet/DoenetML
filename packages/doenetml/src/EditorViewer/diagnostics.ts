@@ -97,9 +97,11 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
 export function toAdditionalDiagnosticsForLsp({
     diagnostics,
     showInfoAnnotations,
+    showAccessibilityAnnotations,
 }: {
     diagnostics: DiagnosticRecord[];
     showInfoAnnotations: boolean;
+    showAccessibilityAnnotations: boolean;
 }): EditorLspDiagnostic[] {
     return diagnostics
         .filter((diagnostic) => {
@@ -120,7 +122,7 @@ export function toAdditionalDiagnosticsForLsp({
             }
 
             if (isAccessibilityRecord(diagnostic)) {
-                return true;
+                return showAccessibilityAnnotations;
             }
 
             return false;

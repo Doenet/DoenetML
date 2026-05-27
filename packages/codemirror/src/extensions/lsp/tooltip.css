@@ -10,39 +10,40 @@
     color: #900;
 }
 .cm-lint-tooltip .heading.accessibility-level-1 {
-    color: #b42318;
+    color: #5b21b6;
 }
 .cm-lint-tooltip .heading.accessibility-level-2 {
-    color: #6e3cbc;
+    color: #9061d1;
 }
 .cm-lintRange.cm-doenet-accessibility-diagnostic {
     background-image: none !important;
     text-decoration-line: underline;
-    text-decoration-style: wavy;
-    text-decoration-thickness: 0.8px;
-    text-underline-offset: 0.08em;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 0.6px;
+    text-underline-offset: 0.18em;
+    text-decoration-skip-ink: none;
 }
 
 .cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
-    text-decoration-color: #b42318;
+    text-decoration-color: #5b21b6;
 }
 
 .cm-lintRange.cm-doenet-accessibility-diagnostic-level-2 {
-    text-decoration-color: #6e3cbc;
+    text-decoration-color: #b9a4e6;
 }
 
 .cm-tooltip-lint
     .cm-diagnostic.cm-diagnostic-warning:has(
         .cm-lint-tooltip .heading.accessibility-level-1
     ) {
-    border-left-color: #b42318;
+    border-left-color: #5b21b6;
 }
 
 .cm-tooltip-lint
     .cm-diagnostic.cm-diagnostic-warning:has(
         .cm-lint-tooltip .heading.accessibility-level-2
     ) {
-    border-left-color: #6e3cbc;
+    border-left-color: #9061d1;
 }
 
 .cm-diagnostic {

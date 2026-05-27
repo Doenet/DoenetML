@@ -187,6 +187,8 @@ export function DiagnosticsResponseTabContents({
     showHelp = true,
     showInfoAnnotations,
     setShowInfoAnnotations,
+    showAccessibilityAnnotations,
+    setShowAccessibilityAnnotations,
     helpContent,
     docsURL,
 }: {
@@ -202,6 +204,8 @@ export function DiagnosticsResponseTabContents({
     showHelp?: boolean;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
+    showAccessibilityAnnotations: boolean;
+    setShowAccessibilityAnnotations: (checked: boolean) => void;
     helpContent: HelpContent;
     docsURL: string;
 }) {
@@ -335,6 +339,11 @@ export function DiagnosticsResponseTabContents({
                                 tabId="accessibility"
                                 className="diagnostic-panel accessibility-report"
                             >
+                                <AnnotationToggle
+                                    checked={showAccessibilityAnnotations}
+                                    label="Show accessibility diagnostics in editor"
+                                    onChange={setShowAccessibilityAnnotations}
+                                />
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
                                         <h3>

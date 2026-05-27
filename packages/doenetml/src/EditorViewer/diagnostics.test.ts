@@ -38,6 +38,7 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         const [lsp] = toAdditionalDiagnosticsForLsp({
             diagnostics: [dastDiagnostic],
             showInfoAnnotations: false,
+            showAccessibilityAnnotations: true,
         });
         expect(lsp.range).toEqual({
             start: { line: 0, character: 14 },
@@ -67,6 +68,7 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         const out = toAdditionalDiagnosticsForLsp({
             diagnostics: [warning, info, accessibility],
             showInfoAnnotations: true,
+            showAccessibilityAnnotations: true,
         });
         // Each LSP `Range` is shifted by -1 on both `line` and `column`,
         // and `column` is renamed to `character`.
@@ -100,8 +102,33 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         const out = toAdditionalDiagnosticsForLsp({
             diagnostics: [positionless, withPos],
             showInfoAnnotations: false,
+            showAccessibilityAnnotations: true,
         });
         expect(out).toHaveLength(1);
         expect(out[0].message).toBe("has position");
+    });
+
+    it("suppresses accessibility diagnostics when the session toggle is off", () => {
+        // The accessibility report tab still surfaces these records, but the
+        // squiggles in the editor are silenced so the hover popup stops
+        // following the mouse around the offending component.
+        const warning: WarningRecord = {
+            type: "warning",
+            message: "W",
+            position: dastPos(2, 3, 2, 7),
+        };
+        const accessibility: DiagnosticRecord = {
+            type: "accessibility",
+            level: 1,
+            message: "A",
+            position: dastPos(1, 1, 1, 2),
+        };
+        const out = toAdditionalDiagnosticsForLsp({
+            diagnostics: [warning, accessibility],
+            showInfoAnnotations: false,
+            showAccessibilityAnnotations: false,
+        });
+        expect(out).toHaveLength(1);
+        expect(out[0].message).toBe("W");
     });
 });

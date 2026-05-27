@@ -216,12 +216,12 @@
 
 .editor-panel .diagnostic-tab-icon.is-accessibility-critical,
 .editor-panel .diagnostic-entry-icon.is-accessibility-critical {
-    color: #b42318;
+    color: #5b21b6;
 }
 
 .editor-panel .diagnostic-tab-icon.is-accessibility-advisory,
 .editor-panel .diagnostic-entry-icon.is-accessibility-advisory {
-    color: #6e3cbc;
+    color: #9061d1;
 }
 
 .editor-panel .diagnostic-entry-location {
@@ -290,11 +290,11 @@
 }
 
 .editor-panel .accessibility-report-heading.critical {
-    color: #b42318;
+    color: #5b21b6;
 }
 
 .editor-panel .accessibility-report-heading.advisory {
-    color: #6e3cbc;
+    color: #9061d1;
 }
 
 .viewer-panel {
@@ -329,9 +329,9 @@
 }
 
 .viewer-panel .accessibility-status-button.has-level-1-issues {
-    background: #fef3f2;
-    color: #b42318;
-    box-shadow: inset 0 0 0 1px #f04438;
+    background: #f5f3ff;
+    color: #5b21b6;
+    box-shadow: inset 0 0 0 1px #8b5cf6;
 }
 
 .viewer-panel .accessibility-status-button.no-level-1-issues {
