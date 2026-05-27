@@ -57,10 +57,12 @@ function loadScript() {
  * re-renders consumers when the API becomes ready, which is asynchronous
  * and may not happen by the first render.
  *
- * When `shouldLoad` is `true` the hook also injects the API <script> tag on
- * first call; when `false` (the default) the hook is inert and no network
- * request to youtube.com is made. This lets callers defer the script load
- * until a YouTube video is actually about to render.
+ * When `shouldLoad` is `true` the hook injects the API `<script>` tag (if
+ * not already present) so the load can begin. When `false` (the default)
+ * it does not trigger any network request to youtube.com; it still
+ * reports `true` if the API was loaded by a previous consumer. This lets
+ * callers defer the script load until a YouTube video is actually about
+ * to render.
  */
 export function useYouTubeApi(shouldLoad: boolean = false) {
     const [ready, setReady] = useState(isReady);
