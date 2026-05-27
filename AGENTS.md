@@ -146,21 +146,7 @@ This includes review-comment replies posted via `gh api ... /replies`, top-level
 
 ## Changesets
 
-The repo uses Changesets for version management. Configuration is in `.changeset/config.json`.
-
-### Fixed Group (synchronized versioning)
-Six packages version together:
-- `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`
-- `@doenet/v06-to-v07`, `@doenet/vscode-extension`, `doenet-vscode-extension`
-
-### Independent Versioning
-- `@doenet/prefigure` versions independently
-
-**Rule**: When creating a changeset for a user-facing change, include **all packages** where the change is visible to end users, not just where the implementation lives.
-
-Example: A change to `packages/doenetml/src/Viewer` affects `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, and downstream variants. Include all in the changeset.
-
-User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
+The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes (notably adding `@doenet/lsp-tools` or `@doenet/static-assets`) have crept in that way.
 
 ## Key State & Data Flow
 
@@ -181,7 +167,7 @@ The worker receives serialized updates and returns rendered component states. Re
 2. Implement the **UI renderer** in `packages/doenetml/src/Viewer/renderers` or similar
 3. Register the component in `componentInfoObjects` so the worker knows about it; if the component appears in the DAST/normalized-DAST schema, update the relevant schema definitions too
 4. Add **tests** in both Vitest and Cypress
-5. Add a **changeset** if user-facing
+5. Add a **changeset** if user-facing (see the [`changesets`](.github/skills/changesets/SKILL.md) skill for which packages to list)
 
 ### Debug a rendering issue
 1. Start `npm run dev` and inspect the browser console
