@@ -64,8 +64,8 @@ function findSchemaProperty(
  *
  * Mirrors the merge `get-completion-items.ts` does for the autocomplete
  * dropdown — keeping the two layers consuming the same synthesized
- * entries means the dropdown's "author-declared module attribute" text
- * and the help panel's description can't drift apart (#1154).
+ * entries means the dropdown's component-type-tagged description and
+ * the help panel's description can't drift apart (#1154, #1189).
  */
 function augmentWithPerInstanceAttributes(
     effective: SchemaEntryForHelp | undefined,
@@ -177,14 +177,15 @@ export async function computeContextHelp(
                 // per-instance author-declared attribute names into the
                 // effective entry's attribute list so `helpForAttribute`
                 // finds them by the same lookup it uses for canonical
-                // entries.  The synthesized SchemaAttribute carries a
-                // placeholder description so the help panel renders the
-                // same "Author-declared module attribute" text the
-                // autocomplete dropdown shows (#1154).  No augmentation
-                // applies for non-`<module>` nodes or sites whose
-                // reference doesn't resolve to a `<module>` with declared
-                // attributes — the canonical effective entry decides as
-                // before.
+                // entries.  The synthesized SchemaAttribute carries the
+                // shared "Author-declared module attribute (`<type>`)"
+                // description (built by `describeDeclaredModuleAttribute`),
+                // so the help panel renders the same text the autocomplete
+                // dropdown shows for that site (#1154, #1189).  No
+                // augmentation applies for non-`<module>` nodes or sites
+                // whose reference doesn't resolve to a `<module>` with
+                // declared attributes — the canonical effective entry
+                // decides as before.
                 const helpEntry = augmentWithPerInstanceAttributes(
                     effectiveEntry,
                     completer._moduleInstanceAttributeAllowlist.get(node),
