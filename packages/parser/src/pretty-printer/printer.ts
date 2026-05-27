@@ -160,20 +160,11 @@ export const print: Printer<DastNodes>["print"] = function print(
                 ]);
             }
 
-            // mode === "block": children laid out vertically; consecutive
-            // non-block children form inline runs rendered with fill().
-            // Inside <setup> / <moduleAttributes>, every direct element
-            // child gets its own line — these are definitional containers
-            // with no prose semantics, so sibling tags should never share
-            // a line. The rule does NOT recurse: each child element
-            // formats its own contents normally (e.g. a <p name="myPara">
-            // inside <setup> still gets prose-flow rules).
-            const treatAllElementsAsBlock = isDefinitionalContainer(node.name);
-            const printedBlockChildren = path.map(print, "children");
+            // mode === "block": see `printChildSequenceAsBlock` below.
             const blockBody = printChildSequenceAsBlock(
                 node.children,
-                printedBlockChildren,
-                treatAllElementsAsBlock,
+                path.map(print, "children"),
+                isDefinitionalContainer(node.name),
             );
             return [
                 group(openingTag),
@@ -307,35 +298,25 @@ function printChildSequenceAsBlock(
 
 /**
  * Prepare a sequence of printed child Docs for `fill()`. `fill` requires
- * strict alternation of content / line-separator entries; interleaved
- * empty strings (which our `text` printer emits around `line` separators)
- * confuse fill's break-decision heuristic and produce the
+ * strict alternation of content / line-separator entries — interleaved
+ * empty strings (artifacts of text-node printing around `line` separators)
+ * confuse its break heuristic and trigger the
  * "second-element-breaks-internally" layout bug.
  *
- * This walks the children, flattens any nested arrays, drops empty
- * strings, and collapses runs of multiple `line`-typed separators down
- * to one. The result is suitable to pass directly to `fill`.
+ * Flatten one level (each child Doc may itself be an array), drop empty
+ * strings, coalesce adjacent soft `line`/`softline` separators, and trim
+ * any leading/trailing soft separator. `hardline` runs are preserved as-is
+ * — double hardlines encode source blank lines.
  */
 function flattenForFill(children: Doc[]): Doc[] {
-    const flat: Doc[] = [];
-    for (const item of children) {
-        if (Array.isArray(item)) {
-            for (const sub of item) flat.push(sub);
-        } else {
-            flat.push(item);
-        }
-    }
-    // Filter empty strings — these are the artifacts of text-node printing
-    // around `line` separators that confuse fill's break heuristic.
-    // Preserve hardline runs as-is (double hardlines encode blank lines
-    // from source) but coalesce adjacent soft `line` separators and drop a
-    // leading or trailing one (fill requires content/separator alternation).
     const result: Doc[] = [];
-    for (const item of flat) {
+    for (const item of children.flat()) {
         if (item === "") continue;
-        if (isSoftLine(item)) {
-            const last = result[result.length - 1];
-            if (result.length === 0 || isSoftLine(last)) continue;
+        if (
+            isSoftLine(item) &&
+            (result.length === 0 || isSoftLine(result[result.length - 1]))
+        ) {
+            continue;
         }
         result.push(item);
     }
