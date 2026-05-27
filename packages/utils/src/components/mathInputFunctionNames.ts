@@ -67,12 +67,35 @@ export const DEFAULT_MATH_INPUT_FUNCTION_NAMES: readonly string[] = [
 ];
 
 /**
+ * Returns true when `token` would be accepted by MathQuill's
+ * `autoOperatorNames` validator (see `mathquill.js`,
+ * `baseOptionProcessors.autoOperatorNames`). Each accepted token must:
+ *
+ *   - contain only letters, pipes, and dashes (`[A-Za-z|-]`),
+ *   - have a pre-pipe segment of length >= 2 (so `a`, `|word`, and
+ *     `a|word` all fail on the length check), and
+ *   - contain at most one `|` (the pipe separates the rendered name
+ *     from its mathspeak alternative).
+ *
+ * Tokens that fail validation must be dropped before being passed to
+ * MathQuill — MathQuill would otherwise throw during mount and crash
+ * the entire `<mathInput>` renderer.
+ */
+export function isValidMathQuillFunctionName(token: string): boolean {
+    if (!/^[a-z|-]+$/i.test(token)) return false;
+    const parts = token.split("|");
+    if (parts.length > 2) return false;
+    if (parts[0].length < 2) return false;
+    return true;
+}
+
+/**
  * Build the effective `autoOperatorNames` list for a `<mathInput>` by
  * applying the author's deltas to {@link DEFAULT_MATH_INPUT_FUNCTION_NAMES}.
  *
  * Precedence:
  *   - When `reset` is non-null, it wins outright: the result is the
- *     deduped `reset` list verbatim, ignoring defaults *and* the
+ *     deduped `reset` list, ignoring defaults *and* the
  *     additional/removed deltas. Passing an empty array reset turns off
  *     auto-formatting entirely (no identifier is treated as a function).
  *   - Otherwise, start from defaults, drop entries in `removed`, then
@@ -82,7 +105,14 @@ export const DEFAULT_MATH_INPUT_FUNCTION_NAMES: readonly string[] = [
  *     `additionalFunctionNames` accidentally repeats it.
  *
  * Names are matched case-sensitively (MathQuill itself is case-sensitive
- * — `Pr` and `pr` are distinct entries).
+ * — `Pr` and `pr` are distinct entries). Tokens from `additional` and
+ * `reset` that don't pass {@link isValidMathQuillFunctionName} are
+ * filtered out of `names` and collected in `dropped` so callers (the
+ * renderer in particular) can warn the author once per change instead
+ * of letting MathQuill crash on mount.
+ *
+ * `removed` entries are not validated — they're a deletion set, so an
+ * invalid token there is harmless (it just won't match any default).
  */
 export function buildEffectiveMathInputFunctionNames({
     additional = [],
@@ -92,16 +122,28 @@ export function buildEffectiveMathInputFunctionNames({
     additional?: readonly string[];
     removed?: readonly string[];
     reset?: readonly string[] | null;
-}): string[] {
+}): { names: string[]; dropped: string[] } {
+    const droppedSeen = new Set<string>();
+    const dropped: string[] = [];
+    const recordDropped = (token: string) => {
+        if (droppedSeen.has(token)) return;
+        droppedSeen.add(token);
+        dropped.push(token);
+    };
+
     if (reset !== null) {
         const seen = new Set<string>();
         const out: string[] = [];
         for (const name of reset) {
             if (seen.has(name)) continue;
             seen.add(name);
+            if (!isValidMathQuillFunctionName(name)) {
+                recordDropped(name);
+                continue;
+            }
             out.push(name);
         }
-        return out;
+        return { names: out, dropped };
     }
     const removedSet = new Set(removed);
     const seen = new Set<string>();
@@ -114,7 +156,11 @@ export function buildEffectiveMathInputFunctionNames({
     for (const name of additional) {
         if (removedSet.has(name) || seen.has(name)) continue;
         seen.add(name);
+        if (!isValidMathQuillFunctionName(name)) {
+            recordDropped(name);
+            continue;
+        }
         out.push(name);
     }
-    return out;
+    return { names: out, dropped };
 }

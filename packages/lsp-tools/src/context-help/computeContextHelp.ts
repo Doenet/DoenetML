@@ -583,7 +583,13 @@ function computeFunctionNamesBreakdownForAttribute(
     const reset = resetAuthored
         ? readTextListAttribute(ctx.node, "resetFunctionNames")
         : null;
-    const names = buildEffectiveMathInputFunctionNames({
+    // The helper also returns the list of tokens it had to drop for
+    // failing MathQuill's `autoOperatorNames` validator. The renderer
+    // warns about those; the help panel surfaces the unfiltered
+    // `added`/`removed`/`reset` lists below, so the author already
+    // sees what they wrote — no need to re-route `dropped` through
+    // the payload.
+    const { names } = buildEffectiveMathInputFunctionNames({
         additional: added,
         removed,
         reset,
