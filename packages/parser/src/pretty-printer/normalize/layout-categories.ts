@@ -170,6 +170,21 @@ export function isAlwaysBreakParent(name: string): boolean {
 }
 
 /**
+ * Definitional containers — `<setup>` and `<moduleAttributes>` — list
+ * top-level definitions and have no prose semantics. Their direct
+ * element children are always laid out one-per-line regardless of
+ * inline/block classification; each child's own internals still format
+ * normally. Matching is case-insensitive.
+ */
+const DEFINITIONAL_CONTAINERS_LOWER: ReadonlySet<string> = new Set(
+    ["setup", "moduleAttributes"].map((n) => n.toLowerCase()),
+);
+
+export function isDefinitionalContainer(name: string): boolean {
+    return DEFINITIONAL_CONTAINERS_LOWER.has(name.toLowerCase());
+}
+
+/**
  * Hand-curated override sets exposed so the test suite can assert that
  * every name still resolves to an existing schema element — catches drift
  * when a component is renamed upstream and silently turns an override

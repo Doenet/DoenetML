@@ -10,10 +10,10 @@ import { isElement, isText } from "./utils/testers";
  * block siblings. The printer emits its own hardlines between blocks, so
  * this whitespace would otherwise produce stray spaces in the output.
  *
- * Whitespace text nodes that carry blank-line semantics (`\n\n`) are
- * preserved here — `plugin-mark-blank-lines` runs first and records the
- * blank-line markers on the next sibling, but we still skip those text
- * nodes from removal so downstream plugins don't see them as garbage.
+ * Blank-line semantics aren't lost: `plugin-mark-blank-lines` runs first
+ * and records a `prettyBlankLineBefore` marker on the next sibling for
+ * any whitespace text node that contained a blank line. The whitespace
+ * text node itself is then dropped here.
  */
 export const removeInternodeWhitespacePlugin: Plugin<
     void[],

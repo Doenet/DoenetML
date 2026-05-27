@@ -50,6 +50,13 @@ function mark(node: DastNodes) {
 const TRAILING_BLANK_LINE = /\n[^\S\n]*\n[^\S\n]*$/;
 const LEADING_BLANK_LINE = /^[^\S\n]*\n[^\S\n]*\n/;
 
+/**
+ * Exposed for unit tests — the `[^\S\n]` (whitespace that isn't a newline)
+ * character class is easy to miscopy as `\s` or `[^\n]` in a future edit
+ * and would silently change which boundaries get marked.
+ */
+export const _testOnly = { TRAILING_BLANK_LINE, LEADING_BLANK_LINE };
+
 export const markBlankLinesPlugin: Plugin<void[], DastRoot, DastRoot> =
     function () {
         return (root: DastRoot) => {

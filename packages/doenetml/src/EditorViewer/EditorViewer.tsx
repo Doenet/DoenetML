@@ -7,6 +7,7 @@ import React, {
     useRef,
     useState,
 } from "react";
+import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
@@ -603,13 +604,6 @@ export const EditorViewer = React.forwardRef<
     const onEditorChange = useCallback((value: string) => {
         if (editorDoenetMLRef.current !== value) {
             editorDoenetMLRef.current = value;
-            // Keep React state in sync with the CodeMirror buffer so the
-            // controlled `value` prop reflects what the user actually has.
-            // If we only update the ref, then after an undo (or any keystroke)
-            // a subsequent format whose output equals the stale state is a
-            // no-op — `setEditorDoenetML` bails on `Object.is`, CM never sees
-            // a new `value`, and the format button silently does nothing.
-            setEditorDoenetML(value);
             // The LSP-side `AutoCompleter` is kept in sync by the CodeMirror
             // plugin's `updateDocument` path; no local completer to refresh
             // here (issue #1086 / Option 4).
@@ -914,15 +908,24 @@ export const EditorViewer = React.forwardRef<
                 }}
                 submittedResponsesCount={responses.length}
                 onFormat={async (asDoenetML) => {
-                    const printed = await prettyPrint(
-                        editorDoenetMLRef.current,
-                        {
-                            doenetSyntax: asDoenetML,
-                            tabWidth: 2,
-                        },
-                    );
+                    const currentBuffer = editorDoenetMLRef.current;
+                    const printed = await prettyPrint(currentBuffer, {
+                        doenetSyntax: asDoenetML,
+                        tabWidth: 2,
+                    });
                     onEditorChange(printed);
-                    // also update editorDoenetML so that CodeMirror updates
+                    // CodeMirror's `value` prop is controlled by
+                    // `editorDoenetML`. If the user undid a previous format
+                    // (e.g. Ctrl+Z), the React state still holds the
+                    // already-formatted string while the buffer holds the
+                    // pre-format text. A naïve `setEditorDoenetML(printed)`
+                    // would then be an `Object.is` no-op and CodeMirror
+                    // would never see a new value. Flushing an intermediate
+                    // sync to `currentBuffer` guarantees the next setter
+                    // dispatches a real value change.
+                    if (printed !== currentBuffer) {
+                        flushSync(() => setEditorDoenetML(currentBuffer));
+                    }
                     setEditorDoenetML(printed);
                 }}
             />

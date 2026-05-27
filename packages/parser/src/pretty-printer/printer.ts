@@ -3,7 +3,11 @@ import { builders } from "prettier/doc";
 import { nodesToXml, quote, toXml } from "../dast-to-xml/dast-util-to-xml";
 import { escape, name } from "../dast-to-xml/utils";
 import { DastElement, DastNodes, PrintOptions } from "../types";
-import { isAlwaysBreakParent, isBlock } from "./normalize/layout-categories";
+import {
+    isAlwaysBreakParent,
+    isBlock,
+    isDefinitionalContainer,
+} from "./normalize/layout-categories";
 import { hasBlankLineBefore } from "./normalize/plugin-mark-blank-lines";
 import { PRE_ELEMENTS } from "./normalize/special-nodes";
 
@@ -11,16 +15,6 @@ const { line, indent, softline, join, fill, group, hardline, breakParent } =
     builders;
 
 type ContentMode = "pre" | "empty" | "inline" | "block";
-
-/**
- * Elements whose direct element children are always laid out one-per-line
- * regardless of inline/block classification. Names are lowercased for
- * case-insensitive matching against DAST source casing.
- */
-const DEFINITIONAL_CONTAINERS: ReadonlySet<string> = new Set([
-    "setup",
-    "moduleattributes",
-]);
 
 /**
  * Classify how an element's children should be laid out.
@@ -38,18 +32,16 @@ function classifyContentMode(node: DastElement): ContentMode {
     if (PRE_ELEMENTS.has(node.name)) return "pre";
     if (node.children.length === 0) return "empty";
     if (isAlwaysBreakParent(node.name)) return "block";
-    const hasBlockChild = node.children.some(
-        (c) => c.type === "element" && isBlock(c.name),
-    );
-    return hasBlockChild ? "block" : "inline";
+    return node.children.some(isBlockChildNode) ? "block" : "inline";
 }
 
 /**
- * Whether a printed child Doc should be treated as "block" content for
- * purposes of laying out the parent's children — used by the root and
- * block-mode element branches. A child is block when it is an element
- * whose name is block, plus comment / cdata / doctype / instruction
- * nodes (these are always laid out as their own line).
+ * Whether a child node should be treated as "block" content for the
+ * purposes of laying out a parent's children. Block elements qualify by
+ * name; comment / cdata / doctype / instruction nodes are always
+ * block-like (each sits on its own line). Used by both
+ * `classifyContentMode` (to decide a parent's content mode) and
+ * `printChildSequenceAsBlock` (to decide where inline runs break).
  */
 function isBlockChildNode(node: DastNodes): boolean {
     switch (node.type) {
@@ -176,9 +168,7 @@ export const print: Printer<DastNodes>["print"] = function print(
             // a line. The rule does NOT recurse: each child element
             // formats its own contents normally (e.g. a <p name="myPara">
             // inside <setup> still gets prose-flow rules).
-            const treatAllElementsAsBlock = DEFINITIONAL_CONTAINERS.has(
-                node.name.toLowerCase(),
-            );
+            const treatAllElementsAsBlock = isDefinitionalContainer(node.name);
             const printedBlockChildren = path.map(print, "children");
             const blockBody = printChildSequenceAsBlock(
                 node.children,
