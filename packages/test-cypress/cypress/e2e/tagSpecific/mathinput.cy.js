@@ -763,6 +763,49 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             .should("have.attr", "id", "mr-input-label");
     });
 
+    it("additionalFunctionNames and removedFunctionNames flow through to MathQuill auto-formatting", () => {
+        // Locks in the worker -> renderer -> MathQuill pipeline for the
+        // additional/removed deltas. The LSP-side breakdown logic is
+        // tested in `computeContextHelp.test.ts`, but only Cypress
+        // exercises the full chain (worker `forRenderer: true`,
+        // renderer `useMemo` deps, merge helper, MathQuill mount).
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="custom" additionalFunctionNames="erf" removedFunctionNames="min" /></p>
+    <p><mathInput name="defaults" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#custom .mq-editable-field").should("exist");
+        cy.get("#defaults .mq-editable-field").should("exist");
+
+        // Sanity baseline: in a default mathInput `min` auto-formats.
+        cy.get("#defaults textarea").type("min", { force: true });
+        cy.get("#defaults .mq-editable-field .mq-operator-name").should(
+            "exist",
+        );
+
+        // Custom mathInput: `removedFunctionNames="min"` drops `min`,
+        // so typing it leaves three plain variables (no operator-name
+        // span on any of them).
+        cy.get("#custom textarea").type("min", { force: true });
+        cy.get("#custom .mq-editable-field").should("contain.text", "min");
+        cy.get("#custom .mq-editable-field .mq-operator-name").should(
+            "not.exist",
+        );
+
+        // Same custom mathInput: `additionalFunctionNames="erf"` adds
+        // `erf`, so typing it formats as a function (operator-name
+        // span appears alongside the still-plain `min`).
+        cy.get("#custom textarea").type("erf", { force: true });
+        cy.get("#custom .mq-editable-field .mq-operator-name").should("exist");
+    });
+
     it("resetFunctionNames='' mounts without crashing and disables auto-formatting", () => {
         // Regression: handing MathQuill an empty `autoOperatorNames`
         // string crashes the `EditableMathField` mount (#1205). The
