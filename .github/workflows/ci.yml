@@ -32,7 +32,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -75,7 +79,11 @@ jobs:
         needs: build
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         steps:
             - uses: actions/checkout@v6
@@ -112,7 +120,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group: [group1, group2, group3, group4]
         steps:
@@ -150,7 +162,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group:
                     [
@@ -245,7 +261,11 @@ jobs:
         if: needs.changes.outputs.prefigure == 'true'
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
         steps:
             - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
@@ -338,7 +358,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -383,7 +407,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - name: Checkout sources
@@ -405,7 +433,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - uses: actions/checkout@v6
@@ -461,7 +493,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - uses: actions/checkout@v6
