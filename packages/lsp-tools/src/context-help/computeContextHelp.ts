@@ -1,5 +1,4 @@
 import type { DastElement } from "@doenet/parser";
-import { toXml } from "@doenet/parser";
 import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
 import {
     AutoCompleter,
@@ -9,6 +8,7 @@ import {
     type SchemaAttribute,
     type SchemaProperty,
 } from "../auto-completer";
+import { getElementAttributeValue } from "../auto-completer/dast-attribute-utils";
 import {
     chaseIndexAliases,
     deepestArrayEntryType,
@@ -518,7 +518,7 @@ const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
 
 /**
  * Read a `textList`-shaped attribute on a DAST element by splitting its
- * literal text on whitespace, mirroring how the runtime parses these
+ * source text on whitespace, mirroring how the runtime parses these
  * attributes (`TextListFromString`). Returns an empty array if the
  * attribute is absent or its text content is blank.
  */
@@ -526,16 +526,9 @@ function readTextListAttribute(
     element: DastElement,
     attributeName: string,
 ): string[] {
-    const target = attributeName.toLowerCase();
-    const key = Object.keys(element.attributes).find(
-        (k) => k.toLowerCase() === target,
-    );
-    if (key === undefined) return [];
-    const attr = element.attributes[key];
-    if (!attr) return [];
-    return toXml(attr.children)
-        .split(/\s+/)
-        .filter((s) => s.length > 0);
+    const value = getElementAttributeValue(element, attributeName);
+    if (value === undefined) return [];
+    return value.split(/\s+/).filter((s) => s.length > 0);
 }
 
 /**

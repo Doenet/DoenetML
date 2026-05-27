@@ -438,6 +438,29 @@ function renderStyleBreakdown(breakdown: {
 }
 
 /**
+ * Render a label + chip-list pair used by the function-names breakdown
+ * section. Each chip is a `help-value-item` pill and the chips wrap via
+ * the parent `help-values-list` flex row.
+ */
+function renderLabeledChipList(
+    label: string,
+    items: readonly string[],
+): React.ReactNode {
+    return (
+        <>
+            <span className="help-detail-label">{label}</span>
+            <div className="help-values-list">
+                {items.map((name) => (
+                    <span key={name} className="help-value-item">
+                        {name}
+                    </span>
+                ))}
+            </div>
+        </>
+    );
+}
+
+/**
  * "Resolved function names" section surfaced when the cursor sits on
  * `additionalFunctionNames` or `removedFunctionNames` of a `<mathInput>`
  * (#1205). The author writes deltas on either attribute and sees the
@@ -451,42 +474,14 @@ function renderFunctionNamesBreakdown(breakdown: {
 }): React.ReactNode {
     return (
         <div className="help-detail help-function-names-breakdown">
-            <span className="help-detail-label">Resolved function names:</span>
-            <div className="help-values-list">
-                {breakdown.names.map((name) => (
-                    <span key={name} className="help-value-item">
-                        {name}
-                    </span>
-                ))}
-            </div>
-            {breakdown.added.length > 0 && (
-                <>
-                    <span className="help-detail-label">
-                        Added on this input:
-                    </span>
-                    <div className="help-values-list">
-                        {breakdown.added.map((name) => (
-                            <span key={name} className="help-value-item">
-                                {name}
-                            </span>
-                        ))}
-                    </div>
-                </>
-            )}
-            {breakdown.removed.length > 0 && (
-                <>
-                    <span className="help-detail-label">
-                        Removed on this input:
-                    </span>
-                    <div className="help-values-list">
-                        {breakdown.removed.map((name) => (
-                            <span key={name} className="help-value-item">
-                                {name}
-                            </span>
-                        ))}
-                    </div>
-                </>
-            )}
+            {renderLabeledChipList("Resolved function names:", breakdown.names)}
+            {breakdown.added.length > 0 &&
+                renderLabeledChipList("Added on this input:", breakdown.added)}
+            {breakdown.removed.length > 0 &&
+                renderLabeledChipList(
+                    "Removed on this input:",
+                    breakdown.removed,
+                )}
         </div>
     );
 }

@@ -102,9 +102,9 @@ export default class MathInput extends Input {
         };
         attributes.additionalFunctionNames = {
             description:
-                "Identifiers to additionally auto-format as built-in " +
-                "function names in the editor (e.g., 'erf'). Removed " +
-                "entries from removedFunctionNames win on conflict.",
+                "Extra identifiers to auto-format as function names in " +
+                "the editor (e.g., 'erf'). Entries that also appear in " +
+                "`removedFunctionNames` are dropped.",
             createComponentOfType: "textList",
             createStateVariable: "additionalFunctionNames",
             defaultValue: [],
