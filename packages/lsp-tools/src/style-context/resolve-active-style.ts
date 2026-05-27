@@ -80,6 +80,91 @@ export function isStyleAttributeName(attributeName: string): boolean {
     return STYLE_ATTRIBUTE_KEY_BY_LOWER.has(attributeName.toLowerCase());
 }
 
+/**
+ * Style attribute prefixes recognized by {@link relevantStyleKeysForPrefixes}.
+ * Tracks `coloredItemsForWords` from `@doenet/utils/style` — the canonical list
+ * the runtime uses to derive `*Color`/`*ColorWord` companions.
+ */
+const STYLE_KEY_PREFIXES = coloredItemsForWords;
+type StyleKeyPrefix = (typeof STYLE_KEY_PREFIXES)[number];
+
+/**
+ * Lowercased view of the prefixes so a single-pass detection on a schema-
+ * attribute name (case-insensitive) can map back to the canonical prefix
+ * without re-walking the list per call.
+ */
+const STYLE_KEY_PREFIX_BY_LOWER: ReadonlyMap<string, StyleKeyPrefix> = new Map(
+    STYLE_KEY_PREFIXES.map((p) => [p.toLowerCase(), p]),
+);
+
+/**
+ * Map a canonical `styleAttributes` key to its prefix bucket (e.g.
+ * `markerStyle` → `marker`, `fillColorDarkMode` → `fill`).  Returns undefined
+ * for any key that doesn't start with one of the canonical prefixes — none
+ * exist today, but the guard makes the function safe to call with a hand-
+ * built key that drifts from the canonical set.
+ */
+function stylePrefixOfKey(key: StyleDefinitionKey): StyleKeyPrefix | undefined {
+    const lower = key.toLowerCase();
+    for (const prefix of STYLE_KEY_PREFIXES) {
+        if (lower.startsWith(prefix.toLowerCase())) return prefix;
+    }
+    return undefined;
+}
+
+/**
+ * Detect which style prefixes a component is "about" by inspecting the names
+ * of style attributes declared on its schema (the per-component override
+ * surface — `<point markerStyle>`, `<line lineWidth>`, etc.).  Used by the
+ * #1204 breakdown surface to limit the help panel listing to the categories
+ * a component actually uses, instead of showing every prefix for every
+ * graphical element.
+ *
+ * Source of truth: the schema attribute list, not a hand-maintained per-
+ * componentType map.  The runtime declares `static styleOverrideCategories`
+ * in JS-worker classes, which already drives the schema generator — so any
+ * detection here that walks the resulting schema attributes stays in
+ * lockstep with the runtime declaration automatically.
+ *
+ * `*Color` keys never appear in the override schema (colors are
+ * `<styleDefinition>`-only by design) so the schema-walk alone would miss
+ * the color category for a component whose only style attribute is e.g.
+ * `markerStyle`.  We treat every prefix detected via the override schema as
+ * "include the full prefix family in the breakdown" — that's what the issue
+ * asks for ("style attributes that are relevant for the component"),
+ * surfacing colors alongside the override-only attributes.
+ */
+export function detectStylePrefixesFromAttributes(
+    attributeNames: Iterable<string>,
+): Set<StyleKeyPrefix> {
+    const detected = new Set<StyleKeyPrefix>();
+    for (const name of attributeNames) {
+        const canonical = canonicalStyleAttributeKey(name);
+        if (canonical === undefined) continue;
+        const prefix = stylePrefixOfKey(canonical);
+        if (prefix !== undefined) detected.add(prefix);
+    }
+    return detected;
+}
+
+/**
+ * Expand a set of style prefixes to the full list of canonical
+ * `styleAttributes` keys with those prefixes — every color, opacity, style,
+ * size, etc. variant for each prefix.  Order matches the declaration order
+ * in `styleAttributes`, which the help panel relies on for stable rendering.
+ */
+export function relevantStyleKeysForPrefixes(
+    prefixes: ReadonlySet<StyleKeyPrefix>,
+): StyleDefinitionKey[] {
+    if (prefixes.size === 0) return [];
+    const out: StyleDefinitionKey[] = [];
+    for (const key of Object.keys(styleAttributes) as StyleDefinitionKey[]) {
+        const prefix = stylePrefixOfKey(key);
+        if (prefix !== undefined && prefixes.has(prefix)) out.push(key);
+    }
+    return out;
+}
+
 /** Canonical (camel-case) `styleAttributes` key for a case-insensitive name. */
 function canonicalStyleAttributeKey(
     attributeName: string,
@@ -476,6 +561,21 @@ export function resolveActiveStyleAttributeValue(
     const key = canonicalStyleAttributeKey(attributeName);
     if (key === undefined) return undefined;
     const resolved = resolveActiveStyle(sourceObj, element, options);
+    return materializeAttributeValue(key, resolved);
+}
+
+/**
+ * Wrap a single key's resolved value with its derived `colorWord` companion
+ * (for hex color attributes whose word differs from the raw value). Returns
+ * undefined when the key has no value in `resolved` so callers can skip the
+ * entry entirely. Used by both the single-key surface
+ * (`resolveActiveStyleAttributeValue`) and the breakdown surface
+ * (`resolveActiveStyleBreakdown`) so the two can't drift on colorWord rules.
+ */
+function materializeAttributeValue(
+    key: StyleDefinitionKey,
+    resolved: ActiveStyleResolution,
+): ActiveStyleAttributeValue | undefined {
     const value = resolved.style[key];
     if (value === undefined) return undefined;
     const result: ActiveStyleAttributeValue = {
@@ -493,4 +593,89 @@ export function resolveActiveStyleAttributeValue(
         }
     }
     return result;
+}
+
+/**
+ * One row in the active-style breakdown surface (issue #1204).  Same payload
+ * shape `resolveActiveStyleAttributeValue` produces, with `key` added so the
+ * caller can render the attribute name alongside its resolved value without
+ * re-walking the map.
+ */
+export interface ActiveStyleBreakdownEntry {
+    key: StyleDefinitionKey;
+    value: StyleDefinitionPrimitive;
+    /** Hex color attributes only; see `ActiveStyleAttributeValue.colorWord`. */
+    colorWord?: string;
+}
+
+/**
+ * Breakdown of every relevant style attribute at `element`'s scope, in the
+ * order keys appear in the runtime's `styleAttributes` map (so the help panel
+ * renders them in a stable, semantically-grouped order: line* together,
+ * marker* together, …).  `styleNumber` is the integer they resolve under,
+ * carried so the caller can label the row "styleNumber N" without re-asking
+ * `resolveActiveStyleNumber`.
+ *
+ * `entries` is filtered to {@link ActiveStyleBreakdownOptions.includeKeys}
+ * when supplied — for per-component dispatch the caller passes only the
+ * keys the component actually uses (e.g. marker* for `<point>`), so the
+ * breakdown doesn't drown the help panel in irrelevant rows.  When the
+ * filter is absent every populated key is included (used inside
+ * `<styleDefinition>`, where the full styleNumber listing is the point).
+ */
+export interface ActiveStyleBreakdown {
+    styleNumber: number;
+    entries: ActiveStyleBreakdownEntry[];
+}
+
+/**
+ * Options for {@link resolveActiveStyleBreakdown}.
+ *
+ * `includeKeys` filters the breakdown to the canonical style keys named here
+ * (case-sensitive — pass the camel-case `StyleDefinitionKey` form).  Unknown
+ * names are silently dropped so a caller that hand-builds the list from a
+ * partial schema view can't crash the resolver.
+ */
+export interface ActiveStyleBreakdownOptions {
+    excludeAttribute?: ExcludeAttribute;
+    includeKeys?: Iterable<StyleDefinitionKey>;
+}
+
+/**
+ * Resolve every relevant style attribute at `element`'s scope and return the
+ * breakdown the help panel renders for "styleNumber" / inside-`<styleDefinition>`
+ * cursors (issue #1204).  Iteration order follows `styleAttributes` so callers
+ * never have to re-sort.
+ *
+ * Entries with `undefined` resolved values are skipped — the runtime's
+ * `resolveStyleDefinition` populates every slot for a known styleNumber, but
+ * for the unknown-styleNumber fallback path some slots can come back
+ * undefined and we'd rather omit the row than render "undefined" in the UI.
+ */
+export function resolveActiveStyleBreakdown(
+    sourceObj: DoenetSourceObject,
+    element: DastElement,
+    options: ActiveStyleBreakdownOptions = {},
+): ActiveStyleBreakdown {
+    const resolved = resolveActiveStyle(sourceObj, element, {
+        excludeAttribute: options.excludeAttribute,
+    });
+    const includeFilter = options.includeKeys
+        ? new Set(options.includeKeys)
+        : undefined;
+    const entries: ActiveStyleBreakdownEntry[] = [];
+    for (const key of Object.keys(styleAttributes) as StyleDefinitionKey[]) {
+        if (includeFilter && !includeFilter.has(key)) continue;
+        const entry = materializeAttributeValue(key, resolved);
+        if (!entry) continue;
+        const breakdownEntry: ActiveStyleBreakdownEntry = {
+            key,
+            value: entry.value,
+        };
+        if (entry.colorWord !== undefined) {
+            breakdownEntry.colorWord = entry.colorWord;
+        }
+        entries.push(breakdownEntry);
+    }
+    return { styleNumber: resolved.styleNumber, entries };
 }

@@ -58,6 +58,32 @@ export type HelpContent =
                */
               colorWord?: string;
           };
+          /**
+           * Full per-styleNumber breakdown of the relevant style attributes
+           * at the cursor's scope (issue #1204).  Populated for two trigger
+           * sites:
+           *   - cursor on the `styleNumber` attribute of a graphical
+           *     component — entries are filtered to the style key prefixes
+           *     declared on that component (e.g. marker* for `<point>`,
+           *     line* + fill* for `<polygon>`).
+           *   - cursor on any attribute inside a `<styleDefinition>` —
+           *     entries cover every populated style key for the active
+           *     styleNumber, since the author is editing the styleDefinition
+           *     itself and the full listing is the point.
+           *
+           * Absent for any other cursor position.  Order matches the
+           * declaration order in `@doenet/utils/style`'s `styleAttributes`,
+           * so the panel can render entries directly without re-sorting.
+           */
+          styleBreakdown?: {
+              styleNumber: number;
+              entries: Array<{
+                  key: string;
+                  value: string | number | boolean;
+                  /** See activeDefault.colorWord — same rules. */
+                  colorWord?: string;
+              }>;
+          };
       }
     | {
           kind: "property";

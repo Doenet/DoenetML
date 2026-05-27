@@ -11,8 +11,11 @@ import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../doenet-source-object";
 import type { DastElement } from "@doenet/parser";
 import {
+    detectStylePrefixesFromAttributes,
+    relevantStyleKeysForPrefixes,
     resolveActiveStyle,
     resolveActiveStyleAttributeValue,
+    resolveActiveStyleBreakdown,
     resolveActiveStyleNumber,
 } from "./resolve-active-style";
 
@@ -499,5 +502,205 @@ describe("resolveActiveStyleAttributeValue", () => {
             { excludeAttribute: { node: sd, attributeName: "markerStyle" } },
         );
         expect(result?.colorWord).toBeUndefined();
+    });
+});
+
+describe("detectStylePrefixesFromAttributes / relevantStyleKeysForPrefixes", () => {
+    it("detects the marker prefix from a point's per-component override attributes", () => {
+        // `<point>` declares only `markerStyle` / `markerSize` / `markerFilled`
+        // in its override schema. All three share the `marker` prefix, so the
+        // detection collapses to a single-prefix set.
+        const prefixes = detectStylePrefixesFromAttributes([
+            "markerStyle",
+            "markerSize",
+            "markerFilled",
+        ]);
+        expect(prefixes).toEqual(new Set(["marker"]));
+    });
+
+    it("detects line + fill prefixes from a polygon's override attributes", () => {
+        const prefixes = detectStylePrefixesFromAttributes([
+            "lineStyle",
+            "lineWidth",
+            "fillOpacity",
+        ]);
+        expect(prefixes).toEqual(new Set(["line", "fill"]));
+    });
+
+    it("ignores non-style attribute names", () => {
+        const prefixes = detectStylePrefixesFromAttributes([
+            "draggable",
+            "labelIsName",
+            "markerStyle",
+        ]);
+        expect(prefixes).toEqual(new Set(["marker"]));
+    });
+
+    it("matches attribute names case-insensitively", () => {
+        const prefixes = detectStylePrefixesFromAttributes([
+            "MARKERSTYLE",
+            "linewidth",
+        ]);
+        expect(prefixes).toEqual(new Set(["marker", "line"]));
+    });
+
+    it("expands marker prefix to every marker* key including colors", () => {
+        const keys = relevantStyleKeysForPrefixes(new Set(["marker"]));
+        // Sanity-check the inclusion side: every key returned starts with
+        // "marker" (case-insensitive — the canonical keys are camelCase).
+        for (const k of keys) {
+            expect(k.toLowerCase().startsWith("marker")).toBe(true);
+        }
+        // Spot-check key expected members the help panel cares about: the
+        // override-only attributes (style/size/filled) plus the
+        // `<styleDefinition>`-only color attributes.
+        expect(keys).toContain("markerStyle");
+        expect(keys).toContain("markerSize");
+        expect(keys).toContain("markerFilled");
+        expect(keys).toContain("markerColor");
+        expect(keys).toContain("markerColorDarkMode");
+        expect(keys).toContain("markerColorWord");
+        expect(keys).toContain("markerOpacity");
+        // And that nothing from a different prefix leaks in.
+        expect(keys).not.toContain("lineColor");
+        expect(keys).not.toContain("fillOpacity");
+    });
+
+    it("returns the empty array for an empty prefix set", () => {
+        expect(relevantStyleKeysForPrefixes(new Set())).toEqual([]);
+    });
+
+    it("preserves styleAttributes declaration order", () => {
+        // The breakdown UI relies on a stable, semantically-grouped order
+        // (line* together, then marker*, etc.). The expansion should walk
+        // `styleAttributes` in its declaration order, not sort lexically.
+        const keys = relevantStyleKeysForPrefixes(new Set(["line", "marker"]));
+        // First line* run must come fully before the first marker* run.
+        const firstMarkerIdx = keys.findIndex((k) =>
+            k.toLowerCase().startsWith("marker"),
+        );
+        const lastLineIdx =
+            keys.length -
+            1 -
+            [...keys]
+                .reverse()
+                .findIndex((k) => k.toLowerCase().startsWith("line"));
+        expect(firstMarkerIdx).toBeGreaterThan(lastLineIdx);
+    });
+});
+
+describe("resolveActiveStyleBreakdown", () => {
+    it("returns every relevant key for the active styleNumber (no filter → full listing)", () => {
+        // Unfiltered breakdown — used inside `<styleDefinition>` where the
+        // help panel should mirror every key the styleNumber resolves to.
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="1"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, sd);
+        expect(breakdown.styleNumber).toBe(1);
+        // styleNumber=1's built-in preset populates every key, so we should
+        // see a sizable listing — exact count tracks the preset, so just
+        // assert it's nontrivial and includes a representative mix.
+        expect(breakdown.entries.length).toBeGreaterThan(20);
+        const byKey = new Map(breakdown.entries.map((e) => [e.key, e]));
+        expect(byKey.get("markerStyle")?.value).toBe("circle");
+        expect(byKey.get("lineWidth")?.value).toBe(4);
+        expect(byKey.get("lineColor")?.value).toBeTruthy();
+    });
+
+    it("filters to includeKeys when supplied (per-component dispatch)", () => {
+        const sourceObj = new DoenetSourceObject(`<point/>`);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: ["markerStyle", "markerSize", "markerColor"],
+        });
+        expect(breakdown.styleNumber).toBe(1);
+        expect(breakdown.entries.map((e) => e.key).sort()).toEqual(
+            ["markerColor", "markerSize", "markerStyle"].sort(),
+        );
+    });
+
+    it("attaches colorWord for hex color attributes in the breakdown", () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: ["markerColor"],
+        });
+        expect(breakdown.entries).toHaveLength(1);
+        const entry = breakdown.entries[0];
+        expect(entry.value).toBe("#ff0000");
+        expect(entry.colorWord).toBe("red");
+    });
+
+    it("does not attach colorWord on *Word keys (already the word)", () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerColor="#FF0000"/>
+            </setup>
+            <point/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: ["markerColorWord"],
+        });
+        expect(breakdown.entries).toHaveLength(1);
+        const entry = breakdown.entries[0];
+        expect(entry.value).toBe("red");
+        expect(entry.colorWord).toBeUndefined();
+    });
+
+    it("walks ancestor <styleDefinition> blocks before filling the breakdown", () => {
+        // styleNumber=2's preset has markerStyle="square"; an ancestor
+        // styleDefinition overrides it to "diamond". The breakdown should
+        // reflect the override, not the preset.
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="2" markerStyle="diamond"/>
+            </setup>
+            <point styleNumber="2"/>
+        `;
+        const sourceObj = new DoenetSourceObject(source);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: ["markerStyle"],
+        });
+        expect(breakdown.styleNumber).toBe(2);
+        expect(breakdown.entries[0].value).toBe("diamond");
+    });
+
+    it("silently drops unknown keys passed via includeKeys", () => {
+        const sourceObj = new DoenetSourceObject(`<point/>`);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: [
+                "markerStyle",
+                // @ts-expect-error — exercising the unknown-key path
+                "notARealStyleKey",
+            ],
+        });
+        expect(breakdown.entries.map((e) => e.key)).toEqual(["markerStyle"]);
+    });
+
+    it("entries follow styleAttributes declaration order, not the includeKeys order", () => {
+        // The help panel relies on a stable order; passing keys in reverse
+        // shouldn't surface them reversed. lineWidth declares before
+        // markerStyle in styleAttributes, so it must come first.
+        const sourceObj = new DoenetSourceObject(`<point/>`);
+        const point = findElement(sourceObj, "point");
+        const breakdown = resolveActiveStyleBreakdown(sourceObj, point, {
+            includeKeys: ["markerStyle", "lineWidth"],
+        });
+        expect(breakdown.entries.map((e) => e.key)).toEqual([
+            "lineWidth",
+            "markerStyle",
+        ]);
     });
 });

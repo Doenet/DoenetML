@@ -13,8 +13,11 @@ import {
 } from "../auto-completer/index-aliases";
 import { mergeDeclaredIntoSchemaAttributes } from "../auto-completer/module-attributes";
 import {
+    detectStylePrefixesFromAttributes,
     isStyleAttributeName,
+    relevantStyleKeysForPrefixes,
     resolveActiveStyleAttributeValue,
+    resolveActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
 import { HelpContent } from "./types";
 
@@ -402,6 +405,84 @@ function computeActiveDefaultForAttribute(
     return out;
 }
 
+/**
+ * Compute the `styleBreakdown` field for the attribute help payload, or
+ * undefined when the cursor's site isn't a breakdown trigger (issue #1204):
+ *   - cursor on the `styleNumber` attribute of any element (graphical or
+ *     `<styleDefinition>`), or
+ *   - cursor on any attribute inside a `<styleDefinition>`.
+ *
+ * For graphical components, `includeKeys` is built from the element's own
+ * schema attributes — only the style key prefixes the component declares get
+ * surfaced (marker* for `<point>`, line* + fill* for `<polygon>`), so the
+ * breakdown matches what the runtime actually reads for that componentType.
+ * For `<styleDefinition>` and any element whose schema lists every style
+ * attribute (no narrower filter to apply), the breakdown surfaces every
+ * populated key for the active styleNumber.
+ *
+ * Inside a `<styleDefinition>` we deliberately do NOT pass
+ * `excludeAttribute` for the breakdown — the panel's role here is "show me
+ * what this styleDefinition currently produces", so the author's own
+ * contributions must remain in the merge.  The single-attribute
+ * `activeDefault` row (computed separately) is the place where the cursor's
+ * attribute IS excluded — the two rows answer different questions and
+ * shouldn't share an exclusion rule.
+ */
+function computeStyleBreakdownForAttribute(
+    elementName: string,
+    effectiveEntry: SchemaEntryForHelp,
+    schemaAttr: SchemaAttribute,
+    ctx: ActiveDefaultContext | undefined,
+):
+    | {
+          styleNumber: number;
+          entries: Array<{
+              key: string;
+              value: string | number | boolean;
+              colorWord?: string;
+          }>;
+      }
+    | undefined {
+    if (!ctx) return undefined;
+    const insideStyleDefinition = elementName === "styleDefinition";
+    const cursorOnStyleNumber = schemaAttr.name === "styleNumber";
+    if (!insideStyleDefinition && !cursorOnStyleNumber) return undefined;
+    // For an element whose schema enumerates every style attribute (i.e.
+    // `<styleDefinition>`), we don't apply a per-prefix filter — that
+    // element's purpose is to author the full styleNumber, so the help
+    // panel should mirror it in full.  For every other element with a
+    // styleNumber attribute, narrow to the prefixes the component actually
+    // declares; an empty prefix set (component has no style override
+    // attributes at all, e.g. a plain `<text>`) gives an empty breakdown
+    // and we skip the row.
+    const includeKeys = insideStyleDefinition
+        ? undefined
+        : relevantStyleKeysForPrefixes(
+              detectStylePrefixesFromAttributes(
+                  effectiveEntry.attributes.map((a) => a.name),
+              ),
+          );
+    if (includeKeys && includeKeys.length === 0) return undefined;
+    const breakdown = resolveActiveStyleBreakdown(
+        ctx.completer.sourceObj,
+        ctx.node,
+        includeKeys ? { includeKeys } : undefined,
+    );
+    if (breakdown.entries.length === 0) return undefined;
+    return {
+        styleNumber: breakdown.styleNumber,
+        entries: breakdown.entries.map((e) => {
+            const out: {
+                key: string;
+                value: string | number | boolean;
+                colorWord?: string;
+            } = { key: e.key, value: e.value };
+            if (e.colorWord !== undefined) out.colorWord = e.colorWord;
+            return out;
+        }),
+    };
+}
+
 function helpForAttribute(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
@@ -414,6 +495,13 @@ function helpForAttribute(
     if (!schemaAttr?.description) return NONE;
 
     const activeDefault = computeActiveDefaultForAttribute(
+        schemaAttr,
+        activeDefaultCtx,
+    );
+
+    const styleBreakdown = computeStyleBreakdownForAttribute(
+        ownEntry.name,
+        effectiveEntry,
         schemaAttr,
         activeDefaultCtx,
     );
@@ -435,6 +523,7 @@ function helpForAttribute(
         allowedValues: schemaAttr.autocompleteValues,
         defaultValue: schemaAttr.defaultValue,
         ...(activeDefault ? { activeDefault } : {}),
+        ...(styleBreakdown ? { styleBreakdown } : {}),
     };
 }
 

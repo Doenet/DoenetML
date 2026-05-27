@@ -11,10 +11,14 @@ export * from "./lsp-protocol";
 export {
     resolveActiveStyle,
     resolveActiveStyleAttributeValue,
+    resolveActiveStyleBreakdown,
     resolveActiveStyleNumber,
 } from "./style-context/resolve-active-style";
 export type {
     ActiveStyleAttributeValue,
+    ActiveStyleBreakdown,
+    ActiveStyleBreakdownEntry,
+    ActiveStyleBreakdownOptions,
     ActiveStyleResolution,
     ExcludeAttribute,
 } from "./style-context/resolve-active-style";

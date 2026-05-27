@@ -140,6 +140,7 @@ export function ContextHelpPanel({
                 allowedValues,
                 defaultValue,
                 activeDefault,
+                styleBreakdown,
             } = content;
             return (
                 <div className="help-panel">
@@ -179,6 +180,27 @@ export function ContextHelpPanel({
                                     {` (styleNumber ${activeDefault.styleNumber})`}
                                 </span>
                             </div>
+                        </div>
+                    )}
+                    {styleBreakdown && styleBreakdown.entries.length > 0 && (
+                        // Full breakdown for the active styleNumber (#1204).
+                        // Surfaces every relevant style attribute and its
+                        // resolved value so the author can see exactly what
+                        // the styleNumber abstracts. Triggered when cursor is
+                        // on the `styleNumber` attribute or anywhere inside a
+                        // `<styleDefinition>`.
+                        <div className="help-detail help-style-breakdown">
+                            <span className="help-detail-label">
+                                {`Resolved style (styleNumber ${styleBreakdown.styleNumber}):`}
+                            </span>
+                            <dl className="help-style-breakdown-list">
+                                {styleBreakdown.entries.map((entry) => (
+                                    <React.Fragment key={entry.key}>
+                                        <dt>{entry.key}</dt>
+                                        <dd>{renderBreakdownValue(entry)}</dd>
+                                    </React.Fragment>
+                                ))}
+                            </dl>
                         </div>
                     )}
                     {allowedValues && allowedValues.length > 0 && (
@@ -372,6 +394,26 @@ function renderActiveDefaultValue(activeDefault: {
             {formatValue(activeDefault.value)}
         </span>
     );
+}
+
+// One row in the styleNumber breakdown (#1204). Color attributes paint the
+// hex (and word) in the resolved color, mirroring `renderActiveDefaultValue`
+// so the two surfaces look consistent.
+function renderBreakdownValue(entry: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode {
+    if (entry.colorWord && typeof entry.value === "string") {
+        const colorText = resolveCssVariables(entry.value);
+        const colorStyle = { color: colorText };
+        return (
+            <>
+                <span style={colorStyle}>{colorText}</span>
+                <span style={colorStyle}>{` (${entry.colorWord})`}</span>
+            </>
+        );
+    }
+    return formatValue(entry.value);
 }
 
 function formatValue(val: unknown): React.ReactNode {
