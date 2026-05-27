@@ -12296,25 +12296,21 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(false);
     });
 
-    it("invalid function names emit a warning diagnostic and are filtered from the effective list", async () => {
+    it("invalid additionalFunctionNames entries emit a warning positioned on that attribute", async () => {
         // MathQuill's `autoOperatorNames` validator throws on any
         // per-entry token shorter than 2 chars or containing anything
         // outside letters/pipes/dashes. The `effectiveFunctionNames`
         // state variable filters those tokens via the shared helper
-        // and emits a `warning` diagnostic listing what was dropped,
-        // so the renderer never hands MathQuill an invalid string.
+        // and emits a per-attribute `warning` diagnostic so the
+        // editor's squiggle covers just the offending attribute.
         let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="mi" additionalFunctionNames="erf e f1" />
-    `,
+            doenetML: `<mathInput name="mi" additionalFunctionNames="erf e f1" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const effective =
             stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .effectiveFunctionNames;
-        // `erf` survives the filter; `e` (too short) and `f1`
-        // (contains a digit) are dropped before reaching MathQuill.
         expect(effective).toContain("erf");
         expect(effective).not.toContain("e");
         expect(effective).not.toContain("f1");
@@ -12322,18 +12318,60 @@ describe("MathInput tag tests @group2", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.warnings[0].message).toContain("'e'");
-        expect(diagnosticsByType.warnings[0].message).toContain("'f1'");
+        const warning = diagnosticsByType.warnings[0];
+        expect(warning.message).toContain("additionalFunctionNames");
+        expect(warning.message).toContain("'e'");
+        expect(warning.message).toContain("'f1'");
+        // Position spans the `additionalFunctionNames="..."` attribute,
+        // not the entire `<mathInput ... />` element.
+        const attrStart = `<mathInput name="mi" `.length;
+        expect(warning.position.start.column).eq(attrStart + 1);
+        expect(warning.position.end.column).eq(
+            attrStart + `additionalFunctionNames="erf e f1"`.length + 1,
+        );
+    });
+
+    it("invalid resetFunctionNames entries emit a warning positioned on that attribute", async () => {
+        let { core } = await createTestCore({
+            doenetML: `<mathInput name="mi" resetFunctionNames="abc a x1" />`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        const warning = diagnosticsByType.warnings[0];
+        expect(warning.message).toContain("resetFunctionNames");
+        expect(warning.message).toContain("'a'");
+        expect(warning.message).toContain("'x1'");
+        const attrStart = `<mathInput name="mi" `.length;
+        expect(warning.position.start.column).eq(attrStart + 1);
+        expect(warning.position.end.column).eq(
+            attrStart + `resetFunctionNames="abc a x1"`.length + 1,
+        );
+    });
+
+    it("only `resetFunctionNames` warns when both it and `additionalFunctionNames` carry invalid entries — `additional` is inactive", async () => {
+        // When `resetFunctionNames` is authored alongside
+        // `additionalFunctionNames`, the helper makes `additional`
+        // inactive — its invalid tokens are *not* surfaced because
+        // a warning on an attribute whose contents weren't actually
+        // used would be misleading.
+        let { core } = await createTestCore({
+            doenetML: `<mathInput additionalFunctionNames="b" resetFunctionNames="abc a x1" />`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
         expect(diagnosticsByType.warnings[0].message).toContain(
-            "ignored invalid function name",
+            "resetFunctionNames",
+        );
+        expect(diagnosticsByType.warnings[0].message).not.toContain(
+            "additionalFunctionNames",
         );
     });
 
     it("emits no warning diagnostic when all authored function names are valid", async () => {
         let { core } = await createTestCore({
-            doenetML: `
-    <mathInput additionalFunctionNames="erf" removedFunctionNames="min" />
-    `,
+            doenetML: `<mathInput additionalFunctionNames="erf" removedFunctionNames="min" />`,
         });
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.warnings.length).eq(0);

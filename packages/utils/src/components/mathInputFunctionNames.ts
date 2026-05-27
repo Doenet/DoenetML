@@ -107,9 +107,11 @@ export function isValidMathQuillFunctionName(token: string): boolean {
  * Names are matched case-sensitively (MathQuill itself is case-sensitive
  * — `Pr` and `pr` are distinct entries). Tokens from `additional` and
  * `reset` that don't pass {@link isValidMathQuillFunctionName} are
- * filtered out of `names` and collected in `dropped` so callers (the
- * renderer in particular) can warn the author once per change instead
- * of letting MathQuill crash on mount.
+ * filtered out of `names` and collected per-source in
+ * `droppedFromAdditional` / `droppedFromReset` so callers can attach
+ * a diagnostic to the specific attribute the bad token came from. When
+ * `reset` is non-null, `additional` is unused and
+ * `droppedFromAdditional` is always empty.
  *
  * `removed` entries are not validated — they're a deletion set, so an
  * invalid token there is harmless (it just won't match any default).
@@ -122,28 +124,25 @@ export function buildEffectiveMathInputFunctionNames({
     additional?: readonly string[];
     removed?: readonly string[];
     reset?: readonly string[] | null;
-}): { names: string[]; dropped: string[] } {
-    const droppedSeen = new Set<string>();
-    const dropped: string[] = [];
-    const recordDropped = (token: string) => {
-        if (droppedSeen.has(token)) return;
-        droppedSeen.add(token);
-        dropped.push(token);
-    };
-
+}): {
+    names: string[];
+    droppedFromAdditional: string[];
+    droppedFromReset: string[];
+} {
     if (reset !== null) {
         const seen = new Set<string>();
         const out: string[] = [];
+        const droppedFromReset: string[] = [];
         for (const name of reset) {
             if (seen.has(name)) continue;
             seen.add(name);
             if (!isValidMathQuillFunctionName(name)) {
-                recordDropped(name);
+                droppedFromReset.push(name);
                 continue;
             }
             out.push(name);
         }
-        return { names: out, dropped };
+        return { names: out, droppedFromAdditional: [], droppedFromReset };
     }
     const removedSet = new Set(removed);
     const seen = new Set<string>();
@@ -153,14 +152,15 @@ export function buildEffectiveMathInputFunctionNames({
         seen.add(name);
         out.push(name);
     }
+    const droppedFromAdditional: string[] = [];
     for (const name of additional) {
         if (removedSet.has(name) || seen.has(name)) continue;
         seen.add(name);
         if (!isValidMathQuillFunctionName(name)) {
-            recordDropped(name);
+            droppedFromAdditional.push(name);
             continue;
         }
         out.push(name);
     }
-    return { names: out, dropped };
+    return { names: out, droppedFromAdditional, droppedFromReset: [] };
 }

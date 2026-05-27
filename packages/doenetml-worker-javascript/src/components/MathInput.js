@@ -271,29 +271,67 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "resetFunctionNames",
                 },
+                // The attribute components carry their own source
+                // positions; we read them so each emitted diagnostic
+                // points at the attribute whose contents actually
+                // contributed an invalid token, rather than the whole
+                // `<mathInput>` element. The `attributeComponent`
+                // dependency returns `null` when the attribute is
+                // absent, so the `?.position` guards below are real.
+                additionalFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "additionalFunctionNames",
+                },
+                resetFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "resetFunctionNames",
+                },
             }),
             definition({ dependencyValues }) {
-                const { names, dropped } = buildEffectiveMathInputFunctionNames(
-                    {
+                const { names, droppedFromAdditional, droppedFromReset } =
+                    buildEffectiveMathInputFunctionNames({
                         additional: dependencyValues.additionalFunctionNames,
                         removed: dependencyValues.removedFunctionNames,
                         reset: dependencyValues.resetFunctionNames,
-                    },
-                );
+                    });
                 const result = { setValue: { effectiveFunctionNames: names } };
-                if (dropped.length > 0) {
-                    const list = dropped.map((n) => `'${n}'`).join(", ");
-                    result.sendDiagnostics = [
-                        {
-                            type: "warning",
-                            message:
-                                `<mathInput>: ignored invalid function ` +
-                                `name(s): ${list}. Each name must be at ` +
-                                `least 2 characters of letters, pipes, or ` +
-                                `dashes.`,
-                        },
-                    ];
+                const diagnostics = [];
+                const buildMessage = (attr, list) =>
+                    `<mathInput>: ignored invalid function name(s) in ` +
+                    `${attr}: ${list.map((n) => `'${n}'`).join(", ")}. ` +
+                    `Each name must be at least 2 characters of letters, ` +
+                    `pipes, or dashes.`;
+                // One diagnostic per *contributing* attribute. The
+                // helper already enforces precedence (`reset` wins
+                // over `additional`), so when both are authored only
+                // `reset`'s invalid tokens surface — `additional` is
+                // inactive in that case, and warning about its
+                // contents would be misleading.
+                if (droppedFromAdditional.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "additionalFunctionNames",
+                            droppedFromAdditional,
+                        ),
+                        position:
+                            dependencyValues.additionalFunctionNamesAttr
+                                ?.position,
+                    });
                 }
+                if (droppedFromReset.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "resetFunctionNames",
+                            droppedFromReset,
+                        ),
+                        position:
+                            dependencyValues.resetFunctionNamesAttr?.position,
+                    });
+                }
+                if (diagnostics.length > 0)
+                    result.sendDiagnostics = diagnostics;
                 return result;
             },
         };

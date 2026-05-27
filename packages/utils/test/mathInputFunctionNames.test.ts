@@ -36,9 +36,11 @@ describe("isValidMathQuillFunctionName", () => {
 
 describe("buildEffectiveMathInputFunctionNames", () => {
     it("returns the deduped defaults when no deltas are supplied", () => {
-        const { names, dropped } = buildEffectiveMathInputFunctionNames({});
+        const { names, droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({});
         expect(names).toEqual([...DEFAULT_MATH_INPUT_FUNCTION_NAMES]);
-        expect(dropped).toEqual([]);
+        expect(droppedFromAdditional).toEqual([]);
+        expect(droppedFromReset).toEqual([]);
     });
 
     it("appends `additional` and removes `removed`", () => {
@@ -62,37 +64,57 @@ describe("buildEffectiveMathInputFunctionNames", () => {
     });
 
     it("returns an empty list for an empty reset", () => {
-        const { names, dropped } = buildEffectiveMathInputFunctionNames({
-            reset: [],
-        });
+        const { names, droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({ reset: [] });
         expect(names).toEqual([]);
-        expect(dropped).toEqual([]);
+        expect(droppedFromAdditional).toEqual([]);
+        expect(droppedFromReset).toEqual([]);
     });
 
     it("filters tokens from `additional` that MathQuill would reject", () => {
-        const { names, dropped } = buildEffectiveMathInputFunctionNames({
-            additional: ["erf", "e", "f1"],
-        });
+        const { names, droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({
+                additional: ["erf", "e", "f1"],
+            });
         expect(names).toContain("erf");
         expect(names).not.toContain("e");
         expect(names).not.toContain("f1");
-        expect(dropped).toEqual(["e", "f1"]);
+        expect(droppedFromAdditional).toEqual(["e", "f1"]);
+        expect(droppedFromReset).toEqual([]);
     });
 
     it("filters tokens from `reset` that MathQuill would reject", () => {
-        const { names, dropped } = buildEffectiveMathInputFunctionNames({
-            reset: ["sin", "x", "ab|cd|ef"],
-        });
+        const { names, droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({
+                reset: ["sin", "x", "ab|cd|ef"],
+            });
         expect(names).toEqual(["sin"]);
-        expect(dropped).toEqual(["x", "ab|cd|ef"]);
+        expect(droppedFromAdditional).toEqual([]);
+        expect(droppedFromReset).toEqual(["x", "ab|cd|ef"]);
+    });
+
+    it("does not surface `additional` invalids when `reset` is also set", () => {
+        // `reset` wins outright, so the inactive `additional` entries
+        // are not surfaced as dropped — only `reset`'s invalid tokens
+        // are. Per-attribute diagnostics flow from these lists, so
+        // surfacing the inactive ones would attach a warning squiggle
+        // to an attribute whose contents weren't actually used.
+        const { names, droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({
+                additional: ["b"],
+                reset: ["abc", "a", "x1"],
+            });
+        expect(names).toEqual(["abc"]);
+        expect(droppedFromAdditional).toEqual([]);
+        expect(droppedFromReset).toEqual(["a", "x1"]);
     });
 
     it("does not validate `removed` — invalid tokens there are a harmless no-op", () => {
         // An invalid removal token simply doesn't match any default,
-        // so it has no effect; it should not appear in `dropped`.
-        const { dropped } = buildEffectiveMathInputFunctionNames({
-            removed: ["x"],
-        });
-        expect(dropped).toEqual([]);
+        // so it has no effect; it should not appear in any dropped list.
+        const { droppedFromAdditional, droppedFromReset } =
+            buildEffectiveMathInputFunctionNames({ removed: ["x"] });
+        expect(droppedFromAdditional).toEqual([]);
+        expect(droppedFromReset).toEqual([]);
     });
 });
