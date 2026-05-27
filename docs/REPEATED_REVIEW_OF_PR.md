@@ -12,9 +12,10 @@ Spawn one subagent and give it the following instructions:
 
 1. Review the PR according to `@./PR_REVIEW_GUIDELINES.md`.
 2. Address all issues identified during the review.
-3. Update the changeset and PR description if the changes warrant it.
-4. Commit and push the results.
-5. Report back a short summary of what was changed (or report "no changes" if nothing needed updating).
+3. Verify the changeset still describes the user-visible behavior in the diff; update if not.
+4. Verify the PR description still describes everything in the diff; update if not. Don't skip this — a stale PR description is the most common review-cycle oversight.
+5. Commit and push the results.
+6. Report back a short summary of what was changed (or report "no changes" if nothing needed updating).
 
 Run cycles sequentially — each new subagent must see the prior subagent's commits, so wait for one to finish before spawning the next.
 
