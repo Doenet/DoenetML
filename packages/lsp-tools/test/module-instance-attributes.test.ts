@@ -17,7 +17,10 @@ import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
-import { computeContextHelp } from "../src/context-help/computeContextHelp";
+import {
+    computeContextHelp,
+    computeContextHelpForCompletion,
+} from "../src/context-help/computeContextHelp";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
@@ -615,6 +618,33 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // "keep something on screen" behavior) rather than a
                 // synthesized attribute payload.
                 expect(help.kind).not.toBe("attribute");
+            });
+
+            it("surfaces the declared component type when help is driven by an autocomplete-row highlight", async () => {
+                // Mirrors the dropdown-navigation path: the user has the
+                // attribute-name autocomplete open inside a
+                // `<module copy="$m" ...>` site and arrow-keys onto the
+                // synthesized row for a declared attribute.  The LSP calls
+                // `computeContextHelpForCompletion` with kind `enum` and
+                // the row's label; the help panel must surface the same
+                // component-type-tagged description the dropdown row's
+                // documentation already shows (#1189), not a generic
+                // canonical-only payload (which is what happens if the
+                // branch bypasses `augmentWithPerInstanceAttributes`).
+                const source = `<module name="m"><moduleAttributes><point name="center">(0,0)</point></moduleAttributes></module>
+<module copy="$m" `;
+                const { completer } = await buildCompleter(source);
+                const help = await computeContextHelpForCompletion(
+                    completer,
+                    source.length,
+                    { label: "center", type: "enum" },
+                );
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.attributeName.toLowerCase()).toBe("center");
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
             });
         });
 

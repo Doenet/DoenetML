@@ -1091,6 +1091,17 @@ export async function computeContextHelpForCompletion(
         return helpForSnippet(completer, rawLabel);
     }
 
+    // The attribute-row branches (`enum` for attribute names, `value` for
+    // attribute values) consult the per-instance `<module>` attribute
+    // allowlist via `augmentWithPerInstanceAttributes` so the help panel
+    // shows the same author-declared attribute description the dropdown
+    // surfaced.  Refresh once up front — coalesced against the matching
+    // calls in `getCompletionItems` and `computeContextHelp` via
+    // `_sourceRevision`, so this is a no-op when those ran for the same
+    // edit (the dropdown that produced `completion` always ran
+    // `getCompletionItems` first).
+    await completer._refreshModuleInstanceAttributes();
+
     // Computed lazily so the snippet branch above (and any future
     // context-independent kinds) don't pay for a `getCompletionContext`
     // call they don't need.  Only one of the kind-branches below executes
@@ -1176,14 +1187,23 @@ export async function computeContextHelpForCompletion(
 
     if (type === "enum") {
         // Attribute-name completion. Look up the surrounding element from the
-        // cursor and ask for help for the highlighted attribute.
+        // cursor and ask for help for the highlighted attribute.  Mirrors the
+        // cursor-driven attribute branch in `computeContextHelp`: a
+        // `<module copy="$x" .../>` site's effective schema gets the
+        // per-instance author-declared attributes folded in so the dropdown
+        // documentation and the help panel share the same description
+        // (#1154, #1189).
         const { node } = completer.sourceObj.elementAtOffsetWithContext(offset);
         if (!node) return NONE;
         const [ownEntry, effectiveEntry] = resolveEntriesForNode(
             completer,
             node,
         );
-        const attrHelp = helpForAttribute(ownEntry, effectiveEntry, rawLabel, {
+        const helpEntry = augmentWithPerInstanceAttributes(
+            effectiveEntry,
+            completer._moduleInstanceAttributeAllowlist.get(node),
+        );
+        const attrHelp = helpForAttribute(ownEntry, helpEntry, rawLabel, {
             completer,
             node,
         });
@@ -1197,21 +1217,27 @@ export async function computeContextHelpForCompletion(
     if (type === "value") {
         // Attribute-value completion — there's no per-value help, so fall
         // back to the attribute's description. Use `attributeAtOffset` to
-        // find which attribute the value belongs to.
+        // find which attribute the value belongs to.  Apply the same
+        // per-instance attribute augmentation as the `enum` branch so a
+        // value-row cursor inside an author-declared attribute (e.g.
+        // `<module copy="$m" center="(|" />`) still surfaces the declared
+        // attribute's description rather than blanking out (#1154, #1189).
         const { node } = completer.sourceObj.elementAtOffsetWithContext(offset);
         if (!node) return NONE;
         const [ownEntry, effectiveEntry] = resolveEntriesForNode(
             completer,
             node,
         );
+        const helpEntry = augmentWithPerInstanceAttributes(
+            effectiveEntry,
+            completer._moduleInstanceAttributeAllowlist.get(node),
+        );
         const attr = completer.sourceObj.attributeAtOffset(offset);
         if (attr) {
-            const attrHelp = helpForAttribute(
-                ownEntry,
-                effectiveEntry,
-                attr.name,
-                { completer, node },
-            );
+            const attrHelp = helpForAttribute(ownEntry, helpEntry, attr.name, {
+                completer,
+                node,
+            });
             if (attrHelp.kind !== "none") return attrHelp;
         }
         // No matching attribute (or the matched attribute isn't in the
