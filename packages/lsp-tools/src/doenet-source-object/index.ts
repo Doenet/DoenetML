@@ -214,6 +214,20 @@ export class DoenetSourceObject extends LazyDataObject {
      * that `=` is returned. This mirrors the fallback in
      * `AutoCompleter.getCompletionItems` for parser states where typed
      * value chars don't yet land inside any attribute's range.
+     *
+     * Caveat — synthesized return values: when `lezer-to-dast` stripped
+     * a bare-value pair from `node.attributes` (`<math simplify=full>` —
+     * #1197), the fallback synthesizes a virtual `DastAttribute` from
+     * the identifier in the source via `synthesizeStrippedAttribute`.
+     * Such returns carry `name` and `position` but always
+     * `children: []` — the value half was stripped along with the
+     * assign half and is not reconstructed.  Callers that need the
+     * typed value (`toXml(attr.children)` on a synthesized return
+     * yields `""`) should slice `this.source` around `attr.position`
+     * themselves.  Today's only consumers (`computeContextHelp`,
+     * autocomplete) read only `attr.name`, so this is transparent;
+     * future consumers reading `attr.children` need to handle the
+     * synthesized case explicitly.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {

@@ -13,21 +13,28 @@ import type { Diagnostic } from "vscode-languageserver-protocol";
  * the editor's hover renders the message twice even though only one
  * squiggle is drawn (the Diagnostics tab already dedupes on its own).
  *
- * Keeps the first occurrence; later duplicates are dropped.  Identity
- * fields not compared (e.g. `code`, `source`, `tags`) follow the
- * keeper, which is what the existing UX assumes.
+ * Keeps the first occurrence; later duplicates are folded in.  Optional
+ * metadata fields not part of the dedupe key (`code`, `codeDescription`,
+ * `source`, `tags`, `relatedInformation`, `data`) are copied from the
+ * later duplicate into the keeper when the keeper has them undefined,
+ * so a quick-fix payload added by only one of the merge paths isn't
+ * silently dropped.  When the keeper already has every mergeable field
+ * defined, the original object is returned unchanged (identity is
+ * preserved, which the existing UX assumes).
  */
 export function dedupeLspDiagnostics(
     diagnostics: readonly Diagnostic[],
 ): Diagnostic[] {
-    const seen = new Set<string>();
+    const indexByKey = new Map<string, number>();
     const out: Diagnostic[] = [];
     for (const d of diagnostics) {
         const key = diagnosticKey(d);
-        if (seen.has(key)) {
+        const existing = indexByKey.get(key);
+        if (existing !== undefined) {
+            out[existing] = mergeMissingFields(out[existing], d);
             continue;
         }
-        seen.add(key);
+        indexByKey.set(key, out.length);
         out.push(d);
     }
     return out;
@@ -40,4 +47,30 @@ function diagnosticKey(d: Diagnostic): string {
     const s = d.range.start;
     const e = d.range.end;
     return `${sev}|${s.line}:${s.character}-${e.line}:${e.character}|${d.message}`;
+}
+
+/**
+ * Optional `Diagnostic` fields that aren't part of the dedupe key.  If
+ * the keeper is missing one and a later duplicate carries it, fill it
+ * in so distinct-source duplicates don't silently lose metadata (e.g.
+ * a quick-fix `data` payload on only the worker echo).
+ */
+const MERGEABLE_FIELDS = [
+    "code",
+    "codeDescription",
+    "source",
+    "tags",
+    "relatedInformation",
+    "data",
+] as const satisfies readonly (keyof Diagnostic)[];
+
+function mergeMissingFields(keeper: Diagnostic, dup: Diagnostic): Diagnostic {
+    let merged: Diagnostic | null = null;
+    for (const field of MERGEABLE_FIELDS) {
+        if (keeper[field] === undefined && dup[field] !== undefined) {
+            if (merged === null) merged = { ...keeper };
+            (merged as Record<string, unknown>)[field] = dup[field];
+        }
+    }
+    return merged ?? keeper;
 }

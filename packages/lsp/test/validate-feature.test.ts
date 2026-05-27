@@ -121,6 +121,10 @@ vi.mock("@doenet/lsp-tools", () => {
             contextHelp: "doenet/contextHelp",
             contextHelpForCompletion: "doenet/contextHelpForCompletion",
         },
+        // `validate.ts` calls `dedupeLspDiagnostics` before sending; the
+        // mock returns the input unchanged so the tests assert on the
+        // raw merge order without re-implementing the dedupe.
+        dedupeLspDiagnostics: (diagnostics: unknown[]) => diagnostics,
     };
 });
 

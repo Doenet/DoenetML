@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DiagnosticSeverity } from "vscode-languageserver-protocol";
+import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-protocol";
 
 import { dedupeLspDiagnostics } from "../src/dedupe-lsp-diagnostics";
 
@@ -92,6 +92,71 @@ describe("dedupeLspDiagnostics", () => {
             end: [0, 1],
         });
         expect(dedupeLspDiagnostics([a, b])).toHaveLength(2);
+    });
+
+    it("fills missing optional metadata from a later duplicate", () => {
+        // The two merge paths can carry different optional metadata
+        // (e.g. the worker echo could add a quick-fix `data` payload
+        // the parser-side copy lacks).  Without this merge the
+        // first-occurrence-wins rule would silently drop it.  Identity
+        // is *not* preserved when a merge happens — a fresh object is
+        // returned so the caller's input isn't mutated.
+        const keeper = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "X",
+            start: [0, 0],
+            end: [0, 1],
+        });
+        const dup: typeof keeper & { data?: unknown; source?: string } = {
+            ...mk({
+                sev: DiagnosticSeverity.Error,
+                msg: "X",
+                start: [0, 0],
+                end: [0, 1],
+            }),
+            data: { quickFix: "rename" },
+            source: "worker",
+        };
+        const [merged] = dedupeLspDiagnostics([
+            keeper,
+            dup,
+        ]) as (typeof keeper & {
+            data?: unknown;
+            source?: string;
+        })[];
+        expect(merged).not.toBe(keeper);
+        expect(merged.data).toEqual({ quickFix: "rename" });
+        expect(merged.source).toBe("worker");
+        // The originals are untouched.
+        expect((keeper as { data?: unknown }).data).toBeUndefined();
+    });
+
+    it("keeps keeper's defined metadata when the duplicate also has it", () => {
+        // Merge only fills *missing* fields; a defined field on the
+        // keeper wins over a different value on the duplicate.
+        const keeper: Diagnostic & { source: string } = {
+            ...mk({
+                sev: DiagnosticSeverity.Error,
+                msg: "X",
+                start: [0, 0],
+                end: [0, 1],
+            }),
+            source: "parser",
+        };
+        const dup: Diagnostic & { source: string } = {
+            ...mk({
+                sev: DiagnosticSeverity.Error,
+                msg: "X",
+                start: [0, 0],
+                end: [0, 1],
+            }),
+            source: "worker",
+        };
+        const [result] = dedupeLspDiagnostics([keeper, dup]) as (Diagnostic & {
+            source: string;
+        })[];
+        expect(result).toBe(keeper);
+        expect(result.source).toBe("parser");
     });
 
     it("preserves order and is a no-op on an empty input", () => {
