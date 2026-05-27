@@ -60,14 +60,16 @@ export function rewriteExpressionVariable({
 
 /**
  * Parse a simple formula-based curve function definition.
- * Extracts the expression and variable name; returns null if definition
- * is not a formula type or expression conversion fails.
+ * Extracts the expression and variable name; returns null if the value is
+ * not an object, not a formula-typed definition, or its formula AST fails
+ * to convert to a string.
  *
  * Accepts `unknown` so callers can pass raw entries from `fDefinitions`
  * without an intermediate typecast helper.
  *
- * @param definition - The curve function definition (or anything else)
- * @param fallbackVariableName - Variable name to use if not specified (e.g., "x" or "t")
+ * @param definition - Candidate definition; non-object inputs return null
+ * @param fallbackVariableName - Variable name to use when the definition has
+ *   no usable variables[0] AST (e.g., "x" for function curves, "t" for parametric)
  * @returns Parsed definition with variable and expression, or null
  */
 export function parseFormulaDefinition(
