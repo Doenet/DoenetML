@@ -380,7 +380,10 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
-    effectiveFunctionNames: string[];
+    // Optional because `_matrixComponentInput` reuses this renderer
+    // (`rendererType = "mathInput"`) without defining the SV; the
+    // `??` fallback below handles the absent case.
+    effectiveFunctionNames?: string[];
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
