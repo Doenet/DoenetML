@@ -634,7 +634,6 @@ export interface ActiveStyleBreakdown {
  * partial schema view can't crash the resolver.
  */
 export interface ActiveStyleBreakdownOptions {
-    excludeAttribute?: ExcludeAttribute;
     includeKeys?: Iterable<StyleDefinitionKey>;
 }
 
@@ -654,9 +653,7 @@ export function resolveActiveStyleBreakdown(
     element: DastElement,
     options: ActiveStyleBreakdownOptions = {},
 ): ActiveStyleBreakdown {
-    const resolved = resolveActiveStyle(sourceObj, element, {
-        excludeAttribute: options.excludeAttribute,
-    });
+    const resolved = resolveActiveStyle(sourceObj, element);
     const includeFilter = options.includeKeys
         ? new Set(options.includeKeys)
         : undefined;

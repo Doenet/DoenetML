@@ -74,7 +74,6 @@ export function ContextHelpPanel({
                         {renderInlineMarkdown(content.summary)}
                     </p>
                     {content.styleBreakdown &&
-                        content.styleBreakdown.entries.length > 0 &&
                         renderStyleBreakdown(content.styleBreakdown)}
                     {content.docsSlug && (
                         <a
@@ -185,9 +184,7 @@ export function ContextHelpPanel({
                             </div>
                         </div>
                     )}
-                    {styleBreakdown &&
-                        styleBreakdown.entries.length > 0 &&
-                        renderStyleBreakdown(styleBreakdown)}
+                    {styleBreakdown && renderStyleBreakdown(styleBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
