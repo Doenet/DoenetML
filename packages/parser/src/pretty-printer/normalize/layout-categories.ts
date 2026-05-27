@@ -39,12 +39,7 @@ const elements = doenetSchema.elements as readonly SchemaElementLike[];
  * `<title>` and `<choice>` extend `InlineComponent` at runtime but render
  * like headings / list items and conventionally sit on their own line.
  */
-const BLOCK_OVERRIDES: ReadonlySet<string> = new Set([
-    "title",
-    "pubtitle",
-    "h",
-    "choice",
-]);
+const BLOCK_OVERRIDES: ReadonlySet<string> = new Set(["title", "choice"]);
 
 /**
  * Schema-`"other"` element names that should format as block. Anything
@@ -125,55 +120,36 @@ const BLOCK_ELEMENTS_LOWER: ReadonlySet<string> = new Set(
     ].map((n) => n.toLowerCase()),
 );
 
-export const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
-    ...elements
-        .filter(
-            (e) =>
-                e.layoutCategory === "block" ||
-                (e.layoutCategory === "other" && OTHER_BLOCK_NAMES.has(e.name)),
-        )
-        .map((e) => e.name),
-    ...BLOCK_OVERRIDES,
-]);
-
 /**
  * Elements that always render their content in block layout even when
  * their children are entirely inline — preserves visual separation for
  * top-level structural containers (`<section>foo</section>` → 3 lines,
- * not 1).
- *
- * Matching is case-insensitive against the lowercased version of these
- * names. See `ALWAYS_BREAK_PARENTS_LOWER` below.
+ * not 1). Matching is case-insensitive.
  */
-const _ALWAYS_BREAK_PARENTS_SOURCE: readonly string[] = [
-    "document",
-    "module",
-    "section",
-    "subsection",
-    "subsubsection",
-    "problem",
-    "exercise",
-    "exercises",
-    "problems",
-    "ol",
-    "ul",
-    "dl",
-    "graph",
-    "table",
-    "tabular",
-    "figure",
-    "spreadsheet",
-    "codeEditor",
-    "paragraphs",
-    "setup",
-    "moduleAttributes",
-];
-
-export const ALWAYS_BREAK_PARENTS: ReadonlySet<string> = new Set(
-    _ALWAYS_BREAK_PARENTS_SOURCE,
-);
 const ALWAYS_BREAK_PARENTS_LOWER: ReadonlySet<string> = new Set(
-    _ALWAYS_BREAK_PARENTS_SOURCE.map((n) => n.toLowerCase()),
+    [
+        "document",
+        "module",
+        "section",
+        "subsection",
+        "subsubsection",
+        "problem",
+        "exercise",
+        "exercises",
+        "problems",
+        "ol",
+        "ul",
+        "dl",
+        "graph",
+        "table",
+        "tabular",
+        "figure",
+        "spreadsheet",
+        "codeEditor",
+        "paragraphs",
+        "setup",
+        "moduleAttributes",
+    ].map((n) => n.toLowerCase()),
 );
 
 /**
@@ -194,9 +170,12 @@ export function isAlwaysBreakParent(name: string): boolean {
 }
 
 /**
- * Whether an element name should be treated as inline by the formatter
- * (flow with surrounding prose). Matching is case-insensitive.
+ * Hand-curated override sets exposed so the test suite can assert that
+ * every name still resolves to an existing schema element — catches drift
+ * when a component is renamed upstream and silently turns an override
+ * into a dead string.
  */
-export function isInline(name: string): boolean {
-    return !BLOCK_ELEMENTS_LOWER.has(name.toLowerCase());
-}
+export const _testOnly = {
+    BLOCK_OVERRIDES,
+    OTHER_BLOCK_NAMES,
+};

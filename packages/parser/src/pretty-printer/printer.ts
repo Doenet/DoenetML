@@ -212,7 +212,13 @@ export const print: Printer<DastNodes>["print"] = function print(
                 // accidentally make a character entity. For example `&amp;amp;` or `&amp;#x24;`
                 escapedText = escapedText.replace(/&amp;(?!\S*;)/g, "&");
             }
-            // Double newlines are preserved
+            // Double newlines inside the text value are preserved as a
+            // single blank line. Boundary blank lines (those adjacent to a
+            // block sibling) are stripped upstream by
+            // `markBlankLinesPlugin`, so the parent's block separator is
+            // the single source of truth for inter-sibling spacing; if you
+            // remove that stripping, this `\n\n+` split will stack with
+            // the separator hardline and produce two blank lines.
             return join(
                 [hardline, hardline],
                 escapedText
@@ -261,30 +267,33 @@ function printChildSequenceAsBlock(
     // separators — otherwise the separator hardlines stack into spurious
     // blank lines and break idempotence on the next format pass.
     type Run =
-        | { kind: "block"; node: DastNodes; printed: Doc }
-        | { kind: "inline"; nodes: DastNodes[]; fillContent: Doc[] };
+        | { kind: "block"; firstNode: DastNodes; printed: Doc }
+        | { kind: "inline"; firstNode: DastNodes; fillContent: Doc[] };
     const runs: Run[] = [];
-    let inlineBuf: { nodes: DastNodes[]; printed: Doc[] } | null = null;
+    let inlineBuf: { firstNode: DastNodes; printed: Doc[] } | null = null;
     const flushInline = () => {
         if (!inlineBuf) return;
         const fillContent = flattenForFill(inlineBuf.printed);
         if (fillContent.length > 0) {
-            runs.push({ kind: "inline", nodes: inlineBuf.nodes, fillContent });
+            runs.push({
+                kind: "inline",
+                firstNode: inlineBuf.firstNode,
+                fillContent,
+            });
         }
         inlineBuf = null;
     };
     for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const printed = printedChildren[i];
-        const isBlock =
+        const childIsBlock =
             isBlockChildNode(child) ||
             (treatAllElementsAsBlock && child.type === "element");
-        if (isBlock) {
+        if (childIsBlock) {
             flushInline();
-            runs.push({ kind: "block", node: child, printed });
+            runs.push({ kind: "block", firstNode: child, printed });
         } else {
-            if (!inlineBuf) inlineBuf = { nodes: [], printed: [] };
-            inlineBuf.nodes.push(child);
+            if (!inlineBuf) inlineBuf = { firstNode: child, printed: [] };
             inlineBuf.printed.push(printed);
         }
     }
@@ -294,9 +303,8 @@ function printChildSequenceAsBlock(
     for (let r = 0; r < runs.length; r++) {
         const run = runs[r];
         const isFirstRun = r === 0;
-        const firstNodeOfRun = run.kind === "block" ? run.node : run.nodes[0];
         const wantsBlankLineBefore =
-            !isFirstRun && hasBlankLineBefore(firstNodeOfRun);
+            !isFirstRun && hasBlankLineBefore(run.firstNode);
 
         if (!isFirstRun) {
             parts.push(wantsBlankLineBefore ? [hardline, hardline] : hardline);

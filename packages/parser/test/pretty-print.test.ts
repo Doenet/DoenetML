@@ -6,6 +6,8 @@ import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { prettyPrint } from "../src/pretty-printer";
 import util from "util";
 import { normalizeWhitespace } from "../src/pretty-printer/normalize/plugin-merge-whitespace";
+import { _testOnly as layoutTestOnly } from "../src/pretty-printer/normalize/layout-categories";
+import { doenetSchema } from "@doenet/static-assets/schema";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -147,6 +149,25 @@ describe("Prettier", async () => {
             });
             expect(prettyPrinted).toEqual(outStr);
         }
+    });
+
+    it("Hand-curated layout-category overrides match existing schema elements", () => {
+        // If a component is renamed in `componentInfoObjects` upstream,
+        // any override that still references the old name silently goes
+        // dead — the formatter quietly downgrades that element to inline.
+        // This catches the drift in CI.
+        const schemaNames = new Set(
+            doenetSchema.elements.map((e: { name: string }) => e.name),
+        );
+        const unknown: string[] = [];
+        for (const name of layoutTestOnly.BLOCK_OVERRIDES) {
+            if (!schemaNames.has(name)) unknown.push(`BLOCK_OVERRIDES:${name}`);
+        }
+        for (const name of layoutTestOnly.OTHER_BLOCK_NAMES) {
+            if (!schemaNames.has(name))
+                unknown.push(`OTHER_BLOCK_NAMES:${name}`);
+        }
+        expect(unknown).toEqual([]);
     });
 
     it("Don't create new macro names when &dollar; entity appears in text", async () => {

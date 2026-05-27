@@ -5,9 +5,10 @@ import { isElement, isText } from "./utils/testers";
 import { visit } from "./utils/visit";
 
 /**
- * Records, in a shared `WeakSet`, every child node that should be preceded
- * by exactly one blank line in the output. The printer reads this set in
- * block mode and emits `[hardline, hardline]` before the marked child.
+ * Sets `node.data.prettyBlankLineBefore = true` on every child node that
+ * should be preceded by exactly one blank line in the output. The printer
+ * reads this flag in block mode and emits `[hardline, hardline]` before
+ * the marked child.
  *
  * Three patterns mark a child:
  *
@@ -35,12 +36,15 @@ import { visit } from "./utils/visit";
  * Must run BEFORE `removeInternodeWhitespacePlugin` (which deletes
  * whitespace-only text nodes between blocks).
  */
-const _blankLineBefore = new WeakSet<DastNodes>();
 
 export function hasBlankLineBefore(
     node: DastNodes | null | undefined,
 ): boolean {
-    return !!node && _blankLineBefore.has(node);
+    return !!node?.data?.prettyBlankLineBefore;
+}
+
+function mark(node: DastNodes) {
+    (node.data ??= {}).prettyBlankLineBefore = true;
 }
 
 const TRAILING_BLANK_LINE = /\n[^\S\n]*\n[^\S\n]*$/;
@@ -64,7 +68,7 @@ export const markBlankLinesPlugin: Plugin<void[], DastRoot, DastRoot> =
                         prev.value.trim().length === 0 &&
                         /\n[^\S\n]*\n/.test(prev.value)
                     ) {
-                        _blankLineBefore.add(curr);
+                        mark(curr);
                         continue;
                     }
 
@@ -75,7 +79,7 @@ export const markBlankLinesPlugin: Plugin<void[], DastRoot, DastRoot> =
                         isBlock(curr.name) &&
                         TRAILING_BLANK_LINE.test(prev.value)
                     ) {
-                        _blankLineBefore.add(curr);
+                        mark(curr);
                         prev.value = prev.value.replace(
                             TRAILING_BLANK_LINE,
                             "",
@@ -90,7 +94,7 @@ export const markBlankLinesPlugin: Plugin<void[], DastRoot, DastRoot> =
                         isBlock(prev.name) &&
                         LEADING_BLANK_LINE.test(curr.value)
                     ) {
-                        _blankLineBefore.add(curr);
+                        mark(curr);
                         curr.value = curr.value.replace(LEADING_BLANK_LINE, "");
                         continue;
                     }
