@@ -13,6 +13,7 @@ import useDoenetRenderer, {
 import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
+import { DEFAULT_MATH_INPUT_FUNCTION_NAMES } from "@doenet/utils";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
@@ -379,7 +380,10 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
-    effectiveFunctionNames: string[];
+    // Optional because `_matrixComponentInput` reuses this renderer
+    // (`rendererType = "mathInput"`) without defining the SV; the
+    // `??` fallback below handles the absent case.
+    effectiveFunctionNames?: string[];
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
@@ -435,13 +439,20 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // and substitute a sentinel for the empty case (MathQuill rejects
     // an empty `autoOperatorNames` string outright; see the sentinel's
     // doc comment).
-    const autoOperatorNames = useMemo(
-        () =>
-            SVs.effectiveFunctionNames.length > 0
-                ? SVs.effectiveFunctionNames.join(" ")
-                : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL,
-        [SVs.effectiveFunctionNames],
-    );
+    //
+    // `_matrixComponentInput` also mounts this renderer (it sets
+    // `rendererType = "mathInput"`) but does not author the three
+    // function-name attributes, so its SVs map omits
+    // `effectiveFunctionNames`. Fall back to the shared default list
+    // in that case so matrix cells still auto-format the same names a
+    // bare `<mathInput/>` would.
+    const autoOperatorNames = useMemo(() => {
+        const names =
+            SVs.effectiveFunctionNames ?? DEFAULT_MATH_INPUT_FUNCTION_NAMES;
+        return names.length > 0
+            ? names.join(" ")
+            : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL;
+    }, [SVs.effectiveFunctionNames]);
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
