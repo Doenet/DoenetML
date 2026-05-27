@@ -196,3 +196,29 @@ More bare text, with $ref macro.
     <p>Section content.</p>
 </section>"
 `;
+
+exports[`Prettier > pretty-print-11-blank-lines-text-block-boundary.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<section>
+    Before paragraphs.
+
+    <p>paragraph 1</p>
+
+    <p>paragraph 2</p>
+
+    After paragraphs.
+</section>
+
+<section>
+    Adjacent text.
+    <p>no blank line</p>
+    Adjacent text below.
+</section>
+
+<section>
+    One blank line above.
+
+    <p>kept</p>
+
+    One blank line below.
+</section>"
+`;
