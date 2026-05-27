@@ -147,9 +147,9 @@ Six packages version together:
 - `@doenet/prefigure` versions independently.
 
 ### Never Versioned
-- `@doenet/lsp-tools` and `@doenet/static-assets` are never published — their source is bundled into `@doenet/doenetml`, so a change to either rides under `@doenet/doenetml`'s version. **Do not list them in any changeset, ever** — not even when files under `packages/lsp-tools/` or `packages/static-assets/` themselves changed.
+`@doenet/lsp-tools` and `@doenet/static-assets` are never published — their source is bundled into `@doenet/doenetml`, so a change to either rides under `@doenet/doenetml`'s version. **Do not list them in any changeset, ever** — not even when files under `packages/lsp-tools/` or `packages/static-assets/` themselves changed.
 
-    Don't infer this from `"private": true` alone. Most packages in this repo (including `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, and `@doenet/prefigure`) carry `"private": true` at the root and are still published, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`. The real signal for "never published" is the absence of that transformer in the package's `vite.config.ts` — `@doenet/lsp-tools` and `@doenet/static-assets` are the two packages where it's missing.
+Don't infer this from `"private": true` alone. Most packages in this repo (including `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, and `@doenet/prefigure`) carry `"private": true` at the root and are still published, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`. The real signal for "never published" is the absence of that transformer in the package's `vite.config.ts` — `@doenet/lsp-tools` and `@doenet/static-assets` are the two packages where it's missing.
 
 ### Which packages to list
 
