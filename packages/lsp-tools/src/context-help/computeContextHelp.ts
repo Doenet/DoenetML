@@ -1,4 +1,5 @@
 import type { DastElement } from "@doenet/parser";
+import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
 import {
     AutoCompleter,
     type AliasedElementSchema,
@@ -7,6 +8,10 @@ import {
     type SchemaAttribute,
     type SchemaProperty,
 } from "../auto-completer";
+import {
+    findAttributeKey,
+    getElementAttributeValue,
+} from "../auto-completer/dast-attribute-utils";
 import {
     chaseIndexAliases,
     deepestArrayEntryType,
@@ -20,7 +25,7 @@ import {
     resolveActiveStyleBreakdown,
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
-import { HelpContent } from "./types";
+import type { FunctionNamesBreakdownPayload, HelpContent } from "./types";
 
 /**
  * Schema entry shape used by the help layer. Both real elements and aliased
@@ -503,6 +508,101 @@ function computeStyleBreakdownForAttribute(
     return breakdown;
 }
 
+/**
+ * Names of the `<mathInput>` attributes whose help payload carries a
+ * resolved function-names breakdown (issue #1205). Lowercased so the
+ * attribute-name comparison stays case-insensitive — the schema lookup
+ * elsewhere in this file is already case-folded.
+ */
+const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
+    "additionalfunctionnames",
+    "removedfunctionnames",
+    "resetfunctionnames",
+]);
+
+/**
+ * Read a `textList`-shaped attribute on a DAST element by splitting its
+ * source text on whitespace, mirroring how the runtime parses these
+ * attributes (`TextListFromString`). Returns an empty array if the
+ * attribute is absent or its text content is blank.
+ *
+ * Duplicate entries are dropped (first occurrence wins). The shared
+ * resolver `buildEffectiveMathInputFunctionNames` already dedupes its
+ * inputs, but the help payload also surfaces these lists directly to
+ * the panel as React chip lists keyed by name — two identical names
+ * would otherwise produce duplicate React keys. Deduping at the read
+ * site keeps the contract documented on `FunctionNamesBreakdownPayload`
+ * (dedupe applied) consistent with what callers actually receive.
+ */
+function readTextListAttribute(
+    element: DastElement,
+    attributeName: string,
+): string[] {
+    const value = getElementAttributeValue(element, attributeName);
+    if (value === undefined) return [];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const entry of value.split(/\s+/)) {
+        if (entry.length === 0 || seen.has(entry)) continue;
+        seen.add(entry);
+        out.push(entry);
+    }
+    return out;
+}
+
+/**
+ * Build the `functionNamesBreakdown` payload for a `<mathInput>` cursor
+ * sitting on one of the three function-name attributes — all the
+ * authored lists are read off the same element, then merged via the
+ * shared helper so the LSP and the renderer can't drift apart on the
+ * resolution rule.
+ *
+ * Returns undefined when the cursor isn't on one of the trigger
+ * attributes or when the AST context is missing — every other attribute
+ * help payload leaves this field absent.
+ *
+ * `resetFunctionNames` is detected by *presence* (via `findAttributeKey`),
+ * not just non-empty text, so `resetFunctionNames=""` correctly resolves
+ * to an empty effective list — matching the runtime's `defaultValue:
+ * null` semantics where attribute-absent and authored-empty are distinct.
+ */
+function computeFunctionNamesBreakdownForAttribute(
+    elementName: string,
+    schemaAttr: SchemaAttribute,
+    ctx: ActiveDefaultContext | undefined,
+): FunctionNamesBreakdownPayload | undefined {
+    if (!ctx) return undefined;
+    if (elementName !== "mathInput") return undefined;
+    if (!MATH_INPUT_FUNCTION_NAME_ATTRS.has(schemaAttr.name.toLowerCase())) {
+        return undefined;
+    }
+    const added = readTextListAttribute(ctx.node, "additionalFunctionNames");
+    const removed = readTextListAttribute(ctx.node, "removedFunctionNames");
+    const resetAuthored =
+        findAttributeKey(ctx.node, "resetFunctionNames") !== undefined;
+    const reset = resetAuthored
+        ? readTextListAttribute(ctx.node, "resetFunctionNames")
+        : null;
+    // The helper also returns per-attribute lists of tokens it had
+    // to drop for failing MathQuill's `autoOperatorNames` validator
+    // (`droppedFromAdditional` / `droppedFromReset`). The worker
+    // emits diagnostics for those; the help panel surfaces the
+    // unfiltered `added`/`removed`/`reset` lists below, so the author
+    // already sees what they wrote — no need to re-route the dropped
+    // lists through the payload.
+    const { names } = buildEffectiveMathInputFunctionNames({
+        additional: added,
+        removed,
+        reset,
+    });
+    return {
+        names,
+        added,
+        removed,
+        ...(reset !== null ? { reset } : {}),
+    };
+}
+
 function helpForAttribute(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
@@ -526,6 +626,12 @@ function helpForAttribute(
         activeDefaultCtx,
     );
 
+    const functionNamesBreakdown = computeFunctionNamesBreakdownForAttribute(
+        ownEntry.name,
+        schemaAttr,
+        activeDefaultCtx,
+    );
+
     return {
         kind: "attribute",
         elementName: ownEntry.name,
@@ -544,6 +650,7 @@ function helpForAttribute(
         defaultValue: schemaAttr.defaultValue,
         ...(activeDefault ? { activeDefault } : {}),
         ...(styleBreakdown ? { styleBreakdown } : {}),
+        ...(functionNamesBreakdown ? { functionNamesBreakdown } : {}),
     };
 }
 

@@ -27,6 +27,28 @@ export type StyleBreakdownPayload = {
     }>;
 };
 
+/**
+ * Resolved MathQuill function-name list for a `<mathInput>` surfaced on the
+ * help panel (issue #1205).  Populated when the cursor sits on
+ * `additionalFunctionNames`, `removedFunctionNames`, or `resetFunctionNames`:
+ *
+ * - `names` is the resolved effective list MathQuill sees at runtime.
+ * - `added` / `removed` are the deltas as authored on this element, with
+ *   duplicates dropped (first occurrence wins) and case-sensitive matching.
+ * - `reset`, when present, is the authored list (also deduped) and signals
+ *   that `resetFunctionNames` overrode both deltas; `names` then equals
+ *   `reset` and `added`/`removed` are inactive (but kept on the payload
+ *   so the panel can flag what the author wrote).
+ *
+ * Precedence: `reset` wins outright. Otherwise `removed` wins over `added`.
+ */
+export type FunctionNamesBreakdownPayload = {
+    names: string[];
+    added: string[];
+    removed: string[];
+    reset?: string[];
+};
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -112,6 +134,15 @@ export type HelpContent =
            * the cursor sits on a `<styleDefinition>` tag name).
            */
           styleBreakdown?: StyleBreakdownPayload;
+          /**
+           * Effective MathQuill function-name list at the cursor's scope
+           * (issue #1205). Populated only when the cursor sits on
+           * `additionalFunctionNames`, `removedFunctionNames`, or
+           * `resetFunctionNames` of a `<mathInput>`. See
+           * {@link FunctionNamesBreakdownPayload} for the field-by-field
+           * contract.
+           */
+          functionNamesBreakdown?: FunctionNamesBreakdownPayload;
       }
     | {
           kind: "property";
