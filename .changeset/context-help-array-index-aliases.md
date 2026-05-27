@@ -1,7 +1,5 @@
 ---
 "@doenet/doenetml": patch
-"@doenet/lsp-tools": patch
-"@doenet/static-assets": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
 "@doenet/vscode-extension": patch
