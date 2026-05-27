@@ -3,13 +3,41 @@ import type {
     DiagnosticRecord,
     ErrorRecord,
     InfoRecord,
+    Position as DastPosition,
     WarningRecord,
 } from "@doenet/utils";
 import { isAccessibilityRecord } from "@doenet/utils";
 import {
     Diagnostic,
     DiagnosticSeverity,
+    Range,
 } from "vscode-languageserver-protocol/browser";
+
+/**
+ * Convert a DAST `Position` (`{line: 1-indexed, column: 1-indexed, offset?}`)
+ * to an LSP `Range` (`{line: 0-indexed, character: 0-indexed}`).
+ *
+ * `Diagnostic.range` is typed as `Range` and downstream consumers (e.g.
+ * `dedupeLspDiagnostics` in `@doenet/lsp-tools`) key on `start.character`
+ * / `end.character`; if we pass the raw DAST position through, those
+ * fields are `undefined` and the dedupe misses, even though the codemirror
+ * plugin's own `normalizePos` papers over the shape difference at render
+ * time.  The unquoted-attribute error in #1197 exercised this directly —
+ * the LSP-extracted copy (proper LSP shape) and the worker-echoed copy
+ * (DAST shape) never matched, so the hover tooltip duplicated.
+ */
+function dastPositionToLspRange(position: DastPosition): Range {
+    return {
+        start: {
+            line: position.start.line - 1,
+            character: position.start.column - 1,
+        },
+        end: {
+            line: position.end.line - 1,
+            character: position.end.column - 1,
+        },
+    };
+}
 
 /** CodeMirror/LSP diagnostic with optional editor mark class metadata. */
 export type EditorLspDiagnostic = Diagnostic & { markClass?: string };
@@ -23,32 +51,30 @@ export type DiagnosticsSummary = {
     accessibilityLevel2Count: number;
 };
 
+/** DAST `type` → LSP `DiagnosticSeverity`.  Accessibility records (also
+ *  `severity: Warning`) take the dedicated branch in `toLspDiagnostic` to
+ *  layer on `code` / `source` / `markClass`, so they aren't in the table. */
+const DIAGNOSTIC_TYPE_TO_LSP_SEVERITY: Record<
+    "error" | "warning" | "info",
+    DiagnosticSeverity
+> = {
+    error: DiagnosticSeverity.Error,
+    warning: DiagnosticSeverity.Warning,
+    info: DiagnosticSeverity.Information,
+};
+
 /**
  * Converts a single editor diagnostic into an LSP-compatible diagnostic.
  * Accessibility diagnostics are surfaced as warnings with custom source/markClass.
  */
 function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
-    if (diagnostic.type === "error") {
-        return {
-            message: diagnostic.message,
-            severity: DiagnosticSeverity.Error,
-            range: diagnostic.position!,
-        };
-    }
-
-    if (diagnostic.type === "info") {
-        return {
-            message: diagnostic.message,
-            severity: DiagnosticSeverity.Information,
-            range: diagnostic.position!,
-        };
-    }
+    const range = dastPositionToLspRange(diagnostic.position!);
 
     if (isAccessibilityRecord(diagnostic)) {
         return {
             message: diagnostic.message,
             severity: DiagnosticSeverity.Warning,
-            range: diagnostic.position!,
+            range,
             code: `accessibility-level-${diagnostic.level}`,
             source:
                 diagnostic.level === 1
@@ -60,8 +86,8 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
 
     return {
         message: diagnostic.message,
-        severity: DiagnosticSeverity.Warning,
-        range: diagnostic.position!,
+        severity: DIAGNOSTIC_TYPE_TO_LSP_SEVERITY[diagnostic.type],
+        range,
     };
 }
 

@@ -16,6 +16,7 @@ import {
     AutoCompleter,
     DOENET_LSP_METHODS,
     RustResolverAdapter,
+    dedupeLspDiagnostics,
 } from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -26,6 +27,22 @@ const TAKES_INDEX_COMPONENT_TYPES: ReadonlySet<string> = new Set(
         .filter((schemaElement) => schemaElement?.takesIndex)
         .map((schemaElement) => schemaElement.name),
 );
+
+/**
+ * Map a DAST node's `error_type` to the LSP severity the editor renders.
+ * Used in `validateTextDocument` so deprecation warnings stay yellow and
+ * info notices stay blue.  The `"error"` key handles both an explicit
+ * `error_type: "error"` and the absent-field default the caller resolves
+ * with `?? "error"`.
+ */
+const DAST_ERROR_TYPE_TO_LSP_SEVERITY: Record<
+    "error" | "warning" | "info",
+    DiagnosticSeverity
+> = {
+    error: DiagnosticSeverity.Error,
+    warning: DiagnosticSeverity.Warning,
+    info: DiagnosticSeverity.Information,
+};
 
 export function addValidationSupport(
     connection: Connection,
@@ -178,9 +195,20 @@ export function addValidationSupport(
         }
         const errors = extractDastErrors(info.autoCompleter.sourceObj.dast);
         const diagnostics: Diagnostic[] = errors.map((error) => {
+            // Honor the DAST node's `error_type`: deprecation notices
+            // from `dast-normalize/deprecations.ts` are the canonical
+            // source of `error_type: "warning"`.  Without this mapping
+            // every DAST error rendered as a red error squiggle even
+            // when the producing layer chose `warning`/`info`.  An
+            // omitted `error_type` defaults to `Error` (matching the
+            // worker's `convertNormalizedDast`, which only takes the
+            // `_error`-component branch when the field isn't
+            // `"warning"`/`"info"`).
+            const severity =
+                DAST_ERROR_TYPE_TO_LSP_SEVERITY[error.error_type ?? "error"];
             const diagnostic: Diagnostic = {
                 message: error.message,
-                severity: DiagnosticSeverity.Error,
+                severity,
                 range: {
                     start: textDocument.positionAt(
                         error.position?.start?.offset || 0,
@@ -201,7 +229,18 @@ export function addValidationSupport(
 
         diagnostics.push(...info.additionalDiagnostics);
 
+        // Dedupe by severity+range+message before sending: the worker's
+        // `_error`-component pipeline re-surfaces every parser DAST
+        // error as a runtime diagnostic and pushes it back through
+        // `additionalDiagnostics`, so without this pass the editor's
+        // hover renders the same record twice (the Diagnostics tab
+        // already dedupes via Core's `DiagnosticsManager`).
+        const deduped = dedupeLspDiagnostics(diagnostics);
+
         // Send the computed diagnostics to VSCode.
-        connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        connection.sendDiagnostics({
+            uri: textDocument.uri,
+            diagnostics: deduped,
+        });
     }
 }

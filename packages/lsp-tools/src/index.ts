@@ -3,6 +3,7 @@ export * from "./auto-completer";
 export * from "./doenet-to-markdown";
 export * from "./context-help";
 export * from "./lsp-protocol";
+export { dedupeLspDiagnostics } from "./dedupe-lsp-diagnostics";
 // Curated re-exports rather than `export *`: only the resolver's high-value
 // API needs to be on the package surface. Internal helpers
 // (`canonicalStyleAttributeKey`, `isColorAttributeKey`, `isStyleAttributeName`)

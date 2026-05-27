@@ -85,6 +85,82 @@ describe("DAST", async () => {
         );
     });
 
+    it("Emits one unified error per unquoted attribute pair (#1197)", () => {
+        // `<section name=foo></section>` was the canonical four-error
+        // shape (`Invalid attribute "foo"`, two `Invalid attribute
+        // name=`, one `Invalid attribute name=''`); `lezer-to-dast` now
+        // detects the pair, strips both halves from `node.attributes`,
+        // and emits a single `DastError` node naming the corrected
+        // form.  `error_type` is left undefined (= "error") so the
+        // worker turns it into an `_error` component and the viewer
+        // shows the orange error block — matching the severity of
+        // `<section name>` / `<section name="4" />`, which the
+        // `enforce-valid-names` normalize step already treats as
+        // errors.  Downstream layers (dast-normalize, the worker) see
+        // no attribute remnant to re-flag.
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        source = `<section name=foo></section>`;
+        dast = lezerToDast(source);
+        const errs = extractDastErrors(dast);
+        expect(errs).toHaveLength(1);
+        expect(errs[0].message).toBe(
+            'Attribute values must be enclosed in quotes: `name="foo"`',
+        );
+        // `error_type` is left undefined so consumers default to
+        // "error" — the worker's `convertNormalizedDast` only takes
+        // the `_error`-component branch when `errorType` is not
+        // "warning"/"info".
+        expect(errs[0].error_type).toBeUndefined();
+        // The error's position spans the bare-value token (`foo`,
+        // offsets 14-17 in the source) so the editor squiggle covers
+        // only what the author needs to fix.
+        expect(errs[0].position).toMatchObject({
+            start: { offset: 14 },
+            end: { offset: 17 },
+        });
+        // Both halves are stripped from `node.attributes`.
+        const root = dast.children[0];
+        if (root?.type !== "element") throw new Error("expected element");
+        expect(Object.keys(root.attributes)).toEqual([]);
+
+        // Self-closing, no whitespace before `/>` — the form an author
+        // is most likely to type.
+        source = `<math name=foo/>`;
+        dast = lezerToDast(source);
+        expect(extractDastErrors(dast)).toHaveLength(1);
+        expect(extractDastErrors(dast)[0].message).toBe(
+            'Attribute values must be enclosed in quotes: `name="foo"`',
+        );
+    });
+
+    it("Does not double-emit errors that live inside an attribute (#1197)", () => {
+        // The OpenTag-level error pickup used to re-emit the same error the
+        // per-Attribute loop catches.  Pin a single error for representative
+        // shapes that all live inside the first Attribute.
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // `name=` with no value: error attached to the Attribute itself.
+        source = `<x name= />`;
+        dast = lezerToDast(source);
+        expect(extractDastErrors(dast)).toHaveLength(1);
+        expect(extractDastErrors(dast)[0].message).toMatch(
+            /Invalid attribute `name= ` appears to be missing a value\./,
+        );
+
+        // Two unquoted-value pairs in a row: a single quote-mismatch error
+        // covers the whole run; the per-Attribute pickup must not duplicate
+        // the OpenTag-level one.
+        source = `<a x=foo y=bar />`;
+        dast = lezerToDast(source);
+        expect(extractDastErrors(dast)).toHaveLength(1);
+        expect(extractDastErrors(dast)[0].message).toMatch(
+            /quote marks do not match/,
+        );
+    });
+
     it("Errors for missing tags are shown at the location of the starting tag", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
