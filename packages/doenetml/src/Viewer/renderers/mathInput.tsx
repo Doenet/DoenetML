@@ -34,6 +34,18 @@ const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
 
 /**
+ * MathQuill rejects an empty `autoOperatorNames` string (its validator
+ * requires at least one entry of >=2 letters/pipes/dashes), so when the
+ * effective list is empty \u2014 e.g., the author wrote
+ * `<mathInput resetFunctionNames="" />` to disable auto-formatting
+ * entirely \u2014 we hand MathQuill a single sentinel that satisfies the
+ * validator but is implausible enough that no math student will type
+ * it. The end result is that no real identifier ever auto-formats,
+ * which is the author's intent.
+ */
+const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "mathquill-no-auto-format-sentinel";
+
+/**
  * Encapsulates math input preview popover state and interaction behavior.
  *
  * The preview is shown only when preview is enabled, the current raw renderer
@@ -413,19 +425,20 @@ export default function MathInput(props: UseDoenetRendererProps) {
         rendererValue.current = SVs.rawRendererValue;
     }
 
-    const autoOperatorNames = useMemo(
-        () =>
-            buildEffectiveMathInputFunctionNames({
-                additional: SVs.additionalFunctionNames,
-                removed: SVs.removedFunctionNames,
-                reset: SVs.resetFunctionNames,
-            }).join(" "),
-        [
-            SVs.additionalFunctionNames,
-            SVs.removedFunctionNames,
-            SVs.resetFunctionNames,
-        ],
-    );
+    const autoOperatorNames = useMemo(() => {
+        const names = buildEffectiveMathInputFunctionNames({
+            additional: SVs.additionalFunctionNames,
+            removed: SVs.removedFunctionNames,
+            reset: SVs.resetFunctionNames,
+        });
+        return names.length > 0
+            ? names.join(" ")
+            : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL;
+    }, [
+        SVs.additionalFunctionNames,
+        SVs.removedFunctionNames,
+        SVs.resetFunctionNames,
+    ]);
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
