@@ -46,7 +46,7 @@ const TAG_NAME_REGEX = /^[A-Za-z0-9_:-]+/;
  *
  * Returns the position unchanged when:
  *   - inputs are missing
- *   - `start.offset` is missing (we need byte offsets to read the source)
+ *   - `start.offset` is missing (we need a character offset to read the source)
  *   - the character at `start.offset` is not `<` (e.g. attribute-value
  *     positions emitted by the style-contrast checker)
  *   - no tag-name characters follow the `<`
