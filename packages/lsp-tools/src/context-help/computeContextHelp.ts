@@ -140,7 +140,10 @@ export async function computeContextHelp(
             cursorPosition === "openTagName" ||
             cursorPosition === "closeTagName"
         ) {
-            return helpForElement(ownEntry, effectiveEntry);
+            return helpForElement(ownEntry, effectiveEntry, {
+                completer,
+                node,
+            });
         }
 
         if (
@@ -187,13 +190,19 @@ export async function computeContextHelp(
                 // (e.g. typo / unknown attribute like `<math bad`). Fall back
                 // to element help so the panel keeps something useful on
                 // screen rather than going blank.
-                return helpForElement(ownEntry, effectiveEntry);
+                return helpForElement(ownEntry, effectiveEntry, {
+                    completer,
+                    node,
+                });
             }
             if (cursorPosition === "openTag") {
                 // Cursor is inside the open tag but not inside any attribute
                 // (e.g. `<math |` between attrs). Show element-level help so
                 // the panel doesn't blank out.
-                return helpForElement(ownEntry, effectiveEntry);
+                return helpForElement(ownEntry, effectiveEntry, {
+                    completer,
+                    node,
+                });
             }
             // `unknown` with no matching attribute can mean many things
             // (e.g. cursor sitting on body text); fall through to the rest
@@ -293,17 +302,44 @@ function formatPathSegment(segment: string): string {
         : `(${baseName})${bracketSuffix}`;
 }
 
+/**
+ * Compute the `styleBreakdown` field for element help, or undefined when the
+ * element isn't a `<styleDefinition>` (the only element kind that surfaces
+ * a breakdown, issue #1204).  Unlike the attribute-branch breakdown there's
+ * no prefix filter — a `<styleDefinition>`'s purpose is to author the full
+ * styleNumber, so the panel mirrors every populated key.  Returns undefined
+ * if the resolver yields an empty entry list, so the panel can skip the row
+ * rather than render an empty section.
+ */
+function computeStyleBreakdownForElement(
+    ownEntry: ElementSchema,
+    ctx: ActiveDefaultContext | undefined,
+): ActiveStyleBreakdown | undefined {
+    if (!ctx) return undefined;
+    if (ownEntry.name !== "styleDefinition") return undefined;
+    const breakdown = resolveActiveStyleBreakdown(
+        ctx.completer.sourceObj,
+        ctx.node,
+    );
+    if (breakdown.entries.length === 0) return undefined;
+    return breakdown;
+}
+
 function helpForElement(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
+    ctx?: ActiveDefaultContext,
 ): HelpContent {
     if (!ownEntry || !effectiveEntry?.summary) return NONE;
+
+    const styleBreakdown = computeStyleBreakdownForElement(ownEntry, ctx);
 
     return {
         kind: "element",
         elementName: ownEntry.name,
         summary: effectiveEntry.summary,
         docsSlug: effectiveEntry.docsSlug ?? null,
+        ...(styleBreakdown ? { styleBreakdown } : {}),
     };
 }
 
@@ -1008,7 +1044,10 @@ export async function computeContextHelpForCompletion(
                 completer,
                 node,
             );
-            return helpForElement(ownEntry, effectiveEntry);
+            return helpForElement(ownEntry, effectiveEntry, {
+                completer,
+                node,
+            });
         }
         // Element schema item.
         const ownEntry = completer.findSchemaElement(rawLabel);
@@ -1039,7 +1078,7 @@ export async function computeContextHelpForCompletion(
         // element help so the panel stays anchored to the element rather than
         // blanking out.
         if (attrHelp.kind !== "none") return attrHelp;
-        return helpForElement(ownEntry, effectiveEntry);
+        return helpForElement(ownEntry, effectiveEntry, { completer, node });
     }
 
     if (type === "value") {
@@ -1065,7 +1104,7 @@ export async function computeContextHelpForCompletion(
         // No matching attribute (or the matched attribute isn't in the
         // schema — e.g. `<math bad=foo` where the value popup is driven by
         // the bogus `bad` attribute). Fall back to element help.
-        return helpForElement(ownEntry, effectiveEntry);
+        return helpForElement(ownEntry, effectiveEntry, { completer, node });
     }
 
     return NONE;

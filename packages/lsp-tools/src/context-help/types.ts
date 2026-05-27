@@ -1,5 +1,32 @@
 import type { ValidValueEntry } from "@doenet/static-assets/schema";
 
+/**
+ * Per-styleNumber breakdown surfaced on the help panel (issue #1204).  Same
+ * shape carried by both the `element` kind (cursor on a `<styleDefinition>`
+ * tag name) and the `attribute` kind (cursor on a `styleNumber` attribute or
+ * any attribute inside a `<styleDefinition>`), since both rows render the
+ * same way — sharing the type makes drift between the two impossible.
+ *
+ * `entries` is in the runtime's `styleAttributes` declaration order so the
+ * panel can render directly without re-sorting; per-color rows carry a
+ * derived `colorWord` for the named-color companion next to the hex.
+ */
+export type StyleBreakdownPayload = {
+    styleNumber: number;
+    entries: Array<{
+        key: string;
+        value: string | number | boolean;
+        /**
+         * Human-readable color word derived from `value` when the key is a
+         * non-word color attribute (`lineColor`, `fillColorDarkMode`, …).
+         * The panel renders it in parens next to the hex and styles both
+         * with the resolved color.  Absent for non-color keys and for
+         * color values that already are their own word (CSS named colors).
+         */
+        colorWord?: string;
+    }>;
+};
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -8,6 +35,15 @@ export type HelpContent =
           summary: string;
           /** Reference-page slug; null when intentionally undocumented. */
           docsSlug: string | null;
+          /**
+           * Resolved-style breakdown for the styleNumber active at the
+           * cursor's scope (issue #1204).  Populated only when the cursor
+           * sits on a `<styleDefinition>` tag name — the element's purpose
+           * is to author a full styleNumber, so the help panel mirrors the
+           * full listing of every populated style key.  Absent on every
+           * other element kind.
+           */
+          styleBreakdown?: StyleBreakdownPayload;
       }
     | {
           kind: "attribute";
@@ -71,19 +107,11 @@ export type HelpContent =
            *     styleNumber, since the author is editing the styleDefinition
            *     itself and the full listing is the point.
            *
-           * Absent for any other cursor position.  Order matches the
-           * declaration order in `@doenet/utils/style`'s `styleAttributes`,
-           * so the panel can render entries directly without re-sorting.
+           * Absent for any other cursor position.  See {@link StyleBreakdownPayload}
+           * for the shared shape (also surfaced on the `element` kind when
+           * the cursor sits on a `<styleDefinition>` tag name).
            */
-          styleBreakdown?: {
-              styleNumber: number;
-              entries: Array<{
-                  key: string;
-                  value: string | number | boolean;
-                  /** See activeDefault.colorWord — same rules. */
-                  colorWord?: string;
-              }>;
-          };
+          styleBreakdown?: StyleBreakdownPayload;
       }
     | {
           kind: "property";

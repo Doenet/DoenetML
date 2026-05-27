@@ -641,6 +641,107 @@ describe("computeContextHelp — styleBreakdown on styleNumber / inside <styleDe
     });
 });
 
+describe("computeContextHelp — styleBreakdown on <styleDefinition> tag name (#1204)", () => {
+    it("populates styleBreakdown when cursor is on the <styleDefinition> opening tag name", async () => {
+        // Cursor inside the tag-name token (not on an attribute) — element
+        // help fires. The breakdown should still appear so authors who land
+        // on the tag itself see what the styleDefinition resolves to without
+        // having to click into a specific attribute.
+        const source = `<setup><styleDefinition styleNumber="3" markerStyle="diamond"/></setup>`;
+        // Offset between 's' and 't' of "styleDefinition" — squarely inside
+        // the open tag name.
+        const offset = source.indexOf("styleDefinition") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "element") {
+            expect.fail(`expected element help, got ${help.kind}`);
+            return;
+        }
+        expect(help.elementName).toBe("styleDefinition");
+        expect(help.styleBreakdown).toBeDefined();
+        expect(help.styleBreakdown!.styleNumber).toBe(3);
+        const byKey = new Map(
+            help.styleBreakdown!.entries.map((e) => [e.key, e]),
+        );
+        // Authored markerStyle wins over the styleNumber=3 preset's "triangle".
+        expect(byKey.get("markerStyle")?.value).toBe("diamond");
+        // Unfiltered breakdown — every prefix's keys come through.
+        expect(byKey.has("lineColor")).toBe(true);
+        expect(byKey.has("fillOpacity")).toBe(true);
+        expect(byKey.has("textColor")).toBe(true);
+    });
+
+    it("defaults to styleNumber 1 when the <styleDefinition> has no styleNumber attribute", async () => {
+        // Mirrors the runtime: a `<styleDefinition>` without an explicit
+        // styleNumber defines styleNumber=1.  The breakdown should reflect
+        // that, not skip the row.
+        const source = `<setup><styleDefinition markerStyle="square"/></setup>`;
+        const offset = source.indexOf("styleDefinition") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "element" || !help.styleBreakdown) {
+            expect.fail("expected element help with styleBreakdown");
+            return;
+        }
+        expect(help.styleBreakdown.styleNumber).toBe(1);
+        const markerStyleEntry = help.styleBreakdown.entries.find(
+            (e) => e.key === "markerStyle",
+        );
+        expect(markerStyleEntry?.value).toBe("square");
+    });
+
+    it("populates styleBreakdown when cursor is on the closing </styleDefinition> tag name", async () => {
+        // `closeTagName` shares the element-help path with `openTagName`;
+        // the breakdown should appear in both so cursor placement at either
+        // end of the element is equally useful.
+        const source = `<setup><styleDefinition styleNumber="2"></styleDefinition></setup>`;
+        const offset = source.indexOf("</styleDefinition") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "element" || !help.styleBreakdown) {
+            expect.fail("expected element help with styleBreakdown");
+            return;
+        }
+        expect(help.styleBreakdown.styleNumber).toBe(2);
+        // styleNumber=2 preset's markerStyle is "square".
+        const markerStyleEntry = help.styleBreakdown.entries.find(
+            (e) => e.key === "markerStyle",
+        );
+        expect(markerStyleEntry?.value).toBe("square");
+    });
+
+    it("does not populate styleBreakdown on non-<styleDefinition> element help", async () => {
+        // Cursor on `<point>`'s tag name — element help fires, but the
+        // breakdown row is reserved for <styleDefinition> in the element
+        // branch.  (The styleNumber attribute on <point> still gets a
+        // breakdown via the attribute branch — different trigger.)
+        const source = `<point styleNumber="3"/>`;
+        const offset = source.indexOf("point") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "element") {
+            expect.fail(`expected element help, got ${help.kind}`);
+            return;
+        }
+        expect(help.styleBreakdown).toBeUndefined();
+    });
+
+    it("element help on a <styleDefinition> autocomplete row (no node yet) omits the breakdown", async () => {
+        // The `property`-kind autocomplete branch in `computeContextHelpForCompletion`
+        // resolves the schema entry against itself with no surrounding node,
+        // so there's no DAST node to feed into the resolver — the breakdown
+        // is correctly absent.  Sanity-checks that we didn't accidentally
+        // wire context through a branch that doesn't have it.
+        const source = `<`;
+        const help = await helpForCompletionAt(source, source.length, {
+            label: "styleDefinition",
+            type: "property",
+        });
+        if (help.kind !== "element") {
+            expect.fail(`expected element help, got ${help.kind}`);
+            return;
+        }
+        expect(help.elementName).toBe("styleDefinition");
+        expect(help.styleBreakdown).toBeUndefined();
+    });
+});
+
 describe("computeContextHelp — property reference (refMember)", () => {
     it("returns property help when cursor is at end of $ref.property", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;

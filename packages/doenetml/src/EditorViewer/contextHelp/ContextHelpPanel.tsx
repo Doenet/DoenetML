@@ -73,6 +73,9 @@ export function ContextHelpPanel({
                     <p className="help-description">
                         {renderInlineMarkdown(content.summary)}
                     </p>
+                    {content.styleBreakdown &&
+                        content.styleBreakdown.entries.length > 0 &&
+                        renderStyleBreakdown(content.styleBreakdown)}
                     {content.docsSlug && (
                         <a
                             className="help-docs-link"
@@ -182,27 +185,9 @@ export function ContextHelpPanel({
                             </div>
                         </div>
                     )}
-                    {styleBreakdown && styleBreakdown.entries.length > 0 && (
-                        // Full breakdown for the active styleNumber (#1204).
-                        // Surfaces every relevant style attribute and its
-                        // resolved value so the author can see exactly what
-                        // the styleNumber abstracts. Triggered when cursor is
-                        // on the `styleNumber` attribute or anywhere inside a
-                        // `<styleDefinition>`.
-                        <div className="help-detail help-style-breakdown">
-                            <span className="help-detail-label">
-                                {`Resolved style (styleNumber ${styleBreakdown.styleNumber}):`}
-                            </span>
-                            <dl className="help-style-breakdown-list">
-                                {styleBreakdown.entries.map((entry) => (
-                                    <React.Fragment key={entry.key}>
-                                        <dt>{entry.key}</dt>
-                                        <dd>{renderBreakdownValue(entry)}</dd>
-                                    </React.Fragment>
-                                ))}
-                            </dl>
-                        </div>
-                    )}
+                    {styleBreakdown &&
+                        styleBreakdown.entries.length > 0 &&
+                        renderStyleBreakdown(styleBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -418,6 +403,38 @@ function renderBreakdownValue(entry: {
     colorWord?: string;
 }): React.ReactNode {
     return renderColorValueContent(entry) ?? formatValue(entry.value);
+}
+
+/**
+ * "Resolved style" section shared by the attribute and element help branches
+ * (#1204). Renders the styleNumber-labeled header above a two-column
+ * key/value grid for each populated style attribute.  The caller decides
+ * when to mount it; this helper just keeps the markup in one place so the
+ * two trigger sites can't drift in layout or class names.
+ */
+function renderStyleBreakdown(breakdown: {
+    styleNumber: number;
+    entries: Array<{
+        key: string;
+        value: string | number | boolean;
+        colorWord?: string;
+    }>;
+}): React.ReactNode {
+    return (
+        <div className="help-detail help-style-breakdown">
+            <span className="help-detail-label">
+                {`Resolved style (styleNumber ${breakdown.styleNumber}):`}
+            </span>
+            <dl className="help-style-breakdown-list">
+                {breakdown.entries.map((entry) => (
+                    <React.Fragment key={entry.key}>
+                        <dt>{entry.key}</dt>
+                        <dd>{renderBreakdownValue(entry)}</dd>
+                    </React.Fragment>
+                ))}
+            </dl>
+        </div>
+    );
 }
 
 function formatValue(val: unknown): React.ReactNode {
