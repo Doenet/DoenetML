@@ -1,11 +1,22 @@
 import type { Position } from "@doenet/parser";
 
-export type StyleAttributes = Record<
-    string,
-    { componentType: string; description?: string }
->;
+/**
+ * Author-facing metadata for a single style attribute. `validValues` /
+ * `toLowerCase` are forwarded by `StyleDefinitions` and `GraphicalComponent`
+ * into the attribute spec consumed by `createAttributesObject`, which is what
+ * the schema generator inspects to surface a `type: "keyword"` enum with
+ * autocomplete entries.
+ */
+export type StyleAttributeSpec = {
+    componentType: string;
+    description?: string;
+    validValues?: { value: string; description: string }[];
+    toLowerCase?: boolean;
+};
 
-export type StyleDefinitionPrimitive = string | number;
+export type StyleAttributes = Record<string, StyleAttributeSpec>;
+
+export type StyleDefinitionPrimitive = string | number | boolean;
 
 export type StyleValueWithPosition = {
     style: StyleDefinitionPrimitive;
@@ -32,6 +43,7 @@ export type StyleDefinitionKey =
     | "markerStyle"
     | "markerStyleWord"
     | "markerSize"
+    | "markerFilled"
     | "fillColor"
     | "fillColorWord"
     | "fillColorDarkMode"
@@ -92,6 +104,7 @@ export interface ResolvedStyleDefinition {
     markerStyle: string;
     markerStyleWord: string;
     markerSize: number;
+    markerFilled: boolean;
     fillColor: string;
     fillColorWord: string;
     fillColorDarkMode: string;
@@ -283,6 +296,7 @@ export const DEFAULT_STYLE_VALUES = {
     markerStyle: "circle",
     markerStyleWord: "point",
     markerSize: 5,
+    markerFilled: true,
     fillOpacity: 0.3,
     lineColor: "#648FFF",
     lineColorDarkMode: "#648FFF",

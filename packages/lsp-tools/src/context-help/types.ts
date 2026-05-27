@@ -29,6 +29,35 @@ export type HelpContent =
            */
           allowedValues?: ValidValueEntry[];
           defaultValue?: unknown;
+          /**
+           * Resolved active value at the cursor's scope, distinct from the
+           * schema's static `defaultValue` (issue #1198). Populated only
+           * for style attributes — on a per-component override site
+           * (`<point markerStyle="…">`) or inside a `<styleDefinition>`
+           * attribute — where ancestor `<styleDefinition>` blocks or the
+           * built-in numbered presets supply a value that differs from the
+           * static fallback. `styleNumber` is the integer the value comes
+           * from, so the help panel can render "Active default: X (from
+           * styleDefinition styleNumber=N)".
+           *
+           * Suppressed when the active value would tell the author nothing
+           * new — currently when it equals the static `defaultValue` for
+           * styleNumber=1 sites with no ancestor `<styleDefinition>`
+           * influence. See `computeContextHelp` for the suppression rule.
+           */
+          activeDefault?: {
+              value: string | number | boolean;
+              styleNumber: number;
+              /**
+               * Human-readable color word derived from `value` when the
+               * attribute is a non-word color key (`lineColor`,
+               * `fillColorDarkMode`, etc.). The help panel renders it in
+               * parens next to the hex and styles both with the resolved
+               * color. Absent for non-color attributes and for color values
+               * that already are their own word (CSS named colors).
+               */
+              colorWord?: string;
+          };
       }
     | {
           kind: "property";

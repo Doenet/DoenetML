@@ -368,6 +368,123 @@ describe("computeContextHelp — attribute help", () => {
     });
 });
 
+describe("computeContextHelp — activeDefault on style attributes (#1198)", () => {
+    it("surfaces the resolved styleDefinition value as activeDefault on a per-component style attribute", async () => {
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="1" markerStyle="square"/>
+            </setup>
+            <point markerStyle="circle"/>
+        `;
+        // Cursor inside the `<point markerStyle=…>` attribute name.
+        const offset = source.indexOf("markerStyle", source.indexOf("<point"));
+        const help = await helpAt(source, offset + 3);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toEqual({
+            value: "square",
+            styleNumber: 1,
+        });
+    });
+
+    it("uses the built-in preset for the resolved styleNumber when no ancestor <styleDefinition> overrides it", async () => {
+        // styleNumber=3's built-in preset has markerStyle="triangle". With no
+        // ancestor styleDefinition to override it, the active default is the
+        // preset itself — distinct from the schema's static fallback (which
+        // is undefined for per-component style overrides), so we still surface
+        // it so authors can see what their override would replace.
+        const source = `<point styleNumber="3" markerStyle="circle"/>`;
+        const offset = source.indexOf("markerStyle") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toEqual({
+            value: "triangle",
+            styleNumber: 3,
+        });
+    });
+
+    it("excludes the current <styleDefinition> from its own activeDefault lookup", async () => {
+        // Authoring inside a <styleDefinition> — the active default should
+        // tell the author "what would styleNumber=2 resolve to without this
+        // block", which is the built-in styleNumber=2 preset (markerStyle =
+        // 'square').
+        const source = `
+            <setup>
+                <styleDefinition styleNumber="2" markerStyle="diamond"/>
+            </setup>
+        `;
+        const offset = source.indexOf("markerStyle") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toEqual({
+            value: "square",
+            styleNumber: 2,
+        });
+    });
+
+    it("does not set activeDefault for non-style attributes (e.g. <point draggable>)", async () => {
+        const source = `<point draggable="true"/>`;
+        const offset = source.indexOf("draggable") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toBeUndefined();
+    });
+
+    it("inside <styleDefinition>, derives *ColorWord from same-block *Color when cursor is on the word", async () => {
+        // The author has set markerColor="#FF0000" but not markerColorWord;
+        // cursor on markerColorWord. The runtime would derive the word from
+        // the color via `addMissingColorWordsToStyleDefinition`, so the
+        // active default should show that derived word — NOT the inherited
+        // preset's stale word.
+        const source = `<setup><styleDefinition styleNumber="1" markerColor="#FF0000" markerColorWord=""/></setup>`;
+        // Cursor anywhere inside the markerColorWord attribute name.
+        const offset = source.indexOf("markerColorWord") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toEqual({
+            value: "red",
+            styleNumber: 1,
+        });
+    });
+
+    it("inside <styleDefinition>, exclude is per-attribute: other authored values still contribute", async () => {
+        // Authoring inside <styleDefinition lineWidth="6" markerStyle="diamond"/>,
+        // cursor on markerStyle. lineWidth is NOT excluded, so it still
+        // applies; but markerStyle excludes itself and falls back to the
+        // preset's "circle".  This validates the refined exclude semantics
+        // — pre-refactor, the entire styleDefinition was excluded and
+        // lineWidth=6 would have been lost.  Now we surface "circle" for
+        // the active default of markerStyle while lineWidth=6 stays in the
+        // resolver's cumulative map (visible only via the resolver API;
+        // the help payload exposes just the queried attribute).
+        const source = `<setup><styleDefinition styleNumber="1" lineWidth="6" markerStyle="diamond"/></setup>`;
+        const offset = source.indexOf("markerStyle") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.activeDefault).toEqual({
+            value: "circle",
+            styleNumber: 1,
+        });
+    });
+});
+
 describe("computeContextHelp — property reference (refMember)", () => {
     it("returns property help when cursor is at end of $ref.property", async () => {
         const source = `<math name="m">x</math>\n$m.displayDecimals`;

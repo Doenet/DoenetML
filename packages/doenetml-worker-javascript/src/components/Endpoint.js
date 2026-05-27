@@ -1,4 +1,5 @@
 import Point from "./Point";
+import { markerStyleValuesWithFillVariants } from "@doenet/utils";
 
 export default class Endpoint extends Point {
     static componentType = "endpoint";
@@ -11,6 +12,21 @@ export default class Endpoint extends Point {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        // Endpoints render open/closed based on the `open` attribute, so the
+        // markerStyle picker hides shapes whose open/closed states would be
+        // visually indistinguishable (cross, plus — no interior to fill).
+        attributes.markerStyle = {
+            ...attributes.markerStyle,
+            validValues: markerStyleValuesWithFillVariants,
+        };
+        // `open` is the authoritative fill toggle here. Drop the per-component
+        // `markerFilled` attribute so authors can't write a confusing-but-inert
+        // `<endpoint markerFilled="false">` on an endpoint whose fill is
+        // already controlled by `open`. A styleDefinition can still populate
+        // `selectedStyle.markerFilled` via inheritance — the point renderer
+        // ignores it when SVs.open is defined.
+        delete attributes.markerFilled;
 
         attributes.open = {
             createComponentOfType: "boolean",

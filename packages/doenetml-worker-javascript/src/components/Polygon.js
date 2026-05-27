@@ -15,6 +15,8 @@ export default class Polygon extends Polyline {
         });
     }
     static componentType = "polygon";
+    // Overrides Polyline's ["line"]: polygons are closed and can be filled.
+    static styleOverrideCategories = ["line", "fill"];
 
     static componentDocs = {
         summary: "A polygon defined by a list of vertices",

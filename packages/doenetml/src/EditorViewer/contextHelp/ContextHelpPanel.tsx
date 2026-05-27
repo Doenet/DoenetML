@@ -139,6 +139,7 @@ export function ContextHelpPanel({
                 docsSlug,
                 allowedValues,
                 defaultValue,
+                activeDefault,
             } = content;
             return (
                 <div className="help-panel">
@@ -160,6 +161,22 @@ export function ContextHelpPanel({
                             <div className="help-values-list">
                                 <span className="help-value-item">
                                     {formatValue(defaultValue)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                    {activeDefault && (
+                        // Separate row from "Default:" so the author can tell
+                        // the static schema fallback from the live inherited
+                        // value (#1198).
+                        <div className="help-detail">
+                            <span className="help-detail-label">
+                                Active default:
+                            </span>
+                            <div className="help-values-list">
+                                {renderActiveDefaultValue(activeDefault)}
+                                <span className="help-detail-annotation">
+                                    {` (styleNumber ${activeDefault.styleNumber})`}
                                 </span>
                             </div>
                         </div>
@@ -329,6 +346,32 @@ export function ContextHelpPanel({
             );
         }
     }
+}
+
+// Paint hex and derived word in the resolved color for color attributes so
+// authors don't have to decode the hex. Non-color values fall through to
+// `formatValue`.
+function renderActiveDefaultValue(activeDefault: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode {
+    if (activeDefault.colorWord && typeof activeDefault.value === "string") {
+        const colorText = resolveCssVariables(activeDefault.value);
+        const colorStyle = { color: colorText };
+        return (
+            <span className="help-value-item">
+                <span style={colorStyle}>{colorText}</span>
+                <span
+                    style={colorStyle}
+                >{` (${activeDefault.colorWord})`}</span>
+            </span>
+        );
+    }
+    return (
+        <span className="help-value-item">
+            {formatValue(activeDefault.value)}
+        </span>
+    );
 }
 
 function formatValue(val: unknown): React.ReactNode {

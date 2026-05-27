@@ -19,6 +19,9 @@
         },
         "./markdown/parseInlineMarkdown": {
             "import": "./dist/parseInlineMarkdown.js"
+        },
+        "./style": {
+            "import": "./dist/style.js"
         }
     },
     "scripts": {

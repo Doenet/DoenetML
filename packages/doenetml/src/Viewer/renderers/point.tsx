@@ -84,8 +84,22 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
     const { darkMode = undefined } = useContext(DocContext);
 
+    // Components with their own semantic open/closed state (Endpoint.open,
+    // EquilibriumPoint.open) take precedence: when SVs.open is defined, it's
+    // the authoritative source. We only consult selectedStyle.markerFilled
+    // on plain <point> (SVs.open === undefined) so an inherited
+    // styleDefinition value can't visually contradict an Endpoint's `open`
+    // or an EquilibriumPoint's `stable` — even though those subclasses still
+    // resolve selectedStyle.markerFilled via styleDefinition inheritance,
+    // the renderer just ignores it. Those same subclasses also drop the
+    // per-component `markerFilled` attribute from their schema so authors
+    // can't write a confusing-but-inert override on the element itself.
+    // Cross and plus have no interior to fill, so they're always treated as
+    // open to stay visible.
     const useOpenSymbol =
-        SVs.open || ["cross", "plus"].includes(SVs.selectedStyle.markerStyle); // Cross and plus should always be treated as "open" to remain visible on graph
+        SVs.open ||
+        (SVs.open === undefined && SVs.selectedStyle.markerFilled === false) ||
+        ["cross", "plus"].includes(SVs.selectedStyle.markerStyle);
 
     useBoardPointerTracking(board, dragState);
 
