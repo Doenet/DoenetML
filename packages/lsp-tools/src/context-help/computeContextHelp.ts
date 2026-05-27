@@ -22,7 +22,7 @@ import {
     resolveActiveStyleBreakdown,
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
-import { HelpContent } from "./types";
+import { FunctionNamesBreakdownPayload, HelpContent } from "./types";
 
 /**
  * Schema entry shape used by the help layer. Both real elements and aliased
@@ -546,7 +546,7 @@ function computeFunctionNamesBreakdownForAttribute(
     elementName: string,
     schemaAttr: SchemaAttribute,
     ctx: ActiveDefaultContext | undefined,
-): { names: string[]; added: string[]; removed: string[] } | undefined {
+): FunctionNamesBreakdownPayload | undefined {
     if (!ctx) return undefined;
     if (elementName !== "mathInput") return undefined;
     if (!MATH_INPUT_FUNCTION_NAME_ATTRS.has(schemaAttr.name.toLowerCase())) {

@@ -27,6 +27,26 @@ export type StyleBreakdownPayload = {
     }>;
 };
 
+/**
+ * Resolved MathQuill function-name list for a `<mathInput>` surfaced on the
+ * help panel (issue #1205).  Populated when the cursor sits on
+ * `additionalFunctionNames` or `removedFunctionNames`:
+ *
+ * - `names` is the merged effective list (defaults plus this element's
+ *   `additionalFunctionNames`, minus its `removedFunctionNames`), in the
+ *   same order MathQuill sees at runtime.
+ * - `added` / `removed` are the deltas exactly as authored on this element
+ *   (after dedupe and case-sensitive matching), so the panel can call
+ *   out the changes alongside the resolved set.
+ *
+ * `removed` wins over `added` when the same name appears in both.
+ */
+export type FunctionNamesBreakdownPayload = {
+    names: string[];
+    added: string[];
+    removed: string[];
+};
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -116,20 +136,10 @@ export type HelpContent =
            * Effective MathQuill function-name list at the cursor's scope
            * (issue #1205). Populated only when the cursor sits on
            * `additionalFunctionNames` or `removedFunctionNames` of a
-           * `<mathInput>`. The author writes deltas on either attribute and
-           * sees the merged list — defaults plus this element's
-           * `additionalFunctionNames`, minus its `removedFunctionNames`.
-           *
-           * `added` / `removed` are the deltas exactly as authored on this
-           * element (after dedupe and case-sensitive matching), so the
-           * panel can call out the changes alongside the resolved set.
-           * `removed` wins over `added` when the same name appears in both.
+           * `<mathInput>`. See {@link FunctionNamesBreakdownPayload} for
+           * the field-by-field contract.
            */
-          functionNamesBreakdown?: {
-              names: string[];
-              added: string[];
-              removed: string[];
-          };
+          functionNamesBreakdown?: FunctionNamesBreakdownPayload;
       }
     | {
           kind: "property";

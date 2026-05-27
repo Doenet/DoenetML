@@ -2,7 +2,7 @@ import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
-import { HelpContent } from "@doenet/lsp-tools";
+import { FunctionNamesBreakdownPayload, HelpContent } from "@doenet/lsp-tools";
 import "./context-help-panel.css";
 
 /**
@@ -467,11 +467,9 @@ function renderLabeledChipList(
  * merged effective list, plus the deltas they authored (if any) so they
  * can spot when an entry was overridden or no-oped.
  */
-function renderFunctionNamesBreakdown(breakdown: {
-    names: string[];
-    added: string[];
-    removed: string[];
-}): React.ReactNode {
+function renderFunctionNamesBreakdown(
+    breakdown: FunctionNamesBreakdownPayload,
+): React.ReactNode {
     return (
         <div className="help-detail help-function-names-breakdown">
             {renderLabeledChipList("Resolved function names:", breakdown.names)}
