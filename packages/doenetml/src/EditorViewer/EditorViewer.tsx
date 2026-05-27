@@ -307,6 +307,18 @@ export const EditorViewer = React.forwardRef<
     // JSON-RPC cancellation (issue #1086 / Option 4).
     const helpRequestIdRef = useRef(0);
 
+    // Wall-clock time of the most recent source-change reset.  Used by
+    // `runHelpRequest` to retry on a brief delay if a help RPC arrives
+    // before the LSP server has finished processing the source update.
+    // The `textDocument/didChange` notification is fire-and-forget, so
+    // `lspPlugin.updateDocument` can return before `documentInfo.get(uri)`
+    // is populated server-side — under CI load that race is wide enough to
+    // surface as a flaky `{kind: "none"}` response.  Outside the post-update
+    // window (3s) we don't retry: a non-stale NONE is a real "no help here"
+    // answer, not a sync race.
+    const lastSourceResetAtRef = useRef(0);
+    const helpRetryTimerRef = useRef<number | undefined>(undefined);
+
     // When all tabs are disabled, the panel pair isn't rendered, so the
     // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
@@ -587,10 +599,14 @@ export const EditorViewer = React.forwardRef<
         // LSP-side source is kept in sync via the CodeMirror plugin's normal
         // `updateDocument` path; no local completer to refresh.
         window.clearTimeout(cursorDebounceTimer.current);
+        window.clearTimeout(helpRetryTimerRef.current);
         // Bump the request ID so any in-flight help RPC's response is
         // dropped on arrival rather than overwriting the reset state.
         helpRequestIdRef.current += 1;
         setHelpContent(HELP_NONE);
+        // Record so `runHelpRequest` can retry once on a NONE result that
+        // landed during the LSP-server's post-update sync window.
+        lastSourceResetAtRef.current = Date.now();
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
@@ -677,6 +693,29 @@ export const EditorViewer = React.forwardRef<
                 if (myId !== helpRequestIdRef.current) return;
                 if (!helpIsVisibleRef.current) return;
                 setHelpContent(result);
+                // If we got NONE within the post-source-change window, the
+                // server's `documents.onDidChangeContent` handler may not
+                // have finished registering the new source yet (`didChange`
+                // is fire-and-forget; the editor's `lspPlugin.setValue`
+                // returns before the server's `documentInfo` map is
+                // populated). Schedule a retry. A real cursor change or new
+                // source reset will bump `helpRequestIdRef` and invalidate
+                // this retry chain. The 3-second budget is generous enough
+                // for slow CI runners; in healthy local runs the first
+                // request lands a real answer and we never enter this
+                // branch.
+                if (
+                    result.kind === "none" &&
+                    Date.now() - lastSourceResetAtRef.current < 3000
+                ) {
+                    const retryId = myId;
+                    window.clearTimeout(helpRetryTimerRef.current);
+                    helpRetryTimerRef.current = window.setTimeout(() => {
+                        if (retryId !== helpRequestIdRef.current) return;
+                        if (!helpIsVisibleRef.current) return;
+                        void runHelpRequest(warnLabel, rpc);
+                    }, 400);
+                }
             } catch (err) {
                 if (myId !== helpRequestIdRef.current) return;
                 console.warn(`${warnLabel} request failed`, err);
