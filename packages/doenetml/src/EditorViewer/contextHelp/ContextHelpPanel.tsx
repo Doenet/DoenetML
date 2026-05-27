@@ -159,16 +159,27 @@ export function ContextHelpPanel({
                     <p className="help-description">
                         {renderInlineMarkdown(description)}
                     </p>
-                    {defaultValue !== undefined && defaultValue !== null && (
-                        <div className="help-detail">
-                            <span className="help-detail-label">Default:</span>
-                            <div className="help-values-list">
-                                <span className="help-value-item">
-                                    {formatValue(defaultValue)}
+                    {defaultValue !== undefined &&
+                        defaultValue !== null &&
+                        // An empty-array default (e.g. `additionalFunctionNames`,
+                        // `removedFunctionNames`) would render as just
+                        // "Default:" with no value, which is noise — suppress
+                        // the row entirely.
+                        !(
+                            Array.isArray(defaultValue) &&
+                            defaultValue.length === 0
+                        ) && (
+                            <div className="help-detail">
+                                <span className="help-detail-label">
+                                    Default:
                                 </span>
+                                <div className="help-values-list">
+                                    <span className="help-value-item">
+                                        {formatValue(defaultValue)}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                     {activeDefault && (
                         // Separate row from "Default:" so the author can tell
                         // the static schema fallback from the live inherited
