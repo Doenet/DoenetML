@@ -160,10 +160,18 @@ export const print: Printer<DastNodes>["print"] = function print(
 
             // mode === "block": children laid out vertically; consecutive
             // non-block children form inline runs rendered with fill().
+            // Inside <setup>, every direct element child gets its own line —
+            // <setup> is a definitional list with no prose semantics, so
+            // sibling tags should never share a line. The rule does NOT
+            // recurse: each child element formats its own contents
+            // normally (e.g. a <p name="myPara"> inside <setup> still gets
+            // prose-flow rules for its own children).
+            const treatAllElementsAsBlock = node.name.toLowerCase() === "setup";
             const printedBlockChildren = path.map(print, "children");
             const blockBody = printChildSequenceAsBlock(
                 node.children,
                 printedBlockChildren,
+                treatAllElementsAsBlock,
             );
             return [
                 group(openingTag),
@@ -224,25 +232,43 @@ export const print: Printer<DastNodes>["print"] = function print(
  * Used by the root and by elements whose `classifyContentMode` returned
  * `"block"`. The returned Doc carries no leading or trailing hardline —
  * the caller is responsible for surrounding indent/hardlines.
+ *
+ * When `treatAllElementsAsBlock` is set, every element child gets its own
+ * line regardless of its inline/block classification. Used for `<setup>`,
+ * whose direct children are a list of definitions with no prose flow.
  */
 function printChildSequenceAsBlock(
     children: DastNodes[],
     printedChildren: Doc[],
+    treatAllElementsAsBlock: boolean = false,
 ): Doc {
-    // Group consecutive non-block children into inline runs.
+    // Group consecutive non-block children into inline runs. Inline runs
+    // get their fill-content pre-computed so empty ones (e.g. a lone
+    // whitespace text between two elements promoted to block by
+    // `treatAllElementsAsBlock`) can be dropped before we start emitting
+    // separators — otherwise the separator hardlines stack into spurious
+    // blank lines and break idempotence on the next format pass.
     type Run =
         | { kind: "block"; node: DastNodes; printed: Doc }
-        | { kind: "inline"; nodes: DastNodes[]; printed: Doc[] };
+        | { kind: "inline"; nodes: DastNodes[]; fillContent: Doc[] };
     const runs: Run[] = [];
     let inlineBuf: { nodes: DastNodes[]; printed: Doc[] } | null = null;
+    const flushInline = () => {
+        if (!inlineBuf) return;
+        const fillContent = flattenForFill(inlineBuf.printed);
+        if (fillContent.length > 0) {
+            runs.push({ kind: "inline", nodes: inlineBuf.nodes, fillContent });
+        }
+        inlineBuf = null;
+    };
     for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const printed = printedChildren[i];
-        if (isBlockChildNode(child)) {
-            if (inlineBuf) {
-                runs.push({ kind: "inline", ...inlineBuf });
-                inlineBuf = null;
-            }
+        const isBlock =
+            isBlockChildNode(child) ||
+            (treatAllElementsAsBlock && child.type === "element");
+        if (isBlock) {
+            flushInline();
             runs.push({ kind: "block", node: child, printed });
         } else {
             if (!inlineBuf) inlineBuf = { nodes: [], printed: [] };
@@ -250,7 +276,7 @@ function printChildSequenceAsBlock(
             inlineBuf.printed.push(printed);
         }
     }
-    if (inlineBuf) runs.push({ kind: "inline", ...inlineBuf });
+    flushInline();
 
     const parts: Doc[] = [];
     for (let r = 0; r < runs.length; r++) {
@@ -267,14 +293,7 @@ function printChildSequenceAsBlock(
         if (run.kind === "block") {
             parts.push(run.printed);
         } else {
-            // A run of inline content wraps as prose. Pass the children
-            // through `flattenForFill` — Prettier's `fill` expects strict
-            // alternation of content and line separator, and breaks at
-            // poor positions when interleaved empty strings violate that
-            // invariant.
-            const fillContent = flattenForFill(run.printed);
-            if (fillContent.length === 0) continue;
-            parts.push(fill(fillContent));
+            parts.push(fill(run.fillContent));
         }
     }
     return parts;
