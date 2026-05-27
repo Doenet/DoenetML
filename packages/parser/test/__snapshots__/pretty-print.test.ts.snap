@@ -244,3 +244,39 @@ exports[`Prettier > pretty-print-12-setup-children.doenet pretty-prints correctl
     <math>4x</math>
 </setup>"
 `;
+
+exports[`Prettier > pretty-print-13-module-attributes.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<module name="mod">
+    <moduleAttributes>
+        <number name="n">3</number>
+        <math name="x">4y</math>
+    </moduleAttributes>
+    <p>The number is $n and math is $x.</p>
+</module>
+
+<moduleAttributes>
+    <number>1</number>
+    <math>2</math>
+</moduleAttributes>"
+`;
+
+exports[`Prettier > pretty-print-14-conditional-content.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<conditionalContent condition="$flag">
+    just sugar text, should stay inline
+</conditionalContent>
+
+<conditionalContent>
+    <case condition="$a">first branch</case>
+    <case condition="$b">second branch</case>
+    <else>fallback</else>
+</conditionalContent>
+
+<conditionalContent>
+    <case condition="$a">
+        <p>block content branch</p>
+    </case>
+    <else>
+        <p>fallback paragraph</p>
+    </else>
+</conditionalContent>"
+`;

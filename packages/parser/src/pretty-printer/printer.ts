@@ -13,6 +13,16 @@ const { line, indent, softline, join, fill, group, hardline, breakParent } =
 type ContentMode = "pre" | "empty" | "inline" | "block";
 
 /**
+ * Elements whose direct element children are always laid out one-per-line
+ * regardless of inline/block classification. Names are lowercased for
+ * case-insensitive matching against DAST source casing.
+ */
+const DEFINITIONAL_CONTAINERS: ReadonlySet<string> = new Set([
+    "setup",
+    "moduleattributes",
+]);
+
+/**
  * Classify how an element's children should be laid out.
  *
  * - `"pre"`: children are emitted verbatim (no whitespace touched).
@@ -160,13 +170,15 @@ export const print: Printer<DastNodes>["print"] = function print(
 
             // mode === "block": children laid out vertically; consecutive
             // non-block children form inline runs rendered with fill().
-            // Inside <setup>, every direct element child gets its own line —
-            // <setup> is a definitional list with no prose semantics, so
-            // sibling tags should never share a line. The rule does NOT
-            // recurse: each child element formats its own contents
-            // normally (e.g. a <p name="myPara"> inside <setup> still gets
-            // prose-flow rules for its own children).
-            const treatAllElementsAsBlock = node.name.toLowerCase() === "setup";
+            // Inside <setup> / <moduleAttributes>, every direct element
+            // child gets its own line — these are definitional containers
+            // with no prose semantics, so sibling tags should never share
+            // a line. The rule does NOT recurse: each child element
+            // formats its own contents normally (e.g. a <p name="myPara">
+            // inside <setup> still gets prose-flow rules).
+            const treatAllElementsAsBlock = DEFINITIONAL_CONTAINERS.has(
+                node.name.toLowerCase(),
+            );
             const printedBlockChildren = path.map(print, "children");
             const blockBody = printChildSequenceAsBlock(
                 node.children,
