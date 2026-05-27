@@ -12295,4 +12295,47 @@ describe("MathInput tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
         ).eq(false);
     });
+
+    it("invalid function names emit a warning diagnostic and are filtered from the effective list", async () => {
+        // MathQuill's `autoOperatorNames` validator throws on any
+        // per-entry token shorter than 2 chars or containing anything
+        // outside letters/pipes/dashes. The `effectiveFunctionNames`
+        // state variable filters those tokens via the shared helper
+        // and emits a `warning` diagnostic listing what was dropped,
+        // so the renderer never hands MathQuill an invalid string.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" additionalFunctionNames="erf e f1" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const effective =
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .effectiveFunctionNames;
+        // `erf` survives the filter; `e` (too short) and `f1`
+        // (contains a digit) are dropped before reaching MathQuill.
+        expect(effective).toContain("erf");
+        expect(effective).not.toContain("e");
+        expect(effective).not.toContain("f1");
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).toContain("'e'");
+        expect(diagnosticsByType.warnings[0].message).toContain("'f1'");
+        expect(diagnosticsByType.warnings[0].message).toContain(
+            "ignored invalid function name",
+        );
+    });
+
+    it("emits no warning diagnostic when all authored function names are valid", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <mathInput additionalFunctionNames="erf" removedFunctionNames="min" />
+    `,
+        });
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
 });

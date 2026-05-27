@@ -15,7 +15,6 @@ import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
-import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
 
 import { MathJax } from "better-react-mathjax";
 
@@ -374,9 +373,7 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
-    additionalFunctionNames: string[];
-    removedFunctionNames: string[];
-    resetFunctionNames: string[] | null;
+    effectiveFunctionNames: string[];
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
@@ -425,41 +422,20 @@ export default function MathInput(props: UseDoenetRendererProps) {
         rendererValue.current = SVs.rawRendererValue;
     }
 
-    const { autoOperatorNames, droppedFunctionNames } = useMemo(() => {
-        const { names, dropped } = buildEffectiveMathInputFunctionNames({
-            additional: SVs.additionalFunctionNames,
-            removed: SVs.removedFunctionNames,
-            reset: SVs.resetFunctionNames,
-        });
-        return {
-            autoOperatorNames:
-                names.length > 0
-                    ? names.join(" ")
-                    : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL,
-            droppedFunctionNames: dropped,
-        };
-    }, [
-        SVs.additionalFunctionNames,
-        SVs.removedFunctionNames,
-        SVs.resetFunctionNames,
-    ]);
-
-    // Warn once per change when the helper filtered out any author
-    // tokens. MathQuill's `autoOperatorNames` validator would crash
-    // the mount on a token < 2 chars or containing anything outside
-    // letters/pipes/dashes, so the helper drops those entries and we
-    // surface them here. The help panel still shows the unfiltered
-    // authored lists, so this warning is the secondary signal — a
-    // friendly nudge for authors who don't have the editor open.
-    useEffect(() => {
-        if (droppedFunctionNames.length === 0) return;
-        const list = droppedFunctionNames.map((n) => `'${n}'`).join(", ");
-        console.warn(
-            `<mathInput${SVs.label ? ` label="${SVs.label}"` : ""}>: ` +
-                `ignored invalid function name(s): ${list}. Each name must ` +
-                `be at least 2 characters of letters, pipes, or dashes.`,
-        );
-    }, [droppedFunctionNames, SVs.label]);
+    // The worker resolves the effective list (defaults +/- deltas, or
+    // `resetFunctionNames` verbatim) and emits a `warning` diagnostic if
+    // any tokens were dropped for failing MathQuill's validator. All
+    // the renderer has to do here is join the deduped/validated list
+    // and substitute a sentinel for the empty case (MathQuill rejects
+    // an empty `autoOperatorNames` string outright; see the sentinel's
+    // doc comment).
+    const autoOperatorNames = useMemo(
+        () =>
+            SVs.effectiveFunctionNames.length > 0
+                ? SVs.effectiveFunctionNames.join(" ")
+                : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL,
+        [SVs.effectiveFunctionNames],
+    );
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<

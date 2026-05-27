@@ -1,6 +1,10 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
+import {
+    buildEffectiveMathInputFunctionNames,
+    deepCompare,
+    convertValueToMathExpression,
+} from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
@@ -109,7 +113,6 @@ export default class MathInput extends Input {
             createStateVariable: "additionalFunctionNames",
             defaultValue: [],
             public: true,
-            forRenderer: true,
         };
         attributes.removedFunctionNames = {
             description:
@@ -119,7 +122,6 @@ export default class MathInput extends Input {
             createStateVariable: "removedFunctionNames",
             defaultValue: [],
             public: true,
-            forRenderer: true,
         };
         attributes.resetFunctionNames = {
             description:
@@ -131,7 +133,6 @@ export default class MathInput extends Input {
             createStateVariable: "resetFunctionNames",
             defaultValue: null,
             public: true,
-            forRenderer: true,
         };
         attributes.splitSymbols = {
             description:
@@ -246,6 +247,56 @@ export default class MathInput extends Input {
                 displaySmallAsZeroDefault: 0,
             }),
         );
+
+        stateVariableDefinitions.effectiveFunctionNames = {
+            // Resolved MathQuill `autoOperatorNames` list — defaults
+            // merged with `additionalFunctionNames` / `removedFunctionNames`
+            // (or replaced wholesale when `resetFunctionNames` is set).
+            // Computed here in the worker (rather than the renderer) so
+            // we can emit a `warning` diagnostic when authored tokens
+            // are dropped for failing MathQuill's validator — letting
+            // those reach MathQuill would crash the `EditableMathField`
+            // mount instead.
+            forRenderer: true,
+            returnDependencies: () => ({
+                additionalFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "additionalFunctionNames",
+                },
+                removedFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "removedFunctionNames",
+                },
+                resetFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "resetFunctionNames",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { names, dropped } = buildEffectiveMathInputFunctionNames(
+                    {
+                        additional: dependencyValues.additionalFunctionNames,
+                        removed: dependencyValues.removedFunctionNames,
+                        reset: dependencyValues.resetFunctionNames,
+                    },
+                );
+                const result = { setValue: { effectiveFunctionNames: names } };
+                if (dropped.length > 0) {
+                    const list = dropped.map((n) => `'${n}'`).join(", ");
+                    result.sendDiagnostics = [
+                        {
+                            type: "warning",
+                            message:
+                                `<mathInput>: ignored invalid function ` +
+                                `name(s): ${list}. Each name must be at ` +
+                                `least 2 characters of letters, pipes, or ` +
+                                `dashes.`,
+                        },
+                    ];
+                }
+                return result;
+            },
+        };
 
         stateVariableDefinitions.showPreview = {
             description: "Whether to display a preview of the parsed math.",
