@@ -76,9 +76,18 @@ export function useYouTubeApi(shouldLoad: boolean = false) {
             return;
         }
         install();
-        loadScript();
         const listener = () => setReady(true);
+        // Subscribe before loadScript() so we cannot miss
+        // `onYouTubeIframeAPIReady` if the script is already in flight from a
+        // prior mount and finishes between these two statements.
         listeners.add(listener);
+        loadScript();
+        // Defense-in-depth: if the API became ready between the top-of-effect
+        // `isReady()` check and now, fall through synchronously instead of
+        // waiting for a callback that has already fired.
+        if (isReady()) {
+            setReady(true);
+        }
         return () => {
             listeners.delete(listener);
         };
