@@ -50,7 +50,11 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    const ytReady = useYouTubeApi();
+    // Only request the YouTube IFrame API when this component is actually
+    // rendering a YouTube video. Other video sources (or `<video>` with no
+    // source yet) must not trigger a network request to youtube.com. See
+    // issue #1202.
+    const ytReady = useYouTubeApi(Boolean(SVs.youtube));
 
     useEffect(() => {
         if (!SVs.youtube || !ytReady || !window.YT) {
