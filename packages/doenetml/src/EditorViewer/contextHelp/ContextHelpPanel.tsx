@@ -2,7 +2,10 @@ import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
-import { HelpContent } from "@doenet/lsp-tools";
+import type {
+    FunctionNamesBreakdownPayload,
+    HelpContent,
+} from "@doenet/lsp-tools";
 import "./context-help-panel.css";
 
 /**
@@ -143,6 +146,7 @@ export function ContextHelpPanel({
                 defaultValue,
                 activeDefault,
                 styleBreakdown,
+                functionNamesBreakdown,
             } = content;
             return (
                 <div className="help-panel">
@@ -158,16 +162,27 @@ export function ContextHelpPanel({
                     <p className="help-description">
                         {renderInlineMarkdown(description)}
                     </p>
-                    {defaultValue !== undefined && defaultValue !== null && (
-                        <div className="help-detail">
-                            <span className="help-detail-label">Default:</span>
-                            <div className="help-values-list">
-                                <span className="help-value-item">
-                                    {formatValue(defaultValue)}
+                    {defaultValue !== undefined &&
+                        defaultValue !== null &&
+                        // An empty-array default (e.g. `additionalFunctionNames`,
+                        // `removedFunctionNames`) would render as just
+                        // "Default:" with no value, which is noise — suppress
+                        // the row entirely.
+                        !(
+                            Array.isArray(defaultValue) &&
+                            defaultValue.length === 0
+                        ) && (
+                            <div className="help-detail">
+                                <span className="help-detail-label">
+                                    Default:
                                 </span>
+                                <div className="help-values-list">
+                                    <span className="help-value-item">
+                                        {formatValue(defaultValue)}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                     {activeDefault && (
                         // Separate row from "Default:" so the author can tell
                         // the static schema fallback from the live inherited
@@ -185,6 +200,8 @@ export function ContextHelpPanel({
                         </div>
                     )}
                     {styleBreakdown && renderStyleBreakdown(styleBreakdown)}
+                    {functionNamesBreakdown &&
+                        renderFunctionNamesBreakdown(functionNamesBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -430,6 +447,78 @@ function renderStyleBreakdown(breakdown: {
                     </React.Fragment>
                 ))}
             </dl>
+        </div>
+    );
+}
+
+/**
+ * Render a label + chip-list pair used by the function-names breakdown
+ * section. Each chip is a `help-value-item` pill and the chips wrap via
+ * the parent `help-values-list` flex row.
+ */
+function renderLabeledChipList(
+    label: string,
+    items: readonly string[],
+): React.ReactNode {
+    return (
+        <>
+            <span className="help-detail-label">{label}</span>
+            <div className="help-values-list">
+                {items.map((name) => (
+                    <span key={name} className="help-value-item">
+                        {name}
+                    </span>
+                ))}
+            </div>
+        </>
+    );
+}
+
+/**
+ * "Resolved function names" section surfaced when the cursor sits on
+ * `additionalFunctionNames`, `removedFunctionNames`, or
+ * `resetFunctionNames` of a `<mathInput>` (#1205). The author writes
+ * deltas on those attributes and sees the merged effective list plus
+ * the deltas they authored, so they can spot when an entry was
+ * overridden or no-oped.
+ *
+ * When `resetFunctionNames` is authored (`breakdown.reset` present), the
+ * "Reset list" row replaces the add/remove rows and a hint reminds the
+ * author that the other two attributes are inactive.
+ */
+function renderFunctionNamesBreakdown(
+    breakdown: FunctionNamesBreakdownPayload,
+): React.ReactNode {
+    const isReset = breakdown.reset !== undefined;
+    return (
+        <div className="help-detail help-function-names-breakdown">
+            {renderLabeledChipList("Resolved function names:", breakdown.names)}
+            {isReset ? (
+                <>
+                    {renderLabeledChipList(
+                        "Reset list on this input:",
+                        breakdown.reset!,
+                    )}
+                    <span className="help-detail-annotation">
+                        {
+                            "resetFunctionNames overrides additionalFunctionNames and removedFunctionNames."
+                        }
+                    </span>
+                </>
+            ) : (
+                <>
+                    {breakdown.added.length > 0 &&
+                        renderLabeledChipList(
+                            "Added on this input:",
+                            breakdown.added,
+                        )}
+                    {breakdown.removed.length > 0 &&
+                        renderLabeledChipList(
+                            "Removed on this input:",
+                            breakdown.removed,
+                        )}
+                </>
+            )}
         </div>
     );
 }
