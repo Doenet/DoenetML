@@ -651,9 +651,10 @@ export default class Core {
         // Accessibility records typically point at an entire element span;
         // shrink that range to just the opening tag so the editor squiggle /
         // hover only triggers over `<tagname` rather than the whole component.
-        // Non-accessibility records and already-narrow positions (e.g. the
-        // attribute-value ranges from the style-contrast checker) are
-        // returned unchanged by the helper.
+        // Already-narrow positions (e.g. the attribute-value ranges from the
+        // style-contrast checker, whose start char is not `<`) are returned
+        // unchanged by the helper; non-accessibility records skip this block
+        // entirely.
         if (diagnostic?.type === "accessibility" && diagnostic.position) {
             const source = this.allDoenetMLs[diagnostic.sourceDoc ?? 0];
             const narrowed = narrowPositionToOpeningTag(
