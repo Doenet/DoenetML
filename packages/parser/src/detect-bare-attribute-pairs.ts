@@ -19,8 +19,10 @@ export function unquotedAttributeValueMessage(
  * `DastAttribute`s side-by-side: an "assignment" half whose source ends
  * with `=` (after optional whitespace) and a value-less "bare value" half
  * carrying the unquoted token as its `name`.  Returns each such pair so
- * the diagnostics path can warn on the bare half and suppress the
- * spurious unknown-attribute warning that would otherwise fire on it.
+ * `lezer-to-dast` can strip both halves from the element's attribute list
+ * and emit a single unified `DastError` on the bare-value token (#1197) —
+ * which in turn suppresses the four redundant downstream diagnostics this
+ * shape used to surface.
  *
  * Takes a `DastAttribute[]` (the raw per-Attribute list `lezer-to-dast`
  * builds before deduping into `node.attributes`) rather than the element

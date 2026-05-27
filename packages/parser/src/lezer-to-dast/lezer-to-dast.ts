@@ -226,7 +226,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 );
 
                 // Second pass: emit per-attribute errors, swap in the
-                // unified warning on the bare-value half, and drop both
+                // unified error on the bare-value half, and drop both
                 // halves from `attributesList`.  Context-help locates the
                 // assign-half attribute by source-level fallback
                 // (`attributeAtOffset` walks back to `=` and over the
@@ -242,7 +242,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         // rather than fall back to a `{offset:0, line:1,
                         // column:1}` placeholder, so a future change to
                         // that filter trips here instead of silently
-                        // emitting a 0-length warning at the document
+                        // emitting a 0-length error at the document
                         // start.
                         children.push({
                             type: "error",
