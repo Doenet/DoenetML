@@ -134,6 +134,16 @@ This checkout may use a personal fork as `origin` and the canonical `Doenet/Doen
 - After creating the PR, verify the branch has been pushed to `origin` and the PR links to the correct target branch (`Doenet/DoenetML:main`).
 - Do not put the issue number in the PR title or in commit subjects on the branch. Squash-merge appends ` (#<PR-number>)` automatically; a title like `fix: ... (#1179)` becomes `fix: ... (#1179) (#1182)` after merge. Reference issues from the PR body instead (e.g. `Closes #1179.`).
 
+## Agent-Authored GitHub Activity
+
+When an agent posts a PR comment, opens an issue, or comments on an issue, end the body with the Claude Code footer so reviewers can see at a glance that the text was generated:
+
+```
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+This includes review-comment replies posted via `gh api ... /replies`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
+
 ## Changesets
 
 The repo uses Changesets for version management. Configuration is in `.changeset/config.json`.

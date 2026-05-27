@@ -412,6 +412,14 @@ type SchemaElement = {
      * component type is in this map, the help is read from the alias instead.
      */
     childContextHelp?: Record<string, string>;
+    /**
+     * Layout classification derived from the component's inheritance chain:
+     * `"inline"` for descendants of `_inline` (InlineComponent), `"block"`
+     * for descendants of `_block` (BlockComponent), `"other"` for anything
+     * else. The pretty-printer reads this to decide whether to flow children
+     * as prose (`fill`) or break each on its own line.
+     */
+    layoutCategory: "inline" | "block" | "other";
 };
 
 /**
@@ -1025,6 +1033,20 @@ export function getSchema(
         const helpPayload = buildHelpPayloadForClass(type, cClass);
         const { children, acceptsStringChildren } = determineChildren(cClass);
 
+        const isInline = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_inline",
+        });
+        const isBlock = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_block",
+        });
+        const layoutCategory: "inline" | "block" | "other" = isInline
+            ? "inline"
+            : isBlock
+              ? "block"
+              : "other";
+
         const element: SchemaElement = {
             name: type,
             children,
@@ -1037,6 +1059,7 @@ export function getSchema(
             takesIndex: cClass.takesIndex ?? false,
             docsSlug: helpPayload.docsSlug,
             summary: helpPayload.summary,
+            layoutCategory,
         };
         if (helpPayload.displayName !== undefined) {
             element.displayName = helpPayload.displayName;

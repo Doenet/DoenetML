@@ -1,30 +1,30 @@
 import { Plugin } from "unified";
-import { DastElement, DastNodes, DastRoot } from "../../types";
-import { ALWAYS_BREAK_ELEMENTS, PAR_ELEMENTS } from "./special-nodes";
-import { replaceNode } from "./utils/replace-node";
-import { isElement } from "./utils/testers";
+import { DastRoot } from "../../types";
+import { isBlock } from "./layout-categories";
+import { INDENTABLE_PRE_ELEMENTS, PRE_ELEMENTS } from "./special-nodes";
 import { visit } from "./utils/visit";
 
 /**
- * Unifiedjs plugin that trims whitespace at the start and end of applicable nodes.
+ * Unifiedjs plugin that trims whitespace at the start and end of block
+ * elements and the document root. Inline elements (`<em>`, `<m>`, ...)
+ * and pre-formatted elements (`<pre>`, `<cline>`, ...) are left alone
+ * so prose flow and verbatim layout survive normalization.
  */
 export const trimWhitespacePlugin: Plugin<void[], DastRoot, DastRoot> =
     function () {
         return (root: DastRoot) => {
-            visit(root, (node, info) => {
-                if (node.type !== "element" && node.type !== "root") {
+            visit(root, (node) => {
+                if (node.type === "element") {
+                    if (
+                        !isBlock(node.name) ||
+                        PRE_ELEMENTS.has(node.name) ||
+                        INDENTABLE_PRE_ELEMENTS.has(node.name)
+                    ) {
+                        return;
+                    }
+                } else if (node.type !== "root") {
                     return;
                 }
-                if (
-                    isElement(node) &&
-                    !(
-                        PAR_ELEMENTS.has(node.name) ||
-                        ALWAYS_BREAK_ELEMENTS.has(node.name)
-                    )
-                ) {
-                    return;
-                }
-                // If we made it here, whitespace at the start and end of the node should be trimmed
                 const firstChild = node.children[0];
                 const lastChild = node.children[node.children.length - 1];
                 if (firstChild?.type === "text") {

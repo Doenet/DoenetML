@@ -1,0 +1,9 @@
+<module name="mod">
+  <moduleAttributes>
+    <number name="n">3</number>
+    <math name="x">4y</math>
+  </moduleAttributes>
+  <p>The number is $n and math is $x.</p>
+</module>
+
+<moduleAttributes><number>1</number> <math>2</math></moduleAttributes>

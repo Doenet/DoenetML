@@ -1,0 +1,28 @@
+<section>
+  Before paragraphs.
+
+
+  <p>paragraph 1</p>
+
+
+
+  <p>paragraph 2</p>
+
+
+
+  After paragraphs.
+</section>
+
+<section>
+  Adjacent text.
+  <p>no blank line</p>
+  Adjacent text below.
+</section>
+
+<section>
+  One blank line above.
+
+  <p>kept</p>
+
+  One blank line below.
+</section>
