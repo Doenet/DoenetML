@@ -8,9 +8,11 @@ import { AutoCompleter } from "../src";
 /**
  * Aggregate parser-layer error messages plus LSP schema-violation
  * messages — what the LSP server actually surfaces to the editor.  Used
- * by the unquoted-attribute-value tests since the unified warning lives
- * on the parser side (#1197) while the rest of the schema checks fire
- * here.
+ * by the unquoted-attribute-value tests since the unified diagnostic
+ * lives on the parser side (#1197) while the rest of the schema checks
+ * fire here.  Severity isn't compared (parser errors are LSP `Error`,
+ * schema violations are mostly `Warning`); the messages alone are
+ * enough to pin the contract.
  */
 async function getAllDiagnosticMessages(ac: AutoCompleter): Promise<string[]> {
     const parserErrors = extractDastErrors(ac.sourceObj.dast).map(
@@ -658,17 +660,17 @@ describe("AutoCompleter", () => {
         // The parser splits the unquoted assignment into two value-less
         // attributes; `lezer-to-dast` detects the pair, strips both
         // halves from `node.attributes`, and emits a single unified
-        // warning naming the corrected form (#1197).  Schema-violation
+        // error naming the corrected form (#1197).  Schema-violation
         // tests therefore aggregate parser-layer errors + LSP
         // schema-violation warnings, mirroring what the LSP server
         // actually surfaces to the editor.
 
-        it("warns on a bare attribute value and names the corrected form", async () => {
+        it("emits a single diagnostic naming the corrected form for a bare attribute value", async () => {
             const source = `<a x=bar />`;
             const ac = new AutoCompleter(source, schema.elements);
             const messages = await getAllDiagnosticMessages(ac);
             // Exactly one diagnostic — the parser-emitted unified
-            // warning.  The "unknown attribute" warning that would
+            // error.  The "unknown attribute" warning that would
             // otherwise fire on the bare-value half is suppressed by
             // stripping both halves from `node.attributes`.
             expect(messages).toEqual([
@@ -689,7 +691,7 @@ describe("AutoCompleter", () => {
             expect(await getAllDiagnosticMessages(ac)).toEqual([]);
         });
 
-        it("warns on a bare value with whitespace between `=` and the token", async () => {
+        it("flags a bare value with whitespace between `=` and the token", async () => {
             // `<a x=   bar />`: the parser absorbs the trailing spaces
             // into `x`'s source range (so it ends `x=   `), and `bar`
             // becomes the value-less follower. Detection must tolerate
@@ -703,7 +705,7 @@ describe("AutoCompleter", () => {
 
         it("flags only the unquoted attribute when mixed with a quoted one", async () => {
             // The quoted `y="bar"` parses cleanly and stays quiet; only
-            // the unquoted `x=foo` half fires the unified warning.
+            // the unquoted `x=foo` half fires the unified error.
             const source = `<a x=foo y="bar" />`;
             const ac = new AutoCompleter(source, schema.elements);
             expect(await getAllDiagnosticMessages(ac)).toEqual([
@@ -735,11 +737,11 @@ describe("AutoCompleter", () => {
             );
         });
 
-        it("still warns when the assignment half itself is an unknown attribute", async () => {
+        it("collapses to one diagnostic when the assignment half itself is an unknown attribute", async () => {
             // `<a foo=bar />` — `foo` is not on `<a>`'s attribute list.
             // Both halves are stripped from `node.attributes`, so the
             // standard "unknown attribute" warning on `foo` doesn't fire
-            // anymore — the unified bare-value warning covers the whole
+            // anymore — the unified bare-value error covers the whole
             // mistake on its own.  This is the intended behavior: a
             // single, accurate diagnostic instead of two overlapping
             // ones.
@@ -755,7 +757,8 @@ describe("AutoCompleter", () => {
             // plus whitespace), but `y="bar"` is a real attribute with
             // its own quoted value, not a bare token. Flagging the
             // pair would emit a misleading `x="y"` suggestion; the
-            // value-half-also-empty guard prevents that.
+            // value-half-also-empty guard in
+            // `findBareAttributeValuePairs` prevents that.
             const source = `<a x= y="bar" />`;
             const ac = new AutoCompleter(source, schema.elements);
             const messages = await getAllDiagnosticMessages(ac);
@@ -785,7 +788,7 @@ describe("AutoCompleter", () => {
         it("does not emit a misleading `name=''` error on the assignment half", async () => {
             // `<math name=foo />` — the actual #1104 target.  Stripping
             // both halves means `enforce-valid-names` doesn't see a
-            // `name=''` attribute to flag, and only the unified warning
+            // `name=''` attribute to flag, and only the unified error
             // fires.
             const source = `<math name=foo />`;
             const ac = new AutoCompleter(source, doenetSchema.elements);
@@ -814,10 +817,10 @@ describe("AutoCompleter", () => {
             );
         });
 
-        it("does not emit a bare-value warning for two consecutive unquoted values", async () => {
+        it("does not emit a bare-value diagnostic for two consecutive unquoted values", async () => {
             // `<a x=foo y=bar />` — the parser greedily reads through
             // the second `=` and reports its own quote-mismatch error
-            // covering the whole run; emitting a bare-value warning
+            // covering the whole run; emitting a bare-value error
             // here would either misattribute the suggestion
             // (`x="foo"`? `x="y"`? neither is right) or duplicate the
             // parser's error.  Documented as out-of-scope on
@@ -841,8 +844,8 @@ describe("AutoCompleter", () => {
             // to `"true"`, which is not in `["one", "two"]` — without
             // stripping the assign half, the LSP would emit a spurious
             // "must be one of: …" warning alongside the unified
-            // warning.  With the parser stripping both halves, only
-            // the unified warning fires.
+            // error.  With the parser stripping both halves, only
+            // the unified error fires.
             const localSchema = {
                 elements: [
                     {
@@ -860,7 +863,7 @@ describe("AutoCompleter", () => {
             const source = `<a kind=foo />`;
             const ac = new AutoCompleter(source, localSchema.elements);
             const messages = await getAllDiagnosticMessages(ac);
-            // The bare-value warning is the only diagnostic — no
+            // The bare-value error is the only diagnostic — no
             // "must be one of: ..." warning on the assignment half.
             expect(messages).toContain(
                 'Attribute values must be enclosed in quotes: `kind="foo"`',

@@ -28,6 +28,22 @@ const TAKES_INDEX_COMPONENT_TYPES: ReadonlySet<string> = new Set(
         .map((schemaElement) => schemaElement.name),
 );
 
+/**
+ * Map a DAST node's `error_type` to the LSP severity the editor renders.
+ * Used in `validateTextDocument` so deprecation warnings stay yellow and
+ * info notices stay blue.  The `"error"` key handles both an explicit
+ * `error_type: "error"` and the absent-field default the caller resolves
+ * with `?? "error"`.
+ */
+const DAST_ERROR_TYPE_TO_LSP_SEVERITY: Record<
+    "error" | "warning" | "info",
+    DiagnosticSeverity
+> = {
+    error: DiagnosticSeverity.Error,
+    warning: DiagnosticSeverity.Warning,
+    info: DiagnosticSeverity.Information,
+};
+
 export function addValidationSupport(
     connection: Connection,
     documentInfo: DocumentInfo,
@@ -179,24 +195,17 @@ export function addValidationSupport(
         }
         const errors = extractDastErrors(info.autoCompleter.sourceObj.dast);
         const diagnostics: Diagnostic[] = errors.map((error) => {
-            // Honor the DAST node's `error_type`: the parser emits
-            // `error_type: "warning"` for soft diagnostics (the unified
-            // unquoted-attribute warning from #1197 is the canonical
-            // case).  Without this mapping, every DAST error rendered as
-            // a red error squiggle even when the producing layer chose
-            // `warning`/`info`.  Default to `Error` for legacy nodes
-            // that omit the field.
-            let severity: DiagnosticSeverity;
-            switch (error.error_type) {
-                case "warning":
-                    severity = DiagnosticSeverity.Warning;
-                    break;
-                case "info":
-                    severity = DiagnosticSeverity.Information;
-                    break;
-                default:
-                    severity = DiagnosticSeverity.Error;
-            }
+            // Honor the DAST node's `error_type`: deprecation notices
+            // from `dast-normalize/deprecations.ts` are the canonical
+            // source of `error_type: "warning"`.  Without this mapping
+            // every DAST error rendered as a red error squiggle even
+            // when the producing layer chose `warning`/`info`.  An
+            // omitted `error_type` defaults to `Error` (matching the
+            // worker's `convertNormalizedDast`, which only takes the
+            // `_error`-component branch when the field isn't
+            // `"warning"`/`"info"`).
+            const severity =
+                DAST_ERROR_TYPE_TO_LSP_SEVERITY[error.error_type ?? "error"];
             const diagnostic: Diagnostic = {
                 message: error.message,
                 severity,
