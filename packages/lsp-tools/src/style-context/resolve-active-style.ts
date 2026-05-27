@@ -88,14 +88,11 @@ export function isStyleAttributeName(attributeName: string): boolean {
 const STYLE_KEY_PREFIXES = coloredItemsForWords;
 type StyleKeyPrefix = (typeof STYLE_KEY_PREFIXES)[number];
 
-/**
- * Lowercased view of the prefixes so a single-pass detection on a schema-
- * attribute name (case-insensitive) can map back to the canonical prefix
- * without re-walking the list per call.
- */
-const STYLE_KEY_PREFIX_BY_LOWER: ReadonlyMap<string, StyleKeyPrefix> = new Map(
-    STYLE_KEY_PREFIXES.map((p) => [p.toLowerCase(), p]),
-);
+/** Lowercased prefixes paired with their canonical form, precomputed so
+ *  `stylePrefixOfKey` doesn't re-lowercase the prefix list on every call. */
+const STYLE_KEY_PREFIXES_LOWER: ReadonlyArray<
+    readonly [string, StyleKeyPrefix]
+> = STYLE_KEY_PREFIXES.map((p) => [p.toLowerCase(), p] as const);
 
 /**
  * Map a canonical `styleAttributes` key to its prefix bucket (e.g.
@@ -106,8 +103,8 @@ const STYLE_KEY_PREFIX_BY_LOWER: ReadonlyMap<string, StyleKeyPrefix> = new Map(
  */
 function stylePrefixOfKey(key: StyleDefinitionKey): StyleKeyPrefix | undefined {
     const lower = key.toLowerCase();
-    for (const prefix of STYLE_KEY_PREFIXES) {
-        if (lower.startsWith(prefix.toLowerCase())) return prefix;
+    for (const [prefixLower, prefix] of STYLE_KEY_PREFIXES_LOWER) {
+        if (lower.startsWith(prefixLower)) return prefix;
     }
     return undefined;
 }

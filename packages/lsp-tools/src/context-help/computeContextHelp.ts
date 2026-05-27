@@ -18,6 +18,7 @@ import {
     relevantStyleKeysForPrefixes,
     resolveActiveStyleAttributeValue,
     resolveActiveStyleBreakdown,
+    type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
 import { HelpContent } from "./types";
 
@@ -433,16 +434,7 @@ function computeStyleBreakdownForAttribute(
     effectiveEntry: SchemaEntryForHelp,
     schemaAttr: SchemaAttribute,
     ctx: ActiveDefaultContext | undefined,
-):
-    | {
-          styleNumber: number;
-          entries: Array<{
-              key: string;
-              value: string | number | boolean;
-              colorWord?: string;
-          }>;
-      }
-    | undefined {
+): ActiveStyleBreakdown | undefined {
     if (!ctx) return undefined;
     const insideStyleDefinition = elementName === "styleDefinition";
     const cursorOnStyleNumber = schemaAttr.name === "styleNumber";
@@ -469,18 +461,10 @@ function computeStyleBreakdownForAttribute(
         includeKeys ? { includeKeys } : undefined,
     );
     if (breakdown.entries.length === 0) return undefined;
-    return {
-        styleNumber: breakdown.styleNumber,
-        entries: breakdown.entries.map((e) => {
-            const out: {
-                key: string;
-                value: string | number | boolean;
-                colorWord?: string;
-            } = { key: e.key, value: e.value };
-            if (e.colorWord !== undefined) out.colorWord = e.colorWord;
-            return out;
-        }),
-    };
+    // The resolver already emits entries in the shape the help payload
+    // promises (`{key, value, colorWord?}` with `colorWord` only present
+    // when defined), so we can hand them through verbatim — no repacking.
+    return breakdown;
 }
 
 function helpForAttribute(

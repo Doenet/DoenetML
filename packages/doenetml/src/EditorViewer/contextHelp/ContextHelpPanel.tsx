@@ -370,50 +370,54 @@ export function ContextHelpPanel({
     }
 }
 
+/**
+ * For a color attribute, render the resolved color text alongside the
+ * derived word, both painted in the resolved color so authors can see
+ * what the hex represents at a glance.  Returns `null` when the entry
+ * isn't a recognized color (no `colorWord`, or `value` isn't a string) so
+ * callers can fall back to plain `formatValue` rendering.
+ */
+function renderColorValueContent(entry: {
+    value: string | number | boolean;
+    colorWord?: string;
+}): React.ReactNode | null {
+    if (!entry.colorWord || typeof entry.value !== "string") return null;
+    const colorText = resolveCssVariables(entry.value);
+    const colorStyle = { color: colorText };
+    return (
+        <>
+            <span style={colorStyle}>{colorText}</span>
+            <span style={colorStyle}>{` (${entry.colorWord})`}</span>
+        </>
+    );
+}
+
 // Paint hex and derived word in the resolved color for color attributes so
 // authors don't have to decode the hex. Non-color values fall through to
-// `formatValue`.
+// `formatValue`.  The outer `<span class="help-value-item">` supplies the
+// pill background — color rows nest the colored content inside it so the
+// pill stays consistent with non-color rows.
 function renderActiveDefaultValue(activeDefault: {
     value: string | number | boolean;
     colorWord?: string;
 }): React.ReactNode {
-    if (activeDefault.colorWord && typeof activeDefault.value === "string") {
-        const colorText = resolveCssVariables(activeDefault.value);
-        const colorStyle = { color: colorText };
-        return (
-            <span className="help-value-item">
-                <span style={colorStyle}>{colorText}</span>
-                <span
-                    style={colorStyle}
-                >{` (${activeDefault.colorWord})`}</span>
-            </span>
-        );
-    }
+    const colorContent = renderColorValueContent(activeDefault);
     return (
         <span className="help-value-item">
-            {formatValue(activeDefault.value)}
+            {colorContent ?? formatValue(activeDefault.value)}
         </span>
     );
 }
 
 // One row in the styleNumber breakdown (#1204). Color attributes paint the
 // hex (and word) in the resolved color, mirroring `renderActiveDefaultValue`
-// so the two surfaces look consistent.
+// so the two surfaces look consistent.  The enclosing `<dd>` already
+// supplies the pill styling, so this returns the inner content directly.
 function renderBreakdownValue(entry: {
     value: string | number | boolean;
     colorWord?: string;
 }): React.ReactNode {
-    if (entry.colorWord && typeof entry.value === "string") {
-        const colorText = resolveCssVariables(entry.value);
-        const colorStyle = { color: colorText };
-        return (
-            <>
-                <span style={colorStyle}>{colorText}</span>
-                <span style={colorStyle}>{` (${entry.colorWord})`}</span>
-            </>
-        );
-    }
-    return formatValue(entry.value);
+    return renderColorValueContent(entry) ?? formatValue(entry.value);
 }
 
 function formatValue(val: unknown): React.ReactNode {
