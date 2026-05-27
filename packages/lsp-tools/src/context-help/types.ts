@@ -137,9 +137,10 @@ export type HelpContent =
           /**
            * Effective MathQuill function-name list at the cursor's scope
            * (issue #1205). Populated only when the cursor sits on
-           * `additionalFunctionNames` or `removedFunctionNames` of a
-           * `<mathInput>`. See {@link FunctionNamesBreakdownPayload} for
-           * the field-by-field contract.
+           * `additionalFunctionNames`, `removedFunctionNames`, or
+           * `resetFunctionNames` of a `<mathInput>`. See
+           * {@link FunctionNamesBreakdownPayload} for the field-by-field
+           * contract.
            */
           functionNamesBreakdown?: FunctionNamesBreakdownPayload;
       }
