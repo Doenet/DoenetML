@@ -38,11 +38,17 @@ const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
  * effective list is empty \u2014 e.g., the author wrote
  * `<mathInput resetFunctionNames="" />` to disable auto-formatting
  * entirely \u2014 we hand MathQuill a single sentinel that satisfies the
- * validator but is implausible enough that no math student will type
- * it. The end result is that no real identifier ever auto-formats,
- * which is the author's intent.
+ * validator but can never match user input.
+ *
+ * `Letter.autoUnItalicize` (mathquill.js around line 7859) builds
+ * candidate match strings from runs of contiguous `Letter` nodes only,
+ * so a token containing a dash cannot match anything the author types.
+ * We use `"a-"` (length 2, the minimum) instead of a long descriptive
+ * string so MathQuill's computed `autoOperatorNames._maxLength` stays
+ * small \u2014 that value drives the inner loop in `autoUnItalicize`, and a
+ * smaller `_maxLength` means less work on every keystroke.
  */
-const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "mathquill-no-auto-format-sentinel";
+const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
 
 /**
  * Encapsulates math input preview popover state and interaction behavior.
