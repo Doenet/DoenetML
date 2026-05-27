@@ -144,13 +144,21 @@ Six packages version together:
 - `@doenet/v06-to-v07`, `@doenet/vscode-extension`, `doenet-vscode-extension`
 
 ### Independent Versioning
-- `@doenet/prefigure` versions independently
+- `@doenet/prefigure` versions independently.
 
-**Rule**: When creating a changeset for a user-facing change, include **all packages** where the change is visible to end users, not just where the implementation lives.
+### Never Versioned
+- `@doenet/lsp-tools` and `@doenet/static-assets` are private (`"private": true` in their `package.json`) and never published. Their source ships inside `@doenet/doenetml`'s bundle, so a change to either rides under `@doenet/doenetml`'s version. **Do not list them in any changeset, ever** — not even when files under `packages/lsp-tools/` or `packages/static-assets/` themselves changed.
 
-Example: A change to `packages/doenetml/src/Viewer` affects `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, and downstream variants. Include all in the changeset.
+### Which packages to list
 
-User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
+Propagation is **one-directional — forward to consumers that re-bundle or re-render the change, never back to dependencies of the changed package.** Include a package iff:
+
+1. Its own source changed in this branch (and the package is published), OR
+2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. Look at recent changesets in the same area for the conventional set.
+
+Do **not** include a package just because the changed code imports from it. `@doenet/doenetml` depends on `@doenet/lsp-tools` and `@doenet/static-assets`, which makes them tempting to add to an editor changeset — but they're covered by the rule above: never listed.
+
+Fixed-group members all version together regardless of whether they're listed, but listing controls which package's CHANGELOG the entry lands in — list a fixed-group member only when its users would care to read the entry. Editor/viewer changes typically skip `@doenet/v06-to-v07` for this reason, even though v06-to-v07 versions along with the group.
 
 ## Key State & Data Flow
 
