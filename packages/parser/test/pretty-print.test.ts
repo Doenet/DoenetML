@@ -145,7 +145,7 @@ describe("Prettier", async () => {
         }
     }
 
-    it("Always breaks children of BREAK_AROUND_ELEMENTS", async () => {
+    it("Always breaks children of always-break parents like <graph>", async () => {
         const cases = [
             {
                 inStr: "<graph><line /><line /></graph>",
