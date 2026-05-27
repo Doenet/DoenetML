@@ -646,6 +646,34 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                     "Author-declared module attribute (`<point>`)",
                 );
             });
+
+            it("surfaces the declared component type for attribute-value autocomplete rows on a declared attribute", async () => {
+                // Sibling of the `type: "enum"` test above: the `value`
+                // branch in `computeContextHelpForCompletion` falls back
+                // to the attribute's description when there's no per-value
+                // help, so a value-row highlight inside an author-declared
+                // attribute must surface the same component-type-tagged
+                // description rather than blanking out (#1189).  Cursor is
+                // placed inside the `center` attribute's value on the copy
+                // site so `attributeAtOffset` returns the declared
+                // attribute and the augmented help entry resolves it.
+                const source = `<module name="m"><moduleAttributes><point name="center">(0,0)</point></moduleAttributes></module>
+<module copy="$m" center="(" />`;
+                const { completer } = await buildCompleter(source);
+                // Position the cursor between the opening quote and `(`.
+                const offset = source.indexOf('center="') + 'center="'.length;
+                const help = await computeContextHelpForCompletion(
+                    completer,
+                    offset,
+                    { label: "(", type: "value" },
+                );
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.attributeName.toLowerCase()).toBe("center");
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
+            });
         });
 
         describe("precompute coalescing (sourceRevision)", () => {
