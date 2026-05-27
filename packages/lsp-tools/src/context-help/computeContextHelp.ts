@@ -16,7 +16,10 @@ import {
     chaseIndexAliases,
     deepestArrayEntryType,
 } from "../auto-completer/index-aliases";
-import { mergeDeclaredIntoSchemaAttributes } from "../auto-completer/module-attributes";
+import {
+    mergeDeclaredIntoSchemaAttributes,
+    type DeclaredModuleAttribute,
+} from "../auto-completer/module-attributes";
 import {
     detectStylePrefixesFromAttributes,
     isStyleAttributeName,
@@ -66,7 +69,9 @@ function findSchemaProperty(
  */
 function augmentWithPerInstanceAttributes(
     effective: SchemaEntryForHelp | undefined,
-    perInstanceAllowlist: ReadonlySet<string> | undefined,
+    perInstanceAllowlist:
+        | ReadonlyMap<string, DeclaredModuleAttribute>
+        | undefined,
 ): SchemaEntryForHelp | undefined {
     if (
         !effective ||

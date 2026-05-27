@@ -19,7 +19,8 @@ import {
 import { isRepeatLikeElement } from "./repeat-elements";
 import {
     collectModuleInstancesWithCopyOrExtend,
-    getEffectiveModuleAttributeNames,
+    getEffectiveModuleAttributes,
+    type DeclaredModuleAttribute,
 } from "./module-attributes";
 
 // Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
@@ -328,10 +329,12 @@ export class AutoCompleter {
     snippetsByKey: Map<string, ProcessedSnippet> = new Map();
 
     /**
-     * Per-instance allow-list of attribute names declared by the `<module>`
+     * Per-instance allow-list of attributes declared by the `<module>`
      * a given `<module copy="$x" .../>` (or `extend=`) site resolves to
      * (issue #1154 out-of-scope extension).  Keyed by the DAST element of
-     * the copy-site, mapping to lowercased declared names.
+     * the copy-site; the inner map is lowercased attribute name →
+     * declared-attribute metadata (currently the child element's
+     * component type, per #1189).
      *
      * Populated by `_refreshModuleInstanceAttributes()` once per source
      * revision; the validation and completion paths consult this map
@@ -340,8 +343,10 @@ export class AutoCompleter {
      * or hit a `<module>` without `<moduleAttributes>` are NOT in the map
      * (per scope-lock: canonical schema applies as-is in those cases).
      */
-    _moduleInstanceAttributeAllowlist: Map<DastElement, Set<string>> =
-        new Map();
+    _moduleInstanceAttributeAllowlist: Map<
+        DastElement,
+        Map<string, DeclaredModuleAttribute>
+    > = new Map();
 
     /**
      * `_sourceRevision` snapshot from the rust adapter that the per-instance
@@ -497,16 +502,18 @@ export class AutoCompleter {
             );
             const entries = await Promise.all(
                 instances.map(async (el) => {
-                    const set = await getEffectiveModuleAttributeNames(
+                    const declared = await getEffectiveModuleAttributes(
                         el,
                         adapter,
                     );
-                    return [el, set] as const;
+                    return [el, declared] as const;
                 }),
             );
             this._moduleInstanceAttributeAllowlist.clear();
-            for (const [el, set] of entries) {
-                if (set) this._moduleInstanceAttributeAllowlist.set(el, set);
+            for (const [el, declared] of entries) {
+                if (declared) {
+                    this._moduleInstanceAttributeAllowlist.set(el, declared);
+                }
             }
             this._moduleInstanceAllowlistSourceRevision = rev;
         })();
@@ -976,14 +983,14 @@ export class AutoCompleter {
         elementName: string,
         attributeName: string,
         parentName?: string,
-        perInstanceAllowlist?: ReadonlySet<string>,
+        perInstanceAllowlist?: ReadonlyMap<string, DeclaredModuleAttribute>,
     ): boolean {
         // Check the per-instance allowlist against the raw (author-typed)
         // attribute name BEFORE normalizing — an author-declared name need
         // not exist anywhere else in the schema (e.g. `balloonShape`), in
         // which case `normalizeAttributeName` would yield `UNKNOWN_NAME`
         // and the early-return below would block it.  The allowlist is
-        // stored lowercased to match the runtime's case-insensitive lookup.
+        // keyed lowercased to match the runtime's case-insensitive lookup.
         if (
             perInstanceAllowlist &&
             perInstanceAllowlist.has(attributeName.toLowerCase())

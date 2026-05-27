@@ -484,22 +484,39 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("completion: attribute-name dropdown for <module copy=...>", () => {
-            it("offers declared names alongside canonical ones", async () => {
+            it("offers declared names alongside canonical ones, with component-type-tagged descriptions", async () => {
                 // Cursor right after the space inside the open tag — the
                 // attribute-name completion branch fires here.
                 const source = `<setup><module name="m"><moduleAttributes><point name="center">(0,0)</point><number name="color">2</number></moduleAttributes></module></setup>
 <module copy="$m" `;
                 const { completer } = await buildCompleter(source);
                 const items = await completer.getCompletionItems(source.length);
-                const labels = items
-                    .filter((i) => i.kind === CompletionItemKind.Enum)
-                    .map((i) => i.label);
+                const enumItems = items.filter(
+                    (i) => i.kind === CompletionItemKind.Enum,
+                );
+                const labels = enumItems.map((i) => i.label);
                 // Author-declared names.
                 expect(labels).toContain("center");
                 expect(labels).toContain("color");
                 // Canonical <module> attributes still present.
                 expect(labels).toContain("name");
                 expect(labels).toContain("hide");
+                // The synthesized descriptions surface the declared child's
+                // component type so the dropdown documentation shows
+                // `<point>` vs `<number>` (issue #1189). The LSP wraps
+                // descriptions in a MarkupContent payload at this layer.
+                const docFor = (label: string): string | undefined => {
+                    const item = enumItems.find((i) => i.label === label);
+                    const doc = item?.documentation;
+                    if (typeof doc === "string") return doc;
+                    return doc?.value;
+                };
+                expect(docFor("center")).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
+                expect(docFor("color")).toBe(
+                    "Author-declared module attribute (`<number>`)",
+                );
             });
 
             it("without copy=, only canonical attributes are offered", async () => {
@@ -532,11 +549,13 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("context-help on declared attributes", () => {
-            it("returns an attribute help payload when the cursor sits on a per-instance declared attribute", async () => {
+            it("returns an attribute help payload tagged with the declared component type", async () => {
                 // Reproduces the user-reported follow-up: the cursor is
                 // inside the `n` attribute on the copy site; the help
                 // panel previously returned NONE because `helpForAttribute`
-                // only consulted the canonical/alias schema entry.
+                // only consulted the canonical/alias schema entry.  The
+                // surfaced description now includes the declared child's
+                // component type (issue #1189).
                 const source = `<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
 <module copy="$m" n="3" />`;
                 const { completer } = await buildCompleter(source);
@@ -548,7 +567,25 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 expect(help.elementName).toBe("module");
                 expect(help.attributeName.toLowerCase()).toBe("n");
                 expect(help.description).toBe(
-                    "Author-declared module attribute",
+                    "Author-declared module attribute (`<number>`)",
+                );
+            });
+
+            it("surfaces a different component type for a different declared child element", async () => {
+                // Sibling assertion to the `<number>` case above: the
+                // description must vary with the declared child's tag, so
+                // a `<point name="p">` declaration surfaces `<point>` (not
+                // a generic placeholder).  Pins that the metadata is
+                // threaded all the way through to the help payload.
+                const source = `<module name="m"><moduleAttributes><point name="p">(0,0)</point></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
                 );
             });
 
@@ -562,9 +599,9 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 if (help.kind !== "attribute") return;
                 expect(help.attributeName.toLowerCase()).toBe("name");
                 // Canonical entries have their real description, NOT the
-                // synthesized placeholder.
-                expect(help.description).not.toBe(
-                    "Author-declared module attribute",
+                // synthesized author-declared payload.
+                expect(help.description.startsWith("Author-declared")).toBe(
+                    false,
                 );
             });
 
