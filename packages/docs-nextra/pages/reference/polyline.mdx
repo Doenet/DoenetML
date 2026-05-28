@@ -245,16 +245,21 @@ When the `<polyline>{:dn}` preserves similarity, the `allowDilation` attribute c
 
 
 ```doenet-example
-<p>Try to flip the polyline by dragging a vertex across the others.</p>
+<p>Note: click either polyline to reflect it.</p>
+<callAction target="$poly1" actionName="reflectPolyline" triggerWhenObjectsClicked="$poly1"/>
+<callAction target="$poly2" actionName="reflectPolyline" triggerWhenObjectsClicked="$poly2"/>
 <graph size="small">
-  <shortDescription>A graph of a polyline that cannot be reflected</shortDescription>
-  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" allowReflection="false"/>
+  <shortDescription>A graph of two polylines, one of which can be reflected by clicking</shortDescription>
+  <polyline name="poly1" vertices="(-8,2) (-6,-3) (-1,4)"/>
+  <polyline name="poly2" vertices="(2,2) (4,-3) (9,4)" styleNumber="2" allowReflection="false"/>
 </graph>
 ```
 
 
 
-The `allowReflection` attribute controls whether the `<polyline>{:dn}` may be flipped (reflected) while dragging. Set to `false` to prevent reflection. The default value is `true`.
+The `allowReflection` attribute controls whether the `<polyline>{:dn}` may be flipped (reflected) across a vertical line through its centroid. The default value is `true`.
+
+Reflection is not currently triggered by a built-in drag or click gesture; it is performed by the `reflectPolyline` action. In this example that action is invoked with [`<callAction>{:dn}`](callAction.mdx) whenever a polyline is clicked. The first polyline reflects on each click, while the second has `allowReflection="false"`, so clicking it has no effect.
 
 
 
