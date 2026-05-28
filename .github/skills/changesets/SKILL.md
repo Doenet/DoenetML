@@ -39,6 +39,15 @@ Propagation is **one-directional — forward to consumers that re-bundle or re-r
 1. Its own source changed in this branch (and the package is published), OR
 2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. Look at recent changesets in the same area for the conventional set.
 
+### The doenetml → standalone → doenetml-iframe chain (always propagate)
+
+`@doenet/standalone` incorporates all of `@doenet/doenetml`, and `@doenet/doenetml-iframe` users see `@doenet/standalone` as the product. So any change that lands in one of these flows forward down the chain — never list an upstream member without its downstream consumers:
+
+- A changeset listing **`@doenet/doenetml`** must also list **`@doenet/standalone`** and **`@doenet/doenetml-iframe`**.
+- A changeset listing **`@doenet/standalone`** must also list **`@doenet/doenetml-iframe`**.
+
+This applies whether the change is to `packages/doenetml/src` directly or to something `@doenet/doenetml` bundles — if it surfaces in `@doenet/doenetml`, it surfaces in `@doenet/standalone` and `@doenet/doenetml-iframe` too.
+
 Do **not** include a package just because the changed code imports from it. `@doenet/doenetml` depends on `@doenet/lsp-tools` and `@doenet/static-assets`, which makes them tempting to add to an editor changeset — but they're covered by the rule above: never listed.
 
 Fixed-group members all version together regardless of whether they're listed, but listing controls which package's CHANGELOG the entry lands in — list a fixed-group member only when its users would care to read the entry. Editor/viewer changes typically skip `@doenet/v06-to-v07` for this reason, even though v06-to-v07 versions along with the group.
