@@ -1,7 +1,7 @@
 import { visit } from "unist-util-visit";
 import { Plugin } from "unified";
 import { computeOptimizedSchema } from "./compute-optimized-schema";
-import { parseModule, Program as EstreeProgram } from "esprima";
+import { objectToEstree } from "./object-to-estree";
 import { Heading, Root as MdastRoot } from "mdast";
 import GithubSlugger from "github-slugger";
 import * as fs from "node:fs";
@@ -525,35 +525,4 @@ function injectSummary(
 
     // Add the summary to the search data.
     file.data.extraSearchData["component-summary#Description"] = info.summary;
-}
-
-/**
- * Turn a plain JS object into an ESTree object suitable for including in a `mdxJsxAttributeValueExpression`.
- */
-function objectToEstree(obj: any): EstreeProgram {
-    const estreeRaw = parseModule(`const IGNORE = ${JSON.stringify(obj)}`);
-
-    const decl = estreeRaw.body[0];
-    if (decl.type !== "VariableDeclaration") {
-        throw new Error("PARSE ERROR: Expected a VariableDeclaration");
-    }
-    const decl2 = decl.declarations[0];
-    if (decl2.type !== "VariableDeclarator") {
-        throw new Error("PARSE ERROR: Expected a VariableDeclarator");
-    }
-    const expr = decl2.init;
-    if (!expr) {
-        throw new Error("PARSE ERROR: Expected an Expression");
-    }
-
-    return {
-        type: "Program",
-        body: [
-            {
-                type: "ExpressionStatement",
-                expression: expr,
-            },
-        ],
-        sourceType: "module",
-    };
 }
