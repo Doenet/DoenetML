@@ -238,16 +238,16 @@ The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` u
 
 
 ```doenet-example
-<p>Dragging the highlighted vertex no longer rotates this rigid polygon.</p>
+<p>With rotation disabled, dragging the highlighted vertex resizes (dilates) this polygon instead of rotating it.</p>
 <graph size="small">
-  <shortDescription>A graph of a rigid polygon that cannot be rotated</shortDescription>
-  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowRotation="false"/>
+  <shortDescription>A graph of a similarity-preserving polygon that cannot be rotated</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity allowRotation="false"/>
 </graph>
 ```
 
 
 
-When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`.
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`. Because this polygon uses `preserveSimilarity` (which allows dilation), disabling rotation leaves the highlighted vertex able to uniformly scale the polygon.
 
 
 

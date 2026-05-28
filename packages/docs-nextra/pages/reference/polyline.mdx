@@ -188,16 +188,16 @@ The `preserveSimilarity` attribute preserves the shape of the `<polyline>{:dn}` 
 
 
 ```doenet-example
-<p>Dragging the highlighted vertex no longer rotates this rigid polyline.</p>
+<p>With rotation disabled, dragging the highlighted vertex resizes (dilates) this polyline instead of rotating it.</p>
 <graph size="small">
-  <shortDescription>A graph of a rigid polyline that cannot be rotated</shortDescription>
-  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowRotation="false"/>
+  <shortDescription>A graph of a similarity-preserving polyline that cannot be rotated</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity allowRotation="false"/>
 </graph>
 ```
 
 
 
-When the `<polyline>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`.
+When the `<polyline>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`. Because this polyline uses `preserveSimilarity` (which allows dilation), disabling rotation leaves the highlighted vertex able to uniformly scale the polyline.
 
 
 
