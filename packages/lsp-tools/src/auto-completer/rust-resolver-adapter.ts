@@ -967,41 +967,7 @@ export class RustResolverAdapter {
         const derivedRepeatNames = this.getDerivedRepeatNames(offset);
         if (derivedRepeatNames.includes(name)) return true;
 
-        // A $name reference typed at `offset` will become a child of the
-        // element whose body contains the cursor.  resolve_path with
-        // skip_parent_search=false searches from the origin's PARENT scope
-        // upward, so to correctly probe the containing element's scope we
-        // must resolve from one of its existing children rather than the
-        // container itself.
-        const containingElement = this._sourceObj.elementAtOffset(offset);
-        let resolveFromIndex: number | null = null;
-
-        if (containingElement) {
-            // Find the first child element that has a Rust index.
-            for (const child of containingElement.children) {
-                if (child.type === "element") {
-                    const ci = this._dastElementToRustIndex.get(child);
-                    if (ci != null) {
-                        resolveFromIndex = ci;
-                        break;
-                    }
-                }
-            }
-            // If the container has no mapped child elements, fall back to the
-            // container itself.  There are no named children to be hidden, so
-            // the parent-scope walk is still correct.
-            if (resolveFromIndex == null) {
-                resolveFromIndex =
-                    this._dastElementToRustIndex.get(containingElement) ?? null;
-            }
-        } else {
-            // Root level — use the first top-level element (a child of the
-            // document root).  resolve_path from it with skip_parent_search=
-            // false searches root scope, which is what a reference at root
-            // level would see.
-            resolveFromIndex = this._getRootOriginIndex();
-        }
-
+        const resolveFromIndex = this._referenceOriginIndex(offset);
         if (resolveFromIndex == null) return false;
 
         try {
@@ -1045,75 +1011,105 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Classify a bare `$name` reference at `offset` using the Rust resolver —
-     * the runtime's own algorithm, so its verdicts are authoritative:
-     *   - `"found"`        — resolves to an element named `name`.
+     * Rust index to use as the resolve origin for a reference typed at
+     * `offset`. A `$name` reference becomes a child of the element whose body
+     * contains the cursor, and `resolve_path` with `skipParentSearch=false`
+     * searches from the origin's PARENT scope upward — so we resolve from one
+     * of the container's existing children rather than the container itself,
+     * to correctly probe the container's own scope. At root level, use the
+     * first top-level element. Returns null when nothing maps.
+     */
+    _referenceOriginIndex(offset: number): number | null {
+        const containingElement = this._sourceObj.elementAtOffset(offset);
+        if (!containingElement) {
+            return this._getRootOriginIndex();
+        }
+        for (const child of containingElement.children) {
+            if (child.type === "element") {
+                const ci = this._dastElementToRustIndex.get(child);
+                if (ci != null) return ci;
+            }
+        }
+        // No mapped child elements — fall back to the container itself. It has
+        // no named children to be hidden, so the parent-scope walk is still
+        // correct.
+        return this._dastElementToRustIndex.get(containingElement) ?? null;
+    }
+
+    /**
+     * Classify a reference `$pathParts.join(".")` at `offset` using the Rust
+     * resolver — the runtime's own algorithm, so its verdicts are
+     * authoritative:
+     *   - `"found"`        — the whole path resolves.
      *   - `"notFound"`     — resolver reports `NoReferent`.
      *   - `"multiple"`     — resolver reports `NonUniqueReferent`.
      *   - `"indeterminate"`— resolver unavailable, or an inconclusive case
-     *     (resolved to a different name, partial path, hidden by sugar, or an
-     *     unrecognized error). Callers must not present these as definitive.
+     *     (partial path left unresolved, single name resolving to a different
+     *     element or hidden by sugar, or an unrecognized error). Callers must
+     *     not present these as definitive.
      *
-     * Mirrors `isNameAddressableFromOffset`'s origin selection so the scope
-     * probed matches what a reference typed at `offset` would actually see.
+     * Resolves the FULL path (unlike member-container resolution, which chops
+     * the last segment), with empty bracket indices — matching how
+     * `_resolveRefMemberContainer` builds its flat path. Mirrors
+     * `isNameAddressableFromOffset`'s origin selection so the scope probed
+     * matches what a reference typed at `offset` would actually see.
      */
-    async classifyBareReferenceFromOffset(
+    async classifyReferenceFromOffset(
         offset: number,
-        name: string,
+        pathParts: string[],
     ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
         await this._pendingSync;
         if (!this._enabled || !this._core) return "indeterminate";
-
-        // Repeat-introduced names (valueName/indexName) always resolve from
-        // within the repeat body — same bypass as isNameAddressableFromOffset.
-        const derivedRepeatNames = this.getDerivedRepeatNames(offset);
-        if (derivedRepeatNames.includes(name)) return "found";
-
-        const containingElement = this._sourceObj.elementAtOffset(offset);
-        let resolveFromIndex: number | null = null;
-        if (containingElement) {
-            for (const child of containingElement.children) {
-                if (child.type === "element") {
-                    const ci = this._dastElementToRustIndex.get(child);
-                    if (ci != null) {
-                        resolveFromIndex = ci;
-                        break;
-                    }
-                }
-            }
-            if (resolveFromIndex == null) {
-                resolveFromIndex =
-                    this._dastElementToRustIndex.get(containingElement) ?? null;
-            }
-        } else {
-            resolveFromIndex = this._getRootOriginIndex();
+        if (pathParts.length === 0 || pathParts.some((p) => !p)) {
+            return "indeterminate";
         }
+
+        // A single bare name that's a repeat-introduced binding
+        // (valueName/indexName) always resolves from within the repeat body.
+        if (pathParts.length === 1) {
+            const derivedRepeatNames = this.getDerivedRepeatNames(offset);
+            if (derivedRepeatNames.includes(pathParts[0])) return "found";
+        }
+
+        const resolveFromIndex = this._referenceOriginIndex(offset);
         if (resolveFromIndex == null) return "indeterminate";
+
+        const flatPath: FlatPathPartForResolver[] = pathParts.map((name) => ({
+            type: "flatPathPart" as const,
+            name,
+            index: [],
+        }));
 
         try {
             const resolution = await this._core.resolvePath({
-                path: {
-                    path: [{ type: "flatPathPart" as const, name, index: [] }],
-                },
+                path: { path: flatPath },
                 origin: resolveFromIndex,
                 skipParentSearch: false,
             });
-            const resolvedElement = this._rustIndexToDastElement.get(
-                resolution.nodeIdx,
-            );
-            const resolvedName = resolvedElement
-                ? getElementNameAttributeValue(resolvedElement)
-                : null;
-            // Resolved to a different name, left part of the path unresolved,
-            // or hidden by sugar at this cursor — none is a clean "found" we
-            // can stand behind, so stay non-committal rather than mislead.
+            // A partly-resolved path (e.g. a coordinate alias chain like
+            // `$vector.head.x`, or a genuinely unreachable tail) is not a
+            // clean verdict — stay non-committal.
             if (
-                resolvedName !== name ||
-                (resolution.unresolvedPath &&
-                    resolution.unresolvedPath.length > 0) ||
-                this._isHiddenBySugar(resolution.nodeIdx, offset)
+                resolution.unresolvedPath &&
+                resolution.unresolvedPath.length > 0
             ) {
                 return "indeterminate";
+            }
+            // For a bare name, confirm the resolved element actually bears the
+            // name and isn't sugar-hidden before claiming "found".
+            if (pathParts.length === 1) {
+                const resolvedElement = this._rustIndexToDastElement.get(
+                    resolution.nodeIdx,
+                );
+                const resolvedName = resolvedElement
+                    ? getElementNameAttributeValue(resolvedElement)
+                    : null;
+                if (
+                    resolvedName !== pathParts[0] ||
+                    this._isHiddenBySugar(resolution.nodeIdx, offset)
+                ) {
+                    return "indeterminate";
+                }
             }
             return "found";
         } catch (e) {

@@ -479,3 +479,57 @@ describe("computeContextHelp — unresolved bare references (resolver-backed)", 
         });
     });
 });
+
+describe("computeContextHelp — unresolved member chains (resolver-backed)", () => {
+    it("reports the whole-chain notFound for $m.sub when the container $m fails", async () => {
+        // The container `$m` doesn't exist, so the chain is reported against
+        // the full reference `m.sub` rather than blanking the panel.
+        const source = `<math name="other">x</math>\n$m.sub`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NoReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "m.sub",
+            reason: "notFound",
+        });
+    });
+
+    it("reports the whole-chain multiple for $s2.m when the member is ambiguous", async () => {
+        const source = `<section name="s2"><math name="m">a</math><math name="m">b</math></section>\n$s2.m`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "s2.m",
+            reason: "multiple",
+        });
+    });
+
+    it("classifies the whole chain (not just $s2) for a cursor on $s2 inside an attribute value", async () => {
+        // The bug this fixes: a cursor on the `s2` segment of `copy="$s2.m"`
+        // used to misclassify just `$s2`. The whole chain is resolved, so the
+        // verdict is reported against `s2.m`, consistently with the bare form.
+        const source = `<section name="s2"><math name="m">a</math><math name="m">b</math></section>\n<module copy="$s2.m" />`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const onS2 = source.indexOf("$s2.m") + 2; // cursor on the s2 segment
+        const onMember = source.indexOf("$s2.m") + 4; // cursor on the .m segment
+        const [helpS2, helpMember] = await Promise.all([
+            computeContextHelp(completer, onS2),
+            computeContextHelp(completer, onMember),
+        ]);
+        const expected = {
+            kind: "unresolvedRef",
+            displayPath: "s2.m",
+            reason: "multiple",
+        };
+        expect(helpS2).toEqual(expected);
+        // Consistent wherever the cursor sits in the chain.
+        expect(helpMember).toEqual(expected);
+    });
+});

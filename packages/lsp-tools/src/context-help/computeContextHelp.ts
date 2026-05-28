@@ -330,11 +330,18 @@ export async function computeContextHelp(
     return NONE;
 }
 
+/** Characters that can appear in a `$...` macro path (mirrors the grammar's
+ * path char class): identifiers, dots, and bracket indices. */
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
+
 /**
- * End offset of the `$...` macro covering `offset`, or undefined when no
- * macro node sits at the cursor. Mirrors the macro lookup
- * `getCompletionContext` does — the macro under the cursor, or the one just
- * before a trailing `.`/`[` the user is typing into.
+ * End offset of the `$...` macro covering `offset`, or undefined when there's
+ * no macro at the cursor. Prefers the parsed macro node's end (which handles
+ * `$(...)` parens), and falls back to scanning forward over macro-path
+ * characters — the parsed macro node isn't reliably found for macros inside
+ * attribute values (e.g. `extend="$m.sub"`), so without this scan the
+ * whole-chain unification would break there and a cursor on an early segment
+ * would misclassify just that segment.
  */
 function macroEndOffset(
     completer: AutoCompleter,
@@ -357,7 +364,19 @@ function macroEndOffset(
             side: "left",
         });
     }
-    return macro?.position?.end?.offset;
+    if (macro?.position?.end?.offset !== undefined) {
+        return macro.position.end.offset;
+    }
+    // No parsed macro node (e.g. an attribute-value macro). Scan forward over
+    // macro-path characters to find where the chain ends.
+    let end = offset;
+    while (
+        end < source.length &&
+        MACRO_PATH_CHAR_REGEX.test(source.charAt(end))
+    ) {
+        end++;
+    }
+    return end > offset ? end : undefined;
 }
 
 /**
@@ -974,6 +993,28 @@ async function helpForRefMember(
  * the completion-driven path passes the autocomplete row's label directly so
  * the help mirrors exactly what would be inserted.
  */
+/**
+ * When a member chain fails to resolve, ask the resolver to classify the
+ * WHOLE chain and, for an authoritative `notFound` / `multiple` verdict,
+ * build an `unresolvedRef` payload reported against the full reference (e.g.
+ * `s2.m`). Returns null for `found` / `indeterminate` so the caller keeps its
+ * existing fallback (blank panel, or the "multi-part not supported"
+ * placeholder) rather than over-claiming when the resolver can't decide.
+ */
+async function unresolvedRefForChain(
+    completer: AutoCompleter,
+    offset: number,
+    ctx: { pathParts: string[]; rawPathParts: string[] },
+): Promise<HelpContent | null> {
+    const reason = await completer.classifyReference(offset, ctx.pathParts);
+    if (reason !== "notFound" && reason !== "multiple") return null;
+    return {
+        kind: "unresolvedRef",
+        displayPath: ctx.rawPathParts.map(formatPathSegment).join("."),
+        reason,
+    };
+}
+
 async function helpForRefMemberByName(
     completer: AutoCompleter,
     offset: number,
@@ -1018,7 +1059,14 @@ async function helpForRefMemberByName(
         );
         if (arrayEntry) return arrayEntry;
 
-        // No-adapter / unresolved path. For deep chains, surface the
+        // The chain doesn't resolve to a container. Ask the resolver to
+        // classify the WHOLE chain so we can say "no referent" / "multiple
+        // referents" for e.g. `$m.sub` (where `$m` itself fails) rather than
+        // blanking — reported against the full reference, not one segment.
+        const unresolved = await unresolvedRefForChain(completer, offset, ctx);
+        if (unresolved) return unresolved;
+
+        // No-adapter / inconclusive path. For deep chains, surface the
         // placeholder so a user staring at `$a.b.c` knows *something* about
         // the cursor position; for shorter chains, just blank the panel.
         if (ctx.pathParts.length > 2) {
@@ -1108,7 +1156,15 @@ async function helpForRefMemberByName(
         ownEntry;
 
     const prop = findSchemaProperty(effectiveEntry, memberName);
-    if (!prop?.description) return NONE;
+    if (!prop?.description) {
+        // The container resolved but the member matches no descendant or
+        // property. Classify the whole chain so an authoritatively bad member
+        // (e.g. `$s2.m` where `m` is ambiguous) reports "multiple referents"
+        // for the full reference rather than blanking the panel.
+        const unresolved = await unresolvedRefForChain(completer, offset, ctx);
+        if (unresolved) return unresolved;
+        return NONE;
+    }
 
     // The help describes the *reference* `$container.member`, so carry the
     // full authored chain for the panel sentence and the container's source
@@ -1229,7 +1285,7 @@ async function helpForRefNameByName(
     // `found` verdict means the reference IS valid but the AST-only help
     // builder couldn't enrich it (a known gap) — fall back to the neutral
     // placeholder rather than flagging a valid reference.
-    const reason = await completer.classifyBareReference(offset, refName);
+    const reason = await completer.classifyReference(offset, [refName]);
     if (reason === "found") return NONE;
     return {
         kind: "unresolvedRef",
