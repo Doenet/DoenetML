@@ -1,11 +1,13 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<tag>{:dn}`
 
-`<tag>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='tag'/>
+
+`<tag>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types) 
 component that wraps its enclosed text in opening-tag delimiters (`< ... >`),
 rendering as `<p>` would appear written in source. Use it to refer to
 component tags in prose without DoenetML trying to parse them.
@@ -21,6 +23,7 @@ prose well-formed and lets the renderer style the names consistently.
 <AttrPropDisplay name='tag'/>
 
 
+## Examples
 
 ### Example: Use the tag-family components for correct rendering 
 

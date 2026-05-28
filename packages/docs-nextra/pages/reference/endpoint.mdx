@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<endpoint>{:dn}`
 
+<ComponentDisplay name='endpoint'/>
 
 `<endpoint>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
 component that renders a point that can be switched from open to closed (or unfilled to filled).
@@ -12,7 +13,7 @@ component that renders a point that can be switched from open to closed (or unfi
 <AttrPropDisplay name='endpoint'/>
 
 
----
+## Examples
 
 ### Example: Default endpoint
 
@@ -61,7 +62,7 @@ endpoints. Endpoints can also have the same constraints as points.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: switchable
 
@@ -102,7 +103,7 @@ The `open` attribute renders an `<endpoint>{:dn}` that is open.
 
 
 
----
+## Property Examples
 
 ### Property Example: `<point>{:dn}` properties
 

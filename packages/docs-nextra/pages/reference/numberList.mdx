@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<numberList>{:dn}`
+
+<ComponentDisplay name='numberList'/>
 
 `<numberList>{:dn}` defines a collection, or list, of [`<number>{:dn}`](number.mdx) components. Some 
 components that accept a `<numberList>{:dn}` as an input include `<function>{:dn}`, `<repeat>{:dn}`, 
@@ -14,7 +16,7 @@ The component will default to displaying the list with commas.
 
 <AttrPropDisplay name='numberList'/>
 
----
+## Examples
 
 ### Example: Defining a `<numberList>{:dn}` and retrieving a value
 
@@ -100,7 +102,7 @@ Here, a `<numberList>{:dn}` stores multiple input values to be used in the subse
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: unordered
 
@@ -153,7 +155,7 @@ The `maxNumber` attribute imposes a limit on the number of numbers that can be s
 
 
 
----
+## Property Examples
 
 ### Property Example: numComponents
 

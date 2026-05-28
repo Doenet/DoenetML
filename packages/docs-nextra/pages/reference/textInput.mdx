@@ -1,17 +1,18 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 # `<textInput/>{:dn}`
 
+<ComponentDisplay name='textInput'/>
 
-`<textInput/>{:dn}` is an [Input](../document_structure/essentialConcepts/#componentTypes)
+`<textInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component that renders a form input field for text responses from the user.
 
 <AttrPropDisplay name='textInput'/>
 
 
----
+## Examples
 
 ### Example: Default `<textInput/>{:dn}`
 
@@ -120,7 +121,7 @@ The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` with the `handGraded
 
 
 
-The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
+The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` that checks the entered text against an expected value, automatically grading a closed-form text response.
 
 
 
@@ -151,7 +152,7 @@ A `<textInput/>{:dn}` can be placed on a `<graph>{:dn}`. Use the `anchor` attrib
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: prefill
 
@@ -316,7 +317,7 @@ The `draggable` attribute can be set to false to prevent users from moving the `
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 

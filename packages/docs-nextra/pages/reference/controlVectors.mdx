@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<controlVectors>{:dn}`
+
+<ComponentDisplay name='controlVectors'/>
 
 `<controlVectors>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that is used to specify the direction(s) of the bezier curve 
@@ -12,7 +14,7 @@ handles at each through point within a `<curve>{:dn}` component.
 <AttrPropDisplay name='controlVectors'/>
 
 
----
+## Examples
 
 ### Example: `<controlVectors>{:dn}` with vectors specified directly
 
@@ -83,7 +85,7 @@ in this case to specify the orientation of the curve at each point.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: direction
 
@@ -199,7 +201,7 @@ The `pointNumber` attribute specifies which through point the `<controlVector>{:
 
 
 
----
+## Property Examples
 
 ### Property Example: direction
 

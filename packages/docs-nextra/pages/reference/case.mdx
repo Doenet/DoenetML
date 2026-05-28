@@ -1,18 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<case>{:dn}`
 
+<ComponentDisplay name='case'/>
 
 `<case>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
 component that defines an individual block of content triggered when 
-the its condition is met within a `<conditionalContent>{:dn}`.
+its condition is met within a `<conditionalContent>{:dn}`.
 
 <AttrPropDisplay name='case'/>
 
----
+## Examples
 
 ### Example: `<case>{:dn}` inside of `<conditionalContent>{:dn}`
 
@@ -46,7 +47,7 @@ when the specified `condition` attribute is `true`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: condition
 
@@ -80,7 +81,7 @@ only rendered when the specified `condition` attribute is `true`.
 
 
 
----
+## Property Examples
 
 ### Property Example: conditionSatisfied
 

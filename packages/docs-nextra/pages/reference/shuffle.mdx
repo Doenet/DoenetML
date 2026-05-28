@@ -1,17 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<shuffle>{:dn}`
 
 
-`<shuffle>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes)
+<ComponentDisplay name='shuffle'/>
+
+`<shuffle>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
 component that re-orders a list of referenced components and creates document variants based on the different possible orders.
 
 <AttrPropDisplay name='shuffle'/>
 
----
+## Examples
 
 ### Example: Shuffle a list of numbers
 
@@ -74,7 +76,7 @@ editor to see different variants of the document.
 <p>Hello, <shuffle>$animal</shuffle>!</p>
 ```
 
-A named `<textList>{:dn}` is defined within a `<setup>{:dn}` block, then re-ordered using the `<shuffle>{:dn}` component.
+A named `<textList>{:dn}` is defined, then re-ordered using the `<shuffle>{:dn}` component.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

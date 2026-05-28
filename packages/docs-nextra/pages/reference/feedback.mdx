@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<feedback>{:dn}`
 
+<ComponentDisplay name='feedback'/>
 
 `<feedback>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) 
 component that renders a boxed section of content that can be triggered by predefined user interactions. 
@@ -19,7 +20,7 @@ with the `feedbackCodes` attribute on [`<award>{:dn}`](award2b) and
 <AttrPropDisplay name='feedback'/>
 
 
----
+## Examples
 
 ### Example: `<feedback>{:dn}` for any arbitrary incorrect answer
 
@@ -156,9 +157,9 @@ Individualized feedback is provided to specific responses by referencing named a
 
 
 
----
+## Attribute Examples
 
-### Atttibute Example: condition
+### Attribute Example: condition
 
 
 ```doenet-example

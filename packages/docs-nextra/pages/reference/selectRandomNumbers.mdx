@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<selectRandomNumbers/>{:dn}`
+
+<ComponentDisplay name='selectRandomNumbers'/>
 
 `<selectRandomNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
 component that generates document variants by selecting random numbers from a specified range of 
@@ -11,7 +13,7 @@ values or within a normal distribution around a specified mean.
 
 <AttrPropDisplay name='selectRandomNumbers'/>
 
----
+## Examples
 
 ### Example: Default `<selectRandomNumbers/>{:dn}`
 
@@ -25,28 +27,6 @@ values or within a normal distribution around a specified mean.
 
 
 Without any attributes specified, the default selection  `type` is `uniform`, and the default interval is $[0, 1)$.
-
-Select a new page variant from the pulldown menu at the top of the 
-editor to see different variants of the document.
-
----
-
-### Attribute Example: numToSelect
-
-
-```doenet-editor-horiz
-<selectRandomNumbers
-  name="s"
-  numToSelect="4"
-/>
-
-<p>The third selection is <c>s[3]</c> = $s[3]</p>
-```
-
-
-
-The `<selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
-random values in the default interval $[0,1)$. The default `type` is `uniform`. 
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -72,6 +52,28 @@ editor to see different variants of the document.
 Three numbers are selected. 
 Selections can be assigned more descriptive names by defining individual components
 which reference the selected values.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+## Attribute Examples
+
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="s"
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+```
+
+
+
+The `<selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
+random values in the default interval $[0,1)$. The default `type` is `uniform`. 
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

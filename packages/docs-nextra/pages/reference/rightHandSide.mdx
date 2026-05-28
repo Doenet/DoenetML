@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<rightHandSide>{:dn}`
 
+<ComponentDisplay name='rightHandSide'/>
 
 `<rightHandSide>{:dn}` is a math child of [`<odeSystem>{:dn}`](odeSystem) that defines the right-hand side of one
 differential equation in the system. Each `<rightHandSide>{:dn}` corresponds to one dependent variable of the
@@ -14,7 +15,7 @@ function of the system's variables and the independent variable is valid.
 
 <AttrPropDisplay name='rightHandSide'/>
 
----
+## Examples
 
 ### Example: Defining a single right-hand side
 

@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<moduleAttributes>{:dn}`
+
+<ComponentDisplay name='module'/>
 
 `<moduleAttributes>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that is used to describe custom user-defined attributes when nested in a `<module>{:dn}` component. 
@@ -13,7 +15,7 @@ are then listed in the opening tag of the custom `<module>{:dn}` component.
 
 <AttrPropDisplay name='module'/>
 
----
+## Examples
 
 ### Example: `<module>{:dn}` for repeated geometry
 
@@ -70,7 +72,3 @@ are copied into the graph when the module is referenced.
 Referencing the module multiple times within the `<graph>{:dn}` and varying the
 attribute values has the effect of creating a "bunch" of balloons.
 Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy.
-
-
-
----

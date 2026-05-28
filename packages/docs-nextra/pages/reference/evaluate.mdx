@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<evaluate/>{:dn}`
+
+<ComponentDisplay name='evaluate'/>
 
 `<evaluate/>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
 component which renders the result of a `<function>{:dn}` evaluated at a specified `input` parameter or parameters.
@@ -14,7 +16,7 @@ must instead be specified within the `function` attribute directly.
 <AttrPropDisplay name='evaluate'/>
 
 
----
+## Examples
 
 ### Example: `<evaluate/>{:dn}` a function at a user-input
 
@@ -63,7 +65,7 @@ The shortcut reference for the evaluate component is `$$function(input)`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: function
 

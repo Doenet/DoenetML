@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<pretzel>{:dn}`
+
+<ComponentDisplay name='pretzel'/>
 
 `<pretzel>{:dn}` is a response component that lets students match statements to answers by entering a sequence.
 
@@ -18,7 +20,7 @@ Each `<problem>{:dn}` in a pretzel should contain one `<statement>{:dn}` and one
 <AttrPropDisplay name='pretzel'/>
 
 
----
+## Examples
 
 ### Example: Basic pretzel workflow
 
@@ -48,7 +50,7 @@ Students may begin at any non-distractor box with `1`.
 In default pretzel mode, any consistent cyclic shift is accepted.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: `<problem isDistractor>{:dn}`
 

@@ -1,16 +1,18 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<animateFromSequence/>{:dn}`
+
+<ComponentDisplay name='animateFromSequence'/>
 
 `<animateFromSequence/>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types) component
 that renders an animation of a changing component over a specified interval of uniform steps.
 
 <AttrPropDisplay name='animateFromSequence'/>
 
----
+## Examples
 
 ### Example: Animated counting
 ```doenet-editor-horiz
@@ -97,7 +99,7 @@ point which has been defined as a `<number/>{:dn}` over a sequence of values fro
 The $y$-coordinate of the point is defined with the function evaluation reference `$$f(x)`.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: target
 ```doenet-example
@@ -320,7 +322,7 @@ The default `step` is $1$.
 
 The `exclude` attribute specifies values to exclude in the animation sequence.
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 ```doenet-editor-horiz

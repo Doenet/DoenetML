@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<choiceInput>{:dn}`
+
+<ComponentDisplay name='choiceInput'/>
 
 `<choiceInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types) 
 component that defines a block of code for multiple choice questions.
@@ -13,7 +15,7 @@ It serves as a container element for the individual
 <AttrPropDisplay name='choiceInput'/>
 
 
----
+## Examples
 
 ### Example: `<choiceInput>{:dn}` for survey question
 
@@ -95,7 +97,7 @@ with `<conditionalContent>{:dn}` to create a simple menu.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: selectMultiple
 
@@ -219,12 +221,7 @@ value of the `<choiceInput>{:dn}` then becomes linked to that component's value.
 
 
 
-The `submitLabelNoCorrectness` attribute modifies the standard 
-"Submit Response" button label for answers where it is not desired to show correctness.
-
-
-
----
+## Property Examples
 
 ### Property Example: numChoices
 

@@ -1,11 +1,13 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<standardDeviation>{:dn}`
 
-`<standardDeviation>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='standardDeviation'/>
+
+`<standardDeviation>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
 component that renders the standard deviation of a list of enclosed data values according to the equation: 
 
 
@@ -23,7 +25,7 @@ $$\sigma(x) = \sqrt{\frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}}$$
 
 <AttrPropDisplay name='standardDeviation'/>
 
----
+## Examples
 
 ### Example: `<standardDeviation>{:dn}` of a list of numbers
 
@@ -43,7 +45,7 @@ Data is directly entered in the form of a list of numbers separated by spaces wi
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: population
 

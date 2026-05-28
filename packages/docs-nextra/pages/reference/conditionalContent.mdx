@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<conditionalContent>{:dn}`
 
+<ComponentDisplay name='conditionalContent'/>
 
 `<conditionalContent>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that defines one or more blocks of content that 
@@ -16,7 +17,7 @@ optional [`<else>{:dn}`](else.mdx) child.
 <AttrPropDisplay name='conditionalContent'/>
 
 
----
+## Examples
 
 ### Example: `<conditionalContent>{:dn}` with nested `<case>{:dn}` children
 
@@ -76,7 +77,7 @@ containing individual `<case>{:dn}` children. To catch all remaining
 cases following a given condition or set of conditions, the 
 `<else>{:dn}` component may be used.
 
----
+## Attribute Examples
 
 ### Attribute Example: condition
 

@@ -7,21 +7,18 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # `<graph>{:dn}`
 
 
-## Examples Page 2
+## Attribute Examples
 
-
----
-
-### Attribute Example: description, decorative
+### Attribute Example: shortDescription, decorative
 
 
 ```doenet-editor-horiz
-<p>A graph without a description or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
+<p>A graph without a shortDescription or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
 <graph name="deficientGraph">
   <shortDescription>An empty graph used to illustrate a missing description warning</shortDescription>
 </graph>
 
-<p>In general, each graph should have a description attribute set to a textual description of the graph contents.</p>
+<p>In general, each graph should have a shortDescription set to a textual description of the graph contents.</p>
 <graph>
   <shortDescription>A graph of the unit circle</shortDescription>
   <circle fixed />
@@ -34,7 +31,7 @@ the attribute decorative should be added to the graph.</p>
 </graph>
 ```
 
-Typically the `description` attribute should be specified for each `<graph>{:dn}`.
+Typically a `<shortDescription>{:dn}` should be specified for each `<graph>{:dn}`.
 In special cases, the `decorative` attribute could be specified instead to indicate it can be ignored by screen readers.
 
 
@@ -357,7 +354,7 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties 1
 

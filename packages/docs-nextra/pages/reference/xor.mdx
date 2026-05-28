@@ -1,19 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
 # `<xor>{:dn}`
 
+<ComponentDisplay name='xor'/>
 
-`<xor>{:dn}` is a [Logic](../document_structure/essentialConcepts/#componentTypes)
-component that functions as the exclusive `or` boolean operator, and checks to see whether one and 
-only one of the enclosed `<boolean>{:dn}` references are `true`.
+`<xor>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+component that evaluates its enclosed `<boolean>{:dn}` references as an exclusive `or`.
 
 <AttrPropDisplay name='xor'/>
 
----
+## Examples
 
 ### Example: `<xor>{:dn}` in a `<boolean>{:dn}`
 
