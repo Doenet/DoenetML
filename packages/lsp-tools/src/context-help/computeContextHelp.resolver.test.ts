@@ -29,6 +29,10 @@ function createMockCore(
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
     },
+    // When set, `resolvePath` throws this value — mirrors the Rust core
+    // throwing the bare variant string (`"NoReferent"` / `"NonUniqueReferent"`)
+    // for unresolvable / ambiguous references.
+    resolveError?: unknown,
 ): ResolverCore {
     const elements: Array<{
         data: { id: number };
@@ -51,6 +55,7 @@ function createMockCore(
         setFlags: async () => {},
         returnDast: async () => ({ elements }),
         resolvePath: async () => {
+            if (resolveError !== undefined) throw resolveError;
             if (resolveResult) return resolveResult;
             return {
                 nodeIdx: 0,
@@ -66,11 +71,16 @@ async function buildCompleterWithAdapter(
     source: string,
     options: {
         resolveResult?: Parameters<typeof createMockCore>[1];
+        resolveError?: unknown;
         takesIndexComponentTypes?: Set<string>;
     } = {},
 ) {
     const completer = new AutoCompleter(source);
-    const core = createMockCore(completer.sourceObj, options.resolveResult);
+    const core = createMockCore(
+        completer.sourceObj,
+        options.resolveResult,
+        options.resolveError,
+    );
     const adapter = new RustResolverAdapter(completer.sourceObj, {
         core,
         takesIndexComponentTypes: options.takesIndexComponentTypes,
@@ -423,6 +433,49 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             refName: "t",
             displayPath: "s[1].t",
             targetElementName: "text",
+        });
+    });
+});
+
+describe("computeContextHelp — unresolved bare references (resolver-backed)", () => {
+    it("reports notFound when the resolver definitively finds no referent (NoReferent)", async () => {
+        const source = `<math name="m">x</math>\n$bad`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NoReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "bad",
+            reason: "notFound",
+        });
+    });
+
+    it("reports multiple when the resolver finds an ambiguous referent (NonUniqueReferent)", async () => {
+        // Two elements named `dup`, so the AST walk can't pick one and the
+        // resolver reports the ambiguity authoritatively.
+        const source = `<math name="dup">x</math><math name="dup">y</math>\n$dup`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "dup",
+            reason: "multiple",
+        });
+    });
+
+    it("stays indeterminate for an unrecognized resolver error rather than over-claiming", async () => {
+        const source = `<math name="m">x</math>\n$bad`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: new Error("some internal resolver failure"),
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "bad",
+            reason: "indeterminate",
         });
     });
 });

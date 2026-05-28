@@ -254,6 +254,23 @@ export type HelpContent =
      */
     | { kind: "unsupportedRefChain" }
     /**
+     * Cursor is on a bare `$name` reference that doesn't resolve to a
+     * referent. `reason` distinguishes verdicts the runtime resolver can make
+     * authoritatively from cases where the resolver was unavailable or
+     * inconclusive — so the panel never claims "no referent" when the real
+     * cause is the checker's incomplete view:
+     *   - `notFound`  — the resolver definitively found no referent.
+     *   - `multiple`  — the resolver found more than one (ambiguous) referent.
+     *   - `indeterminate` — the resolver couldn't decide (e.g. it hadn't
+     *     booted yet, or hit an inconclusive case); the panel hedges.
+     */
+    | {
+          kind: "unresolvedRef";
+          /** Chain after the `$` (e.g. `bad`), rendered in the message. */
+          displayPath: string;
+          reason: "notFound" | "multiple" | "indeterminate";
+      }
+    /**
      * Cursor is in an element's body or in top-level whitespace — not on any
      * tag, attribute, or reference. Rather than going blank, the panel
      * suggests components the author could insert here ("what can go here?").

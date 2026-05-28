@@ -115,6 +115,28 @@ export function ContextHelpPanel({
                 </div>
             );
 
+        case "unresolvedRef": {
+            const { displayPath, reason } = content;
+            const ref = <code>{`$${displayPath}`}</code>;
+            // `notFound`/`multiple` are authoritative resolver verdicts;
+            // `indeterminate` hedges so an incomplete-view miss is never
+            // presented as a definite "no referent".
+            const sentence =
+                reason === "notFound" ? (
+                    <>No referent found for reference: {ref}.</>
+                ) : reason === "multiple" ? (
+                    <>Multiple referents found for reference: {ref}.</>
+                ) : (
+                    <>A referent for {ref} could not be determined.</>
+                );
+            return (
+                <div className="help-panel">
+                    <p className="help-ref-sentence">{sentence}</p>
+                    <ReferencesDocLink docsBase={docsBase} />
+                </div>
+            );
+        }
+
         case "suggestions": {
             const { context, suggested, totalAllowed } = content;
             const location =

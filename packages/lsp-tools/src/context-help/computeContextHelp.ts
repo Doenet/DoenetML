@@ -391,7 +391,7 @@ async function helpForReferenceUnit(
         return await helpForRefMember(completer, helpOffset, ctx);
     }
     if (ctx.cursorPos === "refName") {
-        return helpForRefName(completer, helpOffset, ctx);
+        return await helpForRefName(completer, helpOffset, ctx);
     }
     return NONE;
 }
@@ -1160,14 +1160,14 @@ function elementStartLine(
  * Multi-part chains *through* repeat-introduced names without an index
  * (e.g. `$v.x`) still depend on the Rust resolver and remain a known gap.
  */
-function helpForRefName(
+async function helpForRefName(
     completer: AutoCompleter,
     offset: number,
     ctx: {
         typedPrefix: string;
         replaceFromOffset: number;
     },
-): HelpContent {
+): Promise<HelpContent> {
     const refName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
@@ -1175,18 +1175,18 @@ function helpForRefName(
         isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
-    return helpForRefNameByName(completer, offset, refName);
+    return await helpForRefNameByName(completer, offset, refName);
 }
 
 /**
  * Body of refName help, parameterized on the name. The completion-driven path
  * passes the autocomplete row's label directly (with any leading `$` stripped).
  */
-function helpForRefNameByName(
+async function helpForRefNameByName(
     completer: AutoCompleter,
     offset: number,
     refName: string,
-): HelpContent {
+): Promise<HelpContent> {
     const resolved = completer.resolveRefNameForHelp(offset, refName);
     if (resolved) {
         const { referent, line } = resolved;
@@ -1203,20 +1203,38 @@ function helpForRefNameByName(
     // the autocomplete dropdown, which already injects `valueName`/`indexName`
     // via `AutoCompleter.getAdditionalRefNames`.
     const derived = completer.resolveDerivedRepeatNameForHelp(offset, refName);
-    if (!derived) return NONE;
+    if (derived) {
+        return {
+            kind: "refName",
+            refName,
+            displayPath: formatPathSegment(refName),
+            // `targetElementName` is the binding's introducer — the only static,
+            // always-correct answer (the iteration value's type is dynamic).
+            targetElementName: derived.owner.name,
+            line: derived.line,
+            derivedFrom: {
+                role: derived.role,
+                ownerElementName: derived.owner.name,
+                ownerLine: derived.line,
+            },
+        };
+    }
+
+    // Neither the AST walk nor the repeat-binding walk found a referent. Ask
+    // the Rust resolver — the runtime's own algorithm — to classify why, so
+    // the panel can say "no referent" / "multiple referents" only when that's
+    // authoritatively true. When the resolver isn't available or is
+    // inconclusive we get `indeterminate` and the panel hedges instead of
+    // misattributing an incomplete-view miss to the author's reference. A
+    // `found` verdict means the reference IS valid but the AST-only help
+    // builder couldn't enrich it (a known gap) — fall back to the neutral
+    // placeholder rather than flagging a valid reference.
+    const reason = await completer.classifyBareReference(offset, refName);
+    if (reason === "found") return NONE;
     return {
-        kind: "refName",
-        refName,
+        kind: "unresolvedRef",
         displayPath: formatPathSegment(refName),
-        // `targetElementName` is the binding's introducer — the only static,
-        // always-correct answer (the iteration value's type is dynamic).
-        targetElementName: derived.owner.name,
-        line: derived.line,
-        derivedFrom: {
-            role: derived.role,
-            ownerElementName: derived.owner.name,
-            ownerLine: derived.line,
-        },
+        reason,
     };
 }
 
@@ -1322,7 +1340,7 @@ export async function computeContextHelpForCompletion(
                 refName,
             );
         }
-        return helpForRefNameByName(completer, offset, refName);
+        return await helpForRefNameByName(completer, offset, refName);
     }
 
     if (type === "property") {

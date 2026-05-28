@@ -38,6 +38,30 @@ export function getElementNameAttributeValue(el: DastElement): string | null {
 }
 
 /**
+ * Map a thrown `resolvePath` error to a bare-reference classification.
+ *
+ * The Rust core throws the bare variant name as a string (`"NoReferent"` /
+ * `"NonUniqueReferent"`); across a worker boundary it may instead arrive
+ * wrapped in an object, so check the stringified message/value defensively.
+ * Anything unrecognized stays `"indeterminate"` so callers never over-claim
+ * a definite verdict the resolver didn't actually give.
+ */
+export function classifyResolutionError(
+    e: unknown,
+): "notFound" | "multiple" | "indeterminate" {
+    const candidates = [
+        typeof e === "string" ? e : undefined,
+        (e as { message?: unknown } | null | undefined)?.message,
+        (e as { value?: unknown } | null | undefined)?.value,
+        (e as { name?: unknown } | null | undefined)?.name,
+    ].filter((s): s is string => typeof s === "string");
+    const haystack = (candidates.join(" ") || String(e ?? "")).toString();
+    if (haystack.includes("NonUniqueReferent")) return "multiple";
+    if (haystack.includes("NoReferent")) return "notFound";
+    return "indeterminate";
+}
+
+/**
  * Walk all descendants of `root`, returning an array of `{ name, element }`
  * for every element with a `name` attribute.
  */
@@ -1017,6 +1041,83 @@ export class RustResolverAdapter {
             return true;
         } catch {
             return false;
+        }
+    }
+
+    /**
+     * Classify a bare `$name` reference at `offset` using the Rust resolver —
+     * the runtime's own algorithm, so its verdicts are authoritative:
+     *   - `"found"`        — resolves to an element named `name`.
+     *   - `"notFound"`     — resolver reports `NoReferent`.
+     *   - `"multiple"`     — resolver reports `NonUniqueReferent`.
+     *   - `"indeterminate"`— resolver unavailable, or an inconclusive case
+     *     (resolved to a different name, partial path, hidden by sugar, or an
+     *     unrecognized error). Callers must not present these as definitive.
+     *
+     * Mirrors `isNameAddressableFromOffset`'s origin selection so the scope
+     * probed matches what a reference typed at `offset` would actually see.
+     */
+    async classifyBareReferenceFromOffset(
+        offset: number,
+        name: string,
+    ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
+        await this._pendingSync;
+        if (!this._enabled || !this._core) return "indeterminate";
+
+        // Repeat-introduced names (valueName/indexName) always resolve from
+        // within the repeat body — same bypass as isNameAddressableFromOffset.
+        const derivedRepeatNames = this.getDerivedRepeatNames(offset);
+        if (derivedRepeatNames.includes(name)) return "found";
+
+        const containingElement = this._sourceObj.elementAtOffset(offset);
+        let resolveFromIndex: number | null = null;
+        if (containingElement) {
+            for (const child of containingElement.children) {
+                if (child.type === "element") {
+                    const ci = this._dastElementToRustIndex.get(child);
+                    if (ci != null) {
+                        resolveFromIndex = ci;
+                        break;
+                    }
+                }
+            }
+            if (resolveFromIndex == null) {
+                resolveFromIndex =
+                    this._dastElementToRustIndex.get(containingElement) ?? null;
+            }
+        } else {
+            resolveFromIndex = this._getRootOriginIndex();
+        }
+        if (resolveFromIndex == null) return "indeterminate";
+
+        try {
+            const resolution = await this._core.resolvePath({
+                path: {
+                    path: [{ type: "flatPathPart" as const, name, index: [] }],
+                },
+                origin: resolveFromIndex,
+                skipParentSearch: false,
+            });
+            const resolvedElement = this._rustIndexToDastElement.get(
+                resolution.nodeIdx,
+            );
+            const resolvedName = resolvedElement
+                ? getElementNameAttributeValue(resolvedElement)
+                : null;
+            // Resolved to a different name, left part of the path unresolved,
+            // or hidden by sugar at this cursor — none is a clean "found" we
+            // can stand behind, so stay non-committal rather than mislead.
+            if (
+                resolvedName !== name ||
+                (resolution.unresolvedPath &&
+                    resolution.unresolvedPath.length > 0) ||
+                this._isHiddenBySugar(resolution.nodeIdx, offset)
+            ) {
+                return "indeterminate";
+            }
+            return "found";
+        } catch (e) {
+            return classifyResolutionError(e);
         }
     }
 

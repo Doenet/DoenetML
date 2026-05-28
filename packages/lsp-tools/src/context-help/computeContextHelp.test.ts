@@ -863,9 +863,17 @@ describe("computeContextHelp — bare ref ($name)", () => {
         }
     });
 
-    it("returns none for a $name that doesn't resolve", async () => {
+    it("returns an indeterminate unresolvedRef for a $name that doesn't resolve without a resolver", async () => {
+        // The stub adapter exposes no authoritative resolver, so the help
+        // layer must not claim "no referent" — it surfaces the hedged
+        // indeterminate state instead of a definite verdict.
         const source = `<math>x</math>\n$nonexistent`;
-        expect((await helpAt(source, source.length)).kind).toBe("none");
+        const help = await helpAt(source, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "nonexistent",
+            reason: "indeterminate",
+        });
     });
 
     it("resolves a bare $name inside <matrix> to the aliased row element", async () => {
@@ -1399,12 +1407,18 @@ describe("computeContextHelp — repeat-introduced names (valueName/indexName)",
         });
     });
 
-    it("returns NONE when a derived name is referenced outside its repeat scope", async () => {
+    it("returns an indeterminate unresolvedRef when a derived name is referenced outside its repeat scope", async () => {
         // `$v` after the repeat closes is out of scope — neither the
-        // named-element walk nor the derived-repeat walk should find it.
+        // named-element walk nor the derived-repeat walk finds it. With no
+        // authoritative resolver attached (stub adapter), the help layer
+        // hedges with `indeterminate` rather than asserting "no referent".
         const source = `<repeatForSequence name="rep" from="1" to="3" valueName="v"><math>x</math></repeatForSequence>\n$v`;
         const help = await helpAt(source, source.length);
-        expect(help.kind).toBe("none");
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "v",
+            reason: "indeterminate",
+        });
     });
 
     it("returns derivedFrom for a `reference`-kind completion on a valueName row", async () => {

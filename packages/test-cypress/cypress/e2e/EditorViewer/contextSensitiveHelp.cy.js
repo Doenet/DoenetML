@@ -259,4 +259,31 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
             );
         });
     });
+
+    it("explains an invalid reference instead of showing the default text", () => {
+        const doenetML = `<math name="m">x</math>\n$bad`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "$bad",
+        );
+
+        openHelpTab();
+        // Cursor at the end, on the `$bad` reference.
+        moveCursorToOffset(doenetML.length);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            // The resolver (booted) reports `$bad` as having no referent, so
+            // the panel states that rather than rendering the placeholder.
+            cy.get(".help-ref-sentence")
+                .invoke("text")
+                .should("match", /referent/i)
+                .and("match", /\$bad/);
+            cy.get(".help-docs-link")
+                .should("have.attr", "href")
+                .and("include", "/document_structure/references");
+        });
+    });
 });

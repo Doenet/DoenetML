@@ -419,6 +419,30 @@ export class AutoCompleter {
     }
 
     /**
+     * Classify an unresolved bare `$name` reference at `offset`. Delegates to
+     * the Rust resolver (the runtime's own algorithm) so `notFound` /
+     * `multiple` verdicts are authoritative. Returns `"indeterminate"` when no
+     * resolver is attached (cold start, JS-only tests) so the help layer never
+     * presents an incomplete-view miss as a definite "no referent".
+     */
+    async classifyBareReference(
+        offset: number,
+        name: string,
+    ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
+        if (
+            this._rustResolverAdapter &&
+            typeof this._rustResolverAdapter.classifyBareReferenceFromOffset ===
+                "function"
+        ) {
+            return this._rustResolverAdapter.classifyBareReferenceFromOffset(
+                offset,
+                name,
+            );
+        }
+        return "indeterminate";
+    }
+
+    /**
      * Resolve the ref container for member completion from parsed path parts.
      *
      * `pathParts` includes the currently edited segment as its last item.
