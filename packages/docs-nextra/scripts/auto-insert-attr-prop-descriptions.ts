@@ -35,7 +35,47 @@ type ExampleRef = {
 // Mirror of Nextra's own heading-slug logic so the anchors we link to match
 // the ids it assigns. Nextra skips headings whose parent is a tab.
 const SKIP_FOR_PARENT_NAMES = new Set(["Tab", "Tabs.Tab"]);
-const EXAMPLE_HEADING_RE = /^(Attribute|Property) Example:\s*(.+)$/i;
+
+type ExampleKind = "attribute" | "property";
+
+// Worked examples appear under one of two heading conventions:
+//   1. A typed item heading that names its own kind, e.g.
+//      "### Attribute Example: functionSymbols" (used on the math pages).
+//   2. A bare "### Example: <name>" item beneath a "## Attribute Examples" or
+//      "## Property Examples" section heading (used on the answer pages),
+//      where the section supplies the kind.
+const SECTION_HEADING_RE = /^(attribute|property) examples?$/i;
+const TYPED_EXAMPLE_RE = /^(attribute|property) example:\s*(.+)$/i;
+const BARE_EXAMPLE_RE = /^examples?:\s*(.+)$/i;
+
+/** The example-section kind a heading establishes (e.g. "Attribute Examples"),
+ * or null when the heading is not an example-section heading. */
+function exampleSectionKind(text: string): ExampleKind | null {
+    const match = SECTION_HEADING_RE.exec(text.trim());
+    return match ? (match[1].toLowerCase() as ExampleKind) : null;
+}
+
+/** Classify a heading as a worked-example item, using `sectionKind` (the
+ * enclosing example section) for the bare "Example: <name>" form. Returns null
+ * for headings that are not example items. */
+function classifyExampleHeading(
+    text: string,
+    sectionKind: ExampleKind | null,
+): { kind: ExampleKind; names: string[] } | null {
+    const trimmed = text.trim();
+    const typed = TYPED_EXAMPLE_RE.exec(trimmed);
+    if (typed) {
+        return {
+            kind: typed[1].toLowerCase() as ExampleKind,
+            names: splitExampleNames(typed[2]),
+        };
+    }
+    const bare = BARE_EXAMPLE_RE.exec(trimmed);
+    if (bare && sectionKind) {
+        return { kind: sectionKind, names: splitExampleNames(bare[1]) };
+    }
+    return null;
+}
 
 /** Split the names listed after an example heading's colon. A heading may
  * cover several attributes/properties separated by `,` or `/` (e.g.
@@ -71,6 +111,7 @@ function getFlattenedValue(node: any): string {
 function collectExampleHeadings(tree: MdastRoot): ExampleHeading[] {
     const slugger = new GithubSlugger();
     const found: ExampleHeading[] = [];
+    let sectionKind: ExampleKind | null = null;
     visit(tree, "heading", (node: any, _index, parent: any) => {
         if (node.depth === 1) {
             return;
@@ -82,16 +123,15 @@ function collectExampleHeadings(tree: MdastRoot): ExampleHeading[] {
         // Advance the slugger for every heading so dedup counters stay in sync,
         // even for headings that are not examples.
         const slug = slugger.slug(value);
-        const match = EXAMPLE_HEADING_RE.exec(value.trim());
-        if (!match) {
-            return;
+        // A top-level heading opens (or, when not an example section, closes)
+        // the example-section context that bare "Example: x" items inherit.
+        if (node.depth === 2) {
+            sectionKind = exampleSectionKind(value);
         }
-        const names = splitExampleNames(match[2]);
-        found.push({
-            slug,
-            kind: match[1].toLowerCase() as "attribute" | "property",
-            names,
-        });
+        const example = classifyExampleHeading(value, sectionKind);
+        if (example) {
+            found.push({ slug, kind: example.kind, names: example.names });
+        }
     });
     return found;
 }
@@ -139,6 +179,7 @@ function scanRawReferencePage(content: string): {
     let component: string | null = null;
     const examples: ExampleHeading[] = [];
     let fenceMarker: string | null = null;
+    let sectionKind: ExampleKind | null = null;
 
     for (const line of content.split(/\r?\n/)) {
         const fence = line.match(/^(`{3,}|~{3,})/);
@@ -169,15 +210,17 @@ function scanRawReferencePage(content: string): {
             continue;
         }
         const slug = slugger.slug(text);
-        const match = EXAMPLE_HEADING_RE.exec(text.trim());
-        if (!match) {
-            continue;
+        if (depth === 2) {
+            sectionKind = exampleSectionKind(text);
         }
-        examples.push({
-            slug,
-            kind: match[1].toLowerCase() as "attribute" | "property",
-            names: splitExampleNames(match[2]),
-        });
+        const example = classifyExampleHeading(text, sectionKind);
+        if (example) {
+            examples.push({
+                slug,
+                kind: example.kind,
+                names: example.names,
+            });
+        }
     }
     return { component, examples };
 }
