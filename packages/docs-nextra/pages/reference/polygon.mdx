@@ -200,7 +200,7 @@ can still be repositioned on the `<graph>{:dn}`.
 
 
 ```doenet-example
-<p>Drag the interior to move the polygon, or drag a vertex to rotate it.</p>
+<p>Drag the highlighted vertex to rotate the polygon, or drag an edge to move it.</p>
 <graph size="small">
   <shortDescription>A graph of a rigid polygon</shortDescription>
   <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid/>
@@ -209,7 +209,7 @@ can still be repositioned on the `<graph>{:dn}`.
 
 
 
-The `rigid` attribute locks the shape and size of the `<polygon>{:dn}`, treating it as a rigid body. Dragging the interior translates the polygon, and dragging a vertex rotates it about its centroid. The default value is `false`, in which case each vertex may be dragged independently.
+The `rigid` attribute locks the shape and size of the `<polygon>{:dn}`, treating it as a rigid body. Drag an edge to translate the polygon, and drag the highlighted vertex to rotate it about its centroid. Only that highlighted vertex (the rotation handle) is draggable; the other vertices are locked. A `filled` polygon can additionally be translated by dragging its interior. The default value is `false`, in which case each vertex may be dragged independently.
 
 
 
@@ -219,7 +219,7 @@ The `rigid` attribute locks the shape and size of the `<polygon>{:dn}`, treating
 
 
 ```doenet-example
-<p>Drag a vertex to rotate and resize the polygon, or drag the interior to move it.</p>
+<p>Drag the highlighted vertex to rotate and resize the polygon, or drag an edge to move it.</p>
 <graph size="small">
   <shortDescription>A graph of a polygon that preserves similarity</shortDescription>
   <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity/>
@@ -228,7 +228,7 @@ The `rigid` attribute locks the shape and size of the `<polygon>{:dn}`, treating
 
 
 
-The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` up to similarity: dragging a vertex rotates and uniformly scales (dilates) the polygon, while dragging the interior translates it. Unlike `rigid`, the overall size may change. The default value is `false`.
+The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` up to similarity: dragging the highlighted vertex rotates and uniformly scales (dilates) the polygon, while dragging an edge translates it. Unlike `rigid`, the overall size may change. The default value is `false`.
 
 
 
@@ -238,7 +238,7 @@ The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` u
 
 
 ```doenet-example
-<p>Dragging a vertex no longer rotates this rigid polygon.</p>
+<p>Dragging the highlighted vertex no longer rotates this rigid polygon.</p>
 <graph size="small">
   <shortDescription>A graph of a rigid polygon that cannot be rotated</shortDescription>
   <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowRotation="false"/>
@@ -247,7 +247,7 @@ The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` u
 
 
 
-When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging a vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`.
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`.
 
 
 
@@ -257,7 +257,7 @@ When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation
 
 
 ```doenet-example
-<p>Dragging the interior no longer moves this rigid polygon, but a vertex still rotates it.</p>
+<p>Dragging an edge no longer moves this rigid polygon, but the highlighted vertex still rotates it.</p>
 <graph size="small">
   <shortDescription>A graph of a rigid polygon that cannot be translated</shortDescription>
   <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowTranslation="false"/>
@@ -266,7 +266,7 @@ When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation
 
 
 
-When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowTranslation` attribute controls whether dragging the interior may move it. Set to `false` to forbid translation. The default value is `true`.
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowTranslation` attribute controls whether dragging an edge (or the interior of a `filled` polygon) may move it. Set to `false` to forbid translation. The default value is `true`.
 
 
 
@@ -285,7 +285,7 @@ When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowTranslat
 
 
 
-When the `<polygon>{:dn}` preserves similarity, the `allowDilation` attribute controls whether dragging a vertex may uniformly scale it. The default value is `true`; combining `preserveSimilarity` with `allowDilation="false"` is equivalent to `rigid`. (Setting `rigid` always forces dilation off.)
+When the `<polygon>{:dn}` preserves similarity, the `allowDilation` attribute controls whether dragging the highlighted vertex may uniformly scale it. The default value is `true`; combining `preserveSimilarity` with `allowDilation="false"` is equivalent to `rigid`. (Setting `rigid` always forces dilation off.)
 
 
 
@@ -319,7 +319,7 @@ Reflection is not currently triggered by a built-in drag or click gesture; it is
 
 
 ```doenet-example
-<p>Drag a vertex to rotate the polygon about its second vertex.</p>
+<p>Drag the highlighted vertex to rotate the polygon about its second vertex.</p>
 <graph size="small">
   <shortDescription>A graph of a rigid polygon rotating about a chosen vertex</shortDescription>
   <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid rotateAround="vertex" rotationVertex="2"/>
