@@ -40,7 +40,8 @@
             "files": [
                 "scripts/**/*.ts",
                 "scripts/**/*.tsx",
-                "tsconfig.json"
+                "tsconfig.json",
+                "vite.config.ts"
             ],
             "output": [
                 "dist/**/*.js",

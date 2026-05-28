@@ -43,6 +43,8 @@
 .attr-item,
 .prop-item {
     margin: 1.25em 0;
+    /* Keep deep-link targets clear of the sticky page header. */
+    scroll-margin-top: 5rem;
 }
 
 /* Gray pill around the attribute/property name, mirroring the editor
@@ -72,6 +74,16 @@
     padding: 0.05rem 0.35rem;
 }
 :is(html[class~="dark"] .nextra-content) .attr-default {
+    background-color: rgb(55, 65, 81);
+}
+
+/* Inline `code` spans inside attribute/property descriptions. */
+.attr-inline-code {
+    background-color: rgb(243, 244, 246);
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.35rem;
+}
+:is(html[class~="dark"] .nextra-content) .attr-inline-code {
     background-color: rgb(55, 65, 81);
 }
 
@@ -113,4 +125,89 @@
     margin-top: 0.5em;
     margin-bottom: 1em;
     font-style: italic;
+}
+
+/* Filter box + Reveal/Collapse-all toggle above the attribute/property lists. */
+.attr-prop-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1em 0 0.5em;
+}
+.attr-filter-input {
+    flex: 1 1 16rem;
+    min-width: 10rem;
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: 0.375rem;
+    padding: 0.35rem 0.6rem;
+    background-color: transparent;
+}
+.attr-filter-input:focus {
+    outline: 2px solid rgb(29, 85, 197);
+    outline-offset: -1px;
+}
+:is(html[class~="dark"] .nextra-content) .attr-filter-input {
+    border-color: rgb(75, 85, 99);
+}
+.reveal-all-toggle {
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: 0.375rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    cursor: pointer;
+    background-color: rgb(243, 244, 246);
+}
+.reveal-all-toggle:hover {
+    background-color: rgb(229, 231, 235);
+}
+:is(html[class~="dark"] .nextra-content) .reveal-all-toggle {
+    border-color: rgb(75, 85, 99);
+    background-color: rgb(55, 65, 81);
+}
+:is(html[class~="dark"] .nextra-content) .reveal-all-toggle:hover {
+    background-color: rgb(75, 85, 99);
+}
+
+/* Collapsible group within an attribute/property list. */
+.attr-group {
+    border: 1px solid rgb(229, 231, 235);
+    border-radius: 0.5rem;
+    margin: 0.5em 0;
+}
+:is(html[class~="dark"] .nextra-content) .attr-group {
+    border-color: rgb(55, 65, 81);
+}
+.attr-group-summary {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    list-style-position: inside;
+    border-radius: 0.5rem;
+}
+.attr-group-summary:hover {
+    background-color: rgb(243, 244, 246);
+}
+:is(html[class~="dark"] .nextra-content) .attr-group-summary:hover {
+    background-color: rgb(55, 65, 81);
+}
+.attr-group-count {
+    font-weight: 400;
+    color: rgb(107, 114, 128);
+}
+.attr-group-body {
+    padding: 0 0.75rem 0.25rem;
+}
+/* The first item's top margin would double the summary's padding. */
+.attr-group-body > .attr-item:first-child,
+.attr-group-body > .prop-item:first-child {
+    margin-top: 0.5em;
+}
+
+/* Shown when a filter query matches nothing. */
+.attr-filter-empty {
+    margin: 0.5em 0 0.5em 0.25em;
+    font-style: italic;
+    color: rgb(107, 114, 128);
 }

@@ -1175,6 +1175,22 @@ export default class BaseComponent {
                         stateVariableDescriptions[varName].description =
                             attrObj.description;
                     }
+                    // Propagate the docs-only grouping flags onto the
+                    // attribute-derived state variable so a property whose
+                    // backing attribute has a different name (i.e.
+                    // `createStateVariable !== attrName`) still lands in the
+                    // same docs group as its attribute. For the common case
+                    // where attribute and state variable share a name, the
+                    // docs pipeline also derives the group from the attribute
+                    // (see `getPropInfo` in `compute-optimized-schema.ts`).
+                    if (attrObj.groupName !== undefined) {
+                        stateVariableDescriptions[varName].groupName =
+                            attrObj.groupName;
+                    }
+                    if (attrObj.highlighted !== undefined) {
+                        stateVariableDescriptions[varName].highlighted =
+                            attrObj.highlighted;
+                    }
                     // Note: `stateVarExcludeFromSchema` (the
                     // "keep-attribute / hide-companion-state-var" lever
                     // for #1089) is handled in `get-schema.ts` by scanning
@@ -1247,6 +1263,18 @@ export default class BaseComponent {
                 // state var, #1090).
                 if (theStateDef.excludeFromSchema) {
                     stateVariableDescriptions[varName].excludeFromSchema = true;
+                }
+                // Propagate the docs-only grouping flags for pure-output
+                // properties (public state vars with no backing attribute,
+                // e.g. `creditAchieved`), so they can be placed in a docs
+                // group or highlighted directly on the state definition.
+                if (theStateDef.groupName !== undefined) {
+                    stateVariableDescriptions[varName].groupName =
+                        theStateDef.groupName;
+                }
+                if (theStateDef.highlighted !== undefined) {
+                    stateVariableDescriptions[varName].highlighted =
+                        theStateDef.highlighted;
                 }
                 // Surface the resting/default value the runtime falls back to
                 // when nothing else (attribute, child, parent) sets the

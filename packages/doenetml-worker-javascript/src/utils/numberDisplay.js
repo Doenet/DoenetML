@@ -340,27 +340,32 @@ export function returnNumberDisplayAttributes() {
     return {
         displayDigits: {
             createComponentOfType: "integer",
+            groupName: "number-display",
             description:
                 "Number of significant digits to display when rendering this number.",
         },
         displayDecimals: {
             createComponentOfType: "integer",
+            groupName: "number-display",
             description:
                 "Number of decimal places to display when rendering this number.",
         },
         displaySmallAsZero: {
             createComponentOfType: "number",
+            groupName: "number-display",
             valueForTrue: 1e-14,
             valueForFalse: 0,
             description: "Threshold below which numbers are displayed as zero.",
         },
         padZeros: {
             createComponentOfType: "boolean",
+            groupName: "number-display",
             description:
                 "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
         },
         avoidScientificNotation: {
             createComponentOfType: "boolean",
+            groupName: "number-display",
             description:
                 "Whether to render numbers in full decimal form rather than scientific notation.",
         },

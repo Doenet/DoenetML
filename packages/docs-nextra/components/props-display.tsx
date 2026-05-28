@@ -1,5 +1,7 @@
+"use client";
+
 import { Link } from "nextra-theme-docs";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
 
@@ -48,6 +50,10 @@ export type AttrInfo = {
     values?: AttrValueInfo[];
     /** Whether the attribute accepts an array of values */
     isArray?: boolean;
+    /** Functional group this attribute belongs to (e.g. `"number-display"`). */
+    groupName?: string;
+    /** Whether this attribute is hand-picked into the "Highlighted" section. */
+    highlighted?: boolean;
 };
 
 export type PropInfo = {
@@ -61,7 +67,530 @@ export type PropInfo = {
     description: string;
     /** Whether the prop accepts an array of values */
     isArray?: boolean;
+    /** Functional group this prop belongs to (e.g. `"number-display"`). */
+    groupName?: string;
+    /** Whether this prop is hand-picked into the "Highlighted" section. */
+    highlighted?: boolean;
 };
+
+/**
+ * Display order for the known functional groups. Groups not listed here are
+ * sorted alphabetically after the known ones, so adding a new `groupName` in
+ * the worker never requires a change here to render (it just lands at the end).
+ */
+const GROUP_ORDER = [
+    "number-display",
+    "labels",
+    "positioning",
+    "styling",
+    "answer-grading",
+    "scoring",
+    "triggering",
+];
+
+/** Human-readable section titles for the known functional groups. */
+const GROUP_LABELS: Record<string, string> = {
+    "number-display": "Number display",
+    labels: "Labels",
+    positioning: "Positioning",
+    styling: "Styling",
+    "answer-grading": "Answer grading",
+    scoring: "Scoring",
+    triggering: "Triggering",
+};
+
+function compareGroupNames(a: string, b: string): number {
+    const ia = GROUP_ORDER.indexOf(a);
+    const ib = GROUP_ORDER.indexOf(b);
+    if (ia !== -1 && ib !== -1) {
+        return ia - ib;
+    }
+    if (ia !== -1) {
+        return -1;
+    }
+    if (ib !== -1) {
+        return 1;
+    }
+    return a.localeCompare(b);
+}
+
+type GroupItem = {
+    name: string;
+    common: boolean;
+    groupName?: string;
+    highlighted?: boolean;
+    description: string;
+};
+
+type GroupSection<T> = {
+    id: string;
+    label: string;
+    items: T[];
+    defaultOpen: boolean;
+};
+
+/**
+ * Partition an already-name-sorted list of attributes/properties into the
+ * ordered, collapsible sections rendered in the docs:
+ *   1. Highlighted (hand-picked, open by default)
+ *   2. Functional groups (by `groupName`, in `GROUP_ORDER`, closed)
+ *   3. Other (ungrouped, closed)
+ *   4. Common to all components (closed, last)
+ *
+ * A highlighted item with a `groupName` intentionally appears in BOTH the
+ * Highlighted section and its functional group. A highlighted item without a
+ * group appears only in Highlighted (not also dumped into "Other"). `common`
+ * items always sink to the last section regardless of any group tag.
+ */
+function partitionIntoSections<T extends GroupItem>(
+    items: T[],
+): GroupSection<T>[] {
+    const highlighted: T[] = [];
+    const common: T[] = [];
+    const grouped = new Map<string, T[]>();
+    const other: T[] = [];
+
+    for (const item of items) {
+        if (item.common) {
+            common.push(item);
+            continue;
+        }
+        if (item.highlighted) {
+            highlighted.push(item);
+        }
+        if (item.groupName) {
+            const arr = grouped.get(item.groupName) ?? [];
+            arr.push(item);
+            grouped.set(item.groupName, arr);
+        } else if (!item.highlighted) {
+            other.push(item);
+        }
+    }
+
+    const sections: GroupSection<T>[] = [];
+    if (highlighted.length > 0) {
+        sections.push({
+            id: "highlighted",
+            label: "Highlighted",
+            items: highlighted,
+            defaultOpen: true,
+        });
+    }
+    for (const groupName of [...grouped.keys()].sort(compareGroupNames)) {
+        sections.push({
+            id: `group:${groupName}`,
+            label: GROUP_LABELS[groupName] ?? groupName,
+            items: grouped.get(groupName)!,
+            defaultOpen: false,
+        });
+    }
+    if (other.length > 0) {
+        sections.push({
+            id: "other",
+            label: "Other",
+            items: other,
+            defaultOpen: false,
+        });
+    }
+    if (common.length > 0) {
+        sections.push({
+            id: "common",
+            label: "Common to all components",
+            items: common,
+            defaultOpen: false,
+        });
+    }
+    return sections;
+}
+
+/**
+ * Render the inline backtick `code` spans in a description string; everything
+ * else is plain text. Schema descriptions use only this one bit of markdown
+ * (e.g. "Like `numbers`, but does not reorder commutative operands."), so a
+ * full markdown renderer would be overkill.
+ */
+function renderInlineCode(text: string): React.ReactNode {
+    if (!text.includes("`")) {
+        return text;
+    }
+    // Splitting on backticks puts plain text at even indices and the contents
+    // of each `code` span at odd indices.
+    return text.split("`").map((part, i) =>
+        i % 2 === 1 ? (
+            <code className="attr-inline-code" key={i}>
+                {part}
+            </code>
+        ) : (
+            <React.Fragment key={i}>{part}</React.Fragment>
+        ),
+    );
+}
+
+/** Render a single attribute item. `idPrefix` keeps DOM ids unique across the
+ * Highlighted duplicate (`attr-hl-…`) and the canonical copy (`attr-…`). */
+function renderAttrItem(
+    attr: AttrInfo,
+    links: Record<string, string>,
+    idPrefix: string,
+) {
+    const linkTarget = links[attr.name];
+    const nameElm = linkTarget ? (
+        <Link href={linkTarget}>{attr.name}</Link>
+    ) : (
+        attr.name
+    );
+    const typeLabel = formatType(attr.type, attr.isArray);
+    const isKeyword = attr.type === "keyword";
+    const defaultNode = renderDefaultValue(attr.defaultValue);
+    // `boolean` attributes only ever take true/false, so the value table would
+    // be noise — skip it for them.
+    const showValues =
+        attr.type !== "boolean" &&
+        attr.values != null &&
+        attr.values.length > 0;
+    return (
+        <div
+            className="attr-item"
+            id={`${idPrefix}-${attr.name}`}
+            key={attr.name}
+        >
+            <div>
+                <code className="attr-name attr-name-box">{nameElm}</code>
+            </div>
+            <p className="attr-detail">
+                {typeLabel ? (
+                    <>
+                        <em className="attr-type">{typeLabel}</em>.{" "}
+                    </>
+                ) : null}
+                {/* The default value follows the type, except for keyword
+                attributes, where it is marked in the value list below. Math
+                defaults are typeset by MathJax, so we render them in a plain
+                `<span>` instead of `<code>` — wrapping typeset math inside a
+                monospace `<code>` block produces awkward mixed-typography
+                output. */}
+                {!isKeyword && defaultNode !== null ? (
+                    <>
+                        Default value:{" "}
+                        {isMathDefaultValue(attr.defaultValue) ? (
+                            <span className="attr-default attr-default-math">
+                                {defaultNode}
+                            </span>
+                        ) : (
+                            <code className="attr-default">{defaultNode}</code>
+                        )}
+                        .{" "}
+                    </>
+                ) : null}
+                {renderInlineCode(attr.description)}
+            </p>
+            {showValues ? (
+                <table className="attr-value-table">
+                    <thead>
+                        <tr>
+                            <th>Value</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {attr.values!.map((v) => {
+                            const isDefault =
+                                attr.defaultValue != null &&
+                                String(attr.defaultValue) === v.value;
+                            return (
+                                <tr key={v.value}>
+                                    <td>
+                                        <code className="attr-value-chip">
+                                            {v.value}
+                                        </code>
+                                        {isDefault ? (
+                                            <span className="attr-default-marker">
+                                                {" "}
+                                                (default)
+                                            </span>
+                                        ) : null}
+                                    </td>
+                                    <td>
+                                        {v.description
+                                            ? renderInlineCode(v.description)
+                                            : ""}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            ) : null}
+        </div>
+    );
+}
+
+/** Render a single property item. */
+function renderPropItem(
+    prop: PropInfo,
+    refName: string,
+    links: Record<string, string>,
+    idPrefix: string,
+) {
+    const linkTarget = links[prop.name];
+    const nameElm = linkTarget ? (
+        <Link href={linkTarget}>{prop.name}</Link>
+    ) : (
+        prop.name
+    );
+    const typeLabel = formatType(prop.type, prop.isArray);
+    return (
+        <div
+            className="prop-item"
+            id={`${idPrefix}-${prop.name}`}
+            key={prop.name}
+        >
+            <div>
+                <code className="prop-name-box">
+                    ${refName}.<span className="prop-name">{nameElm}</span>
+                </code>
+            </div>
+            <p className="prop-detail">
+                {typeLabel ? (
+                    <>
+                        <em className="prop-type">{typeLabel}</em>.{" "}
+                    </>
+                ) : null}
+                {renderInlineCode(prop.description)}
+            </p>
+        </div>
+    );
+}
+
+/** One collapsible group: a `<details>` controlled by React state so the
+ * page-level Reveal/Collapse-all toggle stays authoritative. */
+function CollapsibleGroup({
+    title,
+    count,
+    open,
+    onToggle,
+    children,
+}: React.PropsWithChildren<{
+    title: string;
+    count: number;
+    open: boolean;
+    onToggle: () => void;
+}>) {
+    return (
+        <details className="attr-group" open={open}>
+            <summary
+                className="attr-group-summary"
+                onClick={(e) => {
+                    // Own the open state in React rather than letting the
+                    // browser toggle natively, so Reveal/Collapse-all wins.
+                    e.preventDefault();
+                    onToggle();
+                }}
+            >
+                {title}
+                <span className="attr-group-count"> ({count})</span>
+            </summary>
+            <div className="attr-group-body">{children}</div>
+        </details>
+    );
+}
+
+/**
+ * The interactive body shared by `AttrDisplay`, `PropDisplay`, and
+ * `AttrPropDisplay`: one filter box + Reveal/Collapse-all toggle controlling
+ * the collapsible attribute and/or property sections.
+ */
+function CollapsibleAttrPropSection({
+    name,
+    attrs,
+    props,
+    attrLinks = {},
+    propLinks = {},
+    attrCaptionName,
+    propCaptionName,
+    missingAttrsNote = null,
+    missingPropsNote = null,
+}: {
+    name: string;
+    attrs?: AttrInfo[];
+    props?: PropInfo[];
+    /** Map of attribute name → anchor of its worked example. */
+    attrLinks?: Record<string, string>;
+    /** Map of property name → anchor of its worked example. */
+    propLinks?: Record<string, string>;
+    attrCaptionName?: React.ReactNode;
+    propCaptionName?: React.ReactNode;
+    missingAttrsNote?: React.ReactNode;
+    missingPropsNote?: React.ReactNode;
+}) {
+    const refName = name.charAt(0).toLowerCase();
+
+    const attrSections = useMemo(
+        () => (attrs ? partitionIntoSections(attrs) : []),
+        [attrs],
+    );
+    const propSections = useMemo(
+        () => (props ? partitionIntoSections(props) : []),
+        [props],
+    );
+
+    const [query, setQuery] = useState("");
+    const [openMap, setOpenMap] = useState<Record<string, boolean>>(() => {
+        const map: Record<string, boolean> = {};
+        for (const s of attrSections) {
+            map[`attr:${s.id}`] = s.defaultOpen;
+        }
+        for (const s of propSections) {
+            map[`prop:${s.id}`] = s.defaultOpen;
+        }
+        return map;
+    });
+
+    const q = query.trim().toLowerCase();
+    const filtering = q !== "";
+    const matches = (item: GroupItem) =>
+        !filtering ||
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q);
+
+    const allKeys = [
+        ...attrSections.map((s) => `attr:${s.id}`),
+        ...propSections.map((s) => `prop:${s.id}`),
+    ];
+    const allOpen = allKeys.length > 0 && allKeys.every((k) => openMap[k]);
+    const toggle = (key: string) =>
+        setOpenMap((m) => ({ ...m, [key]: !m[key] }));
+    const setAll = (value: boolean) =>
+        setOpenMap(Object.fromEntries(allKeys.map((k) => [k, value])));
+
+    const attrsNeedMath = (attrs ?? []).some((a) =>
+        isMathDefaultValue(a.defaultValue),
+    );
+
+    const renderSections = (
+        sections: GroupSection<AttrInfo | PropInfo>[],
+        kind: "attr" | "prop",
+    ) =>
+        sections.map((section) => {
+            const key = `${kind}:${section.id}`;
+            const visibleItems = section.items.filter(matches);
+            if (filtering && visibleItems.length === 0) {
+                return null;
+            }
+            const open = filtering ? true : Boolean(openMap[key]);
+            const highlightedSection = section.id === "highlighted";
+            const idPrefix =
+                kind === "attr"
+                    ? highlightedSection
+                        ? "attr-hl"
+                        : "attr"
+                    : highlightedSection
+                      ? "prop-hl"
+                      : "prop";
+            return (
+                <CollapsibleGroup
+                    key={key}
+                    title={section.label}
+                    count={visibleItems.length}
+                    open={open}
+                    onToggle={() => toggle(key)}
+                >
+                    {kind === "attr"
+                        ? (visibleItems as AttrInfo[]).map((item) =>
+                              renderAttrItem(item, attrLinks, idPrefix),
+                          )
+                        : (visibleItems as PropInfo[]).map((item) =>
+                              renderPropItem(
+                                  item,
+                                  refName,
+                                  propLinks,
+                                  idPrefix,
+                              ),
+                          )}
+                </CollapsibleGroup>
+            );
+        });
+
+    const renderedAttrSections = renderSections(attrSections, "attr");
+    const renderedPropSections = renderSections(propSections, "prop");
+    const attrAllHidden =
+        renderedAttrSections.length > 0 &&
+        renderedAttrSections.every((s) => s === null);
+    const propAllHidden =
+        renderedPropSections.length > 0 &&
+        renderedPropSections.every((s) => s === null);
+
+    return (
+        <>
+            <div className="attr-prop-controls">
+                <input
+                    type="search"
+                    className="attr-filter-input"
+                    placeholder="Filter attributes and properties…"
+                    aria-label="Filter attributes and properties"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                {!filtering && allKeys.length > 0 ? (
+                    <button
+                        type="button"
+                        className="reveal-all-toggle"
+                        onClick={() => setAll(!allOpen)}
+                    >
+                        {allOpen ? "Collapse all" : "Expand all"}
+                    </button>
+                ) : null}
+            </div>
+
+            {attrs ? (
+                <WithMathJaxIfNeeded needed={attrsNeedMath}>
+                    <div className="attr-list" id="attr-list">
+                        <h3 className="attr-list-caption">
+                            Attributes for{" "}
+                            {attrCaptionName || (
+                                <code>
+                                    {"<"}
+                                    {name}
+                                    {">"}
+                                </code>
+                            )}
+                        </h3>
+                        {renderedAttrSections}
+                        {attrAllHidden ? (
+                            <p className="attr-filter-empty">
+                                No matching attributes.
+                            </p>
+                        ) : null}
+                    </div>
+                </WithMathJaxIfNeeded>
+            ) : (
+                missingAttrsNote
+            )}
+
+            {props ? (
+                <div className="prop-list" id="prop-list">
+                    <h3 className="prop-list-caption">
+                        Properties for{" "}
+                        {propCaptionName || (
+                            <code>
+                                {"<"}
+                                {name} name="{refName}"{">"}
+                            </code>
+                        )}
+                    </h3>
+                    {renderedPropSections}
+                    {propAllHidden ? (
+                        <p className="attr-filter-empty">
+                            No matching properties.
+                        </p>
+                    ) : null}
+                </div>
+            ) : (
+                missingPropsNote
+            )}
+        </>
+    );
+}
 
 export function AttrDisplay({
     name,
@@ -73,125 +602,13 @@ export function AttrDisplay({
     attrs: AttrInfo[];
     links?: Record<string, string>;
 }>) {
-    // `attrs` arrives already sorted by name from computeOptimizedSchema.
-    const componentAttrs = attrs.filter((attr) => !attr.common);
-
     return (
-        <WithMathJaxIfNeeded
-            needed={componentAttrs.some((a) =>
-                isMathDefaultValue(a.defaultValue),
-            )}
-        >
-            <div className="attr-list" id="attr-list">
-                <h3 className="attr-list-caption">
-                    Attributes for{" "}
-                    {children || (
-                        <code>
-                            {"<"}
-                            {name}
-                            {">"}
-                        </code>
-                    )}
-                </h3>
-                {componentAttrs.map((attr) => {
-                    const linkTarget = links[attr.name];
-                    const nameElm = linkTarget ? (
-                        <Link href={linkTarget}>{attr.name}</Link>
-                    ) : (
-                        attr.name
-                    );
-                    const typeLabel = formatType(attr.type, attr.isArray);
-                    const isKeyword = attr.type === "keyword";
-                    const defaultNode = renderDefaultValue(attr.defaultValue);
-                    // `boolean` attributes only ever take true/false, so the
-                    // value table would be noise — skip it for them.
-                    const showValues =
-                        attr.type !== "boolean" &&
-                        attr.values != null &&
-                        attr.values.length > 0;
-                    return (
-                        <div className="attr-item" key={attr.name}>
-                            <div>
-                                <code className="attr-name attr-name-box">
-                                    {nameElm}
-                                </code>
-                            </div>
-                            <p className="attr-detail">
-                                {typeLabel ? (
-                                    <>
-                                        <em className="attr-type">
-                                            {typeLabel}
-                                        </em>
-                                        .{" "}
-                                    </>
-                                ) : null}
-                                {/* The default value follows the type, except for
-                                keyword attributes, where it is marked in the
-                                value list below. Math defaults are typeset by
-                                MathJax, so we render them in a plain `<span>`
-                                instead of `<code>` — wrapping typeset math
-                                inside a monospace `<code>` block produces
-                                awkward mixed-typography output. */}
-                                {!isKeyword && defaultNode !== null ? (
-                                    <>
-                                        Default value:{" "}
-                                        {isMathDefaultValue(
-                                            attr.defaultValue,
-                                        ) ? (
-                                            <span className="attr-default attr-default-math">
-                                                {defaultNode}
-                                            </span>
-                                        ) : (
-                                            <code className="attr-default">
-                                                {defaultNode}
-                                            </code>
-                                        )}
-                                        .{" "}
-                                    </>
-                                ) : null}
-                                {attr.description}
-                            </p>
-                            {showValues ? (
-                                <table className="attr-value-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Value</th>
-                                            <th>Description</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {attr.values!.map((v) => {
-                                            const isDefault =
-                                                attr.defaultValue != null &&
-                                                String(attr.defaultValue) ===
-                                                    v.value;
-                                            return (
-                                                <tr key={v.value}>
-                                                    <td>
-                                                        <code className="attr-value-chip">
-                                                            {v.value}
-                                                        </code>
-                                                        {isDefault ? (
-                                                            <span className="attr-default-marker">
-                                                                {" "}
-                                                                (default)
-                                                            </span>
-                                                        ) : null}
-                                                    </td>
-                                                    <td>
-                                                        {v.description || ""}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            ) : null}
-                        </div>
-                    );
-                })}
-            </div>
-        </WithMathJaxIfNeeded>
+        <CollapsibleAttrPropSection
+            name={name}
+            attrs={attrs}
+            attrLinks={links}
+            attrCaptionName={children}
+        />
     );
 }
 
@@ -205,72 +622,37 @@ export function PropDisplay({
     props: PropInfo[];
     links?: Record<string, string>;
 }>) {
-    // `props` arrives already sorted by name from computeOptimizedSchema.
-    const componentProps = props.filter((prop) => !prop.common);
-    const refName = name.charAt(0).toLowerCase();
-
     return (
-        <div className="prop-list" id="prop-list">
-            <h3 className="prop-list-caption">
-                Props for{" "}
-                {children || (
-                    <code>
-                        {"<"}
-                        {name} name="{refName}"{">"}
-                    </code>
-                )}
-            </h3>
-            {componentProps.map((prop) => {
-                const linkTarget = links[prop.name];
-                const nameElm = linkTarget ? (
-                    <Link href={linkTarget}>{prop.name}</Link>
-                ) : (
-                    prop.name
-                );
-                const typeLabel = formatType(prop.type, prop.isArray);
-                return (
-                    <div className="prop-item" key={prop.name}>
-                        <div>
-                            <code className="prop-name-box">
-                                ${refName}.
-                                <span className="prop-name">{nameElm}</span>
-                            </code>
-                        </div>
-                        <p className="prop-detail">
-                            {typeLabel ? (
-                                <>
-                                    <em className="prop-type">{typeLabel}</em>
-                                    .{" "}
-                                </>
-                            ) : null}
-                            {prop.description}
-                        </p>
-                    </div>
-                );
-            })}
-        </div>
+        <CollapsibleAttrPropSection
+            name={name}
+            props={props}
+            propLinks={links}
+            propCaptionName={children}
+        />
     );
 }
 
 /**
- * Renders the body of an "Attributes and Properties" section: the attribute
- * list and the property list, substituting a short message for either one
- * when the component has none. The section heading itself is emitted as a
- * real Markdown heading by the `autoInsertAttrPropDescriptions` remark plugin.
+ * Renders the body of an "Attributes and Properties" section: the collapsible
+ * attribute and property lists, substituting a short message for either one
+ * when the component has none. The section heading itself is emitted as a real
+ * Markdown heading by the `autoInsertAttrPropDescriptions` remark plugin.
  */
 export function AttrPropDisplay({
     name,
     attrs = [],
     props = [],
-    links = {},
+    attrLinks = {},
+    propLinks = {},
 }: {
     name: string;
     attrs?: AttrInfo[];
     props?: PropInfo[];
-    links?: Record<string, string>;
+    attrLinks?: Record<string, string>;
+    propLinks?: Record<string, string>;
 }) {
-    const hasAttrs = attrs.some((attr) => !attr.common);
-    const hasProps = props.some((prop) => !prop.common);
+    const hasAttrs = attrs.length > 0;
+    const hasProps = props.length > 0;
     const nameCode = (
         <code>
             {"<"}
@@ -283,18 +665,19 @@ export function AttrPropDisplay({
         return <p>The {nameCode} component has no attributes or properties.</p>;
     }
     return (
-        <>
-            {hasAttrs ? (
-                <AttrDisplay name={name} attrs={attrs} links={links} />
-            ) : (
+        <CollapsibleAttrPropSection
+            name={name}
+            attrs={hasAttrs ? attrs : undefined}
+            props={hasProps ? props : undefined}
+            attrLinks={attrLinks}
+            propLinks={propLinks}
+            missingAttrsNote={
                 <p>The {nameCode} component has no attributes.</p>
-            )}
-            {hasProps ? (
-                <PropDisplay name={name} props={props} links={links} />
-            ) : (
+            }
+            missingPropsNote={
                 <p>The {nameCode} component has no properties.</p>
-            )}
-        </>
+            }
+        />
     );
 }
 
@@ -328,7 +711,7 @@ function renderDefaultValue(value: unknown): React.ReactNode {
     if (isMathDefaultValue(value)) {
         // `\(…\)` is the MathJax inline-math delimiter. `dynamic` and
         // `hideUntilTypeset="first"` mirror how `<m>`-style math is
-        // rendered elsewhere in DoenetML — the latex is hidden until the
+        // rendered elsewhere in DoenetML — the latter is hidden until the
         // first typeset pass, which avoids a flash of raw source on first
         // paint.
         return (
