@@ -226,6 +226,16 @@ function renderInlineCode(text: string): React.ReactNode {
     );
 }
 
+/** Render an attribute/property name, linking it to its worked example when
+ * `links` has an entry for it. */
+function renderName(
+    name: string,
+    links: Record<string, string>,
+): React.ReactNode {
+    const linkTarget = links[name];
+    return linkTarget ? <Link href={linkTarget}>{name}</Link> : name;
+}
+
 /** Render a single attribute item. `idPrefix` keeps DOM ids unique across the
  * Highlighted duplicate (`attr-hl-…`) and the canonical copy (`attr-…`). */
 function renderAttrItem(
@@ -233,12 +243,7 @@ function renderAttrItem(
     links: Record<string, string>,
     idPrefix: string,
 ) {
-    const linkTarget = links[attr.name];
-    const nameElm = linkTarget ? (
-        <Link href={linkTarget}>{attr.name}</Link>
-    ) : (
-        attr.name
-    );
+    const nameElm = renderName(attr.name, links);
     const typeLabel = formatType(attr.type, attr.isArray);
     const isKeyword = attr.type === "keyword";
     const defaultNode = renderDefaultValue(attr.defaultValue);
@@ -332,12 +337,7 @@ function renderPropItem(
     links: Record<string, string>,
     idPrefix: string,
 ) {
-    const linkTarget = links[prop.name];
-    const nameElm = linkTarget ? (
-        <Link href={linkTarget}>{prop.name}</Link>
-    ) : (
-        prop.name
-    );
+    const nameElm = renderName(prop.name, links);
     const typeLabel = formatType(prop.type, prop.isArray);
     return (
         <div
@@ -478,15 +478,10 @@ function CollapsibleAttrPropSection({
                 return null;
             }
             const open = filtering ? true : Boolean(openMap[key]);
-            const highlightedSection = section.id === "highlighted";
-            const idPrefix =
-                kind === "attr"
-                    ? highlightedSection
-                        ? "attr-hl"
-                        : "attr"
-                    : highlightedSection
-                      ? "prop-hl"
-                      : "prop";
+            // The Highlighted section duplicates items that also appear in a
+            // functional group, so it gets an `-hl` id prefix to keep DOM ids
+            // unique (e.g. `attr-hl-displayDigits` vs. `attr-displayDigits`).
+            const idPrefix = kind + (section.id === "highlighted" ? "-hl" : "");
             return (
                 <CollapsibleGroup
                     key={key}
