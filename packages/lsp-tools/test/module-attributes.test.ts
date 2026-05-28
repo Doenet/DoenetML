@@ -308,18 +308,26 @@ describe("getModuleDeclaredAttributes", () => {
         ).toBeUndefined();
     });
 
-    it("preserves complex inner content (nested elements) in `defaultValueText`", () => {
+    it("preserves complex inner content (nested elements, mixed text+elements, macros) in `defaultValueText`", () => {
         // Round-trip through `toXml` so the help panel surfaces exactly
         // what the author would have to retype to reproduce the default.
+        // Three shapes to lock in: plain text, mixed text+nested-element,
+        // and a macro reference — all common patterns for declared module
+        // attribute defaults.
         const el = elementNamed(
             `<module name="m"><moduleAttributes>
-                <math name="m">x^2+1</math>
+                <math name="plain">x^2+1</math>
+                <point name="nested">(<number>1</number>,<number>2</number>)</point>
+                <math name="macro">$q+1</math>
             </moduleAttributes></module>`,
             "module",
         );
-        expect(getModuleDeclaredAttributes(el).get("m")?.defaultValueText).toBe(
-            "x^2+1",
+        const result = getModuleDeclaredAttributes(el);
+        expect(result.get("plain")?.defaultValueText).toBe("x^2+1");
+        expect(result.get("nested")?.defaultValueText).toBe(
+            "(<number>1</number>,<number>2</number>)",
         );
+        expect(result.get("macro")?.defaultValueText).toBe("$q+1");
     });
 
     it("keeps the FIRST occurrence's metadata on duplicate names (LSP tie-breaker)", () => {
