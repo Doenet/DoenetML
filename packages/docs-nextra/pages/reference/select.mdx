@@ -258,6 +258,29 @@ Different page variants (which can be accessed from the left-side menu) will hav
 
 ## Attribute Examples
 
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<select name="s" type="text" numToSelect="3">
+  red orange yellow green blue indigo violet
+</select>
+
+<p>Selected: $s</p>
+<p>First selected: $s[1]</p>
+```
+
+
+
+The `numToSelect` attribute sets how many values are chosen from the options. The default value is `1`. When more than one is selected, the individual selections are accessed by index (for example, `$s[1]`). Without `withReplacement`, each option can be chosen at most once.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+
+---
+
 ### Attribute Example: withReplacement
 
 

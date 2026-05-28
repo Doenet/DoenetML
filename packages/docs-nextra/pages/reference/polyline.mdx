@@ -146,6 +146,144 @@ polyline as a whole can still be repositioned on the `<graph>{:dn}`.
 
 ---
 
+### Attribute Example: rigid
+
+
+```doenet-example
+<p>Drag the highlighted vertex to rotate the polyline, or drag an edge to move it.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polyline</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid/>
+</graph>
+```
+
+
+
+The `rigid` attribute locks the shape and size of the `<polyline>{:dn}`, treating it as a rigid body. Drag an edge to translate the polyline, and drag the highlighted vertex to rotate it about its centroid. Only that highlighted vertex (the rotation handle) is draggable; the other vertices are locked. The default value is `false`, in which case each vertex may be dragged independently.
+
+
+
+---
+
+### Attribute Example: preserveSimilarity
+
+
+```doenet-example
+<p>Drag the highlighted vertex to rotate and resize the polyline, or drag an edge to move it.</p>
+<graph size="small">
+  <shortDescription>A graph of a polyline that preserves similarity</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity/>
+</graph>
+```
+
+
+
+The `preserveSimilarity` attribute preserves the shape of the `<polyline>{:dn}` up to similarity: dragging the highlighted vertex rotates and uniformly scales (dilates) the polyline, while dragging an edge translates it. Unlike `rigid`, the overall size may change. The default value is `false`.
+
+
+
+---
+
+### Attribute Example: allowRotation
+
+
+```doenet-example
+<p>With rotation disabled, dragging the highlighted vertex resizes (dilates) this polyline instead of rotating it.</p>
+<graph size="small">
+  <shortDescription>A graph of a similarity-preserving polyline that cannot be rotated</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity allowRotation="false"/>
+</graph>
+```
+
+
+
+When the `<polyline>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging the highlighted vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`. Because this polyline uses `preserveSimilarity` (which allows dilation), disabling rotation leaves the highlighted vertex able to uniformly scale the polyline.
+
+
+
+---
+
+### Attribute Example: allowTranslation
+
+
+```doenet-example
+<p>Dragging an edge no longer moves this rigid polyline, but the highlighted vertex still rotates it.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polyline that cannot be translated</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowTranslation="false"/>
+</graph>
+```
+
+
+
+When the `<polyline>{:dn}` is `rigid` or preserves similarity, the `allowTranslation` attribute controls whether dragging an edge may move it. Set to `false` to forbid translation. The default value is `true`.
+
+
+
+---
+
+### Attribute Example: allowDilation
+
+
+```doenet-example
+<p>This polyline preserves similarity but may not be resized, so it behaves rigidly.</p>
+<graph size="small">
+  <shortDescription>A graph of a similarity-preserving polyline that cannot be dilated</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity allowDilation="false"/>
+</graph>
+```
+
+
+
+When the `<polyline>{:dn}` preserves similarity, the `allowDilation` attribute controls whether dragging the highlighted vertex may uniformly scale it. The default value is `true`; combining `preserveSimilarity` with `allowDilation="false"` is equivalent to `rigid`. (Setting `rigid` always forces dilation off.)
+
+
+
+---
+
+### Attribute Example: allowReflection
+
+
+```doenet-example
+<p>Note: click either polyline to reflect it.</p>
+<callAction target="$poly1" actionName="reflectPolyline" triggerWhenObjectsClicked="$poly1"/>
+<callAction target="$poly2" actionName="reflectPolyline" triggerWhenObjectsClicked="$poly2"/>
+<graph size="small">
+  <shortDescription>A graph of two polylines, one of which can be reflected by clicking</shortDescription>
+  <polyline name="poly1" vertices="(-8,2) (-6,-3) (-1,4)"/>
+  <polyline name="poly2" vertices="(2,2) (4,-3) (9,4)" styleNumber="2" allowReflection="false"/>
+</graph>
+```
+
+
+
+The `allowReflection` attribute controls whether the `<polyline>{:dn}` may be flipped (reflected) across a vertical line through its centroid. The default value is `true`.
+
+Reflection is not currently triggered by a built-in drag or click gesture; it is performed by the `reflectPolyline` action. In this example that action is invoked with [`<callAction>{:dn}`](callAction.mdx) whenever a polyline is clicked. The first polyline reflects on each click, while the second has `allowReflection="false"`, so clicking it has no effect.
+
+
+
+---
+
+### Attribute Example: rotateAround
+
+
+```doenet-example
+<p>Drag the highlighted vertex to rotate the polyline about its second vertex.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polyline rotating about a chosen vertex</shortDescription>
+  <polyline name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid rotateAround="vertex" rotationVertex="2"/>
+</graph>
+```
+
+
+
+When the `<polyline>{:dn}` is `rigid` or preserves similarity, the `rotateAround` attribute sets the center of rotation. Valid values are `centroid` (the default), `vertex` (the vertex given by `rotationVertex`), and `point` (the explicit point given by `rotationCenter`).
+
+
+
+---
+
 ### Attribute Example: Standard graphical attributes
 
 

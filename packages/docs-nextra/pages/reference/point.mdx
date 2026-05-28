@@ -410,6 +410,71 @@ In this example, only one indicator appears initially, since point A has the `hi
 
 ---
 
+### Attribute Example: markerStyle
+
+
+```doenet-example
+<graph size="small" displayXAxis="false" displayYAxis="false">
+  <shortDescription>A graph of points drawn with different marker shapes</shortDescription>
+  <point coords="(-6,1)" markerStyle="circle"><label>circle</label></point>
+  <point coords="(-2,3)" markerStyle="square"><label>square</label></point>
+  <point coords="(2,5)" markerStyle="triangle"><label>triangle</label></point>
+  <point coords="(6,7)" markerStyle="diamond"><label>diamond</label></point>
+  <point coords="(-6,-7)" markerStyle="triangleDown"><label>triangleDown</label></point>
+  <point coords="(-2,-5)" markerStyle="triangleLeft"><label>triangleLeft</label></point>
+  <point coords="(2,-3)" markerStyle="cross"><label>cross</label></point>
+  <point coords="(6,-1)" markerStyle="plus"><label>plus</label></point>
+</graph>
+```
+
+
+
+The `markerStyle` attribute sets the shape of the marker drawn at the point. Valid values are `circle`, `square`, `triangle` (an alias for `triangleUp`), `triangleUp`, `triangleDown`, `triangleLeft`, `triangleRight`, `diamond`, `cross`, and `plus`. The default value is `circle`.
+
+
+
+---
+
+### Attribute Example: markerSize
+
+
+```doenet-example
+<graph size="small" displayXAxis="false" displayYAxis="false">
+  <shortDescription>A graph of points drawn at increasing marker sizes</shortDescription>
+  <point coords="(-6,0)" markerSize="3"><label>3</label></point>
+  <point coords="(-2,0)" markerSize="6"><label>6</label></point>
+  <point coords="(2,0)" markerSize="10"><label>10</label></point>
+  <point coords="(6,0)" markerSize="16"><label>16</label></point>
+</graph>
+```
+
+
+
+The `markerSize` attribute sets the size of the marker in pixels. The default value is `5`.
+
+
+
+---
+
+### Attribute Example: markerFilled
+
+
+```doenet-example
+<graph size="small" displayXAxis="false" displayYAxis="false">
+  <shortDescription>A graph of a filled marker and an open marker</shortDescription>
+  <point coords="(-3,0)" markerStyle="square"><label>filled</label></point>
+  <point coords="(3,0)" markerStyle="square" markerFilled="false"><label>open</label></point>
+</graph>
+```
+
+
+
+The `markerFilled` attribute determines whether the marker is drawn solid (`true`) or as an open outline (`false`). The default value is `true`. It has no effect when `markerStyle` is `cross` or `plus`, which have no interior.
+
+
+
+---
+
 ### Attribute Example: Standard graphical attributes
 
 
