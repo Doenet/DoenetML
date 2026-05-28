@@ -17,7 +17,10 @@ import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
-import { computeContextHelp } from "../src/context-help/computeContextHelp";
+import {
+    computeContextHelp,
+    computeContextHelpForCompletion,
+} from "../src/context-help/computeContextHelp";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
@@ -484,22 +487,39 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("completion: attribute-name dropdown for <module copy=...>", () => {
-            it("offers declared names alongside canonical ones", async () => {
+            it("offers declared names alongside canonical ones, with component-type-tagged descriptions", async () => {
                 // Cursor right after the space inside the open tag — the
                 // attribute-name completion branch fires here.
                 const source = `<setup><module name="m"><moduleAttributes><point name="center">(0,0)</point><number name="color">2</number></moduleAttributes></module></setup>
 <module copy="$m" `;
                 const { completer } = await buildCompleter(source);
                 const items = await completer.getCompletionItems(source.length);
-                const labels = items
-                    .filter((i) => i.kind === CompletionItemKind.Enum)
-                    .map((i) => i.label);
+                const enumItems = items.filter(
+                    (i) => i.kind === CompletionItemKind.Enum,
+                );
+                const labels = enumItems.map((i) => i.label);
                 // Author-declared names.
                 expect(labels).toContain("center");
                 expect(labels).toContain("color");
                 // Canonical <module> attributes still present.
                 expect(labels).toContain("name");
                 expect(labels).toContain("hide");
+                // The synthesized descriptions surface the declared child's
+                // component type so the dropdown documentation shows
+                // `<point>` vs `<number>` (issue #1189). The LSP wraps
+                // descriptions in a MarkupContent payload at this layer.
+                const docFor = (label: string): string | undefined => {
+                    const item = enumItems.find((i) => i.label === label);
+                    const doc = item?.documentation;
+                    if (typeof doc === "string") return doc;
+                    return doc?.value;
+                };
+                expect(docFor("center")).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
+                expect(docFor("color")).toBe(
+                    "Author-declared module attribute (`<number>`)",
+                );
             });
 
             it("without copy=, only canonical attributes are offered", async () => {
@@ -532,11 +552,13 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
         });
 
         describe("context-help on declared attributes", () => {
-            it("returns an attribute help payload when the cursor sits on a per-instance declared attribute", async () => {
+            it("returns an attribute help payload tagged with the declared component type", async () => {
                 // Reproduces the user-reported follow-up: the cursor is
                 // inside the `n` attribute on the copy site; the help
                 // panel previously returned NONE because `helpForAttribute`
-                // only consulted the canonical/alias schema entry.
+                // only consulted the canonical/alias schema entry.  The
+                // surfaced description now includes the declared child's
+                // component type (issue #1189).
                 const source = `<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
 <module copy="$m" n="3" />`;
                 const { completer } = await buildCompleter(source);
@@ -548,8 +570,57 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 expect(help.elementName).toBe("module");
                 expect(help.attributeName.toLowerCase()).toBe("n");
                 expect(help.description).toBe(
-                    "Author-declared module attribute",
+                    "Author-declared module attribute (`<number>`)",
                 );
+            });
+
+            it("surfaces a different component type for a different declared child element", async () => {
+                // Sibling assertion to the `<number>` case above: the
+                // description must vary with the declared child's tag, so
+                // a `<point name="p">` declaration surfaces `<point>` (not
+                // a generic placeholder).  Pins that the metadata is
+                // threaded all the way through to the help payload.
+                const source = `<module name="m"><moduleAttributes><point name="p">(0,0)</point></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
+            });
+
+            it("surfaces the declared default value via the help payload's `defaultValue` field", async () => {
+                // The declaring `<point name="p">(3,4)</point>` makes `(3,4)`
+                // the runtime default when an instance omits `p=`.  Surface
+                // it on the synthesized SchemaAttribute's `defaultValue` so
+                // the panel's existing "Default:" row picks it up — no
+                // renderer changes needed (#1189 base-default extension).
+                const source = `<module name="m"><moduleAttributes><point name="p">(3,4)</point></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.defaultValue).toBe("(3,4)");
+            });
+
+            it("omits the default-value field when the declaring element is empty", async () => {
+                // `<point name="p"/>` declares the attribute with no
+                // textual default — the help payload must leave
+                // `defaultValue` absent so the panel doesn't render a
+                // blank "Default:" row.
+                const source = `<module name="m"><moduleAttributes><point name="p"/></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.defaultValue).toBeUndefined();
             });
 
             it("still returns canonical help for canonical attributes on the same site", async () => {
@@ -562,9 +633,9 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 if (help.kind !== "attribute") return;
                 expect(help.attributeName.toLowerCase()).toBe("name");
                 // Canonical entries have their real description, NOT the
-                // synthesized placeholder.
-                expect(help.description).not.toBe(
-                    "Author-declared module attribute",
+                // synthesized author-declared payload.
+                expect(help.description.startsWith("Author-declared")).toBe(
+                    false,
                 );
             });
 
@@ -578,6 +649,61 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 // "keep something on screen" behavior) rather than a
                 // synthesized attribute payload.
                 expect(help.kind).not.toBe("attribute");
+            });
+
+            it("surfaces the declared component type when help is driven by an autocomplete-row highlight", async () => {
+                // Mirrors the dropdown-navigation path: the user has the
+                // attribute-name autocomplete open inside a
+                // `<module copy="$m" ...>` site and arrow-keys onto the
+                // synthesized row for a declared attribute.  The LSP calls
+                // `computeContextHelpForCompletion` with kind `enum` and
+                // the row's label; the help panel must surface the same
+                // component-type-tagged description the dropdown row's
+                // documentation already shows (#1189), not a generic
+                // canonical-only payload (which is what happens if the
+                // branch bypasses `augmentWithPerInstanceAttributes`).
+                const source = `<module name="m"><moduleAttributes><point name="center">(0,0)</point></moduleAttributes></module>
+<module copy="$m" `;
+                const { completer } = await buildCompleter(source);
+                const help = await computeContextHelpForCompletion(
+                    completer,
+                    source.length,
+                    { label: "center", type: "enum" },
+                );
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.attributeName.toLowerCase()).toBe("center");
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
+            });
+
+            it("surfaces the declared component type for attribute-value autocomplete rows on a declared attribute", async () => {
+                // Sibling of the `type: "enum"` test above: the `value`
+                // branch in `computeContextHelpForCompletion` falls back
+                // to the attribute's description when there's no per-value
+                // help, so a value-row highlight inside an author-declared
+                // attribute must surface the same component-type-tagged
+                // description rather than blanking out (#1189).  Cursor is
+                // placed inside the `center` attribute's value on the copy
+                // site so `attributeAtOffset` returns the declared
+                // attribute and the augmented help entry resolves it.
+                const source = `<module name="m"><moduleAttributes><point name="center">(0,0)</point></moduleAttributes></module>
+<module copy="$m" center="(" />`;
+                const { completer } = await buildCompleter(source);
+                // Position the cursor between the opening quote and `(`.
+                const offset = source.indexOf('center="') + 'center="'.length;
+                const help = await computeContextHelpForCompletion(
+                    completer,
+                    offset,
+                    { label: "(", type: "value" },
+                );
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.attributeName.toLowerCase()).toBe("center");
+                expect(help.description).toBe(
+                    "Author-declared module attribute (`<point>`)",
+                );
             });
         });
 

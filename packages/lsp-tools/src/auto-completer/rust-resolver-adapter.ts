@@ -571,7 +571,7 @@ export class RustResolverAdapter {
             // unresolvable bare references (e.g. `<module copy="$missing"/>`).
             // That's the expected "no target" signal for the caller, not an
             // adapter-level error — null propagates the failure to
-            // `getEffectiveModuleAttributeNames`, which treats it as "no
+            // `getEffectiveModuleAttributes`, which treats it as "no
             // per-instance augmentation applies" (canonical schema decides).
             return null;
         }

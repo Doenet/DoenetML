@@ -16,16 +16,21 @@
  *     attributes per `ModuleAttributes.js:111-114`).  The set is pinned against
  *     the canonical schema by a unit test so drift between the runtime's
  *     dynamic list and our snapshot is caught loudly.
- *   - `getModuleDeclaredAttributeNames(moduleDefn)`: walks the definition's
- *     children for `<moduleAttributes>` and extracts declared attribute names.
+ *   - `getModuleDeclaredAttributes(moduleDefn)`: walks the definition's
+ *     children for `<moduleAttributes>` and extracts each declared attribute
+ *     name along with the child element's component type (e.g. `"point"` for
+ *     `<point name="center">`).
  *   - `mergeDeclaredIntoSchemaAttributes(...)`: synthesizes `SchemaAttribute`
- *     entries for the completion path.
+ *     entries for the completion path, threading the component type through
+ *     the description so the dropdown and help panel show e.g.
+ *     "Author-declared module attribute (`<point>`)".
  *
  * The resolver-dependent helpers that bridge a `<module copy="$x" ...>` site
  * to its definition's DAST node live alongside in a later step (using the
  * `_rustIndexToDastElement` map the rust-resolver-adapter already maintains).
  */
 
+import { toXml } from "@doenet/parser";
 import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import type { SchemaAttribute } from "./index";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
@@ -88,16 +93,59 @@ function readPrimitiveNameAttribute(el: DastElement): string | undefined {
 }
 
 /**
- * Lowercased set of attribute names declared by a `<module>` definition's
- * `<moduleAttributes>` child.
+ * Metadata captured for one author-declared attribute on a `<module>`.
+ *
+ * `componentType` is the lowercased tag name of the child element that
+ * carried the `name=` attribute inside `<moduleAttributes>` — e.g. `"point"`
+ * for `<point name="center">`.  Surfaced verbatim in the completion and
+ * help-panel descriptions so authors see what type of value the original
+ * module declared (#1189).
+ *
+ * `defaultValueText` is the serialized inner content of the declaring
+ * element, used as the runtime default when the instance omits the
+ * attribute — e.g. `"(3,4)"` for `<point name="P">(3,4)</point>`.
+ * `undefined` when the declaring element is empty (`<point name="P"/>`)
+ * or has only whitespace text.  Surfaced as the synthesized SchemaAttribute's
+ * `defaultValue` so the help panel's existing "Default:" row picks it up
+ * (#1189 base-default extension).  Chain overrides like `<module copy="$m"
+ * P="(5,6)" />` (where a downstream copier overrides the declared default
+ * and copiers of THAT site should see `(5,6)`) are out of scope here —
+ * tracked separately.
+ */
+export type DeclaredModuleAttribute = {
+    componentType: string;
+    defaultValueText?: string;
+};
+
+/**
+ * Serialize a declaring child element's inner content as the textual
+ * default for the synthesized attribute.  Returns `undefined` when the
+ * element is empty or has only whitespace text — those cases would render
+ * as a blank "Default:" row in the help panel, which is noise.
+ *
+ * Uses the same `toXml` serializer the validation layer uses elsewhere so
+ * complex inner content (nested elements, macros) round-trips through the
+ * same shape the author would have to type.
+ */
+function readDeclaredDefaultValueText(el: DastElement): string | undefined {
+    if (el.children.length === 0) return undefined;
+    const serialized = toXml(el.children);
+    const trimmed = serialized.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/**
+ * Lowercased map from attribute name to declared-attribute metadata for a
+ * `<module>` definition's `<moduleAttributes>` child.
  *
  * Behavior:
- *   - Returns an empty set when `moduleDefn` is not a `<module>` element
+ *   - Returns an empty map when `moduleDefn` is not a `<module>` element
  *     (case-insensitive name check).
- *   - Returns an empty set when `<moduleAttributes>` is absent, or present
+ *   - Returns an empty map when `<moduleAttributes>` is absent, or present
  *     but contains no qualifying children.
  *   - For each direct child element of `<moduleAttributes>` that has a
- *     primitive `name` attribute, lowercases the name and adds it.
+ *     primitive `name` attribute, lowercases the name and records the
+ *     child's lowercased tag name as `componentType`.
  *   - Skips children whose name collides with `RESERVED_MODULE_ATTRIBUTE_NAMES`
  *     — the runtime ignores those (silent warning), so synthesizing a
  *     "declared" entry for `hide` / `name` / `copy` would mislead the
@@ -106,25 +154,40 @@ function readPrimitiveNameAttribute(el: DastElement): string | undefined {
  * Only DIRECT children of `<moduleAttributes>` are considered, matching the
  * runtime's `for (const child of children)` walk at `ModuleAttributes.js:122`.
  */
-export function getModuleDeclaredAttributeNames(
+export function getModuleDeclaredAttributes(
     moduleDefn: DastElement,
-): Set<string> {
-    if (moduleDefn.name.toLowerCase() !== "module") return new Set();
+): Map<string, DeclaredModuleAttribute> {
+    if (moduleDefn.name.toLowerCase() !== "module") return new Map();
 
     const attrsBlock = moduleDefn.children.find(
         (c): c is DastElement =>
             c.type === "element" && c.name.toLowerCase() === "moduleattributes",
     );
-    if (!attrsBlock) return new Set();
+    if (!attrsBlock) return new Map();
 
-    const declared = new Set<string>();
+    const declared = new Map<string, DeclaredModuleAttribute>();
     for (const child of attrsBlock.children) {
         if (child.type !== "element") continue;
         const name = readPrimitiveNameAttribute(child);
         if (name === undefined) continue;
         const lowered = name.toLowerCase();
         if (RESERVED_MODULE_ATTRIBUTE_NAMES.has(lowered)) continue;
-        declared.add(lowered);
+        // LSP-side tie-breaker: when `<moduleAttributes>` declares the
+        // same name twice (e.g. `<point name="dup"/><number name="dup"/>`),
+        // the synthesized SchemaAttribute can only carry one component
+        // type and one default-value text, so we pick source-order first.
+        // This is NOT runtime parity — `ModuleAttributes.js` walks every
+        // direct child and processes each duplicate independently; we
+        // pick first because the help/completion surfaces need a single
+        // metadata payload per name.  An author-authored duplicate is
+        // already its own diagnostic at runtime (warns on the second).
+        if (declared.has(lowered)) continue;
+        const meta: DeclaredModuleAttribute = {
+            componentType: child.name.toLowerCase(),
+        };
+        const defaultText = readDeclaredDefaultValueText(child);
+        if (defaultText !== undefined) meta.defaultValueText = defaultText;
+        declared.set(lowered, meta);
     }
     return declared;
 }
@@ -140,16 +203,16 @@ export function getModuleDeclaredAttributeNames(
  *     and looks them up — see `ModuleAttributes.js:107-108`).  Validation is
  *     case-insensitive everywhere, so the lowercase form is the canonical
  *     representation for the synthesized entry.
- *   - `description`: a fixed placeholder.  The author's component type
- *     (e.g. "point" for `<point name="center">`) would be useful UX but
- *     would require the helper to take the child elements, not just names.
- *     Tracked in issue #1189 — surfaces both completion and help.
+ *   - `description`: the declared child's component type wrapped in backticks
+ *     so the markdown-rendered help panel and autocomplete dropdown surface
+ *     it as inline code — e.g. "Author-declared module attribute
+ *     (\`<point>\`)" for `<point name="center">` (#1189).
  *
  * No `values` or `autocompleteValues` (names-only scope, per plan).
  */
 export function mergeDeclaredIntoSchemaAttributes(
     canonical: SchemaAttribute[],
-    declared: ReadonlySet<string>,
+    declared: ReadonlyMap<string, DeclaredModuleAttribute>,
 ): SchemaAttribute[] {
     if (declared.size === 0) return canonical;
 
@@ -157,14 +220,38 @@ export function mergeDeclaredIntoSchemaAttributes(
         canonical.map((a) => a.name.toLowerCase()),
     );
     const merged = canonical.slice();
-    for (const name of declared) {
+    for (const [name, meta] of declared) {
         if (canonicalLowered.has(name)) continue;
-        merged.push({
+        const synthesized: SchemaAttribute = {
             name,
-            description: "Author-declared module attribute",
-        });
+            description: describeDeclaredModuleAttribute(meta),
+        };
+        // Surface the declared default's serialized inner content as the
+        // synthesized attribute's `defaultValue` so the help panel's
+        // existing "Default:" row picks it up — same path canonical
+        // schema attributes use, no renderer changes needed (#1189).
+        if (meta.defaultValueText !== undefined) {
+            synthesized.defaultValue = meta.defaultValueText;
+        }
+        merged.push(synthesized);
     }
     return merged;
+}
+
+/**
+ * Build the description string for a synthesized author-declared module
+ * attribute.  Exported so other surfaces (e.g. the schema-violations layer's
+ * follow-up diagnostics, or future help-panel enrichments) can render the
+ * same text without re-deriving it from the child element.  The component
+ * type is wrapped in backticks so LSP markdown rendering surfaces it as
+ * inline code (matches how canonical schema descriptions reference element
+ * names — `asMarkdown` in get-completion-items.ts already declares the text
+ * as markdown).
+ */
+export function describeDeclaredModuleAttribute(
+    meta: DeclaredModuleAttribute,
+): string {
+    return `Author-declared module attribute (\`<${meta.componentType}>\`)`;
 }
 
 /**
@@ -256,10 +343,11 @@ export async function resolveCopyExtendReference(
 }
 
 /**
- * For a `<module copy="$x" .../>` instance, return the lowercased set of
- * attribute names declared by `$x`'s `<moduleAttributes>` block.
+ * For a `<module copy="$x" .../>` instance, return a lowercased map from
+ * each attribute name declared by `$x`'s `<moduleAttributes>` block to its
+ * declared metadata (currently just the child element's component type).
  *
- * Returns `null` (NOT an empty set) when no augmentation applies — the
+ * Returns `null` (NOT an empty map) when no augmentation applies — the
  * caller distinguishes "fall back to canonical" from "augmentation
  * succeeded but the declared set was empty", and only the former is
  * meaningful here (an empty declared set means the target had no
@@ -270,13 +358,13 @@ export async function resolveCopyExtendReference(
  * canonical `<module>` attribute list applies as-is and any unknown
  * attribute remains a (correct) warning.
  */
-export async function getEffectiveModuleAttributeNames(
+export async function getEffectiveModuleAttributes(
     moduleInstance: DastElement,
     adapter: RustResolverAdapter,
-): Promise<Set<string> | null> {
+): Promise<Map<string, DeclaredModuleAttribute> | null> {
     const target = await resolveCopyExtendReference(moduleInstance, adapter);
     if (!target) return null;
-    const declared = getModuleDeclaredAttributeNames(target);
+    const declared = getModuleDeclaredAttributes(target);
     if (declared.size === 0) return null;
     return declared;
 }
