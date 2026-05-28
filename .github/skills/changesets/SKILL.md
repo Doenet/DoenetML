@@ -46,7 +46,7 @@ Propagation is **one-directional — forward to consumers that re-bundle or re-r
 - A changeset listing **`@doenet/doenetml`** must also list **`@doenet/standalone`** and **`@doenet/doenetml-iframe`**.
 - A changeset listing **`@doenet/standalone`** must also list **`@doenet/doenetml-iframe`**.
 
-This applies whether the change is to `packages/doenetml/src` directly or to something `@doenet/doenetml` bundles (e.g. a `math-expressions` bump, a worker change, a renderer change) — if it surfaces in `@doenet/doenetml`, it surfaces in `@doenet/standalone` and `@doenet/doenetml-iframe` too.
+This applies whether the change is to `packages/doenetml/src` directly or to something `@doenet/doenetml` bundles — if it surfaces in `@doenet/doenetml`, it surfaces in `@doenet/standalone` and `@doenet/doenetml-iframe` too.
 
 Do **not** include a package just because the changed code imports from it. `@doenet/doenetml` depends on `@doenet/lsp-tools` and `@doenet/static-assets`, which makes them tempting to add to an editor changeset — but they're covered by the rule above: never listed.
 
