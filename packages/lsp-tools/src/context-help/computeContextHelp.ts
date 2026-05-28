@@ -39,6 +39,93 @@ type SchemaEntryForHelp = ElementSchema | AliasedElementSchema;
 
 const NONE: HelpContent = { kind: "none" };
 
+/**
+ * Curated, beginner-friendly components offered as "things to try" when the
+ * cursor sits in an element body or at the top level. A container's full
+ * allowed-children list (dozens of entries) would overwhelm the new authors
+ * this help targets, so suggestions are this list intersected with what's
+ * actually allowed at the cursor — short and scannable, with the panel
+ * pointing at Ctrl+Space for the complete set. Ordered by rough authoring
+ * frequency; the panel surfaces the first few that apply.
+ */
+const STARTER_COMPONENTS: readonly string[] = [
+    "p",
+    "title",
+    "section",
+    "math",
+    "m",
+    "graph",
+    "point",
+    "function",
+    "answer",
+    "mathInput",
+    "choiceInput",
+    "image",
+    "video",
+    "table",
+    "ol",
+    "ul",
+    "example",
+    "hint",
+    "text",
+    "number",
+];
+
+/** Max starter suggestions surfaced at once — keeps the panel scannable. */
+const MAX_SUGGESTIONS = 6;
+
+/**
+ * Build "what can go here?" help for a cursor in an element body or at the
+ * top level. `node` is the containing element (body cursor) or null (top
+ * level). Always returns a `suggestions` payload — even an empty
+ * `suggested` list is useful, since the panel then nudges the author toward
+ * Ctrl+Space.
+ */
+function suggestionsHelp(
+    completer: AutoCompleter,
+    node: DastElement | null,
+): HelpContent {
+    if (node) {
+        const parent = completer.sourceObj.getParent(node);
+        const parentName = parent && "name" in parent ? parent.name : undefined;
+        const allowed = completer._getAllowedChildren(node.name, parentName);
+        return buildSuggestions(completer, { elementName: node.name }, allowed);
+    }
+    return buildSuggestions(
+        completer,
+        { topLevel: true },
+        completer.schemaTopAllowedElements,
+    );
+}
+
+function buildSuggestions(
+    completer: AutoCompleter,
+    context: { elementName: string } | { topLevel: true },
+    allowedNames: string[],
+): HelpContent {
+    const allowed = new Set(allowedNames.map((n) => n.toLowerCase()));
+    const suggested = STARTER_COMPONENTS.filter((name) =>
+        allowed.has(name.toLowerCase()),
+    )
+        .slice(0, MAX_SUGGESTIONS)
+        .map((name) => {
+            // Prefer the schema's canonical casing (e.g. `mathInput`) so the
+            // chip renders the tag the author would actually type.
+            const entry = completer.findSchemaElement(name);
+            return {
+                name: entry?.name ?? name,
+                summary: entry?.summary ?? null,
+                docsSlug: entry?.docsSlug ?? null,
+            };
+        });
+    return {
+        kind: "suggestions",
+        context,
+        suggested,
+        totalAllowed: allowedNames.length,
+    };
+}
+
 function findSchemaAttribute(
     el: SchemaEntryForHelp,
     name: string,
@@ -222,13 +309,83 @@ export async function computeContextHelp(
     }
 
     const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
-    if (ctx.cursorPos === "refName") {
-        return helpForRefName(completer, offset, ctx);
-    }
-    if (ctx.cursorPos === "refMember") {
-        return await helpForRefMember(completer, offset, ctx);
+    if (ctx.cursorPos === "refName" || ctx.cursorPos === "refMember") {
+        return await helpForReferenceUnit(completer, offset, ctx);
     }
 
+    // Cursor isn't on a tag, attribute, or reference — it's in an element
+    // body or top-level whitespace. Suggest what can go here so the panel
+    // always says something useful rather than going blank.
+    if (ctx.cursorPos === "body") {
+        return suggestionsHelp(completer, node);
+    }
+
+    return NONE;
+}
+
+/**
+ * End offset of the `$...` macro covering `offset`, or undefined when no
+ * macro node sits at the cursor. Mirrors the macro lookup
+ * `getCompletionContext` does — the macro under the cursor, or the one just
+ * before a trailing `.`/`[` the user is typing into.
+ */
+function macroEndOffset(
+    completer: AutoCompleter,
+    offset: number,
+): number | undefined {
+    const source = completer.source;
+    const prevChar = source.charAt(offset - 1);
+    let macro =
+        completer.sourceObj.nodeAtOffset(offset, {
+            type: "macro",
+            side: "left",
+        }) ??
+        completer.sourceObj.nodeAtOffset(offset, {
+            type: "macro",
+            side: "right",
+        });
+    if (!macro && (prevChar === "." || prevChar === "[")) {
+        macro = completer.sourceObj.nodeAtOffset(offset - 1, {
+            type: "macro",
+            side: "left",
+        });
+    }
+    return macro?.position?.end?.offset;
+}
+
+/**
+ * Cursor-driven reference help that treats the whole `$a.b.c` macro as a
+ * single unit. The cursor's segment-local context decides only *that* we're
+ * in a reference; the actual help is computed from the full chain (resolved
+ * from the macro's end offset), so placing the cursor on `a`, `b`, or `c`
+ * yields identical help. `cursorCtx` is the segment-local context the
+ * dispatcher already computed, used as the fallback when there's no macro
+ * node to anchor the whole-chain recomputation.
+ */
+async function helpForReferenceUnit(
+    completer: AutoCompleter,
+    offset: number,
+    cursorCtx: CompletionContext,
+): Promise<HelpContent> {
+    let ctx: CompletionContext = cursorCtx;
+    let helpOffset = offset;
+    const end = macroEndOffset(completer, offset);
+    if (end !== undefined && end !== offset) {
+        const wholeCtx = completer.getCompletionContext(end);
+        if (
+            wholeCtx.cursorPos === "refName" ||
+            wholeCtx.cursorPos === "refMember"
+        ) {
+            ctx = wholeCtx;
+            helpOffset = end;
+        }
+    }
+    if (ctx.cursorPos === "refMember") {
+        return await helpForRefMember(completer, helpOffset, ctx);
+    }
+    if (ctx.cursorPos === "refName") {
+        return helpForRefName(completer, helpOffset, ctx);
+    }
     return NONE;
 }
 
@@ -893,9 +1050,7 @@ async function helpForRefMemberByName(
             refName: memberName,
             displayPath,
             targetElementName: descendantInfo.referent.name,
-            summary: descendantInfo.effectiveEntry?.summary ?? null,
             line: descendantInfo.line,
-            docsSlug: descendantInfo.effectiveEntry?.docsSlug ?? null,
         };
     }
 
@@ -912,7 +1067,6 @@ async function helpForRefMemberByName(
         memberName,
     );
     if (derivedOnContainer) {
-        const ownerEntry = completer.findSchemaElement(containerNode.name);
         const displayPath = [
             ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
             formatPathSegment(memberName),
@@ -922,9 +1076,7 @@ async function helpForRefMemberByName(
             refName: memberName,
             displayPath,
             targetElementName: containerNode.name,
-            summary: ownerEntry?.summary ?? null,
             line: derivedOnContainer.line,
-            docsSlug: ownerEntry?.docsSlug ?? null,
             derivedFrom: {
                 role: derivedOnContainer.role,
                 ownerElementName: containerNode.name,
@@ -951,16 +1103,43 @@ async function helpForRefMemberByName(
     const prop = findSchemaProperty(effectiveEntry, memberName);
     if (!prop?.description) return NONE;
 
+    // The help describes the *reference* `$container.member`, so carry the
+    // full authored chain for the panel sentence and the container's source
+    // line for the location, regardless of which segment the cursor is on.
+    const displayPath = [
+        ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
+        formatPathSegment(memberName),
+    ].join(".");
+
     const result: HelpContent = {
         kind: "property",
         elementName: ownEntry.name,
         propertyName: prop.name,
         description: prop.description,
-        docsSlug: effectiveEntry.docsSlug ?? null,
+        displayPath,
         isArray: prop.isArray ?? false,
     };
     if (prop.type !== undefined) result.type = prop.type;
+    const line = elementStartLine(completer, containerNode);
+    if (line !== undefined) result.line = line;
     return result;
+}
+
+/**
+ * 1-indexed source line of an element's opening tag, recomputed from its
+ * byte offset against the live source (mirrors `_buildRefHelpInfo`, which
+ * avoids trusting synthetic `position.start.line` values stamped by sugar
+ * transformations). Undefined when the node has no usable position.
+ */
+function elementStartLine(
+    completer: AutoCompleter,
+    node: DastElement,
+): number | undefined {
+    const startOffset = node.position?.start.offset;
+    if (startOffset == null || startOffset >= completer.source.length) {
+        return undefined;
+    }
+    return completer.sourceObj.offsetToRowCol(startOffset).line;
 }
 
 /**
@@ -1003,15 +1182,13 @@ function helpForRefNameByName(
 ): HelpContent {
     const resolved = completer.resolveRefNameForHelp(offset, refName);
     if (resolved) {
-        const { referent, line, effectiveEntry } = resolved;
+        const { referent, line } = resolved;
         return {
             kind: "refName",
             refName,
             displayPath: formatPathSegment(refName),
             targetElementName: referent.name,
-            summary: effectiveEntry?.summary ?? null,
             line,
-            docsSlug: effectiveEntry?.docsSlug ?? null,
         };
     }
 
@@ -1020,7 +1197,6 @@ function helpForRefNameByName(
     // via `AutoCompleter.getAdditionalRefNames`.
     const derived = completer.resolveDerivedRepeatNameForHelp(offset, refName);
     if (!derived) return NONE;
-    const ownerEntry = completer.findSchemaElement(derived.owner.name);
     return {
         kind: "refName",
         refName,
@@ -1028,9 +1204,7 @@ function helpForRefNameByName(
         // `targetElementName` is the binding's introducer — the only static,
         // always-correct answer (the iteration value's type is dynamic).
         targetElementName: derived.owner.name,
-        summary: ownerEntry?.summary ?? null,
         line: derived.line,
-        docsSlug: ownerEntry?.docsSlug ?? null,
         derivedFrom: {
             role: derived.role,
             ownerElementName: derived.owner.name,

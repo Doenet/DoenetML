@@ -241,7 +241,11 @@ export class LSP {
     async getCompletionItems(
         uri: string,
         position: Position,
-        context: CompletionContext,
+        // `explicit` is a non-standard extension to the LSP completion
+        // context: the plugin sets it when the user pressed Ctrl+Space (vs.
+        // the popup opening from typing). It rides along the JSON-RPC params
+        // and is read back on the server in `completions.ts`.
+        context: CompletionContext & { explicit?: boolean },
     ) {
         await this.initPromise.promise;
         if (!this.lspConn) {

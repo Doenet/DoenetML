@@ -33,6 +33,56 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
     });
 }
 
+/**
+ * Render an element's `<tag>` name in the title row, as a link to its
+ * reference page when a `docsSlug` is known and plain monospace text
+ * otherwise. The element name links in addition to the footer "Reference
+ * page →" link so authors can jump to the page from the heading too — the
+ * footer link stays because authors miss inline links.
+ */
+function renderElementName(
+    elementName: string,
+    docsSlug: string | null,
+    docsBase: string,
+): React.ReactNode {
+    const text = `<${elementName}>`;
+    if (!docsSlug) {
+        return <span className="help-element-name">{text}</span>;
+    }
+    return (
+        <a
+            className="help-element-name help-element-name-link"
+            href={`${docsBase}/reference/${docsSlug}`}
+            target="_blank"
+            rel="noreferrer noopener"
+        >
+            {text}
+        </a>
+    );
+}
+
+/**
+ * Path (relative to the docs site root) of the page explaining what a
+ * reference is. Reference help links here instead of to the referenced
+ * component's own reference page — for a `$ref` the panel's job is to
+ * explain the reference concept and where it points, not to advertise the
+ * target component's docs.
+ */
+const REFERENCES_DOC_PATH = "document_structure/references";
+
+function ReferencesDocLink({ docsBase }: { docsBase: string }) {
+    return (
+        <a
+            className="help-docs-link"
+            href={`${docsBase}/${REFERENCES_DOC_PATH}`}
+            target="_blank"
+            rel="noreferrer noopener"
+        >
+            Learn about references →
+        </a>
+    );
+}
+
 export function ContextHelpPanel({
     content,
     docsURL,
@@ -65,15 +115,72 @@ export function ContextHelpPanel({
                 </div>
             );
 
-        case "element":
+        case "suggestions": {
+            const { context, suggested, totalAllowed } = content;
+            const location =
+                "elementName" in context ? (
+                    <>
+                        Inside <code>{`<${context.elementName}>`}</code>
+                    </>
+                ) : (
+                    "At the top level"
+                );
             return (
                 <div className="help-panel">
-                    <div className="help-title">
-                        <span className="help-element-name">
-                            {`<${content.elementName}>`}
-                        </span>
-                    </div>
-                    <p className="help-description">
+                    <p className="help-suggestions-header">
+                        {location}
+                        {suggested.length > 0 ? " — things to try:" : "."}
+                    </p>
+                    {suggested.length > 0 ? (
+                        <ul className="help-suggestions-list">
+                            {suggested.map((s) => (
+                                <li
+                                    key={s.name}
+                                    className="help-suggestion-item"
+                                >
+                                    {renderElementName(
+                                        s.name,
+                                        s.docsSlug,
+                                        docsBase,
+                                    )}
+                                    {s.summary && (
+                                        <span className="help-suggestion-summary">
+                                            {" — "}
+                                            {renderInlineMarkdown(s.summary)}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="help-description">
+                            Type content here, or press <code>Ctrl+Space</code>{" "}
+                            to insert a component.
+                        </p>
+                    )}
+                    {suggested.length > 0 && totalAllowed > 0 && (
+                        <p className="help-suggestions-footer">
+                            Press <code>Ctrl+Space</code> to see all{" "}
+                            {totalAllowed} components.
+                        </p>
+                    )}
+                </div>
+            );
+        }
+
+        case "element":
+            // The summary is one short sentence, so it rides on the title
+            // line after the linked name (em-dash separated) rather than in a
+            // separate paragraph — most info at a glance.
+            return (
+                <div className="help-panel">
+                    <p className="help-element-title">
+                        {renderElementName(
+                            content.elementName,
+                            content.docsSlug,
+                            docsBase,
+                        )}
+                        {" — "}
                         {renderInlineMarkdown(content.summary)}
                     </p>
                     {content.styleBreakdown &&
@@ -92,20 +199,17 @@ export function ContextHelpPanel({
             );
 
         case "refName": {
-            const {
-                displayPath,
-                targetElementName,
-                summary,
-                line,
-                docsSlug,
-                derivedFrom,
-            } = content;
+            const { displayPath, targetElementName, line, derivedFrom } =
+                content;
+            // Reference help is framed around the reference itself — what it
+            // points at and where — not the target component's summary/docs
+            // page. The only outbound link explains references in general.
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">
-                        <code>{`$${displayPath}`}</code> references{" "}
+                        <code>{`$${displayPath}`}</code> is a reference to{" "}
                         <code>{`<${targetElementName}>`}</code>
-                        {line !== undefined ? ` on line ${line}` : ""}.
+                        {line !== undefined ? ` (line ${line})` : ""}.
                     </p>
                     {derivedFrom && (
                         <p className="help-ref-derived">
@@ -117,21 +221,7 @@ export function ContextHelpPanel({
                             as <code>{derivedFrom.role}</code>.
                         </p>
                     )}
-                    {summary && (
-                        <p className="help-description">
-                            {renderInlineMarkdown(summary)}
-                        </p>
-                    )}
-                    {docsSlug && (
-                        <a
-                            className="help-docs-link"
-                            href={`${docsBase}/reference/${docsSlug}`}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                        >
-                            Reference page →
-                        </a>
-                    )}
+                    <ReferencesDocLink docsBase={docsBase} />
                 </div>
             );
         }
@@ -151,9 +241,7 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <div className="help-title">
-                        <span className="help-element-name">
-                            {`<${elementName}>`}
-                        </span>
+                        {renderElementName(elementName, docsSlug, docsBase)}
                         <span className="help-kind-label">attribute</span>
                         <span className="help-attribute-name">
                             {attributeName}
@@ -276,9 +364,7 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <div className="help-title">
-                        <span className="help-element-name">
-                            {`<${elementName}>`}
-                        </span>
+                        {renderElementName(elementName, docsSlug, docsBase)}
                         <span className="help-kind-label">array entry</span>
                         <span className="help-property-name">
                             {displayTail}
@@ -326,21 +412,23 @@ export function ContextHelpPanel({
                 elementName,
                 propertyName,
                 description,
-                docsSlug,
+                displayPath,
+                line,
                 type,
                 isArray,
             } = content;
+            // A property reference (`$m.splitSymbols`) is framed as a
+            // reference first — what it points at and where — then the
+            // property's own meaning/type. No link to the container
+            // component's page; the references link is the only outbound one.
             return (
                 <div className="help-panel">
-                    <div className="help-title">
-                        <span className="help-element-name">
-                            {`<${elementName}>`}
-                        </span>
-                        <span className="help-kind-label">property</span>
-                        <span className="help-property-name">
-                            {propertyName}
-                        </span>
-                    </div>
+                    <p className="help-ref-sentence">
+                        <code>{`$${displayPath}`}</code> is a reference to the{" "}
+                        <code>{propertyName}</code> property of{" "}
+                        <code>{`<${elementName}>`}</code>
+                        {line !== undefined ? ` (line ${line})` : ""}.
+                    </p>
                     <p className="help-description">
                         {renderInlineMarkdown(description)}
                     </p>
@@ -353,16 +441,7 @@ export function ContextHelpPanel({
                             </span>
                         </div>
                     )}
-                    {docsSlug && (
-                        <a
-                            className="help-docs-link"
-                            href={`${docsBase}/reference/${docsSlug}`}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                        >
-                            Reference page →
-                        </a>
-                    )}
+                    <ReferencesDocLink docsBase={docsBase} />
                 </div>
             );
         }

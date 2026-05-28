@@ -138,6 +138,37 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         }
     });
 
+    it("treats $rep[1].myPoint.x as one unit: identical help on every segment", async () => {
+        // The whole macro is one reference, so placing the cursor on `rep`,
+        // `myPoint`, or `x` must all yield the same property help — resolved
+        // from the full chain rather than the cursor's local segment.
+        const source = `<repeatForSequence name="rep" from="1" to="3"><point name="myPoint">(1,2)</point></repeatForSequence>\n$rep[1].myPoint.x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 1, // point
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myPoint" }],
+            },
+            takesIndexComponentTypes: new Set(["repeatForSequence"]),
+        });
+        const onRep = source.indexOf("$rep") + 2; // inside "rep"
+        const onMyPoint = source.indexOf(".myPoint") + 4; // inside "myPoint"
+        const onX = source.length; // on the final "x"
+        const [helpRep, helpMyPoint, helpX] = await Promise.all([
+            computeContextHelp(completer, onRep),
+            computeContextHelp(completer, onMyPoint),
+            computeContextHelp(completer, onX),
+        ]);
+        expect(helpRep).toEqual(helpX);
+        expect(helpMyPoint).toEqual(helpX);
+        expect(helpX).toMatchObject({
+            kind: "property",
+            elementName: "point",
+            displayPath: "rep[1].myPoint.x",
+        });
+    });
+
     it("resolves $r[1].v to the repeat's valueName binding with derivedFrom", async () => {
         // `$r[1].v` is the most subtle case in the resolver-backed set:
         // the adapter chops the last segment so the resolver only walks

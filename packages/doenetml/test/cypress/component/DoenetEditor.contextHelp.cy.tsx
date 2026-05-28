@@ -186,10 +186,10 @@ describe("DoenetEditor context-sensitive help", () => {
                 .contains("m")
                 .trigger("mouseover");
 
-            // refName help renders `$m` references `<math>` in the sentence.
+            // refName help frames `$m` as a reference to `<math>`.
             cy.get(".help-ref-sentence")
                 .invoke("text")
-                .should("match", /\$m\s+references\s+<math>/);
+                .should("match", /\$m\s+is a reference to\s+<math>/);
         });
 
         it("reverts to cursor-driven help when the autocomplete popup closes", () => {

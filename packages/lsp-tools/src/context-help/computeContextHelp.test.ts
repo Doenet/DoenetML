@@ -107,10 +107,14 @@ describe("computeContextHelp — element help", () => {
         expect((await helpAt(source, offset)).kind).toBe("none");
     });
 
-    it("returns none for cursor in body content", async () => {
+    it("returns body suggestions for cursor in element body content", async () => {
         const source = `<math>x</math>`;
         // Offset 6 is between `>` and `x`.
-        expect((await helpAt(source, 6)).kind).toBe("none");
+        const help = await helpAt(source, 6);
+        expect(help.kind).toBe("suggestions");
+        if (help.kind === "suggestions") {
+            expect(help.context).toEqual({ elementName: "math" });
+        }
     });
 
     it("resolves elements case-insensitively and displays the canonical name", async () => {
@@ -821,12 +825,10 @@ describe("computeContextHelp — bare ref ($name)", () => {
             // For bare refs the displayed chain is just the ref name itself.
             displayPath: "m",
             targetElementName: "math",
-            docsSlug: "math",
         });
         if (help.kind === "refName") {
             // <math> starts at offset 0 — line 1.
             expect(help.line).toBe(1);
-            expect(help.summary).toBeTruthy();
         }
     });
 
@@ -842,16 +844,23 @@ describe("computeContextHelp — bare ref ($name)", () => {
         });
     });
 
-    it("returns refName help when cursor sits on the name segment of $name.descendant", async () => {
+    it("treats $m.displayDecimals as one unit: same property help on the name segment as on the member", async () => {
+        // A reference and its member chain are a single unit — placing the
+        // cursor on `m` (the name segment) yields the same help as placing it
+        // on `displayDecimals` (the member): it's a reference to the
+        // displayDecimals property either way.
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         // Cursor right after the 'm', before the '.'.
-        const offset = source.indexOf("$m") + 2;
-        const help = await helpAt(source, offset);
-        expect(help).toMatchObject({
-            kind: "refName",
-            refName: "m",
-            targetElementName: "math",
-        });
+        const onName = source.indexOf("$m") + 2;
+        const onMember = source.length;
+        const helpName = await helpAt(source, onName);
+        const helpMember = await helpAt(source, onMember);
+        expect(helpName.kind).toBe("property");
+        expect(helpName).toEqual(helpMember);
+        if (helpName.kind === "property") {
+            expect(helpName.propertyName.toLowerCase()).toBe("displaydecimals");
+            expect(helpName.displayPath).toBe("m.displayDecimals");
+        }
     });
 
     it("returns none for a $name that doesn't resolve", async () => {
@@ -859,10 +868,11 @@ describe("computeContextHelp — bare ref ($name)", () => {
         expect((await helpAt(source, source.length)).kind).toBe("none");
     });
 
-    it("uses the alias target's summary and docsSlug for $name inside <matrix>", async () => {
-        // <row name="r"> inside <matrix> sugars to matrixRow. The bare-ref
-        // help should follow the same alias redirection as element/attribute/
-        // property help so the docs link lands on the matrixRow page.
+    it("resolves a bare $name inside <matrix> to the aliased row element", async () => {
+        // <row name="r"> inside <matrix> sugars to matrixRow. Reference help
+        // names the referent's authored tag ("row") but, unlike element help,
+        // carries no component summary or docs link — the panel frames a
+        // reference around the reference concept, not the target's page.
         const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r`;
         const help = await helpAt(source, source.length);
         if (help.kind !== "refName") {
@@ -871,8 +881,6 @@ describe("computeContextHelp — bare ref ($name)", () => {
         }
         expect(help.refName).toBe("r");
         expect(help.targetElementName).toBe("row");
-        expect(help.docsSlug).toBe("row_matrix");
-        expect(help.summary).toMatch(/matrix/i);
     });
 
     it("reports the line where the referent is defined", async () => {
@@ -896,23 +904,20 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
             refName: "bi",
             displayPath: "sec.bi",
             targetElementName: "booleanInput",
-            docsSlug: "booleanInput",
         });
-        if (help.kind === "refName") {
-            expect(help.summary).toBeTruthy();
-        }
     });
 
-    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", async () => {
-        // The chain has three parts but the cursor sits on the middle
-        // segment, so the question is "what is $sec.bi?" — a 2-part chain.
-        // The booleanInput descendant of section answers it; the trailing
-        // ".fixed" is irrelevant to help at this cursor position.
-        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi.fixed`;
-        // Cursor right after the second 'i' in 'bi', before the '.'.
-        const offset = source.indexOf(".bi.fixed") + 3;
-        const help = await helpAt(source, offset);
-        expect(help).toMatchObject({
+    it("treats $sec.bi as one unit: same descendant help on the sec segment as on bi", async () => {
+        // Placing the cursor on the `sec` segment yields the same help as on
+        // `bi` — the whole `$sec.bi` chain is one reference, resolving to the
+        // booleanInput descendant either way.
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
+        const onSec = source.indexOf("$sec") + 2; // inside "sec"
+        const onBi = source.length; // inside "bi"
+        const helpSec = await helpAt(source, onSec);
+        const helpBi = await helpAt(source, onBi);
+        expect(helpSec).toEqual(helpBi);
+        expect(helpSec).toMatchObject({
             kind: "refName",
             refName: "bi",
             displayPath: "sec.bi",
@@ -1067,9 +1072,8 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         expect(help.elementName).toBe("row"); // authored name preserved
         expect(help.propertyName.toLowerCase()).toBe("maxnumber");
         expect(help.description).toBeTruthy();
-        // docsSlug follows the alias redirect, like helpForElement /
-        // helpForAttribute do — so the link points at the matrixRow page.
-        expect(help.docsSlug).toBe("row_matrix");
+        // The full authored chain is carried for the panel sentence.
+        expect(help.displayPath).toBe("r.maxNumber");
     });
 
     it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", async () => {
@@ -1128,14 +1132,20 @@ describe("computeContextHelp — docsSlug propagation", () => {
         expect(help.docsSlug).toBe("row_matrix");
     });
 
-    it("property help carries the resolved container's docsSlug", async () => {
+    it("property reference help carries the authored chain and container line, not a docs slug", async () => {
+        // Property references are framed around the reference, so the payload
+        // drops the container's docsSlug and instead carries the authored
+        // chain plus the container's source line for the panel sentence.
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         const help = await helpAt(source, source.length);
         if (help.kind !== "property") {
             expect.fail(`expected property help, got ${help.kind}`);
             return;
         }
-        expect(help.docsSlug).toBe("math");
+        expect(help.displayPath).toBe("m.displayDecimals");
+        // <math name="m"> sits on line 1.
+        expect(help.line).toBe(1);
+        expect(help).not.toHaveProperty("docsSlug");
     });
 });
 
@@ -1532,5 +1542,53 @@ describe("computeContextHelp — functionNamesBreakdown on <mathInput> (#1205)",
             return;
         }
         expect(help.functionNamesBreakdown.reset).toBeUndefined();
+    });
+});
+
+describe("computeContextHelp — body / top-level suggestions", () => {
+    it("suggests curated children for a cursor in a <section> body", async () => {
+        const source = `<section>\n  \n</section>`;
+        // Offset on the blank middle line, inside the section body.
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.context).toEqual({ elementName: "section" });
+        // Curated subset, capped for scanability.
+        expect(help.suggested.length).toBeGreaterThan(0);
+        expect(help.suggested.length).toBeLessThanOrEqual(6);
+        // <p> is a starter component allowed inside <section>.
+        expect(help.suggested.map((s) => s.name)).toContain("p");
+        // The full allowed-children set is much larger than the shown subset,
+        // so the panel can point at Ctrl+Space for the rest.
+        expect(help.totalAllowed).toBeGreaterThan(help.suggested.length);
+    });
+
+    it("suggests top-level components for a cursor in empty top-level whitespace", async () => {
+        const source = `\n\n`;
+        const help = await helpAt(source, 1);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.context).toEqual({ topLevel: true });
+        expect(help.suggested.length).toBeGreaterThan(0);
+        expect(help.suggested.length).toBeLessThanOrEqual(6);
+    });
+
+    it("carries each suggestion's schema casing, summary, and docsSlug", async () => {
+        const source = `<section>\n  \n</section>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const p = help.suggested.find((s) => s.name === "p");
+        expect(p).toBeDefined();
+        expect(p?.summary).toBeTruthy();
+        expect(p?.docsSlug).toBe("p");
     });
 });

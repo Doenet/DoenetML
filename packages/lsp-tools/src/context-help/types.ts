@@ -144,13 +144,26 @@ export type HelpContent =
            */
           functionNamesBreakdown?: FunctionNamesBreakdownPayload;
       }
+    /**
+     * A reference to a *property* of another component, e.g.
+     * `$myMath.splitSymbols`. The panel frames this around the reference
+     * concept (what it points at + where), not around the container
+     * component's own docs page — so there is no `docsSlug` here; the
+     * "Learn about references" link is the only outbound link.
+     */
     | {
           kind: "property";
           elementName: string;
           propertyName: string;
           description: string;
-          /** Reference-page slug for the resolved container element. */
-          docsSlug: string | null;
+          /**
+           * Full authored chain after the `$` (e.g. `m.splitSymbols`),
+           * rendered in the panel sentence. Identical regardless of which
+           * segment the cursor sits on, since the whole macro is one unit.
+           */
+          displayPath: string;
+          /** 1-indexed source line where the container component is defined. */
+          line?: number;
           /** Optional: some properties have no declared component type. */
           type?: string;
           isArray: boolean;
@@ -216,12 +229,8 @@ export type HelpContent =
           displayPath: string;
           /** Tag name of the referent element (e.g. `math`). */
           targetElementName: string;
-          /** Component summary for the referent's element type, alias-aware. */
-          summary: string | null;
           /** 1-indexed source line where the referent is defined. */
           line: number | undefined;
-          /** Reference-page slug for the referent's element type. */
-          docsSlug: string | null;
           /**
            * Set when `refName` is introduced by an enclosing `<repeat>` /
            * `<repeatForSequence>` via `valueName` or `indexName` rather
@@ -244,6 +253,28 @@ export type HelpContent =
      * placeholder rather than silently rendering the empty state.
      */
     | { kind: "unsupportedRefChain" }
+    /**
+     * Cursor is in an element's body or in top-level whitespace — not on any
+     * tag, attribute, or reference. Rather than going blank, the panel
+     * suggests components the author could insert here ("what can go here?").
+     *
+     * `suggested` is a curated starter subset (the global starter list
+     * intersected with what's actually allowed at this position, capped for
+     * scanability), each carrying its summary/docsSlug for the chip + link.
+     * `totalAllowed` is the full count of allowed components so the panel can
+     * point at Ctrl+Space for the complete list.
+     */
+    | {
+          kind: "suggestions";
+          /** Where the cursor is: inside `elementName`, or at the document top. */
+          context: { elementName: string } | { topLevel: true };
+          suggested: Array<{
+              name: string;
+              summary: string | null;
+              docsSlug: string | null;
+          }>;
+          totalAllowed: number;
+      }
     /**
      * Highlighted autocomplete row is a snippet (multi-line template). Carries
      * the snippet's human-readable description and the raw template text so

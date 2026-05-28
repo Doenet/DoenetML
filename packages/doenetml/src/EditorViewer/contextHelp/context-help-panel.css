@@ -44,6 +44,31 @@
     font-weight: 600;
 }
 
+/*
+ * Element `<tag>` name rendered as a link to its reference page (in the
+ * title row of every help kind). Keeps the monospace/bold of a plain name
+ * but adopts the link color so authors recognize it as clickable. Sits
+ * alongside the footer "Reference page →" link, not in place of it.
+ */
+.editor-panel a.help-element-name-link {
+    color: var(--mainBlue);
+    text-decoration: none;
+}
+
+.editor-panel a.help-element-name-link:hover,
+.editor-panel a.help-element-name-link:focus {
+    text-decoration: underline;
+}
+
+/*
+ * Element help title: the linked `<tag>` name followed by an em-dash and
+ * the one-sentence summary, flowing as a single wrapping line. Bottom
+ * margin removed so it sits flush in the panel's flex column gap.
+ */
+.editor-panel .help-element-title {
+    margin: 0;
+}
+
 .editor-panel .help-attribute-name,
 .editor-panel .help-property-name,
 .editor-panel .help-snippet-name {
@@ -237,6 +262,44 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+}
+
+/*
+ * "What can go here?" suggestions surfaced when the cursor sits in an
+ * element body or at the top level. The header names the location, the list
+ * shows curated starter components as links, and a muted footer points at
+ * Ctrl+Space for the full set.
+ */
+.editor-panel .help-suggestions-header {
+    margin: 0;
+}
+
+.editor-panel .help-suggestions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.editor-panel .help-suggestion-summary {
+    color: #344054;
+}
+
+.editor-panel .help-suggestions-footer {
+    margin: 0;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.editor-panel .help-suggestions-header code,
+.editor-panel .help-suggestions-footer code {
+    background: var(--mainGray);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-size: 0.85em;
 }
 
 .editor-panel .help-docs-link {

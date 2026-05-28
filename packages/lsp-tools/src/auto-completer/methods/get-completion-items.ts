@@ -315,6 +315,7 @@ function createElementAndSnippetCompletionItems(
     endOffset: number,
     typedPrefix = "",
     contextElement: DastElement | null = null,
+    insertLeadingBracket = false,
 ): CompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const parentName = contextElement?.name;
@@ -327,6 +328,21 @@ function createElementAndSnippetCompletionItems(
                 label: name,
                 kind: CompletionItemKind.Property,
             };
+            // When the menu was opened without a preceding `<` (an explicit
+            // Ctrl+Space in an element body or at the top level), the item
+            // must insert the `<` itself — the default apply (the bare name)
+            // would omit it. With a `<` already typed, the existing
+            // default-apply path inserts the name right after it as before.
+            if (insertLeadingBracket) {
+                item.textEdit = {
+                    range: createTextEditRange(
+                        autoCompleter.sourceObj,
+                        startOffset,
+                        endOffset,
+                    ),
+                    newText: `<${name}`,
+                };
+            }
             const ownEntry = autoCompleter.schemaElementsByName[name];
             const effectiveEntry = autoCompleter.resolveEffectiveSchemaElement(
                 ownEntry,
@@ -655,6 +671,7 @@ export async function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
+    explicit = false,
 ): Promise<DoenetCompletionItem[]> {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
@@ -670,6 +687,16 @@ export async function getCompletionItems(
 
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
+
+    // Element-menu trigger policy. With a `<` already typed, the menu opens
+    // and items insert right after the `<` (start one char back to replace
+    // it on snippet expansion) — the long-standing behavior. An explicit
+    // Ctrl+Space without a `<` also opens the menu, but items must then
+    // insert the `<` themselves and the replace range starts at the cursor.
+    const hasLeadingLt = prevChar === "<";
+    const showElementMenu = hasLeadingLt || explicit;
+    const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
+    const insertLeadingBracket = !hasLeadingLt;
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -932,12 +959,15 @@ export async function getCompletionItems(
         ];
     }
 
-    if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
+    if (!containingNode && cursorPosition === "unknown" && showElementMenu) {
         return createElementAndSnippetCompletionItems(
             this,
             this.schemaTopAllowedElements,
-            offset - 1,
+            elementMenuStart,
             offset,
+            "",
+            null,
+            insertLeadingBracket,
         );
     }
 
@@ -945,13 +975,17 @@ export async function getCompletionItems(
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
 
-        // If the previous char is a `<`, we suggest all top-level elements.
-        if (prevChar === "<") {
+        // Suggest all top-level elements when a `<` was typed or the user
+        // explicitly invoked completion (Ctrl+Space).
+        if (showElementMenu) {
             return createElementAndSnippetCompletionItems(
                 this,
                 this.schemaTopAllowedElements,
-                offset - 1,
+                elementMenuStart,
                 offset,
+                "",
+                null,
+                insertLeadingBracket,
             );
         }
 
@@ -977,7 +1011,7 @@ export async function getCompletionItems(
     if (
         cursorPosition === "body" &&
         containingElement.node &&
-        prevChar === "<"
+        showElementMenu
     ) {
         // Pass the parent name so the alias-aware lookup uses the right
         // child set when the containing element is itself a `childContextHelp`
@@ -990,10 +1024,11 @@ export async function getCompletionItems(
         const completionItems = createElementAndSnippetCompletionItems(
             this,
             allowedChildrenNames,
-            offset - 1,
+            elementMenuStart,
             offset,
             "",
             containingElement.node,
+            insertLeadingBracket,
         );
 
         if (closed) {

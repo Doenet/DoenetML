@@ -617,7 +617,8 @@ export class AutoCompleter {
     getCompletionItems = (
         offset: number | RowCol,
         cachedContext?: CompletionContext,
-    ) => getCompletionItems.call(this, offset, cachedContext);
+        explicit = false,
+    ) => getCompletionItems.call(this, offset, cachedContext, explicit);
 
     /**
      * Get a list of LSP `Diagnostic`s for schema violations.
