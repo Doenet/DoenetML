@@ -893,6 +893,21 @@ describe("computeContextHelp — bare ref ($name)", () => {
         // <math> sits on line 3 in the authored source.
         expect(help.line).toBe(3);
     });
+
+    it("shows reference help when the cursor is on a $ref inside an attribute value", async () => {
+        // `extend="$m"`: the cursor sits on the `$m` reference inside the
+        // attribute value. Reference help (what it points at + where) takes
+        // precedence over `extend` attribute help.
+        const source = `<math name="m">x</math>\n<math extend="$m"/>`;
+        const offset = source.lastIndexOf("$m") + 1; // on the 'm' of $m
+        const help = await helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+            line: 1,
+        });
+    });
 });
 
 describe("computeContextHelp — refMember resolving to a named descendant", () => {

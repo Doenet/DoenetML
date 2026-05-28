@@ -227,6 +227,18 @@ export async function computeContextHelp(
     const { node, cursorPosition } =
         completer.sourceObj.elementAtOffsetWithContext(offset);
 
+    const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
+
+    // A cursor sitting on a `$ref` is on a reference even when that ref lives
+    // inside an attribute value (e.g. `<math extend="$m">`). Reference help
+    // takes precedence over the enclosing attribute, so the panel explains the
+    // reference and its referent rather than the `extend`/`copy` attribute it
+    // sits in. Tag-name and attribute-name positions never report a ref
+    // context, so they still fall through to the element/attribute branches.
+    if (ctx.cursorPos === "refName" || ctx.cursorPos === "refMember") {
+        return await helpForReferenceUnit(completer, offset, ctx);
+    }
+
     if (node) {
         const [ownEntry, effectiveEntry] = resolveEntriesForNode(
             completer,
@@ -306,11 +318,6 @@ export async function computeContextHelp(
             // (e.g. cursor sitting on body text); fall through to the rest
             // of the dispatch rather than guessing.
         }
-    }
-
-    const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
-    if (ctx.cursorPos === "refName" || ctx.cursorPos === "refMember") {
-        return await helpForReferenceUnit(completer, offset, ctx);
     }
 
     // Cursor isn't on a tag, attribute, or reference — it's in an element
