@@ -59,3 +59,67 @@ components (list items) as children.
 `<ul>{:dn}` components can only take `<li>{:dn}` children. Individual `<li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
 
 
+
+## Attribute Examples
+
+### Attribute Example: marker
+
+
+```doenet-editor-horiz
+<p>Default (disc):</p>
+<ul>
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+
+<p><attr>marker</attr> = circle:</p>
+<ul marker="circle">
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+
+<p><attr>marker</attr> = square:</p>
+<ul marker="square">
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+```
+
+
+
+The `marker` attribute sets the bullet style for the list items. For an unordered list the valid values are `disc`, `circle`, and `square`; any other value is ignored and the level-based default is used instead. If unspecified, the bullet is determined by the list's `level`.
+
+
+
+---
+
+### Attribute Example: level
+
+
+```doenet-editor-horiz
+<p><attr>level</attr> = 1 (disc):</p>
+<ul level="1">
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+
+<p><attr>level</attr> = 2 (circle):</p>
+<ul level="2">
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+
+<p><attr>level</attr> = 3 (square):</p>
+<ul level="3">
+  <li>coffee</li>
+  <li>cheese</li>
+</ul>
+```
+
+
+
+The `level` attribute sets the (1-based) nesting level of the list, which determines the default bullet: level 1 renders a disc, level 2 a circle, and level 3 a square, cycling for deeper levels. When a `<ul>{:dn}` is nested inside another list, its level is computed automatically, so this attribute is typically only set to override that default.
+
+The `label` and `cols` attributes are also accepted in the schema, but they are not yet used when rendering the list.
+
+

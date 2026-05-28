@@ -196,6 +196,139 @@ can still be repositioned on the `<graph>{:dn}`.
 
 ---
 
+### Attribute Example: rigid
+
+
+```doenet-example
+<p>Drag the interior to move the polygon, or drag a vertex to rotate it.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polygon</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid/>
+</graph>
+```
+
+
+
+The `rigid` attribute locks the shape and size of the `<polygon>{:dn}`, treating it as a rigid body. Dragging the interior translates the polygon, and dragging a vertex rotates it about its centroid. The default value is `false`, in which case each vertex may be dragged independently.
+
+
+
+---
+
+### Attribute Example: preserveSimilarity
+
+
+```doenet-example
+<p>Drag a vertex to rotate and resize the polygon, or drag the interior to move it.</p>
+<graph size="small">
+  <shortDescription>A graph of a polygon that preserves similarity</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity/>
+</graph>
+```
+
+
+
+The `preserveSimilarity` attribute preserves the shape of the `<polygon>{:dn}` up to similarity: dragging a vertex rotates and uniformly scales (dilates) the polygon, while dragging the interior translates it. Unlike `rigid`, the overall size may change. The default value is `false`.
+
+
+
+---
+
+### Attribute Example: allowRotation
+
+
+```doenet-example
+<p>Dragging a vertex no longer rotates this rigid polygon.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polygon that cannot be rotated</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowRotation="false"/>
+</graph>
+```
+
+
+
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowRotation` attribute controls whether dragging a vertex may rotate it. Set to `false` to forbid rotation. The default value is `true`.
+
+
+
+---
+
+### Attribute Example: allowTranslation
+
+
+```doenet-example
+<p>Dragging the interior no longer moves this rigid polygon, but a vertex still rotates it.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polygon that cannot be translated</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid allowTranslation="false"/>
+</graph>
+```
+
+
+
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `allowTranslation` attribute controls whether dragging the interior may move it. Set to `false` to forbid translation. The default value is `true`.
+
+
+
+---
+
+### Attribute Example: allowDilation
+
+
+```doenet-example
+<p>This polygon preserves similarity but may not be resized, so it behaves rigidly.</p>
+<graph size="small">
+  <shortDescription>A graph of a similarity-preserving polygon that cannot be dilated</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" preserveSimilarity allowDilation="false"/>
+</graph>
+```
+
+
+
+When the `<polygon>{:dn}` preserves similarity, the `allowDilation` attribute controls whether dragging a vertex may uniformly scale it. The default value is `true`; combining `preserveSimilarity` with `allowDilation="false"` is equivalent to `rigid`. (Setting `rigid` always forces dilation off.)
+
+
+
+---
+
+### Attribute Example: allowReflection
+
+
+```doenet-example
+<p>Try to flip the polygon by dragging a vertex across the others.</p>
+<graph size="small">
+  <shortDescription>A graph of a polygon that cannot be reflected</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" allowReflection="false"/>
+</graph>
+```
+
+
+
+The `allowReflection` attribute controls whether the `<polygon>{:dn}` may be flipped (reflected) while dragging. Set to `false` to prevent reflection. The default value is `true`.
+
+
+
+---
+
+### Attribute Example: rotateAround
+
+
+```doenet-example
+<p>Drag a vertex to rotate the polygon about its second vertex.</p>
+<graph size="small">
+  <shortDescription>A graph of a rigid polygon rotating about a chosen vertex</shortDescription>
+  <polygon name="poly" vertices="(-6,2) (-3,-2) (3,5) (-1,4)" rigid rotateAround="vertex" rotationVertex="2"/>
+</graph>
+```
+
+
+
+When the `<polygon>{:dn}` is `rigid` or preserves similarity, the `rotateAround` attribute sets the center of rotation. Valid values are `centroid` (the default), `vertex` (the vertex given by `rotationVertex`), and `point` (the explicit point given by `rotationCenter`).
+
+
+
+---
+
 ### Attribute Example: Standard graphical attributes
 
 
