@@ -363,7 +363,7 @@ function renderPropItem(
 }
 
 /** One collapsible group: a `<details>` controlled by React state so the
- * page-level Reveal/Collapse-all toggle stays authoritative. */
+ * page-level Expand/Collapse-all toggle stays authoritative. */
 function CollapsibleGroup({
     title,
     count,
@@ -382,7 +382,7 @@ function CollapsibleGroup({
                 className="attr-group-summary"
                 onClick={(e) => {
                     // Own the open state in React rather than letting the
-                    // browser toggle natively, so Reveal/Collapse-all wins.
+                    // browser toggle natively, so Expand/Collapse-all wins.
                     e.preventDefault();
                     onToggle();
                 }}
@@ -397,7 +397,7 @@ function CollapsibleGroup({
 
 /**
  * The interactive body shared by `AttrDisplay`, `PropDisplay`, and
- * `AttrPropDisplay`: one filter box + Reveal/Collapse-all toggle controlling
+ * `AttrPropDisplay`: one filter box + Expand/Collapse-all toggle controlling
  * the collapsible attribute and/or property sections.
  */
 function CollapsibleAttrPropSection({

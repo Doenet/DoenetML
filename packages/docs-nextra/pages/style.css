@@ -127,7 +127,7 @@
     font-style: italic;
 }
 
-/* Filter box + Reveal/Collapse-all toggle above the attribute/property lists. */
+/* Filter box + Expand/Collapse-all toggle above the attribute/property lists. */
 .attr-prop-controls {
     display: flex;
     flex-wrap: wrap;
