@@ -30,6 +30,7 @@
  * `_rustIndexToDastElement` map the rust-resolver-adapter already maintains).
  */
 
+import { toXml } from "@doenet/parser";
 import type { DastElement, DastNodes, DastRoot } from "@doenet/parser";
 import type { SchemaAttribute } from "./index";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
@@ -99,10 +100,39 @@ function readPrimitiveNameAttribute(el: DastElement): string | undefined {
  * for `<point name="center">`.  Surfaced verbatim in the completion and
  * help-panel descriptions so authors see what type of value the original
  * module declared (#1189).
+ *
+ * `defaultValueText` is the serialized inner content of the declaring
+ * element, used as the runtime default when the instance omits the
+ * attribute — e.g. `"(3,4)"` for `<point name="P">(3,4)</point>`.
+ * `undefined` when the declaring element is empty (`<point name="P"/>`)
+ * or has only whitespace text.  Surfaced as the synthesized SchemaAttribute's
+ * `defaultValue` so the help panel's existing "Default:" row picks it up
+ * (#1189 base-default extension).  Chain overrides like `<module copy="$m"
+ * P="(5,6)" />` (where a downstream copier overrides the declared default
+ * and copiers of THAT site should see `(5,6)`) are out of scope here —
+ * tracked separately.
  */
 export type DeclaredModuleAttribute = {
     componentType: string;
+    defaultValueText?: string;
 };
+
+/**
+ * Serialize a declaring child element's inner content as the textual
+ * default for the synthesized attribute.  Returns `undefined` when the
+ * element is empty or has only whitespace text — those cases would render
+ * as a blank "Default:" row in the help panel, which is noise.
+ *
+ * Uses the same `toXml` serializer the validation layer uses elsewhere so
+ * complex inner content (nested elements, macros) round-trips through the
+ * same shape the author would have to type.
+ */
+function readDeclaredDefaultValueText(el: DastElement): string | undefined {
+    if (el.children.length === 0) return undefined;
+    const serialized = toXml(el.children);
+    const trimmed = serialized.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
 
 /**
  * Lowercased map from attribute name to declared-attribute metadata for a
@@ -146,7 +176,12 @@ export function getModuleDeclaredAttributes(
         // `module.attributes` keys by lowercased name and only sees one
         // entry per key, so we mirror that and keep the source-order first.
         if (declared.has(lowered)) continue;
-        declared.set(lowered, { componentType: child.name.toLowerCase() });
+        const meta: DeclaredModuleAttribute = {
+            componentType: child.name.toLowerCase(),
+        };
+        const defaultText = readDeclaredDefaultValueText(child);
+        if (defaultText !== undefined) meta.defaultValueText = defaultText;
+        declared.set(lowered, meta);
     }
     return declared;
 }
@@ -181,10 +216,18 @@ export function mergeDeclaredIntoSchemaAttributes(
     const merged = canonical.slice();
     for (const [name, meta] of declared) {
         if (canonicalLowered.has(name)) continue;
-        merged.push({
+        const synthesized: SchemaAttribute = {
             name,
             description: describeDeclaredModuleAttribute(meta),
-        });
+        };
+        // Surface the declared default's serialized inner content as the
+        // synthesized attribute's `defaultValue` so the help panel's
+        // existing "Default:" row picks it up — same path canonical
+        // schema attributes use, no renderer changes needed (#1189).
+        if (meta.defaultValueText !== undefined) {
+            synthesized.defaultValue = meta.defaultValueText;
+        }
+        merged.push(synthesized);
     }
     return merged;
 }

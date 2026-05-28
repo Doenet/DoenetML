@@ -592,6 +592,37 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 );
             });
 
+            it("surfaces the declared default value via the help payload's `defaultValue` field", async () => {
+                // The declaring `<point name="p">(3,4)</point>` makes `(3,4)`
+                // the runtime default when an instance omits `p=`.  Surface
+                // it on the synthesized SchemaAttribute's `defaultValue` so
+                // the panel's existing "Default:" row picks it up — no
+                // renderer changes needed (#1189 base-default extension).
+                const source = `<module name="m"><moduleAttributes><point name="p">(3,4)</point></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.defaultValue).toBe("(3,4)");
+            });
+
+            it("omits the default-value field when the declaring element is empty", async () => {
+                // `<point name="p"/>` declares the attribute with no
+                // textual default — the help payload must leave
+                // `defaultValue` absent so the panel doesn't render a
+                // blank "Default:" row.
+                const source = `<module name="m"><moduleAttributes><point name="p"/></moduleAttributes></module>
+<module copy="$m" p="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                const offset = source.indexOf('p="(1,1)"');
+                const help = await computeContextHelp(completer, offset);
+                expect(help.kind).toBe("attribute");
+                if (help.kind !== "attribute") return;
+                expect(help.defaultValue).toBeUndefined();
+            });
+
             it("still returns canonical help for canonical attributes on the same site", async () => {
                 const source = `<module name="m"><moduleAttributes><number name="n">1</number></moduleAttributes></module>
 <module copy="$m" name="instance" n="3" />`;

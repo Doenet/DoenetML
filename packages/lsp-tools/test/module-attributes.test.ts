@@ -20,14 +20,23 @@ import {
 } from "../src/auto-completer/module-attributes";
 import type { SchemaAttribute } from "../src/auto-completer";
 
-/** Build a declared-attribute map from a `name → componentType` plain object. */
+/**
+ * Build a declared-attribute map from a `name → componentType` (or
+ * `name → { componentType, defaultValueText }`) plain object.  The
+ * shorthand form lets the older name-and-type-only assertions stay terse;
+ * the object form lets tests that care about the default-value extraction
+ * pin both fields without verbose Map literals.
+ */
 function declared(
-    entries: Record<string, string>,
+    entries: Record<
+        string,
+        string | { componentType: string; defaultValueText?: string }
+    >,
 ): Map<string, DeclaredModuleAttribute> {
     return new Map(
-        Object.entries(entries).map(([name, componentType]) => [
+        Object.entries(entries).map(([name, value]) => [
             name,
-            { componentType },
+            typeof value === "string" ? { componentType: value } : value,
         ]),
     );
 }
@@ -117,9 +126,9 @@ describe("getModuleDeclaredAttributes", () => {
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
             declared({
-                center: "point",
-                color: "number",
-                radius: "number",
+                center: { componentType: "point", defaultValueText: "(0,0)" },
+                color: { componentType: "number", defaultValueText: "2" },
+                radius: { componentType: "number", defaultValueText: "4" },
             }),
         );
     });
@@ -137,6 +146,7 @@ describe("getModuleDeclaredAttributes", () => {
         );
         expect(getModuleDeclaredAttributes(el).get("center")).toEqual({
             componentType: "point",
+            defaultValueText: "(0,0)",
         });
     });
 
@@ -149,7 +159,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ center: "point" }),
+            declared({
+                center: { componentType: "point", defaultValueText: "(0,0)" },
+            }),
         );
     });
 
@@ -168,7 +180,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ kept: "text" }),
+            declared({
+                kept: { componentType: "text", defaultValueText: "x" },
+            }),
         );
     });
 
@@ -180,7 +194,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ kept: "text" }),
+            declared({
+                kept: { componentType: "text", defaultValueText: "x" },
+            }),
         );
     });
 
@@ -192,7 +208,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ kept: "text" }),
+            declared({
+                kept: { componentType: "text", defaultValueText: "x" },
+            }),
         );
     });
 
@@ -208,7 +226,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ first: "text" }),
+            declared({
+                first: { componentType: "text", defaultValueText: "x" },
+            }),
         );
     });
 
@@ -222,7 +242,9 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ direct: "text" }),
+            declared({
+                direct: { componentType: "text", defaultValueText: "x" },
+            }),
         );
     });
 
@@ -238,7 +260,65 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({ static: "text" }),
+            declared({
+                static: { componentType: "text", defaultValueText: "x" },
+            }),
+        );
+    });
+
+    it("extracts the declaring element's inner content as `defaultValueText`", () => {
+        const el = elementNamed(
+            `<module name="m"><moduleAttributes>
+                <point name="P">(3,4)</point>
+                <number name="n">5</number>
+                <text name="t">hello</text>
+            </moduleAttributes></module>`,
+            "module",
+        );
+        const result = getModuleDeclaredAttributes(el);
+        expect(result.get("p")?.defaultValueText).toBe("(3,4)");
+        expect(result.get("n")?.defaultValueText).toBe("5");
+        expect(result.get("t")?.defaultValueText).toBe("hello");
+    });
+
+    it("omits `defaultValueText` when the declaring element is empty", () => {
+        const el = elementNamed(
+            `<module name="m"><moduleAttributes>
+                <point name="P"/>
+                <number name="n">5</number>
+            </moduleAttributes></module>`,
+            "module",
+        );
+        const result = getModuleDeclaredAttributes(el);
+        expect(result.get("p")?.defaultValueText).toBeUndefined();
+        expect(result.get("n")?.defaultValueText).toBe("5");
+    });
+
+    it("omits `defaultValueText` when the declaring element has only whitespace", () => {
+        // Whitespace-only would render as a blank "Default:" row in the
+        // help panel — noise, matches the existing empty-array suppression.
+        const el = elementNamed(
+            `<module name="m"><moduleAttributes>
+                <point name="P">   </point>
+            </moduleAttributes></module>`,
+            "module",
+        );
+        expect(
+            getModuleDeclaredAttributes(el).get("p")?.defaultValueText,
+        ).toBeUndefined();
+    });
+
+    it("preserves complex inner content (nested elements) in `defaultValueText`", () => {
+        // Round-trip through `toXml` so the help panel surfaces exactly
+        // what the author would have to retype to reproduce the default.
+        const el = elementNamed(
+            `<module name="m"><moduleAttributes>
+                <math name="m">x^2+1</math>
+            </moduleAttributes></module>`,
+            "module",
+        );
+        expect(getModuleDeclaredAttributes(el).get("m")?.defaultValueText).toBe(
+            "x^2+1",
         );
     });
 
@@ -257,6 +337,7 @@ describe("getModuleDeclaredAttributes", () => {
         );
         expect(getModuleDeclaredAttributes(el).get("dup")).toEqual({
             componentType: "point",
+            defaultValueText: "(0,0)",
         });
     });
 });
@@ -299,7 +380,29 @@ describe("mergeDeclaredIntoSchemaAttributes", () => {
         for (const a of synth) {
             expect(a.values).toBeUndefined();
             expect(a.autocompleteValues).toBeUndefined();
+            // No `defaultValueText` was provided, so `defaultValue` stays
+            // absent (rather than being set to undefined explicitly — keeps
+            // the synthesized entry's shape identical to a canonical one
+            // with no schema default).
+            expect("defaultValue" in a).toBe(false);
         }
+    });
+
+    it("propagates `defaultValueText` onto the synthesized SchemaAttribute's `defaultValue`", () => {
+        const map = new Map<
+            string,
+            { componentType: string; defaultValueText?: string }
+        >([
+            ["center", { componentType: "point", defaultValueText: "(3,4)" }],
+            ["color", { componentType: "number" }],
+        ]);
+        const result = mergeDeclaredIntoSchemaAttributes(canonical, map);
+        const synth = result.slice(canonical.length);
+        expect(synth[0].name).toBe("center");
+        expect(synth[0].defaultValue).toBe("(3,4)");
+        // `color` had no declared default — `defaultValue` stays absent.
+        expect(synth[1].name).toBe("color");
+        expect("defaultValue" in synth[1]).toBe(false);
     });
 
     it("does not duplicate names already in canonical (case-insensitive)", () => {
