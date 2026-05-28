@@ -322,12 +322,14 @@ describe("getModuleDeclaredAttributes", () => {
         );
     });
 
-    it("keeps the FIRST occurrence on duplicate names (matches runtime first-wins)", () => {
-        // Two same-named children inside <moduleAttributes>: the runtime's
-        // name lookup keys lowercased and only stores one entry per key, so
-        // the source-order first survives.  Mirror that here so the
-        // synthesized description reflects the component type the runtime
-        // would actually consult.
+    it("keeps the FIRST occurrence's metadata on duplicate names (LSP tie-breaker)", () => {
+        // The synthesized SchemaAttribute can only carry one component
+        // type and one default-value text per declared name, so when the
+        // author authored two same-named children, the LSP picks source-
+        // order first.  This is NOT runtime parity — `ModuleAttributes.js`
+        // walks every direct child and processes each duplicate
+        // independently — it's a metadata-payload tie-breaker on the LSP
+        // side.  Pinned so we don't accidentally flip to last-wins later.
         const el = elementNamed(
             `<module name="m"><moduleAttributes>
                 <point name="dup">(0,0)</point>

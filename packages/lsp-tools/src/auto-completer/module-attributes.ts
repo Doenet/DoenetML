@@ -172,9 +172,15 @@ export function getModuleDeclaredAttributes(
         if (name === undefined) continue;
         const lowered = name.toLowerCase();
         if (RESERVED_MODULE_ATTRIBUTE_NAMES.has(lowered)) continue;
-        // First-wins on duplicate names — the runtime's name lookup against
-        // `module.attributes` keys by lowercased name and only sees one
-        // entry per key, so we mirror that and keep the source-order first.
+        // LSP-side tie-breaker: when `<moduleAttributes>` declares the
+        // same name twice (e.g. `<point name="dup"/><number name="dup"/>`),
+        // the synthesized SchemaAttribute can only carry one component
+        // type and one default-value text, so we pick source-order first.
+        // This is NOT runtime parity — `ModuleAttributes.js` walks every
+        // direct child and processes each duplicate independently; we
+        // pick first because the help/completion surfaces need a single
+        // metadata payload per name.  An author-authored duplicate is
+        // already its own diagnostic at runtime (warns on the second).
         if (declared.has(lowered)) continue;
         const meta: DeclaredModuleAttribute = {
             componentType: child.name.toLowerCase(),
