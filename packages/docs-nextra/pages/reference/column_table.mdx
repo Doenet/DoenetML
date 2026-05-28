@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<column>{:dn}` (in a table)
 
+<ComponentDisplay name='column'/>
 
 `<column>{:dn}` is a container for a column of [`<cell>{:dn}`](cell) children
 inside a [`<spreadsheet>{:dn}`](spreadsheet). It is the column-oriented
@@ -21,7 +22,7 @@ column-by-column construction of a matrix, see
 <AttrPropDisplay name='column'/>
 
 
----
+## Examples
 
 ### Example: Build a spreadsheet column-by-column
 
@@ -49,7 +50,7 @@ Compare with [`<row>{:dn}`](row_table), which populates row by row.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: colNum
 

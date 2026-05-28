@@ -1,11 +1,12 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 # `<table>{:dn}`
 
+<ComponentDisplay name='table'/>
 
-`<table>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
+`<table>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that serves as a container element for data rendered 
 in a `<tabular>{:dn}` format.  Much of the DoenetML for customizing the appearance 
 of a table occurs in its `<tabular>{:dn}`, `<row>{:dn}`, or `<cell>{:dn}` children.
@@ -13,7 +14,7 @@ of a table occurs in its `<tabular>{:dn}`, `<row>{:dn}`, or `<cell>{:dn}` childr
 <AttrPropDisplay name='table'/>
 
 
----
+## Examples
 
 ### Example: `<table>{:dn}` without attributes
 
@@ -153,7 +154,7 @@ To render a thicker line below the header row, use the `bottom` attribute with t
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: number
 

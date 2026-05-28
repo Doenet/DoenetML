@@ -1,12 +1,13 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<eigenDecomposition>{:dn}`
 
+<ComponentDisplay name='eigenDecomposition'/>
 
-`<eigenDecomposition>{:dn}` computes the eigenvalues and eigenvectors of a square matrix supplied as a single
+`<eigenDecomposition>{:dn}` takes a square matrix supplied as a single
 `<math>{:dn}` child (or a reference to one). It produces no visible output of its own; instead it exposes the
 results as the properties `eigenvalues`, `eigenvectors`, and `numEigenvectors` so they can be rendered, used in
 computations, or referenced from other components. The returned eigenvectors are normalized to unit length, and
@@ -14,7 +15,7 @@ complex eigenvalues/eigenvectors are supported.
 
 <AttrPropDisplay name='eigenDecomposition'/>
 
----
+## Examples
 
 ### Example: Eigenvalues and eigenvectors of a 2×2 matrix
 
@@ -64,7 +65,7 @@ The matrix is provided as a `<math>{:dn}` child of `<eigenDecomposition>{:dn}`. 
 
 
 
-The list properties can also be indexed: `eigenvalues[1]`, `eigenvalue2[2]`, ... select individual eigenvalues, and
+The list properties can also be indexed: `eigenvalues[1]`, `eigenvalues[2]`, ... select individual eigenvalues, and
 `eigenvectors[1]`, `eigenvectors[2]`, ... select individual eigenvectors. Each indexed eigenvector is itself a
 vector whose components can be accessed via `.x`, `.y`, (and `.z` for 3×3 matrices).
 
@@ -155,7 +156,7 @@ the number of eigenvectors found; it is `0` when the child cannot be interpreted
 
 
 
----
+## Property Examples
 
 ### Property Example: eigenvalues
 

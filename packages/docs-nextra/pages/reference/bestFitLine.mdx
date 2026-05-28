@@ -1,18 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<bestFitLine>{:dn}`
 
+<ComponentDisplay name='bestFitLine'/>
+
 `<bestFitLine>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
-component computes a linear regression through a list of points. 
+component that computes a linear regression through a list of points. 
 When nested inside a [`<graph>{:dn}`](graph.mdx), the `<bestFitLine>{:dn}` component displays a line.  
 The equation for the line of best fit can be rendered by accessing the `equation` property.
 
 <AttrPropDisplay name='bestFitLine'/>
 
----
+## Examples
 
 ### Example: `<bestFitLine>{:dn}` through 3 points
 
@@ -100,7 +102,7 @@ The `<collect>{:dn}` component gathers the information required from the `<graph
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: data
 
@@ -138,7 +140,7 @@ dependent variable name when rendering the equation of the computed regression l
 
 
 
----
+## Property Examples
 
 ### Property Example: equation
 

@@ -1,19 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<cobwebPolyline>{:dn}`
 
+<ComponentDisplay name='cobwebPolyline'/>
 
-`<cobwebPolyline>{:dn}` renders an interactive cobweb diagram for visualizing iteration of a one-variable function
-$x_{n+1} = f(x_n)$. When placed inside a [`<graph>{:dn}`](graph), the user clicks to add successive vertices
+`<cobwebPolyline>{:dn}` visualizes the iteration $x_{n+1} = f(x_n)$ of a one-variable function.
+When placed inside a [`<graph>{:dn}`](graph), the user clicks to add successive vertices
 that should alternate between the curve $y = f(x)$ and the diagonal $y = x$. Each vertex is graded for
 correctness against the true iteration, so the component can drive both interactive exploration and answer checking.
 
 <AttrPropDisplay name='cobwebPolyline'/>
 
----
+## Examples
 
 ### Example: Basic cobweb for a quadratic iteration
 
@@ -168,8 +169,7 @@ via `<considerAsResponses>{:dn}`.
 
 
 
----
-
+## Attribute Examples
 
 ### Attribute Example: variable
 
@@ -194,6 +194,7 @@ does not change the function being iterated; it only affects rendering.
 
 
 
+## Property Examples
 
 
 ### Property Example: fractionCorrectVertices

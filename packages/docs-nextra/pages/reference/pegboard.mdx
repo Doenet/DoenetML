@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<pegboard/>{:dn}`
+
+<ComponentDisplay name='pegboard'/>
 
 `<pegboard/>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component
 that renders a grid of small dots ("pegs") covering the visible region of an enclosing `<graph>{:dn}`.
@@ -18,7 +20,7 @@ same `dx`, `dy`, `xOffset`, and `yOffset` values.
 <AttrPropDisplay name='pegboard'/>
 
 
----
+## Examples
 
 ### Example: A default pegboard
 
@@ -51,7 +53,7 @@ The visible pegs and the attraction grid use the same default $1 \times 1$ spaci
 softly snaps to each peg as it is dragged near.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: dx, dy
 
@@ -81,7 +83,7 @@ spacings when modeling a domain whose axes carry different units.
 `(xoffset, yoffset)` rather than at the origin.
 
 
----
+## Property Examples
 
 ### Property Example: dx, dy, xoffset, yoffset
 

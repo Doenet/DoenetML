@@ -1,19 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<equilibriumPoint>{:dn}`
 
+<ComponentDisplay name='equilibriumPoint'/>
 
-`<equilibriumPoint>{:dn}` extends [`<point>{:dn}`](point) to mark an equilibrium of a dynamical system. It is
-rendered as a filled point when the equilibrium is stable and as an open (hollow) point when it is unstable.
+`<equilibriumPoint>{:dn}` extends [`<point>{:dn}`](point) to mark an equilibrium of a dynamical system.
 This conventional notation lets a single diagram convey both the location and the stability of an equilibrium.
 The component otherwise accepts the full set of `<point>{:dn}` attributes (coordinates, label, style, etc.).
 
 <AttrPropDisplay name='equilibriumPoint'/>
 
----
+## Examples
 
 ### Example: Stable and unstable equilibria
 
@@ -34,7 +34,7 @@ Three equilibria on the $x$-axis: the filled points are stable and the open poin
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: switchable
 
@@ -78,7 +78,7 @@ The `stable` attribute accepts any boolean expression, so the rendering can be d
 
 
 
----
+## Property Examples
 
 ### Property Example: stable
 

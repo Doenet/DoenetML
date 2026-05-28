@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<attractToConstraint>{:dn}`
+
+<ComponentDisplay name='attractToConstraint'/>
 
 `<attractToConstraint>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component
 that wraps another constraint (such as [`<constrainToInterior>`](constrainToInterior),
@@ -21,7 +23,7 @@ The wrapped constraint therefore behaves like a soft attraction rather than a ha
 <AttrPropDisplay name='attractToConstraint'/>
 
 
----
+## Examples
 
 ### Example: Soft-snap a `<point>{:dn}` into the interior of a region
 
@@ -67,7 +69,7 @@ with separate `<attractTo>{:dn}` and `<attractToGrid>{:dn}` siblings would attra
 independently to each, with no shared threshold.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: threshold
 
@@ -88,7 +90,7 @@ The `threshold` attribute sets how close the point must be (in graph units) to t
 location before the wrapped constraint takes effect. The default value is $0.5$.
 
 
----
+## Property Examples
 
 ### Property Example: threshold
 

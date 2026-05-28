@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<shortDescription>{:dn}`
+
+<ComponentDisplay name='shortDescription'/>
 
 `<shortDescription>{:dn}` supplies a concise text alternative for an enclosing
 component that is consumed **only by assistive technology**, such as screen readers.
@@ -46,7 +48,7 @@ reader cannot reliably read raw math notation.
 
 <AttrPropDisplay name='shortDescription'/>
 
----
+## Examples
 
 ### Example: `<shortDescription>{:dn}` on an `<image>{:dn}`
 

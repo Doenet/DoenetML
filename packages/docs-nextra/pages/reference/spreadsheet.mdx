@@ -1,18 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<spreadsheet>{:dn}`
 
 
-`<spreadsheet>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='spreadsheet'/>
+
+`<spreadsheet>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types) 
 component that renders a basic embedded spreadsheet tool.
 
 <AttrPropDisplay name='spreadsheet'/>
 
 
----
+## Examples
 
 ### Example: default `<spreadsheet>{:dn}`
 
@@ -129,7 +131,7 @@ individual `<cell>{:dn}` children.
 
 ---
 
-### Example: build `<spreadsheet>{:dn}` with rows
+### Example: build `<spreadsheet>{:dn}` with columns
 
 
 ```doenet-editor-horiz
@@ -196,7 +198,7 @@ Try directly entering a formula into cell B3 that references one or more of the 
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: minNumRows, minNumColumns
 

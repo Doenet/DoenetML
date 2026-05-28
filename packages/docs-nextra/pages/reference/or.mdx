@@ -1,18 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
 # `<or>{:dn}`
 
+<ComponentDisplay name='or'/>
+
 `<or>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
-component that functions as the boolean operator `or` and checks to see whether any of 
-the enclosed `<boolean>{:dn}` references are `true`.
+component that functions as the boolean operator `or` applied to its enclosed `<boolean>{:dn}` references.
 
 <AttrPropDisplay name='or'/>
 
----
+## Examples
 
 ### Example: `<or>{:dn}` in a `<boolean>{:dn}`
 

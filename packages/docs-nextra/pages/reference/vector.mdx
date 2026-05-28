@@ -1,17 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<vector>{:dn}`
 
-`<vector>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
+<ComponentDisplay name='vector'/>
+
+`<vector>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that renders a vector when nested within a [`<graph>{:dn}`](graph.mdx). Outside a graph, it can be used in vector computations.
 
 <AttrPropDisplay name='vector'/>
 
 
----
+## Examples
 
 ### Example: Default `<vector>{:dn}`
 
@@ -64,7 +66,7 @@ A `<vector>{:dn}` within a `<math>{:dn}` follows vector operations.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: x,y
 
@@ -201,7 +203,7 @@ If this is the desired rendering format, use the attribute `displayWithAngleBrac
 
 
 
-The `draggable` attribute determines whether the `<point>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<vector>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -279,7 +281,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
----
+## Property Examples
 
 ### Property Example: numDimensions
 
@@ -324,6 +326,3 @@ The `magnitude` property renders the magnitude of the named `<vector>{:dn}`.
 
 
 The `latex` property renders the latex code for rendering the named `<vector>{:dn}`.
-
-
----

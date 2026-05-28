@@ -1,14 +1,14 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<electronConfiguration>{:dn}`
 
+<ComponentDisplay name='electronConfiguration'/>
 
 `<electronConfiguration>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
-component that renders an electron configuration with sublevel labels and
-superscripted electron counts. It extends [`<math>{:dn}`](math) with rendering
+component that extends [`<math>{:dn}`](math) with rendering
 tweaks that hide multiplication dots and thin spaces, so a configuration like
 `1s^2 2s^2 2p^4` displays as $1s^{2}\,2s^{2}\,2p^{4}$.
 
@@ -22,7 +22,7 @@ an expected answer, or a hand-written configuration).
 <AttrPropDisplay name='electronConfiguration'/>
 
 
----
+## Examples
 
 ### Example: Built-in property of an `<atom>{:dn}`
 
@@ -91,7 +91,7 @@ directly using `=`.
 
 
 
----
+## Property Examples
 
 ### Property Example: latex and text
 

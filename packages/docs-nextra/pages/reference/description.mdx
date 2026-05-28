@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<description>{:dn}`
+
+<ComponentDisplay name='description'/>
 
 `<description>{:dn}` provides extra information about an enclosing component.
 The information is shown to **all** users, but it is not displayed inline: Doenet
@@ -30,7 +32,7 @@ A `<description>{:dn}` is meaningful as a child of `<answer>{:dn}`,
 
 <AttrPropDisplay name='description'/>
 
----
+## Examples
 
 ### Example: `<description>{:dn}` on a `<mathInput>{:dn}`
 

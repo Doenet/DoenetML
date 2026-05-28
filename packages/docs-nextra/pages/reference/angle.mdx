@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<angle>{:dn}`
 
+<ComponentDisplay name='angle'/>
 
 `<angle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component 
 which renders a geometric angle when nested inside a [`<graph>{:dn}`](graph.mdx) component.
@@ -13,7 +14,7 @@ which renders a geometric angle when nested inside a [`<graph>{:dn}`](graph.mdx)
 <AttrPropDisplay name='angle'/>
 
 
----
+## Examples
 
 ### Example: Angle between two lines
 
@@ -72,7 +73,7 @@ This angle is then referenced by name within the opening and closing `<angle>{:d
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: radius
 
@@ -251,7 +252,7 @@ to negate this default convention. Default = "true", type = <em>boolean</em>.
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 

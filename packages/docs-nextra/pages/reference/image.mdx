@@ -1,19 +1,18 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 # `<image/>{:dn}`
 
-`<image/>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='image'/>
+
+`<image/>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
 component that renders an image from a hyperlink or an uploaded file.
 
 <AttrPropDisplay name='image'/>
 
 
-
-
-
----
+## Examples
 
 ### Example: `<image/>{:dn}` from a hyperlink
 
@@ -26,7 +25,7 @@ component that renders an image from a hyperlink or an uploaded file.
 
 
 
-An `<image/>{:dn}` may be inserted from a hyperlink using the `source` attribute. The `description` attribute is required for accessibility.
+An `<image/>{:dn}` may be inserted from a hyperlink using the `source` attribute. A `<shortDescription>{:dn}` child is required for accessibility.
 
 
 
@@ -48,7 +47,7 @@ An `<image/>{:dn}` may be inserted from a hyperlink using the `source` attribute
 
 
 
-An `<image/>{:dn}` is often nested within a `<figure>{:dn}` along with a `<caption>{:dn}`. The `description` attribute is required for accessibility.
+An `<image/>{:dn}` is often nested within a `<figure>{:dn}` along with a `<caption>{:dn}`. A `<shortDescription>{:dn}` child is required for accessibility.
 
 
 
@@ -75,7 +74,7 @@ An `<image/>{:dn}` can be placed on a `<graph>{:dn}`. Control the size of the im
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: width
 
@@ -188,7 +187,7 @@ The `horizontalAlign` attribute specifies the horizontal position on-screen for 
 
 ---
 
-### Attribute Example: description
+### Attribute Example: shortDescription
 
 
 ```doenet-editor-horiz
@@ -201,9 +200,9 @@ The `horizontalAlign` attribute specifies the horizontal position on-screen for 
 ```
 
 
-The `description` attribute provides a description of the `<image/>{:dn}` for situations where the image 
-cannot load, or for use with screen-reading technology. It is a required attribute for accessibility.
-If a `description` is not supplied and `decorative` is not supplied, a warning is produced.
+A `<shortDescription>{:dn}` child provides a description of the `<image/>{:dn}` for situations where the image 
+cannot load, or for use with screen-reading technology. It is required for accessibility.
+If neither a `<shortDescription>{:dn}` nor the `decorative` attribute is supplied, a warning is produced.
 
 
 
@@ -348,7 +347,7 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties 1
 
@@ -369,7 +368,7 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 <p><c>size</c> = $leviathan.size</p>
 <p><c>width</c> = $leviathan.width</p>
 <p><c>aspectRatio</c> = $leviathan.aspectRatio</p>
-<p><c>description</c> = $leviathan.description</p>
+<p><c>shortDescription</c> = $leviathan.shortDescription</p>
 <p><c>source</c> = $leviathan.source</p>
 ```
 

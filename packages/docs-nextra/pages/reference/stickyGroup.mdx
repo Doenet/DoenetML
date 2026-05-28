@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<stickyGroup>{:dn}`
+
+<ComponentDisplay name='stickyGroup'/>
 
 `<stickyGroup>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that groups other graphical objects (typically `<polygon>{:dn}`s, `<polyline>{:dn}`s, and
@@ -17,7 +19,7 @@ behavior is changed.
 <AttrPropDisplay name='stickyGroup'/>
 
 
----
+## Examples
 
 ### Example: Two polygons that snap together
 
@@ -53,7 +55,7 @@ When dragged close enough, the point first attracts to a triangle vertex, and ot
 nearest point on a triangle edge.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: threshold
 
@@ -109,7 +111,7 @@ relative to the axis scales rather than as raw mathematical distances. This keep
 matching what the user sees on screen.
 
 
----
+## Property Examples
 
 ### Property Example: threshold
 

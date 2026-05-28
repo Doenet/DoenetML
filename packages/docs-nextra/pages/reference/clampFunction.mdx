@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<clampFunction>{:dn}`
 
+<ComponentDisplay name='clampFunction'/>
 
 `<clampFunction>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
 that wraps a [`<function>{:dn}`](function) and limits its output to a closed
@@ -22,7 +23,7 @@ which wraps a function's output instead of clamping it.
 <AttrPropDisplay name='clampFunction'/>
 
 
----
+## Examples
 
 ### Example: Clamp a function to $[0, 1]$
 
@@ -73,6 +74,30 @@ for comparison.
 
 ---
 
+### Example: Evaluate a clamped function at specific inputs
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">3x</function>
+  <clampFunction name="clamped" lowerValue="0" upperValue="5">$f</clampFunction>
+</setup>
+
+<p>f(0.5) = $$f(0.5)</p>
+<p>clamped(0.5) = $$clamped(0.5)</p>
+<p>f(10) = $$f(10)</p>
+<p>clamped(10) = $$clamped(10)</p>
+```
+
+
+The named clamp is evaluated like any other function with `$$name(input)`.
+Outputs inside $[0, 5]$ pass through unchanged; outputs outside it are
+replaced by the nearest endpoint.
+
+
+
+## Attribute Examples
+
 ### Attribute Example: lowerValue, upperValue
 
 
@@ -94,27 +119,3 @@ for comparison.
 `lowerValue` and `upperValue` set the output interval. The clamped function
 is constant outside the input range where the underlying function is below
 `lowerValue` or above `upperValue`.
-
-
-
----
-
-### Example: Evaluate a clamped function at specific inputs
-
-
-```doenet-editor-horiz
-<setup>
-  <function name="f" variables="x">3x</function>
-  <clampFunction name="clamped" lowerValue="0" upperValue="5">$f</clampFunction>
-</setup>
-
-<p>f(0.5) = $$f(0.5)</p>
-<p>clamped(0.5) = $$clamped(0.5)</p>
-<p>f(10) = $$f(10)</p>
-<p>clamped(10) = $$clamped(10)</p>
-```
-
-
-The named clamp is evaluated like any other function with `$$name(input)`.
-Outputs inside $[0, 5]$ pass through unchanged; outputs outside it are
-replaced by the nearest endpoint.

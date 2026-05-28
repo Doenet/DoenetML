@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<paginator>{:dn}`
+
+<ComponentDisplay name='paginator'/>
 
 `<paginator>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that organizes content into discrete pages, allowing users to navigate through them one at a time.
@@ -12,7 +14,7 @@ To create navigation buttons for the paginator, this component is typically used
 
 <AttrPropDisplay name='paginator'/>
 
----
+## Examples
 
 ### Example: A basic `<paginator>{:dn}` with bottom navigation
 
@@ -147,8 +149,7 @@ define the condition that triggers the page change.
 
 
 
----
-
+## Attribute Examples
 
 ### Attribute Example: initialPage
 
@@ -180,7 +181,7 @@ define the condition that triggers the page change.
 The `initialPage` attribute specifies the page number value that the user will see when the 
 `<paginator>{:dn}` is first rendered. 
 
----
+## Property Examples
 
 ### Property Example: currentPage, numPages
 

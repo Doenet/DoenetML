@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<regionHalfPlane/>{:dn}`
+
+<ComponentDisplay name='regionHalfPlane'/>
 
 `<regionHalfPlane/>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that represents one side of the plane bounded by a vertical or horizontal line. It does not
@@ -16,7 +18,7 @@ With the default attributes the region is the right half-plane $x \ge 0$.
 <AttrPropDisplay name='regionHalfPlane'/>
 
 
----
+## Examples
 
 ### Example: Constrain a `<point>{:dn}` to the right half-plane
 
@@ -38,7 +40,7 @@ the left. The defaults — `horizontal="true"`, `boundaryValue="0"`, `greaterTha
 half-plane $x \ge 0$.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: horizontal
 

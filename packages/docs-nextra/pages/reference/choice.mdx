@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<choice>{:dn}`
+
+<ComponentDisplay name='choice'/>
 
 `<choice>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component that defines an individual choice when nested 
@@ -12,7 +14,7 @@ within an [`<answer>{:dn}`](answer.mdx) block for multiple choice questions.
 <AttrPropDisplay name='choice'/>
 
 
----
+## Examples
 
 ### Example: `<choice>{:dn}` inside a `<choiceInput>{:dn}` block
 
@@ -53,7 +55,7 @@ validation. Use the `credit` attribute to assign the correct `<choice>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: credit
 
@@ -117,7 +119,7 @@ selected when the page is rendered.
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 

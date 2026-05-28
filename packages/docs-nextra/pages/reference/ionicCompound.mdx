@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<ionicCompound>{:dn}`
 
+<ComponentDisplay name='ionicCompound'/>
 
 `<ionicCompound>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
 component that builds a balanced ionic compound from a cation and an anion and
@@ -15,7 +16,7 @@ smallest integer subscripts that produce a neutral compound.
 <AttrPropDisplay name='ionicCompound'/>
 
 
----
+## Examples
 
 ### Example: Two `<ion>{:dn}` children
 
@@ -74,31 +75,6 @@ compounds from main-group elements with predictable oxidation states.
 
 ---
 
-### Property Example: math, latex, text
-
-
-```doenet-editor-horiz
-<ionicCompound name="li2o">
-  <ion symbol="Li" charge="1"/>
-  <ion symbol="O" charge="-2"/>
-</ionicCompound>
-
-<p>The compound is $li2o.</p>
-<p><c>math</c> = $li2o.math</p>
-<p><c>latex</c> = $li2o.latex</p>
-<p><c>text</c> = $li2o.text</p>
-```
-
-
-
-`math` is a math expression that can be used in computations, `latex` is a
-LaTeX string suitable for rendering, and `text` is a plain-text fallback.
-Subscripted ion counts appear as `_{n}` in the LaTeX form.
-
-
-
----
-
 ### Example: Use in an answer block
 
 
@@ -129,3 +105,28 @@ The balanced formula is $correct.
 The `math` property is the most convenient way to use an `<ionicCompound>{:dn}`
 as the reference answer in an `<answer>{:dn}` block, since the student's
 `<mathInput/>{:dn}` value can be compared directly.
+
+
+
+## Property Examples
+
+### Property Example: math, latex, text
+
+
+```doenet-editor-horiz
+<ionicCompound name="li2o">
+  <ion symbol="Li" charge="1"/>
+  <ion symbol="O" charge="-2"/>
+</ionicCompound>
+
+<p>The compound is $li2o.</p>
+<p><c>math</c> = $li2o.math</p>
+<p><c>latex</c> = $li2o.latex</p>
+<p><c>text</c> = $li2o.text</p>
+```
+
+
+
+`math` is a math expression that can be used in computations, `latex` is a
+LaTeX string suitable for rendering, and `text` is a plain-text fallback.
+Subscripted ion counts appear as `_{n}` in the LaTeX form.

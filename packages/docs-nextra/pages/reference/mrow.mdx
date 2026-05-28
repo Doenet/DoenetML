@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<mrow>{:dn}`
+
+<ComponentDisplay name='mrow'/>
 
 `<mrow>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
 component that renders a single line within a block of aligned display mathematics when 
@@ -11,7 +13,7 @@ nested within the `<md>{:dn}` or the `<mdn>{:dn}` component.
 
 <AttrPropDisplay name='mrow'/>
 
----
+## Examples
 
 ### Example: `<md>{:dn}` with nested `<mrow>{:dn}` children
 
@@ -109,7 +111,7 @@ Exceptions: The `<answer>{:dn}` component, the `<mathInput/>{:dn}` component, an
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: number
 
@@ -128,7 +130,7 @@ The `number` attribute can be set to `false` to prevent the default numbering of
 
 
 
----
+## Property Examples
 
 ### Property Example: latex
 

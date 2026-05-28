@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<lorem/>{:dn}`
 
+<ComponentDisplay name='lorem'/>
 
 `<lorem/>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
 component that renders random lorem-ipsum filler text.  The amount of text generated is controlled by attribute specification of the number of words, sentences, and paragraphs.
@@ -13,7 +14,7 @@ component that renders random lorem-ipsum filler text.  The amount of text gener
 <AttrPropDisplay name='lorem'/>
 
 
----
+## Attribute Examples
 
 ### Attribute Example: generateWords
 
@@ -73,7 +74,7 @@ Specify the number of paragraphs to generate with the `generateParagraphs` attri
 
 
 
-You can control the length of generated paragraphs with the `minSentencesPerParagraph` and `maxSentencesPerParagraph` attributes. The default minimum is four paragraphs and the default maximum is eight paragraphs.
+You can control the length of generated paragraphs with the `minSentencesPerParagraph` and `maxSentencesPerParagraph` attributes. The default minimum is four sentences and the default maximum is eight sentences.
 
 
 

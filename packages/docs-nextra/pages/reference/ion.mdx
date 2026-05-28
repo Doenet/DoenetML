@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<ion>{:dn}`
 
+<ComponentDisplay name='ion'/>
 
 `<ion>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
 component that represents a charged ion. It renders the element symbol with its
@@ -15,7 +16,7 @@ charge as a superscript, and exposes the same chemical properties as
 <AttrPropDisplay name='ion'/>
 
 
----
+## Examples
 
 ### Example: Define an `<ion>{:dn}` by symbol and charge
 
@@ -65,6 +66,27 @@ noble gases), the default charge is zero.
 
 
 ---
+
+### Example: Provide the element as an `<atom>{:dn}` child
+
+
+```doenet-editor-horiz
+<atom name="sulfur" symbol="S"/>
+
+<ion name="sulfide" charge="-2">$sulfur</ion>
+
+<p>$sulfide is named $sulfide.name.</p>
+```
+
+
+
+Instead of `symbol` or `atomicNumber`, an `<ion>{:dn}` may take an
+[`<atom>{:dn}`](atom) child. This is useful when the element has already been
+defined elsewhere in the document.
+
+
+
+## Attribute Examples
 
 ### Attribute Example: symbol
 
@@ -127,28 +149,7 @@ state suffix.
 
 
 
----
-
-### Example: Provide the element as an `<atom>{:dn}` child
-
-
-```doenet-editor-horiz
-<atom name="sulfur" symbol="S"/>
-
-<ion name="sulfide" charge="-2">$sulfur</ion>
-
-<p>$sulfide is named $sulfide.name.</p>
-```
-
-
-
-Instead of `symbol` or `atomicNumber`, an `<ion>{:dn}` may take an
-[`<atom>{:dn}`](atom) child. This is useful when the element has already been
-defined elsewhere in the document.
-
-
-
----
+## Property Examples
 
 ### Property Example: name, charge, symbol, atomicNumber
 

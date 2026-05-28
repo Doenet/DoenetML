@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<abs>{:dn}`
 
+<ComponentDisplay name='abs'/>
 
 `<abs>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) component that renders 
 the absolute value of the enclosed math.
@@ -12,7 +13,7 @@ the absolute value of the enclosed math.
 
 <AttrPropDisplay name='abs'/>
 
----
+## Examples
 
 <a id="math-ex"></a>
 ### Example: Render the absolute value of a math expression
@@ -67,8 +68,7 @@ The `<abs>{:dn}` component is used to render the absolute value of a named `<fun
 ```
 
 
----
-### Special usage notes
+## Special usage notes
 
 Note that the `<abs>{:dn}` component cannot be used directly in attribute specification. You can, however, use the `|` notation within an attribute specification. 
 You can also define a `<math>{:dn}` component separately, which contains the `<abs>{:dn}` component, and then reference it in an attribute specification.

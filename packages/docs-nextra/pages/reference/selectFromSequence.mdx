@@ -1,17 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<selectFromSequence>{:dn}`
 
 
+<ComponentDisplay name='selectFromSequence'/>
+
 `<selectFromSequence>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that creates named variants from a user-defined range of numerical (or alphabetical) values. Selections generate variants of the document.
+component that randomly selects values from a user-defined sequence of numbers, math expressions, or letters. Selections generate variants of the document.
 
 <AttrPropDisplay name='selectFromSequence'/>
 
----
+## Examples
 
 ### Example: Default `<selectFromSequence>{:dn}`
 
@@ -89,7 +91,7 @@ Select a new page variant from the pulldown menu at the top of the
 editor to see different variants of the document.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: numToSelect
 

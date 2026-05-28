@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<collect>{:dn}`
 
+<ComponentDisplay name='collect'/>
 
 `<collect>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that gathers discrete component data from a graph or 
@@ -13,7 +14,7 @@ sectional component and stores it in an array.
 <AttrPropDisplay name='collect'/>
 
 
----
+## Examples
 
 ### Example: Collect `<point>{:dn}` children from a `<graph>{:dn}`
 
@@ -187,7 +188,7 @@ In order to access a specific component's property,
 use the index of the component in square brackets, 
 such as `$collectRadii[2].radius`.
 
----
+## Attribute Examples
 
 ### Attribute Example: from
 
