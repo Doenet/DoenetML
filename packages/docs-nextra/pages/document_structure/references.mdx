@@ -11,10 +11,14 @@ reference updates too.
 
 References are the main way components share information in DoenetML. The
 [essential concepts](essentialConcepts#namingConventions) page introduces the
-idea alongside components, attributes, and properties; this page focuses on the
-reference syntax itself.
+idea alongside components, attributes, and properties; this page covers writing
+references, how they resolve, and referencing repeated content.
 
-## Referencing a component with `$`
+## Writing references
+
+The different ways to write a reference and what each form points at.
+
+### Referencing a component with `$`
 
 To reference a component, first give it a `name`, then write `$` followed by
 that name. The reference inserts the named component at that location.
@@ -38,7 +42,7 @@ copy.
 * Is case-sensitive
 </Callout>
 
-## Referencing a property with `.`
+### Referencing a property with `.`
 
 Every component stores **properties** — computed information you can read back.
 Write `$name.propertyName` to reference one property of a named component. The
@@ -59,7 +63,25 @@ the full list, and the
 [Properties and Lists](../tutorials/intermediateTutorial/iT2-4-properties)
 tutorial for more worked examples.
 
-## How a reference finds its referent
+### Marking where a name ends with `$(...)`
+
+When a reference is followed immediately by other letters, numbers, or
+underscores, wrap the name in parentheses so DoenetML knows where the name
+ends. For example, `$(a)b` references the component named `a` and then prints a
+literal `b`, whereas `$ab` would look for a component named `ab`.
+
+```doenet-editor-horiz
+<number name="a">5</number>
+
+<p>$(a)b is the value of a followed by the letter b.</p>
+```
+
+## How references are resolved
+
+How DoenetML decides which component a reference points at — and what happens
+when it can't.
+
+### Resolving to the nearest match
 
 A reference looks for its referent starting where it is written and working
 outward through the enclosing components. The **nearest** matching name wins, so
@@ -79,7 +101,7 @@ finds the `<number name="n">` defined in its own section.
 </section>
 ```
 
-## When a reference is ambiguous
+### When a reference is ambiguous
 
 If a name matches more than one component and none is nearer than the others,
 the reference is ambiguous, so DoenetML reports a warning rather than guessing
@@ -102,7 +124,7 @@ with a <svg viewBox="0 0 16 16" width="1em" height="1em" fill="#c25a1a" style={{
 *Multiple referents found for reference: `$n`*. The same message also appears
 in a tooltip when you hover over `$n` in the editor.
 
-## Disambiguating with a named ancestor
+### Disambiguating with a named ancestor
 
 If two components with the same name are in different ancestors, you can create
 unique references to them by giving those ancestors unique names and
@@ -119,7 +141,7 @@ lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
 <p>The first section's n is $s1.n and the second's is $s2.n.</p>
 ```
 
-## When a name doesn't exist
+### When a name doesn't exist
 
 If nothing with the referenced name can be found, the reference fails. A common
 cause is a typo in the name.
@@ -134,20 +156,7 @@ As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
 warning — here, *No referent found for reference: `$total`* — shown in the
 Warnings panel and as a tooltip on hover.
 
-## Marking where a name ends with `$(...)`
-
-When a reference is followed immediately by other letters, numbers, or
-underscores, wrap the name in parentheses so DoenetML knows where the name
-ends. For example, `$(a)b` references the component named `a` and then prints a
-literal `b`, whereas `$ab` would look for a component named `ab`.
-
-```doenet-editor-horiz
-<number name="a">5</number>
-
-<p>$(a)b is the value of a followed by the letter b.</p>
-```
-
-## Referencing items created by a `<repeat>`
+## Referencing repeated content
 
 A [`<repeat>`](../reference/repeat) (or
 [`<repeatForSequence>`](../reference/repeatForSequence)) generates several
