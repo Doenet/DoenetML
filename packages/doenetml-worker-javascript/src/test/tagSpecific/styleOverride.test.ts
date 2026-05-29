@@ -487,15 +487,12 @@ describe("styleNumber propagation through composites @group4", async () => {
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
-                .styleNumber,
-        ).eq(4);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P2")].stateValues
-                .styleNumber,
-        ).eq(4);
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("P1")).eq(4);
+        expect(await styleOf("P2")).eq(4);
     });
 
     it("an explicit styleNumber on a member overrides the group's", async () => {
@@ -510,17 +507,14 @@ describe("styleNumber propagation through composites @group4", async () => {
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
         // Explicit value on the member wins.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
-                .styleNumber,
-        ).eq(2);
+        expect(await styleOf("P1")).eq(2);
         // Sibling without an explicit value still inherits the group's.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("P2")].stateValues
-                .styleNumber,
-        ).eq(4);
+        expect(await styleOf("P2")).eq(4);
     });
 
     it("a group's styleNumber wins over a containing graph's (innermost wins)", async () => {
@@ -581,15 +575,12 @@ describe("styleNumber propagation through composites @group4", async () => {
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("r[1].rp")].stateValues
-                .styleNumber,
-        ).eq(4);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("r[2].rp")].stateValues
-                .styleNumber,
-        ).eq(4);
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("r[1].rp")).eq(4);
+        expect(await styleOf("r[2].rp")).eq(4);
     });
 
     it("extending a graph re-resolves styleNumber against the new context", async () => {

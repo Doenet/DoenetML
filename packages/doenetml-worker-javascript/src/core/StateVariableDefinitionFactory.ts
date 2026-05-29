@@ -1075,9 +1075,11 @@ function _buildAttributeValueDependency(
  * Build the optional fall-back dependency entries (`parentValue`,
  * `sourceCompositeValue`) for an attribute-derived state variable.
  * Returns an empty object when the spec declares no fall-backs. Both
- * call sites spread the result into their own dependency map; the
- * order in which the spread is placed determines the iteration order
- * of the resulting object.
+ * call sites spread the result into their own dependency map. The
+ * order of these entries does not affect fall-back precedence: the
+ * definitions read each dependency by name and apply a fixed
+ * source-composite-before-parent precedence (see
+ * `_buildAttributeDerivedDefinitions`).
  */
 function _buildAttributeFallbackDependencies(
     attributeSpecification: any,
