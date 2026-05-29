@@ -283,10 +283,6 @@ export class PtxCompiler {
                         }
                     }
 
-                    if (node.tagName === "link") {
-                        console.log("Found link tag with properties", node);
-                    }
-
                     // Inline the stylesheets that are locally referenced.
                     if (
                         node.tagName === "link" &&
