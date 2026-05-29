@@ -19,10 +19,8 @@ reference syntax itself.
 To reference a component, first give it a `name`, then write `$` followed by
 that name. The reference inserts the named component at that location.
 
-```doenet-editor
-<point name="p">(3, 4)</point>
-
-<p>The coordinates of p are $p.</p>
+```doenet-editor-horiz
+<p>The coordinates of p are <point name="p">(3,4)</point>.</p>
 <graph>
   <shortDescription>A graph with a draggable point named p</shortDescription>
   $p
@@ -47,7 +45,7 @@ Write `$name.propertyName` to reference one property of a named component. The
 whole expression is a single reference: it points at the `propertyName` property
 of the component named `name`.
 
-```doenet-editor
+```doenet-editor-horiz
 <math name="myMath" splitSymbols="false">xy</math>
 
 <p>Is splitSymbols turned on? $myMath.splitSymbols</p>
@@ -68,7 +66,7 @@ outward through the enclosing components. The **nearest** matching name wins, so
 the same `$n` can mean different things in different places. Below, each `$n`
 finds the `<number name="n">` defined in its own section.
 
-```doenet-editor
+```doenet-editor-horiz
 <section>
   <title>First</title>
   <number name="n">10</number>
@@ -88,7 +86,7 @@ the reference is ambiguous: DoenetML reports an error rather than guessing which
 one you meant. Here, `$n` written outside both sections could equally mean
 either section's `n`, so it fails.
 
-```doenet-editor
+```doenet-editor-horiz
 <section>
   <number name="n">10</number>
 </section>
@@ -104,7 +102,7 @@ Give the enclosing component a `name` and reference through it:
 `$ancestor.name` points at the `name` defined inside that specific ancestor.
 Naming the two sections `s1` and `s2` lets you reach each `n` unambiguously.
 
-```doenet-editor
+```doenet-editor-horiz
 <section name="s1">
   <number name="n">10</number>
 </section>
@@ -119,7 +117,7 @@ Naming the two sections `s1` and `s2` lets you reach each `n` unambiguously.
 If nothing with the referenced name can be found, the reference fails. A common
 cause is a typo in the name.
 
-```doenet-editor
+```doenet-editor-horiz
 <number name="count">5</number>
 
 <p>$total has no referent, because nothing is named "total".</p>
@@ -132,7 +130,7 @@ underscores, wrap the name in parentheses so DoenetML knows where the name
 ends. For example, `$(a)b` references the component named `a` and then prints a
 literal `b`, whereas `$ab` would look for a component named `ab`.
 
-```doenet-editor
+```doenet-editor-horiz
 <number name="a">5</number>
 
 <p>$(a)b is the value of a followed by the letter b.</p>
@@ -147,7 +145,7 @@ copies of its content. Use a bracketed index to reference one iteration, the
 the repeat, and a `name` on a component in the body to reach that component in a
 chosen iteration.
 
-```doenet-editor
+```doenet-editor-horiz
 <repeatForSequence name="rep" from="1" to="3" valueName="v">
   <p>$v squared is <math name="squared">$v^2</math>.</p>
 </repeatForSequence>
