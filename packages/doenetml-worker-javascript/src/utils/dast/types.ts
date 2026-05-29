@@ -267,8 +267,22 @@ export type AttributeDefinition<T> = {
      * If this attribute isn't specified, then the state variable created from this attribute
      * will fall back to copying the value of the state variable
      * `fallBackToParentStateVariable` from the parent.
+     *
+     * When both this and `fallBackToSourceCompositeStateVariable` are set, the
+     * source composite is consulted first (see `fallBackToSourceCompositeStateVariable`).
      */
     fallBackToParentStateVariable?: string;
+    /**
+     * If this attribute isn't specified, then the state variable created from this attribute
+     * will fall back to copying the value of the state variable
+     * `fallBackToSourceCompositeStateVariable` from the source composite
+     * (the innermost authored composite, e.g. a `<group>`, that created the component).
+     *
+     * Takes precedence over `fallBackToParentStateVariable` when both are set, so a
+     * more-local setting on a wrapping composite wins over a more-distant one on the
+     * rendered parent.
+     */
+    fallBackToSourceCompositeStateVariable?: string;
     /** when create the `createComponentOfType`, give it these attributes */
     attributesForCreatedComponent?: Record<string, string>;
     /** when create the `createComponentOfType`, copy these attributes from the parent */
