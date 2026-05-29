@@ -170,9 +170,10 @@ chosen iteration.
   <p>$v squared is <math name="squared">$v^2</math>.</p>
 </repeatForSequence>
 
+<p>The value used in the first iteration was $rep[1].v.</p>
 <p>The square computed in the second iteration is $rep[2].squared.</p>
 ```
 
-Here `$rep[2]` references the second iteration of the repeat, and
-`$rep[2].squared` references the `<math name="squared">` defined inside that
-iteration.
+Here `$rep[2]` references the second iteration of the repeat and
+`$rep[2].squared` the `<math name="squared">` defined inside it. Less commonly,
+`$rep[1].v` references the `valueName` binding `v` from the first iteration.
