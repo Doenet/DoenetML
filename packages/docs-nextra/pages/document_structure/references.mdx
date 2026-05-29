@@ -104,9 +104,10 @@ in a tooltip when you hover over `$n` in the editor.
 
 ## Disambiguating with a named ancestor
 
-Give the enclosing component a `name` and reference through it:
-`$ancestor.name` points at the `name` defined inside that specific ancestor.
-Naming the two sections `s1` and `s2` lets you reach each `n` unambiguously.
+If two components with the same name are in different ancestors, you can create
+unique references to them by giving those ancestors unique names and
+referencing through the ancestor names. Naming the two sections `s1` and `s2`
+lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
 
 ```doenet-editor-horiz
 <section name="s1">
