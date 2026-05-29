@@ -1075,9 +1075,11 @@ function _buildAttributeValueDependency(
  * Build the optional fall-back dependency entries (`parentValue`,
  * `sourceCompositeValue`) for an attribute-derived state variable.
  * Returns an empty object when the spec declares no fall-backs. Both
- * call sites spread the result into their own dependency map; the
- * order in which the spread is placed determines the iteration order
- * of the resulting object.
+ * call sites spread the result into their own dependency map. The
+ * order of these entries does not affect fall-back precedence: the
+ * definitions read each dependency by name and apply a fixed
+ * source-composite-before-parent precedence (see
+ * `_buildAttributeDerivedDefinitions`).
  */
 function _buildAttributeFallbackDependencies(
     attributeSpecification: any,
@@ -1251,14 +1253,17 @@ function _copyPassthroughAttributes(
  *
  * The `definition` resolves the attribute value from one of the four
  * dependency shapes (`attributeComponent` / `attributePrimitive` /
- * `attributeRefResolutions` / fall-back via parent or
- * source-composite), then validates it via `validateAttributeValue`.
+ * `attributeRefResolutions` / fall-back), then validates it via
+ * `validateAttributeValue`. The fall-back consults the source composite
+ * before the parent, so a more-local setting (e.g. a `<group>` the
+ * component sits in) wins over a more-distant one (e.g. the surrounding
+ * `<graph>`).
  *
  * The `inverseDefinition` (used unless `noInverse` is set) routes a
- * desired value back to the same source — propagating to the parent
- * state variable, source-composite state variable, or essential value
- * when no underlying component is present, or back to the attribute
- * component when one is.
+ * desired value back to the same source — propagating to the
+ * source-composite state variable, parent state variable, or essential
+ * value when no underlying component is present, or back to the
+ * attribute component when one is. Its precedence mirrors `definition`.
  */
 function _buildAttributeDerivedDefinitions({
     varName,
@@ -1298,36 +1303,38 @@ function _buildAttributeDerivedDefinitions({
         ) {
             attributeValue = dependencyValues.attributeRefResolutions;
         } else {
-            // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
-            // parentValue would be null if the parentValue state variables
-            // did not exist or its value was null
-            let haveParentValue = dependencyValues.parentValue != null;
+            // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
+            // sourceCompositeValue would be null if the sourceCompositeValue state variables
+            // did not exist or its value was null.
+            // The source composite (the innermost authored wrapper, e.g. a
+            // <group> the component sits in) is consulted before the parent so
+            // that a more-local setting wins over a more-distant one.
+            let haveSourceCompositeValue =
+                dependencyValues.sourceCompositeValue != null;
             if (
-                haveParentValue &&
-                !usedDefault.parentValue &&
+                haveSourceCompositeValue &&
+                !usedDefault.sourceCompositeValue &&
                 essentialValues[varName] === undefined
             ) {
                 return {
                     setValue: {
-                        [varName]: dependencyValues.parentValue,
+                        [varName]: dependencyValues.sourceCompositeValue,
                     },
                     checkForActualChange: { [varName]: true },
                 };
             } else {
-                // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
-                // sourceCompositeValue would be null if the sourceCompositeValue state variables
+                // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
+                // parentValue would be null if the parentValue state variables
                 // did not exist or its value was null
-
-                let haveSourceCompositeValue =
-                    dependencyValues.sourceCompositeValue != null;
+                let haveParentValue = dependencyValues.parentValue != null;
                 if (
-                    haveSourceCompositeValue &&
-                    !usedDefault.sourceCompositeValue &&
+                    haveParentValue &&
+                    !usedDefault.parentValue &&
                     essentialValues[varName] === undefined
                 ) {
                     return {
                         setValue: {
-                            [varName]: dependencyValues.sourceCompositeValue,
+                            [varName]: dependencyValues.parentValue,
                         },
                         checkForActualChange: { [varName]: true },
                     };
@@ -1371,36 +1378,39 @@ function _buildAttributeDerivedDefinitions({
                 return { success: false };
             }
 
-            let haveParentValue = dependencyValues.parentValue != null;
+            // Mirror the forward `definition`'s precedence: the source
+            // composite is consulted before the parent, so a desired value
+            // must be routed back to whichever source was actually read.
+            let haveSourceCompositeValue =
+                dependencyValues.sourceCompositeValue != null;
             if (
-                haveParentValue &&
-                !usedDefault.parentValue &&
+                haveSourceCompositeValue &&
+                !usedDefault.sourceCompositeValue &&
                 essentialValues[varName] === undefined
             ) {
-                // value from parent was used, so propagate back to parent
+                // value from source composite was used, so propagate back to source composite
                 return {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "parentValue",
+                            setDependency: "sourceCompositeValue",
                             desiredValue: desiredStateVariableValues[varName],
                         },
                     ],
                 };
             } else {
-                let haveSourceCompositeValue =
-                    dependencyValues.sourceCompositeValue != null;
+                let haveParentValue = dependencyValues.parentValue != null;
                 if (
-                    haveSourceCompositeValue &&
-                    !usedDefault.sourceCompositeValue &&
+                    haveParentValue &&
+                    !usedDefault.parentValue &&
                     essentialValues[varName] === undefined
                 ) {
-                    // value from source composite was used, so propagate back to source composite
+                    // value from parent was used, so propagate back to parent
                     return {
                         success: true,
                         instructions: [
                             {
-                                setDependency: "sourceCompositeValue",
+                                setDependency: "parentValue",
                                 desiredValue:
                                     desiredStateVariableValues[varName],
                             },

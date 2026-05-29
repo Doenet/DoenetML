@@ -513,3 +513,188 @@ describe("Per-component style override tests @group4", async () => {
         ).toBe(true);
     });
 });
+
+describe("styleNumber propagation through composites @group4", async () => {
+    it("members of a <group styleNumber=N> inherit N", async () => {
+        // A <group> is a composite: its members are reparented out of the
+        // group into its container, so the parent fallback can't see the
+        // group's styleNumber. The source-composite fallback carries it
+        // through instead.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <point name="P1" coords="(-1,1)" />
+    <point name="P2" coords="(2,-2)" />
+  </group>
+</graph>
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("P1")).eq(4);
+        expect(await styleOf("P2")).eq(4);
+    });
+
+    it("an explicit styleNumber on a member overrides the group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <point name="P1" coords="(-1,1)" styleNumber="2" />
+    <point name="P2" coords="(2,-2)" />
+  </group>
+</graph>
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        // Explicit value on the member wins.
+        expect(await styleOf("P1")).eq(2);
+        // Sibling without an explicit value still inherits the group's.
+        expect(await styleOf("P2")).eq(4);
+    });
+
+    it("a group's styleNumber wins over a containing graph's (innermost wins)", async () => {
+        // Members are reparented into the <graph>, so the graph is their
+        // rendered parent and the group is their source composite. The
+        // source-composite fallback is consulted before the parent fallback,
+        // so the more-local group's value (4) wins over the graph's (2) —
+        // matching how a <group> behaves like the regular container nearest
+        // the component.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph styleNumber="2">
+  <group styleNumber="4">
+    <point name="P" coords="(-1,1)" />
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+
+    it("styleNumber chains through nested groups", async () => {
+        // The inner group has no explicit styleNumber, so it inherits 4 from
+        // the outer group via the source-composite fallback; the point then
+        // inherits 4 from the inner group the same way.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <group>
+      <point name="P" coords="(-1,1)" />
+    </group>
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+
+    it("styleNumber propagates through a <repeat> to its members", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <repeat name="r" for="1 2" valueName="v" styleNumber="4">
+    <point name="rp">($v, 0)</point>
+  </repeat>
+</graph>
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("r[1].rp")).eq(4);
+        expect(await styleOf("r[2].rp")).eq(4);
+    });
+
+    it("extending a graph re-resolves styleNumber against the new context", async () => {
+        // In the original graph, the loose point takes the graph's 5 and the
+        // grouped points take the group's 4 (innermost wins). When the graph
+        // is extended with styleNumber="2", the loose point — which has no
+        // more-local style source — picks up the new graph's 2, while the
+        // grouped points keep the group's 4 (the <group> is still their
+        // innermost source; the implicit copy composite deletes its own
+        // styleNumber so it doesn't interfere).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph styleNumber="5" name="g">
+  <point name="P0" coords="(3,5)" />
+  <group styleNumber="4">
+    <point name="P1" coords="(-1,1)" />
+    <point name="P2" coords="(2,-2)" />
+  </group>
+</graph>
+
+<graph extend="$g" styleNumber="2" name="g2" />
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("P0")).eq(5);
+        expect(await styleOf("P1")).eq(4);
+        expect(await styleOf("P2")).eq(4);
+
+        expect(await styleOf("g2.P0")).eq(2);
+        expect(await styleOf("g2.P1")).eq(4);
+        expect(await styleOf("g2.P2")).eq(4);
+    });
+
+    it("a group nested in a graph and a graph nested in a section style their points identically", async () => {
+        // Whether the inner styleNumber sits on a composite (<group>) or a
+        // regular component (<graph> inside a <section>) must not change the
+        // result: in both, the loose point follows the outer container and
+        // the inner-wrapped points follow the inner container — including
+        // after extension. Authors shouldn't have to know which components
+        // are composites.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="s" styleNumber="5">
+  <graph>
+    <point name="Pa" coords="(3,5)" />
+  </graph>
+  <graph styleNumber="4">
+    <point name="Pb1" coords="(-1,1)" />
+    <point name="Pb2" coords="(2,-2)" />
+  </graph>
+</section>
+
+<section extend="$s" styleNumber="2" name="s2" />
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        const styleOf = async (name: string) =>
+            sv[await resolvePathToNodeIdx(name)].stateValues.styleNumber;
+
+        expect(await styleOf("Pa")).eq(5);
+        expect(await styleOf("Pb1")).eq(4);
+        expect(await styleOf("Pb2")).eq(4);
+
+        expect(await styleOf("s2.Pa")).eq(2);
+        expect(await styleOf("s2.Pb1")).eq(4);
+        expect(await styleOf("s2.Pb2")).eq(4);
+    });
+});
