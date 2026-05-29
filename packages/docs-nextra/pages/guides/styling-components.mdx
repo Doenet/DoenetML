@@ -1,0 +1,247 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Styling Components in Doenet
+
+Almost everything Doenet draws or displays has a *style*: a point in a graph has a color, a marker shape, and a size; a line has a color, a width, and a solid-or-dashed appearance; a piece of text has a color. This guide shows how to control that styling.
+
+It assumes you already know the basics of writing DoenetML — tags, attributes, properties, and children. We'll start with the simplest tool for changing how a component looks and build up from there:
+
+1. picking one of the **predefined styles** with the `styleNumber{:dn}` attribute,
+2. tweaking individual settings with **style attributes** on a component,
+3. and finally redefining the styles themselves with **`<styleDefinition>{:dn}`**.
+
+---
+
+## Predefined styles and `styleNumber`
+
+Doenet comes with six predefined styles, numbered **1 through 6**. Every component starts out using **style number 1**. To switch a component to a different predefined style, set its `styleNumber{:dn}` attribute.
+
+The example below draws the same point six times, once in each predefined style. Notice that each style has its own color *and* its own marker shape.
+
+```doenet-editor-horiz
+<graph size="small" xmin="-1" xmax="3" ymin="0" ymax="7">
+  <shortDescription>Six points, one in each of the predefined styles 1 through 6</shortDescription>
+  <point coords="(1,6)" styleNumber="1" />
+  <point coords="(1,5)" styleNumber="2" />
+  <point coords="(1,4)" styleNumber="3" />
+  <point coords="(1,3)" styleNumber="4" />
+  <point coords="(1,2)" styleNumber="5" />
+  <point coords="(1,1)" styleNumber="6" />
+</graph>
+```
+
+You don't have to memorize what each style number looks like. The Doenet editor will tell you. The example above is a live editor, and along its bottom edge is a **context-help panel** (open by default, on the **Context** tab) that describes whatever your cursor is touching.
+
+Try it: in the example above, click on the `styleNumber="2"{:dn}` of the second point. The panel updates to a *Resolved style* listing for style 2. Because a point is drawn with a marker, it shows the marker settings for that style — among them `markerColor{:dn}` `#D4042D` (named `red`), `markerStyle{:dn}` `square`, `markerSize{:dn}` `5`, and `markerFilled{:dn}` `true`. In other words, style 2 draws a point as a red, square, filled marker. Click on a different point's `styleNumber{:dn}` and the panel re-reads off the settings for that style.
+
+<Callout type="info">
+The panel lists each color twice: once for normal (light) mode and once for dark mode (the `…DarkMode` entries). **You can ignore the dark-mode entries for now** — dark mode is not yet implemented in Doenet, so only the light-mode colors take effect.
+</Callout>
+
+### What a style controls depends on the component
+
+A point, a line, and a filled region are different kinds of things, so a style controls different settings for each:
+
+- a **point** has a *marker* — its shape, size, and color;
+- a **line** (or line segment, ray, vector) has a *stroke* — its color, width, and solid/dashed appearance;
+- a **region** (circle, polygon, rectangle, curve) has a stroke *and* a *fill* color.
+
+That's why, when your cursor is on a `styleNumber{:dn}` attribute, the help panel only lists the settings that are relevant to that component: marker settings for a point, line settings for a line, line *and* fill settings for a region.
+
+Here is style number 2 applied to three different kinds of component. The same style number produces the same color, but expresses it differently on each shape.
+
+```doenet-editor-horiz
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>A point, a line segment, and a filled circle, all using style 2</shortDescription>
+  <point coords="(-2,2)" styleNumber="2" />
+  <lineSegment endpoints="(-3,-1) (3,-3)" styleNumber="2" />
+  <circle center="(1.5,1)" radius="1.5" styleNumber="2" filled="true" />
+</graph>
+```
+
+Notice the `filled="true"{:dn}` attribute on the circle. **A region is unfilled by default**, so it shows only its outline — and the style's fill color is invisible. Setting `filled="true"{:dn}` fills the interior so you can actually see the fill color. (The same `filled{:dn}` attribute is available on `<circle>{:dn}`, `<rectangle>{:dn}`, `<polygon>{:dn}`, and the other region components.)
+
+<Callout type="info">
+**Tip — styling several components at once.** A component that doesn't set its own `styleNumber{:dn}` inherits the `styleNumber{:dn}` of the component that contains it. So you can set `styleNumber{:dn}` once on a containing `<graph>{:dn}` (or a `<section>{:dn}`) and every component inside it follows along unless it sets its own:
+
+```doenet-editor-horiz
+<graph size="small" styleNumber="4" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>Two points that both inherit style 4 from the graph</shortDescription>
+  <point coords="(-1,1)" />
+  <point coords="(2,-2)" />
+</graph>
+```
+</Callout>
+
+### Text and math colors
+
+Style numbers also set the color of text and math. Each predefined style has a text color, so you can color text just by choosing a style number — no other setup required.
+
+```doenet-editor-horiz
+<p>This sentence is in the default style. Here is
+<text styleNumber="2">style 2</text>,
+<text styleNumber="3">style 3</text>, and
+<text styleNumber="4">style 4</text>.</p>
+```
+
+`styleNumber{:dn}` applies to the text- and math-displaying components, such as `<text>{:dn}`, `<m>{:dn}`, and `<math>{:dn}`. To color a phrase within a sentence, wrap it in a `<text>{:dn}` with the style number you want, as above.
+
+---
+
+## Changing one setting at a time
+
+The predefined styles bundle several settings together. Often you want to keep a style but adjust just one thing — a thicker line, a dashed line, a hollow point. You can set many of these directly as attributes on a graphical component.
+
+The attributes you can set depend on the kind of component (just like the style settings did):
+
+- on lines, line segments, rays, and vectors: `lineWidth{:dn}` and `lineStyle{:dn}` (`solid`, `dashed`, or `dotted`);
+- on points: `markerStyle{:dn}` (`circle`, `square`, `triangle`, `diamond`, `cross`, `plus`, …), `markerSize{:dn}`, and `markerFilled{:dn}`;
+- on regions (circle, polygon, rectangle, curve): the line attributes above, plus `fillOpacity{:dn}`.
+
+### Line width and dash style
+
+```doenet-editor-horiz
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>Three line segments with different widths and dash styles</shortDescription>
+  <lineSegment endpoints="(-3,3) (3,3)" lineWidth="6" />
+  <lineSegment endpoints="(-3,1) (3,1)" lineStyle="dashed" />
+  <lineSegment endpoints="(-3,-2) (3,-2)" styleNumber="2" lineStyle="dotted" lineWidth="3" />
+</graph>
+```
+
+Each segment keeps the *color* of its style (the first two are the default blue; the third is style 2's red) while overriding the width and dash.
+
+### Marker shape, size, and fill
+
+```doenet-editor-horiz
+<graph size="small" xmin="0" xmax="5" ymin="0" ymax="5">
+  <shortDescription>Points with different marker shapes, sizes, and fills</shortDescription>
+  <point coords="(1,1)" markerStyle="square" />
+  <point coords="(2,2)" markerStyle="triangle" markerSize="10" />
+  <point coords="(3,3)" markerFilled="false" />
+  <point coords="(4,4)" styleNumber="2" markerStyle="diamond" />
+</graph>
+```
+
+`markerFilled="false"{:dn}` gives an open (hollow) marker instead of a filled one. (When an open marker is meant to *carry meaning* — such as an excluded interval endpoint — reach for a semantic component like `<endpoint>{:dn}` rather than styling a plain point; see the note below.)
+
+### Fill opacity
+
+```doenet-editor-horiz
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>Two filled circles with different fill opacities</shortDescription>
+  <circle center="(-1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.2" />
+  <circle center="(1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.8" />
+</graph>
+```
+
+These attributes are matched to the kind of component: a `<point>{:dn}` accepts `markerStyle{:dn}` but not `lineWidth{:dn}`, while a `<line>{:dn}` accepts `lineWidth{:dn}` but not `markerStyle{:dn}`. Setting an attribute that doesn't apply to a component is an error, which the editor will flag.
+
+<Callout type="info">
+**Use semantic markup, not styling, to express meaning**
+
+When a visual difference *carries meaning*, express it with a component built for that meaning rather than by styling a generic one. For example, to show that an interval endpoint is excluded rather than included, use an `<endpoint>{:dn}` with its `open{:dn}` attribute — not a `<point>{:dn}` with `markerFilled="false"{:dn}`. Both look like a hollow marker, but only the `<endpoint>{:dn}` records *what you mean*. In the same spirit, `<equilibriumPoint>{:dn}`, `<equilibriumLine>{:dn}`, and `<equilibriumCurve>{:dn}` express whether an equilibrium is stable or unstable through a `stable{:dn}` attribute.
+
+Because these components own that aspect of their appearance, they ignore the matching style settings:
+
+- **`<endpoint>{:dn}` and `<equilibriumPoint>{:dn}`** take open (hollow) vs. closed (filled) from `open{:dn}` / `stable{:dn}`, not from `markerFilled{:dn}` (which isn't available on them; the interiorless `cross` and `plus` shapes aren't offered either).
+- **`<equilibriumLine>{:dn}` and `<equilibriumCurve>{:dn}`** take solid vs. dashed from `stable{:dn}`, not from `lineStyle{:dn}` — an unstable equilibrium is drawn dashed, a stable one solid.
+
+You can still set their other styles (color via the style number, `lineWidth{:dn}`, marker shape, and so on).
+
+Encoding meaning this way pays off beyond appearance. Because the runtime knows what you intended, Doenet can — as it evolves — convey that meaning through other channels, notably to assistive technology. And while a reader may one day be allowed to override your *styling*, they cannot override a *semantic* construction, so meaning carried by these components stays intact.
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-1" ymax="1">
+  <shortDescription>A stable (closed) and an unstable (open) equilibrium point</shortDescription>
+  <equilibriumPoint coords="(-1,0)" />
+  <equilibriumPoint coords="(1,0)" stable="false" />
+</graph>
+```
+</Callout>
+
+### What about colors?
+
+Look back over the attributes we just used: line width, dash style, marker shape, marker size, marker fill, fill opacity — but never a *color*. That is deliberate. **There is no `lineColor{:dn}`, `markerColor{:dn}`, or `fillColor{:dn}` attribute you can place on a component.** The only way to change a color is to change the style itself, which is the subject of the final section.
+
+---
+
+## Redefining styles with `<styleDefinition>`
+
+The six predefined styles are themselves *style definitions*, and you can redefine them. A [`<styleDefinition>{:dn}`](../reference/styleDefinition) placed at the top of your document changes a style number everywhere it is used. This is also **the only way to change a color.**
+
+A `<styleDefinition>{:dn}` names the `styleNumber{:dn}` it applies to and then lists the settings to change. Here we redefine style 1 to be green across the board — its line color, its marker color, and its fill color:
+
+```doenet-editor-horiz
+<styleDefinition styleNumber="1" lineColor="green" markerColor="green" fillColor="green" />
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>A point, a line segment, and a filled circle, all using the redefined green style 1</shortDescription>
+  <point coords="(-2,2)" />
+  <lineSegment endpoints="(-3,-1) (3,-1)" />
+  <circle center="(1.5,1)" radius="1.2" filled="true" />
+</graph>
+```
+
+(A `<styleDefinition>{:dn}` produces no visible output of its own, so it can sit directly in your document — it does not need to go inside a `<setup>{:dn}` block.)
+
+None of these components set `styleNumber{:dn}`, so they all use style 1 — which is now green. Notice that the three components draw their color from three different settings: a point uses `markerColor{:dn}`, a line uses `lineColor{:dn}`, and a filled region uses `fillColor{:dn}`. A style definition can set any of those, along with non-color settings such as `lineWidth{:dn}`, `lineStyle{:dn}`, `markerStyle{:dn}`, `markerSize{:dn}`, and `fillOpacity{:dn}`.
+
+A `<styleDefinition>{:dn}` only changes the settings you list; everything else about that style number keeps its previous value. So redefining the color of style 1 leaves its line width, marker shape, and so on untouched.
+
+The context-help panel keeps up with your redefinition. In the example above, click on the `styleNumber="1"{:dn}` inside the `<styleDefinition>{:dn}` (or on any of the components): the *Resolved style* listing now reports `lineColor{:dn}`, `markerColor{:dn}`, and `fillColor{:dn}` as `green`, rather than the original blue. The panel always describes what will actually be drawn, so it is the quickest way to confirm a change took effect.
+
+### Definitions set defaults; component attributes win
+
+You can also use a `<styleDefinition>{:dn}` to set defaults for the *non-color* settings — for example, to make every style-2 line thick. But if a particular component also sets that setting as an attribute, the component's attribute takes precedence.
+
+```doenet-editor-horiz
+<styleDefinition styleNumber="2" lineColor="red" lineWidth="5" />
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>Two style-2 line segments; one uses the definition's width, the other overrides it</shortDescription>
+  <lineSegment endpoints="(-3,1) (3,1)" styleNumber="2" />
+  <lineSegment endpoints="(-3,-1) (3,-1)" styleNumber="2" lineWidth="1" />
+</graph>
+```
+
+Both segments are red — the color comes from the definition and cannot be overridden on the component. The first segment is thick (width 5, from the definition); the second overrides the width to 1 with its own attribute.
+
+### Scoping styles to a section
+
+A `<styleDefinition>{:dn}` doesn't have to apply to the whole document. Place it inside a `<section>{:dn}` and it applies only within that section; everything outside is unaffected, and nested sections can override their parent's definitions.
+
+```doenet-editor-horiz
+<section>
+  <title>First section</title>
+  <styleDefinition styleNumber="1" lineColor="purple" markerColor="purple" />
+  <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <shortDescription>A point in the first section, using the section's purple style 1</shortDescription>
+    <point coords="(1,1)" />
+  </graph>
+</section>
+<section>
+  <title>Second section</title>
+  <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <shortDescription>A point in the second section, using the default blue style 1</shortDescription>
+    <point coords="(1,1)" />
+  </graph>
+</section>
+```
+
+Both points use style 1 with no `styleNumber{:dn}` attribute, but the first is purple (the section redefined style 1) while the second keeps the document-wide default.
+
+<Callout type="info">
+**Optional aside — why can't I just set a color on a component?**
+
+Keeping colors in style definitions is a deliberate design decision. A planned Doenet feature will let *readers* override style definitions when they view a document — so a reader who is color-blind or has low vision could remap the styles to colors they can tell apart. For that to work, each style number needs one well-defined set of colors that a reader can remap in one place. If colors could be sprinkled directly onto individual components, a reader's remapping couldn't reach them. (Relatedly, Doenet checks the color contrast of each style definition.) Non-color settings like line width and marker shape don't raise the same concern, which is why those *can* be set freely per component.
+</Callout>
+
+---
+
+## Summary
+
+- Every component starts in **style 1**. Switch to another predefined style with `styleNumber{:dn}` (1–6); the editor's context help describes each one.
+- What a style controls depends on the component: markers for points, strokes for lines, strokes and fills for regions. Use `filled="true"{:dn}` to see a region's fill color.
+- Override **non-color** settings per component with attributes like `lineWidth{:dn}`, `lineStyle{:dn}`, `markerStyle{:dn}`, `markerSize{:dn}`, `markerFilled{:dn}`, and `fillOpacity{:dn}`.
+- Change **colors** — and redefine any style number — with [`<styleDefinition>{:dn}`](../reference/styleDefinition), at the document level or scoped to a section.
