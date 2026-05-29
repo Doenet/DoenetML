@@ -141,14 +141,17 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
         // a filled circle must reach JSXGraph's `fillopacity` rather than stay
         // stuck at the styleNumber default (every preset ships fillOpacity 0.3).
         // This rendering-level check confirms the override survives to the DOM.
+        // `labelIsName` so each JXG circle's `name` is the component name (it
+        // otherwise defaults to the empty `labelForGraph`), letting us look up
+        // the rendered circles by name below.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
 <graph name="g">
-  <circle name="faint" center="(-1.5,0)" radius="1.5" styleNumber="3" filled fillOpacity="0.2" />
-  <circle name="solid" center="(1.5,0)" radius="1.5" styleNumber="3" filled fillOpacity="0.8" />
-  <circle name="dflt" center="(4.5,0)" radius="1.5" styleNumber="3" filled />
+  <circle name="faint" labelIsName center="(-1.5,0)" radius="1.5" styleNumber="3" filled fillOpacity="0.2" />
+  <circle name="solid" labelIsName center="(1.5,0)" radius="1.5" styleNumber="3" filled fillOpacity="0.8" />
+  <circle name="dflt" labelIsName center="(4.5,0)" radius="1.5" styleNumber="3" filled />
 </graph>
 `,
                 },
