@@ -48,6 +48,19 @@
                 "../doenetml-to-pretext:build"
             ]
         },
+        "build:python": {
+            "command": "cd python && python3 setup.py sdist bdist_wheel",
+            "files": [
+                "python/**/*.py",
+                "python/MANIFEST.in",
+                "python/setup.py",
+                "python/README.md",
+                "python/pretext_wasm/core/**/*"
+            ],
+            "output": [
+                "python/dist/**/*"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [
@@ -63,6 +76,10 @@
                 "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
+            ],
+            "dependencies": [
+                "build:python",
+                "../prefigure:build"
             ]
         }
     },
@@ -75,6 +92,11 @@
     },
     "dependencies": {
         "@doenet/doenetml-to-pretext": "*",
-        "pyodide": "^0.26.4"
+        "rehype-parse": "^9.0.1",
+        "rehype-stringify": "^10.0.1"
+    },
+    "devDependencies": {
+        "pyodide": "^0.26.4",
+        "vite-plugin-arraybuffer": "^0.1.4"
     }
 }

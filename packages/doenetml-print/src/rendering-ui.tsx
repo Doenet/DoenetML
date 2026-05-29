@@ -41,7 +41,7 @@ export function RenderingUi() {
                             try {
                                 Compiler.setMainPtx(mainPtx);
                                 setSavedSinceChange(true);
-                                await Compiler.compile();
+                                await Compiler.compile_pretext();
                                 setCompiledOutput(Compiler.getHtmlWithLocalReferences());
                             } finally {
                                 setIsCompiling(false);

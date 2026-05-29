@@ -1,8 +1,57 @@
 import { defineConfig } from "vitest/config";
 import dts from "vite-plugin-dts";
 import { version } from "./package.json";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import arraybuffer from "vite-plugin-arraybuffer";
+
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { PluginOption } from "vite";
 
 const EXTERNAL_DEPS = ["react", "react-dom"];
+
+const PYODIDE_EXCLUDE = [
+    "!**/*.{md,html}",
+    "!**/*.d.ts",
+    "!**/*.whl",
+    "!**/node_modules",
+];
+
+/**
+ * Copy over Pyodide assets supplied by the pyodide package.
+ */
+export function viteStaticCopyPyodide() {
+    const pyodideDir = dirname(fileURLToPath(import.meta.resolve("pyodide")));
+    return viteStaticCopy({
+        targets: [
+            {
+                src: [join(pyodideDir, "*")].concat(PYODIDE_EXCLUDE),
+                dest: "assets",
+            },
+        ],
+    });
+}
+
+/**
+ * Copy over assets needed to run PreFigure from inside pyodide.
+ */
+function vitePluginPrefigure(): PluginOption {
+    const prefigureDir = dirname(
+        fileURLToPath(import.meta.resolve("@doenet/prefigure")),
+    );
+
+    return viteStaticCopy({
+        targets: [
+            {
+                src: [
+                    join(prefigureDir, "..", "pyodide_packages", "**", "*.whl"),
+                    join(prefigureDir, "..", "pyodide_packages", "**", "*.zip"),
+                ],
+                dest: "assets",
+            },
+        ],
+    });
+}
 
 export default defineConfig(({ mode }) => {
     // Development mode builds should include HTML assets for demos.
@@ -10,7 +59,12 @@ export default defineConfig(({ mode }) => {
 
     return {
         base: "./",
-        plugins: [dts({ rollupTypes: true })],
+        plugins: [
+            dts({ rollupTypes: true }),
+            viteStaticCopyPyodide(),
+            vitePluginPrefigure(),
+            arraybuffer(),
+        ],
         worker: {
             format: "es",
         },
@@ -40,6 +94,9 @@ export default defineConfig(({ mode }) => {
                           ),
                       },
                   },
+        },
+        optimizeDeps: {
+            exclude: ["pyodide"],
         },
         test: {
             setupFiles: ["@vitest/web-worker"],

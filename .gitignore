@@ -78,6 +78,7 @@ packages/prefigure/src/worker/liblouis/generated/*.dis
 .cspell
 
 packages/doenetml-to-pretext-python/doenetml_to_pretext/js-assets/*
+packages/doenetml-print/python/pretext_wasm/core/*
 __pycache__
 .pytest_cache
 *.egg-info

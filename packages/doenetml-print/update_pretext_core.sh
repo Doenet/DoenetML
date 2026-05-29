@@ -6,7 +6,7 @@ DEST_DIR="$SCRIPT_DIR/pretext_core"
 TMP_ROOT="$SCRIPT_DIR/tmp"
 TMP_DIR=""
 ZIP_PATH="$TMP_DIR/pretext.zip"
-SUBDIRECTORIES=("pretext" "xsl")
+SUBDIRECTORIES=("pretext" "xsl" "css")
 EXTRA_FILES=("COPYING")
 DOWNLOADED_BRANCH=""
 CURRENT_COMMIT=""
@@ -38,10 +38,12 @@ resolve_commit_hash() {
     git ls-remote https://github.com/PreTeXtBook/pretext.git "refs/heads/$branch" | awk '{ print $1 }'
 }
 
+BRANCH="master"
 echo "Downloading PreTeXt repository zip..."
-if ! download_zip "master" "https://github.com/PreTeXtBook/pretext/archive/refs/heads/master.zip"; then
+if ! download_zip "$BRANCH" "https://github.com/PreTeXtBook/pretext/archive/refs/heads/$BRANCH.zip"; then
     echo "master branch not available, trying main..."
-    download_zip "main" "https://github.com/PreTeXtBook/pretext/archive/refs/heads/main.zip"
+    BRANCH="main"
+    download_zip "$BRANCH" "https://github.com/PreTeXtBook/pretext/archive/refs/heads/$BRANCH.zip"
 fi
 
 CURRENT_COMMIT="$(resolve_commit_hash "$DOWNLOADED_BRANCH")"
@@ -53,10 +55,10 @@ fi
 echo "Extracting PreTeXt subdirectories: ${SUBDIRECTORIES[*]}"
 UNZIP_PATTERNS=()
 for subdir in "${SUBDIRECTORIES[@]}"; do
-    UNZIP_PATTERNS+=("pretext-*/${subdir}/*")
+    UNZIP_PATTERNS+=("pretext-${BRANCH}/${subdir}/*")
 done
 for file in "${EXTRA_FILES[@]}"; do
-    UNZIP_PATTERNS+=("pretext-*/${file}")
+    UNZIP_PATTERNS+=("pretext-${BRANCH}/${file}")
 done
 unzip -q "$ZIP_PATH" "${UNZIP_PATTERNS[@]}" -d "$TMP_DIR/extracted"
 
@@ -84,5 +86,10 @@ for file in "${EXTRA_FILES[@]}"; do
 done
 
 printf '%s\n' "$CURRENT_COMMIT" > "$DEST_DIR/CURRENT_COMMIT"
+
+# Make an empty js/ directory if it doesn't exist
+# PreTeXt assumes this directory exists and tries to copy files from it.
+mkdir -p "$DEST_DIR/js"
+touch "$DEST_DIR/js/EMPTY"
 
 echo "Done. Updated: $DEST_DIR/${SUBDIRECTORIES[*]} ${EXTRA_FILES[*]} CURRENT_COMMIT"

@@ -11,6 +11,7 @@
 		<search variant="none" />
 		<calculator model="none" activecode="none" />
 		<webwork inline="dynamic" divisional="static" reading="static" worksheet="static" project="dynamic" />
+		<platform portable="no" />
 	</html>
     <!-- directories are relative to the main source PreTeXt file -->
     <source>

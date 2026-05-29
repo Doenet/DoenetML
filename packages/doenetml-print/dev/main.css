@@ -54,6 +54,8 @@ body {
     h1 {
         margin-top: 0;
         font-size: 1.3em;
+        display: flex;
+        gap: 0.75rem;
     }
 
     .pretext-output {
