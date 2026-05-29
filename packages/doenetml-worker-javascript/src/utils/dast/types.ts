@@ -264,23 +264,35 @@ export type AttributeDefinition<T> = {
     propagateToProps?: boolean;
     excludeFromSchema?: boolean;
     /**
-     * If this attribute isn't specified, then the state variable created from this attribute
-     * will fall back to copying the value of the state variable
-     * `fallBackToParentStateVariable` from the parent.
+     * Authoring knob (set here, in the attribute definition): the *name* of a
+     * state variable on the rendered parent.
      *
-     * When both this and `fallBackToSourceCompositeStateVariable` are set, the
-     * source composite is consulted first (see `fallBackToSourceCompositeStateVariable`).
+     * Runtime effect: when a document does not give this attribute a value, the
+     * state variable created from this attribute takes its value by copying that
+     * named state variable from the parent, instead of using `defaultValue`.
+     * Leaving this field undefined means there is no parent fallback — an
+     * unspecified attribute then uses `defaultValue`.
+     *
+     * If `fallBackToSourceCompositeStateVariable` is also set, the source
+     * composite is consulted before the parent (see that field).
      */
     fallBackToParentStateVariable?: string;
     /**
-     * If this attribute isn't specified, then the state variable created from this attribute
-     * will fall back to copying the value of the state variable
-     * `fallBackToSourceCompositeStateVariable` from the source composite
-     * (the innermost authored composite, e.g. a `<group>`, that created the component).
+     * Authoring knob (set here, in the attribute definition): the *name* of a
+     * state variable on the source composite — the innermost composite (e.g. a
+     * `<group>`) that created this component.
      *
-     * Takes precedence over `fallBackToParentStateVariable` when both are set, so a
-     * more-local setting on a wrapping composite wins over a more-distant one on the
-     * rendered parent.
+     * Runtime effect: when a document does not give this attribute a value, the
+     * state variable created from this attribute takes its value by copying that
+     * named state variable from the source composite, instead of using
+     * `defaultValue`. Leaving this field undefined means there is no
+     * source-composite fallback.
+     *
+     * When both this and `fallBackToParentStateVariable` are set, the source
+     * composite is consulted first: its value wins over the parent's whenever the
+     * composite set it to a non-default value (so a more-local setting on a
+     * wrapping composite beats a more-distant one on the rendered parent). If the
+     * composite's value is left at its default, the parent's value is used.
      */
     fallBackToSourceCompositeStateVariable?: string;
     /** when create the `createComponentOfType`, give it these attributes */
