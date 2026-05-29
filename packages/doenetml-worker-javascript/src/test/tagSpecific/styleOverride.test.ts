@@ -230,6 +230,56 @@ describe("Per-component style override tests @group4", async () => {
         expect(G.stateValues.selectedStyle.fillOpacity).eq(0.5);
     });
 
+    it("fillOpacity override flows through to selectedStyle on a circle", async () => {
+        // Circle and Parabola borrow GraphicalComponent's state-variable
+        // definitions directly (skipping Curve's parametric-curve vars). That
+        // borrow must run with `this` bound to the leaf class, or the override
+        // groups resolve from GraphicalComponent's empty styleOverrideCategories
+        // and per-component overrides silently never reach selectedStyle (the
+        // bug in #1231 — fills stuck at the styleNumber default). The polygon
+        // test above doesn't exercise this code path, so circle gets its own
+        // coverage. The styleNumber-3 default fillOpacity is 0.3, so the
+        // overridden values must differ from it to be meaningful.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <circle name="C1" center="(-1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.2" />
+  <circle name="C2" center="(1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.8" />
+  <circle name="C3" center="(4.5,0)" radius="1.5" styleNumber="3" filled="true" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const C1 = stateVariables[await resolvePathToNodeIdx("C1")];
+        const C2 = stateVariables[await resolvePathToNodeIdx("C2")];
+        const C3 = stateVariables[await resolvePathToNodeIdx("C3")];
+        expect(C1.stateValues.selectedStyle.fillOpacity).eq(0.2);
+        expect(C2.stateValues.selectedStyle.fillOpacity).eq(0.8);
+        // Sibling without the override falls back to styleNumber 3's default.
+        expect(C3.stateValues.selectedStyle.fillOpacity).eq(0.3);
+    });
+
+    it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
+        // Parabola shares Circle's "borrow GraphicalComponent directly" path
+        // (see the circle test above) but only opts into the "line" override
+        // category, so its line overrides exercise the same `this`-binding fix.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <parabola name="P" through="(0,0) (1,1) (2,0)" lineWidth="1" lineStyle="dashed" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        expect(P.stateValues.selectedStyle.lineWidth).eq(1);
+        expect(P.stateValues.selectedStyle.lineWidthWord).eq("thin");
+        expect(P.stateValues.selectedStyle.lineStyle).eq("dashed");
+        expect(P.stateValues.selectedStyle.lineStyleWord).eq("dashed");
+    });
+
     it("colors stay <styleDefinition>-only: color attributes are never exposed on graphical components", async () => {
         const Point = (await import("../../components/Point.js")).default;
         const pointAttrs = Point.createAttributesObject();

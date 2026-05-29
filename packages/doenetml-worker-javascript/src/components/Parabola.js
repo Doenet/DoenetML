@@ -42,8 +42,18 @@ export default class Parabola extends Curve {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Borrow GraphicalComponent's definitions directly (Curve's full
+        // definitions are pulled in separately below as
+        // curveStateVariableDefinitions), but invoke via `.call(this)` so
+        // `this` stays Parabola. Otherwise the per-component style overrides
+        // resolved inside GraphicalComponent read its own empty
+        // styleOverrideCategories instead of the ["line"] group Parabola
+        // declares, and attributes like lineWidth never reach selectedStyle.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions.call(
+                this,
+                numerics,
+            );
 
         Object.assign(
             stateVariableDefinitions,
