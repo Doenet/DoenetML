@@ -1,12 +1,13 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<tabular>{:dn}`
 
+<ComponentDisplay name='tabular'/>
 
-`<tabular>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
+`<tabular>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that contains the data and style specifications for a [`<table>{:dn}`](table.mdx). Nested 
 inside a `<tabular>{:dn}` component are the [`<row>{:dn}`](row.mdx) and [`<cell>{:dn}`](cell.mdx) 
 components. 
@@ -14,7 +15,7 @@ components.
 
 <AttrPropDisplay name='tabular'/>
 
----
+## Examples
 
 ### Example: Default `<tabular>{:dn}` without attributes
 
@@ -124,7 +125,7 @@ The `width` and `hAlign` attributes within a `<tabular>{:dn}` can control the wi
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: width/height
 
@@ -236,7 +237,7 @@ Borders and dividing lines within a `<table>{:dn}` can be specified within the `
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 

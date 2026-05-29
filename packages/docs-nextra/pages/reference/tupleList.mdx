@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<tupleList>{:dn}`
 
+<ComponentDisplay name='tupleList'/>
 
 `<tupleList>{:dn}` is a math-list component that stores a list of math
 **tuples** — parenthesized, comma-separated groups such as `(1, 2)` or
@@ -23,7 +24,7 @@ attributes and properties of `<mathList>{:dn}` are also available here
 
 <AttrPropDisplay name='tupleList'/>
 
----
+## Examples
 
 ### Example: Defining a `<tupleList>{:dn}` and retrieving a tuple
 
@@ -86,7 +87,7 @@ the same content type.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: unordered
 
@@ -128,9 +129,7 @@ regardless of how many are supplied.
 
 
 
----
-
-### Comparison with `<mathList>{:dn}`
+## Comparison with `<mathList>{:dn}`
 
 The difference between `<tupleList>{:dn}` and `<mathList>{:dn}` is in how
 the children are parsed:

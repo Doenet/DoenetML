@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<booleanList>{:dn}`
+
+<ComponentDisplay name='booleanList'/>
 
 `<booleanList>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
 component that stores multiple [`<boolean>{:dn}`](boolean.mdx) components within a list.
@@ -14,7 +16,7 @@ The component will default to displaying the list with commas.
 <AttrPropDisplay name='booleanList'/>
 
 
----
+## Examples
 
 ### Example: Accessing an item in a `<booleanList>{:dn}`
 
@@ -73,9 +75,9 @@ the index of the desired item.
 
 The user is prompted to provide three agree/disagree type responses with 
 the `<booleanInput/>{:dn}` component. 
-These are gathered into a `<booleanList>{:dn}`..
+These are gathered into a `<booleanList>{:dn}`.
 
----
+## Attribute Examples
 
 ### Attribute Example: unordered
 
@@ -128,7 +130,7 @@ The `<booleanList>{:dn}` component is ordered by default.
 Use the `maxNumber` attribute to limit the number of boolean values 
 rendered by the `<booleanList>{:dn}`.
 
----
+## Property Examples
 
 ### Property Example: numComponents
 
@@ -141,4 +143,20 @@ rendered by the `<booleanList>{:dn}`.
 
 
 The `numComponents` property renders the number of boolean values stored in the list.
+
+
+
+---
+
+### Property Example: numValues
+
+
+```doenet-example
+  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <p><c>numValues</c> = $bList.numValues</p>
+```
+
+
+
+The `numValues` property is an alias for `numComponents`: it also renders the number of boolean values stored in the list (respecting the `maxNumber` cap, if set).
 

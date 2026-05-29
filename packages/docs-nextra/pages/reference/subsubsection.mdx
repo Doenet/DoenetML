@@ -1,13 +1,15 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<subsubsection>{:dn}`
 
 
+<ComponentDisplay name='subsubsection'/>
+
 `<subsubsection>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component that renders a section at one more heading level deeper
+component that renders one heading level deeper
 than [`<subsection>{:dn}`](subsection). It behaves like
 [`<section>{:dn}`](section) and is typically used inside a
 `<subsection>{:dn}`.
@@ -22,7 +24,7 @@ nested three deep. Use whichever form makes the intent clearer.
 <AttrPropDisplay name='subsubsection'/>
 
 
----
+## Examples
 
 ### Example: `<subsubsection>{:dn}` inside a `<subsection>{:dn}`
 
@@ -83,7 +85,7 @@ grandparent numbers by default.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: includeParentNumber
 

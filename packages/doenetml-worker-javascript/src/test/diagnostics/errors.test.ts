@@ -609,4 +609,35 @@ a />
         expect(diagnosticsByType.errors[0].position.end.line).eq(3);
         expect(diagnosticsByType.errors[0].position.end.column).eq(6);
     });
+
+    it("Unquoted attribute value emits exactly one error (#1197)", async () => {
+        // `<section name=foo>` used to produce four overlapping
+        // diagnostics — one from the worker's attribute expander
+        // ("Invalid attribute `foo`"), two duplicate parser errors
+        // ("Invalid attribute `name=` appears to be missing a value"),
+        // and one from `enforce-valid-names` ("Invalid attribute
+        // name=''").  `lezer-to-dast` now detects the pair, strips
+        // both halves from `node.attributes`, and emits a single
+        // unified error naming the corrected form.  `error_type` is
+        // left undefined so the worker takes the `_error`-component
+        // branch in `convertNormalizedDast`, surfacing the familiar
+        // orange error block in the viewer; severity matches the
+        // sibling shapes `<section name>` / `<section name="4" />`
+        // that `enforce-valid-names` already flags as errors.
+        let { core } = await createTestCore({
+            doenetML: `<section name=foo></section>`,
+        });
+
+        await core.returnAllStateVariables(false, true);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
+
+        expect(diagnosticsByType.errors[0].message).eq(
+            'Attribute values must be enclosed in quotes: `name="foo"`',
+        );
+    });
 });

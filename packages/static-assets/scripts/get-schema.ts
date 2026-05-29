@@ -121,6 +121,18 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
+    /**
+     * Asymmetric companion to `excludeFromSchema`: hide the attribute's
+     * companion state variable (`createStateVariable`) from the schema
+     * while leaving the attribute itself author-facing. Used when an
+     * attribute is public but its `createStateVariable` points at a
+     * plumbing-named state var (e.g. `<answer>`'s `colorCorrectness`
+     * attribute → `colorCorrectnessPreliminary` state var, with a
+     * separate same-named state def computing the author-facing value).
+     * The runtime still creates and reads the state var; only the schema
+     * layer drops it. See #1089.
+     */
+    stateVarExcludeFromSchema?: boolean;
     validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
@@ -237,8 +249,25 @@ type PropertyDescription = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
+    /**
+     * Per-dimension alias table for array state variables — copied verbatim
+     * from the runtime's `theStateDef.indexAliases` via
+     * `BaseComponent.returnStateVariableInfo`. Each entry indexes a
+     * dimension and lists the alias names that select position 0..N within
+     * it (e.g. `[["x","y","z"]]` for a 1-dim point coordinate).  Used by
+     * the editor's autocomplete and context-help to chase coordinate
+     * chains like `$vector.head.x` or `$line.points[1].x` without ever
+     * resolving through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface this property in the docs "Highlighted" section.
+     * See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type ArrayElementDescription = {
@@ -271,6 +300,22 @@ type StateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
     description: string;
     fromAttribute?: boolean;
+    /**
+     * If `true`, this state variable is excluded from the author-facing
+     * schema even though it remains usable at runtime. Set by the runtime
+     * for plumbing state vars (renamed-aside `Original`/`Preliminary`
+     * forms, internal coordination state) that should not appear in
+     * autocomplete or context help. Companion to
+     * `AttributeObject.excludeFromSchema` (which hides the attribute and
+     * its companion state var, #1090). See #1089.
+     */
+    excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type PublicStateVariableDescription = {
@@ -286,6 +331,15 @@ type PublicStateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
+    /**
+     * Per-dimension alias table populated by the runtime in
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `indexAliases` (e.g. `Vector.head` carries `[["x","y","z"]]`).
+     * Surfaced into the schema by `singlePropFromDescription` so the editor
+     * can resolve `$vector.head.x` and `$line.points[1].x` without chasing
+     * through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
     /**
@@ -298,6 +352,14 @@ type PublicStateVariableDescription = {
      * `displayDigits`, whose default lives on the state variable).
      */
     defaultValue?: unknown;
+    /** See `StateVariableDescription.excludeFromSchema`. */
+    excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaAttribute = {
@@ -321,6 +383,12 @@ type SchemaAttribute = {
     description: string;
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
+    /** Docs-only: functional group this attribute belongs to in the reference
+     * docs (e.g. `"number-display"`). See `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: when `true`, surface this attribute in the docs "Highlighted"
+     * section. See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaElement = {
@@ -368,12 +436,27 @@ type SchemaElement = {
      * component type is in this map, the help is read from the alias instead.
      */
     childContextHelp?: Record<string, string>;
+    /**
+     * Layout classification derived from the component's inheritance chain:
+     * `"inline"` for descendants of `_inline` (InlineComponent), `"block"`
+     * for descendants of `_block` (BlockComponent), `"other"` for anything
+     * else. The pretty-printer reads this to decide whether to flow children
+     * as prose (`fill`) or break each on its own line.
+     */
+    layoutCategory: "inline" | "block" | "other";
 };
 
 /**
  * Help payload for an alias-only component (e.g. one with
  * `excludeFromSchema = true` but referenced via `childAliases`). Mirrors the
  * help-relevant fields of `SchemaElement`.
+ *
+ * `children` / `acceptsStringChildren` are populated the same way regular
+ * `SchemaElement`s populate them (via `determineChildren`) so the LSP can
+ * validate the alias's children against the alias target's child groups
+ * rather than against the canonical entry's — e.g. `<row>` inside `<matrix>`
+ * is the `matrixRow` alias (a `MathList`), so its allowed children are
+ * `<math>` etc., not the tabular `<row>`'s `<cell>` (issue #1174).
  */
 type AliasedSchemaElement = {
     name: string;
@@ -385,6 +468,10 @@ type AliasedSchemaElement = {
     displayContext?: string;
     attributes: SchemaAttribute[];
     properties: PropertyDescription[];
+    /** See `SchemaElement.children`. */
+    children: string[];
+    /** See `SchemaElement.acceptsStringChildren`. */
+    acceptsStringChildren: boolean;
 };
 
 /**
@@ -585,18 +672,41 @@ export function getSchema(
     > {
         const attributes: SchemaAttribute[] = [];
         const attrObj = cClass.createAttributesObject();
-        // Collect state-variable names produced by attributes that are
-        // themselves excluded from the schema. Their companion properties
-        // should be excluded too — otherwise `<booleanInput>`'s already
-        // hidden `collaborateGroups` attribute leaks back into the schema
-        // as a property. Tracked in #1089; the broader proposal is to also
-        // honor an explicit `excludeFromSchema` flag on state-variable
-        // definitions for properties not derived from attributes.
-        const excludedStateVariableNames = new Set<string>();
+        // Collect state-variable names that must be excluded from the
+        // schema. Three sources, all merged into one set so the property /
+        // alias loops can filter through a single check:
+        //
+        //   (a) Attribute is excluded *and* declares a `createStateVariable`
+        //       — hides the companion state var alongside the attribute
+        //       (PR #1090; covers `<booleanInput>`'s `collaborateGroups`).
+        //
+        //   (b) Attribute declares `stateVarExcludeFromSchema` — keeps the
+        //       attribute author-facing but hides its plumbing-named
+        //       companion state var (e.g. `<answer>`'s `colorCorrectness`
+        //       attribute → `colorCorrectnessPreliminary` state var).
+        //
+        //   (c) State variable itself carries `excludeFromSchema: true`,
+        //       propagated by `BaseComponent.returnStateVariableInfo` from
+        //       the state def — covers directly-defined plumbing vars,
+        //       most prominently the renamed-aside entries produced by
+        //       `renameStateVariable` (`disabledOriginal`, `valuePreRound`,
+        //       …). See #1089.
+        // Only sources (a)/(b) — both attribute-derived — can be computed
+        // here. Source (c) lives on the state def and is folded in by
+        // `buildPropertiesForType` below, which has access to the state
+        // variable descriptions. The merged set is then used to gate both
+        // properties and aliases inside that function.
+        const attributeExcludedStateVariableNames = new Set<string>();
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
-            if (attrDef.excludeFromSchema && attrDef.createStateVariable) {
-                excludedStateVariableNames.add(attrDef.createStateVariable);
+            if (
+                (attrDef.excludeFromSchema ||
+                    attrDef.stateVarExcludeFromSchema) &&
+                attrDef.createStateVariable
+            ) {
+                attributeExcludedStateVariableNames.add(
+                    attrDef.createStateVariable,
+                );
             }
         }
         // Map state variable name → its essential `defaultValue`, when the
@@ -639,6 +749,13 @@ export function getSchema(
                 name: attrName,
                 description: attrDef.description,
             };
+            // Docs-only grouping metadata, surfaced into the reference docs.
+            if (attrDef.groupName !== undefined) {
+                attrSpec.groupName = attrDef.groupName;
+            }
+            if (attrDef.highlighted !== undefined) {
+                attrSpec.highlighted = attrDef.highlighted;
+            }
             // Prefer the default declared on the attribute itself. When it
             // doesn't declare one, fall back to the matching state
             // variable's default — this covers number-display attributes
@@ -744,7 +861,7 @@ export function getSchema(
 
         const properties = buildPropertiesForType(
             type,
-            excludedStateVariableNames,
+            attributeExcludedStateVariableNames,
         );
 
         // Hard-fail on missing summary. Fires for every class that reaches
@@ -791,7 +908,7 @@ export function getSchema(
 
     function buildPropertiesForType(
         type: string,
-        excludedStateVariableNames: ReadonlySet<string> = new Set(),
+        attributeExcludedStateVariableNames: ReadonlySet<string> = new Set(),
     ): PropertyDescription[] {
         const info = componentInfoObjects.publicStateVariableInfo[type];
         if (!info) return [];
@@ -811,10 +928,25 @@ export function getSchema(
                 PublicStateVariableDescription
             >;
 
+        // Build the full excluded set by folding the state-def-level
+        // `excludeFromSchema` flags (source (c) in the caller's comment) in
+        // with the attribute-derived names (sources (a)/(b)) the caller
+        // already passed in. Done here rather than in the caller because
+        // the merged set must gate alias resolution below — an alias whose
+        // *target* is excluded should be dropped too, regardless of which
+        // source put the target in the set — and the caller doesn't have
+        // `publicStateVariableDescriptions` in hand to make that decision.
+        const allExcluded = new Set(attributeExcludedStateVariableNames);
+        for (const varName in publicStateVariableDescriptions) {
+            if (publicStateVariableDescriptions[varName].excludeFromSchema) {
+                allExcluded.add(varName);
+            }
+        }
+
         const properties: PropertyDescription[] = [];
 
         for (const varName in publicStateVariableDescriptions) {
-            if (excludedStateVariableNames.has(varName)) continue;
+            if (allExcluded.has(varName)) continue;
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
@@ -836,8 +968,20 @@ export function getSchema(
             const aliasTargetName = aliasInfo.target;
             // Skip aliases that point at an excluded state variable; they
             // would otherwise act as a backdoor for the same excluded property.
-            if (excludedStateVariableNames.has(aliasTargetName)) continue;
-            if (excludedStateVariableNames.has(aliasName)) continue;
+            if (allExcluded.has(aliasTargetName)) continue;
+            // Defensive: also skip if the alias *name* itself is in the
+            // excluded set. In normal use this cannot fire — the runtime
+            // populates `aliases` and `stateVariableDescriptions` from a
+            // single switch in `BaseComponent.returnStateVariableInfo`, so a
+            // name lives in exactly one of those maps. The check guards
+            // against a future code path where an attribute's
+            // `createStateVariable` (which feeds `allExcluded`) collides
+            // with an alias name; without it, such a collision would
+            // resurrect the excluded property under its aliased form.
+            if (allExcluded.has(aliasName)) continue;
+            // An alias may also be excluded on its own (independent of its
+            // target), e.g. a runtime-convenience alias.
+            if (aliasInfo.excludeFromSchema) continue;
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
@@ -864,6 +1008,14 @@ export function getSchema(
                     ) {
                         const arrayEntry = arrayEntryPrefixes[prefix];
                         const arrayVariableName = arrayEntry.arrayVariableName;
+                        // Honor the underlying array state var's exclusion
+                        // here too — otherwise an alias whose target points
+                        // at an entry of an excluded array (e.g.
+                        // `someExcludedArray1`) would leak the array's
+                        // contents back into the schema. Today's audit
+                        // shows no such case, but future renames may
+                        // introduce one.
+                        if (allExcluded.has(arrayVariableName)) break;
                         const arrayStateVarDescription =
                             publicStateVariableDescriptions[arrayVariableName];
 
@@ -912,6 +1064,20 @@ export function getSchema(
         const helpPayload = buildHelpPayloadForClass(type, cClass);
         const { children, acceptsStringChildren } = determineChildren(cClass);
 
+        const isInline = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_inline",
+        });
+        const isBlock = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_block",
+        });
+        const layoutCategory: "inline" | "block" | "other" = isInline
+            ? "inline"
+            : isBlock
+              ? "block"
+              : "other";
+
         const element: SchemaElement = {
             name: type,
             children,
@@ -924,6 +1090,7 @@ export function getSchema(
             takesIndex: cClass.takesIndex ?? false,
             docsSlug: helpPayload.docsSlug,
             summary: helpPayload.summary,
+            layoutCategory,
         };
         if (helpPayload.displayName !== undefined) {
             element.displayName = helpPayload.displayName;
@@ -956,12 +1123,20 @@ export function getSchema(
             const targetClass = allClassesIncludingExcluded[targetName];
             if (!targetClass) continue;
             const payload = buildHelpPayloadForClass(targetName, targetClass);
+            // Populate `children` / `acceptsStringChildren` from the alias
+            // target's own child groups so the LSP can validate `<row>` inside
+            // `<matrix>` against `matrixRow`'s `MathList` children (math, …)
+            // rather than against the tabular `<row>`'s `<cell>` (#1174).
+            const { children, acceptsStringChildren } =
+                determineChildren(targetClass);
             const aliased: AliasedSchemaElement = {
                 name: targetName,
                 attributes: payload.attributes,
                 properties: payload.properties,
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
+                children,
+                acceptsStringChildren,
             };
             if (payload.displayName !== undefined) {
                 aliased.displayName = payload.displayName;
@@ -1069,6 +1244,10 @@ function singlePropFromDescription({
     // state vars, aliases, and array-entry-prefix aliases — the existing
     // fallback assembly (`aliasInfo.description ?? arrayStateVarDescription.description`)
     // is preserved upstream, so this only fires when *every* candidate is empty.
+    //
+    // Plumbing state vars marked `excludeFromSchema` short-circuit upstream
+    // in `buildHelpPayloadForClass` (via the `allExcluded` gate) and never
+    // reach this function, so they don't need to invent author-facing copy.
     if (
         typeof description.description !== "string" ||
         description.description.trim() === ""
@@ -1096,11 +1275,32 @@ function singlePropFromDescription({
         prop.fromAttribute = true;
     }
 
+    // Docs-only grouping metadata. For attribute-derived properties this is
+    // also derivable from the same-named attribute in the docs pipeline; for
+    // pure-output properties it is the only source.
+    if (description.groupName !== undefined) {
+        prop.groupName = description.groupName;
+    }
+    if (description.highlighted !== undefined) {
+        prop.highlighted = description.highlighted;
+    }
+
     if (description.isArray) {
         const numDimensions = description.numDimensions || 1;
 
         prop.numDimensions = numDimensions;
         prop.indexedArrayDescription = [];
+
+        // Carry the runtime-side per-dimension alias table onto the schema
+        // so editor autocomplete / context-help can chase coordinate chains
+        // like `$vector.head.x` and `$line.points[1].x` purely through the
+        // alias table — never through the array slot's `type`, which is the
+        // entry's representation, not a license to expose the inner
+        // component's properties.  Only emitted when the runtime declared
+        // it on the state var.
+        if (description.indexAliases) {
+            prop.indexAliases = description.indexAliases;
+        }
 
         const wrappingComponents = description.wrappingComponents || [];
 

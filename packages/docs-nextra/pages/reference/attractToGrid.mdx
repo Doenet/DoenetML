@@ -1,17 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<attractToGrid/>{:dn}`
 
+<ComponentDisplay name='attractToGrid'/>
+
 `<attractToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component that 
-is used to within a `<point>{:dn}` to attract it to a specified grid.
+is used within a `<point>{:dn}` to attract it to a specified grid.
 
 <AttrPropDisplay name='attractToGrid'/>
 
 
----
+## Examples
 
 ### Example: Attract `<point>{:dn}` to a grid, default behavior
 ```doenet-example
@@ -27,7 +29,7 @@ The default grid spacing for attraction for a `<point>{:dn}` with
 the `<attractToGrid>{:dn}` constraint is 1.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: dx, dy
 ```doenet-example
@@ -81,7 +83,7 @@ The `xThreshold` and `yThreshold` attributes can be used to control how close th
 a grid for attraction to take effect. Notice the different behavior above when dragging the point 
 close to the $x$ gridlines and $y$ gridlines.
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 ```doenet-editor-horiz

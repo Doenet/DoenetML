@@ -301,11 +301,11 @@ describe(
 
             cy.get(".cm-tooltip-lint .cm-lint-tooltip .heading")
                 .should("contain.text", "WCAG AA Accessibility Violation")
-                .should("have.css", "color", "rgb(180, 35, 24)");
+                .should("have.css", "color", "rgb(91, 33, 182)");
 
             cy.get(
                 ".cm-tooltip-lint .cm-diagnostic:has(.cm-lint-tooltip .heading.accessibility-level-1)",
-            ).should("have.css", "border-left-color", "rgb(180, 35, 24)");
+            ).should("have.css", "border-left-color", "rgb(91, 33, 182)");
         });
 
         it("exposes accessible tab semantics and labels in diagnostics tab strip", () => {

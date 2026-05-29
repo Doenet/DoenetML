@@ -25,6 +25,7 @@ export default class Curve extends GraphicalComponent {
         });
     }
     static componentType = "curve";
+    static styleOverrideCategories = ["line", "fill"];
 
     static componentDocs = {
         summary:

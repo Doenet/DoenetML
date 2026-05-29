@@ -134,6 +134,36 @@ describe("Math tag tests @group3", async () => {
         ).eqls(["/", "x", "z"]);
     });
 
+    it("parse plus-minus", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math format="latex" name="latexUnary">\\pm \\sqrt{x}</math>
+    <math format="latex" name="latexBinary">a \\pm b</math>
+    <math name="textUnary">±sqrt(x)</math>
+    <math name="textBinary">a ± b</math>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("latexUnary")].stateValues
+                .value.tree,
+        ).eqls(["pm", ["apply", "sqrt", "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("latexBinary")]
+                .stateValues.value.tree,
+        ).eqls(["+", "a", ["pm", "b"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("textUnary")].stateValues
+                .value.tree,
+        ).eqls(["pm", ["apply", "sqrt", "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("textBinary")].stateValues
+                .value.tree,
+        ).eqls(["+", "a", ["pm", "b"]]);
+    });
+
     it("copy latex property", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

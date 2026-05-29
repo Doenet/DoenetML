@@ -18,6 +18,10 @@ import {
     DastText,
     LezerSyntaxNodeName,
 } from "../types";
+import {
+    findBareAttributeValuePairs,
+    unquotedAttributeValueMessage,
+} from "../detect-bare-attribute-pairs";
 import { createErrorNode } from "./create-error-node";
 import {
     OffsetToPositionMap,
@@ -95,9 +99,13 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     return [];
                 }
                 let children: DastElementContent[] = [];
-                // The open tag may have an error in it.
+                // The open tag may have an error in it.  Skip errors that
+                // live inside an Attribute child — the per-attribute loop
+                // below picks those up, and double-counting them produces
+                // two identical error nodes for inputs like `<x name= />`
+                // (#1197).
                 const openTagError = findFirstErrorInChild(openTag);
-                if (openTagError) {
+                if (openTagError && !isInsideAttribute(openTagError, openTag)) {
                     const errorNode = createErrorNode(
                         openTagError,
                         source,
@@ -125,20 +133,35 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
 
                 const tag = openTag.getChild("TagName");
                 const name = tag ? extractContent(tag, source) : "";
-                const attributesList: DastAttribute[] = [];
+
+                // First pass: build a DastAttribute for each lezer
+                // Attribute, keeping the attrTag alongside so the second
+                // pass can re-find errors per attribute.
+                const attrEntries: {
+                    attrTag: SyntaxNode;
+                    dastAttr: DastAttribute;
+                }[] = [];
                 for (const attrTag of openTag.getChildren("Attribute")) {
-                    const error = findFirstErrorInChild(attrTag);
-                    if (error) {
-                        const errorNode = createErrorNode(
-                            error,
-                            source,
-                            offsetMap,
-                        );
-                        children.push(errorNode);
-                    }
                     const attrName = attrTag.getChild("AttributeName");
                     const attrValue = attrTag.getChild("AttributeValue");
                     if (!attrName) {
+                        // Defensive: surface errors that live inside an
+                        // AttributeName-less Attribute even though it's
+                        // skipped in the second pass.  Empirically the
+                        // grammar `Attribute { AttributeName (Is
+                        // AttributeValue)? }` forces lezer to commit to
+                        // an AttributeName before opening an Attribute
+                        // node, so errors of this shape consistently
+                        // land at OpenTag level (e.g. `<a =bar />`) and
+                        // never reach this branch — but the
+                        // `isInsideAttribute` gate above would silently
+                        // drop one if lezer ever produced it.
+                        const error = findFirstErrorInChild(attrTag);
+                        if (error) {
+                            children.push(
+                                createErrorNode(error, source, offsetMap),
+                            );
+                        }
                         continue;
                     }
                     let attrChildren: DastAttribute["children"] = attrValue
@@ -162,12 +185,91 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         : [];
                     // Attributes with no specified value are assigned the value "true".
                     // E.g. `<foo bar />` is the same as `<foo bar="true" />`
-                    attributesList.push({
-                        type: "attribute",
-                        name: extractContent(attrName, source),
-                        children: attrChildren,
-                        position: lezerNodeToPosition(attrTag, offsetMap),
+                    attrEntries.push({
+                        attrTag,
+                        dastAttr: {
+                            type: "attribute",
+                            name: extractContent(attrName, source),
+                            children: attrChildren,
+                            position: lezerNodeToPosition(attrTag, offsetMap),
+                        },
                     });
+                }
+
+                // Detect `<element name=foo>` pairs (#1197).  The lezer
+                // grammar splits the unquoted assignment into two
+                // value-less attributes side-by-side; replace the four
+                // (!) downstream diagnostics that would otherwise fire on
+                // this shape — a "missing value" on the assign half (in
+                // duplicate, pre-bookkeeping-fix), an "Invalid attribute
+                // `foo`" from the worker on the bare half, and an
+                // "Invalid attribute name=''" from `enforce-valid-names`
+                // — with one unified `DastError` node spanning the
+                // bare-value token.  `error_type` is left undefined
+                // (which the worker reads as `"error"`) so the worker
+                // creates an `_error` component for it and the viewer
+                // renders the familiar orange error block — matching
+                // the severity of related shapes like `<section name>`
+                // and `<section name="4" />` that `enforce-valid-names`
+                // already treats as errors.  Both halves are stripped
+                // from the final attribute list so the downstream
+                // layers see no remnant to re-flag.
+                const bareValuePairs = findBareAttributeValuePairs(
+                    attrEntries.map((e) => e.dastAttr),
+                    source,
+                );
+                const pairedAssignAttrs = new Set(
+                    bareValuePairs.map((p) => p.assignAttr),
+                );
+                const pairByValueAttr = new Map(
+                    bareValuePairs.map((p) => [p.valueAttr, p]),
+                );
+
+                // Second pass: emit per-attribute errors, swap in the
+                // unified error on the bare-value half, and drop both
+                // halves from `attributesList`.  Context-help locates the
+                // assign-half attribute by source-level fallback
+                // (`attributeAtOffset` walks back to `=` and over the
+                // preceding identifier token) when the cursor lands on
+                // the stripped pair.
+                const attributesList: DastAttribute[] = [];
+                for (const { attrTag, dastAttr } of attrEntries) {
+                    const pair = pairByValueAttr.get(dastAttr);
+                    if (pair) {
+                        // The filter inside `findBareAttributeValuePairs`
+                        // drops any attr without a position, so a paired
+                        // valueAttr is guaranteed to have one — assert
+                        // rather than fall back to a `{offset:0, line:1,
+                        // column:1}` placeholder, so a future change to
+                        // that filter trips here instead of silently
+                        // emitting a 0-length error at the document
+                        // start.
+                        children.push({
+                            type: "error",
+                            message: unquotedAttributeValueMessage(
+                                pair.assignAttr.name,
+                                pair.valueAttr.name,
+                            ),
+                            position: pair.valueAttr.position!,
+                        });
+                        continue;
+                    }
+                    if (pairedAssignAttrs.has(dastAttr)) {
+                        // Handled by the bare-value half above; the
+                        // assign half's lezer "missing value" `⚠` is
+                        // subsumed by the unified error.
+                        continue;
+                    }
+                    const error = findFirstErrorInChild(attrTag);
+                    if (error) {
+                        const errorNode = createErrorNode(
+                            error,
+                            source,
+                            offsetMap,
+                        );
+                        children.push(errorNode);
+                    }
+                    attributesList.push(dastAttr);
                 }
                 // Children get pushed after attributes so that any attribute errors will
                 // appear first.
@@ -357,6 +459,22 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
         }
         return [];
     }
+}
+
+/**
+ * True if `error` is a descendant of an `Attribute` node that is itself a
+ * child of `openTag`.  Used to gate the OpenTag-level error pickup so it
+ * doesn't double-emit errors the per-Attribute loop will catch (#1197).
+ */
+function isInsideAttribute(error: SyntaxNode, openTag: SyntaxNode): boolean {
+    let p: SyntaxNode | null = error.parent;
+    while (p && p !== openTag) {
+        if (p.type.name === "Attribute" && p.parent === openTag) {
+            return true;
+        }
+        p = p.parent;
+    }
+    return false;
 }
 
 /**

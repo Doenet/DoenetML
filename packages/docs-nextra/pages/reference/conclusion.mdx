@@ -1,14 +1,14 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<conclusion>{:dn}`
 
+<ComponentDisplay name='conclusion'/>
 
-`<conclusion>{:dn}` is a block container for the concluding content
-of a section. It groups content without adding a heading, numbering,
-or any other visible chrome. Its primary use is inside a sectional
+`<conclusion>{:dn}` groups concluding content without adding a heading,
+numbering, or any other visible chrome. Its primary use is inside a sectional
 component whose `asList` attribute is `true` — most commonly
 [`<problems>{:dn}`](problems) or [`<exercises>{:dn}`](exercises) —
 because in that case ordinary prose children are silently dropped,
@@ -19,7 +19,7 @@ that still renders.
 <AttrPropDisplay name='conclusion'/>
 
 
----
+## Examples
 
 ### Example: `<conclusion>{:dn}` at the end of a `<problems>{:dn}` list
 

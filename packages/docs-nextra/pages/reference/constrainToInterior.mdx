@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<constrainToInterior>{:dn}`
+
+<ComponentDisplay name='constrainToInterior'/>
 
 `<constrainToInterior>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that constrains a `<point>{:dn}` to lie inside a referenced graphical region (such as a
@@ -13,7 +15,7 @@ region, it is moved to the nearest point on the region's boundary.
 <AttrPropDisplay name='constrainToInterior'/>
 
 
----
+## Examples
 
 ### Example: Constrain a `<point>{:dn}` to the interior of a `<polygon>{:dn}`
 
@@ -68,7 +70,7 @@ circumference.
 Any rectangle works as a "drag boundary" for a point.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: relativeToGraphScales
 

@@ -264,11 +264,37 @@ export type AttributeDefinition<T> = {
     propagateToProps?: boolean;
     excludeFromSchema?: boolean;
     /**
-     * If this attribute isn't specified, then the state variable created from this attribute
-     * will fall back to copying the value of the state variable
-     * `fallBackToParentStateVariable` from the parent.
+     * Set by the developer in the attribute definition: the *name* of a state
+     * variable on the rendered parent. Leaving this field undefined means there
+     * is no parent fallback.
+     *
+     * Resulting behavior for a DoenetML author: when the author does not give
+     * this attribute a value, the state variable created from this attribute
+     * takes its value by copying that named state variable from the parent,
+     * instead of using `defaultValue`.
+     *
+     * If `fallBackToSourceCompositeStateVariable` is also set, the source
+     * composite is consulted before the parent (see that field).
      */
     fallBackToParentStateVariable?: string;
+    /**
+     * Set by the developer in the attribute definition: the *name* of a state
+     * variable on the source composite — the innermost composite (e.g. a
+     * `<group>`) that created this component. Leaving this field undefined means
+     * there is no source-composite fallback.
+     *
+     * Resulting behavior for a DoenetML author: when the author does not give
+     * this attribute a value, the state variable created from this attribute
+     * takes its value by copying that named state variable from the source
+     * composite, instead of using `defaultValue`.
+     *
+     * When both this and `fallBackToParentStateVariable` are set, the source
+     * composite is consulted first: its value wins over the parent's whenever the
+     * composite set it to a non-default value (so a more-local setting on a
+     * wrapping composite beats a more-distant one on the rendered parent). If the
+     * composite's value is left at its default, the parent's value is used.
+     */
+    fallBackToSourceCompositeStateVariable?: string;
     /** when create the `createComponentOfType`, give it these attributes */
     attributesForCreatedComponent?: Record<string, string>;
     /** when create the `createComponentOfType`, copy these attributes from the parent */
@@ -308,6 +334,22 @@ export type AttributeDefinition<T> = {
     triggerActionOnChange?: string;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description: string;
+    /**
+     * Docs-only: the functional group this attribute belongs to in the
+     * reference docs (e.g. `"number-display"`, `"labels"`). Attributes sharing
+     * a `groupName` render together in a collapsible section. When omitted, the
+     * attribute falls into the generic "Other" group. The group vocabulary and
+     * display labels live in the docs renderer, so adding a new group does not
+     * require a worker change.
+     */
+    groupName?: string;
+    /**
+     * Docs-only: when `true`, this attribute is hand-picked as one of the most
+     * useful for the component and is surfaced in the "Highlighted" section
+     * (open by default) at the top of the reference docs, in addition to its
+     * `groupName` section.
+     */
+    highlighted?: boolean;
     /** If `true`, attribute values are converted to lower case */
     toLowerCase?: boolean;
     /** If `true`, leave the attribute serialized when the component is created */

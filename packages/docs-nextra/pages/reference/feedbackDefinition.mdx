@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<feedbackDefinition>{:dn}`
 
+<ComponentDisplay name='feedbackDefinition'/>
 
 `<feedbackDefinition>{:dn}` defines a reusable feedback string keyed by a
 `code`. Authors place one or more `<feedbackDefinition>{:dn}` elements in a
@@ -29,9 +30,7 @@ one defined further up the tree. Code matching is case-insensitive.
 <AttrPropDisplay name='feedbackDefinition'/>
 
 
----
-
-### Built-in feedback codes
+## Built-in feedback codes
 
 Four feedback codes are pre-defined and available without any
 `<feedbackDefinition>{:dn}`. Reference them from
@@ -53,7 +52,7 @@ that section's descendants, so sibling sections still see the built-in
 defaults.
 
 
----
+## Examples
 
 ### Example: Define and use feedback by code
 
@@ -141,7 +140,7 @@ text in each problem. Each `<problem>{:dn}` renders its own answer's
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: code, text
 

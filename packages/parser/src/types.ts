@@ -69,7 +69,14 @@ export interface DastAttribute extends DastAbstractNode {
  * }
  * ```
  */
-export interface Data extends UnistData {}
+export interface Data extends UnistData {
+    /**
+     * Pretty-printer marker set by `markBlankLinesPlugin`: when true and
+     * this node is laid out as a block sibling, the formatter emits a
+     * blank line before it. See `pretty-printer/normalize/plugin-mark-blank-lines.ts`.
+     */
+    prettyBlankLineBefore?: boolean;
+}
 
 // ## Content maps
 

@@ -23,6 +23,7 @@ const expectedKeys: (keyof ResolvedStyleDefinition)[] = [
     "markerStyle",
     "markerStyleWord",
     "markerSize",
+    "markerFilled",
     "fillColor",
     "fillColorWord",
     "fillColorDarkMode",

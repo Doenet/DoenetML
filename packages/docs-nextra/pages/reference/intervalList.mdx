@@ -1,13 +1,15 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
 # `<intervalList>{:dn}`
 
+<ComponentDisplay name='intervalList'/>
+
 `<intervalList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that renders a list of intervals.
+component that collects a sequence of intervals.
 
 When creating an `<intervalList>{:dn}`, separate items by **spaces**, not commas.
 The component will default to displaying the list with commas. (The commas that
@@ -16,7 +18,7 @@ separators between intervals.)
 
 <AttrPropDisplay name='intervalList'/>
 
----
+## Examples
 
 ### Example: `<intervalList>{:dn}` as domain of a `<piecewiseFunction>{:dn}`
 

@@ -78,13 +78,28 @@
     margin: 0;
 }
 
+/*
+ * Secondary annotation under the primary ref sentence — used when the bare
+ * `$name` is a repeat-introduced binding (valueName/indexName) rather than a
+ * `name=` attribute. Lighter weight than the main sentence so the eye lands
+ * on the primary referent first.
+ */
+.editor-panel .help-ref-derived {
+    margin: 0;
+    color: #475467;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
 .editor-panel .help-description code,
-.editor-panel .help-ref-sentence code {
+.editor-panel .help-ref-sentence code,
+.editor-panel .help-ref-derived code {
     background: var(--mainGray);
     padding: 0 0.25rem;
     border-radius: 0.2rem;
     font-family: monospace;
     font-size: 0.85em;
+    font-style: normal;
 }
 
 .editor-panel .help-detail {
@@ -119,6 +134,16 @@
     padding: 0 0.3rem;
     font-family: monospace;
     font-size: 0.85rem;
+}
+
+/*
+ * Subtle annotation next to a value item (e.g. the `(styleNumber N)` tag on
+ * the "Active default:" row, #1198). Muted color and slightly smaller text so
+ * it reads as metadata rather than competing with the value itself.
+ */
+.editor-panel .help-detail-annotation {
+    color: #667085;
+    font-size: 0.8rem;
 }
 
 /* Allowed-values row stacks label above the definition list. */
@@ -159,6 +184,59 @@
     border-radius: 0.2rem;
     font-family: monospace;
     font-size: 0.85em;
+}
+
+/*
+ * Per-styleNumber breakdown row (#1204). Stacks a header line above a
+ * two-column key/value listing so authors can scan the resolved style
+ * attributes without horizontal scrolling.
+ */
+.editor-panel .help-style-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.editor-panel .help-style-breakdown-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.15rem;
+    margin: 0;
+    width: 100%;
+}
+
+.editor-panel .help-style-breakdown-list dt {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #344054;
+    align-self: center;
+    justify-self: start;
+}
+
+.editor-panel .help-style-breakdown-list dd {
+    margin: 0;
+    align-self: center;
+    /* Same pill styling as help-value-item so the key/value rendering
+     * matches the rest of the panel. */
+    background: var(--mainGray);
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    width: fit-content;
+}
+
+/*
+ * Resolved function-names breakdown (#1205). Stacks a label/values pair —
+ * optionally repeated for `Added on this input:` and `Removed on this
+ * input:` rows — vertically so the chip list wraps without competing
+ * with the labels.
+ */
+.editor-panel .help-function-names-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
 }
 
 .editor-panel .help-docs-link {

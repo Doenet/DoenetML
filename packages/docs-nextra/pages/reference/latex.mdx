@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<latex>{:dn}`
 
+<ComponentDisplay name='latex'/>
 
 `<latex>{:dn}` is a [Text](../document_structure/essentialConcepts#component-types)
 component that stores a LaTeX-formatted string. It is equivalent to
@@ -41,7 +42,7 @@ though the outer `<math>{:dn}`'s `format` is still its default `"text"`.
 <AttrPropDisplay name='latex'/>
 
 
----
+## Examples
 
 ### Example: Round-trip math → `latex` → math
 

@@ -4,6 +4,7 @@ export function returnScoredSectionAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "aggregateScoresPreliminary",
             defaultValue: false,
+            groupName: "scoring",
             description:
                 "Whether to aggregate scores of scored descendants into a section credit-achieved value.",
         },
@@ -12,6 +13,7 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            groupName: "scoring",
             description:
                 "Relative weight of this section when aggregated by an enclosing scored section.",
         },
@@ -21,6 +23,7 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "sectionWideCheckWork",
             defaultValue: false,
             public: true,
+            groupName: "scoring",
             description:
                 "Whether to show a single section-wide check-work button instead of per-answer buttons.",
         },
@@ -28,6 +31,7 @@ export function returnScoredSectionAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: false,
+            groupName: "scoring",
             description:
                 "Whether to display correctness indicators for answers in this section.",
         },
@@ -35,6 +39,7 @@ export function returnScoredSectionAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: false,
+            groupName: "scoring",
             description:
                 "Whether to color-code answers in this section based on correctness.",
         },
@@ -42,6 +47,7 @@ export function returnScoredSectionAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
             defaultValue: false,
+            groupName: "scoring",
             description:
                 "Whether to force per-answer color-correctness even when section-wide check work is enabled.",
         },
@@ -51,6 +57,7 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            groupName: "scoring",
             description:
                 "Label for the section-wide submit button when correctness is shown.",
         },
@@ -60,6 +67,7 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            groupName: "scoring",
             description:
                 "Label for the section-wide submit button when correctness is not shown.",
         },
@@ -69,6 +77,7 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            groupName: "scoring",
             description:
                 "Number of significant digits to display for the section's credit achieved value.",
         },

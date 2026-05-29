@@ -13,7 +13,10 @@ import {
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
-import { getSourceLocationForComponent } from "./utils/sourceLocation";
+import {
+    getSourceLocationForComponent,
+    narrowPositionToOpeningTag,
+} from "./utils/sourceLocation";
 import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
@@ -645,6 +648,23 @@ export default class Core {
     }
 
     addDiagnostic(diagnostic: any): any {
+        // Accessibility records typically point at an entire element span;
+        // shrink that range to just the opening tag so the editor squiggle /
+        // hover only triggers over `<tagname` rather than the whole component.
+        // Already-narrow positions (e.g. the attribute-value ranges from the
+        // style-contrast checker, whose start char is not `<`) are returned
+        // unchanged by the helper; non-accessibility records skip this block
+        // entirely.
+        if (diagnostic?.type === "accessibility" && diagnostic.position) {
+            const source = this.allDoenetMLs[diagnostic.sourceDoc ?? 0];
+            const narrowed = narrowPositionToOpeningTag(
+                diagnostic.position,
+                source,
+            );
+            if (narrowed !== diagnostic.position) {
+                diagnostic = { ...diagnostic, position: narrowed };
+            }
+        }
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 

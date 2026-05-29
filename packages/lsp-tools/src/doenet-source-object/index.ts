@@ -33,6 +33,9 @@ import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
 import {
     findAttributeContainingOffset,
     findPrecedingEqualsForBareValue,
+    identifierAtOffset,
+    identifierPrecedingOffset,
+    synthesizeStrippedAttribute,
 } from "./methods/attribute-helpers";
 
 /**
@@ -211,6 +214,20 @@ export class DoenetSourceObject extends LazyDataObject {
      * that `=` is returned. This mirrors the fallback in
      * `AutoCompleter.getCompletionItems` for parser states where typed
      * value chars don't yet land inside any attribute's range.
+     *
+     * Caveat — synthesized return values: when `lezer-to-dast` stripped
+     * a bare-value pair from `node.attributes` (`<math simplify=full>` —
+     * #1197), the fallback synthesizes a virtual `DastAttribute` from
+     * the identifier in the source via `synthesizeStrippedAttribute`.
+     * Such returns carry `name` and `position` but always
+     * `children: []` — the value half was stripped along with the
+     * assign half and is not reconstructed.  Callers that need the
+     * typed value (`toXml(attr.children)` on a synthesized return
+     * yields `""`) should slice `this.source` around `attr.position`
+     * themselves.  Today's only consumers (`computeContextHelp`,
+     * autocomplete) read only `attr.name`, so this is transparent;
+     * future consumers reading `attr.children` need to handle the
+     * synthesized case explicitly.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -249,9 +266,48 @@ export class DoenetSourceObject extends LazyDataObject {
                 _offset,
             );
             if (equalsOffset != null) {
-                return findAttributeContainingOffset(attributes, equalsOffset, {
-                    endInclusive: false,
-                });
+                const containing = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false },
+                );
+                if (containing) return containing;
+                // Stripped unquoted-pair fallback (#1197): the bare-value
+                // half of `<math simplify=full>` is removed from
+                // `node.attributes` by the parser, so the `=` lookup above
+                // misses on the value side.  Walk back over the assign
+                // half's identifier token (skipping any whitespace between
+                // it and `=`, so `<math simplify = full>` still resolves)
+                // and synthesize a virtual `DastAttribute` so context-help
+                // / autocomplete still resolve the attribute the cursor is
+                // conceptually on.
+                const ident = identifierPrecedingOffset(
+                    this.source,
+                    equalsOffset,
+                );
+                if (ident) {
+                    return synthesizeStrippedAttribute(
+                        this.source,
+                        ident.start,
+                        ident.end,
+                        (o) => this.offsetToRowCol(o),
+                    );
+                }
+                return null;
+            }
+            // Same stripping case, viewed from the assign-half side:
+            // the cursor sits inside the now-removed identifier (e.g.
+            // mid-`bad` in `<math bad=foo`).  If the cursor straddles an
+            // attribute-name token in the source, synthesize from that
+            // token so the panel keeps something useful on screen.
+            const ident = identifierAtOffset(this.source, _offset);
+            if (ident) {
+                return synthesizeStrippedAttribute(
+                    this.source,
+                    ident.start,
+                    ident.end,
+                    (o) => this.offsetToRowCol(o),
+                );
             }
             return null;
         }

@@ -4,6 +4,7 @@ export function returnAnchorAttributes() {
     return {
         anchor: {
             createComponentOfType: "point",
+            groupName: "positioning",
             description:
                 "Coordinates of the anchor point used to position this component on a graph.",
         },
@@ -15,6 +16,7 @@ export function returnAnchorAttributes() {
             forRenderer: true,
             toLowerCase: true,
             isLocation: true,
+            groupName: "positioning",
             validValues: [
                 {
                     value: "upperRight",
@@ -100,6 +102,7 @@ export function returnAnchorStateVariableDefinition() {
             forRenderer: true,
             hasEssential: true,
             isLocation: true,
+            groupName: "positioning",
             shadowingInstructions: {
                 createComponentOfType: "point",
             },

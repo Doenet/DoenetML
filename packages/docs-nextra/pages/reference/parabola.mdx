@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<parabola>{:dn}`
+
+<ComponentDisplay name='parabola'/>
 
 `<parabola>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that renders a parabola when nested inside a [`<graph>{:dn}`](graph.mdx) component.
@@ -11,7 +13,7 @@ component that renders a parabola when nested inside a [`<graph>{:dn}`](graph.md
 <AttrPropDisplay name='parabola'/>
 
 
----
+## Examples
 
 ### Example: Default `<parabola>{:dn}`
 
@@ -88,7 +90,7 @@ A `<parabola>{:dn}` can be rendered by specifying the `vertex` and a single thro
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: through
 
@@ -138,7 +140,7 @@ The `vertex` attribute specifies the maximum or minimum point on the parabola.
 
 ---
 
-### Example: flipFunction
+### Attribute Example: flipFunction
 
 
 ```doenet-example
@@ -206,7 +208,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
----
+## Property Examples
 
 ### Property Example: Style properties
 

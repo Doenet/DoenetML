@@ -1,14 +1,15 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<subsection>{:dn}`
 
 
+<ComponentDisplay name='subsection'/>
+
 `<subsection>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component that renders a section at a heading level one deeper than
-`<section>{:dn}`. It behaves like [`<section>{:dn}`](section) — it
+component that behaves like [`<section>{:dn}`](section) — it
 accepts a custom `<title>{:dn}` or falls back to an auto-generated
 name and number — and is typically used inside a `<section>{:dn}`.
 
@@ -22,7 +23,7 @@ always be written as either `<subsection>{:dn}` or a nested
 <AttrPropDisplay name='subsection'/>
 
 
----
+## Examples
 
 ### Example: `<subsection>{:dn}` inside a `<section>{:dn}`
 
@@ -79,7 +80,7 @@ section's number is included as a prefix.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: includeParentNumber
 

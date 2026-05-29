@@ -1,14 +1,15 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<statement>{:dn}`
 
 
-`<statement>{:dn}` is a block container for the statement of a
-problem, theorem, or similar piece of content. It groups content
-without adding a heading, numbering, or any other visible chrome.
+<ComponentDisplay name='statement'/>
+
+`<statement>{:dn}` groups content without adding a heading, numbering,
+or any other visible chrome.
 A common pattern is to use it inside a [`<problem>{:dn}`](problem),
 [`<exercise>{:dn}`](exercise), [`<theorem>{:dn}`](theorem), or
 [`<definition>{:dn}`](definition) to label the declarative portion
@@ -18,7 +19,7 @@ of the content, separate from any solution, proof, or discussion.
 <AttrPropDisplay name='statement'/>
 
 
----
+## Examples
 
 ### Example: `<statement>{:dn}` within a `<problem>{:dn}`
 

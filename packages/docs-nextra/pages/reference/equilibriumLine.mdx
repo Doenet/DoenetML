@@ -1,19 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<equilibriumLine>{:dn}`
 
+<ComponentDisplay name='equilibriumLine'/>
 
-`<equilibriumLine>{:dn}` extends [`<line>{:dn}`](line) to mark a line of equilibria of a dynamical system. It is
-rendered solid when the equilibria are stable and dashed when they are unstable. Use it to indicate a continuum
+`<equilibriumLine>{:dn}` extends [`<line>{:dn}`](line) to mark a line of equilibria of a dynamical system.
+Use it to indicate a continuum
 of equilibrium states (for example a nullcline that consists entirely of equilibrium points) while making the
 stability visually apparent. The component accepts the full set of `<line>{:dn}` attributes.
 
 <AttrPropDisplay name='equilibriumLine'/>
 
----
+## Examples
 
 ### Example: Stable and unstable equilibrium lines
 
@@ -34,7 +35,7 @@ dashed line.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: switchable
 

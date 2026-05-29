@@ -57,6 +57,8 @@ function wrapWasmCore(wasm: any): ResolverCore {
         setSource: async ({ source, dast }) => wasm.set_source(dast, source),
         setFlags: async ({ flags }) => wasm.set_flags(JSON.stringify(flags)),
         returnDast: async () => wasm.return_dast(),
+        returnNormalizedDastRoot: async () =>
+            wasm.return_normalized_dast_root(),
         resolvePath: async ({ path, origin, skipParentSearch }) =>
             wasm.resolve_path(path, origin, skipParentSearch),
     };
@@ -671,7 +673,10 @@ describe.skipIf(!wasmAvailable)(
         // ---- Index bracket parsing & pathPartHasIndex wiring ----
 
         it("$sel[1]. with pathPartHasIndex shows descendants inside select options", async () => {
-            const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
+            // Use `numToSelect="2"` so the bare $sel. case still exercises
+            // the takesIndex-without-index suppression (issue #1181's implicit
+            // single-index shorthand would otherwise resurface descendants).
+            const source = `<select name="sel" numToSelect="2"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
             const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
@@ -736,9 +741,12 @@ describe.skipIf(!wasmAvailable)(
                 expect(kinds).not.toContain(CompletionItemKind.Property);
             }
 
-            // $sel. (no index) should NOT show descendants, only properties
+            // $sel. (no index) should NOT show descendants, only properties.
+            // Use numToSelect="2" so the issue #1181 implicit-single-index
+            // shorthand does NOT kick in (otherwise `$sel.a` would correctly
+            // resolve like `$sel[1].a`).
             {
-                const source = `<select name="sel"><option><math name="a">1</math></option></select>\n$sel.`;
+                const source = `<select name="sel" numToSelect="2"><option><math name="a">1</math></option><option><math name="a">2</math></option></select>\n$sel.`;
                 const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
@@ -939,8 +947,11 @@ describe.skipIf(!wasmAvailable)(
 
         it("select without index suppresses descendant-name completions", async () => {
             // For direct member access ($sel.), select is takesIndex so
-            // descendant names should be suppressed.
-            const source = `<select name="sel"><option><math name="m">1</math></option></select>\n$sel.`;
+            // descendant names should be suppressed.  Use `numToSelect="2"`
+            // so the issue #1181 implicit-single-index shorthand does NOT
+            // apply (otherwise the resolver correctly surfaces `m` as a
+            // descendant, like `$sel[1].m`).
+            const source = `<select name="sel" numToSelect="2"><option><math name="m">1</math></option><option><math name="m">2</math></option></select>\n$sel.`;
             const { adapter } = await createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();

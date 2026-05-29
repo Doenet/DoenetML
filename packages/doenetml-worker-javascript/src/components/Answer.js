@@ -57,6 +57,7 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether to render the answer's input inline rather than as a block.",
         };
@@ -65,6 +66,7 @@ export default class Answer extends InlineComponent {
             createStateVariable: "symbolicEquality",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };

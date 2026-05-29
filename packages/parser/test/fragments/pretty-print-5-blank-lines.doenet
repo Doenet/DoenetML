@@ -1,0 +1,9 @@
+<p>No blank line after this.</p>
+<p>Adjacent paragraph.</p>
+
+<p>One blank line above; one should be preserved.</p>
+
+
+
+<p>Three blank lines above; should collapse to one.</p>
+<p>Adjacent again.</p>

@@ -26,6 +26,8 @@ export class Ol extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // Accepted for backward compatibility but not yet rendered, so hidden
+        // from the schema (docs tables and editor autocomplete).
         attributes.label = {
             description: "Label rendered before each list item.",
             createComponentOfType: "text",
@@ -33,6 +35,7 @@ export class Ol extends BlockComponent {
             defaultValue: null,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
 
         attributes.level = {
@@ -49,11 +52,13 @@ export class Ol extends BlockComponent {
                 "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
         };
 
-        // Silently ignore this for now
+        // Accepted for backward compatibility but currently ignored, so hidden
+        // from the schema (docs tables and editor autocomplete).
         attributes.cols = {
             createComponentOfType: "number",
             description:
                 "Number of columns to lay items out in (currently ignored).",
+            excludeFromSchema: true,
         };
 
         return attributes;

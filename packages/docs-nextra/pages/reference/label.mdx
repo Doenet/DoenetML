@@ -1,12 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<label>{:dn}`
 
-
-`<label>{:dn}` provides a label for another component.
+<ComponentDisplay name='label'/>
 
 When used with an input or answer (`<mathInput>{:dn}`, `<textInput>{:dn}`,
 `<booleanInput>{:dn}`, `<choiceInput>{:dn}`, `<matrixInput>{:dn}`, `<answer>{:dn}`) or
@@ -26,7 +25,7 @@ elsewhere in the document and linked to an input or answer with the `for` attrib
 
 <AttrPropDisplay name='label'/>
 
----
+## Examples
 
 ### Example: `<label>{:dn}` a `<point>{:dn}` on a `<graph>{:dn}`
 
@@ -227,7 +226,7 @@ can take a `<label>{:dn}` child to prompt the desired input.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: for
 
@@ -309,7 +308,7 @@ around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
----
+## Property Examples
 
 ### Property Example: text
 

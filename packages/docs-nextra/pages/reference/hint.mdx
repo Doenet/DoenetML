@@ -1,10 +1,10 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 # `<hint>{:dn}`
 
-
+<ComponentDisplay name='hint'/>
 
 `<hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
 component that renders a hidden block of content that can be expanded when its banner is clicked 
@@ -14,8 +14,7 @@ or can be rendered visible only when triggered by specific user interactions.
 <AttrPropDisplay name='hint'/>
 
 
-
----
+## Examples
 
 ### Example: `<hint>{:dn}` that is always visible
 
@@ -81,7 +80,7 @@ boolean condition listed in the `hide` attribute of the `<hint>{:dn}`. In
 this case, if the user answers incorrectly 2 or more times, the `hide` attribute 
 of the `<hint>{:dn}` will become `false`, and the `<hint>{:dn}` will appear.
 
----
+## Property Examples
 
 ### Property Example: open
 

@@ -31,7 +31,7 @@ DoenetML is a **markup language** much like HTML. When creating content in Doene
 <graph><shortDescription>A graph of two points</shortDescription>$p1 $p2</graph>
 ```
 
-The available attributes and properties vary by component. See the [Component Examples](./doenetML_components/componentIndex.mdx) section for a full listing for each.
+The available attributes and properties vary by component. See the [Component Examples](../reference/componentIndex) section for a full listing for each.
 
 <a id="componentTypes"></a>
 ## Component Types
@@ -44,17 +44,17 @@ The different types are:
 | Type of Component    | Description                                                                              |
 | -------------------- | ---------------------------------------------------------------------------------------- |
 | [**Paragraph Markup**](../reference/componentTypes.mdx) | used within a paragraph, or `<p>` tag to change the way text is rendered                 |
-| [**Sectional**](../reference/componentTypes#sectionalComponents.mdx)        | used to structure content on the page; may have auto-numbering                           |
-| [**Input**](../reference/componentTypes#inputComponents.mdx)            | used to gather user-input, such as text-boxes, multiple-choice selections, or checkboxes |
-| [**Graphical**](../reference/componentTypes#graphicalComponents.mdx)        | used to render interactive elements on a graph                                           |
-| [**Display Math**](../reference/componentTypes#displayMathComponents.mdx)     | used to render LaTeX; does not invoke the CAS                                            |
-| [**Math**](../reference/componentTypes#mathComponents.mdx)             | used to define mathematical content; can be symbolic or numerical                        |
-| [**Math Operator**](../reference/componentTypes#mathOperatorComponents.mdx)    | used to perform mathematical operations                                                  |
-| [**General Operator**](../reference/componentTypes#generalOperatorComponents.mdx) | used to perform operations on math and non-math components                               |
-| [**Logic**](../reference/componentTypes#logicComponents.mdx)           | used to define boolean conditions                                                        |
-| [**Evaluation**](../reference/componentTypes#evaluationComponents.mdx)       | used with answer validation and awarding of credit                                       |
-| [**Text**](../reference/componentTypes#textComponents.mdx)             | any component that uses text strings outside the context of a paragraph                  |
-| [**Subject-specific**](../reference/componentTypes#subjectSpecificComponents.mdx) | components that are unique to a specific STEM field, such as chemistry or physics      |
+| [**Sectional**](../reference/componentTypes#sectionalComponents)        | used to structure content on the page; may have auto-numbering                           |
+| [**Input**](../reference/componentTypes#inputComponents)            | used to gather user-input, such as text-boxes, multiple-choice selections, or checkboxes |
+| [**Graphical**](../reference/componentTypes#graphicalComponents)        | used to render interactive elements on a graph                                           |
+| [**Display Math**](../reference/componentTypes#displayMathComponents)     | used to render LaTeX; does not invoke the CAS                                            |
+| [**Math**](../reference/componentTypes#mathComponents)             | used to define mathematical content; can be symbolic or numerical                        |
+| [**Math Operator**](../reference/componentTypes#mathOperatorComponents)    | used to perform mathematical operations                                                  |
+| [**General Operator**](../reference/componentTypes#generalOperatorComponents) | used to perform operations on math and non-math components                               |
+| [**Logic**](../reference/componentTypes#logicComponents)           | used to define boolean conditions                                                        |
+| [**Evaluation**](../reference/componentTypes#evaluationComponents)       | used with answer validation and awarding of credit                                       |
+| [**Text**](../reference/componentTypes#textComponents)             | any component that uses text strings outside the context of a paragraph                  |
+| [**Subject-specific**](../reference/componentTypes#subjectSpecificComponents) | components that are unique to a specific STEM field, such as chemistry or physics      |
 
 Some components may belong to more than one functional type, such as a `<sequence>`, which can generate either a numerical or a text sequence, or a `<mathInput>` which collects student's mathematical responses and also stores the value as a Math Component for use in computations by the CAS.
 

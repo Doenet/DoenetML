@@ -6,6 +6,9 @@ import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { prettyPrint } from "../src/pretty-printer";
 import util from "util";
 import { normalizeWhitespace } from "../src/pretty-printer/normalize/plugin-merge-whitespace";
+import { _testOnly as layoutTestOnly } from "../src/pretty-printer/normalize/layout-categories";
+import { _testOnly as blankLineTestOnly } from "../src/pretty-printer/normalize/plugin-mark-blank-lines";
+import { doenetSchema } from "@doenet/static-assets/schema";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -121,11 +124,28 @@ describe("Prettier", async () => {
                 });
                 //origLog(prettyPrinted);
                 expect(prettyPrinted).toMatchSnapshot();
+                // Idempotence: re-formatting must produce the same output.
+                // Catches a whole class of layout-oscillation bugs that the
+                // snapshot alone misses. Checked at several widths because
+                // fill()'s break decisions are width-sensitive — a bug that
+                // surfaces only at narrow / wide widths would slip past an
+                // 80-only check.
+                for (const printWidth of [40, 80, 120]) {
+                    const first = await prettyPrint(source, {
+                        doenetSyntax: false,
+                        printWidth,
+                    });
+                    const second = await prettyPrint(first, {
+                        doenetSyntax: false,
+                        printWidth,
+                    });
+                    expect(second, `idempotence@${printWidth}`).toEqual(first);
+                }
             });
         }
     }
 
-    it("Always breaks children of BREAK_AROUND_ELEMENTS", async () => {
+    it("Always breaks children of always-break parents like <graph>", async () => {
         const cases = [
             {
                 inStr: "<graph><line /><line /></graph>",
@@ -139,6 +159,59 @@ describe("Prettier", async () => {
             });
             expect(prettyPrinted).toEqual(outStr);
         }
+    });
+
+    it("Blank-line boundary regexes only fire on newline-separated whitespace", () => {
+        // The character class is `[^\S\n]` — any whitespace that ISN'T a
+        // newline. Easy to miscopy as `\s` (which would let a single
+        // newline + spaces look like a blank line) or as `[^\n]` (which
+        // would match non-whitespace too). Lock in the intent.
+        const { TRAILING_BLANK_LINE, LEADING_BLANK_LINE } = blankLineTestOnly;
+
+        // TRAILING: matches a blank line at end of string.
+        expect(TRAILING_BLANK_LINE.test("foo\n\n")).toBe(true);
+        expect(TRAILING_BLANK_LINE.test("foo\n  \n")).toBe(true);
+        expect(TRAILING_BLANK_LINE.test("foo\n\n   ")).toBe(true);
+        expect(TRAILING_BLANK_LINE.test("foo \n \n\t")).toBe(true);
+        // Single newline (not a blank line) must NOT match.
+        expect(TRAILING_BLANK_LINE.test("foo\n")).toBe(false);
+        expect(TRAILING_BLANK_LINE.test("foo\n  ")).toBe(false);
+        // Pure spaces (no newlines) must NOT match.
+        expect(TRAILING_BLANK_LINE.test("foo   ")).toBe(false);
+        // No trailing newline at all must NOT match.
+        expect(TRAILING_BLANK_LINE.test("foo\n\nbar")).toBe(false);
+
+        // LEADING: matches a blank line at start of string.
+        expect(LEADING_BLANK_LINE.test("\n\nfoo")).toBe(true);
+        expect(LEADING_BLANK_LINE.test("\n  \nfoo")).toBe(true);
+        expect(LEADING_BLANK_LINE.test("  \n\nfoo")).toBe(true);
+        expect(LEADING_BLANK_LINE.test("\t\n \nfoo")).toBe(true);
+        // Single newline (not a blank line) must NOT match.
+        expect(LEADING_BLANK_LINE.test("\nfoo")).toBe(false);
+        expect(LEADING_BLANK_LINE.test("  \nfoo")).toBe(false);
+        // Pure spaces (no newlines) must NOT match.
+        expect(LEADING_BLANK_LINE.test("   foo")).toBe(false);
+        // No leading newline at all must NOT match.
+        expect(LEADING_BLANK_LINE.test("foo\n\n")).toBe(false);
+    });
+
+    it("Hand-curated layout-category overrides match existing schema elements", () => {
+        // If a component is renamed in `componentInfoObjects` upstream,
+        // any override that still references the old name silently goes
+        // dead — the formatter quietly downgrades that element to inline.
+        // This catches the drift in CI.
+        const schemaNames = new Set(
+            doenetSchema.elements.map((e: { name: string }) => e.name),
+        );
+        const unknown: string[] = [];
+        for (const name of layoutTestOnly.BLOCK_OVERRIDES) {
+            if (!schemaNames.has(name)) unknown.push(`BLOCK_OVERRIDES:${name}`);
+        }
+        for (const name of layoutTestOnly.OTHER_BLOCK_NAMES) {
+            if (!schemaNames.has(name))
+                unknown.push(`OTHER_BLOCK_NAMES:${name}`);
+        }
+        expect(unknown).toEqual([]);
     });
 
     it("Don't create new macro names when &dollar; entity appears in text", async () => {

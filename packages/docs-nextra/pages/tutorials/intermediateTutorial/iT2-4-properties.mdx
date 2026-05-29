@@ -31,7 +31,7 @@ Doenet will still calculate the slope of $\overset{\longleftrightarrow}{PQ}$ and
 
 ### How to Find Properties
 
-The documentation page for each DoenetML component, as found in either the [Alphabetical Index](../../reference/doenetML_components/componentIndex.mdx) or the [Index by Component Type](../../reference/doenetML_components/componentTypes.mdx)  shows which attributes can be accessed as properties, as well as any additional properties that are available. It's always worth checking the documentation before you write code to do a basic computation; it's possible that Doenet is already doing that calculation for you!
+The documentation page for each DoenetML component, as found in either the [Alphabetical Index](../../reference/componentIndex) or the [Index by Component Type](../../reference/componentTypes)  shows which attributes can be accessed as properties, as well as any additional properties that are available. It's always worth checking the documentation before you write code to do a basic computation; it's possible that Doenet is already doing that calculation for you!
 
 As a basic example, the following code uses the $x$ and $y$-coordinates of points $P$ and $Q$ to compute the length of $\overline{PQ}$, via the distance formula. However, it turns out DoenetML already computes that distance; we can access it using the `length` property of the line segment.
 
@@ -62,7 +62,7 @@ Drag the endpoints around and double check that the distances are updated correc
 
 For those who have written in object-oriented languages such as Java, however, it could be helpful to mention: attributes and properties of DoenetML objects are analogous to setter and getter methods for objects. As mentioned above, the values of many attributes are directly accessible as properties.
 
-Throughout the rest of this tutorial, you'll sometimes see attribute names used as properties. We'll also occasionally point out particularly useful properties which are *not* also attributes. However, it's always worth reading the [reference section of this documentation](../../reference/doenetML_components/componentTypes.mdx) for a DoenetML tag to see what properties are available.
+Throughout the rest of this tutorial, you'll sometimes see attribute names used as properties. We'll also occasionally point out particularly useful properties which are *not* also attributes. However, it's always worth reading the [reference section of this documentation](../../reference/componentTypes) for a DoenetML tag to see what properties are available.
 
 ### Array Notation
 The `<mathList>` tag was briefly introduced in an earlier section. You might recall this is a space-separated list of `<math>` objects:

@@ -1,12 +1,14 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<substitute>{:dn}`
 
 
-`<substitute>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='substitute'/>
+
+`<substitute>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types) 
 component that replaces one character or string from a math or a text with another specified string.
 
 
@@ -14,7 +16,7 @@ Note that substitution is used for variables in math expressions, not numerical 
 
 <AttrPropDisplay name='substitute'/>
 
----
+## Examples
 
 ### Example: substitute a different variable in a math
 
@@ -42,7 +44,7 @@ In this example, the `<substitute>{:dn}` component is used to swap out one varia
 The default type for substitution is math.
 
 
-The substititution is performed in a `<setup>{:dn}` block, which does not render on the page. The modified expression is later rendered by referencing the name of the `<substitute>{:dn}` component in line $10$ with `$sub`.
+The modified expression is rendered by referencing the name of the `<substitute>{:dn}` component with `$sub`.
 
 
 
@@ -68,7 +70,7 @@ The substititution is performed in a `<setup>{:dn}` block, which does not render
 In this example, the `<substitute>{:dn}` component is used to swap out one word from a user's `<textInput>{:dn}` for another. The `type = "text"` specification is made for the `<substitute>{:dn}` component; this is required as the default `type` is math.
 
 
-The substititution is performed in a `<setup>{:dn}` block, which does not render on the page. The modified text is later rendered by referencing the name of the `<substitute>{:dn}` component in line $10$ with `$sub`.
+The modified text is rendered by referencing the name of the `<substitute>{:dn}` component with `$sub`.
 
 
 
@@ -95,7 +97,7 @@ In this example, the user provides the substituted value in the math expression.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: type
 

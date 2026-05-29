@@ -317,10 +317,12 @@ describe("Image tag tests @group3", async () => {
         expect(diagnosticsByType.accessibility[0].message).contain(
             "`<image>` must either have a short description or be specified as decorative",
         );
+        // Diagnostic range is narrowed to the opening tag (`<image`) so the
+        // editor squiggle and hover only cover the tag name itself.
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
         expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
-        expect(diagnosticsByType.accessibility[0].position.end.column).eq(24);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(7);
     });
 
     it("with description", async () => {

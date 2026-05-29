@@ -82,3 +82,8 @@ packages/doenetml-print/python/pretext_wasm/core/*
 __pycache__
 .pytest_cache
 *.egg-info
+
+# Claude Code per-machine files (settings.json and hooks/ are tracked;
+# these are user/runtime overrides that must not be committed).
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<pluralize>{:dn}`
 
+<ComponentDisplay name='pluralize'/>
 
 `<pluralize>{:dn}` is a [Text](../document_structure/essentialConcepts#component-types)
 component that renders its content in singular or plural form. By default it
@@ -21,7 +22,7 @@ English irregulars (`mouse → mice`, `goose → geese`, `pony → ponies`).
 <AttrPropDisplay name='pluralize'/>
 
 
----
+## Examples
 
 ### Example: Default behaviour
 
@@ -60,7 +61,7 @@ pluralized only when the count is not $1$. So `1 dog` stays as `1 dog`,
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: basedOnNumber
 

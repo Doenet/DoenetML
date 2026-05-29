@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<derivative>{:dn}`
+
+<ComponentDisplay name='derivative'/>
 
 `<derivative>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
 component that renders the derivative of basic elementary functions 
@@ -13,7 +15,7 @@ component that renders the derivative of basic elementary functions
 
 
 
----
+## Examples
 
 ### Example: `<derivative>{:dn}` of a nested function
 
@@ -140,6 +142,35 @@ Higher-order derivatives can be rendered by entering multiple values in the `der
 
 ---
 
+### Example: attributes as properties
+
+
+```doenet-editor-horiz
+<p><m>\frac{\partial}{\partial t} \bigg(
+  \frac{\partial^2 f }{\partial x^2}
+  ( x^2 \cos t)\bigg) = </m>
+  <derivative variables="x t" 
+    derivVariables="x x t" name="fPrime">
+    x^2 cos(t)
+  </derivative>
+</p>
+
+<p><c>variables</c> = 
+  $fPrime.variables
+</p>
+<p><c>derivVariables</c> = 
+  $fPrime.derivVariables
+</p>
+```
+
+
+
+Both attributes of the `<derivative>{:dn}` component are also accessible as properties.
+
+
+
+## Attribute Examples
+
 ### Attribute Example: derivVariables
 
 
@@ -196,7 +227,7 @@ function variable if not specified by `<function>{:dn}` definition.
 
 
 
----
+## Property Examples
 
 ### Property Example: nInputs
 
@@ -238,33 +269,4 @@ The `numInputs` property returns the number of inputs associated with the enclos
 
 
 The `numDerivatives` property returns the number of differentiations performed on the enclosed function.
-
-
-
----
-
-### Example: attributes as properties
-
-
-```doenet-editor-horiz
-<p><m>\frac{\partial}{\partial t} \bigg(
-  \frac{\partial^2 f }{\partial x^2}
-  ( x^2 \cos t)\bigg) = </m>
-  <derivative variables="x t" 
-    derivVariables="x x t" name="fPrime">
-    x^2 cos(t)
-  </derivative>
-</p>
-
-<p><c>variables</c> = 
-  $fPrime.variables
-</p>
-<p><c>derivVariables</c> = 
-  $fPrime.derivVariables
-</p>
-```
-
-
-
-Both attributes of the `<derivative>{:dn}` component are also accessible as properties.
 

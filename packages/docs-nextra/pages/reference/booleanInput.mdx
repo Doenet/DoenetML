@@ -1,9 +1,10 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 # `<booleanInput>{:dn}`
 
+<ComponentDisplay name='booleanInput'/>
 
 `<booleanInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
 component that renders a checkbox. If the box is checked by the user, Doenet 
@@ -13,7 +14,7 @@ stores the boolean value `true` in the named `<booleanInput>{:dn}`.
 <AttrPropDisplay name='booleanInput'/>
 
 
----
+## Examples
 
 ### Example: `<booleanInput>{:dn}` survey question
 ```doenet-example
@@ -62,7 +63,7 @@ and the general attribute hide available to all rendered components.
 
 A `<label>{:dn}` child can be nested within a `<booleanInput>{:dn}` to create a label.
 
----
+## Attribute Examples
 
 ### Attribute Example: prefill
 ```doenet-example
@@ -128,7 +129,7 @@ The behavior of the `<booleanInput>{:dn}` checkbox is tied to the `<boolean>{:dn
 the condition inside the `<boolean>{:dn}` becomes true, which in turn causes the `<booleanInput>{:dn}` to 
 take on the value true, and the checkbox, or "lightbulb" becomes checked.
 
----
+## Property Examples
 
 ### Property Example: value
 ```doenet-example

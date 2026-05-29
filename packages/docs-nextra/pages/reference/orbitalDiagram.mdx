@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<orbitalDiagram>{:dn}`
 
+<ComponentDisplay name='orbitalDiagram'/>
 
 `<orbitalDiagram>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types)
 component that renders an orbital diagram: rows of labeled boxes containing up
@@ -20,7 +21,7 @@ student response from an [`<orbitalDiagramInput/>{:dn}`](orbitalDiagramInput).
 <AttrPropDisplay name='orbitalDiagram'/>
 
 
----
+## Examples
 
 ### Example: Built-in `orbitalDiagram` property of an `<atom>{:dn}`
 
@@ -70,25 +71,6 @@ row, listed from the lowest row up.
 
 ---
 
-### Attribute Example: labels
-
-
-```doenet-editor-horiz
-<orbitalDiagram labels="1s 2s 2p 3s">
-  (ud) (ud) (ud, ud, ud) (u)
-</orbitalDiagram>
-```
-
-
-
-The `labels` attribute is a list of text labels, one per row, with the bottom
-row first. Each label is rendered as the orbital text to the left of the
-corresponding row.
-
-
-
----
-
 ### Example: Use as the expected answer for an `<orbitalDiagramInput/>{:dn}`
 
 
@@ -119,7 +101,26 @@ particular diagram independent of any [`<atom>{:dn}`](atom) source.
 
 
 
----
+## Attribute Examples
+
+### Attribute Example: labels
+
+
+```doenet-editor-horiz
+<orbitalDiagram labels="1s 2s 2p 3s">
+  (ud) (ud) (ud, ud, ud) (u)
+</orbitalDiagram>
+```
+
+
+
+The `labels` attribute is a list of text labels, one per row, with the bottom
+row first. Each label is rendered as the orbital text to the left of the
+corresponding row.
+
+
+
+## Property Examples
 
 ### Property Example: value
 

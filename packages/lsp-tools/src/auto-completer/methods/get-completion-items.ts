@@ -14,9 +14,12 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
+import { walkIndexAliases } from "../index-aliases";
+import { hasImplicitSingleIndex } from "../select-family";
+import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
+import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
@@ -36,6 +39,20 @@ const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
  */
 function asMarkdown(text: string): MarkupContent {
     return { kind: MarkupKind.Markdown, value: text };
+}
+
+/** Global match for individual `[...]` groups; used to count brackets per raw segment. */
+const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
+
+/**
+ * Count the bracket-index groups on a raw path segment — `foo` → 0,
+ * `foo[1]` → 1, `controlVectors[0][2]` → 2. Mirrors
+ * `computeContextHelp.countBracketIndices` so the autocomplete chase
+ * consumes the same number of dimensions the help chase does.
+ */
+function countBracketIndices(rawSegment: string | undefined): number {
+    if (!rawSegment) return 0;
+    return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
 }
 
 /**
@@ -231,19 +248,6 @@ function createSnippetCompletionItems(
     });
 }
 
-function getElementAttributeValue(
-    element: DastElement,
-    attributeName: string,
-): string | undefined {
-    const attr = element.attributes[attributeName];
-    if (!attr) {
-        return undefined;
-    }
-
-    const value = toXml(attr.children).trim();
-    return value.length > 0 ? value : undefined;
-}
-
 function isPrefigureGraphElement(
     autoCompleter: AutoCompleter,
     element: DastElement,
@@ -421,10 +425,16 @@ function toRefSegmentInsertText(label: string) {
  * Determine which descendant and property names should be visible for a resolved
  * element, respecting takesIndex and per-segment index semantics.
  *
- * - For `takesIndex` composites without a bracket index: descendants are hidden,
- *   only properties are shown.
- * - For `takesIndex` composites with a bracket index: descendants are shown
- *   (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites without a bracket index AND without the
+ *   implicit-single-index shorthand: descendants are hidden, only properties
+ *   are shown.
+ * - For `takesIndex` composites with an authored bracket index: descendants
+ *   are shown (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites whose count attribute carries the implicit
+ *   shorthand (`numToSelect="1"`, or absent — issue #1181): descendants AND
+ *   properties are both shown.  The shorthand only commits to descendant
+ *   resolution; the author can still type `$s.numToSelect` to read a state
+ *   variable on the composite itself.
  * - For regular elements: both descendants and properties are shown.
  *
  * Note: Invalid access (non-takesIndex element with an index) is handled upstream
@@ -433,21 +443,20 @@ function toRefSegmentInsertText(label: string) {
 function determineVisibleNames(
     takesIndex: boolean,
     resolvedPartHasIndex: boolean,
+    implicitSingleIndex: boolean,
     visibleDescendantNames: string[],
     schema: { properties?: { name: string }[] } | undefined,
 ): { descendantNames: Set<string>; propertyNames: string[] } {
-    // For a takesIndex composite:
-    //   - Without an index ($rep.): descendants are inaccessible via bare dot
-    //     access, so hide them and show only schema properties.
-    //   - With an index ($rep[1]. or $sec.rep[1].): the cursor is after a
-    //     replacement child of unknown component type, so show descendant
-    //     names but hide schema properties (they describe the composite, not
-    //     the replacement).
+    // Descendants gate: hidden only when takesIndex AND neither an authored
+    // bracket nor the implicit-single-index shorthand applies.
     const descendantNames =
-        takesIndex && !resolvedPartHasIndex
+        takesIndex && !resolvedPartHasIndex && !implicitSingleIndex
             ? new Set<string>()
             : new Set(visibleDescendantNames);
 
+    // Properties gate: hidden only when an authored bracket explicitly
+    // dereferences a replacement (the schema would describe the composite,
+    // not the replacement).  The implicit shorthand does NOT hide them.
     const propertyNames =
         takesIndex && resolvedPartHasIndex
             ? []
@@ -490,6 +499,120 @@ function createPropertyCompletionItems(
         }
         return item;
     });
+}
+
+/**
+ * Build alias-name completions for a `$container.arrayProp[…].` chain that
+ * the resolver couldn't walk but the schema's `indexAliases` table covers.
+ * Returns `null` (not `[]`) when this branch doesn't apply, so the caller
+ * can fall through to its existing "no completions" path; returns `[]`
+ * when the chain matches an array prop but every dimension is already
+ * consumed (e.g. `$vector.head.x.`), so we stop offering anything rather
+ * than fall through to descendant/property lookup that doesn't apply
+ * here. Issue #1180.
+ */
+function indexAliasCompletionItems(
+    autoCompleter: AutoCompleter,
+    containerNode: DastElement | null,
+    unresolvedPathParts: string[],
+    completionContext: CompletionContext & {
+        cursorPos: "refMember";
+        pathParts: string[];
+        pathPartHasIndex: boolean[];
+        rawPathParts: string[];
+        typedPrefix: string;
+        replaceFromOffset: number;
+    },
+    offset: number,
+    toRefMemberInsertText: (name: string) => string,
+): CompletionItem[] | null {
+    if (!containerNode || unresolvedPathParts.length === 0) return null;
+
+    const componentType = autoCompleter.normalizeElementName(
+        containerNode.name,
+    );
+    const schema = autoCompleter.schemaElementsByName[componentType];
+    if (!schema) return null;
+
+    // Mirror the alias-aware property lookup used elsewhere — a child
+    // addressed via its alias-redirected parent (e.g. `<row>` inside
+    // `<matrix>`) should still see the right schema.
+    const helpSchema = autoCompleter.resolveEffectiveSchemaElement(
+        schema,
+        getParentName(autoCompleter, containerNode),
+    );
+    const arrayName = unresolvedPathParts[0];
+    const arrayProp = helpSchema?.properties?.find(
+        (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
+    );
+    if (!arrayProp) return null;
+
+    // Locate the array-prop segment in the caller's path. `pathParts` is
+    //   [...resolvedSegments, ...unresolvedPathParts, typedPrefix]
+    // so the array-prop segment lives at
+    //   pathParts.length - 1 - unresolvedPathParts.length
+    // (the last entry is the in-progress typed prefix at the cursor —
+    // empty right after a `.`, or a partial alias name like `x` mid-type).
+    // We count bracket groups on the raw segment so multi-index segments
+    // like `controlVectors[0][2]` consume the right number of dims
+    // (a single boolean would under-consume on 3D arrays).
+    const arrayPropPathIndex =
+        completionContext.pathParts.length - 1 - unresolvedPathParts.length;
+    if (arrayPropPathIndex < 0) return null;
+
+    const segments: Array<{ name: string; numIndices: number }> = [
+        {
+            name: arrayName,
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex],
+            ),
+        },
+    ];
+    for (let i = 1; i < unresolvedPathParts.length; i++) {
+        segments.push({
+            name: unresolvedPathParts[i],
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex + i],
+            ),
+        });
+    }
+
+    const walked = walkIndexAliases(arrayProp, segments);
+    // `null` here means the chain so far is invalid (e.g. an unindexed
+    // segment whose name isn't a known alias). Returning `[]` rather than
+    // falling through suppresses noisy guesses — the resolver already
+    // declared the path unresolvable, and the alias chase is the only
+    // remaining well-defined source of completions in this branch.
+    if (!walked) return [];
+    if (walked.dim >= walked.numDims) {
+        // Every dimension already consumed — nothing further to offer.
+        return [];
+    }
+
+    const aliasesForDim =
+        arrayProp.indexAliases?.[walked.dim] ?? ([] as readonly string[]);
+    if (aliasesForDim.length === 0) return [];
+
+    const prefix = completionContext.typedPrefix.toLowerCase();
+    const filtered = aliasesForDim.filter((name) =>
+        prefix ? name.toLowerCase().startsWith(prefix) : true,
+    );
+    if (filtered.length === 0) return [];
+
+    const detail = `Alias for ${arrayProp.name} (dim ${walked.dim + 1} of ${walked.numDims})`;
+    return filtered.map((label) => ({
+        label,
+        kind: CompletionItemKind.Reference,
+        detail,
+        textEdit: {
+            range: createTextEditRange(
+                autoCompleter.sourceObj,
+                completionContext.replaceFromOffset,
+                offset,
+            ),
+            newText: toRefMemberInsertText(label),
+        },
+    }));
 }
 
 /**
@@ -536,6 +659,14 @@ export async function getCompletionItems(
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
     }
+
+    // Ensure the per-instance `<module>` attribute allowlist is up to date
+    // for the current source revision before the attribute-name branch
+    // consults it.  Coalesces with the matching call in `getSchemaViolations`
+    // (validation typically runs first), so back-to-back validation +
+    // completion between edits costs at most one resolver round-trip per
+    // `<module copy=…>` site total.
+    await this._refreshModuleInstanceAttributes();
 
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
@@ -700,6 +831,23 @@ export async function getCompletionItems(
         const resolvedNode = resolved.node;
 
         if (!resolvedNode) {
+            // Before giving up, see whether the chain is a coordinate-style
+            // walk through an array property's `indexAliases` table — e.g.
+            // the user typed `$vector.head.` and we should offer `x/y/z`
+            // even though the resolver couldn't walk through `head`. The
+            // helper mirrors the help-side chase: the first unresolved
+            // segment names an array prop on the partially-resolved
+            // container, and bracket indices / alias names on the way
+            // each consume one dimension. Issue #1180.
+            const aliasItems = indexAliasCompletionItems(
+                this,
+                resolved.partiallyResolvedNode ?? null,
+                resolved.unresolvedPathParts,
+                completionContext,
+                offset,
+                toRefMemberInsertText,
+            );
+            if (aliasItems) return aliasItems;
             return [];
         }
 
@@ -724,6 +872,13 @@ export async function getCompletionItems(
             completionContext.pathPartHasIndex?.[
                 completionContext.pathParts.length - 2
             ] ?? false;
+        // Strict-rule shorthand from issue #1181: a select-family container
+        // whose count attribute is absent or literal "1" lets `$s.t` resolve
+        // descendants like `$s[1].t`.  We surface the predicate to
+        // `determineVisibleNames` rather than collapsing it into
+        // `resolvedPartHasIndex` so the shorthand offers descendants AND keeps
+        // the composite's own properties (e.g. `$s.numToSelect`) accessible.
+        const implicitSingleIndex = hasImplicitSingleIndex(resolvedNode);
 
         // When the resolved element does NOT take an index but the user
         // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
@@ -734,6 +889,7 @@ export async function getCompletionItems(
         const { descendantNames, propertyNames } = determineVisibleNames(
             takesIndex,
             resolvedPartHasIndex,
+            implicitSingleIndex,
             resolved.visibleDescendantNames,
             schema,
         );
@@ -823,8 +979,13 @@ export async function getCompletionItems(
         containingElement.node &&
         prevChar === "<"
     ) {
+        // Pass the parent name so the alias-aware lookup uses the right
+        // child set when the containing element is itself a `childContextHelp`
+        // target (e.g. `<row>` inside `<matrix>` should offer `<math>` from
+        // `matrixRow`, not `<cell>` from the tabular `<row>`) — #1174.
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
+            getParentName(this, containingElement.node),
         );
         const completionItems = createElementAndSnippetCompletionItems(
             this,
@@ -876,7 +1037,13 @@ export async function getCompletionItems(
         if (!parent || parent.type === "root") {
             allowedElements = this.schemaTopAllowedElements;
         } else {
-            allowedElements = this._getAllowedChildren(parent.name);
+            // Same alias-aware handoff as the `body`/`<` branch above:
+            // a `<row>` inside `<matrix>` is the `matrixRow` alias, so
+            // its in-tag completions must come from MathList's children.
+            allowedElements = this._getAllowedChildren(
+                parent.name,
+                getParentName(this, parent),
+            );
         }
 
         // For openTagName context, we need to replace from the opening '<' to the cursor.
@@ -931,24 +1098,38 @@ export async function getCompletionItems(
             ownEntry,
             getParentName(this, element),
         );
-        // Build a description lookup from the alias-aware help entry so
-        // attributes on `<row>` inside `<matrix>` show `matrixRow`'s docs.
-        const descriptionByAttrName = new Map<string, string>();
-        for (const attr of helpEntry?.attributes ?? []) {
-            if (attr.description) {
-                descriptionByAttrName.set(attr.name, attr.description);
-            }
-        }
-        const allowedAttributes = ownEntry?.attributes || [];
+        // List the alias's attributes (not the canonical entry's) when the
+        // parent declares a `childContextHelp` redirect — `<row>` inside
+        // `<matrix>` is the `matrixRow` alias, whose attribute set is the
+        // MathList one (`unordered`, `maxNumber`, …), not the tabular
+        // `<row>`'s (#1174).  The `helpEntry` already does the alias
+        // resolution and is the same source the description lookup uses,
+        // so the dropdown's set and the per-row docs can't drift apart.
+        const canonicalAttributes = helpEntry?.attributes ?? [];
+        // Per-instance augmentation for `<module copy="$x" .../>` sites
+        // (issue #1154): when the precompute pass resolved `$x` to a
+        // `<module>` definition with declared `<moduleAttributes>`,
+        // synthesize completion entries for each declared name so the
+        // dropdown lists `center` / `color` / `radius` alongside the
+        // canonical `<module>` attributes.  Falls through to canonical-only
+        // when no entry exists in the map.
+        const perInstanceAllowlist =
+            elmName === "module"
+                ? this._moduleInstanceAttributeAllowlist.get(element)
+                : undefined;
+        const allowedAttributes = perInstanceAllowlist
+            ? mergeDeclaredIntoSchemaAttributes(
+                  canonicalAttributes,
+                  perInstanceAllowlist,
+              )
+            : canonicalAttributes;
         return allowedAttributes.map((attr) => {
             const item: CompletionItem = {
                 label: attr.name,
                 kind: CompletionItemKind.Enum,
             };
-            const description =
-                descriptionByAttrName.get(attr.name) ?? attr.description;
-            if (description) {
-                item.documentation = asMarkdown(description);
+            if (attr.description) {
+                item.documentation = asMarkdown(attr.description);
             }
             return item;
         });
@@ -969,8 +1150,18 @@ export async function getCompletionItems(
             (prevNonWhitespaceChar === "=" || isBareValueAfterEquals))
     ) {
         const elmName = this.normalizeElementName(element.name);
-        const allowedAttributes =
-            this.schemaElementsByName[elmName]?.attributes || [];
+        // Alias-aware: when the parent declares a `childContextHelp`
+        // redirect (e.g. `<row>` inside `<matrix>` → `matrixRow`), values
+        // and `autocompleteValues` come from the alias entry — closes
+        // #1092 (the attribute-value branch was the one surface still
+        // reading from the canonical entry only).  Falls back to the
+        // canonical entry when no parent context applies.
+        const elmEntry =
+            this._resolveEffectiveByName(
+                elmName,
+                getParentName(this, element),
+            ) ?? this.schemaElementsByName[elmName];
+        const allowedAttributes = elmEntry?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);
         let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,

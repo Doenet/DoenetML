@@ -1,10 +1,12 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<select>{:dn}`
 
+
+<ComponentDisplay name='select'/>
 
 `<select>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that selects values from a list or from a group of 
@@ -16,8 +18,8 @@ of the document, see the `selectForVariants` attribute on
 variants instead of relying on random selection.
 
 <AttrPropDisplay name='select'/>
- 
----
+
+## Examples
 
 ### Example: Default `<select>{:dn}`
 
@@ -251,6 +253,29 @@ want to reference a selected value in subsequent code. If this is the case, desc
 unique components which reference individual selected values.
 
 Different page variants (which can be accessed from the left-side menu) will have different selected `<math>{:dn}` values.
+
+
+
+## Attribute Examples
+
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<select name="s" type="text" numToSelect="3">
+  red orange yellow green blue indigo violet
+</select>
+
+<p>Selected: $s</p>
+<p>First selected: $s[1]</p>
+```
+
+
+
+The `numToSelect` attribute sets how many values are chosen from the options. The default value is `1`. When more than one is selected, the individual selections are accessed by index (for example, `$s[1]`). Without `withReplacement`, each option can be chosen at most once.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 

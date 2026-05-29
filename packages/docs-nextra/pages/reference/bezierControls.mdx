@@ -1,9 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<bezierControls>{:dn}`
+
+<ComponentDisplay name='bezierControls'/>
 
 `<bezierControls>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
 component. It is always the child of a `<curve>{:dn}` component and provides a means to 
@@ -12,7 +14,7 @@ specify the control vectors at each bezier curve control point.
 <AttrPropDisplay name='bezierControls'/>
 
 
----
+## Examples
 
 ### Example: `<bezierControls>{:dn}` with nested control vectors
 
@@ -93,7 +95,7 @@ When a single control point has distinct control vectors in each direction, two 
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: alwaysVisible
 

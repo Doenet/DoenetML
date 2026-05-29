@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<intersection>{:dn}`
 
+<ComponentDisplay name='intersection'/>
 
 `<intersection>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
 component that determines the intersection point of a pair of graphical objects. These can be `<line>{:dn}`, `<circle>{:dn}`, or `<polygon>{:dn}` components.
@@ -15,7 +16,7 @@ when nested inside a `<graph>{:dn}` component, and renders a coordinate pair (or
 <AttrPropDisplay name='intersection'/>
 
 
----
+## Examples
 
 ### Example: `<intersection>{:dn}` of two lines
 
@@ -208,7 +209,7 @@ to observe the intersection behavior.</p>
 When a line and the edge of a polygon overlap, only the 
 endpoints of the overlapped region are counted as intersection points. 
 
----
+## Attribute Examples
 
 ### Attribute Example: styleNumber
 

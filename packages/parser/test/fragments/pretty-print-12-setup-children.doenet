@@ -1,0 +1,14 @@
+<setup>
+    <math name="x">1 + 2</math> <number name="n">5</number>
+    <textList name="colors">red green blue</textList>
+    <sequence from="1" to="10" name="s" />
+    <select name="pick"><option><text>cat</text></option><option><text>dog</text></option></select>
+    <p name="myPara">This is a <em>defined</em> paragraph with bare text and trailing punctuation.</p>
+</setup>
+
+<setup>
+
+  <number>3</number>
+  <math>4x</math>
+
+</setup>

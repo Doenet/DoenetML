@@ -1,36 +1,76 @@
 import { Doc, ParserOptions, Printer } from "prettier";
-import { builders, utils } from "prettier/doc";
+import { builders } from "prettier/doc";
 import { nodesToXml, quote, toXml } from "../dast-to-xml/dast-util-to-xml";
 import { escape, name } from "../dast-to-xml/utils";
-import { DastElement, DastNodes, DastRoot, PrintOptions } from "../types";
+import { DastElement, DastNodes, PrintOptions } from "../types";
 import {
-    ALWAYS_BREAK_ELEMENTS,
-    BREAK_AROUND_ELEMENTS,
-    CHILDREN_ON_OWN_LINE_ELEMENTS,
-    PAR_ELEMENTS,
-    PRE_ELEMENTS,
-} from "./normalize/special-nodes";
-import { isElement } from "./normalize/utils/testers";
+    isAlwaysBreakParent,
+    isBlock,
+    isDefinitionalContainer,
+} from "./normalize/layout-categories";
+import { hasBlankLineBefore } from "./normalize/plugin-mark-blank-lines";
+import { PRE_ELEMENTS } from "./normalize/special-nodes";
 
 const { line, indent, softline, join, fill, group, hardline, breakParent } =
     builders;
+
+type ContentMode = "pre" | "empty" | "inline" | "block";
+
+/**
+ * Classify how an element's children should be laid out.
+ *
+ * - `"pre"`: children are emitted verbatim (no whitespace touched).
+ * - `"empty"`: no children — self-closing tag.
+ * - `"block"`: at least one child is a block element. Block children go
+ *   on their own line; consecutive non-block children (text + macros +
+ *   inline elements) form an inline run rendered with `fill()`.
+ * - `"inline"`: only text/macro/inline-element children. Rendered with
+ *   `fill()` inside a `group()` so the whole element collapses to one
+ *   line when it fits in `printWidth`.
+ */
+function classifyContentMode(node: DastElement): ContentMode {
+    if (PRE_ELEMENTS.has(node.name)) return "pre";
+    if (node.children.length === 0) return "empty";
+    if (isAlwaysBreakParent(node.name)) return "block";
+    return node.children.some(isBlockChildNode) ? "block" : "inline";
+}
+
+/**
+ * Whether a child node should be treated as "block" content for the
+ * purposes of laying out a parent's children. Block elements qualify by
+ * name; comment / cdata / doctype / instruction nodes are always
+ * block-like (each sits on its own line). Used by both
+ * `classifyContentMode` (to decide a parent's content mode) and
+ * `printChildSequenceAsBlock` (to decide where inline runs break).
+ */
+function isBlockChildNode(node: DastNodes): boolean {
+    switch (node.type) {
+        case "element":
+            return isBlock(node.name);
+        case "comment":
+        case "cdata":
+        case "doctype":
+        case "instruction":
+            return true;
+        default:
+            return false;
+    }
+}
 
 export const print: Printer<DastNodes>["print"] = function print(
     path,
     _options,
     print,
 ) {
-    const options = _options as ParserOptions<DastNodes> &
-        PrintOptions & { nodeMap?: NodeMap };
+    const options = _options as ParserOptions<DastNodes> & PrintOptions;
     const node = path.node;
-    const nodeMap = options.nodeMap;
     switch (node.type) {
         case "root": {
-            // There is only one root and it is encountered first.
-            // So it's a good place to build the node map.
-            options.nodeMap = new NodeMap(node);
-            const doc = fill(path.map(print, "children").flat());
-            return doc;
+            const printedRootChildren = path.map(print, "children");
+            return printChildSequenceAsBlock(
+                node.children,
+                printedRootChildren,
+            );
         }
         case "cdata": {
             const unsafe = /]]>/g;
@@ -65,12 +105,10 @@ export const print: Printer<DastNodes>["print"] = function print(
         case "element": {
             const nodeName = name(node.name);
             const openingTag: Doc[] = ["<", nodeName];
-            const closingTag: Doc[] = [];
             const attributes = node.attributes || [];
             const printedAttrs: Doc[] = [];
             for (const attr of Object.values(attributes)) {
                 const attrName = name(attr.name);
-                // No fancy formatting goes on for quoted attributes
                 if (attr.children.length === 0) {
                     // Doenet syntax allows JSX style attributes without values assigned to them
                     if (options.doenetSyntax) {
@@ -90,76 +128,50 @@ export const print: Printer<DastNodes>["print"] = function print(
             if (printedAttrs.length > 0) {
                 openingTag.push(indent(printedAttrs));
             }
-            if (node.children.length === 0) {
-                // Always self-closing if there are no children
-                // The closing slash will always be on the same line if there are no attributes
+
+            const mode = classifyContentMode(node);
+
+            if (mode === "empty") {
                 openingTag.push(printedAttrs.length > 0 ? line : " ", "/>");
-            } else {
-                openingTag.push(printedAttrs.length > 0 ? softline : "", ">");
-                closingTag.push("</", nodeName, ">");
+                return group(openingTag);
             }
 
-            // Compute whether a break must be inserted before or after the node
-            const leadingBreak: Doc[] = [];
-            const closingBreak: Doc[] = [];
-            // Some elements always have breaks before or after.
-            // But we only add them if they won't be inserted from text nodes directly
-            if (BREAK_AROUND_ELEMENTS.has(node.name)) {
-                const prevSibling = nodeMap?.prevSiblingOf(node);
-                const nextSibling = nodeMap?.nextSiblingOf(node);
-                if (
-                    !nodeMap?.hasLineBreakBefore(node) &&
-                    prevSibling &&
-                    !(
-                        isElement(prevSibling) &&
-                        BREAK_AROUND_ELEMENTS.has(prevSibling.name)
-                    )
-                ) {
-                    leadingBreak.push(hardline);
-                }
-                if (
-                    nextSibling &&
-                    (!nodeMap?.hasLineBreakAfter(node) ||
-                        (isElement(nextSibling) &&
-                            BREAK_AROUND_ELEMENTS.has(nextSibling.name)))
-                ) {
-                    closingBreak.push(hardline);
-                }
-            }
+            // For all non-empty elements the opening tag ends with `>`.
+            openingTag.push(printedAttrs.length > 0 ? softline : "", ">");
+            const closingTag: Doc[] = ["</", nodeName, ">"];
 
-            // PRE elements have children printed verbatim.
-            if (PRE_ELEMENTS.has(node.name)) {
+            if (mode === "pre") {
                 return [
-                    ...leadingBreak,
                     group(openingTag),
                     toXml(node.children, options),
-                    group(closingTag),
-                    ...closingBreak,
+                    closingTag,
                 ];
             }
 
-            let children = path
-                .map(print, "children")
-                .flat()
-                .filter((x) => !isEmptyGroup(x) && x !== "");
-            if (node.children.length > 0) {
-                if (CHILDREN_ON_OWN_LINE_ELEMENTS.has(node.name)) {
-                    children = [
-                        indent([softline, joinWithSoftline(children)]),
-                        softline,
-                    ];
-                    children.push(breakParent);
-                } else {
-                    children = [indent([softline, fill(children)]), softline];
-                }
-                if (ALWAYS_BREAK_ELEMENTS.has(node.name)) {
-                    children.push(breakParent);
-                }
+            if (mode === "inline") {
+                // Render as a single group: collapses to one line when it
+                // fits in printWidth, otherwise breaks and indents children.
+                const children = flattenForFill(path.map(print, "children"));
+                return group([
+                    group(openingTag),
+                    indent([softline, fill(children)]),
+                    softline,
+                    closingTag,
+                ]);
             }
+
+            // mode === "block": see `printChildSequenceAsBlock` below.
+            const blockBody = printChildSequenceAsBlock(
+                node.children,
+                path.map(print, "children"),
+                isDefinitionalContainer(node.name),
+            );
             return [
-                ...leadingBreak,
-                group([group(openingTag), group(children), group(closingTag)]),
-                ...closingBreak,
+                group(openingTag),
+                indent([hardline, blockBody]),
+                hardline,
+                closingTag,
+                breakParent,
             ];
         }
         case "error":
@@ -181,7 +193,13 @@ export const print: Printer<DastNodes>["print"] = function print(
                 // accidentally make a character entity. For example `&amp;amp;` or `&amp;#x24;`
                 escapedText = escapedText.replace(/&amp;(?!\S*;)/g, "&");
             }
-            // Double newlines are preserved
+            // Double newlines inside the text value are preserved as a
+            // single blank line. Boundary blank lines (those adjacent to a
+            // block sibling) are stripped upstream by
+            // `markBlankLinesPlugin`, so the parent's block separator is
+            // the single source of truth for inter-sibling spacing; if you
+            // remove that stripping, this `\n\n+` split will stack with
+            // the separator hardline and produce two blank lines.
             return join(
                 [hardline, hardline],
                 escapedText
@@ -203,111 +221,111 @@ export const print: Printer<DastNodes>["print"] = function print(
     return "";
 };
 
-class NodeMap {
-    _parents: Map<DastNodes, DastElement | DastRoot>;
-    _prevSiblings: Map<DastNodes, DastNodes | null>;
-    _nextSiblings: Map<DastNodes, DastNodes | null>;
-    constructor(root: DastNodes) {
-        this._parents = new Map();
-        this._prevSiblings = new Map();
-        this._nextSiblings = new Map();
-        this._init(root);
-    }
-    /**
-     * Build a map of all parents/siblings.
-     */
-    _init(node: DastNodes, parent: DastNodes | null = null) {
-        if (isElement(parent) || parent?.type === "root") {
-            this._parents.set(node, parent);
+/**
+ * Render a child sequence in block layout — each block child on its own
+ * line, consecutive non-block (text + macros + inline elements) children
+ * grouped into an inline run rendered with `fill()`. Blank lines from
+ * source (recorded by `plugin-mark-blank-lines`) are emitted as a single
+ * extra hardline before the affected child.
+ *
+ * Used by the root and by elements whose `classifyContentMode` returned
+ * `"block"`. The returned Doc carries no leading or trailing hardline —
+ * the caller is responsible for surrounding indent/hardlines.
+ *
+ * When `treatAllElementsAsBlock` is set, every element child gets its own
+ * line regardless of its inline/block classification. Used for the
+ * definitional containers (`<setup>`, `<moduleAttributes>`), whose direct
+ * children are a list of definitions with no prose flow.
+ */
+function printChildSequenceAsBlock(
+    children: DastNodes[],
+    printedChildren: Doc[],
+    treatAllElementsAsBlock: boolean = false,
+): Doc {
+    // Group consecutive non-block children into inline runs, then emit each
+    // run separated by a hardline (or two for blank-line markers). Inline
+    // runs are flattened+filled at flush time so empty ones (e.g. a lone
+    // whitespace text between two elements promoted to block by
+    // `treatAllElementsAsBlock`) can be dropped before separators are
+    // chosen — otherwise the separator hardlines stack into spurious blank
+    // lines and break idempotence on the next format pass. `firstNode` is
+    // kept per run so the blank-line marker on the run's leading child can
+    // be consulted for the inter-run separator.
+    type Run = { firstNode: DastNodes; doc: Doc };
+    const runs: Run[] = [];
+    let inlineBuf: { firstNode: DastNodes; printed: Doc[] } | null = null;
+    function flushInline() {
+        if (!inlineBuf) return;
+        const fillContent = flattenForFill(inlineBuf.printed);
+        if (fillContent.length > 0) {
+            runs.push({
+                firstNode: inlineBuf.firstNode,
+                doc: fill(fillContent),
+            });
         }
-        if (isElement(node) || node?.type === "root") {
-            const children = node.children;
-            let prevNode: DastNodes | null = null;
-            for (const n of children) {
-                this._prevSiblings.set(n, prevNode);
-                if (prevNode) {
-                    this._nextSiblings.set(prevNode, n);
-                }
-                prevNode = n;
-                this._init(n, node);
-            }
+        inlineBuf = null;
+    }
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const printed = printedChildren[i];
+        const childIsBlock =
+            isBlockChildNode(child) ||
+            (treatAllElementsAsBlock && child.type === "element");
+        if (childIsBlock) {
+            flushInline();
+            runs.push({ firstNode: child, doc: printed });
+        } else {
+            if (!inlineBuf) inlineBuf = { firstNode: child, printed: [] };
+            inlineBuf.printed.push(printed);
         }
     }
-    parentOf(node: DastNodes): DastElement | DastRoot | null {
-        return this._parents.get(node) || null;
-    }
-    prevSiblingOf(node: DastNodes): DastNodes | null {
-        return this._prevSiblings.get(node) || null;
-    }
-    nextSiblingOf(node: DastNodes): DastNodes | null {
-        return this._nextSiblings.get(node) || null;
-    }
-    hasLineBreakBefore(node: DastNodes): boolean {
-        const prevSibling = this.prevSiblingOf(node);
-        if (prevSibling?.type === "text") {
-            return prevSibling.value.endsWith("\n");
+    flushInline();
+
+    const parts: Doc[] = [];
+    for (let r = 0; r < runs.length; r++) {
+        const run = runs[r];
+        if (r > 0) {
+            parts.push(
+                hasBlankLineBefore(run.firstNode)
+                    ? [hardline, hardline]
+                    : hardline,
+            );
         }
-        return false;
+        parts.push(run.doc);
     }
-    hasLineBreakAfter(node: DastNodes): boolean {
-        const nextSibling = this.nextSiblingOf(node);
-        if (nextSibling?.type === "text") {
-            return nextSibling.value.endsWith("\n");
-        }
-        return false;
-    }
+    return parts;
 }
 
 /**
- * Returns whether the object is `type === "group"`
+ * Prepare a sequence of printed child Docs for `fill()`. `fill` requires
+ * strict alternation of content / line-separator entries — interleaved
+ * empty strings (artifacts of text-node printing around `line` separators)
+ * confuse its break heuristic and trigger the
+ * "second-element-breaks-internally" layout bug.
+ *
+ * Flatten one level (each child Doc may itself be an array), drop empty
+ * strings, coalesce adjacent soft `line`/`softline` separators, and trim
+ * any leading/trailing soft separator. `hardline` runs are preserved as-is
+ * — double hardlines encode source blank lines.
  */
-function isGroup(doc: Doc): doc is Doc & { type: "group" } {
-    if (typeof doc !== "object") {
-        return false;
-    }
-    if (Array.isArray(doc)) {
-        return false;
-    }
-    return doc.type === "group";
-}
-
-function isEmptyGroup(doc: Doc): boolean {
-    return (
-        isGroup(doc) && Array.isArray(doc.contents) && doc.contents.length === 0
-    );
-}
-
-/**
- * Join with a softline between each element, but only if there isn't already a line between the elements.
- */
-function joinWithSoftline(doc: Doc[]): Doc[] {
-    if (doc.length === 0) {
-        return doc;
-    }
-    const ret: Doc[] = [];
-    for (let i = 0; i < doc.length; i++) {
-        const curr = doc[i];
-        const next = doc[i + 1];
-        ret.push(curr);
-        if (next && !isLine(next) && !isLine(curr)) {
-            ret.push(softline);
+function flattenForFill(children: Doc[]): Doc[] {
+    const result: Doc[] = [];
+    for (const item of children.flat()) {
+        if (item === "") continue;
+        if (
+            isSoftLine(item) &&
+            (result.length === 0 || isSoftLine(result[result.length - 1]))
+        ) {
+            continue;
         }
+        result.push(item);
     }
-    return ret;
+    while (result.length > 0 && isSoftLine(result[result.length - 1])) {
+        result.pop();
+    }
+    return result;
 }
 
-function isLine(doc: Doc): boolean {
-    if (doc === line || doc === softline || doc === hardline) {
-        return true;
-    }
-    if (typeof doc !== "object") {
-        return false;
-    }
-    if (Array.isArray(doc)) {
-        // Could be an array containing a line and a break-parent
-        return isLine(doc[0]);
-    } else {
-        return doc.type === "line";
-    }
-    return false;
+function isSoftLine(item: Doc): boolean {
+    return item === line || item === softline;
 }

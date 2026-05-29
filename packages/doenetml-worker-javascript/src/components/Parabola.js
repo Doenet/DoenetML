@@ -8,6 +8,8 @@ import me from "math-expressions";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
+    // Overrides Curve's ["line", "fill"]: parabolas have no enclosed interior to fill.
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
         summary: "A parabola defined by formula or geometric parameters",
@@ -40,8 +42,18 @@ export default class Parabola extends Curve {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Borrow GraphicalComponent's definitions to skip Curve's
+        // parametric-curve state variables (the few Curve vars Parabola needs
+        // are cherry-picked from curveStateVariableDefinitions below). Must use
+        // `.call(this)`: the borrowed code resolves style-override groups off
+        // `this`'s prototype chain, so an unbound call would pick up
+        // GraphicalComponent's empty default instead of Parabola's ["line"],
+        // dropping overrides like lineWidth.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions.call(
+                this,
+                numerics,
+            );
 
         Object.assign(
             stateVariableDefinitions,

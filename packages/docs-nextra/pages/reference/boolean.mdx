@@ -1,10 +1,11 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrPropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<boolean>{:dn}`
 
+<ComponentDisplay name='boolean'/>
 
 `<boolean>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
 component that renders the boolean value of `true` or `false` of the enclosed expression.
@@ -12,7 +13,7 @@ component that renders the boolean value of `true` or `false` of the enclosed ex
 <AttrPropDisplay name='boolean'/>
 
 
----
+## Examples
 
 ### Example: `<boolean>{:dn}` value of an equation
 
@@ -97,7 +98,7 @@ more complex boolean expressions.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: symbolicEquality
 
@@ -109,7 +110,7 @@ more complex boolean expressions.
 
 
 
-Comparing two values with the `symbolicEquality` attribute switches demands exact syntactical equality.
+Comparing two values with the `symbolicEquality` attribute demands exact syntactical equality.
 
 
 
@@ -281,7 +282,7 @@ Use the `matchBlanks` attribute to accurately compare two expressions containing
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 
