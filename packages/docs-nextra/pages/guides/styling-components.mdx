@@ -64,15 +64,20 @@ Here is style number 2 applied to three different kinds of component. The same s
 Notice the `filled="true"{:dn}` attribute on the circle. **A region is unfilled by default**, so it shows only its outline — and the style's fill color is invisible. Setting `filled="true"{:dn}` fills the interior so you can actually see the fill color. (The same `filled{:dn}` attribute is available on `<circle>{:dn}`, `<rectangle>{:dn}`, `<polygon>{:dn}`, and the other region components.)
 
 <Callout type="info">
-**Tip — styling several components at once.** A component that doesn't set its own `styleNumber{:dn}` inherits the `styleNumber{:dn}` of the component that contains it. So you can set `styleNumber{:dn}` once on a containing `<graph>{:dn}` (or a `<section>{:dn}`) and every component inside it follows along unless it sets its own:
+**Tip — styling several components at once.** A component that doesn't set its own `styleNumber{:dn}` inherits the `styleNumber{:dn}` of the nearest container that sets one — a `<graph>{:dn}`, a `<section>{:dn}`, or a `<group>{:dn}`. So you can gather several components into a `<group>{:dn}`, set `styleNumber{:dn}` once on the group, and every member follows along unless it sets its own:
 
 ```doenet-editor-horiz
-<graph size="small" styleNumber="4" xmin="-4" xmax="4" ymin="-4" ymax="4">
-  <shortDescription>Two points that both inherit style 4 from the graph</shortDescription>
-  <point coords="(-1,1)" />
+<graph size="small" xmin="-4" xmax="4" ymin="-4" ymax="4">
+  <shortDescription>Two grouped points using style 4, alongside a loose point in the default style</shortDescription>
+  <group styleNumber="4">
+    <point coords="(-2,2)" />
+    <point coords="(0,0)" />
+  </group>
   <point coords="(2,-2)" />
 </graph>
 ```
+
+The two points inside the `<group>{:dn}` pick up style 4 from it. The third point sits outside the group, so it keeps the default style 1 — the group's `styleNumber{:dn}` reaches only its own members.
 </Callout>
 
 ### Text and math colors
