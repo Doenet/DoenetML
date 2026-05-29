@@ -55,7 +55,20 @@ function schemaToRelaxNgSchema(schema: GeneratedSchema): RelaxNgSchema {
                 ),
                 children: item.children.map((child) => ({ ref: child })),
                 textChildrenAllowed: item.acceptsStringChildren,
-                properties: item.properties,
+                // Strip docs-only metadata (`groupName`/`highlighted`) that the
+                // schema carries for the reference docs but that has no role in
+                // XML validation or editor autocomplete.
+                properties: item.properties.map((property) => {
+                    const {
+                        groupName: _groupName,
+                        highlighted: _highlighted,
+                        ...rest
+                    } = property as SchemaProperty & {
+                        groupName?: string;
+                        highlighted?: boolean;
+                    };
+                    return rest;
+                }),
             } satisfies RelaxNgAttribute,
         ]),
     );

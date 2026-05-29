@@ -262,6 +262,12 @@ type PropertyDescription = {
     indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface this property in the docs "Highlighted" section.
+     * See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type ArrayElementDescription = {
@@ -304,6 +310,12 @@ type StateVariableDescription = {
      * its companion state var, #1090). See #1089.
      */
     excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type PublicStateVariableDescription = {
@@ -342,6 +354,12 @@ type PublicStateVariableDescription = {
     defaultValue?: unknown;
     /** See `StateVariableDescription.excludeFromSchema`. */
     excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaAttribute = {
@@ -365,6 +383,12 @@ type SchemaAttribute = {
     description: string;
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
+    /** Docs-only: functional group this attribute belongs to in the reference
+     * docs (e.g. `"number-display"`). See `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: when `true`, surface this attribute in the docs "Highlighted"
+     * section. See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaElement = {
@@ -725,6 +749,13 @@ export function getSchema(
                 name: attrName,
                 description: attrDef.description,
             };
+            // Docs-only grouping metadata, surfaced into the reference docs.
+            if (attrDef.groupName !== undefined) {
+                attrSpec.groupName = attrDef.groupName;
+            }
+            if (attrDef.highlighted !== undefined) {
+                attrSpec.highlighted = attrDef.highlighted;
+            }
             // Prefer the default declared on the attribute itself. When it
             // doesn't declare one, fall back to the matching state
             // variable's default — this covers number-display attributes
@@ -1242,6 +1273,16 @@ function singlePropFromDescription({
 
     if (description.fromAttribute) {
         prop.fromAttribute = true;
+    }
+
+    // Docs-only grouping metadata. For attribute-derived properties this is
+    // also derivable from the same-named attribute in the docs pipeline; for
+    // pure-output properties it is the only source.
+    if (description.groupName !== undefined) {
+        prop.groupName = description.groupName;
+    }
+    if (description.highlighted !== undefined) {
+        prop.highlighted = description.highlighted;
     }
 
     if (description.isArray) {

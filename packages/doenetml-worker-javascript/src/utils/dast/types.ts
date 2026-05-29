@@ -308,6 +308,22 @@ export type AttributeDefinition<T> = {
     triggerActionOnChange?: string;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description: string;
+    /**
+     * Docs-only: the functional group this attribute belongs to in the
+     * reference docs (e.g. `"number-display"`, `"labels"`). Attributes sharing
+     * a `groupName` render together in a collapsible section. When omitted, the
+     * attribute falls into the generic "Other" group. The group vocabulary and
+     * display labels live in the docs renderer, so adding a new group does not
+     * require a worker change.
+     */
+    groupName?: string;
+    /**
+     * Docs-only: when `true`, this attribute is hand-picked as one of the most
+     * useful for the component and is surfaced in the "Highlighted" section
+     * (open by default) at the top of the reference docs, in addition to its
+     * `groupName` section.
+     */
+    highlighted?: boolean;
     /** If `true`, attribute values are converted to lower case */
     toLowerCase?: boolean;
     /** If `true`, leave the attribute serialized when the component is created */

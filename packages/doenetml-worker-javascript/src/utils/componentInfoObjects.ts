@@ -113,6 +113,19 @@ type StateVariableDescription = {
      * attribute-derived, addressing the second scope item of #1089.
      */
     excludeFromSchema?: boolean;
+    /**
+     * Docs-only: the functional group this property belongs to in the
+     * reference docs. Propagated by `BaseComponent.returnStateVariableInfo`
+     * either from the backing attribute or, for pure-output properties, from
+     * the state def itself. See `AttributeDefinition.groupName`.
+     */
+    groupName?: string;
+    /**
+     * Docs-only: when `true`, this property is hand-picked as one of the most
+     * useful and is surfaced in the "Highlighted" section of the reference
+     * docs. See `AttributeDefinition.highlighted`.
+     */
+    highlighted?: boolean;
 };
 
 /**
