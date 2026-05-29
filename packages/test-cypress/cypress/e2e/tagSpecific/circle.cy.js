@@ -138,10 +138,9 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
 
     it("per-component fillOpacity reaches the rendered circle", () => {
         // Regression guard for #1231: a per-component `fillOpacity` override on
-        // a filled circle must reach JSXGraph's `fillopacity`, not stay stuck at
-        // the styleNumber default (every preset ships fillOpacity 0.3). The
-        // worker-side fix is unit-tested, but only this rendering-level check
-        // confirms the override survives all the way to what the user sees.
+        // a filled circle must reach JSXGraph's `fillopacity` rather than stay
+        // stuck at the styleNumber default (every preset ships fillOpacity 0.3).
+        // This rendering-level check confirms the override survives to the DOM.
         cy.window().then(async (win) => {
             win.postMessage(
                 {

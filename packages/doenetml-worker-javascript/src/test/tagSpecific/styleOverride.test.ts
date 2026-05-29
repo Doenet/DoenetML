@@ -231,15 +231,10 @@ describe("Per-component style override tests @group4", async () => {
     });
 
     it("fillOpacity override flows through to selectedStyle on a circle", async () => {
-        // Circle and Parabola borrow GraphicalComponent's state-variable
-        // definitions directly (skipping Curve's parametric-curve vars). That
-        // borrow must run with `this` bound to the leaf class, or the override
-        // groups resolve from GraphicalComponent's empty styleOverrideCategories
-        // and per-component overrides silently never reach selectedStyle (the
-        // bug in #1231 — fills stuck at the styleNumber default). The polygon
-        // test above doesn't exercise this code path, so circle gets its own
-        // coverage. The styleNumber-3 default fillOpacity is 0.3, so the
-        // overridden values must differ from it to be meaningful.
+        // Regression test for #1231. Circle borrows GraphicalComponent's
+        // definitions via a separate code path from the polygon test above, and
+        // that borrow dropped per-component overrides. C3 uses styleNumber 3's
+        // default fillOpacity (0.3) so the overrides can't pass coincidentally.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
@@ -261,9 +256,8 @@ describe("Per-component style override tests @group4", async () => {
     });
 
     it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
-        // Parabola shares Circle's "borrow GraphicalComponent directly" path
-        // (see the circle test above) but only opts into the "line" override
-        // category, so its line overrides exercise the same `this`-binding fix.
+        // Same #1231 borrow path as the circle test above, but Parabola opts
+        // into only the "line" override category.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>

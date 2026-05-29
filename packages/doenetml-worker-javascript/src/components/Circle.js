@@ -107,13 +107,12 @@ export default class Circle extends Curve {
     }
 
     static returnStateVariableDefinitions(numerics) {
-        // Borrow GraphicalComponent's definitions directly to skip Curve's
-        // parametric-curve state variables, but invoke via `.call(this)` so
-        // `this` stays Circle. Otherwise the per-component style overrides
-        // resolved inside GraphicalComponent read its own empty
-        // styleOverrideCategories instead of the ["line", "fill"] groups Circle
-        // inherits from Curve, and attributes like fillOpacity never reach
-        // selectedStyle.
+        // Borrow GraphicalComponent's definitions to skip Curve's
+        // parametric-curve state variables. Must use `.call(this)`: the
+        // borrowed code resolves style-override groups off `this`'s prototype
+        // chain, so an unbound call would pick up GraphicalComponent's empty
+        // default instead of Curve's ["line", "fill"], dropping overrides like
+        // fillOpacity.
         let stateVariableDefinitions =
             GraphicalComponent.returnStateVariableDefinitions.call(
                 this,
