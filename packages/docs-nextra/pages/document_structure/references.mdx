@@ -22,9 +22,16 @@ that name. The reference inserts the named component at that location.
 ```doenet-editor
 <point name="p">(3, 4)</point>
 
-<p>Here is the same point shown on a graph:</p>
-<graph>$p</graph>
+<p>The coordinates of p are $p.</p>
+<graph>
+  <shortDescription>A graph with a draggable point named p</shortDescription>
+  $p
+</graph>
 ```
+
+Try dragging the point on the graph: the coordinates shown above update to
+match, because `$p` is the same point as `p` — a reference, not a separate
+copy.
 
 <Callout type="info">
 **DoenetML naming convention:**
