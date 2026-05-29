@@ -230,6 +230,50 @@ describe("Per-component style override tests @group4", async () => {
         expect(G.stateValues.selectedStyle.fillOpacity).eq(0.5);
     });
 
+    it("fillOpacity override flows through to selectedStyle on a circle", async () => {
+        // Regression test for #1231. Circle borrows GraphicalComponent's
+        // definitions via a separate code path from the polygon test above, and
+        // that borrow dropped per-component overrides. C3 uses styleNumber 3's
+        // default fillOpacity (0.3) so the overrides can't pass coincidentally.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <circle name="C1" center="(-1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.2" />
+  <circle name="C2" center="(1.5,0)" radius="1.5" styleNumber="3" filled="true" fillOpacity="0.8" />
+  <circle name="C3" center="(4.5,0)" radius="1.5" styleNumber="3" filled="true" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const C1 = stateVariables[await resolvePathToNodeIdx("C1")];
+        const C2 = stateVariables[await resolvePathToNodeIdx("C2")];
+        const C3 = stateVariables[await resolvePathToNodeIdx("C3")];
+        expect(C1.stateValues.selectedStyle.fillOpacity).eq(0.2);
+        expect(C2.stateValues.selectedStyle.fillOpacity).eq(0.8);
+        // Sibling without the override falls back to styleNumber 3's default.
+        expect(C3.stateValues.selectedStyle.fillOpacity).eq(0.3);
+    });
+
+    it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
+        // Same #1231 borrow path as the circle test above, but Parabola opts
+        // into only the "line" override category.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <parabola name="P" through="(0,0) (1,1) (2,0)" lineWidth="1" lineStyle="dashed" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        expect(P.stateValues.selectedStyle.lineWidth).eq(1);
+        expect(P.stateValues.selectedStyle.lineWidthWord).eq("thin");
+        expect(P.stateValues.selectedStyle.lineStyle).eq("dashed");
+        expect(P.stateValues.selectedStyle.lineStyleWord).eq("dashed");
+    });
+
     it("colors stay <styleDefinition>-only: color attributes are never exposed on graphical components", async () => {
         const Point = (await import("../../components/Point.js")).default;
         const pointAttrs = Point.createAttributesObject();
