@@ -15,6 +15,10 @@ export default {
         title: "Tutorials",
         type: "page",
     },
+    guides: {
+        title: "Guides",
+        type: "page",
+    },
     sandbox: {
         title: "Sandbox",
         type: "page",
