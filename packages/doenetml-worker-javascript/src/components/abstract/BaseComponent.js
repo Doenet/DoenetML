@@ -383,6 +383,7 @@ export default class BaseComponent {
                 defaultValue: 1,
                 public: true,
                 fallBackToParentStateVariable: "styleNumber",
+                fallBackToSourceCompositeStateVariable: "styleNumber",
                 description:
                     "The style number used to select this component's visual styling from the available style definitions.",
             },

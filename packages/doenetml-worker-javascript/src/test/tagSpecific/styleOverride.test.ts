@@ -469,3 +469,124 @@ describe("Per-component style override tests @group4", async () => {
         ).toBe(true);
     });
 });
+
+describe("styleNumber propagation through composites @group4", async () => {
+    it("members of a <group styleNumber=N> inherit N", async () => {
+        // A <group> is a composite: its members are reparented out of the
+        // group into its container, so the parent fallback can't see the
+        // group's styleNumber. The source-composite fallback carries it
+        // through instead.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <point name="P1" coords="(-1,1)" />
+    <point name="P2" coords="(2,-2)" />
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                .styleNumber,
+        ).eq(4);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+
+    it("an explicit styleNumber on a member overrides the group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <point name="P1" coords="(-1,1)" styleNumber="2" />
+    <point name="P2" coords="(2,-2)" />
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        // Explicit value on the member wins.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                .styleNumber,
+        ).eq(2);
+        // Sibling without an explicit value still inherits the group's.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+
+    it("a containing graph's styleNumber wins over the source composite's", async () => {
+        // Members are reparented into the <graph>, so the graph is their
+        // rendered parent. The parent fallback is consulted before the
+        // source-composite fallback, so the graph's value (2) wins over the
+        // group's (4).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph styleNumber="2">
+  <group styleNumber="4">
+    <point name="P" coords="(-1,1)" />
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .styleNumber,
+        ).eq(2);
+    });
+
+    it("styleNumber chains through nested groups", async () => {
+        // The inner group has no explicit styleNumber, so it inherits 4 from
+        // the outer group via the source-composite fallback; the point then
+        // inherits 4 from the inner group the same way.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <group styleNumber="4">
+    <group>
+      <point name="P" coords="(-1,1)" />
+    </group>
+  </group>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+
+    it("styleNumber propagates through a <repeat> to its members", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <repeat name="r" for="1 2" valueName="v" styleNumber="4">
+    <point name="rp">($v, 0)</point>
+  </repeat>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[1].rp")].stateValues
+                .styleNumber,
+        ).eq(4);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[2].rp")].stateValues
+                .styleNumber,
+        ).eq(4);
+    });
+});
