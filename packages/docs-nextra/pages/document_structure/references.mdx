@@ -54,6 +54,70 @@ the full list, and the
 [Properties and Lists](../tutorials/intermediateTutorial/iT2-4-properties)
 tutorial for more worked examples.
 
+## How a reference finds its referent
+
+A reference looks for its referent starting where it is written and working
+outward through the enclosing components. The **nearest** matching name wins, so
+the same `$n` can mean different things in different places. Below, each `$n`
+finds the `<number name="n">` defined in its own section.
+
+```doenet-editor
+<section>
+  <title>First</title>
+  <number name="n">10</number>
+  <p>Here, n is $n.</p>
+</section>
+<section>
+  <title>Second</title>
+  <number name="n">20</number>
+  <p>Here, n is $n.</p>
+</section>
+```
+
+## When a reference is ambiguous
+
+If a name matches more than one component and none is nearer than the others,
+the reference is ambiguous: DoenetML reports an error rather than guessing which
+one you meant. Here, `$n` written outside both sections could equally mean
+either section's `n`, so it fails.
+
+```doenet-editor
+<section>
+  <number name="n">10</number>
+</section>
+<section>
+  <number name="n">20</number>
+</section>
+<p>Outside the sections, $n is ambiguous.</p>
+```
+
+## Disambiguating with a named ancestor
+
+Give the enclosing component a `name` and reference through it:
+`$ancestor.name` points at the `name` defined inside that specific ancestor.
+Naming the two sections `s1` and `s2` lets you reach each `n` unambiguously.
+
+```doenet-editor
+<section name="s1">
+  <number name="n">10</number>
+</section>
+<section name="s2">
+  <number name="n">20</number>
+</section>
+<p>The first section's n is $s1.n and the second's is $s2.n.</p>
+```
+
+## When a name doesn't exist
+
+If nothing with the referenced name can be found, the reference fails. A common
+cause is a typo in the name.
+
+```doenet-editor
+<number name="count">5</number>
+
+<p>$total has no referent, because nothing is named "total".</p>
+```
+
 ## Marking where a name ends with `$(...)`
 
 When a reference is followed immediately by other letters, numbers, or
@@ -71,16 +135,19 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 
 A [`<repeat>`](../reference/repeat) (or
 [`<repeatForSequence>`](../reference/repeatForSequence)) generates several
-copies of its content. Use a bracketed index to reference one iteration, and
-`valueName`/`indexName` to reference the per-iteration values inside the repeat.
+copies of its content. Use a bracketed index to reference one iteration, the
+`valueName`/`indexName` bindings to reference the per-iteration values inside
+the repeat, and a `name` on a component in the body to reach that component in a
+chosen iteration.
 
 ```doenet-editor
 <repeatForSequence name="rep" from="1" to="3" valueName="v">
-  <p>Iteration value: $v, and its square: <math>$v^2</math></p>
+  <p>$v squared is <math name="squared">$v^2</math>.</p>
 </repeatForSequence>
 
-<p>The value used in the first iteration was $rep[1].v.</p>
+<p>The square computed in the second iteration is $rep[2].squared.</p>
 ```
 
-Here `$rep[1]` references the first iteration of the repeat, and `$rep[1].v`
-references the iteration value `v` from that iteration.
+Here `$rep[2]` references the second iteration of the repeat, and
+`$rep[2].squared` references the `<math name="squared">` defined inside that
+iteration.
