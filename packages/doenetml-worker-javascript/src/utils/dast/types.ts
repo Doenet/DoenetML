@@ -264,29 +264,29 @@ export type AttributeDefinition<T> = {
     propagateToProps?: boolean;
     excludeFromSchema?: boolean;
     /**
-     * Authoring knob (set here, in the attribute definition): the *name* of a
-     * state variable on the rendered parent.
+     * Set by the developer in the attribute definition: the *name* of a state
+     * variable on the rendered parent. Leaving this field undefined means there
+     * is no parent fallback.
      *
-     * Runtime effect: when a document does not give this attribute a value, the
-     * state variable created from this attribute takes its value by copying that
-     * named state variable from the parent, instead of using `defaultValue`.
-     * Leaving this field undefined means there is no parent fallback — an
-     * unspecified attribute then uses `defaultValue`.
+     * Resulting behavior for a DoenetML author: when the author does not give
+     * this attribute a value, the state variable created from this attribute
+     * takes its value by copying that named state variable from the parent,
+     * instead of using `defaultValue`.
      *
      * If `fallBackToSourceCompositeStateVariable` is also set, the source
      * composite is consulted before the parent (see that field).
      */
     fallBackToParentStateVariable?: string;
     /**
-     * Authoring knob (set here, in the attribute definition): the *name* of a
-     * state variable on the source composite — the innermost composite (e.g. a
-     * `<group>`) that created this component.
+     * Set by the developer in the attribute definition: the *name* of a state
+     * variable on the source composite — the innermost composite (e.g. a
+     * `<group>`) that created this component. Leaving this field undefined means
+     * there is no source-composite fallback.
      *
-     * Runtime effect: when a document does not give this attribute a value, the
-     * state variable created from this attribute takes its value by copying that
-     * named state variable from the source composite, instead of using
-     * `defaultValue`. Leaving this field undefined means there is no
-     * source-composite fallback.
+     * Resulting behavior for a DoenetML author: when the author does not give
+     * this attribute a value, the state variable created from this attribute
+     * takes its value by copying that named state variable from the source
+     * composite, instead of using `defaultValue`.
      *
      * When both this and `fallBackToParentStateVariable` are set, the source
      * composite is consulted first: its value wins over the parent's whenever the
