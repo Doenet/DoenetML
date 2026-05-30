@@ -112,7 +112,10 @@ describe("DoenetEditor context-sensitive help", () => {
         it("shows help for the highlighted element completion and follows arrow-key navigation", () => {
             mountEditorWithHelpOpen("");
             focusEditorAtEnd();
-            cy.get(".cm-content").type("<a", { force: true });
+            // Use a prefix that doesn't match any snippet keys (snippets
+            // currently start with a/i/m/p/t/v) so arrow-down only steps
+            // through element rows — the next test covers the snippet path.
+            cy.get(".cm-content").type("<s", { force: true });
             openAutocomplete();
 
             // Whatever option the popup defaults to, the help panel should
