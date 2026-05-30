@@ -195,6 +195,27 @@ function resolveEntriesForNode(
 }
 
 /**
+ * Variant of `resolveEntriesForNode` for callers that have already resolved a
+ * DAST `containerNode` (e.g. from the ref resolver) and want the effective
+ * entry to fall back to the own entry when no alias applies — so they can
+ * read `.properties` / `.attributes` without a separate nullish coalesce.
+ * Returns `null` when the container's tag name isn't in the schema at all.
+ */
+function resolveEntriesForContainer(
+    completer: AutoCompleter,
+    containerNode: DastElement,
+): { ownEntry: ElementSchema; effectiveEntry: SchemaEntryForHelp } | null {
+    const ownEntry = completer.findSchemaElement(containerNode.name);
+    if (!ownEntry) return null;
+    const parent = completer.sourceObj.getParent(containerNode);
+    const parentName = parent && "name" in parent ? parent.name : undefined;
+    const effectiveEntry =
+        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
+        ownEntry;
+    return { ownEntry, effectiveEntry };
+}
+
+/**
  * Compute the context-help payload for a cursor offset.
  *
  * `precomputedCtx`, when provided, is the completion context for `offset`
@@ -869,17 +890,12 @@ function tryArrayEntryHelp(
     if (!containerNode || unresolvedPathParts.length === 0) return null;
 
     const arrayName = unresolvedPathParts[0];
-    const ownEntry = completer.findSchemaElement(containerNode.name);
-    if (!ownEntry) return null;
-
-    // Mirror the alias-aware property lookup used by the regular property
-    // branch below, so a child element addressed via its alias-redirected
-    // parent (e.g. `<row>` inside `<matrix>`) still sees the right schema.
-    const parent = completer.sourceObj.getParent(containerNode);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
-    const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
-        ownEntry;
+    // Use the alias-aware property lookup (a `<row>` inside `<matrix>` reads
+    // its property docs from `matrixRow`) so the array prop and its docs are
+    // found the same way the regular property branch below finds them.
+    const entries = resolveEntriesForContainer(completer, containerNode);
+    if (!entries) return null;
+    const { ownEntry, effectiveEntry } = entries;
 
     const arrayProp = effectiveEntry.properties?.find(
         (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
@@ -1137,20 +1153,14 @@ async function helpForRefMemberByName(
         };
     }
 
-    const ownEntry = completer.findSchemaElement(containerNode.name);
-    if (!ownEntry) return NONE;
-
-    // Mirror the alias-aware path used by `helpForElement`/`helpForAttribute`
-    // and by `$ref.member` autocomplete: a `<row>` inside `<matrix>` looks up
-    // its property docs on the `matrixRow` entry, so the panel and the
+    // Use the alias-aware lookup (a `<row>` inside `<matrix>` reads its
+    // property docs from `matrixRow`) so the panel and the `$ref.member`
     // dropdown agree on what each property means in context. Property names
-    // and descriptions on alias-only properties (e.g. `maxNumber`) are
-    // otherwise invisible to the help panel.
-    const parent = completer.sourceObj.getParent(containerNode);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
-    const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
-        ownEntry;
+    // and descriptions on alias-only properties (e.g. `maxNumber`) would
+    // otherwise be invisible to the help panel.
+    const entries = resolveEntriesForContainer(completer, containerNode);
+    if (!entries) return NONE;
+    const { ownEntry, effectiveEntry } = entries;
 
     const prop = findSchemaProperty(effectiveEntry, memberName);
     if (!prop?.description) {
