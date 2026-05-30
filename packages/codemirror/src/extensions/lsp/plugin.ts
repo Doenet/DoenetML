@@ -72,7 +72,7 @@ import type {
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
-import { deriveCompletionType } from "@doenet/lsp-tools";
+import { deriveCompletionType, COMPLETION_TYPES } from "@doenet/lsp-tools";
 
 // LSP's `CompletionItem` doesn't declare `displayLabel`, but
 // @codemirror/autocomplete supports it as a "show this, filter on label"
@@ -652,7 +652,10 @@ export class LSPPlugin implements PluginValue {
                             },
                         });
                     },
-                    type: "value",
+                    // Attribute-value live-preview row; tag it with the shared
+                    // attribute-value type so its dropdown icon matches the
+                    // LSP-driven value rows instead of hardcoding the string.
+                    type: COMPLETION_TYPES.attributeValue,
                 },
             ],
             filter: false,
