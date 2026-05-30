@@ -65,36 +65,29 @@ export function elementAtOffsetWithContext(
         // If we're at a node boundary, we pick the node to the left if the previous character
         // is a word character. This should help with completion contexts, since the author
         // is probably still typing a word, or is expecting completions from the word on the left.
-        let lezerNode = atNodeBoundary
+        const lezerNode = atNodeBoundary
             ? prevChar.match(/\w/)
                 ? leftNode
                 : rightNode
             : leftNode;
         const rightNodeType = rightNode.type.name as LezerSyntaxNodeName;
-        const bodyShortcut =
-            atNodeBoundary && rightNodeType === "StartCloseTag";
-        if (bodyShortcut) {
+        if (atNodeBoundary && rightNodeType === "StartCloseTag") {
             // Cursor is at the boundary between an OpenTag's `>` and the
             // immediately following close tag's `</` (i.e.
             // `<mathInput>|</mathInput>` — the very position the
             // autocompleter drops the cursor after inserting a tag pair).
-            // That's the body of the element on the left.
+            // That's the body of the element on the left. Skip the switch
+            // below — its `EndTag → openTag` case would overwrite this
+            // classification, since `leftNode` here is the OpenTag's `>` token.
             cursorPosition = "body";
-            lezerNode = leftNode;
-            node = this.nodeAtOffset(lezerNode.from, {
+            node = this.nodeAtOffset(leftNode.from, {
                 type: "element",
             }) as DastElement | null;
-        }
-
-        const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
-        const lezerNodeParentType = lezerNode.parent?.type?.name as
-            | LezerSyntaxNodeName
-            | undefined;
-        // Skip the switch when the body shortcut already classified the
-        // position — otherwise its `EndTag → openTag` case overwrites the
-        // body classification we just made (since `leftNode` here is the
-        // OpenTag's `>` token).
-        if (!bodyShortcut)
+        } else {
+            const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
+            const lezerNodeParentType = lezerNode.parent?.type?.name as
+                | LezerSyntaxNodeName
+                | undefined;
             switch (lezerNodeType) {
                 case "TagName": {
                     cursorPosition =
@@ -141,15 +134,16 @@ export function elementAtOffsetWithContext(
                     break;
                 case "StartCloseTag":
                     // The legitimate "between an OpenTag's `>` and the
-                    // following close tag's `</`" case is handled by the
-                    // `bodyShortcut` branch above and never reaches the
-                    // switch. The only way we land here is when the cursor
-                    // is INSIDE the close tag's `</` token itself (e.g.
+                    // following close tag's `</`" case is classified as
+                    // `body` by the early branch above and never reaches
+                    // here. The only way we land here is when the cursor is
+                    // INSIDE the close tag's `</` token itself (e.g.
                     // `<mathInput><|/mathInput>` — one char into `</`),
                     // which is the close-tag-edit position, not the body.
                     cursorPosition = "closeTagName";
                     break;
             }
+        }
     }
 
     // If we're not in an element and the previous character is a word character or `<`, then
