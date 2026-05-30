@@ -743,7 +743,7 @@ describe("computeContextHelp — styleBreakdown on <styleDefinition> tag name (#
     });
 
     it("element help on a <styleDefinition> autocomplete row (no node yet) omits the breakdown", async () => {
-        // The `property`-kind autocomplete branch in `computeContextHelpForCompletion`
+        // The `component`-kind autocomplete branch in `computeContextHelpForCompletion`
         // resolves the schema entry against itself with no surrounding node,
         // so there's no DAST node to feed into the resolver — the breakdown
         // is correctly absent.  Sanity-checks that we didn't accidentally
@@ -751,7 +751,7 @@ describe("computeContextHelp — styleBreakdown on <styleDefinition> tag name (#
         const source = `<`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "styleDefinition",
-            type: "property",
+            type: "component",
         });
         if (help.kind !== "element") {
             expect.fail(`expected element help, got ${help.kind}`);
@@ -1173,15 +1173,15 @@ describe("computeContextHelp — docsSlug propagation", () => {
 });
 
 describe("computeContextHelpForCompletion", () => {
-    it("returns element help for a `property`-kind completion when cursor is not in a refMember context", async () => {
-        // `<a|` — author is typing an element name. The LSP layer tags
-        // element-schema completions with `kind: Property` (lowercased
-        // `"property"` in CodeMirror). The dispatcher should treat this
-        // as an element lookup.
+    it("returns element help for a `component`-kind completion when cursor is not in a refMember context", async () => {
+        // `<a|` — author is typing an element name. The CodeMirror LSP plugin
+        // tags element-schema rows with `type: "component"` (see
+        // `deriveCompletionType` in `extensions/lsp/plugin.ts`). The
+        // dispatcher should treat this as an element lookup.
         const source = `<a`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "abs",
-            type: "property",
+            type: "component",
         });
         expect(help).toMatchObject({
             kind: "element",
@@ -1189,14 +1189,14 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns refMember property help for a `property`-kind completion inside a refMember context", async () => {
-        // `$m.|` — element-property completions surface here with the same
-        // `property` kind; disambiguation comes from the cursor's completion
-        // context (refMember vs body).
+    it("returns refMember property help for a `refproperty`-kind completion inside a refMember context", async () => {
+        // `$m.|` — element-property completions surface here tagged
+        // `type: "refproperty"`; disambiguation comes from the cursor's
+        // completion context (refMember vs body).
         const source = `<math name="m">x</math>\n$m.`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "displayDecimals",
-            type: "property",
+            type: "refproperty",
         });
         expect(help).toMatchObject({
             kind: "property",
@@ -1324,15 +1324,15 @@ describe("computeContextHelpForCompletion", () => {
         expect(help.snippetText).toContain("<label>");
     });
 
-    it("returns element help for a close-tag `property`-kind completion (`/math>`)", async () => {
-        // The LSP layer emits close-tag completions with `kind: Property`
-        // and labels like `/math>`. The dispatcher must recognize the
-        // `/` prefix and resolve through the surrounding element rather
-        // than treating the label as an element name.
+    it("returns element help for a close-tag `closetag`-kind completion (`/math>`)", async () => {
+        // The plugin tags close-tag rows `type: "closetag"` with labels like
+        // `/math>`. The dispatcher must recognize the `/` prefix and resolve
+        // through the surrounding element rather than treating the label as
+        // an element name.
         const source = `<math>x`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "/math>",
-            type: "property",
+            type: "closetag",
         });
         expect(help).toMatchObject({
             kind: "element",
@@ -1360,7 +1360,7 @@ describe("computeContextHelpForCompletion", () => {
         const source = `<a`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "definitelyNotAnElement",
-            type: "property",
+            type: "component",
         });
         expect(help.kind).toBe("none");
     });

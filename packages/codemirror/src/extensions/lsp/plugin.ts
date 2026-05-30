@@ -113,6 +113,11 @@ const completionItemKindMap = Object.fromEntries(
  * name, but components, reference-properties, and closing tags all share LSP
  * kind `Property`, so they're split here — for icon purposes only — using
  * signal the items already carry. No LSP `kind` is changed.
+ *
+ * NOTE: these `type` strings are also the dispatch key for the context-help
+ * panel — `computeContextHelpForCompletion` in `@doenet/lsp-tools` branches on
+ * them. Keep the two in sync: renaming a type here without updating that
+ * dispatch silently drops help for the affected category.
  */
 function deriveCompletionType(rawItem: {
     kind?: CompletionItemKind;

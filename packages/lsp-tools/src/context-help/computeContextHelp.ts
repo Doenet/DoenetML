@@ -1336,10 +1336,14 @@ export type ContextHelpCompletion = {
 
 /**
  * Compute help for the currently-highlighted autocomplete row. Dispatched on
- * `completion.type` (set by the CodeMirror LSP plugin from `CompletionItemKind`,
- * lower-cased). The `"property"` kind is ambiguous (both element schema items
- * and ref-member properties use it) and is disambiguated by inspecting the
- * cursor's completion context.
+ * `completion.type`, which the CodeMirror LSP plugin assigns in
+ * `deriveCompletionType` (`extensions/lsp/plugin.ts`). Most types map 1:1 to a
+ * kind of help; the element family — `"component"`, `"refproperty"`, and
+ * `"closetag"` (all `kind: Property` in the LSP layer, split apart for the
+ * dropdown icons) — shares one branch and is disambiguated there by the
+ * cursor's completion context and the label's `/` prefix. The pre-split
+ * `"property"` string is still accepted as a fallback. Keep this dispatch in
+ * sync with `deriveCompletionType`.
  *
  * `precomputedCtx` — see `computeContextHelp` for the contract.
  */
@@ -1410,9 +1414,19 @@ export async function computeContextHelpForCompletion(
         return await helpForRefNameByName(completer, offset, refName);
     }
 
-    if (type === "property") {
-        // Element schema items, ref-member properties, and close-tag rows
-        // all share `kind: Property` in the LSP layer.
+    if (
+        type === "component" ||
+        type === "refproperty" ||
+        type === "closetag" ||
+        type === "property"
+    ) {
+        // Element schema items, ref-member properties, and close-tag rows all
+        // share `kind: Property` in the LSP layer; the CodeMirror plugin's
+        // `deriveCompletionType` then splits that single kind into the
+        // distinct `type` strings above (so each gets its own dropdown icon).
+        // They're handled together here and disambiguated below by cursor
+        // context and the label's `/` prefix — exactly as when they shared the
+        // legacy `"property"` type (still accepted as a fallback).
         const ctx = getCtx();
         if (ctx.cursorPos === "refMember") {
             return await helpForRefMemberByName(
