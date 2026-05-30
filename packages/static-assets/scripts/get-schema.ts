@@ -373,18 +373,21 @@ type SchemaElement = {
     /** The types of children this component can have */
     children: string[];
     /**
-     * For each entry in `children`, how that child reaches the allowed-children
-     * list, as a rank the editor's suggestion panel uses to prefer natural
-     * children:
-     *   0 — directly listed in one of this component's child groups
-     *       (e.g. `<math>` for `<number>`);
-     *   1 — inherits from a directly-listed type;
-     *   2 — reaches the list only via an adapter (e.g. `<point>` adapting to
-     *       `math`), or via `allowInSchemaAnywhere`/`allowInSchemaAsComponent`.
-     * When a child is reachable several ways, the smallest (most direct) rank
-     * wins. Keyed by every name in `children`.
+     * Compact per-child bucket: a digit string aligned position-for-position
+     * with `children`. Each character is the smallest (most direct) rank by
+     * which that child is allowed here:
+     *   `0` — directly listed in one of this component's child groups
+     *         (e.g. `<math>` for `<number>`);
+     *   `1` — inherits from a directly-listed type;
+     *   `2` — reaches the list only via an adapter (e.g. `<point>` adapting
+     *         to `math`), or via `allowInSchemaAnywhere`/`AsComponent`.
+     *
+     * Encoded as a string rather than a `Record<string, number>` so that the
+     * generated JSON doesn't grow one pretty-printed line per (element ×
+     * child); a 90-child element contributes ~90 characters instead of
+     * ~92 lines.
      */
-    childRanks: Record<string, number>;
+    childBuckets: string;
     /**
      * Abstract (`_`-prefixed) componentTypes this element inherits from, in
      * order from nearest to furthest (so `[..., "_block", "_base"]` for a
@@ -469,8 +472,8 @@ type AliasedSchemaElement = {
     properties: PropertyDescription[];
     /** See `SchemaElement.children`. */
     children: string[];
-    /** See `SchemaElement.childRanks`. */
-    childRanks: Record<string, number>;
+    /** See `SchemaElement.childBuckets`. */
+    childBuckets: string;
     /** See `SchemaElement.abstractAncestors`. */
     abstractAncestors: string[];
     /** See `SchemaElement.acceptsStringChildren`. */
@@ -478,8 +481,9 @@ type AliasedSchemaElement = {
 };
 
 /**
- * Child-relation ranks emitted in `SchemaElement.childRanks`. Smaller is more
- * direct. See `SchemaElement.childRanks` and `classifyInheritOrAdapt`.
+ * Child-relation ranks encoded as digits in `SchemaElement.childBuckets`.
+ * Smaller is more direct. See `SchemaElement.childBuckets` and
+ * `classifyInheritOrAdapt`.
  */
 const CHILD_RANK_DIRECT = 0;
 const CHILD_RANK_INHERITED = 1;
@@ -695,7 +699,14 @@ export function getSchema(
         }
 
         children = [...new Set(children)];
-        return { children, childRanks, acceptsStringChildren };
+        // Encode the per-child bucket as a digit string aligned with
+        // `children`, so the JSON doesn't grow one line per (element ×
+        // child) when pretty-printed. Consumers either index into it
+        // directly or rehydrate a Record on demand.
+        const childBuckets = children
+            .map((name) => String(childRanks[name] ?? CHILD_RANK_DIRECT))
+            .join("");
+        return { children, childBuckets, acceptsStringChildren };
     }
 
     const { children: documentChildren } = determineChildren(
@@ -1100,7 +1111,7 @@ export function getSchema(
         const cClass = componentClasses[type];
 
         const helpPayload = buildHelpPayloadForClass(type, cClass);
-        const { children, childRanks, acceptsStringChildren } =
+        const { children, childBuckets, acceptsStringChildren } =
             determineChildren(cClass);
 
         const isInline = componentInfoObjects.isInheritedComponentType({
@@ -1120,7 +1131,7 @@ export function getSchema(
         const element: SchemaElement = {
             name: type,
             children,
-            childRanks,
+            childBuckets,
             abstractAncestors: abstractAncestorChain(cClass),
             attributes: helpPayload.attributes,
             properties: helpPayload.properties,
@@ -1168,7 +1179,7 @@ export function getSchema(
             // target's own child groups so the LSP can validate `<row>` inside
             // `<matrix>` against `matrixRow`'s `MathList` children (math, …)
             // rather than against the tabular `<row>`'s `<cell>` (#1174).
-            const { children, childRanks, acceptsStringChildren } =
+            const { children, childBuckets, acceptsStringChildren } =
                 determineChildren(targetClass);
             const aliased: AliasedSchemaElement = {
                 name: targetName,
@@ -1177,7 +1188,7 @@ export function getSchema(
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
                 children,
-                childRanks,
+                childBuckets,
                 abstractAncestors: abstractAncestorChain(targetClass),
                 acceptsStringChildren,
             };

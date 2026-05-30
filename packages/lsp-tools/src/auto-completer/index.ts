@@ -83,14 +83,18 @@ export type ElementSchema = {
     properties?: SchemaProperty[];
     children: string[];
     /**
-     * For each entry in `children`, how directly it's allowed here:
-     * 0 = listed in a child group, 1 = inherits from a listed type,
-     * 2 = reaches the list only via an adapter (or
-     * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses
-     * this to prefer natural children and drop adapter-only ones. Optional
-     * because hand-built test schemas and pre-#1238 snapshots omit it.
+     * Per-child bucket encoded as a digit string aligned position-for-position
+     * with `children`. `0` = listed in a child group, `1` = inherits from a
+     * listed type, `2` = reaches the list only via an adapter (or
+     * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses this
+     * to prefer natural children and drop adapter-only ones. Optional because
+     * hand-built test schemas and pre-#1238 snapshots omit it.
+     *
+     * Stored as a compact string rather than a `Record<string, number>`
+     * because the pretty-printed JSON would otherwise carry one line per
+     * (element × child) — for 243 elements that's ~24k lines vs ~250.
      */
-    childRanks?: Record<string, number>;
+    childBuckets?: string;
     /**
      * Abstract (`_`-prefixed) componentTypes this element inherits from,
      * nearest first. The suggestions ranker uses this to let an override
@@ -126,8 +130,8 @@ export type AliasedElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children?: string[];
-    /** See `ElementSchema.childRanks`. */
-    childRanks?: Record<string, number>;
+    /** See `ElementSchema.childBuckets`. */
+    childBuckets?: string;
     /** See `ElementSchema.abstractAncestors`. */
     abstractAncestors?: string[];
     /**
@@ -726,12 +730,23 @@ export class AutoCompleter {
         elementName: string,
         parentName?: string,
     ): Record<string, number> {
-        const effective = this._resolveEffectiveByName(elementName, parentName);
-        if (effective?.children) {
-            return effective.childRanks ?? {};
+        const entry = this._resolveEffectiveByName(elementName, parentName)
+            ?.children
+            ? this._resolveEffectiveByName(elementName, parentName)
+            : this.schemaElementsByName[this.normalizeElementName(elementName)];
+        const children = entry?.children;
+        const buckets = entry?.childBuckets;
+        if (!children || !buckets) return {};
+        // Rebuild the per-child Record from the compact digit string on
+        // demand — the schema stores `childBuckets` as a string aligned
+        // with `children` so the JSON stays small (see
+        // `SchemaElement.childBuckets`).
+        const ranks: Record<string, number> = {};
+        for (let i = 0; i < children.length; i++) {
+            const ch = buckets.charCodeAt(i) - 48; // '0' === 48
+            ranks[children[i]] = ch >= 0 && ch <= 9 ? ch : 0;
         }
-        const normalized = this.normalizeElementName(elementName);
-        return this.schemaElementsByName[normalized]?.childRanks ?? {};
+        return ranks;
     }
 
     /**
