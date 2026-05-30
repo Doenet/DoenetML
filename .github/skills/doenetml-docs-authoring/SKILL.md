@@ -1,6 +1,6 @@
 ---
 name: doenetml-docs-authoring
-description: Author reference documentation pages for DoenetML components under packages/docs-nextra/pages/reference/ — MDX structure, example fences, the AttrPropDisplay machinery, prose vs example math, and the schema/index files that must be kept in sync.
+description: Author DoenetML documentation under packages/docs-nextra/ within the Diátaxis framework (Tutorials, Guides/how-to, Reference, Concepts/explanation) — which section a page belongs in, the concept↔guide split pattern, MDX structure, example fences, the AttrPropDisplay machinery, prose vs example math, and the schema/index files that reference pages must keep in sync.
 ---
 
 # DoenetML Reference-Docs Authoring Skill
@@ -8,6 +8,43 @@ description: Author reference documentation pages for DoenetML components under 
 Use this skill when **creating or revising `pages/reference/<slug>.mdx` pages** for DoenetML components, or when retiring an entry from `undocumented-components-allowlist.txt` by writing the missing page.
 
 For writing the DoenetML inside the examples themselves, defer to the [`doenetml-authoring`](../doenetml-authoring/SKILL.md) skill — it owns the rules for what is valid DoenetML. This skill owns the surrounding MDX prose, page layout, and how a new page is wired into the docs site.
+
+## Documentation framework: Diátaxis
+
+The DoenetML docs are migrating to the [Diátaxis](https://diataxis.fr/) framework, which sorts every page into one of four modes by the reader's need. The site's top-level sections map onto the four modes:
+
+| Diátaxis mode | Reader need | Site section | Folder |
+| --- | --- | --- | --- |
+| **Tutorial** | "teach me — I'm learning" | Tutorials | `pages/tutorials/` |
+| **How-to guide** | "help me accomplish a task" | Guides | `pages/guides/` |
+| **Reference** | "tell me the facts" — **this skill** | Reference | `pages/reference/` |
+| **Explanation / Concepts** | "help me understand why" | Concepts | `pages/concepts/` |
+
+The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `pages/concepts/` and the sidebar title is "Concepts", with a subheading (in `pages/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
+
+### Picking the right home for a page
+
+- **Reference** (`pages/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
+- **How-to guide** (`pages/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
+- **Concept / Explanation** (`pages/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
+- **Tutorial** (`pages/tutorials/`) — a guided, start-to-finish learning experience.
+
+A quick test for where a draft belongs: a numbered list of steps → **guide**; "here's the model / here's why" → **concept**; "every attribute of `<x>`" → **reference**; "follow along and build this" → **tutorial**.
+
+### The concept ↔ guide split (the pattern to follow)
+
+When a topic mixes the *why* and the *how*, split it into a **concept page** (`pages/concepts/`) and a **how-to guide** (`pages/guides/`) that cross-link each other, rather than one page that tries to do both. The styling docs are the worked exemplar of this split:
+
+- `pages/concepts/styling.mdx` — "Styling, meaning, and accessibility": the *why*. A style number is a statement of meaning ("these are importantly different"); encoding distinctions that way is what lets Doenet adapt them to each reader (the accessibility argument); hence you can't paint a color directly, and a semantic component is better still when a distinction has a name. Note what this page deliberately leaves out: the *mechanics* (the layering, the cascade, precedence) are how-it-works, so they live in the guide, not here. Explanation pages answer "why is it like this", not "how do I operate it".
+- `pages/guides/styling-components.mdx` — "Styling Components": the task recipes (set `styleNumber`, override a width, redefine a color, scope to a section), each linking back to the concept page for the reasoning.
+
+Cross-link in **both** directions: the guide points to the concept page for "why this works", and the concept page points to the guide for "how to do it". Use relative links with no extension and an anchor slug to the relevant heading — e.g. `../concepts/styling#why-you-cant-set-a-color-directly-on-a-component` or `../guides/styling-components#redefine-a-style-and-change-colors`. (Nextra auto-generates a heading's anchor by lowercasing, dropping punctuation, and hyphenating spaces — confirm the slug matches the target heading.)
+
+### Wiring up a Concept or Guide page
+
+New Concept and Guide pages are registered in their section's `_meta.ts` exactly like reference pages: the file's base name is the key, and the value is the sidebar title (or `{ name, display: "hidden" }` to stage a draft). The schema, `componentIndex`/`componentTypes`, allow-list, and `build:schema` steps later in this skill are **Reference-only** — Concept/Guide pages have none of that machinery, so adding one is just the `.mdx` plus its `_meta.ts` entry. The author-facing voice rules below apply to all four modes.
+
+If you move or rename a page that already has a public URL (the docs deploy as a static export to GitHub Pages, which can't do server-side redirects), add a meta-refresh stub at `packages/docs-nextra/public/<old-path>.html` pointing at the new path — see the existing stubs in `packages/docs-nextra/public/document_structure/` for the template (they preserve the URL `#hash` so old anchored links still land).
 
 ## What to read first
 
