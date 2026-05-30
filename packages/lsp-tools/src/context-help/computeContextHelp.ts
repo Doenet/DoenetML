@@ -29,6 +29,7 @@ import {
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
 import { rankedChildSuggestions } from "../child-suggestions";
+import { COMPLETION_TYPES } from "../completion-types";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
@@ -1336,10 +1337,14 @@ export type ContextHelpCompletion = {
 
 /**
  * Compute help for the currently-highlighted autocomplete row. Dispatched on
- * `completion.type` (set by the CodeMirror LSP plugin from `CompletionItemKind`,
- * lower-cased). The `"property"` kind is ambiguous (both element schema items
- * and ref-member properties use it) and is disambiguated by inspecting the
- * cursor's completion context.
+ * `completion.type`, which `deriveCompletionType` (`../completion-types`)
+ * assigns and the CodeMirror LSP plugin attaches. Most types map 1:1 to a
+ * kind of help; the element family — `"component"`, `"refproperty"`, and
+ * `"closetag"` (all `kind: Property` in the LSP layer, split apart for the
+ * dropdown icons) — shares one branch and is disambiguated there by the
+ * cursor's completion context and the label's `/` prefix. The pre-split
+ * `"property"` string is still accepted as a fallback. Keep this dispatch in
+ * sync with `deriveCompletionType`.
  *
  * `precomputedCtx` — see `computeContextHelp` for the contract.
  */
@@ -1353,7 +1358,7 @@ export async function computeContextHelpForCompletion(
     if (!rawLabel) return NONE;
     const type = completion.type;
 
-    if (type === "snippet") {
+    if (type === COMPLETION_TYPES.snippet) {
         return helpForSnippet(completer, rawLabel);
     }
 
@@ -1375,7 +1380,7 @@ export async function computeContextHelpForCompletion(
     const getCtx = (): CompletionContext =>
         precomputedCtx ?? completer.getCompletionContext(offset);
 
-    if (type === "reference") {
+    if (type === COMPLETION_TYPES.reference) {
         // Strip a leading `$` defensively, then a trailing `[]` — the LSP
         // layer emits an extra `name[]` row for `takesIndex` referents
         // (repeat, select, …) that resolves to the same target as the bare
@@ -1410,9 +1415,19 @@ export async function computeContextHelpForCompletion(
         return await helpForRefNameByName(completer, offset, refName);
     }
 
-    if (type === "property") {
-        // Element schema items, ref-member properties, and close-tag rows
-        // all share `kind: Property` in the LSP layer.
+    if (
+        type === COMPLETION_TYPES.component ||
+        type === COMPLETION_TYPES.referenceProperty ||
+        type === COMPLETION_TYPES.closeTag ||
+        type === "property"
+    ) {
+        // Element schema items, ref-member properties, and close-tag rows all
+        // share `kind: Property` in the LSP layer; `deriveCompletionType`
+        // (`../completion-types`) then splits that single kind into the
+        // distinct `type` strings above (so each gets its own dropdown icon).
+        // They're handled together here and disambiguated below by cursor
+        // context and the label's `/` prefix — exactly as when they shared the
+        // legacy `"property"` type (still accepted as a fallback).
         const ctx = getCtx();
         if (ctx.cursorPos === "refMember") {
             return await helpForRefMemberByName(
@@ -1451,7 +1466,7 @@ export async function computeContextHelpForCompletion(
         return helpForElement(ownEntry, effectiveEntry);
     }
 
-    if (type === "enum") {
+    if (type === COMPLETION_TYPES.attributeName) {
         // Attribute-name completion. Look up the surrounding element from the
         // cursor and ask for help for the highlighted attribute.  Mirrors the
         // cursor-driven attribute branch in `computeContextHelp`: a
@@ -1480,7 +1495,7 @@ export async function computeContextHelpForCompletion(
         return helpForElement(ownEntry, effectiveEntry, { completer, node });
     }
 
-    if (type === "value") {
+    if (type === COMPLETION_TYPES.attributeValue) {
         // Attribute-value completion — there's no per-value help, so fall
         // back to the attribute's description. Use `attributeAtOffset` to
         // find which attribute the value belongs to.  Apply the same

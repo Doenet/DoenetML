@@ -8,6 +8,12 @@ import {
     type ContextHelpCompletion,
 } from "./computeContextHelp";
 import type { HelpContent } from "./types";
+import {
+    deriveCompletionType,
+    COMPLETION_TYPES,
+    ALL_COMPLETION_TYPES,
+} from "../completion-types";
+import { CompletionItemKind } from "vscode-languageserver/browser";
 
 // Default `new AutoCompleter(source)` already binds the bundled doenetSchema
 // + aliasedElements, so alias resolution and other cross-element behaviours
@@ -743,7 +749,7 @@ describe("computeContextHelp — styleBreakdown on <styleDefinition> tag name (#
     });
 
     it("element help on a <styleDefinition> autocomplete row (no node yet) omits the breakdown", async () => {
-        // The `property`-kind autocomplete branch in `computeContextHelpForCompletion`
+        // The `component`-kind autocomplete branch in `computeContextHelpForCompletion`
         // resolves the schema entry against itself with no surrounding node,
         // so there's no DAST node to feed into the resolver — the breakdown
         // is correctly absent.  Sanity-checks that we didn't accidentally
@@ -751,7 +757,7 @@ describe("computeContextHelp — styleBreakdown on <styleDefinition> tag name (#
         const source = `<`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "styleDefinition",
-            type: "property",
+            type: "component",
         });
         if (help.kind !== "element") {
             expect.fail(`expected element help, got ${help.kind}`);
@@ -1173,15 +1179,15 @@ describe("computeContextHelp — docsSlug propagation", () => {
 });
 
 describe("computeContextHelpForCompletion", () => {
-    it("returns element help for a `property`-kind completion when cursor is not in a refMember context", async () => {
-        // `<a|` — author is typing an element name. The LSP layer tags
-        // element-schema completions with `kind: Property` (lowercased
-        // `"property"` in CodeMirror). The dispatcher should treat this
-        // as an element lookup.
+    it("returns element help for a `component`-kind completion when cursor is not in a refMember context", async () => {
+        // `<a|` — author is typing an element name. `deriveCompletionType`
+        // (in `../completion-types`) tags element-schema rows
+        // `type: "component"`. The dispatcher should treat this as an element
+        // lookup.
         const source = `<a`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "abs",
-            type: "property",
+            type: "component",
         });
         expect(help).toMatchObject({
             kind: "element",
@@ -1189,14 +1195,14 @@ describe("computeContextHelpForCompletion", () => {
         });
     });
 
-    it("returns refMember property help for a `property`-kind completion inside a refMember context", async () => {
-        // `$m.|` — element-property completions surface here with the same
-        // `property` kind; disambiguation comes from the cursor's completion
-        // context (refMember vs body).
+    it("returns refMember property help for a `refproperty`-kind completion inside a refMember context", async () => {
+        // `$m.|` — element-property completions surface here tagged
+        // `type: "refproperty"`; disambiguation comes from the cursor's
+        // completion context (refMember vs body).
         const source = `<math name="m">x</math>\n$m.`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "displayDecimals",
-            type: "property",
+            type: "refproperty",
         });
         expect(help).toMatchObject({
             kind: "property",
@@ -1324,15 +1330,15 @@ describe("computeContextHelpForCompletion", () => {
         expect(help.snippetText).toContain("<label>");
     });
 
-    it("returns element help for a close-tag `property`-kind completion (`/math>`)", async () => {
-        // The LSP layer emits close-tag completions with `kind: Property`
-        // and labels like `/math>`. The dispatcher must recognize the
-        // `/` prefix and resolve through the surrounding element rather
-        // than treating the label as an element name.
+    it("returns element help for a close-tag `closetag`-kind completion (`/math>`)", async () => {
+        // The plugin tags close-tag rows `type: "closetag"` with labels like
+        // `/math>`. The dispatcher must recognize the `/` prefix and resolve
+        // through the surrounding element rather than treating the label as
+        // an element name.
         const source = `<math>x`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "/math>",
-            type: "property",
+            type: "closetag",
         });
         expect(help).toMatchObject({
             kind: "element",
@@ -1360,7 +1366,7 @@ describe("computeContextHelpForCompletion", () => {
         const source = `<a`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "definitelyNotAnElement",
-            type: "property",
+            type: "component",
         });
         expect(help.kind).toBe("none");
     });
@@ -1799,5 +1805,103 @@ describe("computeContextHelp — body / top-level suggestions", () => {
             const bucket = ranks[s.name] ?? ranks[s.name.toLowerCase()] ?? 0;
             expect(bucket).toBeLessThan(2);
         }
+    });
+});
+
+describe("completion type ↔ context-help dispatch contract", () => {
+    // One representative case per completion category. Each supplies a raw LSP
+    // item (shaped as `get-completion-items.ts` builds it) plus a source/offset
+    // where that completion appears, then drives the REAL `deriveCompletionType`
+    // (the producer) and the help dispatcher (the consumer) and asserts (a) the
+    // produced `type` is the expected shared constant and (b) the dispatcher
+    // returns real (non-NONE) help for it.
+    //
+    // This is the guard the original regression lacked: if a `type` is renamed
+    // in `deriveCompletionType` / `COMPLETION_TYPES` but a dispatcher branch
+    // isn't kept in sync, the dispatcher falls through to NONE and the
+    // round-trip assertion below fails. Hardcoding old type strings in the
+    // other completion tests is exactly why that break slipped through before.
+    const cases: Array<{
+        name: string;
+        item: { kind?: CompletionItemKind; detail?: string; label: string };
+        expectedType: string;
+        source: string;
+        offsetAtEnd: boolean;
+    }> = [
+        {
+            name: "component (element name)",
+            item: { kind: CompletionItemKind.Property, label: "abs" },
+            expectedType: COMPLETION_TYPES.component,
+            source: `<a`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "reference property ($m.prop)",
+            item: {
+                kind: CompletionItemKind.Property,
+                label: "displayDecimals",
+                detail: "Property on math",
+            },
+            expectedType: COMPLETION_TYPES.referenceProperty,
+            source: `<math name="m">x</math>\n$m.`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "close tag (/math>)",
+            item: { kind: CompletionItemKind.Property, label: "/math>" },
+            expectedType: COMPLETION_TYPES.closeTag,
+            source: `<math>x`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "snippet",
+            item: { kind: CompletionItemKind.Snippet, label: "answer-labeled" },
+            expectedType: COMPLETION_TYPES.snippet,
+            source: ``,
+            offsetAtEnd: false, // offset 0 in an empty document
+        },
+        {
+            name: "attribute name",
+            item: { kind: CompletionItemKind.Enum, label: "simplify" },
+            expectedType: COMPLETION_TYPES.attributeName,
+            source: `<math `,
+            offsetAtEnd: true,
+        },
+        {
+            name: "attribute value",
+            item: { kind: CompletionItemKind.Value, label: "full" },
+            expectedType: COMPLETION_TYPES.attributeValue,
+            source: `<math simplify="`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "reference name ($m)",
+            item: { kind: CompletionItemKind.Reference, label: "m" },
+            expectedType: COMPLETION_TYPES.reference,
+            source: `<math name="m">x</math>\n$`,
+            offsetAtEnd: true,
+        },
+    ];
+
+    for (const c of cases) {
+        it(`${c.name}: derived type is recognized by the help dispatcher`, async () => {
+            const type = deriveCompletionType(c.item);
+            // Producer emits the expected shared constant…
+            expect(type).toBe(c.expectedType);
+            // …and the consumer returns real help for it (not NONE).
+            const offset = c.offsetAtEnd ? c.source.length : 0;
+            const help = await helpForCompletionAt(c.source, offset, {
+                label: c.item.label,
+                type,
+            });
+            expect(help.kind).not.toBe("none");
+        });
+    }
+
+    it("every declared completion type has a round-trip case above", () => {
+        // Adding a new `type` to `COMPLETION_TYPES` without a case here fails
+        // this guard, forcing the new type through the dispatcher check above.
+        const covered = [...new Set(cases.map((c) => c.expectedType))].sort();
+        expect(covered).toEqual([...ALL_COMPLETION_TYPES].sort());
     });
 });

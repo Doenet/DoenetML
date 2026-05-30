@@ -308,7 +308,7 @@ function createElementAndSnippetCompletionItems(
     typedPrefix = "",
     contextElement: DastElement | null = null,
     insertLeadingBracket = false,
-): CompletionItem[] {
+): DoenetCompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const parentName = contextElement?.name;
     // Compute the shared ranking once for this container — the same ordering
@@ -330,12 +330,12 @@ function createElementAndSnippetCompletionItems(
     );
     const sortTextByKey = sortTextLookup(ranked);
 
-    const schemaItems: CompletionItem[] = allowedElementNames
+    const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
         )
         .map((name) => {
-            const item: CompletionItem = {
+            const item: DoenetCompletionItem = {
                 label: name,
                 kind: CompletionItemKind.Property,
             };
@@ -353,6 +353,12 @@ function createElementAndSnippetCompletionItems(
                     ),
                     newText: `<${name}`,
                 };
+                // With no `<` typed, a bare name gives no hint these are
+                // elements. Show the tag form (`<math>`) in the dropdown while
+                // still matching/inserting on the bare name (CodeMirror filters
+                // on `label`, renders `displayLabel`). Not set in the
+                // `<`-typed path, where the visible `<` already signals a tag.
+                item.displayLabel = `<${name}>`;
             }
             const ownEntry = autoCompleter.schemaElementsByName[name];
             const effectiveEntry = autoCompleter.resolveEffectiveSchemaElement(
