@@ -19,10 +19,12 @@ import type { AutoCompleter } from "./auto-completer";
  * lands in the order. Handpicking a snippet only changes the snippet's
  * position within its cluster, not the cluster's position overall.
  *
- * Both surfaces consume the sorted list: the panel takes the first N entries
- * unfiltered, the autocomplete dropdown sets each item's `sortText` so the
- * editor's lexicographic sort reproduces this order while user-typed prefixes
- * filter the visible items.
+ * Both surfaces consume the sorted list. The autocomplete dropdown sets each
+ * item's `sortText` so the editor's lexicographic sort reproduces this order
+ * while user-typed prefixes filter the visible items. The help panel filters
+ * out snippet entries (snippet variations of one element would crowd out a
+ * diverse spread of components in only six chips) and then takes the first N
+ * elements; snippets continue to cluster with their element in the dropdown.
  */
 
 /**

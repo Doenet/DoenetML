@@ -286,18 +286,17 @@ export type HelpContent =
     /**
      * Cursor is in an element's body or in top-level whitespace — not on any
      * tag, attribute, or reference. Rather than going blank, the panel
-     * suggests components (and snippet templates) the author could insert here
-     * ("what can go here?").
+     * suggests components the author could insert here ("what can go here?").
      *
-     * `suggested` is the top N entries from the shared ranker
+     * `suggested` is the top N element entries from the shared ranker
      * (`rankedChildSuggestions`) — the same ordering that drives the
-     * autocomplete dropdown's `sortText`. Each entry is either an `element`
-     * (with summary + docsSlug for the chip + link) or a `snippet` (a
-     * multi-line template tied to an element, rendered with its description
-     * and linking to the element's docs page).
+     * autocomplete dropdown's `sortText`. Snippets are intentionally excluded
+     * from the panel (they still cluster with their element in the dropdown);
+     * variations of one element would crowd out a diverse spread of
+     * components in only six chips. See `SuggestionItem`.
      *
-     * `totalAllowed` is the full count of allowed components at this position
-     * so the panel can point at Ctrl+Space for the complete list.
+     * `totalAllowed` is the full count of allowed element types at this
+     * position so the panel can point at Ctrl+Space for the complete list.
      */
     | {
           kind: "suggestions";
