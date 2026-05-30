@@ -138,7 +138,8 @@ export function ContextHelpPanel({
         }
 
         case "suggestions": {
-            const { context, suggested, totalAllowed } = content;
+            const { context, suggested, totalAllowed, acceptsStringChildren } =
+                content;
             const location =
                 "elementName" in context ? (
                     <>
@@ -147,13 +148,26 @@ export function ContextHelpPanel({
                 ) : (
                     "At the top level"
                 );
+            // Four cases the header line discriminates:
+            //   - nothing allowed at all → "<x> — nothing goes here."
+            //   - text only             → "<x> — type text here."
+            //   - components only       → "<x> — things to try:" (today)
+            //   - text + components     → "<x> — type text here, or try:"
+            const headerSuffix =
+                totalAllowed === 0
+                    ? acceptsStringChildren
+                        ? " — type text here."
+                        : " — nothing goes here."
+                    : acceptsStringChildren
+                      ? " — type text here, or try:"
+                      : " — things to try:";
             return (
                 <div className="help-panel">
                     <p className="help-suggestions-header">
                         {location}
-                        {suggested.length > 0 ? " — things to try:" : "."}
+                        {headerSuffix}
                     </p>
-                    {suggested.length > 0 ? (
+                    {suggested.length > 0 && (
                         <ul className="help-suggestions-list">
                             {suggested.map((s) => (
                                 <li
@@ -174,13 +188,8 @@ export function ContextHelpPanel({
                                 </li>
                             ))}
                         </ul>
-                    ) : (
-                        <p className="help-description">
-                            Type content here, or press <code>Ctrl+Space</code>{" "}
-                            to insert a component.
-                        </p>
                     )}
-                    {suggested.length > 0 && totalAllowed > 0 && (
+                    {totalAllowed > 0 && (
                         <p className="help-suggestions-footer">
                             Press <code>Ctrl+Space</code> to see all{" "}
                             {totalAllowed} components.

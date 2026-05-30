@@ -49,6 +49,19 @@ export type FunctionNamesBreakdownPayload = {
     reset?: string[];
 };
 
+/**
+ * One element entry in a `suggestions` payload's `suggested` list. Snippets
+ * are deliberately excluded from the panel — with only six slots, surfacing
+ * several variations of the same element (e.g. all the `<answer>` snippets)
+ * crowds out genuinely different components. Snippets still appear in the
+ * full Ctrl+Space autocomplete dropdown, ranked next to their element.
+ */
+export type SuggestionItem = {
+    name: string;
+    summary: string | null;
+    docsSlug: string | null;
+};
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -273,24 +286,34 @@ export type HelpContent =
     /**
      * Cursor is in an element's body or in top-level whitespace — not on any
      * tag, attribute, or reference. Rather than going blank, the panel
-     * suggests components the author could insert here ("what can go here?").
+     * suggests components (and snippet templates) the author could insert here
+     * ("what can go here?").
      *
-     * `suggested` is a curated starter subset (the global starter list
-     * intersected with what's actually allowed at this position, capped for
-     * scanability), each carrying its summary/docsSlug for the chip + link.
-     * `totalAllowed` is the full count of allowed components so the panel can
-     * point at Ctrl+Space for the complete list.
+     * `suggested` is the top N entries from the shared ranker
+     * (`rankedChildSuggestions`) — the same ordering that drives the
+     * autocomplete dropdown's `sortText`. Each entry is either an `element`
+     * (with summary + docsSlug for the chip + link) or a `snippet` (a
+     * multi-line template tied to an element, rendered with its description
+     * and linking to the element's docs page).
+     *
+     * `totalAllowed` is the full count of allowed components at this position
+     * so the panel can point at Ctrl+Space for the complete list.
      */
     | {
           kind: "suggestions";
           /** Where the cursor is: inside `elementName`, or at the document top. */
           context: { elementName: string } | { topLevel: true };
-          suggested: Array<{
-              name: string;
-              summary: string | null;
-              docsSlug: string | null;
-          }>;
+          suggested: SuggestionItem[];
           totalAllowed: number;
+          /**
+           * Whether this container also accepts string (text) children. The
+           * panel uses this with `totalAllowed` to choose the right empty/
+           * non-empty messaging — e.g. `<variantControl>` (no children, no
+           * strings) shows "takes no children", whereas a `<math>` body
+           * (strings + components) shows a "type text directly" hint above
+           * the suggestion list.
+           */
+          acceptsStringChildren: boolean;
       }
     /**
      * Highlighted autocomplete row is a snippet (multi-line template). Carries

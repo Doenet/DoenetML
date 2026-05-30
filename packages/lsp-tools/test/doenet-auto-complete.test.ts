@@ -669,14 +669,17 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 10,
                   "label": "b",
+                  "sortText": "1-999-1-999-0-b-0-999-b",
                 },
                 {
                   "kind": 10,
                   "label": "c",
+                  "sortText": "1-999-1-999-0-c-0-999-c",
                 },
                 {
                   "kind": 10,
                   "label": "d",
+                  "sortText": "1-999-1-999-0-d-0-999-d",
                 },
               ]
             `);

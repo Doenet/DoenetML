@@ -28,7 +28,12 @@ import {
     resolveActiveStyleBreakdown,
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
-import type { FunctionNamesBreakdownPayload, HelpContent } from "./types";
+import { rankedChildSuggestions } from "../child-suggestions";
+import type {
+    FunctionNamesBreakdownPayload,
+    HelpContent,
+    SuggestionItem,
+} from "./types";
 
 /**
  * Schema entry shape used by the help layer. Both real elements and aliased
@@ -39,90 +44,78 @@ type SchemaEntryForHelp = ElementSchema | AliasedElementSchema;
 
 const NONE: HelpContent = { kind: "none" };
 
-/**
- * Curated, beginner-friendly components offered as "things to try" when the
- * cursor sits in an element body or at the top level. A container's full
- * allowed-children list (dozens of entries) would overwhelm the new authors
- * this help targets, so suggestions are this list intersected with what's
- * actually allowed at the cursor — short and scannable, with the panel
- * pointing at Ctrl+Space for the complete set. Ordered by rough authoring
- * frequency; the panel surfaces the first few that apply.
- */
-const STARTER_COMPONENTS: readonly string[] = [
-    "p",
-    "title",
-    "section",
-    "math",
-    "m",
-    "graph",
-    "point",
-    "function",
-    "answer",
-    "mathInput",
-    "choiceInput",
-    "image",
-    "video",
-    "table",
-    "ol",
-    "ul",
-    "example",
-    "hint",
-    "text",
-    "number",
-];
-
-/** Max starter suggestions surfaced at once — keeps the panel scannable. */
+/** Max suggestions surfaced in the help panel — keeps it scannable. */
 const MAX_SUGGESTIONS = 6;
 
 /**
  * Build "what can go here?" help for a cursor in an element body or at the
  * top level. `node` is the containing element (body cursor) or null (top
- * level). Always returns a `suggestions` payload — even an empty
- * `suggested` list is useful, since the panel then nudges the author toward
- * Ctrl+Space.
+ * level — handled as if the parent were `<document>`, since the document's
+ * child set is exactly the top-level allowed elements). Always returns a
+ * `suggestions` payload — even an empty `suggested` list is useful, since
+ * the panel then nudges the author toward Ctrl+Space.
+ *
+ * The actual ordering and snippet inclusion live in `rankedChildSuggestions`,
+ * which the autocomplete dropdown consumes via `sortText` — keeping the two
+ * surfaces in lockstep is the whole point.
  */
 function suggestionsHelp(
     completer: AutoCompleter,
     node: DastElement | null,
 ): HelpContent {
+    const context: { elementName: string } | { topLevel: true } = node
+        ? { elementName: node.name }
+        : { topLevel: true };
+    const parentElementName = node ? node.name : "document";
+    let grandparentName: string | undefined;
     if (node) {
         const parent = completer.sourceObj.getParent(node);
-        const parentName = parent && "name" in parent ? parent.name : undefined;
-        const allowed = completer._getAllowedChildren(node.name, parentName);
-        return buildSuggestions(completer, { elementName: node.name }, allowed);
+        grandparentName = parent && "name" in parent ? parent.name : undefined;
     }
-    return buildSuggestions(
+    const ranked = rankedChildSuggestions(
         completer,
-        { topLevel: true },
-        completer.schemaTopAllowedElements,
+        parentElementName,
+        grandparentName,
     );
-}
 
-function buildSuggestions(
-    completer: AutoCompleter,
-    context: { elementName: string } | { topLevel: true },
-    allowedNames: string[],
-): HelpContent {
-    const allowed = new Set(allowedNames.map((n) => n.toLowerCase()));
-    const suggested = STARTER_COMPONENTS.filter((name) =>
-        allowed.has(name.toLowerCase()),
-    )
+    // The panel only surfaces element suggestions — snippets stay in the
+    // autocomplete dropdown (where they cluster with their element) but are
+    // dropped from the 6-chip panel so a single element with many snippets
+    // (e.g. `<answer>`) can't crowd out a diverse spread of components.
+    // Filter BEFORE slicing so we get the top-6 *elements*, not the top-6
+    // ranker items minus whatever snippets happened to fall there.
+    const suggested: SuggestionItem[] = ranked
+        .filter((item) => item.kind === "element")
         .slice(0, MAX_SUGGESTIONS)
-        .map((name) => {
-            // Prefer the schema's canonical casing (e.g. `mathInput`) so the
-            // chip renders the tag the author would actually type.
-            const entry = completer.findSchemaElement(name);
+        .map((item) => {
+            // Prefer the schema's canonical casing (e.g. `mathInput`) so
+            // the chip renders the tag the author would actually type.
+            const entry = completer.findSchemaElement(item.name);
             return {
-                name: entry?.name ?? name,
+                name: entry?.name ?? item.name,
                 summary: entry?.summary ?? null,
                 docsSlug: entry?.docsSlug ?? null,
             };
         });
+
+    // `totalAllowed` is the count of allowed element types (what
+    // Ctrl+Space's "components" wording refers to), independent of how many
+    // snippets the ranker surfaced for this container.
+    const totalAllowed = completer._getAllowedChildren(
+        parentElementName,
+        grandparentName,
+    ).length;
+    const acceptsStringChildren = completer._getAcceptsStringChildren(
+        parentElementName,
+        grandparentName,
+    );
+
     return {
         kind: "suggestions",
         context,
         suggested,
-        totalAllowed: allowedNames.length,
+        totalAllowed,
+        acceptsStringChildren,
     };
 }
 

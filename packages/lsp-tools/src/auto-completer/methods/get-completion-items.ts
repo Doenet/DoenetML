@@ -21,6 +21,10 @@ import { hasImplicitSingleIndex } from "../select-family";
 import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
 import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
+import {
+    rankedChildSuggestions,
+    sortTextLookup,
+} from "../../child-suggestions";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
 // supports one for "show this, filter on label". Our in-process LSP transport
@@ -319,6 +323,18 @@ function createElementAndSnippetCompletionItems(
 ): CompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const parentName = contextElement?.name;
+    // Compute the shared ranking once for this container — the same ordering
+    // drives the context-help suggestions panel — and use it to assign
+    // `sortText` per item below so the editor's lexicographic sort reproduces
+    // the rank (handpicked → bucket → cluster-alphabetical, snippets clustered
+    // with their element). `contextElement` is null at the document top, where
+    // `<document>` is the implicit parent.
+    const ranked = rankedChildSuggestions(
+        autoCompleter,
+        parentName ?? "document",
+    );
+    const sortTextByKey = sortTextLookup(ranked);
+
     const schemaItems: CompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
@@ -351,6 +367,10 @@ function createElementAndSnippetCompletionItems(
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
             }
+            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
+            if (sortText !== undefined) {
+                item.sortText = sortText;
+            }
             return item;
         });
 
@@ -364,6 +384,16 @@ function createElementAndSnippetCompletionItems(
         startOffset,
         endOffset,
     );
+    for (const item of snippetItems) {
+        // Snippet labels are unique snippet keys; look up sortText by the
+        // same key the ranker emits.
+        const sortText = sortTextByKey.get(
+            `snippet:${(item.label as string).toLowerCase()}`,
+        );
+        if (sortText !== undefined) {
+            item.sortText = sortText;
+        }
+    }
 
     const dynamicSnippetItems = createDynamicSnippetCompletionItems(
         autoCompleter,

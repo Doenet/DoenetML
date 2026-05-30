@@ -82,6 +82,23 @@ export type ElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children: string[];
+    /**
+     * For each entry in `children`, how directly it's allowed here:
+     * 0 = listed in a child group, 1 = inherits from a listed type,
+     * 2 = reaches the list only via an adapter (or
+     * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses
+     * this to prefer natural children and drop adapter-only ones. Optional
+     * because hand-built test schemas and pre-#1238 snapshots omit it.
+     */
+    childRanks?: Record<string, number>;
+    /**
+     * Abstract (`_`-prefixed) componentTypes this element inherits from,
+     * nearest first. The suggestions ranker uses this to let an override
+     * keyed by an abstract ancestor (e.g. `_sectioningComponent`) apply to
+     * every concrete element inheriting from it. Optional because
+     * hand-built test schemas and pre-#1238 snapshots omit it.
+     */
+    abstractAncestors?: string[];
     acceptsStringChildren: boolean;
     takesIndex?: boolean;
     /** Map from child component type → key in `aliasedElements` providing
@@ -109,6 +126,10 @@ export type AliasedElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children?: string[];
+    /** See `ElementSchema.childRanks`. */
+    childRanks?: Record<string, number>;
+    /** See `ElementSchema.abstractAncestors`. */
+    abstractAncestors?: string[];
     /**
      * Populated for parity with `ElementSchema` and consumed by downstream
      * tools (e.g. doc generators); the LSP's validation/completion paths
@@ -278,6 +299,18 @@ function adjustCursorForTrimStart(
 }
 
 /**
+ * The bundled schema elements, retyped as `ElementSchema[]`. The JSON import's
+ * structurally-inferred type doesn't satisfy `ElementSchema`'s
+ * `childRanks: Record<string, number>` index signature — across elements TS
+ * widens absent keys to `number | undefined` — so we assert the shape once
+ * here (the generator guarantees it) and reuse this reference. Keeping it a
+ * single shared constant also preserves the `schema === BUNDLED_SCHEMA_ELEMENTS`
+ * identity check in `setSchema`.
+ */
+const BUNDLED_SCHEMA_ELEMENTS =
+    doenetSchema.elements as unknown as ElementSchema[];
+
+/**
  * A class to make auto-completion queries on DoenetML source.
  *
  * The completer covers both XML editing workflows and ref workflows such as
@@ -368,7 +401,7 @@ export class AutoCompleter {
 
     constructor(
         source?: string,
-        schema: ElementSchema[] = doenetSchema.elements,
+        schema: ElementSchema[] = BUNDLED_SCHEMA_ELEMENTS,
         options?: AutoCompleterOptions,
     ) {
         this.sourceObj = options?.sourceObj ?? new DoenetSourceObject();
@@ -572,7 +605,7 @@ export class AutoCompleter {
         this.schema = schema;
         this.schemaAliasedElementsByName =
             aliasedElements ??
-            (schema === doenetSchema.elements
+            (schema === BUNDLED_SCHEMA_ELEMENTS
                 ? (doenetSchema.aliasedElements as Record<
                       string,
                       AliasedElementSchema
@@ -678,6 +711,51 @@ export class AutoCompleter {
         }
         const normalized = this.normalizeElementName(elementName);
         return this.schemaElementsByName[normalized]?.children || [];
+    }
+
+    /**
+     * Child-relation ranks for the children returned by `_getAllowedChildren`
+     * for the same `(elementName, parentName)` — child component type → bucket
+     * (0 direct, 1 inherited, 2 adapter-only; see `ElementSchema.childRanks`).
+     * Reads from the same alias-aware entry `_getAllowedChildren` uses so the
+     * names and ranks stay aligned. Returns `{}` when the resolved entry
+     * predates `childRanks` (hand-built test schemas), so callers treat every
+     * child as a direct (rank 0) child and keep it.
+     */
+    _getChildRanks(
+        elementName: string,
+        parentName?: string,
+    ): Record<string, number> {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        if (effective?.children) {
+            return effective.childRanks ?? {};
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return this.schemaElementsByName[normalized]?.childRanks ?? {};
+    }
+
+    /**
+     * Whether this element accepts string children (text content), with
+     * alias-aware resolution mirroring `_getAllowedChildren`. Used by the
+     * suggestions panel to decide whether to say "type text here" alongside
+     * (or instead of) the component suggestions.
+     */
+    _getAcceptsStringChildren(
+        elementName: string,
+        parentName?: string,
+    ): boolean {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        if (
+            effective?.children &&
+            typeof effective.acceptsStringChildren === "boolean"
+        ) {
+            return effective.acceptsStringChildren;
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return (
+            this.schemaElementsByName[normalized]?.acceptsStringChildren ??
+            false
+        );
     }
 
     /**

@@ -1575,7 +1575,7 @@ describe("computeContextHelp — functionNamesBreakdown on <mathInput> (#1205)",
 });
 
 describe("computeContextHelp — body / top-level suggestions", () => {
-    it("suggests curated children for a cursor in a <section> body", async () => {
+    it("returns a sized, totalled suggestions payload for a <section> body", async () => {
         const source = `<section>\n  \n</section>`;
         // Offset on the blank middle line, inside the section body.
         const offset = source.indexOf("\n  \n") + 3;
@@ -1585,11 +1585,8 @@ describe("computeContextHelp — body / top-level suggestions", () => {
             return;
         }
         expect(help.context).toEqual({ elementName: "section" });
-        // Curated subset, capped for scanability.
         expect(help.suggested.length).toBeGreaterThan(0);
         expect(help.suggested.length).toBeLessThanOrEqual(6);
-        // <p> is a starter component allowed inside <section>.
-        expect(help.suggested.map((s) => s.name)).toContain("p");
         // The full allowed-children set is much larger than the shown subset,
         // so the panel can point at Ctrl+Space for the rest.
         expect(help.totalAllowed).toBeGreaterThan(help.suggested.length);
@@ -1607,7 +1604,7 @@ describe("computeContextHelp — body / top-level suggestions", () => {
         expect(help.suggested.length).toBeLessThanOrEqual(6);
     });
 
-    it("carries each suggestion's schema casing, summary, and docsSlug", async () => {
+    it("carries each suggestion's casing, summary, and docsSlug", async () => {
         const source = `<section>\n  \n</section>`;
         const offset = source.indexOf("\n  \n") + 3;
         const help = await helpAt(source, offset);
@@ -1615,9 +1612,192 @@ describe("computeContextHelp — body / top-level suggestions", () => {
             expect.fail(`expected suggestions help, got ${help.kind}`);
             return;
         }
-        const p = help.suggested.find((s) => s.name === "p");
-        expect(p).toBeDefined();
-        expect(p?.summary).toBeTruthy();
-        expect(p?.docsSlug).toBe("p");
+        const first = help.suggested[0];
+        expect(first).toBeDefined();
+        expect(first.summary).toBeTruthy();
+        expect(first.docsSlug).toBeTruthy();
+    });
+
+    it("drops adapter-only children from <number> body suggestions", async () => {
+        // <point>, <function>, <mathInput> are allowed inside <number> only
+        // because they adapt to <math> (childRanks bucket 2). They're rarely
+        // typed literally inside a number, so they must not crowd out the
+        // natural direct children (<math>, <number>, <text>).
+        const source = `<number>\n  \n</number>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const names = help.suggested.map((s) => s.name);
+        expect(names).not.toContain("point");
+        expect(names).not.toContain("function");
+        expect(names).not.toContain("mathInput");
+        // Direct children survive.
+        expect(names).toContain("math");
+        expect(names).toContain("number");
+        expect(names).toContain("text");
+    });
+
+    it("does NOT treat the cursor inside a close tag's </ as body", async () => {
+        // `<mathInput><|/mathInput>` — the cursor is one character into the
+        // `</` of the close tag, NOT between the tags. The help should be
+        // element help for `<mathInput>`, not body-suggestions.
+        const source = `<mathInput></mathInput>`;
+        const offset = source.indexOf("</") + 1;
+        const help = await helpAt(source, offset);
+        expect(help.kind).toBe("element");
+        if (help.kind === "element") {
+            expect(help.elementName).toBe("mathInput");
+        }
+    });
+
+    it("reports no allowed children for <variantControl> body", async () => {
+        // `<variantControl>` accepts no element children and no string
+        // children — the panel uses this to say so rather than pointing at
+        // Ctrl+Space (which would have nothing to offer).
+        const source = `<variantControl>\n  \n</variantControl>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.totalAllowed).toBe(0);
+        expect(help.acceptsStringChildren).toBe(false);
+        expect(help.suggested).toEqual([]);
+    });
+
+    it("flags acceptsStringChildren for containers that take text", async () => {
+        // `<math>` accepts string children and many element children, so
+        // the panel should emit `acceptsStringChildren: true` alongside
+        // the (positive) totalAllowed count.
+        const source = `<math>\n  \n</math>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.acceptsStringChildren).toBe(true);
+        expect(help.totalAllowed).toBeGreaterThan(0);
+    });
+
+    it("treats the cursor between adjacent open and close tags as body", async () => {
+        // `<mathInput></mathInput>` with the cursor right between `>` and
+        // `</` — the exact spot the autocompleter parks the cursor after
+        // inserting a tag pair. The panel must show suggestions for what to
+        // put inside, not element help for `<mathInput>` itself.
+        const source = `<mathInput></mathInput>`;
+        const offset = source.indexOf("</");
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(
+                `expected suggestions help between adjacent tags, got ${help.kind}`,
+            );
+            return;
+        }
+        expect(help.context).toEqual({ elementName: "mathInput" });
+    });
+
+    it("surfaces the curated picks first inside a <module> body", async () => {
+        // <module>'s override list seeds the top of the suggestions with the
+        // niche-but-relevant `<moduleAttributes>` plus a handful of common
+        // children, in the declared order.
+        const source = `<module>\n  \n</module>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.suggested.slice(0, 5).map((s) => s.name)).toEqual([
+            "moduleAttributes",
+            "section",
+            "graph",
+            "p",
+            "function",
+        ]);
+    });
+
+    it("surfaces the curated picks first inside a <moduleAttributes> body", async () => {
+        const source = `<module><moduleAttributes>\n  \n</moduleAttributes></module>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.suggested.slice(0, 5).map((s) => s.name)).toEqual([
+            "number",
+            "math",
+            "text",
+            "boolean",
+            "point",
+        ]);
+    });
+
+    it("surfaces the curated picks first inside a <setup> body", async () => {
+        // <setup>'s override puts <select*> components ahead of the basic
+        // value-producing components.
+        const source = `<setup>\n  \n</setup>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        // The override is longer than MAX_SUGGESTIONS (6) — so the panel
+        // shows the first 6 entries of the override list, in declared order:
+        // the four <select*> generators followed by the two <repeat*> ones.
+        expect(help.suggested.slice(0, 6).map((s) => s.name)).toEqual([
+            "select",
+            "selectFromSequence",
+            "selectPrimeNumbers",
+            "selectRandomNumbers",
+            "repeat",
+            "repeatForSequence",
+        ]);
+    });
+
+    it("lifts global favorites past niche direct children in <section>", async () => {
+        // <section>'s direct (bucket-0) children are niche
+        // (cascadeMessage/feedbackDefinition/setup/styleDefinition/title/
+        // variantControl); without the favorites tier they'd dominate the
+        // top 6 and push beginner-relevant inherited children like <p>
+        // off-panel. With favorites, <p>/<title>/<math>/… lift to the top.
+        const source = `<section>\n  \n</section>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const names = help.suggested.map((s) => s.name);
+        // <title> leads via the inherited `_sectioningComponent` override.
+        expect(names[0]).toBe("title");
+        // <p> still surfaces via the global favorites tier.
+        expect(names).toContain("p");
+        // Niche bucket-0 children should be pushed past the favorites and not
+        // appear in the panel's top 6.
+        expect(names).not.toContain("variantControl");
+        expect(names).not.toContain("feedbackDefinition");
+    });
+
+    it("never surfaces an adapter-rank element in <p> body suggestions", async () => {
+        const source = `<p>\n  \n</p>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const completer = attachStubAdapter(new AutoCompleter(source));
+        const ranks = completer._getChildRanks("p");
+        for (const s of help.suggested) {
+            const bucket = ranks[s.name] ?? ranks[s.name.toLowerCase()] ?? 0;
+            expect(bucket).toBeLessThan(2);
+        }
     });
 });
