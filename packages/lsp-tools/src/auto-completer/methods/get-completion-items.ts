@@ -60,18 +60,6 @@ function countBracketIndices(rawSegment: string | undefined): number {
 }
 
 /**
- * Get the name of the parent of `node`, or `undefined` when the parent is the
- * document root (no `name` field).
- */
-function getParentName(
-    autoCompleter: AutoCompleter,
-    node: DastElement,
-): string | undefined {
-    const parent = autoCompleter.sourceObj.getParent(node);
-    return parent && "name" in parent ? parent.name : undefined;
-}
-
-/**
  * Create an LSP Range from source offset positions.
  * Converts character offset positions in the source string to an LSP Range
  * with 0-based line and character positions suitable for textEdit operations.
@@ -333,7 +321,7 @@ function createElementAndSnippetCompletionItems(
     // child set as `allowedElementNames` (e.g. `<row>` inside `<matrix>` reads
     // children from `matrixRow`, not the tabular `<row>`).
     const grandparentName = contextElement
-        ? getParentName(autoCompleter, contextElement)
+        ? autoCompleter.sourceObj.getParentElementName(contextElement)
         : undefined;
     const ranked = rankedChildSuggestions(
         autoCompleter,
@@ -592,7 +580,7 @@ function indexAliasCompletionItems(
     // `<matrix>`) should still see the right schema.
     const helpSchema = autoCompleter.resolveEffectiveSchemaElement(
         schema,
-        getParentName(autoCompleter, containerNode),
+        autoCompleter.sourceObj.getParentElementName(containerNode),
     );
     const arrayName = unresolvedPathParts[0];
     const arrayProp = helpSchema?.properties?.find(
@@ -923,7 +911,7 @@ export async function getCompletionItems(
         // since aliased entries don't carry those.
         const helpSchema = this.resolveEffectiveSchemaElement(
             schema,
-            getParentName(this, resolvedNode),
+            this.sourceObj.getParentElementName(resolvedNode),
         );
         const takesIndex = schema?.takesIndex ?? false;
         // Read the index flag for the resolved segment — always the
@@ -1056,7 +1044,7 @@ export async function getCompletionItems(
         // `matrixRow`, not `<cell>` from the tabular `<row>`) — #1174.
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
-            getParentName(this, containingElement.node),
+            this.sourceObj.getParentElementName(containingElement.node),
         );
         const completionItems = createElementAndSnippetCompletionItems(
             this,
@@ -1114,7 +1102,7 @@ export async function getCompletionItems(
             // its in-tag completions must come from MathList's children.
             allowedElements = this._getAllowedChildren(
                 parent.name,
-                getParentName(this, parent),
+                this.sourceObj.getParentElementName(parent),
             );
         }
 
@@ -1168,7 +1156,7 @@ export async function getCompletionItems(
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            getParentName(this, element),
+            this.sourceObj.getParentElementName(element),
         );
         // List the alias's attributes (not the canonical entry's) when the
         // parent declares a `childContextHelp` redirect — `<row>` inside
@@ -1231,7 +1219,7 @@ export async function getCompletionItems(
         const elmEntry =
             this._resolveEffectiveByName(
                 elmName,
-                getParentName(this, element),
+                this.sourceObj.getParentElementName(element),
             ) ?? this.schemaElementsByName[elmName];
         const allowedAttributes = elmEntry?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);

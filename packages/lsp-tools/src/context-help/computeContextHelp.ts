@@ -67,11 +67,9 @@ function suggestionsHelp(
         ? { elementName: node.name }
         : { topLevel: true };
     const parentElementName = node ? node.name : "document";
-    let grandparentName: string | undefined;
-    if (node) {
-        const parent = completer.sourceObj.getParent(node);
-        grandparentName = parent && "name" in parent ? parent.name : undefined;
-    }
+    const grandparentName = node
+        ? completer.sourceObj.getParentElementName(node)
+        : undefined;
     const ranked = rankedChildSuggestions(
         completer,
         parentElementName,
@@ -178,18 +176,12 @@ function augmentWithPerInstanceAttributes(
  */
 function resolveEntriesForNode(
     completer: AutoCompleter,
-    node: NonNullable<
-        ReturnType<
-            AutoCompleter["sourceObj"]["elementAtOffsetWithContext"]
-        >["node"]
-    >,
+    node: DastElement,
 ): [ElementSchema | undefined, SchemaEntryForHelp | undefined] {
     const ownEntry = completer.findSchemaElement(node.name);
-    const parent = completer.sourceObj.getParent(node);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
     const effective = completer.resolveEffectiveSchemaElement(
         ownEntry,
-        parentName,
+        completer.sourceObj.getParentElementName(node),
     );
     return [ownEntry, effective];
 }
@@ -207,11 +199,11 @@ function resolveEntriesForContainer(
 ): { ownEntry: ElementSchema; effectiveEntry: SchemaEntryForHelp } | null {
     const ownEntry = completer.findSchemaElement(containerNode.name);
     if (!ownEntry) return null;
-    const parent = completer.sourceObj.getParent(containerNode);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
     const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
-        ownEntry;
+        completer.resolveEffectiveSchemaElement(
+            ownEntry,
+            completer.sourceObj.getParentElementName(containerNode),
+        ) ?? ownEntry;
     return { ownEntry, effectiveEntry };
 }
 

@@ -990,11 +990,9 @@ export class AutoCompleter {
                 : undefined;
         const normalized = this.normalizeElementName(referent.name);
         const ownEntry = this.schemaElementsByName[normalized];
-        const parent = this.sourceObj.getParent(referent);
-        const parentName = parent && "name" in parent ? parent.name : undefined;
         const effectiveEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            parentName,
+            this.sourceObj.getParentElementName(referent),
         );
         return { referent, line, ownEntry, effectiveEntry };
     }
