@@ -328,10 +328,17 @@ function createElementAndSnippetCompletionItems(
     // `sortText` per item below so the editor's lexicographic sort reproduces
     // the rank (handpicked → bucket → cluster-alphabetical, snippets clustered
     // with their element). `contextElement` is null at the document top, where
-    // `<document>` is the implicit parent.
+    // `<document>` is the implicit parent. Pass the grandparent so the ranker's
+    // `_getAllowedChildren`/`_getChildRanks` calls see the same alias-resolved
+    // child set as `allowedElementNames` (e.g. `<row>` inside `<matrix>` reads
+    // children from `matrixRow`, not the tabular `<row>`).
+    const grandparentName = contextElement
+        ? getParentName(autoCompleter, contextElement)
+        : undefined;
     const ranked = rankedChildSuggestions(
         autoCompleter,
         parentName ?? "document",
+        grandparentName,
     );
     const sortTextByKey = sortTextLookup(ranked);
 
