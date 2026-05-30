@@ -196,7 +196,7 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
             cy.get(".help-docs-link")
                 .should("contain.text", "references")
                 .and("have.attr", "href")
-                .and("include", "/document_structure/references");
+                .and("include", "/concepts/references");
         });
     });
 
@@ -226,7 +226,7 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 );
             cy.get(".help-docs-link")
                 .should("have.attr", "href")
-                .and("include", "/document_structure/references");
+                .and("include", "/concepts/references");
         });
     });
 
@@ -283,7 +283,7 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 .and("match", /\$bad/);
             cy.get(".help-docs-link")
                 .should("have.attr", "href")
-                .and("include", "/document_structure/references");
+                .and("include", "/concepts/references");
         });
     });
 });

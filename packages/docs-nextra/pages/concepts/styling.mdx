@@ -1,0 +1,56 @@
+import { Callout } from "nextra/components"
+
+
+# Styling, meaning, and accessibility
+
+Doenet's styling can look indirect at first. To make a line red you don't put a color on the line — you give it a *style number*, and a style definition decides that style number is red. Why the extra step? Why not just let an author say "red line"?
+
+This page answers that *why*. It is not a how-to — the [Styling Components guide](../guides/styling-components) covers the mechanics of setting styles. This is the reasoning behind the design, so you can style documents in a way that keeps their meaning intact for every reader. The short version: **a style is a statement about meaning, and meaning has to stay accessible.**
+
+<Callout type="info">
+Looking for the steps — how to set `styleNumber{:dn}`, override a width, or change a color? Those are in the **[Styling Components guide](../guides/styling-components)**. Read this page to understand *why* styling is built this way and how to use it well.
+</Callout>
+
+## A style number marks a distinction
+
+When you give two objects on a graph different style numbers, you are saying something: *these are different in a way that matters.* A style number is less "make this red" and more "this belongs to group 2, which a reader should be able to tell apart from group 1."
+
+Read that way, the author's real intent is rarely "I want red" — it is "I want the reader to see that this curve and that curve are different things." Color, shape, and dash are just the visible signals that carry the distinction. Doenet treats the *distinction* — the style number — as the thing you actually mean, and the particular colors as a changeable way of showing it.
+
+So the guiding principle is: **use a different style number for each distinction you want a reader to perceive, and the same style number for things that are alike.** Two objects that share style 1 make a claim — that they belong together — just as much as two objects with different numbers claim to differ.
+
+## Why distinctions live in style numbers: accessibility
+
+Encoding distinctions as style numbers, rather than as raw colors painted onto each object, is what lets Doenet *adapt* those distinctions to each reader.
+
+A color that separates two curves for you may be invisible to a reader who is color-blind, or too low in contrast for a reader with low vision. If the difference between the curves lived only in literal colors scattered through the document, there would be nothing Doenet could do about it. Because the difference lives in a small, named set of style numbers, Doenet has one well-defined place to intervene.
+
+Today that place holds the six predefined styles and any style definitions you write. As Doenet evolves, it will let **readers** remap those definitions — so a reader can pick colors (and other settings) that *they* can best tell apart, with every style-1 object shifting together and every style-2 object shifting together. The distinctions you encoded survive, re-expressed in a form that works for that reader. (Doenet already checks the contrast of each style definition for this reason.)
+
+That is the payoff of the indirection: by stating your distinctions once, at a base level, you let a single document present them differently to different people — without having to anticipate any of it yourself.
+
+## Why you can't set a color directly on a component
+
+This is why Doenet offers no `lineColor{:dn}`, `markerColor{:dn}`, or `fillColor{:dn}` attribute on a component. A color painted straight onto one object would sit outside the style-number system: there would be no style definition for a reader's remapping to reach, so that object's color could not adapt. The one color a reader most needs to control would be the one frozen in place.
+
+Keeping color in style definitions is the trade-off that makes the adaptation possible. When you need a color you don't have, you change what a style number *means* with a `<styleDefinition>{:dn}` (see [the guide](../guides/styling-components#redefine-a-style-and-change-colors)) — and because you changed the style itself, the change stays remappable.
+
+## Some distinctions have a name: semantic components
+
+A style number says "these are different" but not *how*. Sometimes the difference has a specific, known meaning — an interval endpoint that is excluded rather than included, an equilibrium that is unstable rather than stable. For those, Doenet provides **semantic components** that record the meaning directly: an `<endpoint>{:dn}` with `open{:dn}`, and `<equilibriumPoint>{:dn}` / `<equilibriumLine>{:dn}` / `<equilibriumCurve>{:dn}` with `stable{:dn}`.
+
+These go a step further than style numbers. A hollow marker made with styling says only "not the same as the filled one"; an `<endpoint open="true">{:dn}` says "*excluded* endpoint." Because the runtime knows the actual meaning, it can convey it through channels styling can't reach — notably to assistive technology — and it owns the matching part of the appearance, so an unstable equilibrium draws dashed whether or not you touch a style. The rule of thumb: **when a distinction has a name, name it with a semantic component; when it is just "group A versus group B," a style number is the right tool.**
+
+## Overrides are for appearance, not meaning
+
+Doenet does also let you override individual settings on a single component — a thicker line here, a square marker there (the [guide](../guides/styling-components#override-one-setting-at-a-time) shows how). Given everything above, why allow that at all?
+
+Treat per-component overrides as a **concession to authors** who want to fine-tune how one particular thing looks — not as a second way to encode meaning. They are fine for decoration. But they sit outside the style-number system: color overrides aren't allowed at all, and the non-color ones won't follow a reader's remapping. So they should not carry a distinction you need every reader to perceive.
+
+Concretely: if two objects are *importantly* different, give them different **style numbers** — not the same style number with a one-off tweak. Reach for an override only when the difference is cosmetic and it doesn't matter whether every reader sees it the same way.
+
+## Where to go next
+
+- **[Styling Components guide](../guides/styling-components)** — how to set style numbers, override settings, and write style definitions.
+- **[`<styleDefinition>{:dn}` reference](../reference/styleDefinition)** — the settings a style definition accepts.
+- **[Essential Concepts](essentialConcepts)** — the broader model of components, attributes, and properties.

@@ -7,8 +7,8 @@ export default {
         title: "Reference",
         type: "page",
     },
-    document_structure: {
-        title: "Document Structure",
+    concepts: {
+        title: "Concepts",
         type: "page",
     },
     tutorials: {

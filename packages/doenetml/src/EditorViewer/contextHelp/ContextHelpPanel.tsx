@@ -68,7 +68,7 @@ function renderElementName(
  * explain the reference concept and where it points, not to advertise the
  * target component's docs.
  */
-const REFERENCES_DOC_PATH = "document_structure/references";
+const REFERENCES_DOC_PATH = "concepts/references";
 
 function ReferencesDocLink({ docsBase }: { docsBase: string }) {
     return (
