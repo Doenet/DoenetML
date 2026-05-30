@@ -841,4 +841,86 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
                 expect(text).to.contain("$rep[1]");
             });
     });
+
+    it("tags element and snippet completions with their category icon classes", () => {
+        // The dropdown's left-column icon is selected by each completion's
+        // `type` (rendered as `.cm-completionIcon-<type>`). Elements and
+        // snippets share the `<`-menu but must carry distinct icon classes so
+        // `completionIconTheme` can give them different glyphs.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-component").should(
+            "exist",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-snippet").should(
+            "exist",
+        );
+    });
+
+    it("tags attribute-name completions with the attribute icon class", () => {
+        // Attribute names used to inherit the LSP `enum` kind's built-in `∪`
+        // glyph; the theme now overrides it, but the class must still be
+        // `cm-completionIcon-enum` for that override to apply.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title ", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-enum").should(
+            "exist",
+        );
+    });
+
+    it("distinguishes reference-property completions from element completions by icon class", () => {
+        // Components and reference-properties both arrive as LSP kind
+        // `Property`; the plugin splits them so a `$ref.` member shows the
+        // reference-property icon, not the component one.
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P.'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(
+            ".cm-tooltip-autocomplete .cm-completionIcon-refproperty",
+        ).should("exist");
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-component").should(
+            "not.exist",
+        );
+    });
+
+    it("renders the selected row's glyph white so it stays visible on the highlight", () => {
+        // The highlighted option has a solid blue background; the category
+        // colors are nearly invisible against it. The theme forces the glyph
+        // white on the selected row — assert that override actually computes.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<", { force: true });
+        openAutocomplete();
+        // The first option is auto-selected when the menu opens.
+        cy.get(
+            ".cm-tooltip-autocomplete li[aria-selected] .cm-completionIcon",
+        ).should(($icon) => {
+            expect(getComputedStyle($icon[0]).color).to.eq(
+                "rgb(255, 255, 255)",
+            );
+        });
+    });
 });

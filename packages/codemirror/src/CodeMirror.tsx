@@ -9,7 +9,11 @@ import {
     lspPlugin,
     uniqueLanguageServerInstance,
 } from "./extensions/lsp/plugin";
-import { colorTheme, readOnlyColorTheme } from "./extensions/theme";
+import {
+    colorTheme,
+    readOnlyColorTheme,
+    completionIconTheme,
+} from "./extensions/theme";
 
 /**
  * A CodeMirror instance set up with a language server to provide completions/etc. for DoenetML.
@@ -103,6 +107,7 @@ const CodeMirror = React.memo(function CodeMirror({
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
             extensions.push(lspPlugin(documentId, doenetWorkerUrl));
+            extensions.push(completionIconTheme);
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }

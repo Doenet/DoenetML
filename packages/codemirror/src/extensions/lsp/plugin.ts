@@ -106,6 +106,40 @@ const completionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
 ) as Record<CompletionItemKind, string>;
 
+/**
+ * Map a raw LSP completion item to the CodeMirror `type` string that selects
+ * its left-column icon (`.cm-completionIcon-<type>`, styled in
+ * `completionIconTheme`). The default mapping is just the lowercased LSP kind
+ * name, but components, reference-properties, and closing tags all share LSP
+ * kind `Property`, so they're split here — for icon purposes only — using
+ * signal the items already carry. No LSP `kind` is changed.
+ */
+function deriveCompletionType(rawItem: {
+    kind?: CompletionItemKind;
+    detail?: string;
+    label: string;
+}): string | undefined {
+    const { kind, detail, label } = rawItem;
+    if (kind == null) {
+        return undefined;
+    }
+    if (kind === CompletionItemKind.Property) {
+        if (label.startsWith("/")) {
+            return "closetag";
+        }
+        // Discriminate on `detail` only: reference-properties set
+        // detail="Property on X"; components set only `documentation`. Don't
+        // test `textEdit` — components also carry one in the Ctrl+Space-
+        // between-tags path (the `insertLeadingBracket` case).
+        if (detail) {
+            return "refproperty";
+        }
+        return "component";
+    }
+    // snippet | enum (attribute name) | value (attribute value) | reference
+    return completionItemKindMap[kind].toLowerCase();
+}
+
 const lspDiagnosticToName = {
     [LSPDiagnosticSeverity.Error]: "Error",
     [LSPDiagnosticSeverity.Warning]: "Warning",
@@ -443,7 +477,7 @@ export class LSPPlugin implements PluginValue {
                 label,
                 detail,
                 apply: textEdit?.newText ?? label,
-                type: kind && completionItemKindMap[kind].toLowerCase(),
+                type: deriveCompletionType(rawItem),
                 sortText: sortText ?? label,
                 filterText: filterText ?? label,
             };
