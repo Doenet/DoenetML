@@ -342,9 +342,20 @@ export async function computeContextHelp(
     return NONE;
 }
 
-/** Characters that can appear in a `$...` macro path (mirrors the grammar's
- * path char class): identifiers, dots, and bracket indices. */
-const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
+/**
+ * Characters that can appear in a *bare* `$name`/`$a.b[1].c` macro path:
+ * `SimpleIdent` characters (`[A-Za-z0-9_]`), the `.` path separator, and
+ * `[`/`]` bracket indices. Hyphens are deliberately excluded — the macro
+ * grammar only allows them inside the parenthesized `$(foo-bar)` form
+ * (`Ident` in `packages/parser/src/macros/macros.peggy`), not in bare
+ * `$name` chains, so `$m-1` should be `$m` followed by literal `-1` rather
+ * than one chain ending at `1`. The fallback scan that uses this regex
+ * only fires when there is no parsed macro node at the cursor (typically
+ * attribute-value macros); the parsed-macro path keys off the node's
+ * recorded `end.offset`, which already covers parenthesized form
+ * correctly.
+ */
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]]/;
 
 /**
  * End offset of the `$...` macro covering `offset`, or undefined when there's
