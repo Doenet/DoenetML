@@ -1337,8 +1337,8 @@ export type ContextHelpCompletion = {
 
 /**
  * Compute help for the currently-highlighted autocomplete row. Dispatched on
- * `completion.type`, which the CodeMirror LSP plugin assigns in
- * `deriveCompletionType` (`extensions/lsp/plugin.ts`). Most types map 1:1 to a
+ * `completion.type`, which `deriveCompletionType` (`../completion-types`)
+ * assigns and the CodeMirror LSP plugin attaches. Most types map 1:1 to a
  * kind of help; the element family — `"component"`, `"refproperty"`, and
  * `"closetag"` (all `kind: Property` in the LSP layer, split apart for the
  * dropdown icons) — shares one branch and is disambiguated there by the

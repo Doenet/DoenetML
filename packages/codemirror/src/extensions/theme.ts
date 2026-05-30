@@ -43,13 +43,14 @@ export const colorTheme = EditorView.theme({
 
 // Left-column glyphs for the autocomplete dropdown, one per DoenetML category.
 // CodeMirror renders these from each completion's `type` via the built-in class
-// `.cm-completionIcon-<type>` (types assigned in extensions/lsp/plugin.ts). Its
-// base theme only defines glyphs for a fixed set of types (and dims them to 0.6
-// opacity), so we override `enum`/`property` and add glyphs for our custom
-// types. Uses EditorView.theme (not baseTheme) so these win over CodeMirror's
-// built-in rules by later injection at equal CSS specificity. Glyph-only (CSS
-// `::after` content) — no image assets. Colors checked for WCAG AA contrast on
-// the dropdown background; opacity bumped to 1 so the color reads clearly.
+// `.cm-completionIcon-<type>` (types assigned by `deriveCompletionType` in
+// `@doenet/lsp-tools`). Its base theme only defines glyphs for a fixed set of
+// types (and dims them to 0.6 opacity), so we override the one we reuse
+// (`enum`) and add glyphs for our custom types. Uses EditorView.theme (not
+// baseTheme) so these win over CodeMirror's built-in rules by later injection
+// at equal CSS specificity. Glyph-only (CSS `::after` content) — no image
+// assets. Colors checked for WCAG AA contrast on the dropdown background;
+// opacity bumped to 1 so the color reads clearly.
 export const completionIconTheme = EditorView.theme({
     ".cm-completionIcon-component::after": { content: '"\\25C8"' }, // ◈
     ".cm-completionIcon-refproperty::after": { content: '"."' },

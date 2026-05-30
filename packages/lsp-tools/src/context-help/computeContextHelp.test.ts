@@ -1180,10 +1180,10 @@ describe("computeContextHelp — docsSlug propagation", () => {
 
 describe("computeContextHelpForCompletion", () => {
     it("returns element help for a `component`-kind completion when cursor is not in a refMember context", async () => {
-        // `<a|` — author is typing an element name. The CodeMirror LSP plugin
-        // tags element-schema rows with `type: "component"` (see
-        // `deriveCompletionType` in `extensions/lsp/plugin.ts`). The
-        // dispatcher should treat this as an element lookup.
+        // `<a|` — author is typing an element name. `deriveCompletionType`
+        // (in `../completion-types`) tags element-schema rows
+        // `type: "component"`. The dispatcher should treat this as an element
+        // lookup.
         const source = `<a`;
         const help = await helpForCompletionAt(source, source.length, {
             label: "abs",
