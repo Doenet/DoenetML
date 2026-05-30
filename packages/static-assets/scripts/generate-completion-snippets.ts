@@ -228,7 +228,7 @@ const RAW_COMPLETION_SNIPPETS: Record<string, RawCompletionSnippet> = {
         cursor: "markers",
     },
     "pretzel-06": {
-        element: "answer",
+        element: "pretzel",
         snippet: `
 <pretzel name="__SEL_START__pretzel1__SEL_END__" maxNumColumns="2">
 
@@ -297,7 +297,7 @@ const RAW_COMPLETION_SNIPPETS: Record<string, RawCompletionSnippet> = {
         cursor: "markers",
     },
     "pretzel-08": {
-        element: "answer",
+        element: "pretzel",
         snippet: `
 <pretzel name="__SEL_START__pretzel1__SEL_END__" maxNumColumns="2">
 
@@ -386,7 +386,7 @@ const RAW_COMPLETION_SNIPPETS: Record<string, RawCompletionSnippet> = {
         cursor: "markers",
     },
     "pretzel-10": {
-        element: "answer",
+        element: "pretzel",
         snippet: `
 <pretzel name="__SEL_START__pretzel1__SEL_END__" maxNumColumns="2">
 
@@ -495,7 +495,7 @@ const RAW_COMPLETION_SNIPPETS: Record<string, RawCompletionSnippet> = {
         cursor: "markers",
     },
     "pretzel-12": {
-        element: "answer",
+        element: "pretzel",
         snippet: `
 <pretzel name="__SEL_START__pretzel1__SEL_END__" maxNumColumns="2">
 
