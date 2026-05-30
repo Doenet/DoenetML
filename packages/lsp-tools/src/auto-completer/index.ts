@@ -88,7 +88,7 @@ export type ElementSchema = {
      * listed type, `2` = reaches the list only via an adapter (or
      * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses this
      * to prefer natural children and drop adapter-only ones. Optional because
-     * hand-built test schemas and pre-#1238 snapshots omit it.
+     * hand-built test schemas and pre-#1229 snapshots omit it.
      *
      * Stored as a compact string rather than a `Record<string, number>`
      * because the pretty-printed JSON would otherwise carry one line per
@@ -100,7 +100,7 @@ export type ElementSchema = {
      * nearest first. The suggestions ranker uses this to let an override
      * keyed by an abstract ancestor (e.g. `_sectioningComponent`) apply to
      * every concrete element inheriting from it. Optional because
-     * hand-built test schemas and pre-#1238 snapshots omit it.
+     * hand-built test schemas and pre-#1229 snapshots omit it.
      */
     abstractAncestors?: string[];
     acceptsStringChildren: boolean;
@@ -304,12 +304,11 @@ function adjustCursorForTrimStart(
 
 /**
  * The bundled schema elements, retyped as `ElementSchema[]`. The JSON import's
- * structurally-inferred type doesn't satisfy `ElementSchema`'s
- * `childRanks: Record<string, number>` index signature — across elements TS
- * widens absent keys to `number | undefined` — so we assert the shape once
- * here (the generator guarantees it) and reuse this reference. Keeping it a
- * single shared constant also preserves the `schema === BUNDLED_SCHEMA_ELEMENTS`
- * identity check in `setSchema`.
+ * structurally-inferred type doesn't satisfy `ElementSchema` (TS widens absent
+ * optional fields differently across elements), so we assert the shape once
+ * here — the generator guarantees it — and reuse this reference. Keeping it
+ * a single shared constant also preserves the
+ * `schema === BUNDLED_SCHEMA_ELEMENTS` identity check in `setSchema`.
  */
 const BUNDLED_SCHEMA_ELEMENTS =
     doenetSchema.elements as unknown as ElementSchema[];
@@ -720,19 +719,23 @@ export class AutoCompleter {
     /**
      * Child-relation ranks for the children returned by `_getAllowedChildren`
      * for the same `(elementName, parentName)` — child component type → bucket
-     * (0 direct, 1 inherited, 2 adapter-only; see `ElementSchema.childRanks`).
+     * (0 direct, 1 inherited, 2 adapter-only; see `ElementSchema.childBuckets`).
      * Reads from the same alias-aware entry `_getAllowedChildren` uses so the
      * names and ranks stay aligned. Returns `{}` when the resolved entry
-     * predates `childRanks` (hand-built test schemas), so callers treat every
+     * predates `childBuckets` (hand-built test schemas), so callers treat every
      * child as a direct (rank 0) child and keep it.
      */
     _getChildRanks(
         elementName: string,
         parentName?: string,
     ): Record<string, number> {
-        const entry = this._resolveEffectiveByName(elementName, parentName)
-            ?.children
-            ? this._resolveEffectiveByName(elementName, parentName)
+        // Mirror `_getAllowedChildren`'s fallback: prefer the alias-resolved
+        // entry when it carries `children`, otherwise fall back to the
+        // canonical entry — so the rank map keys line up with whatever
+        // `_getAllowedChildren` just returned.
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        const entry = effective?.children
+            ? effective
             : this.schemaElementsByName[this.normalizeElementName(elementName)];
         const children = entry?.children;
         const buckets = entry?.childBuckets;
