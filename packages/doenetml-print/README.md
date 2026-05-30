@@ -15,8 +15,7 @@ Before building, refresh the bundled PreTeXt core files to the latest upstream c
 ```
 
 This script downloads the latest PreTeXt repository archive (master, with fallback to main), 
-then updates [pretext_core/schema](pretext_core/schema), [pretext_core/xsl](pretext_core/xsl), 
-[pretext_core/COPYING](pretext_core/COPYING), and [pretext_core/CURRENT_COMMIT](pretext_core/CURRENT_COMMIT).
+then updates [pretext_core/](pretext_core/).
 
 After updating PreTeXt core files, run package builds from the repository root:
 

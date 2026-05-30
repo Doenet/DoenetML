@@ -125,7 +125,7 @@ function App() {
                                         },
                                     );
                                 await pretexCompiler.init();
-                                await pretexCompiler.setMainPtx(pretextOutput);
+                                pretexCompiler.setMainPtx(pretextOutput);
                                 const renderedHTML =
                                     await pretexCompiler.full_compile();
                                 setPretextOutput(renderedHTML);

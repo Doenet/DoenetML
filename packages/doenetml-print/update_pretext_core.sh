@@ -5,7 +5,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST_DIR="$SCRIPT_DIR/pretext_core"
 TMP_ROOT="$SCRIPT_DIR/tmp"
 TMP_DIR=""
-ZIP_PATH="$TMP_DIR/pretext.zip"
 SUBDIRECTORIES=("pretext" "xsl" "css")
 EXTRA_FILES=("COPYING")
 DOWNLOADED_BRANCH=""

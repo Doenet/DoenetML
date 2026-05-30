@@ -71,54 +71,45 @@ export class PtxCompiler {
             return;
         }
 
-        this.pyodideInitPromise = new Promise(async (resolve, reject) => {
-            try {
-                // Prefer `._pyodide` over creating a new pyodide instance
-                // since `._pyodide` was provided by the user.
-                this.pyodide =
-                    (await this._pyodide) || (await loadPyodide(options));
-                await this.pyodide.unpackArchive(rawZip, "zip");
-                await this.pyodide.unpackArchive(rawMicropip, "zip");
-                await this.pyodide.unpackArchive(rawPackaging, "zip");
-                await this.pyodide.unpackArchive(rawLxml, "zip");
-                this.pyodide.FS.mkdir("./tmp_compile");
-                this.pyodide.FS.mkdir("./tmp_compile/generated-assets");
-                this.pyodide.FS.mkdir("./tmp_compile/assets");
-                this.pyodide.FS.mkdir("./tmp_compile/out");
+        this.pyodideInitPromise = (async () => {
+            // Prefer `._pyodide` over creating a new pyodide instance
+            // since `._pyodide` was provided by the user.
+            this.pyodide =
+                (await this._pyodide) || (await loadPyodide(options));
+            await this.pyodide.unpackArchive(rawZip, "zip");
+            await this.pyodide.unpackArchive(rawMicropip, "zip");
+            await this.pyodide.unpackArchive(rawPackaging, "zip");
+            await this.pyodide.unpackArchive(rawLxml, "zip");
+            this.pyodide.FS.mkdir("./tmp_compile");
+            this.pyodide.FS.mkdir("./tmp_compile/generated-assets");
+            this.pyodide.FS.mkdir("./tmp_compile/assets");
+            this.pyodide.FS.mkdir("./tmp_compile/out");
 
-                // Load all PreFigure dependencies
-                await this.pyodide.unpackArchive(rawPrefig, "zip");
+            // Load all PreFigure dependencies
+            await this.pyodide.unpackArchive(rawPrefig, "zip");
 
-                await this.pyodide.loadPackage(
-                    [
-                        // Already loaded as part of PreTeXt.
-                        // "micropip",
-                        // "packaging",
-                        // "lxml",
-                        "numpy",
-                        "scipy",
-                        "shapely",
-                        "click",
-                        "networkx",
-                    ],
-                    {
-                        messageCallback: () => {
-                            // Silence Pyodide package progress logs in production usage.
-                        },
+            await this.pyodide.loadPackage(
+                [
+                    // Already loaded as part of PreTeXt.
+                    // "micropip",
+                    // "packaging",
+                    // "lxml",
+                    "numpy",
+                    "scipy",
+                    "shapely",
+                    "click",
+                    "networkx",
+                ],
+                {
+                    messageCallback: () => {
+                        // Silence Pyodide package progress logs in production usage.
                     },
-                );
-                const prefigBrowserApi = new _PrefigBrowserApi();
-                await prefigBrowserApi.initFinished;
-                this.pyodide.registerJsModule(
-                    "prefigBrowserApi",
-                    prefigBrowserApi,
-                );
-            } catch (e) {
-                reject(e);
-            }
-
-            resolve();
-        });
+                },
+            );
+            const prefigBrowserApi = new _PrefigBrowserApi();
+            await prefigBrowserApi.initFinished;
+            this.pyodide.registerJsModule("prefigBrowserApi", prefigBrowserApi);
+        })();
 
         await this.pyodideInitPromise;
     }
@@ -367,7 +358,10 @@ export class PtxCompiler {
                 }
                 const redirectUrl =
                     redirectElm.getAttribute("URL") ||
-                    redirectElm.getAttribute("url");
+                    redirectElm.getAttribute("url") ||
+                    redirectElm
+                        .getAttribute("content")
+                        ?.match(/URL='([^']+)'/)?.[1];
                 if (redirectUrl) {
                     return DECODER.decode(
                         this.pyodide.FS.readFile(`${OUT_DIR}/${redirectUrl}`),

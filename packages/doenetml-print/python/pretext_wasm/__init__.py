@@ -120,7 +120,7 @@ def prefigure_conversion_stub(xml_file_name, format, working_dir):
 
     (diagram_svg, annotations) = ret
 
-    # Make the direcotry `./output` and `./output/prefigure` and save the files there.
+    # Make the directory `./output` and `./output/prefigure` and save the files there.
     output_dir = os.path.join(working_dir, "output")
     prefigure_output_dir = os.path.join(output_dir, "prefigure")
     try:
@@ -168,7 +168,7 @@ def compile(
         "html",
         None,
         None,
-        os.path.join(ptx_source, "../out"),
+        os.path.join(os.path.dirname(ptx_source), "out"),
         runestone_services_stub,
     )
 
