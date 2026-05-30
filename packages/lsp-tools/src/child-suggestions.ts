@@ -9,10 +9,10 @@ import type { AutoCompleter } from "./auto-completer";
  *  - **Hand-picked overrides** — per-container curated lists keyed by parent
  *    element name; entries can name an element or a snippet. Surfaced first,
  *    in the order they appear in the list, and bypass the adapter filter.
- *  - **Auto-rank (`childRanks`)** — for everything else, sort by how directly
- *    the child is allowed in this container (0 direct, 1 inherited, 2 adapter;
- *    see `ElementSchema.childRanks`). Adapter-only children are dropped unless
- *    handpicked.
+ *  - **Auto-rank (`childBuckets`)** — for everything else, sort by how
+ *    directly the child is allowed in this container (0 direct, 1 inherited,
+ *    2 adapter; see `ElementSchema.childBuckets`). Adapter-only children are
+ *    dropped unless handpicked.
  *
  * Snippets always cluster with the element they're linked to (`snippet.element`
  * in the schema) — a snippet sits next to its element wherever that element
@@ -209,11 +209,12 @@ const CONTAINER_SUGGESTION_OVERRIDES = new Map<
 );
 
 /**
- * `childRanks` bucket at which a child is allowed here only because it adapts
- * to an allowed type (e.g. `<point>` inside `<number>`). Such children are
- * dropped from the ranker output unless they (or one of their snippets) are
- * handpicked. The autocomplete's full menu still surfaces them — this filter
- * applies to the ranker's surface, not the underlying allowed-children set.
+ * `childBuckets` bucket at which a child is allowed here only because it
+ * adapts to an allowed type (e.g. `<point>` inside `<number>`). Such children
+ * are dropped from the ranker output unless they (or one of their snippets)
+ * are handpicked. The autocomplete's full menu still surfaces them — this
+ * filter applies to the ranker's surface, not the underlying allowed-children
+ * set.
  */
 export const ADAPTER_CHILD_RANK = 2;
 
@@ -417,7 +418,7 @@ export function rankedChildSuggestions(
     const { elementIndex, abstractIndex, snippetIndex } =
         indexOverrides(overrides);
 
-    // Canonical-name map and lower-case set, since `childRanks` keys use
+    // Canonical-name map and lower-case set, since `_getChildRanks` keys use
     // canonical casing but allowed-children compares case-insensitively.
     const rankByLower = new Map<string, number>();
     for (const [name, rank] of Object.entries(childRanks)) {

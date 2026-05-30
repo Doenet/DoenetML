@@ -76,7 +76,7 @@ describe("rankedChildSuggestions", () => {
 
     it("keeps every handpicked entry regardless of its child-relation bucket", () => {
         const completer = new AutoCompleter("");
-        // <moduleAttributes>'s overrides may sit at different `childRanks`
+        // <moduleAttributes>'s overrides may sit at different `childBuckets`
         // buckets (e.g. inherited vs adapter). The override system must
         // surface every handpicked entry — the bucket only matters when
         // nothing handpicks the child.

@@ -1620,7 +1620,7 @@ describe("computeContextHelp — body / top-level suggestions", () => {
 
     it("drops adapter-only children from <number> body suggestions", async () => {
         // <point>, <function>, <mathInput> are allowed inside <number> only
-        // because they adapt to <math> (childRanks bucket 2). They're rarely
+        // because they adapt to <math> (childBuckets bucket 2). They're rarely
         // typed literally inside a number, so they must not crowd out the
         // natural direct children (<math>, <number>, <text>).
         const source = `<number>\n  \n</number>`;
