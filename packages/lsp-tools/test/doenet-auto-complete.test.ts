@@ -169,6 +169,9 @@ describe("AutoCompleter", () => {
         expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
         for (const item of items) {
             expect(item.textEdit?.newText).toBe(`<${item.label}`);
+            // The dropdown shows the tag form even though matching/insertion
+            // is on the bare name, so it's clear these are elements.
+            expect(item.displayLabel).toBe(`<${item.label}>`);
         }
     });
 
@@ -197,6 +200,8 @@ describe("AutoCompleter", () => {
         const b = items.find((i) => i.label === "b");
         expect(b).toBeDefined();
         expect(b?.textEdit).toBeUndefined();
+        // The visible `<` already signals a tag, so no tag-form displayLabel.
+        expect(b?.displayLabel).toBeUndefined();
     });
 
     it("Adds quotes via textEdit when completing right after `=`", async () => {
