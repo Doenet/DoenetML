@@ -1422,8 +1422,8 @@ export async function computeContextHelpForCompletion(
         type === "property"
     ) {
         // Element schema items, ref-member properties, and close-tag rows all
-        // share `kind: Property` in the LSP layer; the CodeMirror plugin's
-        // `deriveCompletionType` then splits that single kind into the
+        // share `kind: Property` in the LSP layer; `deriveCompletionType`
+        // (`../completion-types`) then splits that single kind into the
         // distinct `type` strings above (so each gets its own dropdown icon).
         // They're handled together here and disambiguated below by cursor
         // context and the label's `/` prefix — exactly as when they shared the

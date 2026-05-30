@@ -13,7 +13,8 @@ import { CompletionItemKind } from "vscode-languageserver/browser";
  * Because of (2), renaming a value here without updating the help dispatch
  * would silently drop help for that category (it happened once). Both the
  * producer ({@link deriveCompletionType}) and the consumer reference these
- * constants, and `completion-types.test.ts` drives every value through the
+ * constants, and the "completion type ↔ context-help dispatch contract" suite
+ * in `context-help/computeContextHelp.test.ts` drives every value through the
  * dispatcher so any drift fails a test.
  */
 export const COMPLETION_TYPES = {
