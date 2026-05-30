@@ -29,6 +29,7 @@ import {
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
 import { rankedChildSuggestions } from "../child-suggestions";
+import { COMPLETION_TYPES } from "../completion-types";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
@@ -1357,7 +1358,7 @@ export async function computeContextHelpForCompletion(
     if (!rawLabel) return NONE;
     const type = completion.type;
 
-    if (type === "snippet") {
+    if (type === COMPLETION_TYPES.snippet) {
         return helpForSnippet(completer, rawLabel);
     }
 
@@ -1379,7 +1380,7 @@ export async function computeContextHelpForCompletion(
     const getCtx = (): CompletionContext =>
         precomputedCtx ?? completer.getCompletionContext(offset);
 
-    if (type === "reference") {
+    if (type === COMPLETION_TYPES.reference) {
         // Strip a leading `$` defensively, then a trailing `[]` — the LSP
         // layer emits an extra `name[]` row for `takesIndex` referents
         // (repeat, select, …) that resolves to the same target as the bare
@@ -1415,9 +1416,9 @@ export async function computeContextHelpForCompletion(
     }
 
     if (
-        type === "component" ||
-        type === "refproperty" ||
-        type === "closetag" ||
+        type === COMPLETION_TYPES.component ||
+        type === COMPLETION_TYPES.referenceProperty ||
+        type === COMPLETION_TYPES.closeTag ||
         type === "property"
     ) {
         // Element schema items, ref-member properties, and close-tag rows all
@@ -1465,7 +1466,7 @@ export async function computeContextHelpForCompletion(
         return helpForElement(ownEntry, effectiveEntry);
     }
 
-    if (type === "enum") {
+    if (type === COMPLETION_TYPES.attributeName) {
         // Attribute-name completion. Look up the surrounding element from the
         // cursor and ask for help for the highlighted attribute.  Mirrors the
         // cursor-driven attribute branch in `computeContextHelp`: a
@@ -1494,7 +1495,7 @@ export async function computeContextHelpForCompletion(
         return helpForElement(ownEntry, effectiveEntry, { completer, node });
     }
 
-    if (type === "value") {
+    if (type === COMPLETION_TYPES.attributeValue) {
         // Attribute-value completion — there's no per-value help, so fall
         // back to the attribute's description. Use `attributeAtOffset` to
         // find which attribute the value belongs to.  Apply the same

@@ -72,7 +72,7 @@ import type {
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
-import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
+import { deriveCompletionType } from "@doenet/lsp-tools";
 
 // LSP's `CompletionItem` doesn't declare `displayLabel`, but
 // @codemirror/autocomplete supports it as a "show this, filter on label"
@@ -100,49 +100,6 @@ function escapeHtml(str: string): string {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
-}
-
-const completionItemKindMap = Object.fromEntries(
-    Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
-) as Record<CompletionItemKind, string>;
-
-/**
- * Map a raw LSP completion item to the CodeMirror `type` string that selects
- * its left-column icon (`.cm-completionIcon-<type>`, styled in
- * `completionIconTheme`). The default mapping is just the lowercased LSP kind
- * name, but components, reference-properties, and closing tags all share LSP
- * kind `Property`, so they're split here — for icon purposes only — using
- * signal the items already carry. No LSP `kind` is changed.
- *
- * NOTE: these `type` strings are also the dispatch key for the context-help
- * panel — `computeContextHelpForCompletion` in `@doenet/lsp-tools` branches on
- * them. Keep the two in sync: renaming a type here without updating that
- * dispatch silently drops help for the affected category.
- */
-function deriveCompletionType(rawItem: {
-    kind?: CompletionItemKind;
-    detail?: string;
-    label: string;
-}): string | undefined {
-    const { kind, detail, label } = rawItem;
-    if (kind == null) {
-        return undefined;
-    }
-    if (kind === CompletionItemKind.Property) {
-        if (label.startsWith("/")) {
-            return "closetag";
-        }
-        // Discriminate on `detail` only: reference-properties set
-        // detail="Property on X"; components set only `documentation`. Don't
-        // test `textEdit` — components also carry one in the Ctrl+Space-
-        // between-tags path (the `insertLeadingBracket` case).
-        if (detail) {
-            return "refproperty";
-        }
-        return "component";
-    }
-    // snippet | enum (attribute name) | value (attribute value) | reference
-    return completionItemKindMap[kind].toLowerCase();
 }
 
 const lspDiagnosticToName = {

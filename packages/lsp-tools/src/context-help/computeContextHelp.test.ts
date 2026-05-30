@@ -8,6 +8,12 @@ import {
     type ContextHelpCompletion,
 } from "./computeContextHelp";
 import type { HelpContent } from "./types";
+import {
+    deriveCompletionType,
+    COMPLETION_TYPES,
+    ALL_COMPLETION_TYPES,
+} from "../completion-types";
+import { CompletionItemKind } from "vscode-languageserver/browser";
 
 // Default `new AutoCompleter(source)` already binds the bundled doenetSchema
 // + aliasedElements, so alias resolution and other cross-element behaviours
@@ -1799,5 +1805,103 @@ describe("computeContextHelp — body / top-level suggestions", () => {
             const bucket = ranks[s.name] ?? ranks[s.name.toLowerCase()] ?? 0;
             expect(bucket).toBeLessThan(2);
         }
+    });
+});
+
+describe("completion type ↔ context-help dispatch contract", () => {
+    // One representative case per completion category. Each supplies a raw LSP
+    // item (shaped as `get-completion-items.ts` builds it) plus a source/offset
+    // where that completion appears, then drives the REAL `deriveCompletionType`
+    // (the producer) and the help dispatcher (the consumer) and asserts (a) the
+    // produced `type` is the expected shared constant and (b) the dispatcher
+    // returns real (non-NONE) help for it.
+    //
+    // This is the guard the original regression lacked: if a `type` is renamed
+    // in `deriveCompletionType` / `COMPLETION_TYPES` but a dispatcher branch
+    // isn't kept in sync, the dispatcher falls through to NONE and the
+    // round-trip assertion below fails. Hardcoding old type strings in the
+    // other completion tests is exactly why that break slipped through before.
+    const cases: Array<{
+        name: string;
+        item: { kind?: CompletionItemKind; detail?: string; label: string };
+        expectedType: string;
+        source: string;
+        offsetAtEnd: boolean;
+    }> = [
+        {
+            name: "component (element name)",
+            item: { kind: CompletionItemKind.Property, label: "abs" },
+            expectedType: COMPLETION_TYPES.component,
+            source: `<a`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "reference property ($m.prop)",
+            item: {
+                kind: CompletionItemKind.Property,
+                label: "displayDecimals",
+                detail: "Property on math",
+            },
+            expectedType: COMPLETION_TYPES.referenceProperty,
+            source: `<math name="m">x</math>\n$m.`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "close tag (/math>)",
+            item: { kind: CompletionItemKind.Property, label: "/math>" },
+            expectedType: COMPLETION_TYPES.closeTag,
+            source: `<math>x`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "snippet",
+            item: { kind: CompletionItemKind.Snippet, label: "answer-labeled" },
+            expectedType: COMPLETION_TYPES.snippet,
+            source: ``,
+            offsetAtEnd: false, // offset 0 in an empty document
+        },
+        {
+            name: "attribute name",
+            item: { kind: CompletionItemKind.Enum, label: "simplify" },
+            expectedType: COMPLETION_TYPES.attributeName,
+            source: `<math `,
+            offsetAtEnd: true,
+        },
+        {
+            name: "attribute value",
+            item: { kind: CompletionItemKind.Value, label: "full" },
+            expectedType: COMPLETION_TYPES.attributeValue,
+            source: `<math simplify="`,
+            offsetAtEnd: true,
+        },
+        {
+            name: "reference name ($m)",
+            item: { kind: CompletionItemKind.Reference, label: "m" },
+            expectedType: COMPLETION_TYPES.reference,
+            source: `<math name="m">x</math>\n$`,
+            offsetAtEnd: true,
+        },
+    ];
+
+    for (const c of cases) {
+        it(`${c.name}: derived type is recognized by the help dispatcher`, async () => {
+            const type = deriveCompletionType(c.item);
+            // Producer emits the expected shared constant…
+            expect(type).toBe(c.expectedType);
+            // …and the consumer returns real help for it (not NONE).
+            const offset = c.offsetAtEnd ? c.source.length : 0;
+            const help = await helpForCompletionAt(c.source, offset, {
+                label: c.item.label,
+                type,
+            });
+            expect(help.kind).not.toBe("none");
+        });
+    }
+
+    it("every declared completion type has a round-trip case above", () => {
+        // Adding a new `type` to `COMPLETION_TYPES` without a case here fails
+        // this guard, forcing the new type through the dispatcher check above.
+        const covered = [...new Set(cases.map((c) => c.expectedType))].sort();
+        expect(covered).toEqual([...ALL_COMPLETION_TYPES].sort());
     });
 });
