@@ -54,8 +54,8 @@ export const completionIconTheme = EditorView.theme({
     ".cm-completionIcon-component::after": { content: '"\\25C8"' }, // ◈
     ".cm-completionIcon-refproperty::after": { content: '"."' },
     ".cm-completionIcon-closetag::after": { content: '"/"' },
-    ".cm-completionIcon-enum::after": { content: '"="' }, // attribute name
-    ".cm-completionIcon-value::after": { content: '"\\0022"' }, // "
+    ".cm-completionIcon-enum::after": { content: '"@"' }, // attribute name
+    ".cm-completionIcon-value::after": { content: '"\\25AA"' }, // ▪ (enum value)
     ".cm-completionIcon-reference::after": { content: '"$"' },
     ".cm-completionIcon-snippet::after": { content: '"\\274F"' }, // ❏
 
