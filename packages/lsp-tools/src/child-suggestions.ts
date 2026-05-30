@@ -439,14 +439,29 @@ export function rankedChildSuggestions(
     const favoriteOf = (elementName: string) =>
         FAVORITE_INDEX.get(elementName.toLowerCase()) ?? NO_HANDPICK;
 
-    for (const name of allowedNames) {
-        const bucket = bucketOf(name);
-        const ownIndex = elementHandpickIndex(
-            name,
+    // Memoize the per-element handpick index — `elementHandpickIndex` walks
+    // `abstractAncestors` per lookup, and the snippet loop below queries the
+    // same element name once per snippet (so e.g. `<answer>` with 8 snippets
+    // would otherwise repeat the walk 8 times). Keyed lower-case to mirror
+    // the helper's own case-folding.
+    const handpickCache = new Map<string, number>();
+    const handpickOf = (elementName: string): number => {
+        const key = elementName.toLowerCase();
+        const cached = handpickCache.get(key);
+        if (cached !== undefined) return cached;
+        const idx = elementHandpickIndex(
+            elementName,
             elementIndex,
             abstractIndex,
             completer,
         );
+        handpickCache.set(key, idx);
+        return idx;
+    };
+
+    for (const name of allowedNames) {
+        const bucket = bucketOf(name);
+        const ownIndex = handpickOf(name);
         const isHandpicked = ownIndex < NO_HANDPICK;
         // Adapter-only children are dropped from suggestions; an explicit
         // handpick is the override. Favorites do NOT override the adapter
@@ -471,18 +486,12 @@ export function rankedChildSuggestions(
         const ownIndex =
             snippetIndex.get(snippet.key.toLowerCase()) ?? NO_HANDPICK;
         // The snippet's cluster rides with its element; the element's
-        // handpicked slot includes any abstract-ancestor expansion.
-        const elementOwnIndex = elementHandpickIndex(
-            element,
-            elementIndex,
-            abstractIndex,
-            completer,
-        );
-        // Cluster ordering follows the element; a snippet's own handpick
-        // only affects intra-cluster placement. If neither the snippet nor
-        // its element is handpicked and the element is adapter-bucket, drop
-        // the snippet too — the whole cluster is filtered.
-        const clusterIndex = elementOwnIndex;
+        // handpicked slot includes any abstract-ancestor expansion. Cluster
+        // ordering follows the element; a snippet's own handpick only
+        // affects intra-cluster placement. If neither the snippet nor its
+        // element is handpicked and the element is adapter-bucket, drop the
+        // snippet too — the whole cluster is filtered.
+        const clusterIndex = handpickOf(element);
         const isHandpicked = ownIndex < NO_HANDPICK;
         if (
             bucket >= ADAPTER_CHILD_RANK &&
