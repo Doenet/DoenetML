@@ -42,10 +42,14 @@ export const ALL_COMPLETION_TYPES: readonly CompletionType[] =
     Object.values(COMPLETION_TYPES);
 
 // Numeric-kind → enum-name, used only as the fallback for kinds the DoenetML
-// LSP doesn't categorize below.
-const completionItemKindMap = Object.fromEntries(
-    Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
-) as Record<number, string>;
+// LSP doesn't categorize below. `CompletionItemKind` is currently a plain
+// name→number object, but we filter to numeric values so this stays correct
+// (no spurious reverse-mapping keys) if it ever becomes a TS enum.
+const completionItemKindName = new Map<number, string>(
+    Object.entries(CompletionItemKind)
+        .filter(([, value]) => typeof value === "number")
+        .map(([name, value]) => [value as number, name]),
+);
 
 /**
  * Map a raw LSP completion item to its CodeMirror `type` string.
@@ -88,6 +92,6 @@ export function deriveCompletionType(item: {
         case CompletionItemKind.Reference:
             return COMPLETION_TYPES.reference;
         default:
-            return completionItemKindMap[kind]?.toLowerCase();
+            return completionItemKindName.get(kind)?.toLowerCase();
     }
 }
