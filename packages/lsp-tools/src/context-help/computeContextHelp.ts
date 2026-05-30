@@ -172,7 +172,13 @@ function augmentWithPerInstanceAttributes(
  * for parent `childContextHelp` aliases (e.g. `<row>` inside `<matrix>`
  * resolves to the `matrixRow` entry). Returns `[ownEntry, effectiveEntry]`
  * where the own entry preserves the authored tag name for the header and
- * the effective entry supplies the alias-redirected description.
+ * the effective entry supplies the alias-redirected description. Both are
+ * `undefined` only when the element's tag name isn't in the schema at all.
+ *
+ * `effectiveEntry` is guaranteed defined whenever `ownEntry` is, since
+ * `resolveEffectiveSchemaElement` returns `ownEntry` as its passthrough.
+ * Callers that want to branch on whether an alias actually fired can
+ * compare `effectiveEntry.name` to `ownEntry.name`.
  */
 function resolveEntriesForNode(
     completer: AutoCompleter,
@@ -188,22 +194,22 @@ function resolveEntriesForNode(
 
 /**
  * Variant of `resolveEntriesForNode` for callers that have already resolved a
- * DAST `containerNode` (e.g. from the ref resolver) and want the effective
- * entry to fall back to the own entry when no alias applies — so they can
- * read `.properties` / `.attributes` without a separate nullish coalesce.
- * Returns `null` when the container's tag name isn't in the schema at all.
+ * DAST `containerNode` (e.g. from the ref resolver) and need both entries as
+ * non-nullable so they can read `.properties` / `.attributes` without a
+ * separate nullish check. Returns `null` when the container's tag name isn't
+ * in the schema at all.
  */
 function resolveEntriesForContainer(
     completer: AutoCompleter,
     containerNode: DastElement,
 ): { ownEntry: ElementSchema; effectiveEntry: SchemaEntryForHelp } | null {
-    const ownEntry = completer.findSchemaElement(containerNode.name);
-    if (!ownEntry) return null;
-    const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(
-            ownEntry,
-            completer.sourceObj.getParentElementName(containerNode),
-        ) ?? ownEntry;
+    const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+        completer,
+        containerNode,
+    );
+    // `effectiveEntry` is guaranteed defined whenever `ownEntry` is — see
+    // `resolveEntriesForNode`'s docstring.
+    if (!ownEntry || !effectiveEntry) return null;
     return { ownEntry, effectiveEntry };
 }
 
