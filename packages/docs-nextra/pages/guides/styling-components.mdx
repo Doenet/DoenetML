@@ -133,7 +133,7 @@ Each segment keeps the *color* of its style (the first two are the default blue;
 `markerFilled="false"{:dn}` gives an open (hollow) marker instead of a filled one.
 
 <Callout type="warning">
-When an open marker — or any visual difference — is meant to *carry meaning*, such as an excluded interval endpoint, reach for a semantic component like `<endpoint>{:dn}` rather than styling a plain point. See [Some distinctions have a name: semantic components](../concepts/styling#some-distinctions-have-a-name-semantic-components) for why this matters.
+When an open marker — or any visual difference — is meant to *carry meaning*, such as an excluded interval endpoint, reach for a semantic component like `<endpoint>{:dn}` rather than styling a plain point. See [Mark meaning with a semantic component](#mark-meaning-with-a-semantic-component) below.
 </Callout>
 
 ### Fill opacity
@@ -147,6 +147,34 @@ When an open marker — or any visual difference — is meant to *carry meaning*
 ```
 
 Notice that none of the attributes in this section is a *color*. There is no `lineColor{:dn}`, `markerColor{:dn}`, or `fillColor{:dn}` attribute you can place on a component — the only way to change a color is to redefine the style, covered next. (For the reasoning, see [Why you can't set a color directly on a component](../concepts/styling#why-you-cant-set-a-color-directly-on-a-component).)
+
+---
+
+## Mark meaning with a semantic component
+
+Styling changes how something *looks*; it does not record what something *means*. So when a visual difference carries meaning — an excluded interval endpoint, an unstable equilibrium — reach for a component built for that meaning instead of imitating it with a style.
+
+Compare a plain point made hollow with `markerFilled="false"{:dn}` to an `<endpoint>{:dn}`. Both render as an open marker, but only the `<endpoint>{:dn}` records that the endpoint is *excluded*. A default `<endpoint>{:dn}` is closed (included); add the `open{:dn}` attribute to make it open (excluded):
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-1" ymax="1">
+  <shortDescription>An included (closed) and an excluded (open) interval endpoint</shortDescription>
+  <endpoint coords="(-1,0)" />
+  <endpoint coords="(1,0)" open />
+</graph>
+```
+
+A semantic component owns the part of its appearance that carries its meaning, so an `<endpoint>{:dn}` takes open-vs-closed from `open{:dn}`, not from `markerFilled{:dn}`. The same pattern applies to `<equilibriumPoint>{:dn}`, `<equilibriumLine>{:dn}`, and `<equilibriumCurve>{:dn}`, which take stable-vs-unstable from `stable{:dn}` — a stable equilibrium draws closed (or solid), an unstable one open (or dashed):
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-1" ymax="1">
+  <shortDescription>A stable (closed) and an unstable (open) equilibrium point</shortDescription>
+  <equilibriumPoint coords="(-1,0)" />
+  <equilibriumPoint coords="(1,0)" stable="false" />
+</graph>
+```
+
+You can still style these components in the ordinary ways — set their `styleNumber{:dn}`, line width, marker size, and so on — they simply own the one aspect of appearance that encodes their meaning. For *why* this matters, and why it is the more accessible choice, see [Some distinctions have a name: semantic components](../concepts/styling#some-distinctions-have-a-name-semantic-components).
 
 ---
 
@@ -216,7 +244,8 @@ Both points use style 1 with no `styleNumber{:dn}` attribute, but the first is p
 - Every component starts in **style 1**. Switch to another predefined style with `styleNumber{:dn}` (1–6); the editor's context help describes each one.
 - A component inherits `styleNumber{:dn}` from its nearest container, so you can style several components at once.
 - What a style controls depends on the component: markers for points, strokes for lines, strokes and fills for regions. Use `filled="true"{:dn}` to see a region's fill color.
-- Override **non-color** settings per component with attributes like `lineWidth{:dn}`, `lineStyle{:dn}`, `markerStyle{:dn}`, `markerSize{:dn}`, `markerFilled{:dn}`, and `fillOpacity{:dn}`.
+- Override **non-color** settings per component with attributes like `lineWidth{:dn}`, `lineStyle{:dn}`, `markerStyle{:dn}`, `markerSize{:dn}`, `markerFilled{:dn}`, and `fillOpacity{:dn}` — for appearance, not to carry meaning.
+- When a difference *carries meaning* (an excluded endpoint, an unstable equilibrium), use a **semantic component** like `<endpoint>{:dn}` rather than styling a plain one.
 - Change **colors** — and redefine any style number — with [`<styleDefinition>{:dn}`](../reference/styleDefinition), at the document level or scoped to a section.
 
 For the reasoning behind all of this — why style numbers exist and what that means for accessibility — read [Styling, meaning, and accessibility](../concepts/styling).
