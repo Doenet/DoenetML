@@ -7,7 +7,7 @@ export default class Choice extends InlineComponent {
     static componentType = "choice";
 
     static componentDocs = {
-        summary: "A single choice within a `<choiceInput>`",
+        summary: "A single choice within a `<choiceInput>` or an `<answer>`.",
     };
     static rendererType = "containerInline";
     static renderChildren = true;

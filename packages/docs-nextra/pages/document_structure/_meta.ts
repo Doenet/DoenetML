@@ -1,5 +1,6 @@
 export default {
     essentialConcepts: "Essential Concepts",
+    references: "References",
     documentStructure: {
         name: "Document Structure",
         display: "hidden",

@@ -107,10 +107,14 @@ describe("computeContextHelp — element help", () => {
         expect((await helpAt(source, offset)).kind).toBe("none");
     });
 
-    it("returns none for cursor in body content", async () => {
+    it("returns body suggestions for cursor in element body content", async () => {
         const source = `<math>x</math>`;
         // Offset 6 is between `>` and `x`.
-        expect((await helpAt(source, 6)).kind).toBe("none");
+        const help = await helpAt(source, 6);
+        expect(help.kind).toBe("suggestions");
+        if (help.kind === "suggestions") {
+            expect(help.context).toEqual({ elementName: "math" });
+        }
     });
 
     it("resolves elements case-insensitively and displays the canonical name", async () => {
@@ -821,12 +825,10 @@ describe("computeContextHelp — bare ref ($name)", () => {
             // For bare refs the displayed chain is just the ref name itself.
             displayPath: "m",
             targetElementName: "math",
-            docsSlug: "math",
         });
         if (help.kind === "refName") {
             // <math> starts at offset 0 — line 1.
             expect(help.line).toBe(1);
-            expect(help.summary).toBeTruthy();
         }
     });
 
@@ -842,27 +844,43 @@ describe("computeContextHelp — bare ref ($name)", () => {
         });
     });
 
-    it("returns refName help when cursor sits on the name segment of $name.descendant", async () => {
+    it("treats $m.displayDecimals as one unit: same property help on the name segment as on the member", async () => {
+        // A reference and its member chain are a single unit — placing the
+        // cursor on `m` (the name segment) yields the same help as placing it
+        // on `displayDecimals` (the member): it's a reference to the
+        // displayDecimals property either way.
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         // Cursor right after the 'm', before the '.'.
-        const offset = source.indexOf("$m") + 2;
-        const help = await helpAt(source, offset);
-        expect(help).toMatchObject({
-            kind: "refName",
-            refName: "m",
-            targetElementName: "math",
+        const onName = source.indexOf("$m") + 2;
+        const onMember = source.length;
+        const helpName = await helpAt(source, onName);
+        const helpMember = await helpAt(source, onMember);
+        expect(helpName.kind).toBe("property");
+        expect(helpName).toEqual(helpMember);
+        if (helpName.kind === "property") {
+            expect(helpName.propertyName.toLowerCase()).toBe("displaydecimals");
+            expect(helpName.displayPath).toBe("m.displayDecimals");
+        }
+    });
+
+    it("returns an indeterminate unresolvedRef for a $name that doesn't resolve without a resolver", async () => {
+        // The stub adapter exposes no authoritative resolver, so the help
+        // layer must not claim "no referent" — it surfaces the hedged
+        // indeterminate state instead of a definite verdict.
+        const source = `<math>x</math>\n$nonexistent`;
+        const help = await helpAt(source, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "nonexistent",
+            reason: "indeterminate",
         });
     });
 
-    it("returns none for a $name that doesn't resolve", async () => {
-        const source = `<math>x</math>\n$nonexistent`;
-        expect((await helpAt(source, source.length)).kind).toBe("none");
-    });
-
-    it("uses the alias target's summary and docsSlug for $name inside <matrix>", async () => {
-        // <row name="r"> inside <matrix> sugars to matrixRow. The bare-ref
-        // help should follow the same alias redirection as element/attribute/
-        // property help so the docs link lands on the matrixRow page.
+    it("resolves a bare $name inside <matrix> to the aliased row element", async () => {
+        // <row name="r"> inside <matrix> sugars to matrixRow. Reference help
+        // names the referent's authored tag ("row") but, unlike element help,
+        // carries no component summary or docs link — the panel frames a
+        // reference around the reference concept, not the target's page.
         const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r`;
         const help = await helpAt(source, source.length);
         if (help.kind !== "refName") {
@@ -871,8 +889,6 @@ describe("computeContextHelp — bare ref ($name)", () => {
         }
         expect(help.refName).toBe("r");
         expect(help.targetElementName).toBe("row");
-        expect(help.docsSlug).toBe("row_matrix");
-        expect(help.summary).toMatch(/matrix/i);
     });
 
     it("reports the line where the referent is defined", async () => {
@@ -885,6 +901,21 @@ describe("computeContextHelp — bare ref ($name)", () => {
         // <math> sits on line 3 in the authored source.
         expect(help.line).toBe(3);
     });
+
+    it("shows reference help when the cursor is on a $ref inside an attribute value", async () => {
+        // `extend="$m"`: the cursor sits on the `$m` reference inside the
+        // attribute value. Reference help (what it points at + where) takes
+        // precedence over `extend` attribute help.
+        const source = `<math name="m">x</math>\n<math extend="$m"/>`;
+        const offset = source.lastIndexOf("$m") + 1; // on the 'm' of $m
+        const help = await helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+            line: 1,
+        });
+    });
 });
 
 describe("computeContextHelp — refMember resolving to a named descendant", () => {
@@ -896,23 +927,20 @@ describe("computeContextHelp — refMember resolving to a named descendant", () 
             refName: "bi",
             displayPath: "sec.bi",
             targetElementName: "booleanInput",
-            docsSlug: "booleanInput",
         });
-        if (help.kind === "refName") {
-            expect(help.summary).toBeTruthy();
-        }
     });
 
-    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", async () => {
-        // The chain has three parts but the cursor sits on the middle
-        // segment, so the question is "what is $sec.bi?" — a 2-part chain.
-        // The booleanInput descendant of section answers it; the trailing
-        // ".fixed" is irrelevant to help at this cursor position.
-        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi.fixed`;
-        // Cursor right after the second 'i' in 'bi', before the '.'.
-        const offset = source.indexOf(".bi.fixed") + 3;
-        const help = await helpAt(source, offset);
-        expect(help).toMatchObject({
+    it("treats $sec.bi as one unit: same descendant help on the sec segment as on bi", async () => {
+        // Placing the cursor on the `sec` segment yields the same help as on
+        // `bi` — the whole `$sec.bi` chain is one reference, resolving to the
+        // booleanInput descendant either way.
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
+        const onSec = source.indexOf("$sec") + 2; // inside "sec"
+        const onBi = source.length; // inside "bi"
+        const helpSec = await helpAt(source, onSec);
+        const helpBi = await helpAt(source, onBi);
+        expect(helpSec).toEqual(helpBi);
+        expect(helpSec).toMatchObject({
             kind: "refName",
             refName: "bi",
             displayPath: "sec.bi",
@@ -1067,9 +1095,8 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
         expect(help.elementName).toBe("row"); // authored name preserved
         expect(help.propertyName.toLowerCase()).toBe("maxnumber");
         expect(help.description).toBeTruthy();
-        // docsSlug follows the alias redirect, like helpForElement /
-        // helpForAttribute do — so the link points at the matrixRow page.
-        expect(help.docsSlug).toBe("row_matrix");
+        // The full authored chain is carried for the panel sentence.
+        expect(help.displayPath).toBe("r.maxNumber");
     });
 
     it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", async () => {
@@ -1128,14 +1155,20 @@ describe("computeContextHelp — docsSlug propagation", () => {
         expect(help.docsSlug).toBe("row_matrix");
     });
 
-    it("property help carries the resolved container's docsSlug", async () => {
+    it("property reference help carries the authored chain and container line, not a docs slug", async () => {
+        // Property references are framed around the reference, so the payload
+        // drops the container's docsSlug and instead carries the authored
+        // chain plus the container's source line for the panel sentence.
         const source = `<math name="m">x</math>\n$m.displayDecimals`;
         const help = await helpAt(source, source.length);
         if (help.kind !== "property") {
             expect.fail(`expected property help, got ${help.kind}`);
             return;
         }
-        expect(help.docsSlug).toBe("math");
+        expect(help.displayPath).toBe("m.displayDecimals");
+        // <math name="m"> sits on line 1.
+        expect(help.line).toBe(1);
+        expect(help).not.toHaveProperty("docsSlug");
     });
 });
 
@@ -1374,12 +1407,18 @@ describe("computeContextHelp — repeat-introduced names (valueName/indexName)",
         });
     });
 
-    it("returns NONE when a derived name is referenced outside its repeat scope", async () => {
+    it("returns an indeterminate unresolvedRef when a derived name is referenced outside its repeat scope", async () => {
         // `$v` after the repeat closes is out of scope — neither the
-        // named-element walk nor the derived-repeat walk should find it.
+        // named-element walk nor the derived-repeat walk finds it. With no
+        // authoritative resolver attached (stub adapter), the help layer
+        // hedges with `indeterminate` rather than asserting "no referent".
         const source = `<repeatForSequence name="rep" from="1" to="3" valueName="v"><math>x</math></repeatForSequence>\n$v`;
         const help = await helpAt(source, source.length);
-        expect(help.kind).toBe("none");
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "v",
+            reason: "indeterminate",
+        });
     });
 
     it("returns derivedFrom for a `reference`-kind completion on a valueName row", async () => {
@@ -1532,5 +1571,233 @@ describe("computeContextHelp — functionNamesBreakdown on <mathInput> (#1205)",
             return;
         }
         expect(help.functionNamesBreakdown.reset).toBeUndefined();
+    });
+});
+
+describe("computeContextHelp — body / top-level suggestions", () => {
+    it("returns a sized, totalled suggestions payload for a <section> body", async () => {
+        const source = `<section>\n  \n</section>`;
+        // Offset on the blank middle line, inside the section body.
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.context).toEqual({ elementName: "section" });
+        expect(help.suggested.length).toBeGreaterThan(0);
+        expect(help.suggested.length).toBeLessThanOrEqual(6);
+        // The full allowed-children set is much larger than the shown subset,
+        // so the panel can point at Ctrl+Space for the rest.
+        expect(help.totalAllowed).toBeGreaterThan(help.suggested.length);
+    });
+
+    it("suggests top-level components for a cursor in empty top-level whitespace", async () => {
+        const source = `\n\n`;
+        const help = await helpAt(source, 1);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.context).toEqual({ topLevel: true });
+        expect(help.suggested.length).toBeGreaterThan(0);
+        expect(help.suggested.length).toBeLessThanOrEqual(6);
+    });
+
+    it("carries each suggestion's casing, summary, and docsSlug", async () => {
+        const source = `<section>\n  \n</section>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const first = help.suggested[0];
+        expect(first).toBeDefined();
+        expect(first.summary).toBeTruthy();
+        expect(first.docsSlug).toBeTruthy();
+    });
+
+    it("drops adapter-only children from <number> body suggestions", async () => {
+        // <point>, <function>, <mathInput> are allowed inside <number> only
+        // because they adapt to <math> (childBuckets bucket 2). They're rarely
+        // typed literally inside a number, so they must not crowd out the
+        // natural direct children (<math>, <number>, <text>).
+        const source = `<number>\n  \n</number>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const names = help.suggested.map((s) => s.name);
+        expect(names).not.toContain("point");
+        expect(names).not.toContain("function");
+        expect(names).not.toContain("mathInput");
+        // Direct children survive.
+        expect(names).toContain("math");
+        expect(names).toContain("number");
+        expect(names).toContain("text");
+    });
+
+    it("does NOT treat the cursor inside a close tag's </ as body", async () => {
+        // `<mathInput><|/mathInput>` — the cursor is one character into the
+        // `</` of the close tag, NOT between the tags. The help should be
+        // element help for `<mathInput>`, not body-suggestions.
+        const source = `<mathInput></mathInput>`;
+        const offset = source.indexOf("</") + 1;
+        const help = await helpAt(source, offset);
+        expect(help.kind).toBe("element");
+        if (help.kind === "element") {
+            expect(help.elementName).toBe("mathInput");
+        }
+    });
+
+    it("reports no allowed children for <variantControl> body", async () => {
+        // `<variantControl>` accepts no element children and no string
+        // children — the panel uses this to say so rather than pointing at
+        // Ctrl+Space (which would have nothing to offer).
+        const source = `<variantControl>\n  \n</variantControl>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.totalAllowed).toBe(0);
+        expect(help.acceptsStringChildren).toBe(false);
+        expect(help.suggested).toEqual([]);
+    });
+
+    it("flags acceptsStringChildren for containers that take text", async () => {
+        // `<math>` accepts string children and many element children, so
+        // the panel should emit `acceptsStringChildren: true` alongside
+        // the (positive) totalAllowed count.
+        const source = `<math>\n  \n</math>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.acceptsStringChildren).toBe(true);
+        expect(help.totalAllowed).toBeGreaterThan(0);
+    });
+
+    it("treats the cursor between adjacent open and close tags as body", async () => {
+        // `<mathInput></mathInput>` with the cursor right between `>` and
+        // `</` — the exact spot the autocompleter parks the cursor after
+        // inserting a tag pair. The panel must show suggestions for what to
+        // put inside, not element help for `<mathInput>` itself.
+        const source = `<mathInput></mathInput>`;
+        const offset = source.indexOf("</");
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(
+                `expected suggestions help between adjacent tags, got ${help.kind}`,
+            );
+            return;
+        }
+        expect(help.context).toEqual({ elementName: "mathInput" });
+    });
+
+    it("surfaces the curated picks first inside a <module> body", async () => {
+        // <module>'s override list seeds the top of the suggestions with the
+        // niche-but-relevant `<moduleAttributes>` plus a handful of common
+        // children, in the declared order.
+        const source = `<module>\n  \n</module>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.suggested.slice(0, 5).map((s) => s.name)).toEqual([
+            "moduleAttributes",
+            "section",
+            "graph",
+            "p",
+            "function",
+        ]);
+    });
+
+    it("surfaces the curated picks first inside a <moduleAttributes> body", async () => {
+        const source = `<module><moduleAttributes>\n  \n</moduleAttributes></module>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        expect(help.suggested.slice(0, 5).map((s) => s.name)).toEqual([
+            "number",
+            "math",
+            "text",
+            "boolean",
+            "point",
+        ]);
+    });
+
+    it("surfaces the curated picks first inside a <setup> body", async () => {
+        // <setup>'s override puts <select*> components ahead of the basic
+        // value-producing components.
+        const source = `<setup>\n  \n</setup>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        // The override is longer than MAX_SUGGESTIONS (6) — so the panel
+        // shows the first 6 entries of the override list, in declared order:
+        // the four <select*> generators followed by the two <repeat*> ones.
+        expect(help.suggested.slice(0, 6).map((s) => s.name)).toEqual([
+            "select",
+            "selectFromSequence",
+            "selectPrimeNumbers",
+            "selectRandomNumbers",
+            "repeat",
+            "repeatForSequence",
+        ]);
+    });
+
+    it("lifts global favorites past niche direct children in <section>", async () => {
+        // <section>'s direct (bucket-0) children are niche
+        // (cascadeMessage/feedbackDefinition/setup/styleDefinition/title/
+        // variantControl); without the favorites tier they'd dominate the
+        // top 6 and push beginner-relevant inherited children like <p>
+        // off-panel. With favorites, <p>/<title>/<math>/… lift to the top.
+        const source = `<section>\n  \n</section>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const names = help.suggested.map((s) => s.name);
+        // <title> leads via the inherited `_sectioningComponent` override.
+        expect(names[0]).toBe("title");
+        // <p> still surfaces via the global favorites tier.
+        expect(names).toContain("p");
+        // Niche bucket-0 children should be pushed past the favorites and not
+        // appear in the panel's top 6.
+        expect(names).not.toContain("variantControl");
+        expect(names).not.toContain("feedbackDefinition");
+    });
+
+    it("never surfaces an adapter-rank element in <p> body suggestions", async () => {
+        const source = `<p>\n  \n</p>`;
+        const offset = source.indexOf("\n  \n") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "suggestions") {
+            expect.fail(`expected suggestions help, got ${help.kind}`);
+            return;
+        }
+        const completer = attachStubAdapter(new AutoCompleter(source));
+        const ranks = completer._getChildRanks("p");
+        for (const s of help.suggested) {
+            const bucket = ranks[s.name] ?? ranks[s.name.toLowerCase()] ?? 0;
+            expect(bucket).toBeLessThan(2);
+        }
     });
 });

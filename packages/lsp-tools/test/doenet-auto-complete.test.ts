@@ -153,6 +153,52 @@ describe("AutoCompleter", () => {
         }
     });
 
+    it("opens the element menu on explicit Ctrl+Space in a body and inserts the leading `<`", async () => {
+        const source = `<aa>\n  \n</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        // Cursor on the blank middle line, inside the <aa> body — no `<` typed.
+        const offset = source.indexOf("\n  \n") + 3;
+        // Without explicit invocation the menu stays closed (no preceding `<`).
+        expect(await autoCompleter.getCompletionItems(offset)).toEqual([]);
+        // Explicit Ctrl+Space opens it; each item inserts the `<` itself.
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
+        for (const item of items) {
+            expect(item.textEdit?.newText).toBe(`<${item.label}`);
+        }
+    });
+
+    it("opens the top-level element menu on explicit Ctrl+Space in an empty document", async () => {
+        const source = ``;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(await autoCompleter.getCompletionItems(0)).toEqual([]);
+        const items = await autoCompleter.getCompletionItems(
+            0,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toContain("aa");
+        const aa = items.find((i) => i.label === "aa");
+        expect(aa?.textEdit?.newText).toBe("<aa");
+    });
+
+    it("leaves the `<`-typed element menu insertion unchanged (no forced textEdit)", async () => {
+        // Regression guard: with a `<` already typed, element items keep the
+        // default apply (bare label), so the existing insertion path is
+        // untouched by the explicit-trigger changes.
+        const source = `<aa><\n</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa><") + 5; // right after the inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        const b = items.find((i) => i.label === "b");
+        expect(b).toBeDefined();
+        expect(b?.textEdit).toBeUndefined();
+    });
+
     it("Adds quotes via textEdit when completing right after `=`", async () => {
         const source = `<aa><b foo=></b></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
@@ -623,14 +669,17 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 10,
                   "label": "b",
+                  "sortText": "1-999-1-999-0-b-0-999-b",
                 },
                 {
                   "kind": 10,
                   "label": "c",
+                  "sortText": "1-999-1-999-0-c-0-999-c",
                 },
                 {
                   "kind": 10,
                   "label": "d",
+                  "sortText": "1-999-1-999-0-d-0-999-d",
                 },
               ]
             `);

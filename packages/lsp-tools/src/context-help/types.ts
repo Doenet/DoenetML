@@ -49,6 +49,19 @@ export type FunctionNamesBreakdownPayload = {
     reset?: string[];
 };
 
+/**
+ * One element entry in a `suggestions` payload's `suggested` list. Snippets
+ * are deliberately excluded from the panel — with only six slots, surfacing
+ * several variations of the same element (e.g. all the `<answer>` snippets)
+ * crowds out genuinely different components. Snippets still appear in the
+ * full Ctrl+Space autocomplete dropdown, ranked next to their element.
+ */
+export type SuggestionItem = {
+    name: string;
+    summary: string | null;
+    docsSlug: string | null;
+};
+
 export type HelpContent =
     | { kind: "none" }
     | {
@@ -144,13 +157,26 @@ export type HelpContent =
            */
           functionNamesBreakdown?: FunctionNamesBreakdownPayload;
       }
+    /**
+     * A reference to a *property* of another component, e.g.
+     * `$myMath.splitSymbols`. The panel frames this around the reference
+     * concept (what it points at + where), not around the container
+     * component's own docs page — so there is no `docsSlug` here; the
+     * "Learn about references" link is the only outbound link.
+     */
     | {
           kind: "property";
           elementName: string;
           propertyName: string;
           description: string;
-          /** Reference-page slug for the resolved container element. */
-          docsSlug: string | null;
+          /**
+           * Full authored chain after the `$` (e.g. `m.splitSymbols`),
+           * rendered in the panel sentence. Identical regardless of which
+           * segment the cursor sits on, since the whole macro is one unit.
+           */
+          displayPath: string;
+          /** 1-indexed source line where the container component is defined. */
+          line?: number;
           /** Optional: some properties have no declared component type. */
           type?: string;
           isArray: boolean;
@@ -216,12 +242,8 @@ export type HelpContent =
           displayPath: string;
           /** Tag name of the referent element (e.g. `math`). */
           targetElementName: string;
-          /** Component summary for the referent's element type, alias-aware. */
-          summary: string | null;
           /** 1-indexed source line where the referent is defined. */
           line: number | undefined;
-          /** Reference-page slug for the referent's element type. */
-          docsSlug: string | null;
           /**
            * Set when `refName` is introduced by an enclosing `<repeat>` /
            * `<repeatForSequence>` via `valueName` or `indexName` rather
@@ -244,6 +266,54 @@ export type HelpContent =
      * placeholder rather than silently rendering the empty state.
      */
     | { kind: "unsupportedRefChain" }
+    /**
+     * Cursor is on a bare `$name` reference that doesn't resolve to a
+     * referent. `reason` distinguishes verdicts the runtime resolver can make
+     * authoritatively from cases where the resolver was unavailable or
+     * inconclusive — so the panel never claims "no referent" when the real
+     * cause is the checker's incomplete view:
+     *   - `notFound`  — the resolver definitively found no referent.
+     *   - `multiple`  — the resolver found more than one (ambiguous) referent.
+     *   - `indeterminate` — the resolver couldn't decide (e.g. it hadn't
+     *     booted yet, or hit an inconclusive case); the panel hedges.
+     */
+    | {
+          kind: "unresolvedRef";
+          /** Chain after the `$` (e.g. `bad`), rendered in the message. */
+          displayPath: string;
+          reason: "notFound" | "multiple" | "indeterminate";
+      }
+    /**
+     * Cursor is in an element's body or in top-level whitespace — not on any
+     * tag, attribute, or reference. Rather than going blank, the panel
+     * suggests components the author could insert here ("what can go here?").
+     *
+     * `suggested` is the top N element entries from the shared ranker
+     * (`rankedChildSuggestions`) — the same ordering that drives the
+     * autocomplete dropdown's `sortText`. Snippets are intentionally excluded
+     * from the panel (they still cluster with their element in the dropdown);
+     * variations of one element would crowd out a diverse spread of
+     * components in only six chips. See `SuggestionItem`.
+     *
+     * `totalAllowed` is the full count of allowed element types at this
+     * position so the panel can point at Ctrl+Space for the complete list.
+     */
+    | {
+          kind: "suggestions";
+          /** Where the cursor is: inside `elementName`, or at the document top. */
+          context: { elementName: string } | { topLevel: true };
+          suggested: SuggestionItem[];
+          totalAllowed: number;
+          /**
+           * Whether this container also accepts string (text) children. The
+           * panel uses this with `totalAllowed` to choose the right empty/
+           * non-empty messaging — e.g. `<variantControl>` (no children, no
+           * strings) shows "takes no children", whereas a `<math>` body
+           * (strings + components) shows a "type text directly" hint above
+           * the suggestion list.
+           */
+          acceptsStringChildren: boolean;
+      }
     /**
      * Highlighted autocomplete row is a snippet (multi-line template). Carries
      * the snippet's human-readable description and the raw template text so

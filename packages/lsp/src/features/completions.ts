@@ -40,9 +40,20 @@ export function addDocumentCompletionSupport(
             return [];
         }
 
+        // The client (CodeMirror plugin) sets `explicit` when the user
+        // invoked completion via Ctrl+Space, as opposed to the popup opening
+        // from typing. It rides on the completion context as a non-standard
+        // field; read it defensively. Explicit invocation opens the element
+        // menu even with no preceding `<` (e.g. between tags) — see
+        // `getCompletionItems`.
+        const explicit =
+            (params.context as { explicit?: boolean } | undefined)?.explicit ??
+            false;
+
         const completions = await info.autoCompleter.getCompletionItems(
             params.position,
             completionContext,
+            explicit,
         );
         return completions;
     });

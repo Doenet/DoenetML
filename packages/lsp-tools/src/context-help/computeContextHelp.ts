@@ -28,7 +28,12 @@ import {
     resolveActiveStyleBreakdown,
     type ActiveStyleBreakdown,
 } from "../style-context/resolve-active-style";
-import type { FunctionNamesBreakdownPayload, HelpContent } from "./types";
+import { rankedChildSuggestions } from "../child-suggestions";
+import type {
+    FunctionNamesBreakdownPayload,
+    HelpContent,
+    SuggestionItem,
+} from "./types";
 
 /**
  * Schema entry shape used by the help layer. Both real elements and aliased
@@ -38,6 +43,79 @@ import type { FunctionNamesBreakdownPayload, HelpContent } from "./types";
 type SchemaEntryForHelp = ElementSchema | AliasedElementSchema;
 
 const NONE: HelpContent = { kind: "none" };
+
+/** Max suggestions surfaced in the help panel — keeps it scannable. */
+const MAX_SUGGESTIONS = 6;
+
+/**
+ * Build "what can go here?" help for a cursor in an element body or at the
+ * top level. `node` is the containing element (body cursor) or null (top
+ * level — handled as if the parent were `<document>`, since the document's
+ * child set is exactly the top-level allowed elements). Always returns a
+ * `suggestions` payload — even an empty `suggested` list is useful, since
+ * the panel then nudges the author toward Ctrl+Space.
+ *
+ * The actual ordering and snippet inclusion live in `rankedChildSuggestions`,
+ * which the autocomplete dropdown consumes via `sortText` — keeping the two
+ * surfaces in lockstep is the whole point.
+ */
+function suggestionsHelp(
+    completer: AutoCompleter,
+    node: DastElement | null,
+): HelpContent {
+    const context: { elementName: string } | { topLevel: true } = node
+        ? { elementName: node.name }
+        : { topLevel: true };
+    const parentElementName = node ? node.name : "document";
+    const grandparentName = node
+        ? completer.sourceObj.getParentElementName(node)
+        : undefined;
+    const ranked = rankedChildSuggestions(
+        completer,
+        parentElementName,
+        grandparentName,
+    );
+
+    // The panel only surfaces element suggestions — snippets stay in the
+    // autocomplete dropdown (where they cluster with their element) but are
+    // dropped from the 6-chip panel so a single element with many snippets
+    // (e.g. `<answer>`) can't crowd out a diverse spread of components.
+    // Filter BEFORE slicing so we get the top-6 *elements*, not the top-6
+    // ranker items minus whatever snippets happened to fall there.
+    const suggested: SuggestionItem[] = ranked
+        .filter((item) => item.kind === "element")
+        .slice(0, MAX_SUGGESTIONS)
+        .map((item) => {
+            // Prefer the schema's canonical casing (e.g. `mathInput`) so
+            // the chip renders the tag the author would actually type.
+            const entry = completer.findSchemaElement(item.name);
+            return {
+                name: entry?.name ?? item.name,
+                summary: entry?.summary ?? null,
+                docsSlug: entry?.docsSlug ?? null,
+            };
+        });
+
+    // `totalAllowed` is the count of allowed element types (what
+    // Ctrl+Space's "components" wording refers to), independent of how many
+    // snippets the ranker surfaced for this container.
+    const totalAllowed = completer._getAllowedChildren(
+        parentElementName,
+        grandparentName,
+    ).length;
+    const acceptsStringChildren = completer._getAcceptsStringChildren(
+        parentElementName,
+        grandparentName,
+    );
+
+    return {
+        kind: "suggestions",
+        context,
+        suggested,
+        totalAllowed,
+        acceptsStringChildren,
+    };
+}
 
 function findSchemaAttribute(
     el: SchemaEntryForHelp,
@@ -94,24 +172,45 @@ function augmentWithPerInstanceAttributes(
  * for parent `childContextHelp` aliases (e.g. `<row>` inside `<matrix>`
  * resolves to the `matrixRow` entry). Returns `[ownEntry, effectiveEntry]`
  * where the own entry preserves the authored tag name for the header and
- * the effective entry supplies the alias-redirected description.
+ * the effective entry supplies the alias-redirected description. Both are
+ * `undefined` only when the element's tag name isn't in the schema at all.
+ *
+ * `effectiveEntry` is guaranteed defined whenever `ownEntry` is, since
+ * `resolveEffectiveSchemaElement` returns `ownEntry` as its passthrough.
+ * Callers that want to branch on whether an alias actually fired can
+ * compare `effectiveEntry.name` to `ownEntry.name`.
  */
 function resolveEntriesForNode(
     completer: AutoCompleter,
-    node: NonNullable<
-        ReturnType<
-            AutoCompleter["sourceObj"]["elementAtOffsetWithContext"]
-        >["node"]
-    >,
+    node: DastElement,
 ): [ElementSchema | undefined, SchemaEntryForHelp | undefined] {
     const ownEntry = completer.findSchemaElement(node.name);
-    const parent = completer.sourceObj.getParent(node);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
     const effective = completer.resolveEffectiveSchemaElement(
         ownEntry,
-        parentName,
+        completer.sourceObj.getParentElementName(node),
     );
     return [ownEntry, effective];
+}
+
+/**
+ * Variant of `resolveEntriesForNode` for callers that have already resolved a
+ * DAST `containerNode` (e.g. from the ref resolver) and need both entries as
+ * non-nullable so they can read `.properties` / `.attributes` without a
+ * separate nullish check. Returns `null` when the container's tag name isn't
+ * in the schema at all.
+ */
+function resolveEntriesForContainer(
+    completer: AutoCompleter,
+    containerNode: DastElement,
+): { ownEntry: ElementSchema; effectiveEntry: SchemaEntryForHelp } | null {
+    const [ownEntry, effectiveEntry] = resolveEntriesForNode(
+        completer,
+        containerNode,
+    );
+    // `effectiveEntry` is guaranteed defined whenever `ownEntry` is — see
+    // `resolveEntriesForNode`'s docstring.
+    if (!ownEntry || !effectiveEntry) return null;
+    return { ownEntry, effectiveEntry };
 }
 
 /**
@@ -139,6 +238,18 @@ export async function computeContextHelp(
 
     const { node, cursorPosition } =
         completer.sourceObj.elementAtOffsetWithContext(offset);
+
+    const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
+
+    // A cursor sitting on a `$ref` is on a reference even when that ref lives
+    // inside an attribute value (e.g. `<math extend="$m">`). Reference help
+    // takes precedence over the enclosing attribute, so the panel explains the
+    // reference and its referent rather than the `extend`/`copy` attribute it
+    // sits in. Tag-name and attribute-name positions never report a ref
+    // context, so they still fall through to the element/attribute branches.
+    if (ctx.cursorPos === "refName" || ctx.cursorPos === "refMember") {
+        return await helpForReferenceUnit(completer, offset, ctx);
+    }
 
     if (node) {
         const [ownEntry, effectiveEntry] = resolveEntriesForNode(
@@ -221,14 +332,109 @@ export async function computeContextHelp(
         }
     }
 
-    const ctx = precomputedCtx ?? completer.getCompletionContext(offset);
-    if (ctx.cursorPos === "refName") {
-        return helpForRefName(completer, offset, ctx);
-    }
-    if (ctx.cursorPos === "refMember") {
-        return await helpForRefMember(completer, offset, ctx);
+    // Cursor isn't on a tag, attribute, or reference — it's in an element
+    // body or top-level whitespace. Suggest what can go here so the panel
+    // always says something useful rather than going blank.
+    if (ctx.cursorPos === "body") {
+        return suggestionsHelp(completer, node);
     }
 
+    return NONE;
+}
+
+/**
+ * Characters that can appear in a *bare* `$name`/`$a.b[1].c` macro path:
+ * `SimpleIdent` characters (`[A-Za-z0-9_]`), the `.` path separator, and
+ * `[`/`]` bracket indices. Hyphens are deliberately excluded — the macro
+ * grammar only allows them inside the parenthesized `$(foo-bar)` form
+ * (`Ident` in `packages/parser/src/macros/macros.peggy`), not in bare
+ * `$name` chains, so `$m-1` should be `$m` followed by literal `-1` rather
+ * than one chain ending at `1`. The fallback scan that uses this regex
+ * only fires when there is no parsed macro node at the cursor (typically
+ * attribute-value macros); the parsed-macro path keys off the node's
+ * recorded `end.offset`, which already covers parenthesized form
+ * correctly.
+ */
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]]/;
+
+/**
+ * End offset of the `$...` macro covering `offset`, or undefined when there's
+ * no macro at the cursor. Prefers the parsed macro node's end (which handles
+ * `$(...)` parens), and falls back to scanning forward over macro-path
+ * characters — the parsed macro node isn't reliably found for macros inside
+ * attribute values (e.g. `extend="$m.sub"`), so without this scan the
+ * whole-chain unification would break there and a cursor on an early segment
+ * would misclassify just that segment.
+ */
+function macroEndOffset(
+    completer: AutoCompleter,
+    offset: number,
+): number | undefined {
+    const source = completer.source;
+    const prevChar = source.charAt(offset - 1);
+    let macro =
+        completer.sourceObj.nodeAtOffset(offset, {
+            type: "macro",
+            side: "left",
+        }) ??
+        completer.sourceObj.nodeAtOffset(offset, {
+            type: "macro",
+            side: "right",
+        });
+    if (!macro && (prevChar === "." || prevChar === "[")) {
+        macro = completer.sourceObj.nodeAtOffset(offset - 1, {
+            type: "macro",
+            side: "left",
+        });
+    }
+    if (macro?.position?.end?.offset !== undefined) {
+        return macro.position.end.offset;
+    }
+    // No parsed macro node (e.g. an attribute-value macro). Scan forward over
+    // macro-path characters to find where the chain ends.
+    let end = offset;
+    while (
+        end < source.length &&
+        MACRO_PATH_CHAR_REGEX.test(source.charAt(end))
+    ) {
+        end++;
+    }
+    return end > offset ? end : undefined;
+}
+
+/**
+ * Cursor-driven reference help that treats the whole `$a.b.c` macro as a
+ * single unit. The cursor's segment-local context decides only *that* we're
+ * in a reference; the actual help is computed from the full chain (resolved
+ * from the macro's end offset), so placing the cursor on `a`, `b`, or `c`
+ * yields identical help. `cursorCtx` is the segment-local context the
+ * dispatcher already computed, used as the fallback when there's no macro
+ * node to anchor the whole-chain recomputation.
+ */
+async function helpForReferenceUnit(
+    completer: AutoCompleter,
+    offset: number,
+    cursorCtx: CompletionContext,
+): Promise<HelpContent> {
+    let ctx: CompletionContext = cursorCtx;
+    let helpOffset = offset;
+    const end = macroEndOffset(completer, offset);
+    if (end !== undefined && end !== offset) {
+        const wholeCtx = completer.getCompletionContext(end);
+        if (
+            wholeCtx.cursorPos === "refName" ||
+            wholeCtx.cursorPos === "refMember"
+        ) {
+            ctx = wholeCtx;
+            helpOffset = end;
+        }
+    }
+    if (ctx.cursorPos === "refMember") {
+        return await helpForRefMember(completer, helpOffset, ctx);
+    }
+    if (ctx.cursorPos === "refName") {
+        return await helpForRefName(completer, helpOffset, ctx);
+    }
     return NONE;
 }
 
@@ -693,17 +899,12 @@ function tryArrayEntryHelp(
     if (!containerNode || unresolvedPathParts.length === 0) return null;
 
     const arrayName = unresolvedPathParts[0];
-    const ownEntry = completer.findSchemaElement(containerNode.name);
-    if (!ownEntry) return null;
-
-    // Mirror the alias-aware property lookup used by the regular property
-    // branch below, so a child element addressed via its alias-redirected
-    // parent (e.g. `<row>` inside `<matrix>`) still sees the right schema.
-    const parent = completer.sourceObj.getParent(containerNode);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
-    const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
-        ownEntry;
+    // Use the alias-aware property lookup (a `<row>` inside `<matrix>` reads
+    // its property docs from `matrixRow`) so the array prop and its docs are
+    // found the same way the regular property branch below finds them.
+    const entries = resolveEntriesForContainer(completer, containerNode);
+    if (!entries) return null;
+    const { ownEntry, effectiveEntry } = entries;
 
     const arrayProp = effectiveEntry.properties?.find(
         (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
@@ -805,6 +1006,45 @@ async function helpForRefMember(
 }
 
 /**
+ * Build the `displayPath` for a member-help payload by joining the raw path
+ * prefix (with authored bracket indices preserved) and replacing the final
+ * segment with the resolved `memberName`. Every segment is passed through
+ * `formatPathSegment` so hyphenated names get re-wrapped in parens
+ * (`getCompletionContext` strips parens during normalization).
+ */
+function buildMemberDisplayPath(
+    rawPathParts: readonly string[],
+    memberName: string,
+): string {
+    return [
+        ...rawPathParts.slice(0, -1).map(formatPathSegment),
+        formatPathSegment(memberName),
+    ].join(".");
+}
+
+/**
+ * When a member chain fails to resolve, ask the resolver to classify the
+ * WHOLE chain and, for an authoritative `notFound` / `multiple` verdict,
+ * build an `unresolvedRef` payload reported against the full reference (e.g.
+ * `s2.m`). Returns null for `found` / `indeterminate` so the caller keeps its
+ * existing fallback (blank panel, or the "multi-part not supported"
+ * placeholder) rather than over-claiming when the resolver can't decide.
+ */
+async function unresolvedRefForChain(
+    completer: AutoCompleter,
+    offset: number,
+    ctx: { pathParts: string[]; rawPathParts: string[] },
+): Promise<HelpContent | null> {
+    const reason = await completer.classifyReference(offset, ctx.pathParts);
+    if (reason !== "notFound" && reason !== "multiple") return null;
+    return {
+        kind: "unresolvedRef",
+        displayPath: ctx.rawPathParts.map(formatPathSegment).join("."),
+        reason,
+    };
+}
+
+/**
  * Body of ref-member help, parameterized on the member name. The cursor-driven
  * path derives the name from the source text via `fullIdentifierAtOffset`;
  * the completion-driven path passes the autocomplete row's label directly so
@@ -854,7 +1094,14 @@ async function helpForRefMemberByName(
         );
         if (arrayEntry) return arrayEntry;
 
-        // No-adapter / unresolved path. For deep chains, surface the
+        // The chain doesn't resolve to a container. Ask the resolver to
+        // classify the WHOLE chain so we can say "no referent" / "multiple
+        // referents" for e.g. `$m.sub` (where `$m` itself fails) rather than
+        // blanking — reported against the full reference, not one segment.
+        const unresolved = await unresolvedRefForChain(completer, offset, ctx);
+        if (unresolved) return unresolved;
+
+        // No-adapter / inconclusive path. For deep chains, surface the
         // placeholder so a user staring at `$a.b.c` knows *something* about
         // the cursor position; for shorter chains, just blank the panel.
         if (ctx.pathParts.length > 2) {
@@ -879,23 +1126,12 @@ async function helpForRefMemberByName(
         ? completer.resolveRefMemberDescendantHelp(containerNode, memberName)
         : null;
     if (descendantInfo) {
-        // Use `rawPathParts` for the prefix so authored bracket indices are
-        // preserved (`rep[1]` stays as `rep[1]`). Each segment — prefix and
-        // cursor — goes through `formatPathSegment` so hyphenated names get
-        // re-wrapped in parens (parens are stripped during normalization in
-        // `getCompletionContext`).
-        const displayPath = [
-            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
-            formatPathSegment(memberName),
-        ].join(".");
         return {
             kind: "refName",
             refName: memberName,
-            displayPath,
+            displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
             targetElementName: descendantInfo.referent.name,
-            summary: descendantInfo.effectiveEntry?.summary ?? null,
             line: descendantInfo.line,
-            docsSlug: descendantInfo.effectiveEntry?.docsSlug ?? null,
         };
     }
 
@@ -912,19 +1148,12 @@ async function helpForRefMemberByName(
         memberName,
     );
     if (derivedOnContainer) {
-        const ownerEntry = completer.findSchemaElement(containerNode.name);
-        const displayPath = [
-            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
-            formatPathSegment(memberName),
-        ].join(".");
         return {
             kind: "refName",
             refName: memberName,
-            displayPath,
+            displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
             targetElementName: containerNode.name,
-            summary: ownerEntry?.summary ?? null,
             line: derivedOnContainer.line,
-            docsSlug: ownerEntry?.docsSlug ?? null,
             derivedFrom: {
                 role: derivedOnContainer.role,
                 ownerElementName: containerNode.name,
@@ -933,34 +1162,58 @@ async function helpForRefMemberByName(
         };
     }
 
-    const ownEntry = completer.findSchemaElement(containerNode.name);
-    if (!ownEntry) return NONE;
-
-    // Mirror the alias-aware path used by `helpForElement`/`helpForAttribute`
-    // and by `$ref.member` autocomplete: a `<row>` inside `<matrix>` looks up
-    // its property docs on the `matrixRow` entry, so the panel and the
+    // Use the alias-aware lookup (a `<row>` inside `<matrix>` reads its
+    // property docs from `matrixRow`) so the panel and the `$ref.member`
     // dropdown agree on what each property means in context. Property names
-    // and descriptions on alias-only properties (e.g. `maxNumber`) are
-    // otherwise invisible to the help panel.
-    const parent = completer.sourceObj.getParent(containerNode);
-    const parentName = parent && "name" in parent ? parent.name : undefined;
-    const effectiveEntry =
-        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
-        ownEntry;
+    // and descriptions on alias-only properties (e.g. `maxNumber`) would
+    // otherwise be invisible to the help panel.
+    const entries = resolveEntriesForContainer(completer, containerNode);
+    if (!entries) return NONE;
+    const { ownEntry, effectiveEntry } = entries;
 
     const prop = findSchemaProperty(effectiveEntry, memberName);
-    if (!prop?.description) return NONE;
+    if (!prop?.description) {
+        // The container resolved but the member matches no descendant or
+        // property. Classify the whole chain so an authoritatively bad member
+        // (e.g. `$s2.m` where `m` is ambiguous) reports "multiple referents"
+        // for the full reference rather than blanking the panel.
+        const unresolved = await unresolvedRefForChain(completer, offset, ctx);
+        if (unresolved) return unresolved;
+        return NONE;
+    }
 
+    // The help describes the *reference* `$container.member`, so carry the
+    // full authored chain for the panel sentence and the container's source
+    // line for the location, regardless of which segment the cursor is on.
     const result: HelpContent = {
         kind: "property",
         elementName: ownEntry.name,
         propertyName: prop.name,
         description: prop.description,
-        docsSlug: effectiveEntry.docsSlug ?? null,
+        displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
         isArray: prop.isArray ?? false,
     };
     if (prop.type !== undefined) result.type = prop.type;
+    const line = elementStartLine(completer, containerNode);
+    if (line !== undefined) result.line = line;
     return result;
+}
+
+/**
+ * 1-indexed source line of an element's opening tag, recomputed from its
+ * byte offset against the live source (mirrors `_buildRefHelpInfo`, which
+ * avoids trusting synthetic `position.start.line` values stamped by sugar
+ * transformations). Undefined when the node has no usable position.
+ */
+function elementStartLine(
+    completer: AutoCompleter,
+    node: DastElement,
+): number | undefined {
+    const startOffset = node.position?.start.offset;
+    if (startOffset == null || startOffset >= completer.source.length) {
+        return undefined;
+    }
+    return completer.sourceObj.offsetToRowCol(startOffset).line;
 }
 
 /**
@@ -974,14 +1227,14 @@ async function helpForRefMemberByName(
  * Multi-part chains *through* repeat-introduced names without an index
  * (e.g. `$v.x`) still depend on the Rust resolver and remain a known gap.
  */
-function helpForRefName(
+async function helpForRefName(
     completer: AutoCompleter,
     offset: number,
     ctx: {
         typedPrefix: string;
         replaceFromOffset: number;
     },
-): HelpContent {
+): Promise<HelpContent> {
     const refName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
@@ -989,29 +1242,27 @@ function helpForRefName(
         isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
-    return helpForRefNameByName(completer, offset, refName);
+    return await helpForRefNameByName(completer, offset, refName);
 }
 
 /**
  * Body of refName help, parameterized on the name. The completion-driven path
  * passes the autocomplete row's label directly (with any leading `$` stripped).
  */
-function helpForRefNameByName(
+async function helpForRefNameByName(
     completer: AutoCompleter,
     offset: number,
     refName: string,
-): HelpContent {
+): Promise<HelpContent> {
     const resolved = completer.resolveRefNameForHelp(offset, refName);
     if (resolved) {
-        const { referent, line, effectiveEntry } = resolved;
+        const { referent, line } = resolved;
         return {
             kind: "refName",
             refName,
             displayPath: formatPathSegment(refName),
             targetElementName: referent.name,
-            summary: effectiveEntry?.summary ?? null,
             line,
-            docsSlug: effectiveEntry?.docsSlug ?? null,
         };
     }
 
@@ -1019,23 +1270,38 @@ function helpForRefNameByName(
     // the autocomplete dropdown, which already injects `valueName`/`indexName`
     // via `AutoCompleter.getAdditionalRefNames`.
     const derived = completer.resolveDerivedRepeatNameForHelp(offset, refName);
-    if (!derived) return NONE;
-    const ownerEntry = completer.findSchemaElement(derived.owner.name);
+    if (derived) {
+        return {
+            kind: "refName",
+            refName,
+            displayPath: formatPathSegment(refName),
+            // `targetElementName` is the binding's introducer — the only static,
+            // always-correct answer (the iteration value's type is dynamic).
+            targetElementName: derived.owner.name,
+            line: derived.line,
+            derivedFrom: {
+                role: derived.role,
+                ownerElementName: derived.owner.name,
+                ownerLine: derived.line,
+            },
+        };
+    }
+
+    // Neither the AST walk nor the repeat-binding walk found a referent. Ask
+    // the Rust resolver — the runtime's own algorithm — to classify why, so
+    // the panel can say "no referent" / "multiple referents" only when that's
+    // authoritatively true. When the resolver isn't available or is
+    // inconclusive we get `indeterminate` and the panel hedges instead of
+    // misattributing an incomplete-view miss to the author's reference. A
+    // `found` verdict means the reference IS valid but the AST-only help
+    // builder couldn't enrich it (a known gap) — fall back to the neutral
+    // placeholder rather than flagging a valid reference.
+    const reason = await completer.classifyReference(offset, [refName]);
+    if (reason === "found") return NONE;
     return {
-        kind: "refName",
-        refName,
+        kind: "unresolvedRef",
         displayPath: formatPathSegment(refName),
-        // `targetElementName` is the binding's introducer — the only static,
-        // always-correct answer (the iteration value's type is dynamic).
-        targetElementName: derived.owner.name,
-        summary: ownerEntry?.summary ?? null,
-        line: derived.line,
-        docsSlug: ownerEntry?.docsSlug ?? null,
-        derivedFrom: {
-            role: derived.role,
-            ownerElementName: derived.owner.name,
-            ownerLine: derived.line,
-        },
+        reason,
     };
 }
 
@@ -1141,7 +1407,7 @@ export async function computeContextHelpForCompletion(
                 refName,
             );
         }
-        return helpForRefNameByName(completer, offset, refName);
+        return await helpForRefNameByName(completer, offset, refName);
     }
 
     if (type === "property") {

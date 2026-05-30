@@ -65,74 +65,84 @@ export function elementAtOffsetWithContext(
         // If we're at a node boundary, we pick the node to the left if the previous character
         // is a word character. This should help with completion contexts, since the author
         // is probably still typing a word, or is expecting completions from the word on the left.
-        let lezerNode = atNodeBoundary
+        const lezerNode = atNodeBoundary
             ? prevChar.match(/\w/)
                 ? leftNode
                 : rightNode
             : leftNode;
         const rightNodeType = rightNode.type.name as LezerSyntaxNodeName;
         if (atNodeBoundary && rightNodeType === "StartCloseTag") {
-            // If we're at the start of a close tag, then we're in the body of an element.
-            // We claim to be in the element to our left because that is what a user with
-            // auto-completion expects.
+            // Cursor is at the boundary between an OpenTag's `>` and the
+            // immediately following close tag's `</` (i.e.
+            // `<mathInput>|</mathInput>` — the very position the
+            // autocompleter drops the cursor after inserting a tag pair).
+            // That's the body of the element on the left. Skip the switch
+            // below — its `EndTag → openTag` case would overwrite this
+            // classification, since `leftNode` here is the OpenTag's `>` token.
             cursorPosition = "body";
-            lezerNode = leftNode;
-            node = this.nodeAtOffset(lezerNode.from, {
+            node = this.nodeAtOffset(leftNode.from, {
                 type: "element",
             }) as DastElement | null;
-        }
-
-        const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
-        const lezerNodeParentType = lezerNode.parent?.type?.name as
-            | LezerSyntaxNodeName
-            | undefined;
-        switch (lezerNodeType) {
-            case "TagName": {
-                cursorPosition =
-                    lezerNodeParentType === "OpenTag" ||
-                    lezerNodeParentType === "SelfClosingTag"
-                        ? "openTagName"
-                        : "closeTagName";
-                break;
-            }
-            case "AttributeName":
-                cursorPosition = "attributeName";
-                break;
-            case "AttributeValue": {
-                // Lezer's error recovery can wrap a bare unquoted run after
-                // `=` in an `AttributeValue` node when the partial element is
-                // followed by `</...>` or another `<` (e.g.
-                // `<section>\n<math name=hello\n</section>`). Only honor
-                // `attributeValue` when the node actually starts with `"` or
-                // `'`; otherwise mirror the EOF behaviour (where the same
-                // text parses as a trailing `AttributeName`) so the
-                // bare-value branch in `get-completion-items` can fire.
-                const firstChar = this.source.charAt(lezerNode.from);
-                cursorPosition =
-                    firstChar === '"' || firstChar === "'"
-                        ? "attributeValue"
-                        : "attributeName";
-                break;
-            }
-            case "OpenTag":
-            case "SelfClosingTag":
-                cursorPosition = "openTag";
-                break;
-            case "EndTag":
-                if (
-                    lezerNodeParentType === "OpenTag" ||
-                    lezerNodeParentType === "SelfClosingTag"
-                ) {
-                    cursorPosition = "openTag";
-                } else if (!prevChar.match(/(\s|\n)/)) {
-                    cursorPosition = "closeTagName";
-                } else {
-                    cursorPosition = "unknown";
+        } else {
+            const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
+            const lezerNodeParentType = lezerNode.parent?.type?.name as
+                | LezerSyntaxNodeName
+                | undefined;
+            switch (lezerNodeType) {
+                case "TagName": {
+                    cursorPosition =
+                        lezerNodeParentType === "OpenTag" ||
+                        lezerNodeParentType === "SelfClosingTag"
+                            ? "openTagName"
+                            : "closeTagName";
+                    break;
                 }
-                break;
-            case "StartCloseTag":
-                cursorPosition = "body";
-                break;
+                case "AttributeName":
+                    cursorPosition = "attributeName";
+                    break;
+                case "AttributeValue": {
+                    // Lezer's error recovery can wrap a bare unquoted run after
+                    // `=` in an `AttributeValue` node when the partial element is
+                    // followed by `</...>` or another `<` (e.g.
+                    // `<section>\n<math name=hello\n</section>`). Only honor
+                    // `attributeValue` when the node actually starts with `"` or
+                    // `'`; otherwise mirror the EOF behaviour (where the same
+                    // text parses as a trailing `AttributeName`) so the
+                    // bare-value branch in `get-completion-items` can fire.
+                    const firstChar = this.source.charAt(lezerNode.from);
+                    cursorPosition =
+                        firstChar === '"' || firstChar === "'"
+                            ? "attributeValue"
+                            : "attributeName";
+                    break;
+                }
+                case "OpenTag":
+                case "SelfClosingTag":
+                    cursorPosition = "openTag";
+                    break;
+                case "EndTag":
+                    if (
+                        lezerNodeParentType === "OpenTag" ||
+                        lezerNodeParentType === "SelfClosingTag"
+                    ) {
+                        cursorPosition = "openTag";
+                    } else if (!prevChar.match(/(\s|\n)/)) {
+                        cursorPosition = "closeTagName";
+                    } else {
+                        cursorPosition = "unknown";
+                    }
+                    break;
+                case "StartCloseTag":
+                    // The legitimate "between an OpenTag's `>` and the
+                    // following close tag's `</`" case is classified as
+                    // `body` by the early branch above and never reaches
+                    // here. The only way we land here is when the cursor is
+                    // INSIDE the close tag's `</` token itself (e.g.
+                    // `<mathInput><|/mathInput>` — one char into `</`),
+                    // which is the close-tag-edit position, not the body.
+                    cursorPosition = "closeTagName";
+                    break;
+            }
         }
     }
 

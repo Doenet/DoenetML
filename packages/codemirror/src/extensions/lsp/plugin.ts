@@ -399,6 +399,11 @@ export class LSPPlugin implements PluginValue {
             {
                 triggerKind,
                 triggerCharacter,
+                // Forward the explicit (Ctrl+Space) signal so the server can
+                // open the element menu even with no preceding `<` (e.g.
+                // between tags). `triggerKind` alone can't carry this: typing
+                // an identifier also reports `Invoked`.
+                explicit,
             },
         );
 
