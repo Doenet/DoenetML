@@ -981,11 +981,22 @@ async function helpForRefMember(
 }
 
 /**
- * Body of ref-member help, parameterized on the member name. The cursor-driven
- * path derives the name from the source text via `fullIdentifierAtOffset`;
- * the completion-driven path passes the autocomplete row's label directly so
- * the help mirrors exactly what would be inserted.
+ * Build the `displayPath` for a member-help payload by joining the raw path
+ * prefix (with authored bracket indices preserved) and replacing the final
+ * segment with the resolved `memberName`. Every segment is passed through
+ * `formatPathSegment` so hyphenated names get re-wrapped in parens
+ * (`getCompletionContext` strips parens during normalization).
  */
+function buildMemberDisplayPath(
+    rawPathParts: readonly string[],
+    memberName: string,
+): string {
+    return [
+        ...rawPathParts.slice(0, -1).map(formatPathSegment),
+        formatPathSegment(memberName),
+    ].join(".");
+}
+
 /**
  * When a member chain fails to resolve, ask the resolver to classify the
  * WHOLE chain and, for an authoritative `notFound` / `multiple` verdict,
@@ -1008,6 +1019,12 @@ async function unresolvedRefForChain(
     };
 }
 
+/**
+ * Body of ref-member help, parameterized on the member name. The cursor-driven
+ * path derives the name from the source text via `fullIdentifierAtOffset`;
+ * the completion-driven path passes the autocomplete row's label directly so
+ * the help mirrors exactly what would be inserted.
+ */
 async function helpForRefMemberByName(
     completer: AutoCompleter,
     offset: number,
@@ -1084,19 +1101,10 @@ async function helpForRefMemberByName(
         ? completer.resolveRefMemberDescendantHelp(containerNode, memberName)
         : null;
     if (descendantInfo) {
-        // Use `rawPathParts` for the prefix so authored bracket indices are
-        // preserved (`rep[1]` stays as `rep[1]`). Each segment — prefix and
-        // cursor — goes through `formatPathSegment` so hyphenated names get
-        // re-wrapped in parens (parens are stripped during normalization in
-        // `getCompletionContext`).
-        const displayPath = [
-            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
-            formatPathSegment(memberName),
-        ].join(".");
         return {
             kind: "refName",
             refName: memberName,
-            displayPath,
+            displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
             targetElementName: descendantInfo.referent.name,
             line: descendantInfo.line,
         };
@@ -1115,14 +1123,10 @@ async function helpForRefMemberByName(
         memberName,
     );
     if (derivedOnContainer) {
-        const displayPath = [
-            ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
-            formatPathSegment(memberName),
-        ].join(".");
         return {
             kind: "refName",
             refName: memberName,
-            displayPath,
+            displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
             targetElementName: containerNode.name,
             line: derivedOnContainer.line,
             derivedFrom: {
@@ -1162,17 +1166,12 @@ async function helpForRefMemberByName(
     // The help describes the *reference* `$container.member`, so carry the
     // full authored chain for the panel sentence and the container's source
     // line for the location, regardless of which segment the cursor is on.
-    const displayPath = [
-        ...ctx.rawPathParts.slice(0, -1).map(formatPathSegment),
-        formatPathSegment(memberName),
-    ].join(".");
-
     const result: HelpContent = {
         kind: "property",
         elementName: ownEntry.name,
         propertyName: prop.name,
         description: prop.description,
-        displayPath,
+        displayPath: buildMemberDisplayPath(ctx.rawPathParts, memberName),
         isArray: prop.isArray ?? false,
     };
     if (prop.type !== undefined) result.type = prop.type;
