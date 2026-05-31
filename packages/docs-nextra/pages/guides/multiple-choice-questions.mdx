@@ -1,0 +1,223 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Writing Multiple Choice Questions
+
+A multiple choice question is one of the quickest things to build in DoenetML: list the options, mark the right one, and Doenet does the rest. This guide starts with that bare-bones version — enough to get a working question in seconds — and then walks through the attributes that change how a question behaves: shuffling the choices, allowing several answers, limiting attempts, and giving immediate feedback. Each section shows a runnable example and explains *what the attribute actually does*, so you can reach for the right one without guessing.
+
+It assumes you already know the basics of writing DoenetML — tags, attributes, and children. For the complete list of every attribute and property, see the [`<answer>{:dn}`](../reference/answer1) and [`<choiceInput>{:dn}`](../reference/choiceInput) reference pages.
+
+---
+
+## The simplest version
+
+List each option as a [`<choice>{:dn}`](../reference/choice) inside an [`<answer>{:dn}`](../reference/answer1), and mark the correct one with `credit="1"{:dn}`. That is the whole recipe.
+
+```doenet-editor-horiz
+<answer>
+  <label>What's the heaviest dog breed?</label>
+  <choice credit="1">English Mastiff</choice>
+  <choice>Irish Wolfhound</choice>
+  <choice>Great Dane</choice>
+  <choice>Saint Bernard</choice>
+</answer>
+```
+
+A few things are worth noticing:
+
+- **`credit{:dn}` marks the correct choice.** `credit="1"{:dn}` grants full credit when that option is selected; a `<choice>{:dn}` with no `credit{:dn}` is worth 0. (You can also grant fractions like `credit="0.5"{:dn}` for a partially-right option.)
+- **The `<label>{:dn}` is the question.** Putting the prompt in a `<label>{:dn}` makes it visible *and* ties it to the choices, so a screen reader announces the question when the reader reaches the input. When the question instead lives in the surrounding sentence, use a `<shortDescription>{:dn}` — see [Inline, inside a sentence](#inline-inside-a-sentence) below.
+
+<Callout type="info">
+**Shortcut:** in the Doenet editor, open the autocomplete menu (**Ctrl+Space**) anywhere an `<answer>{:dn}` can go and choose the **`multiple-choice-answer`** template. It drops in a filled-out `<answer>{:dn}` with a `<label>{:dn}` and five `<choice>{:dn}` elements for you to edit.
+</Callout>
+
+Each section below takes this same basic recipe and adds a single attribute, showing what it changes.
+
+---
+
+## Shuffle the order of the choices
+
+Add `shuffleOrder{:dn}` and the choices are presented in a randomized order, so they don't appear in the same arrangement for every reader.
+
+```doenet-editor-horiz
+<answer shuffleOrder>
+  <label>What's the heaviest dog breed?</label>
+  <choice credit="1">English Mastiff</choice>
+  <choice>Irish Wolfhound</choice>
+  <choice>Great Dane</choice>
+  <choice>Saint Bernard</choice>
+</answer>
+```
+
+Above the rendered question is a small selector that starts on **`a`**, with a dropdown and a pair of arrows. Each letter is one of the available randomized orders — with four choices there are $4! = 24$ of them, labeled **`a`** through **`x`**. Step through them with the dropdown or the arrows to watch the choices rearrange.
+
+---
+
+## Inline, inside a sentence
+
+By default the choices stack vertically as radio buttons. Add `inline{:dn}` and they become a compact dropdown menu that sits in a line of text — useful for a fill-in-the-blank phrasing.
+
+```doenet-editor-horiz
+<p>A mammal is a
+  <answer inline>
+    <shortDescription>kind of mammal</shortDescription>
+    <choice credit="1">warm-blooded</choice>
+    <choice>cold-blooded</choice>
+  </answer>
+  animal.</p>
+```
+
+Because the sentence itself reads as the prompt, a visible `<label>{:dn}` would only duplicate it. So here the answer carries a `<shortDescription>{:dn}` instead — invisible on screen, but read aloud by assistive technology so the dropdown is not announced as an unlabeled control.
+
+---
+
+## Accept more than one correct choice
+
+Add `selectMultiple{:dn}` and the radio buttons become checkboxes: the reader can select several options. Mark *every* correct option with `credit="1"{:dn}`.
+
+```doenet-editor-horiz
+<answer selectMultiple>
+  <label>Select all the positive integers.</label>
+  <choice credit="1">10</choice>
+  <choice credit="1">92</choice>
+  <choice>0</choice>
+  <choice>-29</choice>
+  <choice>5.6</choice>
+</answer>
+```
+
+By default this is all-or-nothing: to earn full credit the reader must check every choice marked `credit="1"{:dn}` and leave every other choice unchecked. Selecting one wrong option, or missing one correct option, scores 0. To soften that, add partial credit — next.
+
+<Callout type="info">
+**Shortcut:** the **`multiple-choice-select-multiple-answer`** template in the autocomplete menu (**Ctrl+Space**, where an `<answer>{:dn}` is allowed) drops in a `selectMultiple{:dn}` answer with two correct choices already marked, ready to edit.
+</Callout>
+
+---
+
+## Give partial credit for a partly-right selection
+
+Add `matchPartial{:dn}` (alongside `selectMultiple{:dn}`) and a selection that is partly right earns partial credit instead of nothing.
+
+```doenet-editor-horiz
+<answer selectMultiple matchPartial>
+  <label>Select all the positive integers.</label>
+  <choice credit="1">10</choice>
+  <choice credit="1">92</choice>
+  <choice>0</choice>
+  <choice>-29</choice>
+  <choice>5.6</choice>
+</answer>
+```
+
+With `matchPartial{:dn}`, Doenet compares the reader's selection against the correct set and awards credit in proportion to how close it is — rewarding the choices they got right while penalizing the ones they shouldn't have checked.
+
+---
+
+## Limit the number of attempts
+
+By default a reader can keep submitting until they get a question right. Set `maxNumAttempts{:dn}` to cap how many times they may submit.
+
+```doenet-editor-horiz
+<answer shuffleOrder maxNumAttempts="2">
+  <label>Who composed The Marriage of Figaro?</label>
+  <choice credit="1">Mozart</choice>
+  <choice>Verdi</choice>
+  <choice>Puccini</choice>
+  <choice>Wagner</choice>
+</answer>
+```
+
+After the reader has submitted `maxNumAttempts{:dn}` times, the *Check Work* button is disabled and the answer locks in whatever credit was earned on the last attempt. Limiting attempts can be an effective way to get students to think rather than simply cycling through the options until one is accepted.
+
+---
+
+## Changing behavior with each attempt
+
+The next three attributes change the behavior based on incorrect or correct attempts. Each is useful on its own, and together they build the immediate-feedback style described in the [final section](#immediate-feedback-questions-if-at).
+
+### Disable wrong choices as they are tried
+
+`disableWrongChoices{:dn}` grays out each incorrect choice after it has been submitted, so the reader can't pick it again and chooses from what's left.
+
+```doenet-editor-horiz
+<answer shuffleOrder disableWrongChoices>
+  <label>Whose assassination triggered the start of World War I?</label>
+  <choice credit="1">Archduke Franz Ferdinand</choice>
+  <choice>Gavrilo Princip</choice>
+  <choice>Danilo Ilić</choice>
+  <choice>Nedeljko Čabrinović</choice>
+</answer>
+```
+
+
+### Lower the credit ceiling on each attempt
+
+`creditByAttempt{:dn}` takes a list of credit multipliers, one per attempt. With `creditByAttempt="1 0.7 0.5"{:dn}`, a reader who is correct on the first try earns full credit, 70% on the second try, and 50% on the third and any later try.
+
+```doenet-editor-horiz
+<answer shuffleOrder creditByAttempt="1 0.7 0.5">
+  <label>Whose assassination triggered the start of World War I?</label>
+  <choice credit="1">Archduke Franz Ferdinand</choice>
+  <choice>Gavrilo Princip</choice>
+  <choice>Danilo Ilić</choice>
+  <choice>Nedeljko Čabrinović</choice>
+</answer>
+```
+
+The last number in the list sets the floor: every attempt beyond the third here is also worth 50%. 
+
+### Lock the question once it's correct
+
+`disableAfterCorrect{:dn}` freezes the answer as soon as a fully-correct response is submitted: no further changes are allowed.
+
+```doenet-editor-horiz
+<answer shuffleOrder disableAfterCorrect>
+  <label>What do you get when you mix hydrochloric acid and sodium hydroxide?</label>
+  <choice credit="1">table salt</choice>
+  <choice>sodium acetate</choice>
+  <choice>sugar</choice>
+  <choice>vinegar</choice>
+</answer>
+```
+
+
+---
+
+## Immediate-feedback questions (IF-AT)
+
+The three attributes from the previous section combine into the **Immediate Feedback Assessment Technique**, or [IF-AT](https://www.cognalearn.com/ifat). In its original paper form, IF-AT is a scratch-off card — like a lottery ticket. The reader scratches the box for the answer they think is right; a star appears if they were correct, and nothing if they weren't. A wrong scratch is permanent, so they scratch again among the remaining boxes, scoring fewer points the more scratches it takes, until they uncover the star.
+
+Three DoenetML attributes reproduce that behavior exactly:
+
+- `disableWrongChoices{:dn}` — a wrong guess is grayed out and can't be picked again, just as a scratched-off box can't be un-scratched.
+- `creditByAttempt{:dn}` — each additional attempt is worth less, just as each extra scratch costs points.
+- `disableAfterCorrect{:dn}` — uncovering the correct answer ends the question, just as finding the star finishes the card.
+
+Put all three together (here with `shuffleOrder{:dn}` so the layout varies):
+
+```doenet-editor-horiz
+<answer shuffleOrder disableWrongChoices creditByAttempt="1 0.7 0.5" disableAfterCorrect>
+  <label>What do you get when you mix hydrochloric acid and sodium hydroxide?</label>
+  <choice credit="1">table salt</choice>
+  <choice>sodium acetate</choice>
+  <choice>sugar</choice>
+  <choice>vinegar</choice>
+</answer>
+```
+
+Try it: pick a wrong option and it grays out while you keep going; reach the correct one and the question locks. The score reflects how many tries it took.
+
+<Callout type="info">
+**Shortcut:** the autocomplete menu (**Ctrl+Space**, where an `<answer>{:dn}` is allowed) includes an **`if-at-(immediate-feedback-assessment-technique)-answer`** template that drops in this exact combination of attributes, ready for you to fill in the question and choices.
+</Callout>
+
+---
+
+## Where to go next
+
+- [`<answer>{:dn}`](../reference/answer1) reference — the full list of `<answer>{:dn}` attributes and properties, including answer types beyond multiple choice.
+- [`<choiceInput>{:dn}`](../reference/choiceInput) reference — the input the choices live in, for when you need explicit control or want to read properties like `selectedIndices` and `choiceTexts`.
+- [`<choice>{:dn}`](../reference/choice) reference — per-choice options such as `feedbackText{:dn}` (custom feedback for a specific choice) and `preSelect{:dn}`.
+- [Writing Accessible Activities](accessible-activities) — more on labeling inputs so every reader can use your questions.
