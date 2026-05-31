@@ -1303,10 +1303,11 @@ export function DocViewer({
         initializedCallback?.({ activityId, docId });
     }
 
-    // `startCore` is launched fire-and-forget from render-phase code, so wrap
-    // it: it already surfaces boot failures itself, but an *unexpected* throw
-    // must still become a visible error rather than an unhandled rejection
-    // (#2957, and AGENTS.md "no fire-and-forget promises").
+    // `startCore` is always launched fire-and-forget (never awaited — e.g. from
+    // render-phase code and event listeners), so wrap it: it already surfaces
+    // boot failures itself, but an *unexpected* throw must still become a
+    // visible error rather than an unhandled rejection (#2957, and AGENTS.md
+    // "no fire-and-forget promises").
     function startCoreSafely() {
         startCore().catch((e) => {
             console.warn("DocViewer: startCore failed unexpectedly", e);
