@@ -1,5 +1,8 @@
 export default {
     "styling-components": "Styling Components",
+    "accessible-activities": "Writing Accessible Activities",
+    "check-accessibility": "Checking Accessibility",
+    "accessible-interactive-graphs": "Accessible Interactive Graphs",
     answerValidation: {
         name: "Answer Validation",
         display: "hidden",

@@ -1,0 +1,64 @@
+import { Callout } from "nextra/components"
+
+
+# Accessibility in Doenet
+
+An accessible activity is one that *every* student can read and learn from — including students who use a screen reader, navigate by keyboard instead of a mouse, or rely on high contrast or enlarged text. Doenet helps you get there in two quite different ways, and it is worth keeping them separate in your mind:
+
+1. it **checks** your document against the [WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/) accessibility guidelines and warns you about violations, and
+2. more ambitiously, it tries to convey the *meaning* of what you build through more than one channel, so the same idea reaches a reader who can't use the visual one.
+
+This page is about the difference between those two — why passing the first is not the same as achieving the second, and how Doenet pursues each.
+
+<Callout type="info">
+Looking for the steps? See **[Checking Accessibility](../guides/check-accessibility)** (how to read the WCAG report), **[Writing Accessible Activities](../guides/accessible-activities)** (descriptions, labels, links, headings, tables), and **[Accessible Interactive Graphs](../guides/accessible-interactive-graphs)**. This page explains the *why* behind those recipes.
+</Callout>
+
+## Passing the checker is a floor, not a ceiling
+
+As you edit, Doenet checks your document against WCAG AA and flags violations — the status indicator above the viewer turns purple, and the accessibility report lists each problem. That check is real, and keeping it at zero is worth doing. But clearing it does **not** make your activity accessible. It makes it *not obviously broken.* You can satisfy every automated rule and still leave a screen-reader user stranded.
+
+A short description of `"a graph"{:dn}` technically satisfies the rule that a graph must have a description — and tells a blind student nothing about the graph. Labelling an input `"input"{:dn}` clears the unlabeled-input violation and conveys nothing about what to type. The checker can confirm *that* you wrote a description; it cannot judge whether the description lets someone who can't see the figure actually do the problem. That judgment is yours.
+
+So treat the checker as a **floor**. It catches the omissions that guarantee inaccessibility — an unlabeled input, an undescribed image — and it keeps accessibility *visible* while you author instead of leaving it to an audit at the end. Genuine accessibility is the *ceiling*: a separate, human task that begins where the checker stops.
+
+## What true accessibility asks of you
+
+The heart of accessibility is conveying the same meaning in more than one form. A sighted student takes in a graph at a glance; a screen-reader user needs that same information in words, in an order that makes sense, at the right level of detail. Getting that right depends on what the content is *for* — and only you know that.
+
+The same picture needs a different description in a "find the discontinuity" problem than in a "read off the intercepts" problem: one description should mention the open circle at the vertex, the other the axis scales and intercepts. Doenet can *require* a description; it cannot write a good one, because a good one depends on your pedagogical intent. This is the part that can't be automated, and it is the part that matters most.
+
+## How Doenet helps you convey meaning
+
+Several pieces of Doenet's design exist to make that re-expression possible. None of them removes the author's judgment, but together they give your meaning somewhere to live other than the pixels on the screen.
+
+### Baseline checks keep accessibility in view
+
+As long as you supply the information only you can — a label on an input, a short description for a graph — Doenet follows standard practice and produces WCAG-conformant output for you. When you leave that information out, it warns you on the spot. The point of the warning is less the rule than the *visibility*: accessibility stays in front of you as you write, rather than becoming a cleanup pass you never get to. (See [Checking Accessibility](../guides/check-accessibility).)
+
+### Semantic markup carries meaning, not just appearance
+
+When you say what something *is* rather than how it looks — an excluded `<endpoint>{:dn}`, an `<answer>{:dn}`, a `<section>{:dn}` introduced by a `<title>{:dn}` — Doenet has something it can re-express in another modality. Meaning that lives only in visual styling, like a hollow marker or a larger font, cannot be handed to a screen reader. Meaning that lives in a component can. This is why semantic markup is the foundation of both today's accessibility and what is coming: the more of your intent is recorded as structure, the more channels Doenet can eventually route it through. (See [Essential Concepts](essentialConcepts) and [semantic components](styling#some-distinctions-have-a-name-semantic-components).)
+
+### Styles adapt to the reader
+
+Doenet's styling is built on the same idea. Because a visual distinction — "these two curves are different" — is recorded as a *style number* rather than a raw color painted onto each curve, Doenet has one well-defined place to re-express that distinction for a reader who needs different colors or higher contrast. The distinction you encoded survives, shown in a form that works for that reader. [Styling, meaning, and accessibility](styling#why-distinctions-live-in-style-numbers-accessibility) develops this argument in full; it is the clearest worked example of the principle on this page.
+
+### Graphs you can explore by listening
+
+A static description hands a screen-reader user one frozen paragraph about a figure. The [PreFigure renderer](../guides/accessible-interactive-graphs#navigate-the-pieces-with-the-prefigure-renderer) lets you do better: you attach **annotations** to the individual pieces of a graph, and a screen-reader user can then move through the construction piece by piece — hearing each annotation while the graph highlights and zooms to the piece in focus. That turns a figure from something *read to* the student into something they can *explore*.
+
+### Interactive graphs: the hard part, still in progress
+
+Doenet is built around interactive, exploratory graphics — students drag points, vectors, and curves and watch the consequences. Dragging is a mouse gesture. It is not available to someone working by keyboard or screen reader, and giving them an equally good way to manipulate a graph is genuinely unsolved. Doenet has first steps — [on-screen controls](../guides/accessible-interactive-graphs#let-keyboard-users-operate-the-graph-with-addcontrols) that move an object from the keyboard, descriptions that update as the figure changes — but this is an active frontier with a long way still to go. We would rather tell you that plainly than imply the problem is finished.
+
+## Accessibility is shared work
+
+The division of labor is the theme running through all of the above. Doenet handles what can be made to work for everyone automatically — conformant markup, adaptable styles, the navigation machinery for graphs. The parts that depend on intent and context — *what* a description should say, *which* distinctions a reader must perceive, *whether* a keyboard path through a problem is as good as the mouse one — are yours. Keep the checker at zero, and then keep going past it. And where Doenet's accessibility tools themselves fall short of a document you are trying to make accessible, raise it at [community.doenet.org](https://community.doenet.org) — the gaps authors identify are what shape what we build next.
+
+## Where to go next
+
+- **[Checking Accessibility](../guides/check-accessibility)** — read the WCAG report and understand what each check does (and doesn't) verify.
+- **[Writing Accessible Activities](../guides/accessible-activities)** — descriptions, labels, links, headings, tables, and contrast.
+- **[Accessible Interactive Graphs](../guides/accessible-interactive-graphs)** — descriptions that update, keyboard controls, and graph annotations.
+- **[Styling, meaning, and accessibility](styling)** — the styling design and the accessibility argument behind it.
