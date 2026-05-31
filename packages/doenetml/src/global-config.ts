@@ -6,7 +6,45 @@ if (typeof window === "undefined") {
 /**
  * Global configuration object for DoenetML.
  */
-export const doenetGlobalConfig = {
+export const doenetGlobalConfig: {
+    doenetWorkerUrl: string;
+    /**
+     * Maximum number of times `DocViewer` will retry the core-worker
+     * *handshake* before giving up and surfacing an error. Each handshake
+     * that fails to complete within `coreHandshakeWatchdogMs` is abandoned
+     * and retried with a fresh worker. Falls back to a built-in default when
+     * unset.
+     */
+    coreBootMaxAttempts?: number;
+    /**
+     * Per-attempt watchdog, in milliseconds, for the core-worker *handshake*
+     * in `DocViewer` — i.e. (re)creating the worker and running the cheap,
+     * roughly size-independent init round-trips (set source/flags, initialize
+     * the JS core). A handshake that neither resolves nor rejects within this
+     * window is treated as a stalled/wedged worker (Doenet/DoenetApps#2957):
+     * the worker is force-terminated and the handshake retried.
+     *
+     * This watchdog deliberately does NOT cover the subsequent `generateDast`
+     * step, which is the legitimately slow, document-size-dependent phase
+     * (seconds to minutes on complex documents). Time-boxing that phase would
+     * make large documents unloadable, so once the handshake completes — the
+     * worker having proven it is alive — the evaluation runs to completion
+     * however long it takes. Falls back to a built-in default when unset.
+     */
+    coreHandshakeWatchdogMs?: number;
+    /**
+     * Test-only seam. When set, `DocViewer` awaits this at each core-init
+     * phase: `"handshake"` (covered by the watchdog) and `"generate"` (the
+     * un-watchdogged evaluation). Throwing, rejecting, or returning a
+     * never-resolving promise lets a test deterministically simulate either a
+     * hung/wedged worker handshake or a slow-but-alive evaluation
+     * (Doenet/DoenetApps#2957). Always `undefined` in production.
+     */
+    __doenetTestCoreInitHook?: (
+        phase: "handshake" | "generate",
+        attempt: number,
+    ) => void | Promise<void>;
+} = {
     doenetWorkerUrl: getWorkerUrl(),
 };
 // We want this to be available in the global scope
