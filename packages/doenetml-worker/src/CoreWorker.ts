@@ -143,9 +143,14 @@ export class CoreWorker {
         } catch (err) {
             console.error("Error when setting source", err);
             throw err;
+        } finally {
+            // Always release the queue, even on a throw (e.g. a transient WASM
+            // init failure). Skipping this leaves `isProcessingPromise`
+            // unresolved, which permanently deadlocks every later call — and
+            // hangs the viewer with no way to recover. See
+            // Doenet/DoenetApps#2957.
+            resolve();
         }
-
-        resolve();
     }
 
     async setFlags(args: { flags: Flags }) {
@@ -155,25 +160,29 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (!this.wasm_initialized) {
-            await init({ module_or_path: wasmBlobUrl });
-            this.wasm_initialized = true;
-        }
-
-        if (!this.doenetCore) {
-            this.doenetCore = PublicDoenetMLCore.new();
-        }
-        if (this.core_type === "javascript") {
-            if (!this.javascriptCore) {
-                this.javascriptCore = new PublicDoenetMLCoreJavascript();
+        try {
+            if (!this.wasm_initialized) {
+                await init({ module_or_path: wasmBlobUrl });
+                this.wasm_initialized = true;
             }
-            this.javascriptCore.setFlags(args.flags);
+
+            if (!this.doenetCore) {
+                this.doenetCore = PublicDoenetMLCore.new();
+            }
+            if (this.core_type === "javascript") {
+                if (!this.javascriptCore) {
+                    this.javascriptCore = new PublicDoenetMLCoreJavascript();
+                }
+                this.javascriptCore.setFlags(args.flags);
+            }
+
+            this.doenetCore.set_flags(JSON.stringify(args.flags));
+            this.flags_set = true;
+        } finally {
+            // Always release the queue, even if WASM init or set_flags throws,
+            // so a transient failure doesn't deadlock all later calls (#2957).
+            resolve();
         }
-
-        this.doenetCore.set_flags(JSON.stringify(args.flags));
-        this.flags_set = true;
-
-        resolve();
     }
 
     async initializeJavascriptCore({
