@@ -1,6 +1,7 @@
 /* Customize the label (the container) */
 .doenet-viewer .boolean-container {
-    /* display: inline-block; */
+    /* `display: inline-block` and `vertical-align` are set inline in
+       booleanInput.tsx so the checkbox flows beside a wrapping label (#1245). */
     position: relative;
     padding-left: 24px;
     margin-bottom: 4px;
