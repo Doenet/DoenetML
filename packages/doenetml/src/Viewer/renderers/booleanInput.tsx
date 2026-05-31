@@ -571,6 +571,12 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         const checkboxControl = (
             <span
                 className={containerClass}
+                // Inline-block so the checkbox flows as inline content beside a
+                // (possibly wrapping) label and baseline-aligns with it. As a
+                // former flex item it was blockified; this keeps its box model
+                // and alignment unchanged now that the container is
+                // `display: inline` (#1245).
+                style={{ display: "inline-block", verticalAlign: "baseline" }}
                 onMouseDown={(e) => {
                     if (e.target instanceof HTMLInputElement) {
                         return;
@@ -627,9 +633,12 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     return (
         <span
             id={id}
+            // `display: inline` so the label and checkbox flow with the
+            // surrounding paragraph text and a wrapping label keeps the
+            // checkbox after its end rather than beside its first line (#1245).
+            // See mathInput.tsx for the full rationale.
             style={{
-                display: "inline-flex",
-                alignItems: "baseline",
+                display: "inline",
             }}
         >
             {SVs.labelPosition === "left" ? labelComponent : null}

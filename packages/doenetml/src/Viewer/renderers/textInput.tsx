@@ -695,6 +695,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
             style={{
                 display: "inline-flex",
                 alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line.
+                verticalAlign: "baseline",
             }}
         >
             {input}
@@ -719,10 +723,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
     return (
         <span
             id={id}
+            // `display: inline` so the label and input flow with the
+            // surrounding paragraph text: text before and after the input wraps
+            // together with it, and a wrapping label keeps the input after its
+            // end rather than beside its first line (#1245). See mathInput.tsx
+            // for the full rationale.
             style={{
-                display: "inline-flex",
-                maxWidth: "100%",
-                alignItems: "baseline",
+                display: "inline",
             }}
         >
             {SVs.labelPosition === "right" ? (

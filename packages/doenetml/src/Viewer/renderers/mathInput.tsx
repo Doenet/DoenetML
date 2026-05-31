@@ -758,6 +758,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
             style={{
                 display: "inline-flex",
                 alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line, keeping a single tall-math label
+                // aligned with the input (#945).
+                verticalAlign: "baseline",
             }}
         >
             {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
@@ -843,10 +848,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
         <React.Fragment>
             <span
                 id={id}
+                // `display: inline` keeps the label and input row as ordinary
+                // inline content so the whole input flows with its paragraph:
+                // text before and after the input wraps together with the label
+                // and input box, and a long label wraps across lines with the
+                // input following its end rather than baseline-aligning to the
+                // label's *first* line, where it looked embedded in the label
+                // text (#1245). (inline-block would instead make the label and
+                // input an atomic box that surrounding paragraph text cannot
+                // wrap together with.) A single tall label (e.g. tall math)
+                // still aligns with the input via the input row's
+                // `vertical-align: baseline` (preserving #945).
                 style={{
-                    display: "inline-flex",
-                    maxWidth: "100%",
-                    alignItems: "baseline",
+                    display: "inline",
                 }}
             >
                 {SVs.labelPosition === "right" ? (
