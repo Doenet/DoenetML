@@ -1,0 +1,118 @@
+// --------------------------------------------------------------------------
+// Flexible / centered widening of rs elements and other components
+
+$small-nested-margin-offset: 0px !default;
+
+// These will have defaults that have possibly been overridden by @use in main theme file
+@use 'sizing-globals' as sizing;
+@use 'components/helpers/expandable';
+
+
+
+// designed to be used with a @container/media query by file using this
+// left to user to include in a media query
+// e.g. @container ptx-main (width < 850px) { @include smaller-screen-widening; }
+@mixin smaller-screen-widening {
+  .ptx-runestone-container:has(#{sizing.$rs-wide-elements}) {
+    width: calc(100cqw);
+    margin-left: calc(-0.5*(100cqw - 100%));
+  }
+  :is(#{sizing.$grouping-elements}):has(#{sizing.$rs-wide-elements}) {
+    width: calc(100cqw);
+    margin-left: calc(-0.5*(100cqw - 100%));
+  }
+  :is(#{sizing.$grouping-elements}) .ptx-runestone-container:has(#{sizing.$rs-wide-elements}) {
+    width: 100%;
+    margin-left: $small-nested-margin-offset;  //cheat into padding
+  }
+}
+
+
+
+// widen all runestone elements that should be wide
+.ptx-runestone-container:has(#{sizing.$rs-wide-elements}){
+  @include expandable.responsive;
+}
+
+// unless nested in other runestones
+.ptx-runestone-container {
+  .ptx-runestone-container:has(#{sizing.$rs-wide-elements})
+  {
+    width: 100%;
+    min-width: 100%;
+    margin-left: auto;
+  }
+}
+
+// also wide grouping elements that have wide elements
+:is(#{sizing.$grouping-elements}):has(#{sizing.$rs-wide-elements}) {
+  @include expandable.responsive;
+}
+// unless nested in other wide elements
+:is(#{sizing.$grouping-elements}):has(#{sizing.$rs-wide-elements}) {
+  :is(#{sizing.$grouping-elements}):has(#{sizing.$rs-wide-elements}) {
+    width: 100%;
+    margin-left: auto;
+  }
+}
+
+// which simplifies the nested wide elements
+:is(#{sizing.$grouping-elements}) .ptx-runestone-container:has(#{sizing.$rs-wide-elements}) {
+  width: 100%;
+  margin-left: 0;
+}
+
+/* limit width of content inside ac except for actual activecode */
+.runestone.ac_section
+  > div
+  > div
+  > *:not(.ac_code_div):not(.ac_output):not(.codelens):not(.ac_actions) {
+  max-width: sizing.$content-width;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* same for exercise-statement in any runestone */
+.runestone {
+  .exercise-statement {
+    max-width: sizing.$content-width;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* limit width of statement and success/error message inside hparson */
+.hparsons_section .hp_question,
+.hparsons_section .hp_feedback {
+  max-width: sizing.$content-width;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* limit width of content inside parsons except for actual parsons */
+.runestone.parsons_section > .parsons {
+  width: 100%;
+  padding-right: 0;
+
+  .sortable-code-container {
+    display: flex;
+    flex-flow: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px auto;
+  }
+
+  .sortable-code {
+    margin: 0;
+  }
+
+  .runestone_caption_text {
+    max-width: unset;
+  }
+
+  & > div > *:not(.sortable-code-container) {
+    max-width: sizing.$content-width;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

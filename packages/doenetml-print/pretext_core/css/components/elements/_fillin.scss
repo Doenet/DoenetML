@@ -1,0 +1,29 @@
+
+.fillin {
+  display: inline-block;
+  border: none;
+  border-width: 1px;
+  margin-right: 0.1em;
+  margin-left: 0.1em;
+  margin-bottom: -0.25em;
+
+  &.underline {
+    border-bottom-style: solid;
+    border-width: 1px;
+  }
+
+  &.box {
+    outline: 1px solid var(--body-text-color);
+    height: 1.3em;
+  }
+
+  &.shade {
+    background-color: var(--fillin-background-color, #eee);
+    height: 1.3em;
+  }
+}
+
+
+:root.dark-mode {
+  --fillin-background-color: #444;
+}

@@ -1,0 +1,74 @@
+/*! Theme: greeley */
+// Theme designed for short articles (i.e., research papers).
+
+// Current maintainer: Oscar Levin
+
+// Variables used by theme. CSSBuilder overrides these by prepending
+// different definitions for these variables to this file before the theme
+// is compiled.
+$palette: 'grays' !default;
+$primary-color: hsl(214, 59%, 40%) !default;
+$secondary-color: null !default;
+$primary-color-dark: hsl(214, 50%, 50%) !default;
+$background-color-dark: hsl(214, 20%, 10%) !default;
+
+@use "sass:map";
+
+// Imports in this file can be either relative to this file or 
+// relative to css/ directory
+// Basic components: 
+
+// set some default sizing variables - this will also set up
+// defaults for expandable mixin
+@use '../salem/sizing-globals' with (
+  $content-width: 600px,
+  $content-side-padding: 20px
+);
+
+@use 'components/pretext-web';
+
+@use '../salem/other-widen';
+
+@use '../denver/parts-paper';
+//@use 'shell';
+@use 'customization';
+@use 'chunks-greeley';
+
+//@use 'heading-tweaks';
+
+// fonts and colors
+// $body-font: 'Open Sans' !default;
+// $heading-font: 'Roboto' !default;
+@use 'fonts/fonts-google'; // with ($body: $body-font, $heading: $heading-font);
+
+@use "colors/color-helpers" as colorHelpers;
+@use "colors/palette-single-bold" as palette-single with (
+  $primary-color: $primary-color,
+);
+
+
+// primary/secondary color defined as determined by palette-chunks from
+// color-scheme, primary-color, secondary-color
+$primary-color: map.get(palette-single.$colors, 'primary-color');
+//$secondary-color: map.get(palette-dual.$colors, 'secondary-color');
+
+@use 'colors/palette-dark' as palette-dark with (
+    $primary-color: $primary-color-dark,
+    $background-color: $background-color-dark,
+);
+
+
+$light-colors: map.merge(palette-single.$colors, (
+  "toclevel1-background": var(--content-background),
+  "toclevel2-background": var(--content-background),
+  "toclevel3-background": var(--content-background),
+));
+
+
+$dark-colors: map.merge(palette-dark.$colors,  (
+  "toclevel1-background": var(--content-background),
+  "toclevel2-background": var(--content-background),
+  "toclevel3-background": var(--content-background),
+));
+
+@include colorHelpers.set-root-colors($light-colors, $dark-colors);

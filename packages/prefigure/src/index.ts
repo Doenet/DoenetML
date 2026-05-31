@@ -2,6 +2,8 @@ import * as Comlink from "comlink";
 import Worker from "./worker?worker";
 import type { api } from "./worker";
 import { PREFIG_WHEEL_FILENAME } from "./worker/compiler-metadata";
+// Re-exported for use in doenetml-print; shouldn't be used in normal circumstances.
+export { PrefigBrowserApi as _PrefigBrowserApi } from "./worker/compat-api";
 
 declare const PREFIGURE_VERSION: string;
 

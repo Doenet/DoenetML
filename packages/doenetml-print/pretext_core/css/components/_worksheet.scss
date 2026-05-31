@@ -1,0 +1,20 @@
+// TODO refactor
+
+// Rules in this file apply to both screen and print
+// Print specific rules should go in a file in targets/print-worksheet stylesheet
+@use 'components/helpers/buttons-default' as buttons;
+
+.heading .print-links {
+  float: right;
+  position: relative;
+  z-index: 100;
+  vertical-align: bottom;
+  .print-link {
+    font-family: var(--font-body);
+    padding: 0.1em 0.2em;
+  }
+  .material-symbols-outlined {
+    margin-top:5pt;
+  }
+}
+

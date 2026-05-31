@@ -1,0 +1,34 @@
+// TODO - refactor
+
+.displaymath {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.displaymath mjx-container[jax="CHTML"][display="true"] {
+  margin: 0 0 0 0;  // container is going to apply margin, so remove it from mjx-container
+  padding-top: .3em; // backport MJ4 padding to MJ3
+}
+
+.process-math mjx-container svg {
+  // remove the background that is normally applied to svg's by PreTeXt CSS
+  // we use .process-math instead of .displaymath to get inline math as well.
+  background: none;
+}
+
+// ?
+[data-knowl] > mjx-mrow .TEX-I {
+  font-family: MJXZERO !important;
+  font-style: normal !important;
+}
+
+/* remove this when MathJax fixes the bug that was setting the width to 0 */
+/* as in  $x=0$.  becomes  $x=0\text{.}$ */
+.knowl mjx-mtext > mjx-utext,
+mjx-mtext > mjx-utext {
+    width: revert !important;
+}
+mjx-msup mjx-utext,
+mjx-msub mjx-utext {
+    display: inline;
+}
