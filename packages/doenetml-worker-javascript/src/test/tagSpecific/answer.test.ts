@@ -4131,6 +4131,46 @@ Enter any letter:
         });
     });
 
+    it("answer-level symbolicEquality propagates to an explicit award", async () => {
+        // symbolicEquality is set on the <answer>, not on the <award>.
+        // The award's symbolicEquality falls back to the answer's value,
+        // so a numerically-equal but syntactically-different response
+        // (commuted terms, or the factored form) is rejected. Without the
+        // fall-back, the default numerical checker would give full credit
+        // to all three responses below.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" symbolicEquality>
+    <award>x^2 + 2x + 1</award>
+</answer>
+  `,
+            answers: [
+                { latex: "x^2+2x+1", credit: 1 },
+                { latex: "1+2x+x^2", credit: 0 },
+                { latex: "(x+1)^2", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer-level allowedErrorInNumbers propagates to an explicit award", async () => {
+        // allowedErrorInNumbers is set on the <answer>, not on the <award>.
+        // The default tolerance is 0 (exact match), so 100.5 earns credit
+        // only because the award inherits the answer's 1% tolerance; 102 is
+        // outside that tolerance and earns nothing.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" allowedErrorInNumbers="0.01">
+    <award>100</award>
+</answer>
+  `,
+            answers: [
+                { latex: "100", credit: 1 },
+                { latex: "100.5", credit: 1 },
+                { latex: "102", credit: 0 },
+            ],
+        });
+    });
+
     it("default is to split symbols, sugared answer", async () => {
         const doenetML = `
 <answer name="answer1">xyz</answer>
