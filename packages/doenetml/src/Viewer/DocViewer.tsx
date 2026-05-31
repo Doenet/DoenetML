@@ -216,8 +216,30 @@ export function DocViewer({
     // Native handle for the same worker `coreWorker` wraps, kept so a wedged
     // worker can be force-terminated even when its Comlink `terminate()` would
     // itself hang on the stuck queue (#2957). Set and cleared in lockstep with
-    // `coreWorker`.
+    // `coreWorker` (always via `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
     const nativeCoreWorker = useRef<Worker | null>(null);
+
+    // Spin up a fresh core worker and store its Comlink remote and native
+    // handle in lockstep. Returns the remote for the caller to drive.
+    function attachNewCoreWorker(): Remote<CoreWorker> {
+        const { remote, worker } = createCoreWorker();
+        coreWorker.current = remote;
+        nativeCoreWorker.current = worker;
+        return remote;
+    }
+
+    // Tear down whatever worker the refs currently point at and clear them
+    // (keeping the two refs in lockstep). Refs are cleared up front so a
+    // worker that's being terminated is never reachable mid-teardown; the
+    // returned promise settles once `disposeCoreWorker` has finished, for
+    // callers that need to await the teardown before swapping in a replacement.
+    function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
+        const remote = coreWorker.current;
+        const native = nativeCoreWorker.current;
+        coreWorker.current = null;
+        nativeCoreWorker.current = null;
+        return disposeCoreWorker(remote, native, { graceful });
+    }
 
     const contextForRenderers = {
         doenetViewerUrl,
@@ -234,13 +256,9 @@ export function DocViewer({
             // swallows its own errors; the `.catch` is here so this
             // fire-and-forget call can't surface an unhandled rejection if that
             // ever changes (AGENTS.md: no fire-and-forget promises).
-            disposeCoreWorker(coreWorker.current, nativeCoreWorker.current, {
-                graceful: true,
-            }).catch((e) => {
+            teardownCurrentCoreWorker({ graceful: true }).catch((e) => {
                 console.warn("DocViewer: core worker teardown failed", e);
             });
-            coreWorker.current = null;
-            nativeCoreWorker.current = null;
             coreCreated.current = false;
         };
     }, []);
@@ -446,13 +464,7 @@ export function DocViewer({
             preventMoreAnimations.current = true;
             // Bounded graceful terminate + guaranteed native kill, so swapping
             // in a fresh worker can't hang on a wedged predecessor (#2957).
-            await disposeCoreWorker(
-                coreWorker.current,
-                nativeCoreWorker.current,
-                { graceful: true },
-            );
-            coreWorker.current = null;
-            nativeCoreWorker.current = null;
+            await teardownCurrentCoreWorker({ graceful: true });
             actionsBeforeCoreCreated.current = [];
             for (let id in animationInfo.current) {
                 cancelAnimationFrame(id);
@@ -460,9 +472,7 @@ export function DocViewer({
             animationInfo.current = {};
         }
 
-        const { remote, worker } = createCoreWorker();
-        coreWorker.current = remote;
-        nativeCoreWorker.current = worker;
+        const remote = attachNewCoreWorker();
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
@@ -1176,13 +1186,7 @@ export function DocViewer({
                 // serialization queue — and its own terminate() — stuck), so
                 // force-kill it natively and drop the refs; the next attempt
                 // starts from a brand-new Worker.
-                await disposeCoreWorker(
-                    coreWorker.current,
-                    nativeCoreWorker.current,
-                    { graceful: false },
-                );
-                coreWorker.current = null;
-                nativeCoreWorker.current = null;
+                await teardownCurrentCoreWorker({ graceful: false });
                 coreCreated.current = false;
                 coreCreationInProgress.current = false;
                 if (attempt + 1 < maxAttempts) {
@@ -1477,9 +1481,7 @@ export function DocViewer({
     // then just initialize the core worker so that can return document structure
     // but core itself won't actually start
     if (initialPass && !render) {
-        const { remote, worker } = createCoreWorker();
-        coreWorker.current = remote;
-        nativeCoreWorker.current = worker;
+        const remote = attachNewCoreWorker();
         // Fire-and-forget: this only primes the worker so it can report the
         // document structure; core itself isn't started until `render` flips
         // true. Surface failures rather than swallowing the promise.
