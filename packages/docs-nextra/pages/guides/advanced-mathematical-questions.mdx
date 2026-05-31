@@ -1,0 +1,146 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Advanced Mathematical Questions
+
+[Writing Mathematical Questions](mathematical-questions) covers the everyday math `<answer>{:dn}` — equivalent forms, partial credit, tolerances, and lists — where the response is matched against a correct value. This guide steps up to the [`<award>{:dn}`](../reference/award2a) + [`<when>{:dn}`](../reference/when) construction, which grades a *condition* on the response instead of matching a fixed value: accepting any value that fits a rule, combining several inputs, checking that an expression is factored, comparing sets and intervals, and handling a question whose number of blanks depends on the reader.
+
+It assumes you've read the basics guide. As before, every example is live: edit the source on the left and the result updates on the right.
+
+---
+
+## Accept any answer that fits a condition
+
+Sometimes there is no single right answer — any value with a certain property will do. Validate the response with an [`<award>{:dn}`](../reference/award2a) whose [`<when>{:dn}`](../reference/when) child states the condition. Name the [`<mathInput>{:dn}`](../reference/mathInput) so the `<when>{:dn}` can refer to it.
+
+```doenet-editor-horiz
+<answer>
+  <mathInput name="n">
+    <label>Enter a number between 2 and 7.</label>
+  </mathInput>
+  <award><when>2 <= $n <= 7</when></award>
+</answer>
+```
+
+The condition inside `<when>{:dn}` can use any math operators. For example, use `<mod>{:dn}` to test divisibility:
+
+```doenet-editor-horiz
+<answer>
+  <mathInput name="m">
+    <label>Enter an even number greater than 6.</label>
+  </mathInput>
+  <award><when>$m > 6 and <mod>$m 2</mod> = 0</when></award>
+</answer>
+```
+
+Because the input is written out explicitly here, the `<label>{:dn}` goes **on the `<mathInput>{:dn}`**, not on the `<answer>{:dn}`.
+
+---
+
+## Use several input boxes for one answer
+
+Put more than one [`<mathInput>{:dn}`](../reference/mathInput) inside the `<answer>{:dn}` and validate them together with an [`<award>{:dn}`](../reference/award2a) whose [`<when>{:dn}`](../reference/when) condition refers to each one.
+
+```doenet-editor-horiz
+<p>Enter two numbers that add up to 5:
+  <answer>
+    <mathInput name="a"><shortDescription>first number</shortDescription></mathInput>
+    <mathInput name="b"><shortDescription>second number</shortDescription></mathInput>
+    <award><when>$a + $b = 5</when></award>
+  </answer>
+</p>
+```
+
+The `<when>{:dn}` refers to each input by name. Give each one a `<shortDescription>{:dn}` so a screen reader can tell the boxes apart.
+
+<Callout type="info">
+**What counts as a "response"?** A `<when>{:dn}` can reference *any* named component — an input, a point, a computed value — whether or not it is marked as a response, so the examples here work as written. A **response** is a separate idea: the value Doenet records as what the student submitted, so an instructor can later review what each student tried (it does not affect grading). Inputs *inside* the `<answer>{:dn}` are recorded as responses automatically; to record an input or value that lives elsewhere, link it with `forAnswer="$ans"{:dn}`, or flag it with `referencesAreResponses{:dn}` on the `<award>{:dn}` or a `<considerAsResponses>{:dn}` child. For the details, see the [advanced answer examples](../reference/answer4).
+</Callout>
+
+---
+
+## Check that an expression is factored
+
+Asking the reader to *factor* is tricky, because the unfactored form is mathematically equal to the factored one — a plain answer would accept either. [`<hasSameFactoring>{:dn}`](../reference/hasSameFactoring) returns true only when the response is equivalent **and** broken into the same factors.
+
+```doenet-editor-horiz
+<setup>
+  <math name="expr">(x + 1)(x + 2)</math>
+</setup>
+<answer>
+  <mathInput name="response">
+    <label>Factor <math extend="$expr" expand /></label>
+  </mathInput>
+  <award><when><hasSameFactoring>$response $expr</hasSameFactoring></when></award>
+</answer>
+```
+
+The label shows the expanded form (`x^2 + 3x + 2{:dn}`) via `<math extend="$expr" expand />{:dn}`, and the `<award>{:dn}` fires only for a genuinely factored response such as `(x+1)(x+2){:dn}` — the expanded form is rejected even though it's equal. Attributes on `<hasSameFactoring>{:dn}` can tighten this further (for example, requiring matching monomial factors).
+
+---
+
+## Accept any form of an interval or set
+
+A reader might describe the same set of numbers as an interval, a chained inequality, or set notation. Wrap both the response and the expected answer in [`<subsetOfReals>{:dn}`](../reference/subsetOfReals) and the `=` comparison checks whether they're the **same set**, regardless of how it's written.
+
+```doenet-editor-horiz
+<answer>
+  <mathInput name="interval">
+    <label>Enter the interval <m>(-2, 5]</m>.</label>
+  </mathInput>
+  <award><when>
+    <subsetOfReals>$interval</subsetOfReals> = <subsetOfReals>(-2, 5]</subsetOfReals>
+  </when></award>
+</answer>
+```
+
+All of these responses are accepted:
+
+- $(-2, 5]$
+- $-2 < x \le 5$
+- $x \in (-2, 5]$
+
+To have the reader build the set on a number line instead of typing it, use the [`<subsetOfRealsInput>{:dn}`](../reference/subsetOfRealsInput) widget and compare its value the same way.
+
+---
+
+## A varying number of answer blanks
+
+Sometimes you don't want to reveal how many answers there should be — you want the student to determine that. Accomplishing this effect currently requires a combination of DoenetML components. Use a [`<mathInput>{:dn}`](../reference/mathInput) to ask "how many?", a [`<repeatForSequence>{:dn}`](../reference/repeatForSequence) to produce that many answer boxes, and [`<collect>{:dn}`](../reference/collect) to gather their values into a [`<mathList>{:dn}`](../reference/mathList) for grading.
+
+```doenet-editor-horiz
+<p>Let <m>f(x) = (x-2)(x+5)</m>. Solve <m>f(x) = 0</m>.</p>
+
+<p>How many solutions are there?
+  <mathInput name="n"><shortDescription>number of solutions</shortDescription></mathInput>
+</p>
+
+<p>The solutions are
+  <repeatForSequence from="1" to="$n" valueName="i" name="r">
+    <m>x = </m>
+    <mathInput name="v"><shortDescription>solution number $i</shortDescription></mathInput>
+  </repeatForSequence>.
+</p>
+
+<setup>
+  <collect from="$r" componentType="mathInput" name="c" />
+  <mathList name="values" extend="$c.value" />
+</setup>
+
+<answer unorderedCompare matchPartial>
+  <award><when>$values = <mathList>2 -5</mathList></when></award>
+</answer>
+```
+
+Typing a number into the first input creates that many solution boxes. `<collect>{:dn}` gathers them, and the `<mathList>{:dn}` of their values is compared — `unorderedCompare{:dn}` so order doesn't matter, `matchPartial{:dn}` so a partly-right set earns partial credit — against the expected solutions `2{:dn}` and `-5{:dn}`.
+
+---
+
+## Where to go next
+
+- [Writing Mathematical Questions](mathematical-questions) — the basics this guide builds on.
+- [`<award>{:dn}`](../reference/award2a) and [`<when>{:dn}`](../reference/when) reference — the building blocks of every example here.
+- [`<answer>{:dn}`](../reference/answer1) reference — every `<answer>{:dn}` attribute and property, plus the [advanced answer examples](../reference/answer4) on designating responses.
+- [`<hasSameFactoring>{:dn}`](../reference/hasSameFactoring), [`<subsetOfReals>{:dn}`](../reference/subsetOfReals), and [`<subsetOfRealsInput>{:dn}`](../reference/subsetOfRealsInput) reference pages.
+- [Writing Accessible Activities](accessible-activities) — labeling inputs so every reader can use your questions.
