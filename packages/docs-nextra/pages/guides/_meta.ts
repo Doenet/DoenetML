@@ -1,4 +1,5 @@
 export default {
+    "multiple-choice-questions": "Multiple Choice Questions",
     "styling-components": "Styling Components",
     "accessible-activities": "Writing Accessible Activities",
     "check-accessibility": "Checking Accessibility",
