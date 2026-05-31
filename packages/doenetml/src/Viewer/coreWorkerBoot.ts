@@ -9,10 +9,11 @@ import type { CoreWorker } from "@doenet/doenetml-worker";
 //   1. Handshake — (re)create the worker and run the cheap, roughly
 //      document-size-independent init round-trips (set source/flags,
 //      initialize the JS core). Empirically a few hundred ms regardless of
-//      document size. A #2957 stall lives HERE: a worker that never loads or
-//      wedges leaves these awaits unsettled, and because the worker serializes
-//      everything through one internal promise queue, a stall there wedges the
-//      queue so even the worker's own `terminate()` never returns.
+//      document size. A Doenet/DoenetApps#2957 stall lives HERE: a worker that
+//      never loads or wedges leaves these awaits unsettled, and because the
+//      worker serializes everything through one internal promise queue, a
+//      stall there wedges the queue so even the worker's own `terminate()`
+//      never returns.
 //
 //   2. generateDast — the actual evaluation. Legitimately slow and scales with
 //      document size (seconds to minutes on complex documents).
@@ -44,9 +45,9 @@ export const CORE_BOOT_RETRY_DELAY_MS = 250;
 const GRACEFUL_TERMINATE_TIMEOUT_MS = 2_000;
 
 // Shown in the viewer when the core worker can't be started after retries,
-// instead of leaving the pane blank (#2957). One canonical string so the
-// message — which a test also matches on — stays consistent across the several
-// failure paths in DocViewer.startCore.
+// instead of leaving the pane blank (Doenet/DoenetApps#2957). One canonical
+// string so the message — which a test also matches on — stays consistent
+// across the several failure paths in DocViewer.startCore.
 export const CORE_START_FAILED_MESSAGE =
     "The document viewer could not be started. Please reload the page.";
 

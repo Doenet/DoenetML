@@ -180,7 +180,8 @@ export class CoreWorker {
             this.flags_set = true;
         } finally {
             // Always release the queue, even if WASM init or set_flags throws,
-            // so a transient failure doesn't deadlock all later calls (#2957).
+            // so a transient failure doesn't deadlock all later calls
+            // (Doenet/DoenetApps#2957).
             resolve();
         }
     }

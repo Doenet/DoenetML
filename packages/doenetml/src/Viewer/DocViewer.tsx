@@ -215,8 +215,9 @@ export function DocViewer({
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Native handle for the same worker `coreWorker` wraps, kept so a wedged
     // worker can be force-terminated even when its Comlink `terminate()` would
-    // itself hang on the stuck queue (#2957). Set and cleared in lockstep with
-    // `coreWorker` (always via `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
+    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Set and
+    // cleared in lockstep with `coreWorker` (always via
+    // `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
     const nativeCoreWorker = useRef<Worker | null>(null);
 
     // Spin up a fresh core worker and store its Comlink remote and native
@@ -252,10 +253,11 @@ export function DocViewer({
         return () => {
             // Best-effort graceful terminate, but always guarantee a native
             // kill so a wedged worker (whose Comlink terminate would hang) is
-            // still released on unmount (#2957). `disposeCoreWorker` already
-            // swallows its own errors; the `.catch` is here so this
-            // fire-and-forget call can't surface an unhandled rejection if that
-            // ever changes (AGENTS.md: no fire-and-forget promises).
+            // still released on unmount (Doenet/DoenetApps#2957).
+            // `disposeCoreWorker` already swallows its own errors; the
+            // `.catch` is here so this fire-and-forget call can't surface an
+            // unhandled rejection if that ever changes (AGENTS.md: no
+            // fire-and-forget promises).
             teardownCurrentCoreWorker({ graceful: true }).catch((e) => {
                 console.warn("DocViewer: core worker teardown failed", e);
             });
@@ -463,7 +465,8 @@ export function DocViewer({
         if (coreWorker.current !== null) {
             preventMoreAnimations.current = true;
             // Bounded graceful terminate + guaranteed native kill, so swapping
-            // in a fresh worker can't hang on a wedged predecessor (#2957).
+            // in a fresh worker can't hang on a wedged predecessor
+            // (Doenet/DoenetApps#2957).
             await teardownCurrentCoreWorker({ graceful: true });
             actionsBeforeCoreCreated.current = [];
             for (let id in animationInfo.current) {
@@ -1086,8 +1089,8 @@ export function DocViewer({
     }
 
     // Put the viewer into a visible "core failed to start" error state rather
-    // than leaving it blank at stage "wait" forever (#2957). Shared by every
-    // core-start failure path.
+    // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
+    // Shared by every core-start failure path.
     function failCoreStart() {
         coreCreationInProgress.current = false;
         setIsInErrorState?.(true);
@@ -1097,9 +1100,9 @@ export function DocViewer({
 
     // The core-worker *handshake*: (re)create the worker and run the cheap,
     // roughly size-independent init round-trips (set source/flags, initialize
-    // the JS core). This is the phase a #2957 stall lives in, so `startCore`
-    // wraps it in a watchdog. The expensive `generateDast` step happens AFTER
-    // this returns and is deliberately NOT watchdogged.
+    // the JS core). This is the phase a Doenet/DoenetApps#2957 stall lives in,
+    // so `startCore` wraps it in a watchdog. The expensive `generateDast` step
+    // happens AFTER this returns and is deliberately NOT watchdogged.
     async function handshakeCore(attempt: number): Promise<Remote<CoreWorker>> {
         let thisCoreWorker = coreWorker.current;
 
@@ -1134,8 +1137,9 @@ export function DocViewer({
             });
         }
 
-        // [#2957] Test seam — simulate a handshake-phase stall/failure (worker
-        // created, but a boot round-trip never settles). Inert in production.
+        // [Doenet/DoenetApps#2957] Test seam — simulate a handshake-phase
+        // stall/failure (worker created, but a boot round-trip never settles).
+        // Inert in production.
         if (doenetGlobalConfig.__doenetTestCoreInitHook) {
             await doenetGlobalConfig.__doenetTestCoreInitHook(
                 "handshake",
@@ -1160,7 +1164,7 @@ export function DocViewer({
 
         // --- Phase 1: handshake — watchdogged and retried ---
         // Only this cheap, size-independent phase is time-boxed. A stall here
-        // means a hung/wedged worker (#2957), not slow work.
+        // means a hung/wedged worker (Doenet/DoenetApps#2957), not slow work.
         let thisCoreWorker: Remote<CoreWorker> | null = null;
         let handshakeSucceeded = false;
 
@@ -1215,9 +1219,9 @@ export function DocViewer({
             ReturnType<Remote<CoreWorker>["generateJavascriptDast"]>
         >;
         try {
-            // [#2957] Test seam — simulate a slow-but-alive evaluation. Runs in
-            // the un-watchdogged phase, so a delay here must NOT abort the
-            // load. Inert in production.
+            // [Doenet/DoenetApps#2957] Test seam — simulate a slow-but-alive
+            // evaluation. Runs in the un-watchdogged phase, so a delay here
+            // must NOT abort the load. Inert in production.
             if (doenetGlobalConfig.__doenetTestCoreInitHook) {
                 await doenetGlobalConfig.__doenetTestCoreInitHook(
                     "generate",
@@ -1306,8 +1310,8 @@ export function DocViewer({
     // `startCore` is always launched fire-and-forget (never awaited — e.g. from
     // render-phase code and event listeners), so wrap it: it already surfaces
     // boot failures itself, but an *unexpected* throw must still become a
-    // visible error rather than an unhandled rejection (#2957, and AGENTS.md
-    // "no fire-and-forget promises").
+    // visible error rather than an unhandled rejection
+    // (Doenet/DoenetApps#2957, and AGENTS.md "no fire-and-forget promises").
     function startCoreSafely() {
         startCore().catch((e) => {
             console.warn("DocViewer: startCore failed unexpectedly", e);

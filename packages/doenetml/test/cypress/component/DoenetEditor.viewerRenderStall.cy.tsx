@@ -8,8 +8,8 @@ import { doenetGlobalConfig } from "../../../src/global-config";
 //
 // Two distinct core-init phases (see DocViewer.startCore):
 //   - "handshake": (re)create the worker + cheap, size-independent init
-//     round-trips. A #2957 stall lives here (worker silent). This phase IS
-//     watchdogged + retried.
+//     round-trips. A Doenet/DoenetApps#2957 stall lives here (worker silent).
+//     This phase IS watchdogged + retried.
 //   - "generate": the actual evaluation. Legitimately slow on complex
 //     documents (seconds to minutes). This phase is NOT watchdogged — once the
 //     handshake succeeds the worker has proven it is alive.
@@ -31,7 +31,7 @@ function Harness() {
     );
 }
 
-describe("DoenetEditor viewer render stall (#2957)", () => {
+describe("DoenetEditor viewer render stall (Doenet/DoenetApps#2957)", () => {
     afterEach(() => {
         delete doenetGlobalConfig.__doenetTestCoreInitHook;
         delete doenetGlobalConfig.coreHandshakeWatchdogMs;
@@ -141,12 +141,12 @@ describe("DoenetEditor viewer render stall (#2957)", () => {
     });
 
     it("does not abort a slow-but-alive evaluation", () => {
-        // The crux of the #2957 follow-up: a long evaluation must NOT be killed
-        // by the handshake watchdog. Here the handshake is healthy/fast but the
-        // evaluation takes far longer than the (deliberately short) handshake
-        // watchdog. A total-elapsed watchdog over the boot would abort this and
-        // make the document unloadable; a handshake-only watchdog must let it
-        // finish.
+        // The crux of the Doenet/DoenetApps#2957 follow-up: a long evaluation
+        // must NOT be killed by the handshake watchdog. Here the handshake is
+        // healthy/fast but the evaluation takes far longer than the
+        // (deliberately short) handshake watchdog. A total-elapsed watchdog
+        // over the boot would abort this and make the document unloadable; a
+        // handshake-only watchdog must let it finish.
         let generatePhaseRan = false;
         doenetGlobalConfig.__doenetTestCoreInitHook = (phase) => {
             if (phase === "generate") {
