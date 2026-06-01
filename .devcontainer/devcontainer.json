@@ -24,6 +24,10 @@
         "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
     "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "16gb"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
