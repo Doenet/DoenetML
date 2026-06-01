@@ -1,5 +1,7 @@
 # @doenet/v06-to-v07
 
+## 0.7.19
+
 ## 0.7.18
 
 ### Patch Changes

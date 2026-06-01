@@ -1,5 +1,41 @@
 ## v0.7.10
 
+## 0.7.19
+
+### Patch Changes
+
+- da57627: Editor: the accessibility report now links to the accessibility documentation.
+
+    A "Learn how Doenet approaches accessibility" link at the top of the report points to `<docsURL>/concepts/accessibility`, where new Concept and Guide pages explain what the WCAG checks do and don't guarantee and how to write accessible activities.
+
+- 2cf122a: Editor: give each autocomplete suggestion a meaningful, color-coded icon in the dropdown's left column.
+
+    CodeMirror renders that icon from each completion's `type` string, and the editor was passing the lowercased LSP `CompletionItemKind` name straight through. That left the column showing accidental glyphs — a box for components, a union sign (`∪`, easily misread as a stray "u") for attributes — and nothing at all for snippets, attribute values, and references, since those `type` names aren't in CodeMirror's built-in icon set.
+
+    Completions are now assigned distinct, intentional types and a small theme defines a colored glyph for each DoenetML category: components (`◈`), attribute names (`@`), attribute values (`▪`), references (`$`), reference properties (`.`), and snippets (`❏`). Components, reference properties, and closing tags share one LSP kind (`Property`) but are split apart for icon purposes using signal the items already carry — no LSP `kind` values change, so the language-server output and its tests are unaffected.
+
+    Also: when the element menu is opened with Ctrl+Space (no `<` typed yet), each component suggestion now displays as a tag — `<math>`, `<answer-label>` — so it's clear they're elements. Filtering and insertion still use the bare name; only the displayed label gains the angle brackets. When a `<` was already typed, the suggestions stay bare as before.
+
+- 818b17c: Adopt the Diátaxis documentation framework: rename the "Document Structure" section to "Concepts".
+    - The editor's context-help "Learn about references" link now points to `concepts/references` (was `document_structure/references`), following the documentation folder rename from `document_structure/` to `concepts/`.
+
+- 7d53e42: Improve the editor's context-sensitive help and make Ctrl+Space work between tags.
+    - Component help now leads with the component name and its one-line summary on a single line, and the `<tag>` name is a link to the component's reference page (the footer link stays too).
+    - Reference help for `$name` and `$name.property` now explains what a reference is and links to a new References page, rather than showing the referenced component's summary and page. The help is identical wherever the cursor sits in a `$a.b` chain — the whole reference is treated as one unit. A cursor on a reference inside an attribute value (e.g. `extend="$m"`) now gets reference help rather than help for the enclosing attribute.
+    - An invalid reference like `$bad` (or a failing member chain like `$m.sub` or `$s2.m`) now explains the problem — "No referent found" or "Multiple referents found" when the resolver can say so definitively, and a hedged message when it can't — instead of falling back to the default panel text. The message is reported against the whole reference and is the same wherever the cursor sits in the chain, including inside attribute values like `copy="$s2.m"`.
+    - When the cursor is in an element's body or in empty top-level space, the panel now surfaces a short list of components to try (instead of going blank), and points to Ctrl+Space for the full list. The same shared ranking — per-container hand-picks (including ones keyed by an abstract ancestor like `_sectioningComponent`) first, then a global "favorites" tier, then how directly the child is allowed (adapter-only children dropped unless picked), with alphabetical as the tiebreak — also drives the autocomplete dropdown's order, so the two surfaces stay in lockstep. Snippets cluster with their element in the dropdown.
+    - Containers that take no children (e.g. `<variantControl>`) or only text now say so plainly instead of inviting Ctrl+Space; containers that accept both text and components note that text is allowed.
+    - Pressing Ctrl+Space between tags (or in empty top-level space) now opens the element-completion menu and inserts the leading `<` for you; previously you had to type `<` first. The cursor position right between adjacent open and close tags (e.g. `<mathInput>|</mathInput>`, where the autocompleter parks the cursor after inserting a tag pair) is now recognized as the body rather than as the tag itself.
+    - Adds a References page to the documentation covering `$name`, `$name.property`, and referencing repeat iterations.
+
+- 7addd7c: Flow inputs and their labels inline with the surrounding text.
+
+    Inputs (`<mathInput>`, `<textInput>`, `<booleanInput>`, `<matrixInput>`, an inline `<choiceInput>`, and `<answer>`) now lay their label and input out as ordinary inline content. A label long enough to wrap breaks across lines with the input following its end, instead of the input sitting beside the label's first line where it could read as though it belonged in the middle of the label text. Text before and after an input in the same paragraph also wraps together with it. A single tall label, such as one containing tall math, still aligns with the input as before.
+
+- f5406bd: Make the document viewer resilient to a stalled core-worker startup, and stop slow documents from being aborted before they finish loading.
+    - If the core worker stalled while starting up (under CPU/timing pressure), the viewer could be left permanently blank — no document and no error. It now watchdogs the worker's brief startup handshake and restarts a worker that fails to come up or hangs; after repeated failures it shows a "could not be started — reload the page" message instead of staying blank.
+    - The document-evaluation phase — which can legitimately take seconds to minutes on complex documents — is no longer time-limited, so large documents finish loading instead of being aborted.
+
 ## 0.7.18
 
 ### Patch Changes
