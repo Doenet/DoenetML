@@ -1,5 +1,7 @@
 # @doenet/vscode-extension
 
+## 0.7.20
+
 ## 0.7.19
 
 ### Patch Changes
