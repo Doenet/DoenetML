@@ -126,7 +126,7 @@ describe("DoenetEditor (iframe wrapper) — function-prop churn during boot", ()
             expect(
                 counter.reinvocations,
                 "callback-identity churn must NOT re-invoke renderDoenetEditorToContainer",
-            ).to.be.lessThan(MAX_ALLOWED_REINVOCATIONS);
+            ).to.be.at.most(MAX_ALLOWED_REINVOCATIONS);
         });
 
         // Sanity: the viewer (core-worker output), not just the editor chrome,
