@@ -23,8 +23,7 @@
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "
     },
-    // Use VIM as the command line git editor. Not everyone's preference, but oh well...
-    "postCreateCommand": "git config core.editor vim",
+    "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
     "customizations": {
         "vscode": {
             "extensions": [
