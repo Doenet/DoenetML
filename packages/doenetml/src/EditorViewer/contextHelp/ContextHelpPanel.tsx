@@ -648,12 +648,12 @@ function formatValue(val: unknown): React.ReactNode {
         );
     }
     if (Array.isArray(val)) {
-        // Interleave React nodes with comma separators rather than calling
-        // `.join(", ")`, which would coerce any inner `<MathJax>` element to
+        // Interleave React nodes with whitespace separators rather than calling
+        // `.join(" ")`, which would coerce any inner `<MathJax>` element to
         // the string `[object Object]`.
         return val.map((v, i) => (
             <React.Fragment key={i}>
-                {i > 0 ? ", " : null}
+                {i > 0 ? " " : null}
                 {formatValue(v)}
             </React.Fragment>
         ));
