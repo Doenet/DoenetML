@@ -215,7 +215,16 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
     ) : null;
 
     const matrixInputRow = (
-        <span style={{ display: "inline-flex", alignItems: "flex-start" }}>
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line.
+                verticalAlign: "baseline",
+            }}
+        >
             <div className="matrix-input" id={id}>
                 <table
                     aria-labelledby={groupLabelledByIds || undefined}
@@ -241,11 +250,15 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
     return (
         <React.Fragment>
             <div
+                // `display: inline` so the label and matrix flow with the
+                // surrounding paragraph text and a wrapping label keeps the
+                // matrix after its end rather than beside its first line
+                // (#1245). See mathInput.tsx for the full rationale.
                 style={{
-                    display: "inline-flex",
-                    maxWidth: "100%",
-                    margin: "0px 4px 4px 4px",
-                    alignItems: "baseline",
+                    display: "inline",
+                    // Only the horizontal gutters take effect; the container is
+                    // inline, which ignores vertical margins.
+                    margin: "0 4px",
                 }}
                 id={`${id}-container`}
             >

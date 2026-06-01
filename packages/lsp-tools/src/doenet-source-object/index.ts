@@ -491,6 +491,19 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get the tag name of the parent element of `node`, or `undefined` when
+     * the parent is the document root (no `name` field) or `node` has no
+     * parent at all. Convenience over `getParent` that's used wherever the
+     * alias-aware schema lookups need the grandparent/parent name string —
+     * keeping the `parent && "name" in parent ? parent.name : undefined`
+     * dance in one place so callsites don't drift.
+     */
+    getParentElementName(node: DastNodes): string | undefined {
+        const parent = this.getParent(node);
+        return parent && "name" in parent ? parent.name : undefined;
+    }
+
+    /**
      * Get all parents of `node`. The first element in the array is the immediate parent followed
      * by more distant ancestors.
      *

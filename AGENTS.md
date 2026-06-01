@@ -142,7 +142,7 @@ When an agent posts a PR comment, opens an issue, or comments on an issue, end t
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-This includes review-comment replies posted via `gh api ... /replies`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
+This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
 
 ## Changesets
 

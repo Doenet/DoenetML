@@ -116,6 +116,7 @@ describe("Doenet Language Server", async () => {
               },
               "kind": 10,
               "label": "graph",
+              "sortText": "1-999-0-002-1-graph-0-999-graph",
             },
           ]
         `);
@@ -162,6 +163,7 @@ describe("Doenet Language Server", async () => {
               },
               "kind": 10,
               "label": "graph",
+              "sortText": "1-999-0-002-1-graph-0-999-graph",
             },
           ]
         `);

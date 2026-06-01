@@ -21,6 +21,10 @@ import { hasImplicitSingleIndex } from "../select-family";
 import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
 import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
+import {
+    rankedChildSuggestions,
+    sortTextLookup,
+} from "../../child-suggestions";
 
 // LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
 // supports one for "show this, filter on label". Our in-process LSP transport
@@ -53,18 +57,6 @@ const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
 function countBracketIndices(rawSegment: string | undefined): number {
     if (!rawSegment) return 0;
     return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
-}
-
-/**
- * Get the name of the parent of `node`, or `undefined` when the parent is the
- * document root (no `name` field).
- */
-function getParentName(
-    autoCompleter: AutoCompleter,
-    node: DastElement,
-): string | undefined {
-    const parent = autoCompleter.sourceObj.getParent(node);
-    return parent && "name" in parent ? parent.name : undefined;
 }
 
 /**
@@ -315,18 +307,59 @@ function createElementAndSnippetCompletionItems(
     endOffset: number,
     typedPrefix = "",
     contextElement: DastElement | null = null,
-): CompletionItem[] {
+    insertLeadingBracket = false,
+): DoenetCompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const parentName = contextElement?.name;
-    const schemaItems: CompletionItem[] = allowedElementNames
+    // Compute the shared ranking once for this container — the same ordering
+    // drives the context-help suggestions panel — and use it to assign
+    // `sortText` per item below so the editor's lexicographic sort reproduces
+    // the rank (handpicked → bucket → cluster-alphabetical, snippets clustered
+    // with their element). `contextElement` is null at the document top, where
+    // `<document>` is the implicit parent. Pass the grandparent so the ranker's
+    // `_getAllowedChildren`/`_getChildRanks` calls see the same alias-resolved
+    // child set as `allowedElementNames` (e.g. `<row>` inside `<matrix>` reads
+    // children from `matrixRow`, not the tabular `<row>`).
+    const grandparentName = contextElement
+        ? autoCompleter.sourceObj.getParentElementName(contextElement)
+        : undefined;
+    const ranked = rankedChildSuggestions(
+        autoCompleter,
+        parentName ?? "document",
+        grandparentName,
+    );
+    const sortTextByKey = sortTextLookup(ranked);
+
+    const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
         )
         .map((name) => {
-            const item: CompletionItem = {
+            const item: DoenetCompletionItem = {
                 label: name,
                 kind: CompletionItemKind.Property,
             };
+            // When the menu was opened without a preceding `<` (an explicit
+            // Ctrl+Space in an element body or at the top level), the item
+            // must insert the `<` itself — the default apply (the bare name)
+            // would omit it. With a `<` already typed, the existing
+            // default-apply path inserts the name right after it as before.
+            if (insertLeadingBracket) {
+                item.textEdit = {
+                    range: createTextEditRange(
+                        autoCompleter.sourceObj,
+                        startOffset,
+                        endOffset,
+                    ),
+                    newText: `<${name}`,
+                };
+                // With no `<` typed, a bare name gives no hint these are
+                // elements. Show the tag form (`<math>`) in the dropdown while
+                // still matching/inserting on the bare name (CodeMirror filters
+                // on `label`, renders `displayLabel`). Not set in the
+                // `<`-typed path, where the visible `<` already signals a tag.
+                item.displayLabel = `<${name}>`;
+            }
             const ownEntry = autoCompleter.schemaElementsByName[name];
             const effectiveEntry = autoCompleter.resolveEffectiveSchemaElement(
                 ownEntry,
@@ -334,6 +367,10 @@ function createElementAndSnippetCompletionItems(
             );
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
+            }
+            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
+            if (sortText !== undefined) {
+                item.sortText = sortText;
             }
             return item;
         });
@@ -348,6 +385,16 @@ function createElementAndSnippetCompletionItems(
         startOffset,
         endOffset,
     );
+    for (const item of snippetItems) {
+        // Snippet labels are unique snippet keys; look up sortText by the
+        // same key the ranker emits.
+        const sortText = sortTextByKey.get(
+            `snippet:${(item.label as string).toLowerCase()}`,
+        );
+        if (sortText !== undefined) {
+            item.sortText = sortText;
+        }
+    }
 
     const dynamicSnippetItems = createDynamicSnippetCompletionItems(
         autoCompleter,
@@ -539,7 +586,7 @@ function indexAliasCompletionItems(
     // `<matrix>`) should still see the right schema.
     const helpSchema = autoCompleter.resolveEffectiveSchemaElement(
         schema,
-        getParentName(autoCompleter, containerNode),
+        autoCompleter.sourceObj.getParentElementName(containerNode),
     );
     const arrayName = unresolvedPathParts[0];
     const arrayProp = helpSchema?.properties?.find(
@@ -655,6 +702,7 @@ export async function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
+    explicit = false,
 ): Promise<DoenetCompletionItem[]> {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
@@ -670,6 +718,16 @@ export async function getCompletionItems(
 
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
+
+    // Element-menu trigger policy. With a `<` already typed, the menu opens
+    // and items insert right after the `<` (start one char back to replace
+    // it on snippet expansion) — the long-standing behavior. An explicit
+    // Ctrl+Space without a `<` also opens the menu, but items must then
+    // insert the `<` themselves and the replace range starts at the cursor.
+    const hasLeadingLt = prevChar === "<";
+    const showElementMenu = hasLeadingLt || explicit;
+    const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
+    const insertLeadingBracket = !hasLeadingLt;
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -859,7 +917,7 @@ export async function getCompletionItems(
         // since aliased entries don't carry those.
         const helpSchema = this.resolveEffectiveSchemaElement(
             schema,
-            getParentName(this, resolvedNode),
+            this.sourceObj.getParentElementName(resolvedNode),
         );
         const takesIndex = schema?.takesIndex ?? false;
         // Read the index flag for the resolved segment — always the
@@ -932,12 +990,15 @@ export async function getCompletionItems(
         ];
     }
 
-    if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
+    if (!containingNode && cursorPosition === "unknown" && showElementMenu) {
         return createElementAndSnippetCompletionItems(
             this,
             this.schemaTopAllowedElements,
-            offset - 1,
+            elementMenuStart,
             offset,
+            "",
+            null,
+            insertLeadingBracket,
         );
     }
 
@@ -945,13 +1006,17 @@ export async function getCompletionItems(
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
 
-        // If the previous char is a `<`, we suggest all top-level elements.
-        if (prevChar === "<") {
+        // Suggest all top-level elements when a `<` was typed or the user
+        // explicitly invoked completion (Ctrl+Space).
+        if (showElementMenu) {
             return createElementAndSnippetCompletionItems(
                 this,
                 this.schemaTopAllowedElements,
-                offset - 1,
+                elementMenuStart,
                 offset,
+                "",
+                null,
+                insertLeadingBracket,
             );
         }
 
@@ -977,7 +1042,7 @@ export async function getCompletionItems(
     if (
         cursorPosition === "body" &&
         containingElement.node &&
-        prevChar === "<"
+        showElementMenu
     ) {
         // Pass the parent name so the alias-aware lookup uses the right
         // child set when the containing element is itself a `childContextHelp`
@@ -985,15 +1050,16 @@ export async function getCompletionItems(
         // `matrixRow`, not `<cell>` from the tabular `<row>`) — #1174.
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
-            getParentName(this, containingElement.node),
+            this.sourceObj.getParentElementName(containingElement.node),
         );
         const completionItems = createElementAndSnippetCompletionItems(
             this,
             allowedChildrenNames,
-            offset - 1,
+            elementMenuStart,
             offset,
             "",
             containingElement.node,
+            insertLeadingBracket,
         );
 
         if (closed) {
@@ -1042,7 +1108,7 @@ export async function getCompletionItems(
             // its in-tag completions must come from MathList's children.
             allowedElements = this._getAllowedChildren(
                 parent.name,
-                getParentName(this, parent),
+                this.sourceObj.getParentElementName(parent),
             );
         }
 
@@ -1096,7 +1162,7 @@ export async function getCompletionItems(
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            getParentName(this, element),
+            this.sourceObj.getParentElementName(element),
         );
         // List the alias's attributes (not the canonical entry's) when the
         // parent declares a `childContextHelp` redirect — `<row>` inside
@@ -1159,7 +1225,7 @@ export async function getCompletionItems(
         const elmEntry =
             this._resolveEffectiveByName(
                 elmName,
-                getParentName(this, element),
+                this.sourceObj.getParentElementName(element),
             ) ?? this.schemaElementsByName[elmName];
         const allowedAttributes = elmEntry?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);

@@ -1,0 +1,147 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Accessible Interactive Graphs
+
+Interactive, draggable graphs are at the heart of Doenet — students move points, vectors, and curves and watch what happens. But dragging is a *mouse* gesture. A student working by keyboard or screen reader can't drag, and may not be able to see the result either. Making an interactive graph accessible means giving those students two things: a way to **perceive** the graph's current state, and a way to **change** it without a mouse.
+
+<Callout type="warning">
+This is an area Doenet is still building out. The techniques below are real and usable today, but fully accessible interactive graphics is an unsolved problem — see [the frontier discussion](../concepts/accessibility#interactive-graphs-the-hard-part-still-in-progress). Expect this guide to grow.
+</Callout>
+
+Every graph still needs the basics from the other guides first: a `<shortDescription>{:dn}` so it isn't flagged as a [violation](../guides/check-accessibility), and labelled controls. This guide is about what to add *beyond* that for graphs students manipulate.
+
+---
+
+## Describe a graph whose state changes
+
+A `<shortDescription>{:dn}` is static, but an interactive graph changes as the student works. Pair the short description (what the graph *is*) with a `<description>{:dn}` that reports the graph's *current state* — and let that description update by building it from the graph's live values. Here, the description names the point's coordinates and which quadrant it is in, and both update as the point moves:
+
+```doenet-editor
+<setup>
+  <span name="locationText">
+    <conditionalContent>
+      <case condition="$P.x > 0 and $P.y > 0">the first quadrant</case>
+      <case condition="$P.x < 0 and $P.y > 0">the second quadrant</case>
+      <case condition="$P.x < 0 and $P.y < 0">the third quadrant</case>
+      <case condition="$P.x > 0 and $P.y < 0">the fourth quadrant</case>
+      <else>an axis</else>
+    </conditionalContent>
+  </span>
+</setup>
+<graph size="small">
+  <shortDescription>A draggable point you move from quadrant to quadrant</shortDescription>
+  <description>P is at x = $P.x, y = $P.y, in $locationText.</description>
+  <point name="P">(3, 2)</point>
+</graph>
+```
+
+Drag the point: the description re-reads its coordinates and quadrant. A screen-reader user who revisits the description hears the up-to-date state instead of a frozen sentence. This is the single most useful technique on the page — a description built from live values turns an opaque figure into something a non-visual reader can follow.
+
+---
+
+## Let keyboard users operate the graph with `addControls`
+
+A description lets a student *perceive* the graph; `addControls{:dn}` lets them *change* it. Add it to a `<graph>{:dn}` and Doenet renders a panel of on-screen controls for the movable objects in the graph. Each control can be reached and operated from the keyboard — so a point can be moved by typing coordinates or operating sliders, with no dragging required.
+
+```doenet-editor-horiz
+<p>Move point P onto the point <m>(2, 3)</m>.</p>
+<graph size="small" addControls="all">
+  <shortDescription>A point P you can move with on-screen coordinate controls</shortDescription>
+  <point name="P">(-1, 0)</point>
+</graph>
+```
+
+`addControls="all"{:dn}` gives both **input boxes** (type a value) and **sliders** (nudge with arrow keys). Use `addControls="inputsOnly"{:dn}` or `addControls="slidersOnly"{:dn}` to offer just one, and `controlsPosition{:dn}` (`left{:dn}`, the default, or `bottom{:dn}`) to place the panel. The controls work for the movable objects Doenet knows how to manipulate — points, line segments, vectors, circles, polygons, and more — and a point can even restrict which axes it exposes.
+
+The payoff: a task that previously *required* dragging now has a keyboard path. A sighted student can still drag the point directly; a keyboard user changes the same coordinates through the controls.
+
+---
+
+## Navigate the pieces with the PreFigure renderer
+
+A description conveys a graph as one block of text. For a graph with several parts, the **PreFigure renderer** lets a reader *explore* it from the keyboard instead — moving through the pieces one at a time, with a screen reader announcing each one and the graph highlighting and zooming to the piece in focus.
+
+<Callout type="warning">
+Switching a graph to the PreFigure renderer currently **disables mouse dragging** of its graphical objects — for now, that interactivity is given up in exchange for the navigation below. Reach for PreFigure on a graph the reader needs to *read*, not one they need to *move*.
+</Callout>
+
+Switch a graph to it with `renderer="prefigure"{:dn}`, then attach **annotations** to the objects you want navigable. An `<annotations>{:dn}` block holds the annotation tree; each `<annotation>{:dn}` carries a `text{:dn}` phrase to announce and, usually, a `ref{:dn}` pointing at the object it describes.
+
+### The annotation tree needs a single root
+
+This is the part people get wrong. PreFigure reads only the **first** `<annotation>{:dn}` directly inside `<annotations>{:dn}` — so if you list your objects as siblings there, only one of them is reachable. The first annotation has to be a single **root** that stands for the whole graph: give it a `text{:dn}` describing the graph and **no `ref{:dn}`**, then nest every per-object annotation inside it.
+
+```doenet-editor-horiz
+<graph renderer="prefigure" size="small">
+  <shortDescription>Two points and the line through them, explorable piece by piece</shortDescription>
+  <point name="A">(-2, 1)</point>
+  <point name="B">(3, 4)</point>
+  <line name="AB" through="$A $B" />
+  <annotations>
+    <annotation text="A line through two points, A and B">
+      <annotation ref="$A" text="point A at negative 2, 1" />
+      <annotation ref="$B" text="point B at 3, 4" />
+      <annotation ref="$AB" text="the line through A and B"
+        speech="A line with positive slope, rising from lower left to upper right through A and B." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+<Callout type="warning">
+**Symptom of the most common mistake:** if navigating the graph reaches only the *first* object and no others, your annotations are siblings directly inside `<annotations>{:dn}`. Wrap them all in one outer `<annotation>{:dn}` that has a `text{:dn}` for the whole graph and no `ref{:dn}`, as above.
+</Callout>
+
+### Try it without a screen reader
+
+You don't need assistive technology to check that the navigation works. Click the graph (or **Tab** to it and press **Enter**), then:
+
+- **↓ (down arrow)** moves *down* the tree — from the root into its children.
+- **← and → (left and right arrows)** move between objects at the *same* level.
+
+Walk the tree this way and confirm you can reach every object you annotated — not just the first.
+
+A few more details:
+
+- **`text{:dn}`** is the brief label announced for a piece; **`speech{:dn}`** (optional) is a longer description for when a reader asks for more detail.
+- **Nest annotations further** to group related pieces — the two points could sit *inside* the line's annotation, so a reader moves "into" the line to reach them.
+- If an annotation's `ref{:dn}` doesn't resolve to an object in the graph, that annotation is dropped and the accessibility report notes it — so check the report after wiring annotations up.
+
+---
+
+## Pair the graph with a check-work answer
+
+Many Doenet problems ask the student to *arrange* a graph to satisfy some condition, then press a button to check it. The check itself is an `<answer>{:dn}` whose `<award>{:dn}` tests the configuration with a `<when>{:dn}` condition. Because this answer creates no input of its own, it needs no label — keep the prompt as ordinary text beside it, and the **Check Work** button it renders is reachable by keyboard like any button.
+
+Putting the pieces together gives a fully keyboard- and screen-reader-operable version of the classic "drag until it's right, then check" problem — perceive the state through the description, change it with `addControls{:dn}`, and check it with the button:
+
+```doenet-editor
+<p>Move point P into the first quadrant, then check your work.</p>
+<graph size="small" addControls="all">
+  <shortDescription>A movable point P; move it into the first quadrant</shortDescription>
+  <description>P is at x = $P.x, y = $P.y.</description>
+  <point name="P">(-3, -2)</point>
+</graph>
+<p>
+  <answer>
+    <award><when>$P.x > 0 and $P.y > 0</when></award>
+  </answer>
+</p>
+```
+
+The same activity now works three ways at once: drag the point with a mouse, move it with the keyboard controls, or read its position from the description — and any of them can finish by pressing Check Work.
+
+---
+
+## A work in progress
+
+These techniques cover a lot, but not everything. Some interactions still have no good non-visual equivalent, and matching the fluidity of dragging for every kind of object is exactly the open problem Doenet is working on. When you build an interactive graph, the test to apply is simple: **can a student who cannot use a mouse, and a student who cannot see the screen, each complete the task?** If not, a description that updates, `addControls{:dn}`, and PreFigure annotations are the tools to reach for — and where they fall short, that gap is one we are actively trying to close. **If you hit a wall these tools can't get you past, tell us about it at [community.doenet.org](https://community.doenet.org)** — the obstacles authors run into are what steer where Doenet's accessibility tools go next. For the bigger picture, see [Accessibility in Doenet](../concepts/accessibility#interactive-graphs-the-hard-part-still-in-progress).
+
+## Where to go next
+
+- **[Writing Accessible Activities](../guides/accessible-activities)** — the baseline recipes every graph also needs.
+- **[Checking Accessibility](../guides/check-accessibility)** — confirm the graph and its inputs clear the report.
+- **[Accessibility in Doenet](../concepts/accessibility)** — why interactive graphs are the hard part.
+- **[Styling, meaning, and accessibility](../concepts/styling)** — how style numbers keep graph distinctions perceivable.

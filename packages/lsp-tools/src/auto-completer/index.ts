@@ -82,6 +82,27 @@ export type ElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children: string[];
+    /**
+     * Per-child bucket encoded as a digit string aligned position-for-position
+     * with `children`. `0` = listed in a child group, `1` = inherits from a
+     * listed type, `2` = reaches the list only via an adapter (or
+     * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses this
+     * to prefer natural children and drop adapter-only ones. Optional because
+     * hand-built test schemas and pre-#1229 snapshots omit it.
+     *
+     * Stored as a compact string rather than a `Record<string, number>`
+     * because the pretty-printed JSON would otherwise carry one line per
+     * (element × child) — for 243 elements that's ~24k lines vs ~250.
+     */
+    childBuckets?: string;
+    /**
+     * Abstract (`_`-prefixed) componentTypes this element inherits from,
+     * nearest first. The suggestions ranker uses this to let an override
+     * keyed by an abstract ancestor (e.g. `_sectioningComponent`) apply to
+     * every concrete element inheriting from it. Optional because
+     * hand-built test schemas and pre-#1229 snapshots omit it.
+     */
+    abstractAncestors?: string[];
     acceptsStringChildren: boolean;
     takesIndex?: boolean;
     /** Map from child component type → key in `aliasedElements` providing
@@ -109,6 +130,10 @@ export type AliasedElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children?: string[];
+    /** See `ElementSchema.childBuckets`. */
+    childBuckets?: string;
+    /** See `ElementSchema.abstractAncestors`. */
+    abstractAncestors?: string[];
     /**
      * Populated for parity with `ElementSchema` and consumed by downstream
      * tools (e.g. doc generators); the LSP's validation/completion paths
@@ -278,6 +303,17 @@ function adjustCursorForTrimStart(
 }
 
 /**
+ * The bundled schema elements, retyped as `ElementSchema[]`. The JSON import's
+ * structurally-inferred type doesn't satisfy `ElementSchema` (TS widens absent
+ * optional fields differently across elements), so we assert the shape once
+ * here — the generator guarantees it — and reuse this reference. Keeping it
+ * a single shared constant also preserves the
+ * `schema === BUNDLED_SCHEMA_ELEMENTS` identity check in `setSchema`.
+ */
+const BUNDLED_SCHEMA_ELEMENTS =
+    doenetSchema.elements as unknown as ElementSchema[];
+
+/**
  * A class to make auto-completion queries on DoenetML source.
  *
  * The completer covers both XML editing workflows and ref workflows such as
@@ -368,7 +404,7 @@ export class AutoCompleter {
 
     constructor(
         source?: string,
-        schema: ElementSchema[] = doenetSchema.elements,
+        schema: ElementSchema[] = BUNDLED_SCHEMA_ELEMENTS,
         options?: AutoCompleterOptions,
     ) {
         this.sourceObj = options?.sourceObj ?? new DoenetSourceObject();
@@ -416,6 +452,32 @@ export class AutoCompleter {
             );
         }
         return false;
+    }
+
+    /**
+     * Classify an unresolved reference `$pathParts.join(".")` at `offset`.
+     * Delegates to the Rust resolver (the runtime's own algorithm) so
+     * `notFound` / `multiple` verdicts are authoritative — and works for a
+     * whole member chain (e.g. `["s2", "m"]`), not just a bare name, so the
+     * panel can report which whole reference failed. Returns `"indeterminate"`
+     * when no resolver is attached (cold start, JS-only tests) so the help
+     * layer never presents an incomplete-view miss as a definite verdict.
+     */
+    async classifyReference(
+        offset: number,
+        pathParts: string[],
+    ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
+        if (
+            this._rustResolverAdapter &&
+            typeof this._rustResolverAdapter.classifyReferenceFromOffset ===
+                "function"
+        ) {
+            return this._rustResolverAdapter.classifyReferenceFromOffset(
+                offset,
+                pathParts,
+            );
+        }
+        return "indeterminate";
     }
 
     /**
@@ -546,7 +608,7 @@ export class AutoCompleter {
         this.schema = schema;
         this.schemaAliasedElementsByName =
             aliasedElements ??
-            (schema === doenetSchema.elements
+            (schema === BUNDLED_SCHEMA_ELEMENTS
                 ? (doenetSchema.aliasedElements as Record<
                       string,
                       AliasedElementSchema
@@ -617,7 +679,8 @@ export class AutoCompleter {
     getCompletionItems = (
         offset: number | RowCol,
         cachedContext?: CompletionContext,
-    ) => getCompletionItems.call(this, offset, cachedContext);
+        explicit = false,
+    ) => getCompletionItems.call(this, offset, cachedContext, explicit);
 
     /**
      * Get a list of LSP `Diagnostic`s for schema violations.
@@ -651,6 +714,66 @@ export class AutoCompleter {
         }
         const normalized = this.normalizeElementName(elementName);
         return this.schemaElementsByName[normalized]?.children || [];
+    }
+
+    /**
+     * Child-relation ranks for the children returned by `_getAllowedChildren`
+     * for the same `(elementName, parentName)` — child component type → bucket
+     * (0 direct, 1 inherited, 2 adapter-only; see `ElementSchema.childBuckets`).
+     * Reads from the same alias-aware entry `_getAllowedChildren` uses so the
+     * names and ranks stay aligned. Returns `{}` when the resolved entry
+     * predates `childBuckets` (hand-built test schemas), so callers treat every
+     * child as a direct (rank 0) child and keep it.
+     */
+    _getChildRanks(
+        elementName: string,
+        parentName?: string,
+    ): Record<string, number> {
+        // Mirror `_getAllowedChildren`'s fallback: prefer the alias-resolved
+        // entry when it carries `children`, otherwise fall back to the
+        // canonical entry — so the rank map keys line up with whatever
+        // `_getAllowedChildren` just returned.
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        const entry = effective?.children
+            ? effective
+            : this.schemaElementsByName[this.normalizeElementName(elementName)];
+        const children = entry?.children;
+        const buckets = entry?.childBuckets;
+        if (!children || !buckets) return {};
+        // Rebuild the per-child Record from the compact digit string on
+        // demand — the schema stores `childBuckets` as a string aligned
+        // with `children` so the JSON stays small (see
+        // `SchemaElement.childBuckets`).
+        const ranks: Record<string, number> = {};
+        for (let i = 0; i < children.length; i++) {
+            const ch = buckets.charCodeAt(i) - 48; // '0' === 48
+            ranks[children[i]] = ch >= 0 && ch <= 9 ? ch : 0;
+        }
+        return ranks;
+    }
+
+    /**
+     * Whether this element accepts string children (text content), with
+     * alias-aware resolution mirroring `_getAllowedChildren`. Used by the
+     * suggestions panel to decide whether to say "type text here" alongside
+     * (or instead of) the component suggestions.
+     */
+    _getAcceptsStringChildren(
+        elementName: string,
+        parentName?: string,
+    ): boolean {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        if (
+            effective?.children &&
+            typeof effective.acceptsStringChildren === "boolean"
+        ) {
+            return effective.acceptsStringChildren;
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return (
+            this.schemaElementsByName[normalized]?.acceptsStringChildren ??
+            false
+        );
     }
 
     /**
@@ -867,11 +990,9 @@ export class AutoCompleter {
                 : undefined;
         const normalized = this.normalizeElementName(referent.name);
         const ownEntry = this.schemaElementsByName[normalized];
-        const parent = this.sourceObj.getParent(referent);
-        const parentName = parent && "name" in parent ? parent.name : undefined;
         const effectiveEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            parentName,
+            this.sourceObj.getParentElementName(referent),
         );
         return { referent, line, ownEntry, effectiveEntry };
     }

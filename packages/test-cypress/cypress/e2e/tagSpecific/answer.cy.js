@@ -3032,12 +3032,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get("#ans1").should("have.css", "display", "inline-flex");
+        cy.get("#ans1").should("have.css", "display", "inline");
         cy.get("#ans2").should("have.css", "display", "flex");
-        cy.get("#ans3").should("have.css", "display", "inline-flex");
+        cy.get("#ans3").should("have.css", "display", "inline");
         cy.get("#ans4").should("have.css", "display", "flex");
-        cy.get("#ans5").should("have.css", "display", "inline-flex");
-        cy.get("#ans6").should("have.css", "display", "inline-flex");
+        cy.get("#ans5").should("have.css", "display", "inline");
+        cy.get("#ans6").should("have.css", "display", "inline");
     });
 
     it("input's border color changes with correctness by default", () => {

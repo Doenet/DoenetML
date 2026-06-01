@@ -112,7 +112,10 @@ describe("DoenetEditor context-sensitive help", () => {
         it("shows help for the highlighted element completion and follows arrow-key navigation", () => {
             mountEditorWithHelpOpen("");
             focusEditorAtEnd();
-            cy.get(".cm-content").type("<a", { force: true });
+            // Use a prefix that doesn't match any snippet keys (snippets
+            // currently start with a/i/m/p/t/v) so arrow-down only steps
+            // through element rows — the next test covers the snippet path.
+            cy.get(".cm-content").type("<s", { force: true });
             openAutocomplete();
 
             // Whatever option the popup defaults to, the help panel should
@@ -186,10 +189,10 @@ describe("DoenetEditor context-sensitive help", () => {
                 .contains("m")
                 .trigger("mouseover");
 
-            // refName help renders `$m` references `<math>` in the sentence.
+            // refName help frames `$m` as a reference to `<math>`.
             cy.get(".help-ref-sentence")
                 .invoke("text")
-                .should("match", /\$m\s+references\s+<math>/);
+                .should("match", /\$m\s+is a reference to\s+<math>/);
         });
 
         it("reverts to cursor-driven help when the autocomplete popup closes", () => {

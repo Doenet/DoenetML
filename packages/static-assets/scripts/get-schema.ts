@@ -396,6 +396,32 @@ type SchemaElement = {
     name: string;
     /** The types of children this component can have */
     children: string[];
+    /**
+     * Compact per-child bucket: a digit string aligned position-for-position
+     * with `children`. Each character is the smallest (most direct) rank by
+     * which that child is allowed here:
+     *   `0` — directly listed in one of this component's child groups
+     *         (e.g. `<math>` for `<number>`);
+     *   `1` — inherits from a directly-listed type;
+     *   `2` — reaches the list only via an adapter (e.g. `<point>` adapting
+     *         to `math`), or via `allowInSchemaAnywhere`/`AsComponent`.
+     *
+     * Encoded as a string rather than a `Record<string, number>` so that the
+     * generated JSON doesn't grow one pretty-printed line per (element ×
+     * child); a 90-child element contributes ~90 characters instead of
+     * ~92 lines.
+     */
+    childBuckets: string;
+    /**
+     * Abstract (`_`-prefixed) componentTypes this element inherits from, in
+     * order from nearest to furthest (so `[..., "_block", "_base"]` for a
+     * block component). The editor reads this to let the per-container
+     * suggestion-override map (`CONTAINER_SUGGESTION_OVERRIDES`) be keyed by
+     * an abstract ancestor (e.g. `_sectioningComponent`) and apply to every
+     * concrete element that inherits from it — picked by first match in the
+     * chain, so a more specific ancestor override wins over a broader one.
+     */
+    abstractAncestors: string[];
     /** The attributes that can be specified on this component */
     attributes: SchemaAttribute[];
     /** The properties (public state variables) that this component has */
@@ -470,9 +496,22 @@ type AliasedSchemaElement = {
     properties: PropertyDescription[];
     /** See `SchemaElement.children`. */
     children: string[];
+    /** See `SchemaElement.childBuckets`. */
+    childBuckets: string;
+    /** See `SchemaElement.abstractAncestors`. */
+    abstractAncestors: string[];
     /** See `SchemaElement.acceptsStringChildren`. */
     acceptsStringChildren: boolean;
 };
+
+/**
+ * Child-relation ranks encoded as digits in `SchemaElement.childBuckets`.
+ * Smaller is more direct. See `SchemaElement.childBuckets` and
+ * `classifyInheritOrAdapt`.
+ */
+const CHILD_RANK_DIRECT = 0;
+const CHILD_RANK_INHERITED = 1;
+const CHILD_RANK_ADAPTER = 2;
 
 /**
  * Generates a comprehensive schema of all DoenetML components and their metadata.
@@ -524,23 +563,31 @@ export function getSchema(
      * inherit from or adapt to that component type.
      */
     const inheritedOrAdaptedTypes: Record<string, string[]> = {};
+    /**
+     * Parallel to `inheritedOrAdaptedTypes`: for each `type1`, a map from each
+     * member type2 to how it reaches `type1` (`CHILD_RANK_*`). Composites
+     * pulled in via `allowInSchemaAsComponent`/`allowInSchemaAnywhere` are
+     * ranked as adapters — they're not natural literal children.
+     */
+    const inheritedOrAdaptedRanks: Record<string, Record<string, number>> = {};
 
     for (const type1 in componentClasses) {
         const inherited: string[] = [];
+        const ranks: Record<string, number> = {};
         for (const type2 in componentClasses) {
             // Skip abstract components
             if (type2[0] === "_") {
                 continue;
             }
 
-            if (
-                checkIfInheritOrAdapt({
-                    startingType: type2,
-                    destinationType: type1,
-                    componentInfoObjects,
-                })
-            ) {
+            const relation = classifyInheritOrAdapt({
+                startingType: type2,
+                destinationType: type1,
+                componentInfoObjects,
+            });
+            if (relation !== "none") {
                 inherited.push(type2);
+                ranks[type2] = relationBucket(relation);
                 continue;
             }
 
@@ -558,13 +605,14 @@ export function getSchema(
             ) {
                 for (let alt_type of cClass.allowInSchemaAsComponent) {
                     if (
-                        checkIfInheritOrAdapt({
+                        classifyInheritOrAdapt({
                             startingType: alt_type,
                             destinationType: type1,
                             componentInfoObjects,
-                        })
+                        }) !== "none"
                     ) {
                         inherited.push(type2);
+                        ranks[type2] = CHILD_RANK_ADAPTER;
                         break;
                     }
                 }
@@ -584,9 +632,11 @@ export function getSchema(
                 type1 !== "_error"
             ) {
                 inherited.push(type2);
+                ranks[type2] = CHILD_RANK_ADAPTER;
             }
         }
         inheritedOrAdaptedTypes[type1] = inherited;
+        inheritedOrAdaptedRanks[type1] = ranks;
     }
 
     // Remove abstract components from the schema
@@ -600,7 +650,28 @@ export function getSchema(
 
     function determineChildren(cClass: ComponentClass) {
         let children: string[] = [];
+        const childRanks: Record<string, number> = {};
         let acceptsStringChildren = false;
+
+        // Record `name` as a child, keeping the smallest (most direct) rank
+        // when it's reachable through more than one declared child group.
+        const addChild = (name: string, rank: number) => {
+            children.push(name);
+            const existing = childRanks[name];
+            if (existing === undefined || rank < existing) {
+                childRanks[name] = rank;
+            }
+        };
+        // Expand a declared child-group type to itself plus everything that
+        // inherits from or adapts to it, carrying each member's relation rank.
+        const addExpanded = (type2: string) => {
+            for (const member of inheritedOrAdaptedTypes[type2]) {
+                addChild(
+                    member,
+                    inheritedOrAdaptedRanks[type2][member] ?? CHILD_RANK_DIRECT,
+                );
+            }
+        };
 
         const childGroups = cClass.returnChildGroups();
 
@@ -610,7 +681,7 @@ export function getSchema(
             if (!groupObj.excludeFromSchema) {
                 for (const type2 of groupObj.componentTypes) {
                     if (type2 in inheritedOrAdaptedTypes) {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
+                        addExpanded(type2);
                     }
                     if (
                         type2 === "string" ||
@@ -634,9 +705,11 @@ export function getSchema(
             for (const type2 of cClass.additionalSchemaChildren) {
                 if (type2 in inheritedOrAdaptedTypes) {
                     if (cClass.additionalSchemaChildrenDoNotInherit) {
-                        children.push(type2);
+                        // Only the declared type itself is added (no
+                        // inheritance), so it's a direct child.
+                        addChild(type2, CHILD_RANK_DIRECT);
                     } else {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
+                        addExpanded(type2);
                     }
                 }
                 if (
@@ -650,7 +723,14 @@ export function getSchema(
         }
 
         children = [...new Set(children)];
-        return { children, acceptsStringChildren };
+        // Encode the per-child bucket as a digit string aligned with
+        // `children`, so the JSON doesn't grow one line per (element ×
+        // child) when pretty-printed. Consumers either index into it
+        // directly or rehydrate a Record on demand.
+        const childBuckets = children
+            .map((name) => String(childRanks[name] ?? CHILD_RANK_DIRECT))
+            .join("");
+        return { children, childBuckets, acceptsStringChildren };
     }
 
     const { children: documentChildren } = determineChildren(
@@ -1062,7 +1142,8 @@ export function getSchema(
         const cClass = componentClasses[type];
 
         const helpPayload = buildHelpPayloadForClass(type, cClass);
-        const { children, acceptsStringChildren } = determineChildren(cClass);
+        const { children, childBuckets, acceptsStringChildren } =
+            determineChildren(cClass);
 
         const isInline = componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: type,
@@ -1081,6 +1162,8 @@ export function getSchema(
         const element: SchemaElement = {
             name: type,
             children,
+            childBuckets,
+            abstractAncestors: abstractAncestorChain(cClass),
             attributes: helpPayload.attributes,
             properties: helpPayload.properties,
             top:
@@ -1127,7 +1210,7 @@ export function getSchema(
             // target's own child groups so the LSP can validate `<row>` inside
             // `<matrix>` against `matrixRow`'s `MathList` children (math, …)
             // rather than against the tabular `<row>`'s `<cell>` (#1174).
-            const { children, acceptsStringChildren } =
+            const { children, childBuckets, acceptsStringChildren } =
                 determineChildren(targetClass);
             const aliased: AliasedSchemaElement = {
                 name: targetName,
@@ -1136,6 +1219,8 @@ export function getSchema(
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
                 children,
+                childBuckets,
+                abstractAncestors: abstractAncestorChain(targetClass),
                 acceptsStringChildren,
             };
             if (payload.displayName !== undefined) {
@@ -1403,15 +1488,55 @@ function createArrayElementDescription(
 }
 
 /**
- * Determine if `startingType` either inherits from or adapts to `destinationType`.
+ * Walk a component class's prototype chain and collect the `static
+ * componentType` of every abstract (`_`-prefixed) ancestor, in order from
+ * nearest to furthest. Used to emit `SchemaElement.abstractAncestors`.
  *
- * For the purposes of building the schema, inheritance can be overridden by the static variable `inSchemaOnlyInheritAs`
- * on the component class object. (See `checkIfInherit` for details.)
- *
- * Return true if `startingType` inherits from `destinationType` or adapts into a component type that inherits from `destinationType`.
- * Otherwise return false.
+ * JS `class … extends Parent` sets `Object.getPrototypeOf(child)` to
+ * `Parent`, so walking the constructor prototype chain visits each ancestor
+ * class in turn. The walk stops at the first prototype that isn't a class
+ * with a `componentType` (i.e. `Function.prototype` / `Object`).
  */
-function checkIfInheritOrAdapt({
+function abstractAncestorChain(cClass: ComponentClass): string[] {
+    const chain: string[] = [];
+    let current: unknown = Object.getPrototypeOf(cClass);
+    while (typeof current === "function") {
+        const ct = (current as { componentType?: unknown }).componentType;
+        if (typeof ct === "string" && ct.startsWith("_")) {
+            chain.push(ct);
+        }
+        current = Object.getPrototypeOf(current);
+    }
+    return chain;
+}
+
+type ChildRelation = "direct" | "inherit" | "adapt" | "none";
+
+/** Map a `classifyInheritOrAdapt` result to its emitted `CHILD_RANK_*`. */
+function relationBucket(relation: Exclude<ChildRelation, "none">): number {
+    switch (relation) {
+        case "direct":
+            return CHILD_RANK_DIRECT;
+        case "inherit":
+            return CHILD_RANK_INHERITED;
+        case "adapt":
+            return CHILD_RANK_ADAPTER;
+    }
+}
+
+/**
+ * Classify how `startingType` reaches `destinationType` for schema-children
+ * purposes — the ranked counterpart of the old `checkIfInheritOrAdapt`
+ * boolean:
+ *   - `"direct"`  — same component type;
+ *   - `"inherit"` — inherits from it (honoring `inSchemaOnlyInheritAs`);
+ *   - `"adapt"`   — only reachable by adapting into a type that inherits from it;
+ *   - `"none"`    — unrelated.
+ *
+ * As before, inheritance can be overridden by the static variable
+ * `inSchemaOnlyInheritAs` on the component class (see `checkIfInherit`).
+ */
+function classifyInheritOrAdapt({
     startingType,
     destinationType,
     componentInfoObjects,
@@ -1419,7 +1544,11 @@ function checkIfInheritOrAdapt({
     startingType: string;
     destinationType: string;
     componentInfoObjects: ComponentInfoObjects;
-}) {
+}): ChildRelation {
+    if (startingType === destinationType) {
+        return "direct";
+    }
+
     if (
         checkIfInherit({
             startingType,
@@ -1427,7 +1556,7 @@ function checkIfInheritOrAdapt({
             componentInfoObjects,
         })
     ) {
-        return true;
+        return "inherit";
     }
 
     const startingClass =
@@ -1447,11 +1576,11 @@ function checkIfInheritOrAdapt({
                 componentInfoObjects,
             })
         ) {
-            return true;
+            return "adapt";
         }
     }
 
-    return false;
+    return "none";
 }
 
 /**

@@ -763,6 +763,39 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             .should("have.attr", "id", "mr-input-label");
     });
 
+    it("input follows the last line of a wrapped label, not the first (#1245)", () => {
+        // Regression test for #1245: when a label is long enough to wrap, the
+        // input box must flow after the label's last word rather than
+        // baseline-aligning to the label's first line (which left the input
+        // embedded in the middle of the label text).
+        cy.viewport(350, 700);
+        postDoenetML(`
+    <p><mathInput name="mi"><label>Enter a prime number that is strictly between zero and ten for this problem.</label></mathInput></p>
+        `);
+
+        cy.get("#mi .mathInputWrapper").should("exist");
+
+        cy.get("#mi-input-label").then(($label) => {
+            const labelRect = $label[0].getBoundingClientRect();
+            cy.get("#mi .mathInputWrapper").then(($input) => {
+                const inputRect = $input[0].getBoundingClientRect();
+                // The label must actually wrap for this assertion to mean
+                // anything (one line is roughly 20px tall).
+                expect(
+                    labelRect.height,
+                    "label should wrap to multiple lines at this viewport width",
+                ).to.be.greaterThan(34);
+                // Fixed layout: the input drops onto the label's last line, so
+                // its top is well below the label's top. Broken (first-line)
+                // layout would put the input's top at ~the label's top.
+                expect(
+                    inputRect.top - labelRect.top,
+                    "input should follow the label's last line, not its first",
+                ).to.be.greaterThan(0.4 * labelRect.height);
+            });
+        });
+    });
+
     it("additionalFunctionNames and removedFunctionNames flow through to MathQuill auto-formatting", () => {
         // Locks in the worker -> renderer -> MathQuill pipeline for the
         // additional/removed deltas. The LSP-side breakdown logic is

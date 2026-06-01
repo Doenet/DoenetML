@@ -1,0 +1,179 @@
+import { Callout } from 'nextra/components'
+import { DoenetEditor } from "../../components"
+
+# References
+
+A **reference** lets one part of your document use a value that is defined
+somewhere else. Instead of repeating content, you give a component a `name`
+and then refer back to it with the `$` symbol. A reference is not a copy you
+edit separately — it points at the original, so when the original changes, the
+reference updates too.
+
+References are the main way components share information in DoenetML. The
+[essential concepts](essentialConcepts#namingConventions) page introduces the
+idea alongside components, attributes, and properties; this page covers writing
+references, how they resolve, and referencing repeated content.
+
+## Writing references
+
+The different ways to write a reference and what each form points at.
+
+### Referencing a component with `$`
+
+To reference a component, first give it a `name`, then write `$` followed by
+that name. The reference inserts the named component at that location.
+
+```doenet-editor-horiz
+<p>The coordinates of p are <point name="p">(3,4)</point>.</p>
+<graph>
+  <shortDescription>A graph with a draggable point named p</shortDescription>
+  $p
+</graph>
+```
+
+Try dragging the point on the graph: the coordinates shown above update to
+match, because `$p` is the same point as `p` — a reference, not a separate
+copy.
+
+<Callout type="info">
+**DoenetML naming convention:**
+* Can only contain numbers, letters, and underscores
+* Cannot start with an underscore or a number
+* Is case-sensitive
+</Callout>
+
+### Referencing a property with `.`
+
+Every component stores **properties** — computed information you can read back.
+Write `$name.propertyName` to reference one property of a named component. The
+whole expression is a single reference: it points at the `propertyName` property
+of the component named `name`.
+
+```doenet-editor-horiz
+<math name="myMath" splitSymbols="false">xy</math>
+
+<p>Is splitSymbols turned on? $myMath.splitSymbols</p>
+<p>The value of myMath is $myMath</p>
+```
+
+In `$myMath.splitSymbols`, `myMath` selects the component and `splitSymbols`
+selects which of its properties to read. The available properties vary by
+component — see a component's [reference page](../reference/componentIndex) for
+the full list, and the
+[Properties and Lists](../tutorials/intermediateTutorial/iT2-4-properties)
+tutorial for more worked examples.
+
+### Marking where a name ends with `$(...)`
+
+When a reference is followed immediately by other letters, numbers, or
+underscores, wrap the name in parentheses so DoenetML knows where the name
+ends. For example, `$(a)b` references the component named `a` and then prints a
+literal `b`, whereas `$ab` would look for a component named `ab`.
+
+```doenet-editor-horiz
+<number name="a">5</number>
+
+<p>$(a)b is the value of a followed by the letter b.</p>
+```
+
+## How references are resolved
+
+How DoenetML decides which component a reference points at — and what happens
+when it can't.
+
+### Resolving to the nearest match
+
+A reference looks for its referent starting where it is written and working
+outward through the enclosing components. The **nearest** matching name wins, so
+the same `$n` can mean different things in different places. Below, each `$n`
+finds the `<number name="n">` defined in its own section.
+
+```doenet-editor-horiz
+<section>
+  <title>First</title>
+  <number name="n">10</number>
+  <p>Here, n is $n.</p>
+</section>
+<section>
+  <title>Second</title>
+  <number name="n">20</number>
+  <p>Here, n is $n.</p>
+</section>
+```
+
+### When a reference is ambiguous
+
+If a name matches more than one component and none is nearer than the others,
+the reference is ambiguous, so DoenetML reports a warning rather than guessing
+which one you meant. Here, `$n` written outside both sections could equally
+mean either section's `n`, so it fails.
+
+```doenet-editor-horiz
+<section>
+  <number name="n">10</number>
+</section>
+<section>
+  <number name="n">20</number>
+</section>
+<p>Outside the sections, $n is ambiguous.</p>
+```
+
+Nothing is rendered for `$n`, because DoenetML won't guess which `n` you meant.
+The editor surfaces the problem in the **Warnings** panel — its tab is marked
+with a <svg viewBox="0 0 16 16" width="1em" height="1em" fill="#c25a1a" style={{ display: "inline-block", verticalAlign: "-0.125em" }} role="img" aria-label="warning"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg> icon — reporting
+*Multiple referents found for reference: `$n`*. The same message also appears
+in a tooltip when you hover over `$n` in the editor.
+
+### Disambiguating with a named ancestor
+
+If two components with the same name are in different ancestors, you can create
+unique references to them by giving those ancestors unique names and
+referencing through the ancestor names. Naming the two sections `s1` and `s2`
+lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
+
+```doenet-editor-horiz
+<section name="s1">
+  <number name="n">10</number>
+</section>
+<section name="s2">
+  <number name="n">20</number>
+</section>
+<p>The first section's n is $s1.n and the second's is $s2.n.</p>
+```
+
+### When a name doesn't exist
+
+If nothing with the referenced name can be found, the reference fails. A common
+cause is a typo in the name.
+
+```doenet-editor-horiz
+<number name="count">5</number>
+
+<p>$total has no referent, because nothing is named "total".</p>
+```
+
+As with an ambiguous reference, `$total` renders nothing and DoenetML reports a
+warning — here, *No referent found for reference: `$total`* — shown in the
+Warnings panel and as a tooltip on hover.
+
+## Referencing repeated content
+
+A [`<repeat>`](../reference/repeat) (or
+[`<repeatForSequence>`](../reference/repeatForSequence)) generates several
+copies of its content. Use a bracketed index to reference one iteration, the
+`valueName`/`indexName` bindings to reference the per-iteration values inside
+the repeat, and a `name` on a component in the body to reach that component in a
+chosen iteration.
+
+```doenet-editor-horiz
+<repeatForSequence name="rep" from="1" to="3" valueName="v">
+  <p>$v squared is <math name="squared">$v^2</math>.</p>
+</repeatForSequence>
+
+<p>The value used in the first iteration was $rep[1].v.</p>
+<p>The square computed in the second iteration is $rep[2].squared.</p>
+```
+
+Here `$rep[2]` references the second iteration of the repeat and
+`$rep[2].squared` the `<math name="squared">` defined inside it, while
+`$rep[1].v` references the `valueName` binding `v` from the first iteration.

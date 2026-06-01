@@ -30,6 +30,15 @@ import {
     useAppDispatch,
 } from "../state";
 import { renderersLoadComponent } from "./renderersLoadComponent";
+import { doenetGlobalConfig } from "../global-config";
+import {
+    withTimeout,
+    disposeCoreWorker,
+    DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
+    DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS,
+    CORE_BOOT_RETRY_DELAY_MS,
+    CORE_START_FAILED_MESSAGE,
+} from "./coreWorkerBoot";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -204,6 +213,34 @@ export function DocViewer({
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
+    // Native handle for the same worker `coreWorker` wraps, kept so a wedged
+    // worker can be force-terminated even when its Comlink `terminate()` would
+    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Set and
+    // cleared in lockstep with `coreWorker` (always via
+    // `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
+    const nativeCoreWorker = useRef<Worker | null>(null);
+
+    // Spin up a fresh core worker and store its Comlink remote and native
+    // handle in lockstep. Returns the remote for the caller to drive.
+    function attachNewCoreWorker(): Remote<CoreWorker> {
+        const { remote, worker } = createCoreWorker();
+        coreWorker.current = remote;
+        nativeCoreWorker.current = worker;
+        return remote;
+    }
+
+    // Tear down whatever worker the refs currently point at and clear them
+    // (keeping the two refs in lockstep). Refs are cleared up front so a
+    // worker that's being terminated is never reachable mid-teardown; the
+    // returned promise settles once `disposeCoreWorker` has finished, for
+    // callers that need to await the teardown before swapping in a replacement.
+    function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
+        const remote = coreWorker.current;
+        const native = nativeCoreWorker.current;
+        coreWorker.current = null;
+        nativeCoreWorker.current = null;
+        return disposeCoreWorker(remote, native, { graceful });
+    }
 
     const contextForRenderers = {
         doenetViewerUrl,
@@ -214,8 +251,16 @@ export function DocViewer({
 
     useEffect(() => {
         return () => {
-            coreWorker.current?.terminate();
-            coreWorker.current = null;
+            // Best-effort graceful terminate, but always guarantee a native
+            // kill so a wedged worker (whose Comlink terminate would hang) is
+            // still released on unmount (Doenet/DoenetApps#2957).
+            // `disposeCoreWorker` already swallows its own errors; the
+            // `.catch` is here so this fire-and-forget call can't surface an
+            // unhandled rejection if that ever changes (AGENTS.md: no
+            // fire-and-forget promises).
+            teardownCurrentCoreWorker({ graceful: true }).catch((e) => {
+                console.warn("DocViewer: core worker teardown failed", e);
+            });
             coreCreated.current = false;
         };
     }, []);
@@ -253,7 +298,7 @@ export function DocViewer({
                         processLoadedDocState(e.data.state);
 
                         if (render) {
-                            startCore();
+                            startCoreSafely();
                         } else {
                             setStage("readyToCreateCore");
                         }
@@ -419,7 +464,10 @@ export function DocViewer({
     async function reinitializeCoreAndTerminateAnimations() {
         if (coreWorker.current !== null) {
             preventMoreAnimations.current = true;
-            await coreWorker.current.terminate();
+            // Bounded graceful terminate + guaranteed native kill, so swapping
+            // in a fresh worker can't hang on a wedged predecessor
+            // (Doenet/DoenetApps#2957).
+            await teardownCurrentCoreWorker({ graceful: true });
             actionsBeforeCoreCreated.current = [];
             for (let id in animationInfo.current) {
                 cancelAnimationFrame(id);
@@ -427,14 +475,13 @@ export function DocViewer({
             animationInfo.current = {};
         }
 
-        const newCoreWorker = createCoreWorker();
-        coreWorker.current = newCoreWorker;
+        const remote = attachNewCoreWorker();
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
         await initializeCoreWorker({
-            coreWorker: newCoreWorker,
+            coreWorker: remote,
             doenetML,
             flags,
             activityId,
@@ -445,7 +492,7 @@ export function DocViewer({
             fetchExternalDoenetML,
         });
 
-        return newCoreWorker;
+        return remote;
     }
 
     function callAction({
@@ -974,7 +1021,7 @@ export function DocViewer({
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
             if (render) {
-                startCore();
+                startCoreSafely();
             } else {
                 setStage("readyToCreateCore");
             }
@@ -1041,17 +1088,43 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
-    async function startCore() {
-        let thisCoreWorker = coreWorker.current;
-        setHasInitialError(false);
+    // Put the viewer into a visible "core failed to start" error state rather
+    // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
+    // Shared by every core-start failure path.
+    function failCoreStart() {
+        coreCreationInProgress.current = false;
+        setIsInErrorState?.(true);
+        setErrMsg(CORE_START_FAILED_MESSAGE);
+        setHasInitialError(true);
+    }
 
-        if (coreCreated.current || !thisCoreWorker) {
-            //Kill the current core if it exists
+    // The core-worker *handshake*: (re)create the worker and run the cheap,
+    // roughly size-independent init round-trips (set source/flags, initialize
+    // the JS core). This is the phase a Doenet/DoenetApps#2957 stall lives in,
+    // so `startCore` wraps it in a watchdog. The expensive `generateDast` step
+    // happens AFTER this returns and is deliberately NOT watchdogged.
+    async function handshakeCore(attempt: number): Promise<Remote<CoreWorker>> {
+        let thisCoreWorker = coreWorker.current;
+
+        if (attempt > 0 || coreCreated.current || !thisCoreWorker) {
+            // (Re)create a fresh worker when there's no reusable one to init:
+            //  - !thisCoreWorker — no worker created yet (the common first
+            //    load: with render=true the initial-pass `!render` branch that
+            //    would otherwise pre-create one never ran);
+            //  - coreCreated.current — a core already exists (e.g. the document
+            //    changed and we're rebuilding it);
+            //  - attempt > 0 — a retry, whose predecessor worker may be wedged.
+            // reinitializeCoreAndTerminateAnimations tears down any existing
+            // worker and boots + initializes a new one.
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
         } else {
-            // otherwise, initialize core worker to give it the current DoenetML
-
-            let initializeResult = await initializeCoreWorker({
+            // attempt 0, a worker already exists, and its core isn't created —
+            // reuse that worker (skipping a fresh boot + WASM init) and just
+            // (re)initialize it with the current DoenetML. Two ways to be here:
+            // the initial-pass `!render` branch pre-created a worker to report
+            // document structure, or a document/parameter change reset
+            // `coreCreated` while keeping the existing worker.
+            await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
                 doenetML,
                 flags,
@@ -1064,33 +1137,130 @@ export function DocViewer({
             });
         }
 
-        onActionCallbacks.current.clear();
+        // [Doenet/DoenetApps#2957] Test seam — simulate a handshake-phase
+        // stall/failure (worker created, but a boot round-trip never settles).
+        // Inert in production.
+        if (doenetGlobalConfig.__doenetTestCoreInitHook) {
+            await doenetGlobalConfig.__doenetTestCoreInitHook(
+                "handshake",
+                attempt,
+            );
+        }
 
+        return thisCoreWorker;
+    }
+
+    async function startCore() {
+        setHasInitialError(false);
+
+        const maxAttempts = Math.max(
+            1,
+            doenetGlobalConfig.coreBootMaxAttempts ??
+                DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
+        );
+        const handshakeWatchdogMs =
+            doenetGlobalConfig.coreHandshakeWatchdogMs ??
+            DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS;
+
+        // --- Phase 1: handshake — watchdogged and retried ---
+        // Only this cheap, size-independent phase is time-boxed. A stall here
+        // means a hung/wedged worker (Doenet/DoenetApps#2957), not slow work.
+        let thisCoreWorker: Remote<CoreWorker> | null = null;
+        let handshakeSucceeded = false;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                thisCoreWorker = await withTimeout(
+                    () => handshakeCore(attempt),
+                    handshakeWatchdogMs,
+                    `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
+                );
+                handshakeSucceeded = true;
+                break;
+            } catch (err) {
+                console.warn(
+                    `DocViewer: core worker handshake attempt ${attempt + 1} ` +
+                        `of ${maxAttempts} failed` +
+                        (attempt + 1 < maxAttempts
+                            ? "; retrying with a fresh worker."
+                            : "; giving up."),
+                    err,
+                );
+                // The worker may be wedged (a hung round-trip leaves its
+                // serialization queue — and its own terminate() — stuck), so
+                // force-kill it natively and drop the refs; the next attempt
+                // starts from a brand-new Worker.
+                await teardownCurrentCoreWorker({ graceful: false });
+                coreCreated.current = false;
+                coreCreationInProgress.current = false;
+                if (attempt + 1 < maxAttempts) {
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, CORE_BOOT_RETRY_DELAY_MS),
+                    );
+                }
+            }
+        }
+
+        if (!handshakeSucceeded || thisCoreWorker === null) {
+            // Every handshake attempt failed.
+            failCoreStart();
+            return;
+        }
+
+        // --- Phase 2: generate the DAST — NOT watchdogged ---
+        // The worker proved it is alive by completing the handshake, so a long
+        // generateDast is real, in-progress work, not a hang. Watchdogging
+        // here is what made complex documents unloadable (they time out before
+        // core finishes), so we let it run to completion however long it takes.
+        onActionCallbacks.current.clear();
         coreCreationInProgress.current = true;
 
-        const dastResult = await thisCoreWorker.generateJavascriptDast(
-            {
-                coreId: coreId.current,
-                userId,
-                cid: cid.current,
-                theme: darkMode,
-                requestedVariant: initialCoreData.current?.requestedVariant,
-                stateVariableChanges: initialCoreData.current?.coreState
-                    ? JSON.stringify(
-                          initialCoreData.current.coreState,
-                          serializedComponentsReplacer,
-                      )
-                    : undefined,
-                initializeCounters: initializeCounters.current,
-            },
-            Comlink.proxy(updateRenderers),
-            Comlink.proxy(reportScoreAndStateCallback),
-            Comlink.proxy(requestAnimationFrame),
-            Comlink.proxy(cancelAnimationFrame),
-            Comlink.proxy(copyToClipboard),
-            Comlink.proxy(sendEvent),
-            Comlink.proxy(requestSolutionView),
-        );
+        let dastResult: Awaited<
+            ReturnType<Remote<CoreWorker>["generateJavascriptDast"]>
+        >;
+        try {
+            // [Doenet/DoenetApps#2957] Test seam — simulate a slow-but-alive
+            // evaluation. Runs in the un-watchdogged phase, so a delay here
+            // must NOT abort the load. Inert in production.
+            if (doenetGlobalConfig.__doenetTestCoreInitHook) {
+                await doenetGlobalConfig.__doenetTestCoreInitHook(
+                    "generate",
+                    0,
+                );
+            }
+
+            dastResult = await thisCoreWorker.generateJavascriptDast(
+                {
+                    coreId: coreId.current,
+                    userId,
+                    cid: cid.current,
+                    theme: darkMode,
+                    requestedVariant: initialCoreData.current?.requestedVariant,
+                    stateVariableChanges: initialCoreData.current?.coreState
+                        ? JSON.stringify(
+                              initialCoreData.current.coreState,
+                              serializedComponentsReplacer,
+                          )
+                        : undefined,
+                    initializeCounters: initializeCounters.current,
+                },
+                Comlink.proxy(updateRenderers),
+                Comlink.proxy(reportScoreAndStateCallback),
+                Comlink.proxy(requestAnimationFrame),
+                Comlink.proxy(cancelAnimationFrame),
+                Comlink.proxy(copyToClipboard),
+                Comlink.proxy(sendEvent),
+                Comlink.proxy(requestSolutionView),
+            );
+        } catch (err) {
+            // generateDast normally reports core problems via
+            // `{ success: false }` (handled below); a *rejection* here is an
+            // unexpected failure (e.g. the worker died mid-evaluation). Surface
+            // it rather than stalling.
+            console.warn("DocViewer: generateJavascriptDast failed", err);
+            failCoreStart();
+            return;
+        }
 
         if (dastResult.success) {
             if (
@@ -1135,6 +1305,18 @@ export function DocViewer({
         }
         setStage("coreCreated");
         initializedCallback?.({ activityId, docId });
+    }
+
+    // `startCore` is always launched fire-and-forget (never awaited — e.g. from
+    // render-phase code and event listeners), so wrap it: it already surfaces
+    // boot failures itself, but an *unexpected* throw must still become a
+    // visible error rather than an unhandled rejection
+    // (Doenet/DoenetApps#2957, and AGENTS.md "no fire-and-forget promises").
+    function startCoreSafely() {
+        startCore().catch((e) => {
+            console.warn("DocViewer: startCore failed unexpectedly", e);
+            failCoreStart();
+        });
     }
 
     function requestAnimationFrame({
@@ -1304,10 +1486,12 @@ export function DocViewer({
     // then just initialize the core worker so that can return document structure
     // but core itself won't actually start
     if (initialPass && !render) {
-        let newCoreWorker = createCoreWorker();
-        coreWorker.current = newCoreWorker;
+        const remote = attachNewCoreWorker();
+        // Fire-and-forget: this only primes the worker so it can report the
+        // document structure; core itself isn't started until `render` flips
+        // true. Surface failures rather than swallowing the promise.
         initializeCoreWorker({
-            coreWorker: newCoreWorker,
+            coreWorker: remote,
             doenetML,
             flags,
             activityId,
@@ -1316,6 +1500,11 @@ export function DocViewer({
             attemptNumber,
             documentStructureCallback,
             fetchExternalDoenetML,
+        }).catch((e) => {
+            console.warn(
+                "DocViewer: core worker initialization (no-render path) failed",
+                e,
+            );
         });
         return null;
     }
@@ -1364,7 +1553,10 @@ export function DocViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize();
+        loadStateAndInitialize().catch((e) => {
+            console.warn("DocViewer: loadStateAndInitialize failed", e);
+            failCoreStart();
+        });
 
         return null;
     }
@@ -1388,7 +1580,7 @@ export function DocViewer({
     }
 
     if (stage === "readyToCreateCore" && render) {
-        startCore();
+        startCoreSafely();
         // XXX: this state never occurs
     } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
         // we've moved off this doc, but core is still being created

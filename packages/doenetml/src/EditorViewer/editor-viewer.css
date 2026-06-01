@@ -267,6 +267,11 @@
     gap: 1rem;
 }
 
+.editor-panel .accessibility-report-intro {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 .editor-panel .accessibility-report-section {
     border: 1px solid #d0d5dd;
     border-radius: 0.5rem;

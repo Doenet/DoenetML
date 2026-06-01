@@ -271,6 +271,10 @@ export function DiagnosticsResponseTabContents({
         (diagnostic) => diagnostic.level === 2,
     );
 
+    // Tolerate a trailing slash on the consumer-supplied `docsURL` so that
+    // e.g. "https://docs.doenet.org/" doesn't produce a "//concepts/..." URL.
+    const docsBase = docsURL.replace(/\/+$/, "");
+
     return (
         <div
             className={classNames("diagnostics-response-tabs-container", {
@@ -344,6 +348,16 @@ export function DiagnosticsResponseTabContents({
                                     label="Show accessibility diagnostics in editor"
                                     onChange={setShowAccessibilityAnnotations}
                                 />
+                                <p className="accessibility-report-intro">
+                                    <a
+                                        href={`${docsBase}/concepts/accessibility`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Learn how Doenet approaches
+                                        accessibility
+                                    </a>
+                                </p>
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
                                         <h3>

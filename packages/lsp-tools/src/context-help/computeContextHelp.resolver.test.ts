@@ -29,6 +29,10 @@ function createMockCore(
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
     },
+    // When set, `resolvePath` throws this value — mirrors the Rust core
+    // throwing the bare variant string (`"NoReferent"` / `"NonUniqueReferent"`)
+    // for unresolvable / ambiguous references.
+    resolveError?: unknown,
 ): ResolverCore {
     const elements: Array<{
         data: { id: number };
@@ -51,6 +55,7 @@ function createMockCore(
         setFlags: async () => {},
         returnDast: async () => ({ elements }),
         resolvePath: async () => {
+            if (resolveError !== undefined) throw resolveError;
             if (resolveResult) return resolveResult;
             return {
                 nodeIdx: 0,
@@ -66,11 +71,16 @@ async function buildCompleterWithAdapter(
     source: string,
     options: {
         resolveResult?: Parameters<typeof createMockCore>[1];
+        resolveError?: unknown;
         takesIndexComponentTypes?: Set<string>;
     } = {},
 ) {
     const completer = new AutoCompleter(source);
-    const core = createMockCore(completer.sourceObj, options.resolveResult);
+    const core = createMockCore(
+        completer.sourceObj,
+        options.resolveResult,
+        options.resolveError,
+    );
     const adapter = new RustResolverAdapter(completer.sourceObj, {
         core,
         takesIndexComponentTypes: options.takesIndexComponentTypes,
@@ -136,6 +146,37 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         if (help.kind === "property") {
             expect(help.propertyName.toLowerCase()).toBe("x");
         }
+    });
+
+    it("treats $rep[1].myPoint.x as one unit: identical help on every segment", async () => {
+        // The whole macro is one reference, so placing the cursor on `rep`,
+        // `myPoint`, or `x` must all yield the same property help — resolved
+        // from the full chain rather than the cursor's local segment.
+        const source = `<repeatForSequence name="rep" from="1" to="3"><point name="myPoint">(1,2)</point></repeatForSequence>\n$rep[1].myPoint.x`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveResult: {
+                nodeIdx: 1, // point
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myPoint" }],
+            },
+            takesIndexComponentTypes: new Set(["repeatForSequence"]),
+        });
+        const onRep = source.indexOf("$rep") + 2; // inside "rep"
+        const onMyPoint = source.indexOf(".myPoint") + 4; // inside "myPoint"
+        const onX = source.length; // on the final "x"
+        const [helpRep, helpMyPoint, helpX] = await Promise.all([
+            computeContextHelp(completer, onRep),
+            computeContextHelp(completer, onMyPoint),
+            computeContextHelp(completer, onX),
+        ]);
+        expect(helpRep).toEqual(helpX);
+        expect(helpMyPoint).toEqual(helpX);
+        expect(helpX).toMatchObject({
+            kind: "property",
+            elementName: "point",
+            displayPath: "rep[1].myPoint.x",
+        });
     });
 
     it("resolves $r[1].v to the repeat's valueName binding with derivedFrom", async () => {
@@ -393,5 +434,102 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
             displayPath: "s[1].t",
             targetElementName: "text",
         });
+    });
+});
+
+describe("computeContextHelp — unresolved bare references (resolver-backed)", () => {
+    it("reports notFound when the resolver definitively finds no referent (NoReferent)", async () => {
+        const source = `<math name="m">x</math>\n$bad`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NoReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "bad",
+            reason: "notFound",
+        });
+    });
+
+    it("reports multiple when the resolver finds an ambiguous referent (NonUniqueReferent)", async () => {
+        // Two elements named `dup`, so the AST walk can't pick one and the
+        // resolver reports the ambiguity authoritatively.
+        const source = `<math name="dup">x</math><math name="dup">y</math>\n$dup`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "dup",
+            reason: "multiple",
+        });
+    });
+
+    it("stays indeterminate for an unrecognized resolver error rather than over-claiming", async () => {
+        const source = `<math name="m">x</math>\n$bad`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: new Error("some internal resolver failure"),
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "bad",
+            reason: "indeterminate",
+        });
+    });
+});
+
+describe("computeContextHelp — unresolved member chains (resolver-backed)", () => {
+    it("reports the whole-chain notFound for $m.sub when the container $m fails", async () => {
+        // The container `$m` doesn't exist, so the chain is reported against
+        // the full reference `m.sub` rather than blanking the panel.
+        const source = `<math name="other">x</math>\n$m.sub`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NoReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "m.sub",
+            reason: "notFound",
+        });
+    });
+
+    it("reports the whole-chain multiple for $s2.m when the member is ambiguous", async () => {
+        const source = `<section name="s2"><math name="m">a</math><math name="m">b</math></section>\n$s2.m`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const help = await computeContextHelp(completer, source.length);
+        expect(help).toEqual({
+            kind: "unresolvedRef",
+            displayPath: "s2.m",
+            reason: "multiple",
+        });
+    });
+
+    it("classifies the whole chain (not just $s2) for a cursor on $s2 inside an attribute value", async () => {
+        // The bug this fixes: a cursor on the `s2` segment of `copy="$s2.m"`
+        // used to misclassify just `$s2`. The whole chain is resolved, so the
+        // verdict is reported against `s2.m`, consistently with the bare form.
+        const source = `<section name="s2"><math name="m">a</math><math name="m">b</math></section>\n<module copy="$s2.m" />`;
+        const completer = await buildCompleterWithAdapter(source, {
+            resolveError: "NonUniqueReferent",
+        });
+        const onS2 = source.indexOf("$s2.m") + 2; // cursor on the s2 segment
+        const onMember = source.indexOf("$s2.m") + 4; // cursor on the .m segment
+        const [helpS2, helpMember] = await Promise.all([
+            computeContextHelp(completer, onS2),
+            computeContextHelp(completer, onMember),
+        ]);
+        const expected = {
+            kind: "unresolvedRef",
+            displayPath: "s2.m",
+            reason: "multiple",
+        };
+        expect(helpS2).toEqual(expected);
+        // Consistent wherever the cursor sits in the chain.
+        expect(helpMember).toEqual(expected);
     });
 });

@@ -1,6 +1,7 @@
 export * from "./doenet-source-object";
 export * from "./auto-completer";
 export * from "./doenet-to-markdown";
+export * from "./completion-types";
 export * from "./context-help";
 export * from "./lsp-protocol";
 export { dedupeLspDiagnostics } from "./dedupe-lsp-diagnostics";
