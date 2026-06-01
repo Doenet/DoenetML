@@ -26,10 +26,105 @@ declare global {
 // editors inside a single iframe document — they'd alias these mutables.
 let editorControlHandle: DoenetEditorHandle | null = null;
 
-// Holds the most recent full props bag (serializable props + proxied function
-// props) so that `updateEditorProps` can produce a new merged bag and re-render
-// without re-sending the function proxies from the parent.
+// Holds the most recent full props bag (serializable props + stable function
+// dispatchers — see `currentFunctionProps`) so that `updateEditorProps` can
+// produce a new merged bag and re-render without re-sending the function
+// proxies from the parent.
 let lastAugmentedProps: Record<string, any> | null = null;
+
+// Live registry of the parent's proxied callbacks, keyed by prop name. The
+// mounted editor is never handed these proxies directly; it gets a *stable
+// dispatcher* per key (see `getFunctionPropDispatcher`) that reads from this
+// registry at call time.
+//
+// This indirection is the fix for #1244. A React parent that passes inline
+// arrow callbacks hands the wrapper a brand-new closure identity on every
+// render, so the wrapper forwards `updateEditorFunctionProps` constantly. The
+// old handler re-invoked `renderDoenetEditorToContainer` on each such change;
+// when that churn overlapped the core worker's boot window the worker never
+// finished booting and the editor showed "The document viewer could not be
+// started." Now an identity-only change just swaps the entry here — the editor
+// keeps calling the same stable dispatcher, which dereferences the new closure
+// — so no re-render happens and the boot is left undisturbed.
+let currentFunctionProps: Record<string, Function> = {};
+
+// Stable dispatcher per function-prop key. Created lazily and never replaced,
+// so the editor sees a single unchanging callback identity for the life of the
+// iframe document even as the underlying proxied closure is swapped underneath.
+const functionPropDispatchers: Record<string, Function> = {};
+
+function getFunctionPropDispatcher(key: string): Function {
+    let dispatcher = functionPropDispatchers[key];
+    if (!dispatcher) {
+        dispatcher = (...callArgs: any[]) =>
+            currentFunctionProps[key]?.(...callArgs);
+        functionPropDispatchers[key] = dispatcher;
+    }
+    return dispatcher;
+}
+
+// Parse the `key, proxy, key, proxy, …` argument list the wrapper sends
+// (Comlink can't pass proxied functions as object values, only as direct
+// args) into a map.
+function functionPropArgsToMap(
+    args: (string | Function)[],
+): Record<string, Function> {
+    const map: Record<string, Function> = {};
+    for (let i = 0; i < args.length; i += 2) {
+        const key = args[i];
+        const fn = args[i + 1];
+        if (typeof key === "string" && typeof fn === "function") {
+            map[key] = fn;
+        }
+    }
+    return map;
+}
+
+function releaseFunctionProxy(fn: Function) {
+    try {
+        (fn as any)?.[ComlinkEditor.releaseProxy]?.();
+    } catch (e) {
+        console.warn(
+            "iframe DoenetEditor: failed to release stale Comlink proxy",
+            e,
+        );
+    }
+}
+
+// Adopt `incoming` as the live callback set, releasing the Comlink port of
+// every previous proxy that is being replaced or dropped (so the parent-side
+// MessageChannel closes — Comlink also has a FinalizationRegistry fallback,
+// but explicit release avoids depending on GC timing).
+function setCurrentFunctionProps(incoming: Record<string, Function>) {
+    for (const [key, fn] of Object.entries(currentFunctionProps)) {
+        if (incoming[key] !== fn) {
+            releaseFunctionProxy(fn);
+        }
+    }
+    currentFunctionProps = incoming;
+}
+
+// Rebuild `lastAugmentedProps` so its function-typed entries exactly match the
+// dispatchers for the current callback set. Used when the *set of keys* changes
+// (a callback added or removed) — the one case that needs a re-render so the
+// editor can react to a callback's presence/absence. All function-typed entries
+// in `lastAugmentedProps` are dispatchers, so dropping them and re-adding only
+// the current keys correctly removes a vanished callback and adds a new one.
+function syncAugmentedFunctionProps() {
+    if (!lastAugmentedProps) {
+        return;
+    }
+    const next: Record<string, any> = {};
+    for (const [key, val] of Object.entries(lastAugmentedProps)) {
+        if (typeof val !== "function") {
+            next[key] = val;
+        }
+    }
+    for (const key of Object.keys(currentFunctionProps)) {
+        next[key] = getFunctionPropDispatcher(key);
+    }
+    lastAugmentedProps = next;
+}
 
 // The initial DoenetML lives in a `<script type="text/doenetml">` child of
 // `#root`. React replaces those children as soon as
@@ -105,44 +200,37 @@ ComlinkEditor.expose(
         updateEditorFunctionProps(...args: (string | Function)[]) {
             // The wrapper sends key/proxy pairs the same way
             // renderEditorWithFunctionProps does (Comlink can't pass proxies
-            // as values inside an object, only as direct arguments). Treat
-            // the args as a *full replacement* of the function-typed entries
-            // on lastAugmentedProps: drop every existing function entry
-            // (releasing its Comlink port so the parent-side MessageChannel
-            // closes — Comlink also has a FinalizationRegistry fallback, but
-            // explicit release avoids depending on GC timing) and add the
-            // new ones. This way a removed callback (parent stopped passing
-            // it) is actually removed, not silently retained.
+            // as values inside an object, only as direct arguments). Treat the
+            // args as a *full replacement* of the live callback set.
             if (!lastAugmentedProps) {
                 console.warn(
                     "iframe DoenetEditor: updateEditorFunctionProps arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
                 );
                 return;
             }
-            const next: Record<string, any> = {};
-            for (const [key, val] of Object.entries(lastAugmentedProps)) {
-                if (typeof val === "function") {
-                    try {
-                        (val as any)[ComlinkEditor.releaseProxy]?.();
-                    } catch (e) {
-                        console.warn(
-                            "iframe DoenetEditor: failed to release stale Comlink proxy",
-                            e,
-                        );
-                    }
-                } else {
-                    next[key] = val;
-                }
+            const incoming = functionPropArgsToMap(args);
+            const prevKeys = Object.keys(currentFunctionProps).sort();
+            const nextKeys = Object.keys(incoming).sort();
+            const keysChanged =
+                prevKeys.length !== nextKeys.length ||
+                prevKeys.some((key, i) => key !== nextKeys[i]);
+
+            // Swap the live callbacks (releasing replaced/removed proxies).
+            setCurrentFunctionProps(incoming);
+
+            // Identity-only change (same keys, new closures) — the common case
+            // when a parent passes inline arrow callbacks: the editor holds
+            // stable dispatchers that read `currentFunctionProps` at call time,
+            // so the swap above is sufficient. We deliberately do NOT re-render
+            // here; re-rendering on every parent render is what wedged the core
+            // worker's boot (#1244).
+            if (keysChanged) {
+                // A callback was added or removed: re-render so the editor can
+                // react to which callbacks are present. Rare and not part of
+                // the per-render identity churn.
+                syncAugmentedFunctionProps();
+                renderWithLastAugmentedProps();
             }
-            for (let i = 0; i < args.length; i += 2) {
-                const key = args[i];
-                const fn = args[i + 1];
-                if (typeof key === "string" && typeof fn === "function") {
-                    next[key] = fn;
-                }
-            }
-            lastAugmentedProps = next;
-            renderWithLastAugmentedProps();
         },
         openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
@@ -189,14 +277,20 @@ ComlinkEditor.expose(
  * followed by the proxied function with that name.
  */
 function renderEditorWithFunctionProps(...args: (string | Function)[]) {
+    setCurrentFunctionProps(functionPropArgsToMap(args));
+
     const augmentedDoenetEditorProps = { ...doenetEditorProps };
     augmentedDoenetEditorProps.externalVirtualKeyboardProvided = true;
     for (const propName of doenetEditorPropsSpecified) {
-        if (!(propName in doenetEditorProps)) {
-            const idx = args.indexOf(propName);
-            if (idx !== -1) {
-                augmentedDoenetEditorProps[propName] = args[idx + 1];
-            }
+        if (
+            !(propName in doenetEditorProps) &&
+            propName in currentFunctionProps
+        ) {
+            // Hand the editor a *stable dispatcher*, not the raw proxy, so a
+            // later callback-identity swap (via updateEditorFunctionProps)
+            // updates `currentFunctionProps` without forcing a re-render.
+            augmentedDoenetEditorProps[propName] =
+                getFunctionPropDispatcher(propName);
         }
     }
 
