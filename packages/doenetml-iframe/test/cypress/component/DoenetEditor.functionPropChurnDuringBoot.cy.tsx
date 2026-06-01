@@ -6,8 +6,8 @@ import {
     IFRAME_READY_TIMEOUT,
 } from "./helpers";
 
-// Regression test for #1244 (the @doenet/doenetml-iframe 0.7.18 editor-boot
-// regression). A React parent that passes inline arrow callbacks hands the
+// Regression test for the @doenet/doenetml-iframe 0.7.18 editor-boot
+// regression. A React parent that passes inline arrow callbacks hands the
 // wrapper a brand-new closure identity on every render. Before the fix, each
 // identity change made the iframe re-invoke `renderDoenetEditorToContainer`;
 // when that churn overlapped the core worker's multi-second boot window the
@@ -17,15 +17,15 @@ import {
 // What this test asserts — and why it's shaped this way:
 //
 // The end-to-end "the viewer wedges" symptom does NOT reproduce reliably in a
-// component test: the standalone engine tolerates (or, post-#1244-viewer-fix,
-// recovers from) repeated re-invocations, so "assert the viewer renders" passes
-// on both broken and fixed wrappers. The *precise* regression — the root cause
-// the fix removes — is that callback-identity churn re-invokes
-// `renderDoenetEditorToContainer` at all. So the load-bearing assertion spies
-// on that function inside the iframe and requires that a storm of fresh
-// callback identities does NOT trigger re-invocations. Fixed wrapper: 0
-// re-invocations (the editor holds stable dispatchers that dereference the new
-// closures). Broken wrapper: one per churned render (dozens).
+// component test: the standalone engine tolerates (and, since the viewer-side
+// startup watchdog landed, recovers from) repeated re-invocations, so "assert
+// the viewer renders" passes on both broken and fixed wrappers. The *precise*
+// regression — the root cause the fix removes — is that callback-identity churn
+// re-invokes `renderDoenetEditorToContainer` at all. So the load-bearing
+// assertion spies on that function inside the iframe and requires that a storm
+// of fresh callback identities does NOT trigger re-invocations. Fixed wrapper:
+// 0 re-invocations (the editor holds stable dispatchers that dereference the
+// new closures). Broken wrapper: one per churned render (dozens).
 //
 // We also assert the viewer renders the doenetML and the give-up text is
 // absent — a sanity check that the editor actually works under churn.
@@ -136,8 +136,8 @@ describe("DoenetEditor (iframe wrapper) — function-prop churn during boot", ()
             .find(".doenet-viewer", { timeout: 20000 })
             .should("contain.text", "hello there");
 
-        // … and the #1244 boot give-up screen is NOT showing. (`body` is the
-        // raw iframe <body> DOM node here, so read `textContent` directly.)
+        // … and the boot give-up screen is NOT showing. (`body` is the raw
+        // iframe <body> DOM node here, so read `textContent` directly.)
         cy.get("iframe")
             .its("0.contentDocument.body")
             .should((body) => {

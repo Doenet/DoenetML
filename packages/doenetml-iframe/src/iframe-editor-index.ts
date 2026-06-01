@@ -37,15 +37,16 @@ let lastAugmentedProps: Record<string, any> | null = null;
 // dispatcher* per key (see `getFunctionPropDispatcher`) that reads from this
 // registry at call time.
 //
-// This indirection is the fix for #1244. A React parent that passes inline
-// arrow callbacks hands the wrapper a brand-new closure identity on every
-// render, so the wrapper forwards `updateEditorFunctionProps` constantly. The
-// old handler re-invoked `renderDoenetEditorToContainer` on each such change;
-// when that churn overlapped the core worker's boot window the worker never
-// finished booting and the editor showed "The document viewer could not be
-// started." Now an identity-only change just swaps the entry here — the editor
-// keeps calling the same stable dispatcher, which dereferences the new closure
-// — so no re-render happens and the boot is left undisturbed.
+// This indirection is what keeps callback-identity churn from re-initializing
+// the editor. A React parent that passes inline arrow callbacks hands the
+// wrapper a brand-new closure identity on every render, so the wrapper forwards
+// `updateEditorFunctionProps` constantly. The old handler re-invoked
+// `renderDoenetEditorToContainer` on each such change; when that churn
+// overlapped the core worker's boot window the worker never finished booting
+// and the editor showed "The document viewer could not be started." Now an
+// identity-only change just swaps the entry here — the editor keeps calling the
+// same stable dispatcher, which dereferences the new closure — so no re-render
+// happens and the boot is left undisturbed.
 let currentFunctionProps: Record<string, Function> = {};
 
 // Stable dispatcher per function-prop key. Created lazily and never replaced,
@@ -223,7 +224,7 @@ ComlinkEditor.expose(
             // stable dispatchers that read `currentFunctionProps` at call time,
             // so the swap above is sufficient. We deliberately do NOT re-render
             // here; re-rendering on every parent render is what wedged the core
-            // worker's boot (#1244).
+            // worker's boot.
             if (keysChanged) {
                 // A callback was added or removed: re-render so the editor can
                 // react to which callbacks are present. Rare and not part of
