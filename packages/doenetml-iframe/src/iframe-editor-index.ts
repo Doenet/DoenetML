@@ -210,6 +210,9 @@ ComlinkEditor.expose(
                 return;
             }
             const incoming = functionPropArgsToMap(args);
+            // Compare key sets *before* swapping — `setCurrentFunctionProps`
+            // below overwrites `currentFunctionProps`, so reading `prevKeys`
+            // from it must happen first.
             const prevKeys = Object.keys(currentFunctionProps).sort();
             const nextKeys = Object.keys(incoming).sort();
             const keysChanged =
