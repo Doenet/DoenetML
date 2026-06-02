@@ -378,7 +378,7 @@ describe("Boolean Operator tag tests @group3", async () => {
         });
 
         let iffOperator = function (booleans: boolean[]) {
-            return booleans.every((x) => x === booleans[0];
+            return booleans.every((x) => x === booleans[0]);
         };
 
         await test_three_operators(core, resolvePathToNodeIdx, iffOperator);
@@ -419,5 +419,5 @@ describe("Boolean Operator tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
         ).eq(false);
     });
-    
+
 });
