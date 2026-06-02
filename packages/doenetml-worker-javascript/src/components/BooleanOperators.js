@@ -52,6 +52,7 @@ export class Xor extends BooleanBaseOperator {
         return numberTrues === 1;
     }
 }
+
 export class Iff extends BooleanBaseOperator {
     static componentType = "iff";
 
@@ -62,5 +63,30 @@ export class Iff extends BooleanBaseOperator {
 
     static applyBooleanOperator(values) {
          return values.every((x) => x === values[0]);
+    }
+}
+
+
+export class Imp extends BooleanBaseOperator {
+    static componentType = "imp";
+
+    static componentDocs = {
+        summary:
+            "Logical implication (binary): true when the first value is false or the second value is true",
+    };
+
+    static applyBooleanOperator(values) {
+        let tooManyValues = values.length > 2;
+        if (tooManyValues) {
+            console.warn(
+                "Imp operator should have at most two boolean children",
+            );
+        }
+        switch (values.length) {
+            case 0: return true;
+            case 1: return !values[0];
+            case 2: return !values[0] || values[1];
+            default: return null;
+        }
     }
 }
