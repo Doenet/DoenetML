@@ -420,4 +420,80 @@ describe("Boolean Operator tag tests @group3", async () => {
         ).eq(false);
     });
 
+it("imp", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi1" />
+    <booleanInput name="bi2" />
+    <booleanInput name="bi3" />
+    <imp name="op1">
+      $bi1
+      $bi2
+    </imp>
+    <imp name="op2">
+      $bi1
+      $bi2
+      true
+    </imp>
+    <imp name="op3">
+      $bi1
+      $bi2
+      false
+    </imp>
+    <p>
+      <boolean extend="$bi1" name="bv1" />
+      <boolean extend="$bi2" name="bv2" />
+      <boolean extend="$bi3" name="bv3" />
+    </p>
+    `,
+        });
+
+        let impOperator = function (booleans: boolean[]) {
+            // Implementation for implication operator
+            switch (booleans.length) {
+                case 0: return true;
+                case 1: return !booleans[0];
+                case 2: return !booleans[0] || booleans[1];
+                default: return null;
+            }
+        };
+
+        await test_three_operators(core, resolvePathToNodeIdx, impOperator);
+    });
+
+    it("show point based on logic", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi">
+      <label>show point</label>
+    </booleanInput>
+    <graph>
+      <point hide="not $bi" name="P">
+       (1,2)
+      </point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(true);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(false);
+    });
 });
