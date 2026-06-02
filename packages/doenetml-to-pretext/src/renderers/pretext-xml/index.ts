@@ -29,3 +29,5 @@ export * from "./angle";
 export * from "./number";
 export * from "./atom";
 export * from "./orbital-diagram";
+export * from "./as-list";
+export * from "./spreadsheet";

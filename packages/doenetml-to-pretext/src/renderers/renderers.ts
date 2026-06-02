@@ -73,6 +73,16 @@ function passThroughWithRenamedTag(
  * tag name uniquely determines the component to render.
  */
 export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
+    spreadsheet: {
+        component: PretextComponent.Spreadsheet,
+    },
+    booleanInput: {
+        component: PretextComponent.MathInput,
+    },
+    asList: {
+        component: PretextComponent.asList,
+        passthroughChildren: true,
+    },
     orbitalDiagram: {
         component: PretextComponent.OrbitalDiagram,
     },

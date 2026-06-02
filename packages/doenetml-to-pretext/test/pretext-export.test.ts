@@ -61,7 +61,7 @@ describe("Pretext export", async () => {
     it("Can process doenet code run through core", async () => {
         source = `<p>hello world</p>`;
         const res = await coreRunner.processToFlatDast(source);
-    });
+    }, 40000);
     it("Wraps root in <pretext> tag", async () => {
         source = `<p>Hi</p>`;
         expect(await coreRunner.processToFlatDast(source))
@@ -125,6 +125,13 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("mathInput renders its label", async () => {
+        source = `<answer><mathInput><label>My Label</label></mathInput></answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `My Label <m><fillin characters="8"></fillin></m>`,
+        );
+    });
+
     // <sideBySide> and <blockQuote> get rendered in lower case
     it("<sideBySide> and <blockQuote> are rendered in lower case", async () => {
         source = `<sideBySide><blockQuote>Quote text</blockQuote></sideBySide>`;
@@ -185,6 +192,43 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`" Apple, Pear"`);
+    });
+
+    it("asList renders setup number values as comma-separated text", async () => {
+        source = `<setup>
+  <number name="a">2</number>
+  <number name="b">3</number>
+  <number name="c">5</number>
+</setup>
+<p>The first three primes are: <asList>$a $b $c</asList>.</p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "
+          <p>The first three primes are: 2, 3, 5.</p>"
+        `);
+    });
+
+    it("spreadsheet renders at tabular", async () => {
+        source = `<spreadsheet minNumRows="5" minNumColumns="5" hiddenRows="1 2" hiddenColumns="2">
+  <cellBlock rowNum="2" colNum="B">
+    <row>
+      <cell>x</cell>
+      <cell>y</cell>
+    </row>
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+    </row>
+    <row>
+      <cell>3</cell>
+      <cell>4</cell>
+    </row>
+  </cellBlock>
+</spreadsheet>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">A</cell><cell right="minor">C</cell><cell right="minor">D</cell><cell right="minor">E</cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor">2</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor"><em>4</em></cell><cell right="minor"></cell><cell right="minor">4</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor"><em>5</em></cell><cell right="minor"></cell><cell right="minor"></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"
+        `);
     });
 
     // TODO: un-skip when direct <md> conversion behavior is finalized
