@@ -52,3 +52,15 @@ export class Xor extends BooleanBaseOperator {
         return numberTrues === 1;
     }
 }
+export class Iff extends BooleanBaseOperator {
+    static componentType = "iff";
+
+    static componentDocs = {
+        summary:
+            "IF and only iF: Logical exclusive NOR: true when exactly one child boolean value is false",
+    };
+
+    static applyBooleanOperator(values) {
+         return values.every((x) => x === values[0]);
+    }
+}
