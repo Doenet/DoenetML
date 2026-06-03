@@ -24,7 +24,7 @@
         }
     },
     "scripts": {
-        "dev": "vite",
+        "dev": "node dev/copyTestCode.js && vite",
         "build": "wireit",
         "build:dev": "wireit",
         "preview": "vite preview",
