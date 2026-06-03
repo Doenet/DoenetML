@@ -1,5 +1,5 @@
 import React from "react";
-import { IoAccessibility } from "react-icons/io5";
+import { IoAccessibility, IoWarningSharp } from "react-icons/io5";
 
 /**
  * Returns the tooltip text for the accessibility status button.
@@ -88,7 +88,7 @@ export function AccessibilityStatusButton({
         >
             {accessibilityLevel1Count > 0 ? (
                 <>
-                    <IoAccessibility />
+                    <IoWarningSharp />
                     <span>WCAG</span>
                 </>
             ) : (
