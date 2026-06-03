@@ -432,10 +432,12 @@ it("imp", async () => {
     </imp>
     <imp name="op2">
       $bi1
+      $bi2
       true
     </imp>
     <imp name="op3">
       $bi1
+      $bi2
       false
     </imp>
     <p>
@@ -452,7 +454,7 @@ it("imp", async () => {
                 case 0: return true;
                 case 1: return !booleans[0];
                 case 2: return !booleans[0] || booleans[1];
-                default: return null;
+                default: return false
             }
         };
 

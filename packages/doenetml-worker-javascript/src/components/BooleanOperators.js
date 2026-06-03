@@ -86,7 +86,7 @@ export class Imp extends BooleanBaseOperator {
             case 0: return true;
             case 1: return !values[0];
             case 2: return !values[0] || values[1];
-            default: return null;
+            default: return false;
         }
     }
 }
