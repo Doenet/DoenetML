@@ -1,0 +1,109 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+
+# `<iff>{:dn}`
+
+<ComponentDisplay name='iff'/>
+
+`<iff>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) component
+This is the logical biconditional operator, e.g. it checks to see whether enclosed `<boolean>{:dn}` references meet the if-and-only-if constraints.
+
+<AttrPropDisplay name='iff'/>
+
+
+## Examples
+
+<a id="boolean-ex"></a>
+
+### Example: `<iff>{:dn}` in a `<boolean>{:dn}`
+```doenet-editor-horiz
+<p><mathInput name="n"><label>Enter a number smaller than 10 and not 12 or none of these conditions</label></mathInput></p>
+      
+<boolean name="check1">$n < 10</boolean>
+<boolean name="check3">$n != 12</boolean>
+      
+<p>You have entered a number smaller than 10 or not 12 (or none of these conditions):
+  <boolean>
+    <iff>$check1 $check3</iff>
+  </boolean></p>
+```
+
+The `<iff>{:dn}` component functions as the boolean logical biconditional operator `iff` or `⟷`, and checks to see 
+whether enclosed `<boolean>{:dn}` are true "if and only if." The biconditional is true in two cases, where either all statements are either all 'true' or all are 'false'. 
+
+---
+
+<a id="award-ex"></a>
+### Example: `<iff>{:dn}` in an `<award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the point to either be 1) near/on the intersection of the circle and 2) near/on the line and 3) in the first quadrant, or not anywhere near either the line or on the circle. (Scroll down to check work.)</p>
+      
+<graph size="small"><shortDescription>A graph of a point, line and circle</shortDescription>
+  <point name="p1"> 
+    <attractTo>$line1</attractTo>
+    <attractTo>$circ1</attractTo>
+  </point>
+  <circle name="circ1" center="(0,0)" radius="4" fixed/>
+  <line name="line1" fixed>y = 3/2 x - 2</line>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <iff>$onCircle $onLine $firstQuad</iff>
+    </when>
+  </award>
+</answer>
+
+<boolean name="onCircle" allowedErrorInNumbers="0.01">
+  ($p1.y)^2 + ($p1.x)^2 = 16</boolean>
+<boolean name="onLine" allowedErrorInNumbers="0.01">
+  $p1.y = 3/2 $p1.x - 2</boolean>
+<boolean name="firstQuad">
+  $p1.x > 0 and $p1.y > 0</boolean>
+```
+
+An `<iff>{:dn}` component is used to construct a compound boolean from three referenced `<boolean>{:dn}` components 
+within an `<award>{:dn}` (e.g., all 'true' or all 'false').
+
+
+---
+
+
+<a id="alternative-ex"></a>
+### Example: An alternative `<iff>{:dn}` use in an `<award>{:dn}`
+```doenet-editor-horiz
+<p><mathInput name="n"><label>Enter a number between 5 and 10, excluding 7</label></mathInput> and 
+  <mathInput name="notN"><label>another number that is either smaller than 5, bigger than 10, or equals 7</label></mathInput>
+  <answer><award><when>$bothTrueOrBothFalse</when></award></answer>
+</p>
+      
+<boolean name="nCorrect">
+  <and><boolean name="check1">$n > 5</boolean>
+       <boolean name="check2">$n < 10</boolean>
+       <boolean name="check3">$n != 7</boolean>
+  </and></boolean>
+
+<boolean name="notNCorrect">
+  <or><boolean name="check1">$notN < 5</boolean>
+       <boolean name="check2">$notN > 10</boolean>
+       <boolean name="check3">$notN = 7</boolean>
+  </or></boolean>
+
+<p>Either both conditions are true, or both are false: 
+  <boolean name="bothTrueOrBothFalse">
+    <iff>$nCorrect $notNCorrect</iff>
+  </boolean></p>
+```
+
+The word `iff` may be typed directly within any component that takes a boolean 
+expression, such as an `<award>{:dn}`, a `<when>{:dn}`, or a `<boolean>{:dn}`. The text syntax *must* be used within a 
+boolean expression inside an attribute's specification (since components such as `<iff>{:dn}` are not 
+permissible in attribute specification). Compare the syntax in the example above 
+with that in [the example with `<iff>{:dn}` in a `<boolean>{:dn}`](#boolean-ex). 
+
