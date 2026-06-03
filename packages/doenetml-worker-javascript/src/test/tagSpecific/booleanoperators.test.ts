@@ -429,6 +429,7 @@ it("imp", async () => {
     <imp name="op1">
       $bi1
       $bi2
+      $bi3
     </imp>
     <imp name="op2">
       $bi1
