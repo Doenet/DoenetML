@@ -87,3 +87,6 @@ __pycache__
 # these are user/runtime overrides that must not be committed).
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# Ignore testCode which can be overwritten during development
+packages/doenetml/dev/testCode.doenet
