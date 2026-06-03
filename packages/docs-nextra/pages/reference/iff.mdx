@@ -20,12 +20,12 @@ This is the logical biconditional operator, e.g. it checks to see whether enclos
 
 ### Example: `<iff>{:dn}` in a `<boolean>{:dn}`
 ```doenet-editor-horiz
-<p><mathInput name="n"><label>Enter a number smaller than 10 and not 12 or none of these conditions</label></mathInput></p>
+<p><mathInput name="n"><label>Enter a number smaller than 10, or not 12 or none of these conditions</label></mathInput></p>
       
 <boolean name="check1">$n < 10</boolean>
 <boolean name="check3">$n != 12</boolean>
       
-<p>You have entered a number smaller than 10 or not 12 (or none of these conditions):
+<p>You have entered a number smaller than 10, or not 12 (or none of these conditions):
   <boolean>
     <iff>$check1 $check3</iff>
   </boolean></p>
