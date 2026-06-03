@@ -67,8 +67,8 @@ export class Iff extends BooleanBaseOperator {
 }
 
 
-export class Imp extends BooleanBaseOperator {
-    static componentType = "imp";
+export class Implies extends BooleanBaseOperator {
+    static componentType = "implies";
 
     static componentDocs = {
         summary:
@@ -79,7 +79,7 @@ export class Imp extends BooleanBaseOperator {
         let tooManyValues = values.length > 2;
         if (tooManyValues) {
             console.warn(
-                "Imp operator should have at most two boolean children",
+                "Implies operator should have at most two boolean children",
             );
         }
         switch (values.length) {

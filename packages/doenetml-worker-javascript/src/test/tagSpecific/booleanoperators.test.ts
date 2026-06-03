@@ -420,27 +420,27 @@ describe("Boolean Operator tag tests @group3", async () => {
         ).eq(false);
     });
 
-it("imp", async () => {
+it("implies", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi1" />
     <booleanInput name="bi2" />
     <booleanInput name="bi3" />
-    <imp name="op1">
+    <implies name="op1">
       $bi1
       $bi2
       $bi3
-    </imp>
-    <imp name="op2">
+    </implies>
+    <implies name="op2">
       $bi1
       $bi2
       true
-    </imp>
-    <imp name="op3">
+    </implies>
+    <implies name="op3">
       $bi1
       $bi2
       false
-    </imp>
+    </implies>
     <p>
       <boolean extend="$bi1" name="bv1" />
       <boolean extend="$bi2" name="bv2" />
@@ -449,7 +449,7 @@ it("imp", async () => {
     `,
         });
 
-        let impOperator = function (booleans: boolean[]) {
+        let impliesOperator = function (booleans: boolean[]) {
             // Implementation for implication operator
             switch (booleans.length) {
                 case 0: return true;
@@ -459,7 +459,7 @@ it("imp", async () => {
             }
         };
 
-        await test_three_operators(core, resolvePathToNodeIdx, impOperator);
+        await test_three_operators(core, resolvePathToNodeIdx, impliesOperator);
     });
 
     it("show point based on logic", async () => {

@@ -3,21 +3,21 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# `<imp>{:dn}`
+# `<implies>{:dn}`
 
-<ComponentDisplay name='imp'/>
+<ComponentDisplay name='implies'/>
 
-`<imp>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) component
+`<implies>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) component
 This is a binary logical implication operator, e.g. it checks to see whether enclosed `<boolean>{:dn}` references meet the 'modus ponens' constraints, e.g. where the first argument is 'false' or the second argument is 'true'.
 
-<AttrPropDisplay name='imp'/>
+<AttrPropDisplay name='implies'/>
 
 
 ## Examples
 
 <a id="boolean-ex"></a>
 
-### Example: `<imp>{:dn}` in a `<boolean>{:dn}`
+### Example: `<implies>{:dn}` in a `<boolean>{:dn}`
 ```doenet-editor-horiz
 <p><mathInput name="n"><label>Enter a number ≤ 10, or equal to 15</label></mathInput></p>
       
@@ -26,17 +26,17 @@ This is a binary logical implication operator, e.g. it checks to see whether enc
       
 <p>You have entered a number ≤ 10 or = 15: ):
   <boolean>
-    <imp>$check1 $check2</imp>
+    <implies>$check1 $check2</implies>
   </boolean></p>
 ```
 
-The `<imp>{:dn}` component functions as the boolean logical biconditional operator `imp` or `→`, and checks to see 
+The `<implies>{:dn}` component functions as the boolean logical biconditional operator `imp` or `→`, and checks to see 
 whether enclosed `<boolean>{:dn}` are true when P implies Q. This is true when either the first argument is 'false' OR the second argument is 'true'.
 
 ---
 
 <a id="award-ex"></a>
-### Example: `<imp>{:dn}` in an `<award>{:dn}`
+### Example: `<implies>{:dn}` in an `<award>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -54,7 +54,7 @@ whether enclosed `<boolean>{:dn}` are true when P implies Q. This is true when e
 <answer>
   <award>
     <when>
-      <imp>$onCircle $onLine</imp>
+      <implies>$onCircle $onLine</implies>
     </when>
   </award>
 </answer>
@@ -65,16 +65,16 @@ whether enclosed `<boolean>{:dn}` are true when P implies Q. This is true when e
   $p1.y = 3/2 $p1.x - 2</boolean>
 ```
 
-An `<imp>{:dn}` component is used to construct an ordered binary boolean from two referenced `<boolean>{:dn}` components 
+An `<implies>{:dn}` component is used to construct an ordered binary boolean from two referenced `<boolean>{:dn}` components 
 within an `<award>{:dn}` (e.g., first argument is 'false' or second is 'true').
 
 
 ---
 
 
-The word `imp` may be typed directly within any component that takes a boolean 
+The tag `implies` may be typed directly within any component that takes a boolean 
 expression, such as an `<award>{:dn}`, a `<when>{:dn}`, or a `<boolean>{:dn}`. The text syntax *must* be used within a 
-boolean expression inside an attribute's specification (since components such as `<imp>{:dn}` are not 
+boolean expression inside an attribute's specification (since components such as `<implies>{:dn}` are not 
 permissible in attribute specification). Compare the syntax in the example above 
-with that in [the example with `<imp>{:dn}` in a `<boolean>{:dn}`](#boolean-ex). 
+with that in [the example with `<implies>{:dn}` in a `<boolean>{:dn}`](#boolean-ex). 
 
