@@ -345,7 +345,6 @@ describe("Boolean Operator tag tests @group3", async () => {
         ).eq(false);
     });
 
-
     it("iff", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -420,7 +419,7 @@ describe("Boolean Operator tag tests @group3", async () => {
         ).eq(false);
     });
 
-it("implies", async () => {
+    it("implies", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi1" />
@@ -452,10 +451,14 @@ it("implies", async () => {
         let impliesOperator = function (booleans: boolean[]) {
             // Implementation for implication operator
             switch (booleans.length) {
-                case 0: return true;
-                case 1: return !booleans[0];
-                case 2: return !booleans[0] || booleans[1];
-                default: return false
+                case 0:
+                    return true;
+                case 1:
+                    return !booleans[0];
+                case 2:
+                    return !booleans[0] || booleans[1];
+                default:
+                    return false;
             }
         };
 

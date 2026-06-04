@@ -109,7 +109,7 @@ export default {
     hr: { title: "hr" },
     iff: { title: "iff" },
     image: { title: "image" },
-    implies: {tiltle: "implies" },
+    implies: { tiltle: "implies" },
     intComma: { title: "intComma" },
     integer: { title: "integer" },
     intersection: { title: "intersection" },

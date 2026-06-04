@@ -62,10 +62,9 @@ export class Iff extends BooleanBaseOperator {
     };
 
     static applyBooleanOperator(values) {
-         return values.every((x) => x === values[0]);
+        return values.every((x) => x === values[0]);
     }
 }
-
 
 export class Implies extends BooleanBaseOperator {
     static componentType = "implies";
@@ -83,10 +82,14 @@ export class Implies extends BooleanBaseOperator {
             );
         }
         switch (values.length) {
-            case 0: return true;
-            case 1: return !values[0];
-            case 2: return !values[0] || values[1];
-            default: return false;
+            case 0:
+                return true;
+            case 1:
+                return !values[0];
+            case 2:
+                return !values[0] || values[1];
+            default:
+                return false;
         }
     }
 }
