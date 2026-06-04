@@ -57,7 +57,7 @@ describe(
             );
             cy.get(".accessibility-status-button.has-level-1-issues").should(
                 "contain.text",
-                "WCAG",
+                "Accessibility Concerns",
             );
             cy.get(".accessibility-status-button")
                 .invoke("attr", "title")
