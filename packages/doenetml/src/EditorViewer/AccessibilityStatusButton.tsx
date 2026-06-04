@@ -89,7 +89,7 @@ export function AccessibilityStatusButton({
             {accessibilityLevel1Count > 0 ? (
                 <>
                     <IoWarningSharp />
-                    <span>WCAG</span>
+                    <span>Accessibility Concerns</span>
                 </>
             ) : (
                 <IoAccessibility />
