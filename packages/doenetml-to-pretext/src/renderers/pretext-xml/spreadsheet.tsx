@@ -37,7 +37,6 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         });
     }
 
-    console.log("Spreadsheet node:", node);
     return (
         <tabular>
             {clonedCellData.map((row, rowIndex) => {
