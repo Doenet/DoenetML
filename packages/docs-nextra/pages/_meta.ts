@@ -23,6 +23,10 @@ export default {
         title: "Sandbox",
         type: "page",
     },
+    community: {
+        title: "Community",
+        type: "page",
+    },
     developer: {
         title: "Developer Docs",
         type: "page",
