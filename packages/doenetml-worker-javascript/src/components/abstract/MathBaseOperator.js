@@ -212,11 +212,7 @@ export default class MathOperator extends MathComponent {
                 },
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
-                if (dependencyValues.mathNumberChildren.length === 0) {
-                    return {
-                        setValue: { unnormalizedValue: me.fromAst("\uff3f") },
-                    };
-                } else if (dependencyValues.isNumericOperator) {
+                if (dependencyValues.isNumericOperator) {
                     let inputs = [];
                     for (let child of dependencyValues.mathNumberChildren) {
                         if (

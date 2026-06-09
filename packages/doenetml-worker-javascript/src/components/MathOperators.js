@@ -17,7 +17,7 @@ export class Sum extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        return inputs.reduce((a, c) => a + c);
+                        return inputs.reduce((a, c) => a + c, 0);
                     },
                 },
             }),
@@ -28,7 +28,11 @@ export class Sum extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     mathOperator: function (inputs) {
-                        return inputs.reduce((a, c) => a.add(c));
+                        if(inputs.length === 0) {
+                            return me.fromAst(0);
+                        } else {
+                                return inputs.reduce((a, c) => a.add(c));
+                        }
                     },
                 },
             }),
@@ -52,7 +56,7 @@ export class Product extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        return inputs.reduce((a, c) => a * c);
+                        return inputs.reduce((a, c) => a * c, 1);
                     },
                 },
             }),
@@ -63,7 +67,11 @@ export class Product extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     mathOperator: function (values) {
-                        return values.reduce((a, c) => a.multiply(c));
+                        if(values.length === 0) {
+                            return me.fromAst(1);
+                        } else {
+                            return values.reduce((a, c) => a.multiply(c));
+                        }
                     },
                 },
             }),
@@ -679,9 +687,13 @@ export class Mean extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        let mean = inputs.reduce((a, c) => a + c);
-                        mean /= inputs.length;
-                        return mean;
+                        if(inputs.length === 0) {
+                            return NaN;
+                        } else {
+                            let mean = inputs.reduce((a, c) => a + c);
+                            mean /= inputs.length;
+                            return mean;
+                        }
                     },
                 },
             }),
@@ -692,9 +704,13 @@ export class Mean extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     mathOperator: function (inputs) {
-                        return inputs
-                            .reduce((a, c) => a.add(c))
-                            .divide(inputs.length);
+                        if(inputs.length === 0) {
+                            return me.fromAst("\uff3f");
+                        } else {
+                            return inputs
+                                .reduce((a, c) => a.add(c))
+                                .divide(inputs.length);
+                        }
                     },
                 },
             }),
@@ -723,7 +739,11 @@ export class Median extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        return me.math.median(inputs);
+                        if(inputs.length === 0) {
+                            return NaN;
+                        } else {
+                            return me.math.median(inputs);
+                        }
                     },
                 },
             }),
@@ -766,10 +786,14 @@ export class Variance extends MathBaseOperator {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        return calculateNumericVariance(
-                            inputs,
-                            dependencyValues.population,
-                        );
+                    if(inputs.length === 0) {
+                        return NaN;
+                    } else {
+                            return calculateNumericVariance(
+                                inputs,
+                                dependencyValues.population,
+                            );
+                        }
                     },
                 },
             }),
@@ -785,10 +809,14 @@ export class Variance extends MathBaseOperator {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     mathOperator: function (inputs) {
-                        return calculateSymbolicVariance(
-                            inputs,
-                            dependencyValues.population,
-                        );
+                        if(inputs.length === 0) {
+                            return me.fromAst("\uff3f");
+                        } else {
+                            return calculateSymbolicVariance(
+                                inputs,
+                                dependencyValues.population,
+                            );
+                        }
                     },
                 },
             }),
@@ -853,12 +881,16 @@ export class StandardDeviation extends Variance {
         }) => ({
             setValue: {
                 numericOperator: function (inputs) {
-                    return Math.sqrt(
-                        calculateNumericVariance(
-                            inputs,
-                            dependencyValues.population,
-                        ),
-                    );
+                    if(inputs.length === 0) {
+                        return NaN;
+                    } else {
+                        return Math.sqrt(
+                            calculateNumericVariance(
+                                inputs,
+                                dependencyValues.population,
+                            ),
+                        );
+                    }
                 },
             },
         });
@@ -868,14 +900,18 @@ export class StandardDeviation extends Variance {
         }) => ({
             setValue: {
                 mathOperator: function (inputs) {
-                    return me.fromAst([
-                        "apply",
-                        "sqrt",
-                        calculateSymbolicVariance(
-                            inputs,
-                            dependencyValues.population,
-                        ).tree,
-                    ]);
+                    if(inputs.length === 0) {
+                        return me.fromAst("\uff3f");
+                    } else {
+                        return me.fromAst([
+                            "apply",
+                            "sqrt",
+                            calculateSymbolicVariance(
+                                inputs,
+                                dependencyValues.population,
+                            ).tree,
+                        ]);
+                    }
                 },
             },
         });
