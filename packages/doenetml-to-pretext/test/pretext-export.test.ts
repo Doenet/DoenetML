@@ -132,6 +132,13 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("mathInput renders a label containing math", async () => {
+        source = `<answer><mathInput><label>x <m>y^2</m><m>z</m></label></mathInput></answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `x <m>y^2</m><m>z</m> <m><fillin characters="8"></fillin></m>`,
+        );
+    });
+
     // <sideBySide> and <blockQuote> get rendered in lower case
     it("<sideBySide> and <blockQuote> are rendered in lower case", async () => {
         source = `<sideBySide><blockQuote>Quote text</blockQuote></sideBySide>`;
@@ -451,6 +458,15 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
             `"Is it true? <m><fillin characters="8"></fillin></m>"`,
+        );
+    });
+
+    it("<booleanInput> can have a label containing math", async () => {
+        source = `<booleanInput><label>x <m>y^2</m><m>z</m></label></booleanInput>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"x <m>y^2</m><m>z</m> <m><fillin characters="8"></fillin></m>"`,
         );
     });
 
