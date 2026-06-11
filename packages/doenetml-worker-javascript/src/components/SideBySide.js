@@ -37,10 +37,34 @@ export class SideBySide extends BlockComponent {
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
             description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
             description: "Per-panel vertical alignment values.",
         };
 
@@ -1281,10 +1305,34 @@ export class SbsGroup extends BlockComponent {
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
             description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
             description: "Per-panel vertical alignment values.",
         };
 
