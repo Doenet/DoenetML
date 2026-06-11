@@ -161,4 +161,36 @@ describe("validateListItemsAgainstValidValues", () => {
         expect(result.diagnostics).toHaveLength(1);
         expect(result.diagnostics[0].message).toContain("`TOP`");
     });
+
+    it("trims items even when toLowerCase is not set", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["  top  ", "bottom"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top", "bottom"]);
+        expect(result.diagnostics).toEqual([]);
+    });
+
+    it("treats non-string items as invalid and echoes the original value", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["top", 5, null],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top"]);
+        expect(result.diagnostics).toHaveLength(1);
+        expect(result.diagnostics[0].message).toContain("`5`");
+        expect(result.diagnostics[0].message).toContain("`null`");
+    });
+
+    it("returns an empty result with no diagnostics for an empty list", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: [],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual([]);
+        expect(result.diagnostics).toEqual([]);
+    });
 });
