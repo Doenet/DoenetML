@@ -39,6 +39,10 @@ interface ImageSVs {
     decorative?: boolean;
     shortDescription?: string;
     renderInlineForListItem?: boolean;
+    authorName?: string | null;
+    originalUrl?: string | null;
+    licenseNames?: string[];
+    licenseUrls?: string[];
 }
 
 type JXGImage = JXGElement & {
@@ -474,6 +478,23 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         </div>
     );
 
+    const attribution = renderImageAttribution({
+        idPrefix: id,
+        authorName: SVs.authorName,
+        originalUrl: SVs.originalUrl,
+        licenseNames: SVs.licenseNames,
+        licenseUrls: SVs.licenseUrls,
+    });
+
+    const mediaWithAttribution = attribution ? (
+        <>
+            {media}
+            {attribution}
+        </>
+    ) : (
+        media
+    );
+
     return (
         <NonInlineMediaWrapper
             id={id}
@@ -485,9 +506,81 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 mediaContainerStyle,
                 mediaColumnStyle,
             }}
-            media={media}
+            media={mediaWithAttribution}
             description={description}
             containerRef={ref}
         />
     );
 });
+
+/**
+ * Render the author/license attribution caption shown beneath an image, or
+ * `null` when there is nothing to attribute. License names are displayed in the
+ * canonical case provided by the worker (derived from `licenseCodes`, or from
+ * the `licenseName`/`licenseUrl` attributes as a fallback); each name links to
+ * its license URL when one is available. `licenseNames` and `licenseUrls` are
+ * index-aligned by the worker.
+ */
+function renderImageAttribution({
+    idPrefix,
+    authorName,
+    originalUrl,
+    licenseNames,
+    licenseUrls,
+}: {
+    idPrefix: string;
+    authorName?: string | null;
+    originalUrl?: string | null;
+    licenseNames?: string[];
+    licenseUrls?: string[];
+}): React.ReactNode | null {
+    const names = licenseNames ?? [];
+    const urls = licenseUrls ?? [];
+
+    const hasAuthor = Boolean(authorName);
+    const hasLicense = names.length > 0;
+
+    if (!hasAuthor && !hasLicense) {
+        return null;
+    }
+
+    const authorNode = hasAuthor ? (
+        originalUrl ? (
+            <a href={originalUrl} target="_blank" rel="noopener noreferrer">
+                {authorName}
+            </a>
+        ) : (
+            <span>{authorName}</span>
+        )
+    ) : null;
+
+    const licenseNodes = names.map((name, i) => {
+        const url = urls[i];
+        const node = url ? (
+            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                {name}
+            </a>
+        ) : (
+            <span key={i}>{name}</span>
+        );
+        // Join multiple licenses with commas; the leading separator before the
+        // first entry is added by the surrounding template below.
+        return i === 0 ? (
+            node
+        ) : (
+            <React.Fragment key={i}>, {node}</React.Fragment>
+        );
+    });
+
+    return (
+        <figcaption
+            id={`${idPrefix}-attribution`}
+            className="image-attribution"
+            style={{ fontSize: "0.85em", marginTop: "0.25em" }}
+        >
+            {hasAuthor ? <>By {authorNode}</> : null}
+            {hasAuthor && hasLicense ? ". " : null}
+            {hasLicense ? <>License: {licenseNodes}</> : null}
+        </figcaption>
+    );
+}

@@ -127,6 +127,10 @@ describe("validateListItemsAgainstValidValues", () => {
         expect(result.diagnostics[0].message).toContain("`sideways`");
         expect(result.diagnostics[0].message).toContain("`diagonal`");
         expect(result.diagnostics[0].message).toContain("valigns");
+        // The runtime diagnostic does not enumerate the allowed values (that
+        // would show the lower-cased copy when toLowerCase is set); the
+        // canonical-cased list lives in the schema-driven editor surfaces.
+        expect(result.diagnostics[0].message).not.toContain("`middle`");
     });
 
     it("uses singular wording for a single invalid item", () => {

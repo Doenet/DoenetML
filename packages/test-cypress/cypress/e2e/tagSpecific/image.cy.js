@@ -490,4 +490,44 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         );
         cy.get("#image").should("not.have.attr", "aria-details");
     });
+
+    it("license codes render an attribution caption with linked license names", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" originalUrl="https://example.com/original"
+        licenseCodes="CC-BY-SA CC0">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+
+        // author is shown and linked to the original URL
+        cy.get("#image-attribution")
+            .contains("a", "Jane Doe")
+            .should("have.attr", "href", "https://example.com/original");
+
+        // both licenses are shown in canonical case, each linked to its URL
+        cy.get("#image-attribution")
+            .contains("a", "Attribution-ShareAlike")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/licenses/by-sa/4.0/",
+            );
+        cy.get("#image-attribution")
+            .contains("a", "CC0 1.0 Public Domain Dedication")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/publicdomain/zero/1.0/",
+            );
+    });
 });

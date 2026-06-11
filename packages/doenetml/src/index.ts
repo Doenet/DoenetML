@@ -7,12 +7,18 @@ export {
     retrieveTextFileForCid,
     serializedComponentsReplacer,
     serializedComponentsReviver,
+    mediaLicenses,
+    getMediaLicenseInfo,
+    creativeCommonsVersions,
+    defaultCreativeCommonsVersion,
     // returnAllPossibleVariants,
 } from "@doenet/utils";
 export type {
     DiagnosticRecord,
     ErrorRecord,
     WarningRecord,
+    MediaLicenseInfo,
+    CreativeCommonsVersion,
 } from "@doenet/utils";
 
 export { CodeMirror } from "@doenet/codemirror";

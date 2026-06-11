@@ -86,6 +86,12 @@ export function preprocessAttributesObject<T extends AttributesObject>(
  * trimmed) and dropped if it isn't one of the allowed values; dropped items
  * are reported together in a single info diagnostic. Returns the surviving
  * items in order alongside any diagnostics produced.
+ *
+ * The diagnostic deliberately does not enumerate the allowed values: when
+ * `toLowerCase` is set, `validValues` has already been lower-cased, so listing
+ * it here would show the wrong case to the author. The canonical-cased
+ * enumeration is surfaced by the schema-driven editor help, autocomplete, and
+ * docs instead.
  */
 export function validateListItemsAgainstValidValues({
     items,
@@ -99,8 +105,7 @@ export function validateListItemsAgainstValidValues({
     attribute: string;
 }): { value: string[]; diagnostics: { message: string; type: string }[] } {
     const allowed = validValues.map((v) => v.value);
-    // Membership is checked once per item; a `Set` keeps that O(1) while the
-    // ordered `allowed` array is retained for the diagnostic's allow-list.
+    // Membership is checked once per item; a `Set` keeps that O(1).
     const allowedSet = new Set(allowed);
     const validItems: string[] = [];
     const invalidItems: unknown[] = [];
@@ -122,9 +127,8 @@ export function validateListItemsAgainstValidValues({
     const diagnostics: { message: string; type: string }[] = [];
     if (invalidItems.length > 0) {
         const invalidList = invalidItems.map((v) => `\`${v}\``).join(", ");
-        const allowedList = allowed.map((v) => `\`${v}\``).join(", ");
         diagnostics.push({
-            message: `Invalid value${invalidItems.length > 1 ? "s" : ""} ${invalidList} for attribute \`${attribute}\`. Each value must be one of ${allowedList}.`,
+            message: `Invalid value${invalidItems.length > 1 ? "s" : ""} ${invalidList} for attribute \`${attribute}\`; ignoring.`,
             type: "info",
         });
     }
