@@ -102,15 +102,15 @@ export function validateListItemsAgainstValidValues({
     const validItems: string[] = [];
     const invalidItems: unknown[] = [];
     for (const item of items) {
-        let itemValue = item;
-        if (typeof itemValue === "string") {
-            if (toLowerCase) {
-                itemValue = itemValue.toLowerCase();
-            }
-            itemValue = itemValue.trim();
-        }
-        if (allowed.includes(itemValue as string)) {
-            validItems.push(itemValue as string);
+        // Non-string items can never match a string allow-list, so treat them
+        // (alongside unrecognized strings) as invalid. The original `item` is
+        // recorded for diagnostics so the message echoes what was authored.
+        const normalized =
+            typeof item === "string"
+                ? (toLowerCase ? item.toLowerCase() : item).trim()
+                : item;
+        if (typeof normalized === "string" && allowed.includes(normalized)) {
+            validItems.push(normalized);
         } else {
             invalidItems.push(item);
         }
