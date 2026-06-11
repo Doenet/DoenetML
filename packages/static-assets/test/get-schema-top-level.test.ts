@@ -123,4 +123,45 @@ describe("generated schema top-level elements", () => {
             expect(matrixColumn.acceptsStringChildren).toBe(true);
         });
     });
+
+    describe("list-valued enumerated attributes are marked with isList", () => {
+        it("sideBySide.valigns carries values, autocompleteValues, and isList", () => {
+            const schema = getSchema();
+            const elementsByName = Object.fromEntries(
+                schema.elements.map((element) => [element.name, element]),
+            );
+
+            const valigns = elementsByName.sideBySide.attributes.find(
+                (attribute) => attribute.name === "valigns",
+            );
+            expect(valigns).toBeDefined();
+            if (!valigns) {
+                throw new Error("Expected sideBySide.valigns attribute");
+            }
+            expect(valigns.type).toBe("keyword");
+            expect(valigns.isList).toBe(true);
+            expect(valigns.values).toEqual(["top", "middle", "bottom"]);
+            expect(
+                valigns.autocompleteValues?.map((entry) => entry.value),
+            ).toEqual(["top", "middle", "bottom"]);
+        });
+
+        it("does not mark the scalar valign attribute as a list", () => {
+            const schema = getSchema();
+            const elementsByName = Object.fromEntries(
+                schema.elements.map((element) => [element.name, element]),
+            );
+
+            const valign = elementsByName.sideBySide.attributes.find(
+                (attribute) => attribute.name === "valign",
+            );
+            expect(valign).toBeDefined();
+            if (!valign) {
+                throw new Error("Expected sideBySide.valign attribute");
+            }
+            expect(valign.type).toBe("keyword");
+            expect(valign.isList).toBeUndefined();
+            expect(valign.values).toEqual(["top", "middle", "bottom"]);
+        });
+    });
 });

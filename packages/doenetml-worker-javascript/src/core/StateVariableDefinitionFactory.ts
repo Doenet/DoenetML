@@ -1,6 +1,9 @@
 import type { ComponentIdx } from "@doenet/utils";
 import type Core from "../Core";
-import { preprocessAttributesObject } from "../utils/attributes";
+import {
+    preprocessAttributesObject,
+    validateListItemsAgainstValidValues,
+} from "../utils/attributes";
 import type { AttributeDefinition } from "../utils/dast/types";
 
 /**
@@ -1460,6 +1463,11 @@ function _buildAttributeDerivedDefinitions({
  * `validValues` (falling back to the default with a diagnostic when the
  * value isn't allowed) or `clamp`. Returns the (possibly modified)
  * value alongside any user-facing diagnostics produced along the way.
+ *
+ * When the value is an array (a list-valued attribute) and `validValues`
+ * is set, each item is validated individually: items are normalized
+ * (lower-cased/trimmed) and any that aren't in the allowed set are dropped
+ * with a single diagnostic listing them.
  */
 function validateAttributeValue({
     value,
@@ -1479,6 +1487,21 @@ function validateAttributeValue({
         !Number.isFinite(value)
     ) {
         value = attributeSpecification.transformNonFiniteTo;
+    }
+
+    // On a list-valued attribute, `validValues` constrains each item rather
+    // than the whole value. Validate each item, dropping invalid ones with a
+    // diagnostic. Returns early since the single-value coercions below assume
+    // a scalar string.
+    if (attributeSpecification.validValues && Array.isArray(value)) {
+        const res = validateListItemsAgainstValidValues({
+            items: value,
+            validValues: attributeSpecification.validValues,
+            toLowerCase: attributeSpecification.toLowerCase,
+            attribute,
+        });
+        diagnostics.push(...res.diagnostics);
+        return { value: res.value, diagnostics };
     }
 
     if (attributeSpecification.toLowerCase) {

@@ -76,3 +76,55 @@ export function preprocessAttributesObject<T extends AttributesObject>(
 
     return attributesObject;
 }
+
+/**
+ * Validate the items of a list-valued attribute against its `validValues`.
+ *
+ * On a list-valued attribute (e.g. `createComponentOfType: "textList"`),
+ * `validValues` constrains *each item* of the list rather than the whole
+ * value. Each item is normalized (lower-cased when `toLowerCase` is set, then
+ * trimmed) and dropped if it isn't one of the allowed values; dropped items
+ * are reported together in a single info diagnostic. Returns the surviving
+ * items in order alongside any diagnostics produced.
+ */
+export function validateListItemsAgainstValidValues({
+    items,
+    validValues,
+    toLowerCase,
+    attribute,
+}: {
+    items: unknown[];
+    validValues: { value: string }[];
+    toLowerCase?: boolean;
+    attribute: string;
+}): { value: string[]; diagnostics: { message: string; type: string }[] } {
+    const allowed = validValues.map((v) => v.value);
+    const validItems: string[] = [];
+    const invalidItems: unknown[] = [];
+    for (const item of items) {
+        let itemValue = item;
+        if (typeof itemValue === "string") {
+            if (toLowerCase) {
+                itemValue = itemValue.toLowerCase();
+            }
+            itemValue = itemValue.trim();
+        }
+        if (allowed.includes(itemValue as string)) {
+            validItems.push(itemValue as string);
+        } else {
+            invalidItems.push(item);
+        }
+    }
+
+    const diagnostics: { message: string; type: string }[] = [];
+    if (invalidItems.length > 0) {
+        const invalidList = invalidItems.map((v) => `\`${v}\``).join(", ");
+        const allowedList = allowed.map((v) => `\`${v}\``).join(", ");
+        diagnostics.push({
+            message: `Invalid value${invalidItems.length > 1 ? "s" : ""} ${invalidList} for attribute \`${attribute}\`. Each value must be one of ${allowedList}.`,
+            type: "info",
+        });
+    }
+
+    return { value: validItems, diagnostics };
+}

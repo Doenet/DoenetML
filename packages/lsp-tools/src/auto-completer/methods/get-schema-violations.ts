@@ -238,11 +238,23 @@ export async function getSchemaViolations(
                                 ? "true"
                                 : toXml(attr.children);
                         const range = getAttributeValueRange(attr);
-                        if (
-                            !allowedValues.lowerCase.has(
-                                attrValue.toLowerCase(),
-                            )
-                        ) {
+                        // List-valued attributes constrain each item, so split
+                        // the authored value on whitespace and flag any token
+                        // that isn't allowed. Scalar attributes validate the
+                        // whole value as before.
+                        const tokensToCheck = allowedValues.isList
+                            ? attrValue.split(/\s+/).filter((t) => t.length > 0)
+                            : [attrValue];
+                        const invalidTokens = tokensToCheck.filter(
+                            (token) =>
+                                !allowedValues.lowerCase.has(
+                                    token.toLowerCase(),
+                                ),
+                        );
+                        if (invalidTokens.length > 0) {
+                            const allowedList = [...allowedValues.correctCase]
+                                .map((v) => `"${v}"`)
+                                .join(", ");
                             ret.push({
                                 range: {
                                     start: this.sourceObj.offsetToLSPPosition(
@@ -252,11 +264,9 @@ export async function getSchemaViolations(
                                         range.end,
                                     ),
                                 },
-                                message: `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${[
-                                    ...allowedValues.correctCase,
-                                ]
-                                    .map((v) => `"${v}"`)
-                                    .join(", ")}`,
+                                message: allowedValues.isList
+                                    ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
+                                    : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
                                 severity: DiagnosticSeverity.Warning,
                             });
                         }

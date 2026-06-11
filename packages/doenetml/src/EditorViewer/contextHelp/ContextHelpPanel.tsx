@@ -264,6 +264,7 @@ export function ContextHelpPanel({
                 description,
                 docsSlug,
                 allowedValues,
+                allowedValuesArePerItem,
                 defaultValue,
                 activeDefault,
                 styleBreakdown,
@@ -324,7 +325,9 @@ export function ContextHelpPanel({
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                Allowed values:
+                                {allowedValuesArePerItem
+                                    ? "Allowed values (one per item):"
+                                    : "Allowed values:"}
                             </span>
                             <dl className="help-allowed-values-list">
                                 {allowedValues.map(
