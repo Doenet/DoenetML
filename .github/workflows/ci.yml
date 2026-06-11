@@ -301,7 +301,11 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      for attempt in 1 2 3; do npm ci && break || (echo "npm ci attempt $attempt failed, retrying..." && sleep 15); done
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
@@ -323,7 +327,11 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      for attempt in 1 2 3; do npm ci && break || (echo "npm ci attempt $attempt failed, retrying..." && sleep 15); done
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
