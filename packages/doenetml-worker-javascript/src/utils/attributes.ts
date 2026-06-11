@@ -99,6 +99,9 @@ export function validateListItemsAgainstValidValues({
     attribute: string;
 }): { value: string[]; diagnostics: { message: string; type: string }[] } {
     const allowed = validValues.map((v) => v.value);
+    // Membership is checked once per item; a `Set` keeps that O(1) while the
+    // ordered `allowed` array is retained for the diagnostic's allow-list.
+    const allowedSet = new Set(allowed);
     const validItems: string[] = [];
     const invalidItems: unknown[] = [];
     for (const item of items) {
@@ -109,7 +112,7 @@ export function validateListItemsAgainstValidValues({
             typeof item === "string"
                 ? (toLowerCase ? item.toLowerCase() : item).trim()
                 : item;
-        if (typeof normalized === "string" && allowed.includes(normalized)) {
+        if (typeof normalized === "string" && allowedSet.has(normalized)) {
             validItems.push(normalized);
         } else {
             invalidItems.push(item);
