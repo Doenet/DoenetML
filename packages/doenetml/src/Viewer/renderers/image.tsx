@@ -539,6 +539,25 @@ type AttributionLicense = {
 };
 
 /**
+ * Render `text` as an external link when `url` is given, otherwise as a plain
+ * `<span>`. Shared by the attribution's subject, author, and license nodes so
+ * the link-or-span branching lives in one place. `key` is for use in lists.
+ */
+function maybeLink(
+    text: React.ReactNode,
+    url: string | null | undefined,
+    key?: number,
+): React.ReactNode {
+    return url ? (
+        <a key={key} href={url} target="_blank" rel="noopener noreferrer">
+            {text}
+        </a>
+    ) : (
+        <span key={key}>{text}</span>
+    );
+}
+
+/**
  * Render the author/license attribution shown at the bottom of the image's
  * description content (so it appears in the same info popover/`<details>` UI as
  * an authored `<description>`), or `null` when there is nothing to attribute.
@@ -624,43 +643,15 @@ function renderImageAttribution({
     // the source link (`originalUrl`) since the title is where the work is
     // found.
     const subjectText = imageName ? `\u201C${imageName}\u201D` : "Image";
-    const subjectNode = originalUrl ? (
-        <a href={originalUrl} target="_blank" rel="noopener noreferrer">
-            {subjectText}
-        </a>
-    ) : (
-        <span>{subjectText}</span>
-    );
+    const subjectNode = maybeLink(subjectText, originalUrl);
 
     const subjectAndAuthor = hasAuthor ? (
         <>
-            {subjectNode} by{" "}
-            {authorUrl ? (
-                <a href={authorUrl} target="_blank" rel="noopener noreferrer">
-                    {authorName}
-                </a>
-            ) : (
-                <span>{authorName}</span>
-            )}
+            {subjectNode} by {maybeLink(authorName, authorUrl)}
         </>
     ) : (
         subjectNode
     );
-
-    function linkNode(license: AttributionLicense, key: number) {
-        return license.url ? (
-            <a
-                key={key}
-                href={license.url}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                {license.label}
-            </a>
-        ) : (
-            <span key={key}>{license.label}</span>
-        );
-    }
 
     // Join an array of nodes with " or " (the dual-license connector).
     function joinWithOr(nodes: React.ReactNode[]) {
@@ -679,7 +670,9 @@ function renderImageAttribution({
         sentence = <>{subjectAndAuthor}.</>;
     } else if (licenses.every((l) => l.kind === "public-domain")) {
         // Public-domain works are dedicated/marked, not "licensed under".
-        const links = joinWithOr(licenses.map((l, i) => linkNode(l, i)));
+        const links = joinWithOr(
+            licenses.map((l, i) => maybeLink(l.label, l.url, i)),
+        );
         sentence = (
             <>
                 {subjectAndAuthor} is in the public domain ({links}).
@@ -691,7 +684,7 @@ function renderImageAttribution({
         // license list — not a realistic combination — falls through to the
         // "the <name>" form.)
         const clauses = licenses.map((l, i) => {
-            const link = linkNode(l, i);
+            const link = maybeLink(l.label, l.url, i);
             if (l.kind === "creative-commons") {
                 return <>a {link} license</>;
             } else if (l.kind === "generic") {
