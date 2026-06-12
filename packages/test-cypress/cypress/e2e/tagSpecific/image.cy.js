@@ -652,4 +652,40 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
                 "https://creativecommons.org/licenses/by/4.0/",
             );
     });
+
+    it("does not link author-supplied URLs with unsafe schemes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        imageName="A Squirrel" authorName="Jane Doe"
+        originalUrl="javascript:alert('xss')"
+        authorUrl="https://example.com/jane"
+        licenseName="Custom License" licenseUrl="javascript:alert('xss')">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        // the unsafe source and license URLs are not turned into links
+        cy.get("#image-attribution a[href^='javascript:']").should("not.exist");
+        cy.get("#image-attribution")
+            .contains("A Squirrel")
+            .should("not.have.attr", "href");
+        cy.get("#image-attribution")
+            .contains("Custom License")
+            .should("not.have.attr", "href");
+
+        // a safe URL alongside them still links normally
+        cy.get("#image-attribution")
+            .contains("a", "Jane Doe")
+            .should("have.attr", "href", "https://example.com/jane");
+    });
 });

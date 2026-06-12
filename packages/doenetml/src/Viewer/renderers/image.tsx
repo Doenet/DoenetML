@@ -539,16 +539,35 @@ type AttributionLicense = {
 };
 
 /**
- * Render `text` as an external link when `url` is given, otherwise as a plain
- * `<span>`. Shared by the attribution's subject, author, and license nodes so
- * the link-or-span branching lives in one place. `key` is for use in lists.
+ * Whether `url` is safe to place in an `href`. Authors supply the attribution
+ * URLs (`originalUrl`, `authorUrl`, and the fallback `licenseUrl`), so guard
+ * against script-bearing schemes (`javascript:`, `data:`, `vbscript:`, …) that
+ * could run on click. Whitespace and ASCII control characters are stripped
+ * first so obfuscated schemes (e.g. `java\tscript:`) cannot slip through. A URL
+ * with no scheme (relative or protocol-relative) is treated as safe.
+ */
+function isSafeHref(url: string): boolean {
+    const stripped = url.replace(/[\u0000-\u001f\u007f\s]/g, "").toLowerCase();
+    const schemeMatch = stripped.match(/^([a-z][a-z0-9+.-]*):/);
+    if (!schemeMatch) {
+        return true;
+    }
+    const scheme = schemeMatch[1];
+    return scheme === "http" || scheme === "https" || scheme === "mailto";
+}
+
+/**
+ * Render `text` as an external link when `url` is given and safe, otherwise as
+ * a plain `<span>`. Shared by the attribution's subject, author, and license
+ * nodes so the link-or-span branching lives in one place. `key` is for use in
+ * lists.
  */
 function maybeLink(
     text: React.ReactNode,
     url: string | null | undefined,
     key?: number,
 ): React.ReactNode {
-    return url ? (
+    return url && isSafeHref(url) ? (
         <a key={key} href={url} target="_blank" rel="noopener noreferrer">
             {text}
         </a>
