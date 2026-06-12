@@ -18,7 +18,7 @@ import {
 } from "./utils/checkWork";
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 interface TextInputSVs {
