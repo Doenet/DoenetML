@@ -123,11 +123,9 @@ If you edit these during development they will show as modified, but should not 
 
 ### Agent attribution on commits
 
-When an agent composes a commit, credit it with a `Co-Authored-By:` trailer (a blank line before the trailer block) rather than a marketing-style "Generated with …" footer in the commit body. Use the actual model/agent name and its no-reply email — do not hardcode one specific model. For example:
+When an agent composes a commit, credit it with a `Co-authored-by:` trailer (a blank line before the trailer block) rather than a marketing-style "Generated with …" footer in the commit body. Use the actual model/agent name and its no-reply email — do not hardcode one specific model. For example:
 
-```
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
-```
+    Co-authored-by: Claude Opus 4.8 <noreply@anthropic.com>
 
 The goal is simply to record that an agent helped author the change; substitute whatever model or agent is actually composing the commit.
 
