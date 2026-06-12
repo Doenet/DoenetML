@@ -347,6 +347,200 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 
 
 
+## Attribution
+
+The attribution attributes let you credit an image's source and license.
+When any of them are supplied, Doenet builds a credit sentence and shows it
+inside the image's description (open the description disclosure — the "i"
+button — to see it). The wording follows the Creative Commons
+"TASL" convention: **T**itle, **A**uthor, **S**ource, **L**icense.
+
+
+
+### Attribute Example: licenseCodes
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  authorName="Jane Doe"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The `licenseCodes` attribute tags the image with one or more recognized
+open-license codes. From a code, Doenet derives the full license name and a
+link to the license deed, then renders the credit sentence in the image's
+description. Recognized codes are the six Creative Commons licenses (`CC-BY`,
+`CC-BY-SA`, `CC-BY-ND`, `CC-BY-NC`, `CC-BY-NC-SA`, `CC-BY-NC-ND`), the
+public-domain markers `CC0` and `PDM`, and `GFDL`, `FAL`, `OGL`, `MIT`, and
+`APACHE-2.0`. Codes are matched case-insensitively; an unrecognized code is
+ignored.
+
+
+
+---
+
+### Attribute Example: licenseVersion
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY"
+  licenseVersion="3.0"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The `licenseVersion` attribute selects which version of a Creative Commons
+license to name and link to. It defaults to `4.0` and is ignored for licenses
+that are not versioned this way (such as `MIT` or `PDM`).
+
+
+
+---
+
+### Attribute Example: dual licensing
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY-SA GFDL"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+Specifying two codes in `licenseCodes` marks the image as dual-licensed; the
+credit sentence names both licenses, joined with "or".
+
+
+
+---
+
+### Attribute Example: public-domain codes
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC0"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The public-domain markers `CC0` and `PDM` are phrased differently in the credit
+sentence: the work is described as being in the public domain rather than
+licensed under a set of terms.
+
+
+
+---
+
+### Attribute Example: imageName, authorName, authorUrl, and originalUrl
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  originalUrl="https://commons.wikimedia.org/wiki/File:DoricParthenon.jpg"
+  authorName="Jane Doe"
+  authorUrl="https://commons.wikimedia.org/wiki/User:JaneDoe"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+These attributes flesh out the credit sentence. `imageName` supplies the
+work's title (used in place of the generic word "Image") and links to
+`originalUrl`, the page where the image is found. `authorName` names the
+creator and links to `authorUrl`, such as the author's profile page.
+
+
+
+---
+
+### Attribute Example: licenseName and licenseUrl
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  authorName="Jane Doe"
+  licenseName="Custom Museum License"
+  licenseUrl="https://example.com/museum-license"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+When an image uses a license that is not one of the recognized `licenseCodes`,
+give the license name and link directly with `licenseName` and `licenseUrl`.
+These are used only as a fallback: when `licenseCodes` is set, the derived
+names and URLs take precedence and `licenseName`/`licenseUrl` are ignored.
+
+
+
+---
+
+### Property Example: licenseNames and licenseUrls
+
+
+```doenet-editor-horiz
+<image
+  name="temple"
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+
+<p><c>licenseNames</c> = $temple.licenseNames</p>
+<p><c>licenseUrls</c> = $temple.licenseUrls</p>
+```
+
+
+
+The resolved license names and URLs are available as the `licenseNames` and
+`licenseUrls` properties. They are derived from `licenseCodes` (and
+`licenseVersion`) when those are given, and otherwise reflect the
+`licenseName`/`licenseUrl` fallback attributes.
+
+
+
 ## Property Examples
 
 ### Property Example: Attributes as properties 1
