@@ -121,6 +121,16 @@ npm run test-cypress-fast-fail -w @doenet/test-cypress -- --config specPattern=c
 
 If you edit these during development they will show as modified, but should not be staged.
 
+### Agent attribution on commits
+
+When an agent composes a commit, credit it with a `Co-Authored-By:` trailer (a blank line before the trailer block) rather than a marketing-style "Generated with …" footer in the commit body. Use the actual model/agent name and its no-reply email — do not hardcode one specific model. For example:
+
+```
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+```
+
+The goal is simply to record that an agent helped author the change; substitute whatever model or agent is actually composing the commit.
+
 ## PR Creation
 
 This checkout may use a personal fork as `origin` and the canonical `Doenet/DoenetML` as `upstream`.
@@ -136,11 +146,16 @@ This checkout may use a personal fork as `origin` and the canonical `Doenet/Doen
 
 ## Agent-Authored GitHub Activity
 
-When an agent posts a PR comment, opens an issue, or comments on an issue, end the body with the Claude Code footer so reviewers can see at a glance that the text was generated:
+When an agent posts a PR comment, opens an issue, or comments on an issue, end the body with a footer noting that an agent helped compose the text, so reviewers can see at a glance that it was machine-generated. Use the footer appropriate to whatever agent system is actually in use — the point is to flag agent involvement, not to advertise a particular product. For example:
 
 ```
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
+```
+🤖 Generated with [GitHub Copilot](https://github.com/features/copilot)
+```
+
+Match the footer to the agent that authored the content (and update the link/label accordingly for any other agent system).
 
 This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
 
