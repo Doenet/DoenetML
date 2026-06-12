@@ -454,7 +454,8 @@ jobs:
                     while IFS= read -r collision; do
                       echo "Ambiguous base path: $collision"
                       # Escape regex metacharacters so the base path matches literally.
-                      escaped=$(printf '%s' "$collision" | sed 's/[].^$*+?(){}|[]/\\&/g')
+                      # Backslashes are doubled first so the second pass doesn't re-escape them.
+                      escaped=$(printf '%s' "$collision" | sed -e 's/\\/\\\\/g' -e 's/[].^$*+?(){}|[]/\\&/g')
                       # Print the actual files that are conflicting.
                       git ls-files | grep -iE "^${escaped}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
                     done <<< "$COLLISIONS"
