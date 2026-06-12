@@ -490,4 +490,202 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         );
         cy.get("#image").should("not.have.attr", "aria-details");
     });
+
+    it("license codes render attribution at the bottom of the description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        imageName="A Squirrel" authorName="Jane Doe"
+        originalUrl="https://example.com/original"
+        authorUrl="https://example.com/jane"
+        licenseCodes="CC-BY-SA GFDL">
+        <shortDescription>An image</shortDescription>
+        <description><p>A longer description.</p></description>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+
+        // The attribution lives inside the description content, beneath the
+        // authored description paragraph; open the description to reveal it.
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        // authored description paragraph comes first
+        cy.get("#image-description-content").should(
+            "contain.text",
+            "A longer description.",
+        );
+
+        // attribution reads as a single TASL-style credit sentence: the quoted
+        // imageName is the subject, the Creative Commons license uses the
+        // "a <name> <version> license" form, the GNU license uses the "the
+        // <name>" form, and the two are joined with "or" for dual licensing
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^\u201CA Squirrel\u201D by Jane Doe is licensed under a Creative Commons Attribution-ShareAlike 4\.0 license or the GNU Free Documentation License\.$/,
+            );
+
+        // the imageName (TASL title) links to the source URL
+        cy.get("#image-attribution")
+            .contains("a", "A Squirrel")
+            .should("have.attr", "href", "https://example.com/original");
+
+        // the author name links to the author URL (independent of the source)
+        cy.get("#image-attribution")
+            .contains("a", "Jane Doe")
+            .should("have.attr", "href", "https://example.com/jane");
+
+        // each license links to its deed, with the CC version in the label
+        cy.get("#image-attribution")
+            .contains("a", "Creative Commons Attribution-ShareAlike 4.0")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/licenses/by-sa/4.0/",
+            );
+        cy.get("#image-attribution")
+            .contains("a", "GNU Free Documentation License")
+            .should(
+                "have.attr",
+                "href",
+                "https://www.gnu.org/licenses/fdl-1.3.html",
+            );
+    });
+
+    it("uses the generic word \u201CImage\u201D as the subject when no imageName is given", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" originalUrl="https://example.com/original"
+        licenseCodes="CC-BY">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^Image by Jane Doe is licensed under a Creative Commons Attribution 4\.0 license\.$/,
+            );
+        // with no imageName, the generic "Image" subject carries the source link
+        cy.get("#image-attribution")
+            .contains("a", "Image")
+            .should("have.attr", "href", "https://example.com/original");
+    });
+
+    it("phrases public-domain dedications as \u201Cin the public domain\u201D", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" licenseCodes="CC0">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^Image by Jane Doe is in the public domain \(CC0 1\.0 Public Domain Dedication\)\.$/,
+            );
+        cy.get("#image-attribution")
+            .contains("a", "CC0 1.0 Public Domain Dedication")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/publicdomain/zero/1.0/",
+            );
+    });
+
+    it("attribution alone produces a description UI when no description is authored", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" licenseCodes="CC-BY">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+
+        // even without an authored <description>, the attribution produces the
+        // same description disclosure UI
+        cy.get("#image-container [data-test='Description Summary']").click();
+        cy.get("#image-attribution")
+            .contains("a", "Creative Commons Attribution")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/licenses/by/4.0/",
+            );
+    });
+
+    it("does not link author-supplied URLs with unsafe schemes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        imageName="A Squirrel" authorName="Jane Doe"
+        originalUrl="javascript:alert('xss')"
+        authorUrl="https://example.com/jane"
+        licenseName="Custom License" licenseUrl="javascript:alert('xss')">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        // the unsafe source and license URLs are not turned into links
+        cy.get("#image-attribution a[href^='javascript:']").should("not.exist");
+        cy.get("#image-attribution")
+            .contains("A Squirrel")
+            .should("not.have.attr", "href");
+        cy.get("#image-attribution")
+            .contains("Custom License")
+            .should("not.have.attr", "href");
+
+        // a safe URL alongside them still links normally
+        cy.get("#image-attribution")
+            .contains("a", "Jane Doe")
+            .should("have.attr", "href", "https://example.com/jane");
+    });
 });

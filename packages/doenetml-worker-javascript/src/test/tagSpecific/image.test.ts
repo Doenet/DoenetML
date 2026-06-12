@@ -354,4 +354,195 @@ describe("Image tag tests @group3", async () => {
                 .activeChildren[1].componentType,
         ).eq("description");
     });
+
+    it("license codes derive names and urls", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="single" licenseCodes="CC-BY-SA" />
+    <image name="dual" licenseCodes="CC-BY-SA CC0" />
+    <image name="lowercase" licenseCodes="cc-by" />
+    <image name="version3" licenseCodes="CC-BY-SA" licenseVersion="3.0" />
+    <image name="nonCC" licenseCodes="MIT" licenseVersion="3.0" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // a single Creative Commons code derives its name and versioned URL
+        expect(
+            stateVariables[await resolvePathToNodeIdx("single")].stateValues
+                .licenseNames,
+        ).eqls(["Creative Commons Attribution-ShareAlike"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("single")].stateValues
+                .licenseUrls,
+        ).eqls(["https://creativecommons.org/licenses/by-sa/4.0/"]);
+
+        // two codes mean the image is dual-licensed
+        expect(
+            stateVariables[await resolvePathToNodeIdx("dual")].stateValues
+                .licenseNames,
+        ).eqls([
+            "Creative Commons Attribution-ShareAlike",
+            "CC0 1.0 Public Domain Dedication",
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("dual")].stateValues
+                .licenseUrls,
+        ).eqls([
+            "https://creativecommons.org/licenses/by-sa/4.0/",
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+        ]);
+
+        // codes are matched case-insensitively
+        expect(
+            stateVariables[await resolvePathToNodeIdx("lowercase")].stateValues
+                .licenseNames,
+        ).eqls(["Creative Commons Attribution"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("lowercase")].stateValues
+                .licenseUrls,
+        ).eqls(["https://creativecommons.org/licenses/by/4.0/"]);
+
+        // licenseVersion affects Creative Commons URLs
+        expect(
+            stateVariables[await resolvePathToNodeIdx("version3")].stateValues
+                .licenseUrls,
+        ).eqls(["https://creativecommons.org/licenses/by-sa/3.0/"]);
+
+        // licenseVersion is ignored by non-Creative-Commons licenses
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nonCC")].stateValues
+                .licenseNames,
+        ).eqls(["MIT License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nonCC")].stateValues
+                .licenseUrls,
+        ).eqls(["https://opensource.org/license/mit"]);
+    });
+
+    it("license names and urls fall back to preliminary attributes only when no codes are given", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="prelim" licenseName="Custom License" licenseUrl="https://example.com/license" />
+    <image name="codesWin" licenseCodes="CC-BY" licenseName="Custom License" licenseUrl="https://example.com/license" />
+    <image name="nameOnly" licenseName="Custom License" />
+    <image name="urlOnly" licenseUrl="https://example.com/license" />
+    <image name="none" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // with no codes, fall back to the preliminary licenseName/licenseUrl
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prelim")].stateValues
+                .licenseNames,
+        ).eqls(["Custom License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prelim")].stateValues
+                .licenseUrls,
+        ).eqls(["https://example.com/license"]);
+
+        // codes take precedence over the preliminary attributes
+        expect(
+            stateVariables[await resolvePathToNodeIdx("codesWin")].stateValues
+                .licenseNames,
+        ).eqls(["Creative Commons Attribution"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("codesWin")].stateValues
+                .licenseUrls,
+        ).eqls(["https://creativecommons.org/licenses/by/4.0/"]);
+
+        // a name with no URL keeps the lists index-aligned (empty-string URL)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nameOnly")].stateValues
+                .licenseNames,
+        ).eqls(["Custom License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nameOnly")].stateValues
+                .licenseUrls,
+        ).eqls([""]);
+
+        // a URL with no name produces no entries (the URL has no name to align
+        // with), so both lists stay empty rather than mismatched
+        expect(
+            stateVariables[await resolvePathToNodeIdx("urlOnly")].stateValues
+                .licenseNames,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("urlOnly")].stateValues
+                .licenseUrls,
+        ).eqls([]);
+
+        // nothing specified yields empty lists
+        expect(
+            stateVariables[await resolvePathToNodeIdx("none")].stateValues
+                .licenseNames,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("none")].stateValues
+                .licenseUrls,
+        ).eqls([]);
+    });
+
+    it("unknown license codes are dropped with a diagnostic", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="mixed" licenseCodes="CC-BY notALicense CC0" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // the unknown code is dropped; known codes still resolve
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mixed")].stateValues
+                .licenseCodes,
+        ).eqls(["cc-by", "cc0"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mixed")].stateValues
+                .licenseNames,
+        ).eqls([
+            "Creative Commons Attribution",
+            "CC0 1.0 Public Domain Dedication",
+        ]);
+    });
+
+    it("when all license codes are unknown, fall back to preliminary attributes or empty lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="allBadNoFallback" licenseCodes="notALicense alsoNotALicense" />
+    <image name="allBadWithFallback" licenseCodes="notALicense" licenseName="Custom License" licenseUrl="https://example.com/license" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all unknown codes are dropped, leaving no codes
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseCodes,
+        ).eqls([]);
+
+        // with no valid codes and no fallback attributes, the lists are empty
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseNames,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseUrls,
+        ).eqls([]);
+
+        // with no valid codes, the preliminary licenseName/licenseUrl are used
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadWithFallback")]
+                .stateValues.licenseNames,
+        ).eqls(["Custom License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadWithFallback")]
+                .stateValues.licenseUrls,
+        ).eqls(["https://example.com/license"]);
+    });
 });

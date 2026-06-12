@@ -20,7 +20,20 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
+export {
+    mediaLicenses,
+    getMediaLicenseInfo,
+    getMediaLicenseDisplay,
+    creativeCommonsVersions,
+    defaultCreativeCommonsVersion,
+} from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
+export type {
+    MediaLicenseInfo,
+    MediaLicenseKind,
+    MediaLicenseDisplay,
+    CreativeCommonsVersion,
+} from "@doenet/utils";
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 export type { DiagnosticsTabId, DoenetEditorHandle };
 import { detectVersionFromDoenetML } from "@doenet/parser";
