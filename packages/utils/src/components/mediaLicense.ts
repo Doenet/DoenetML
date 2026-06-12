@@ -238,9 +238,13 @@ export function getMediaLicenseDisplay(
     if (!info) {
         return undefined;
     }
+    // Resolve the version once so the label and URL stay consistent: a
+    // Creative Commons label and URL both reflect the same version (the
+    // provided one, or the default when omitted).
+    const resolvedVersion = version ?? defaultCreativeCommonsVersion;
     const label =
-        info.kind === "creative-commons" && version
-            ? `${info.name} ${version}`
+        info.kind === "creative-commons"
+            ? `${info.name} ${resolvedVersion}`
             : info.name;
-    return { kind: info.kind, label, url: info.url(version) };
+    return { kind: info.kind, label, url: info.url(resolvedVersion) };
 }

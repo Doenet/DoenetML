@@ -706,14 +706,22 @@ export default class Image extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "licenseVersion",
                 },
+                licenseNamePreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseNamePreliminary",
+                },
                 licenseUrlPreliminary: {
                     dependencyType: "stateVariable",
                     variableName: "licenseUrlPreliminary",
                 },
             }),
             definition({ dependencyValues }) {
-                const { licenseCodes, licenseVersion, licenseUrlPreliminary } =
-                    dependencyValues;
+                const {
+                    licenseCodes,
+                    licenseVersion,
+                    licenseNamePreliminary,
+                    licenseUrlPreliminary,
+                } = dependencyValues;
 
                 // Codes take precedence over the preliminary `licenseUrl`.
                 // The order mirrors `licenseNames`: both skip the same unknown
@@ -729,9 +737,15 @@ export default class Image extends BlockComponent {
                     return { setValue: { licenseUrls } };
                 }
 
-                if (licenseUrlPreliminary !== null) {
+                // The fallback URL is gated on the preliminary `licenseName`:
+                // `licenseNames` only contains an entry when a name is given, so
+                // the URL list must follow suit to stay index-aligned. When a
+                // name is present but no URL, emit an empty string (no link).
+                if (licenseNamePreliminary !== null) {
                     return {
-                        setValue: { licenseUrls: [licenseUrlPreliminary] },
+                        setValue: {
+                            licenseUrls: [licenseUrlPreliminary ?? ""],
+                        },
                     };
                 }
 

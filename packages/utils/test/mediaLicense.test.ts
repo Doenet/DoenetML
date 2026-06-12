@@ -83,6 +83,15 @@ describe("media licenses", () => {
             });
         });
 
+        it("uses the default version in both label and URL when version is omitted", () => {
+            const display = getMediaLicenseDisplay("CC-BY-SA");
+            expect(display).toEqual({
+                kind: "creative-commons",
+                label: "Creative Commons Attribution-ShareAlike 4.0",
+                url: "https://creativecommons.org/licenses/by-sa/4.0/",
+            });
+        });
+
         it("does not append a version to a non-Creative-Commons label", () => {
             expect(getMediaLicenseDisplay("MIT", "4.0")).toEqual({
                 kind: "license",

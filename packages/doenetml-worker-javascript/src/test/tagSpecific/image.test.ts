@@ -426,6 +426,8 @@ describe("Image tag tests @group3", async () => {
             doenetML: `
     <image name="prelim" licenseName="Custom License" licenseUrl="https://example.com/license" />
     <image name="codesWin" licenseCodes="CC-BY" licenseName="Custom License" licenseUrl="https://example.com/license" />
+    <image name="nameOnly" licenseName="Custom License" />
+    <image name="urlOnly" licenseUrl="https://example.com/license" />
     <image name="none" />
     `,
         });
@@ -451,6 +453,27 @@ describe("Image tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("codesWin")].stateValues
                 .licenseUrls,
         ).eqls(["https://creativecommons.org/licenses/by/4.0/"]);
+
+        // a name with no URL keeps the lists index-aligned (empty-string URL)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nameOnly")].stateValues
+                .licenseNames,
+        ).eqls(["Custom License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("nameOnly")].stateValues
+                .licenseUrls,
+        ).eqls([""]);
+
+        // a URL with no name produces no entries (the URL has no name to align
+        // with), so both lists stay empty rather than mismatched
+        expect(
+            stateVariables[await resolvePathToNodeIdx("urlOnly")].stateValues
+                .licenseNames,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("urlOnly")].stateValues
+                .licenseUrls,
+        ).eqls([]);
 
         // nothing specified yields empty lists
         expect(
