@@ -26,6 +26,17 @@ export const creativeCommonsVersions: CreativeCommonsVersion[] = [
 /** The default Creative Commons version used when an author omits it. */
 export const defaultCreativeCommonsVersion: CreativeCommonsVersion = "4.0";
 
+/**
+ * How a license is phrased in an attribution sentence:
+ *  - `"creative-commons"`: "licensed under a <name> license" (and its URL
+ *    embeds the Creative Commons version).
+ *  - `"license"`: "licensed under the <name>" — for licenses whose name
+ *    already contains the word "License"/"Licence" (e.g. MIT, Apache, GFDL).
+ *  - `"public-domain"`: "in the public domain (<name>)" — for CC0 and the
+ *    Public Domain Mark, which are dedications/marks, not licenses.
+ */
+export type MediaLicenseKind = "creative-commons" | "license" | "public-domain";
+
 /** Information about a single recognized media license. */
 export type MediaLicenseInfo = {
     /** Canonical code as displayed to authors (e.g. `"CC-BY-SA"`). */
@@ -35,11 +46,11 @@ export type MediaLicenseInfo = {
     /** One-sentence description, surfaced in editor autocomplete and help. */
     description: string;
     /**
-     * Whether this is a Creative Commons license whose canonical URL embeds the
-     * version number. When `true`, `url(version)` varies with the version; when
-     * `false`, the version is ignored.
+     * How the license is phrased in an attribution and whether its URL is
+     * versioned. Only `"creative-commons"` licenses embed the version in
+     * `url(version)`; the others ignore the argument.
      */
-    isCreativeCommons: boolean;
+    kind: MediaLicenseKind;
     /**
      * Build the canonical URL for this license. For Creative Commons licenses
      * the URL embeds the version; other licenses ignore the argument and return
@@ -65,7 +76,7 @@ function creativeCommonsLicense(
         code,
         name: `Creative Commons ${name}`,
         description,
-        isCreativeCommons: true,
+        kind: "creative-commons",
         url: (version = defaultCreativeCommonsVersion) =>
             `https://creativecommons.org/licenses/${urlSlug}/${version}/`,
     };
@@ -77,12 +88,13 @@ function fixedUrlLicense(
     name: string,
     url: string,
     description: string,
+    kind: MediaLicenseKind,
 ): MediaLicenseInfo {
     return {
         code,
         name,
         description,
-        isCreativeCommons: false,
+        kind,
         url: () => url,
     };
 }
@@ -133,42 +145,49 @@ export const mediaLicenses: MediaLicenseInfo[] = [
         "CC0 1.0 Public Domain Dedication",
         "https://creativecommons.org/publicdomain/zero/1.0/",
         "Creative Commons Zero: the creator has dedicated the work to the public domain.",
+        "public-domain",
     ),
     fixedUrlLicense(
         "PDM",
         "Public Domain Mark 1.0",
         "https://creativecommons.org/publicdomain/mark/1.0/",
         "Public Domain Mark: the work is free of known copyright restrictions.",
+        "public-domain",
     ),
     fixedUrlLicense(
         "GFDL",
         "GNU Free Documentation License",
         "https://www.gnu.org/licenses/fdl-1.3.html",
         "GNU Free Documentation License: copyleft license common on Wikimedia.",
+        "license",
     ),
     fixedUrlLicense(
         "FAL",
         "Free Art License 1.3",
         "https://artlibre.org/licence/lal/en/",
         "Free Art License: copyleft license for artistic works.",
+        "license",
     ),
     fixedUrlLicense(
         "OGL",
         "Open Government Licence v3.0 (UK)",
         "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
         "UK Open Government Licence: reuse government material with attribution.",
+        "license",
     ),
     fixedUrlLicense(
         "MIT",
         "MIT License",
         "https://opensource.org/license/mit",
         "MIT License: permissive license common for icon and illustration sets.",
+        "license",
     ),
     fixedUrlLicense(
         "APACHE-2.0",
         "Apache License 2.0",
         "https://www.apache.org/licenses/LICENSE-2.0",
         "Apache License 2.0: permissive license common for icon and illustration sets.",
+        "license",
     ),
 ];
 
@@ -189,4 +208,39 @@ export function getMediaLicenseInfo(
     code: string,
 ): MediaLicenseInfo | undefined {
     return mediaLicensesByLowerCode[code.toLowerCase()];
+}
+
+/** A license resolved for display in an attribution sentence. */
+export type MediaLicenseDisplay = {
+    /** How the license should be phrased (see `MediaLicenseKind`). */
+    kind: MediaLicenseKind;
+    /**
+     * Display label, including the Creative Commons version when applicable
+     * (e.g. `"Creative Commons Attribution 4.0"`); for non-CC licenses this is
+     * just the license name (the version, if any, is already part of the name).
+     */
+    label: string;
+    /** Canonical URL for the license (versioned for Creative Commons). */
+    url: string;
+};
+
+/**
+ * Resolve a license code (case-insensitively) into the pieces an attribution
+ * renderer needs: its phrasing `kind`, a display `label` that includes the
+ * Creative Commons version where applicable, and its canonical `url`. Returns
+ * `undefined` for an unrecognized code.
+ */
+export function getMediaLicenseDisplay(
+    code: string,
+    version?: CreativeCommonsVersion,
+): MediaLicenseDisplay | undefined {
+    const info = getMediaLicenseInfo(code);
+    if (!info) {
+        return undefined;
+    }
+    const label =
+        info.kind === "creative-commons" && version
+            ? `${info.name} ${version}`
+            : info.name;
+    return { kind: info.kind, label, url: info.url(version) };
 }

@@ -497,8 +497,9 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
                 {
                     doenetML: `
     <image name="image" source="./Doenet_Logo_Frontpage.png"
-        authorName="Jane Doe" originalUrl="https://example.com/original"
-        licenseCodes="CC-BY-SA CC0">
+        imageName="A Squirrel" authorName="Jane Doe"
+        originalUrl="https://example.com/original"
+        licenseCodes="CC-BY-SA GFDL">
         <shortDescription>An image</shortDescription>
         <description><p>A longer description.</p></description>
     </image>
@@ -520,27 +521,93 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             "A longer description.",
         );
 
-        // attribution reads as a single credit sentence; dual-licensed images
-        // join the licenses with "or"
+        // attribution reads as a single TASL-style credit sentence: the quoted
+        // imageName is the subject, the Creative Commons license uses the
+        // "a <name> <version> license" form, the GNU license uses the "the
+        // <name>" form, and the two are joined with "or" for dual licensing
         cy.get("#image-attribution")
             .invoke("text")
             .should(
                 "match",
-                /^Image by Jane Doe is licensed under Creative Commons Attribution-ShareAlike or CC0 1\.0 Public Domain Dedication\.$/,
+                /^\u201CA Squirrel\u201D by Jane Doe is licensed under a Creative Commons Attribution-ShareAlike 4\.0 license or the GNU Free Documentation License\.$/,
             );
 
-        // author is shown and linked to the original URL
+        // the imageName (TASL title) is what links to the source URL
         cy.get("#image-attribution")
-            .contains("a", "Jane Doe")
+            .contains("a", "A Squirrel")
             .should("have.attr", "href", "https://example.com/original");
 
-        // both licenses are shown in canonical case, each linked to its URL
+        // each license links to its deed, with the CC version in the label
         cy.get("#image-attribution")
-            .contains("a", "Creative Commons Attribution-ShareAlike")
+            .contains("a", "Creative Commons Attribution-ShareAlike 4.0")
             .should(
                 "have.attr",
                 "href",
                 "https://creativecommons.org/licenses/by-sa/4.0/",
+            );
+        cy.get("#image-attribution")
+            .contains("a", "GNU Free Documentation License")
+            .should(
+                "have.attr",
+                "href",
+                "https://www.gnu.org/licenses/fdl-1.3.html",
+            );
+    });
+
+    it("uses the generic word \u201CImage\u201D as the subject when no imageName is given", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" originalUrl="https://example.com/original"
+        licenseCodes="CC-BY">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^Image by Jane Doe is licensed under a Creative Commons Attribution 4\.0 license\.$/,
+            );
+        // with no imageName, the generic "Image" subject carries the source link
+        cy.get("#image-attribution")
+            .contains("a", "Image")
+            .should("have.attr", "href", "https://example.com/original");
+    });
+
+    it("phrases public-domain dedications as \u201Cin the public domain\u201D", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" licenseCodes="CC0">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^Image by Jane Doe is in the public domain \(CC0 1\.0 Public Domain Dedication\)\.$/,
             );
         cy.get("#image-attribution")
             .contains("a", "CC0 1.0 Public Domain Dedication")

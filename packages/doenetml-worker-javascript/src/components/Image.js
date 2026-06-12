@@ -132,6 +132,15 @@ export default class Image extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.imageName = {
+            description:
+                "Name of the image, used in place of the generic word \u201CImage\u201D in the attribution.",
+            createComponentOfType: "text",
+            createStateVariable: "imageName",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
         attributes.originalUrl = {
             description: "Original URL of the image.",
             createComponentOfType: "text",

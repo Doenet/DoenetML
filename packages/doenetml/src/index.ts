@@ -9,6 +9,7 @@ export {
     serializedComponentsReviver,
     mediaLicenses,
     getMediaLicenseInfo,
+    getMediaLicenseDisplay,
     creativeCommonsVersions,
     defaultCreativeCommonsVersion,
     // returnAllPossibleVariants,
@@ -18,6 +19,8 @@ export type {
     ErrorRecord,
     WarningRecord,
     MediaLicenseInfo,
+    MediaLicenseKind,
+    MediaLicenseDisplay,
     CreativeCommonsVersion,
 } from "@doenet/utils";
 

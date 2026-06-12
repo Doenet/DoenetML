@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     mediaLicenses,
     getMediaLicenseInfo,
+    getMediaLicenseDisplay,
     creativeCommonsVersions,
     defaultCreativeCommonsVersion,
 } from "../src/components/mediaLicense";
@@ -21,7 +22,7 @@ describe("media licenses", () => {
 
     it("builds versioned URLs for Creative Commons licenses", () => {
         const ccBySa = getMediaLicenseInfo("CC-BY-SA");
-        expect(ccBySa?.isCreativeCommons).toBe(true);
+        expect(ccBySa?.kind).toBe("creative-commons");
         expect(ccBySa?.url("3.0")).toBe(
             "https://creativecommons.org/licenses/by-sa/3.0/",
         );
@@ -33,9 +34,14 @@ describe("media licenses", () => {
 
     it("ignores the version for non-Creative-Commons licenses", () => {
         const mit = getMediaLicenseInfo("MIT");
-        expect(mit?.isCreativeCommons).toBe(false);
+        expect(mit?.kind).toBe("license");
         expect(mit?.url("1.0")).toBe("https://opensource.org/license/mit");
         expect(mit?.url("4.0")).toBe("https://opensource.org/license/mit");
+    });
+
+    it("classifies CC0 and the Public Domain Mark as public domain", () => {
+        expect(getMediaLicenseInfo("CC0")?.kind).toBe("public-domain");
+        expect(getMediaLicenseInfo("PDM")?.kind).toBe("public-domain");
     });
 
     it("treats CC0 and the Public Domain Mark as version-independent", () => {
@@ -65,5 +71,34 @@ describe("media licenses", () => {
             "4.0",
         ]);
         expect(defaultCreativeCommonsVersion).toBe("4.0");
+    });
+
+    describe("getMediaLicenseDisplay", () => {
+        it("appends the version to a Creative Commons label", () => {
+            const display = getMediaLicenseDisplay("CC-BY-SA", "4.0");
+            expect(display).toEqual({
+                kind: "creative-commons",
+                label: "Creative Commons Attribution-ShareAlike 4.0",
+                url: "https://creativecommons.org/licenses/by-sa/4.0/",
+            });
+        });
+
+        it("does not append a version to a non-Creative-Commons label", () => {
+            expect(getMediaLicenseDisplay("MIT", "4.0")).toEqual({
+                kind: "license",
+                label: "MIT License",
+                url: "https://opensource.org/license/mit",
+            });
+        });
+
+        it("marks public-domain dedications", () => {
+            const display = getMediaLicenseDisplay("CC0");
+            expect(display?.kind).toBe("public-domain");
+            expect(display?.label).toBe("CC0 1.0 Public Domain Dedication");
+        });
+
+        it("returns undefined for an unknown code", () => {
+            expect(getMediaLicenseDisplay("not-a-license")).toBeUndefined();
+        });
     });
 });
