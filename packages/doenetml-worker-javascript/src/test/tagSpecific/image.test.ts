@@ -551,6 +551,7 @@ describe("Image tag tests @group3", async () => {
             doenetML: `
     <image name="withId" source="doenet:abcDEF123" />
     <image name="upperPrefix" source="DOENET:xyz789" />
+    <image name="emptyId" source="doenet:" />
     <image name="external" source="./some_image.png" />
     <image name="noSource" />
     `,
@@ -569,6 +570,12 @@ describe("Image tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("upperPrefix")]
                 .stateValues.imageId,
         ).eq("xyz789");
+
+        // a doenet: prefix with no id is not treated as a media reference
+        expect(
+            stateVariables[await resolvePathToNodeIdx("emptyId")].stateValues
+                .imageId,
+        ).eq(null);
 
         // an ordinary URL source has no imageId
         expect(
