@@ -41,6 +41,13 @@ export type SchemaAttribute = {
     description?: string;
     values?: string[];
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when the attribute is list-valued and its `values` constrain each
+     * item of the list (not the whole value). Schema-violation checks split the
+     * authored value on whitespace and validate each token; the help panel
+     * phrases the constraint per-item.
+     */
+    isList?: boolean;
     defaultValue?: unknown;
 };
 
@@ -350,7 +357,14 @@ export class AutoCompleter {
     parentChildMap: Map<string, Set<string>> = new Map();
     nodeAttributeMap: Map<
         string,
-        Map<string, { correctCase: Set<string>; lowerCase: Set<string> } | null>
+        Map<
+            string,
+            {
+                correctCase: Set<string>;
+                lowerCase: Set<string>;
+                isList: boolean;
+            } | null
+        >
     > = new Map();
     /**
      * Processed snippets indexed by element (normalized to schema capitalization) for quick lookup.
@@ -663,6 +677,7 @@ export class AutoCompleter {
                                   lowerCase: new Set(
                                       a.values.map((v) => v.toLowerCase()),
                                   ),
+                                  isList: Boolean(a.isList),
                               }
                             : null,
                     ]),
@@ -1189,6 +1204,7 @@ export class AutoCompleter {
                               lowerCase: new Set(
                                   aliasAttr.values.map((v) => v.toLowerCase()),
                               ),
+                              isList: Boolean(aliasAttr.isList),
                           }
                         : null;
                 }

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { preprocessAttributesObject } from "../../utils/attributes";
+import {
+    preprocessAttributesObject,
+    validateListItemsAgainstValidValues,
+} from "../../utils/attributes";
 import type { AttributeDefinition } from "../../utils/dast/types";
 
 describe("preprocessAttributesObject", () => {
@@ -92,5 +95,106 @@ describe("preprocessAttributesObject", () => {
         expect(() => preprocessAttributesObject(attrs)).toThrow(
             /Invalid validValues entry for attribute `mode`/,
         );
+    });
+});
+
+describe("validateListItemsAgainstValidValues", () => {
+    const validValues = [
+        { value: "top", description: "Align to the top." },
+        { value: "middle", description: "Center." },
+        { value: "bottom", description: "Align to the bottom." },
+    ];
+
+    it("keeps all items when every item is allowed", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["top", "bottom", "middle"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top", "bottom", "middle"]);
+        expect(result.diagnostics).toEqual([]);
+    });
+
+    it("drops invalid items and reports them in a single diagnostic", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["top", "sideways", "bottom", "diagonal"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top", "bottom"]);
+        expect(result.diagnostics).toHaveLength(1);
+        expect(result.diagnostics[0].type).toBe("info");
+        expect(result.diagnostics[0].message).toContain("`sideways`");
+        expect(result.diagnostics[0].message).toContain("`diagonal`");
+        expect(result.diagnostics[0].message).toContain("valigns");
+        // The runtime diagnostic does not enumerate the allowed values (that
+        // would show the lower-cased copy when toLowerCase is set); the
+        // canonical-cased list lives in the schema-driven editor surfaces.
+        expect(result.diagnostics[0].message).not.toContain("`middle`");
+    });
+
+    it("uses singular wording for a single invalid item", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["top", "sideways"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top"]);
+        expect(result.diagnostics[0].message).toContain("Invalid value `");
+        expect(result.diagnostics[0].message).not.toContain("Invalid values");
+    });
+
+    it("lower-cases and trims items before matching when toLowerCase is set", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["  TOP ", "Middle"],
+            validValues,
+            toLowerCase: true,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top", "middle"]);
+        expect(result.diagnostics).toEqual([]);
+    });
+
+    it("does not lower-case when toLowerCase is not set", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["TOP", "top"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top"]);
+        expect(result.diagnostics).toHaveLength(1);
+        expect(result.diagnostics[0].message).toContain("`TOP`");
+    });
+
+    it("trims items even when toLowerCase is not set", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["  top  ", "bottom"],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top", "bottom"]);
+        expect(result.diagnostics).toEqual([]);
+    });
+
+    it("treats non-string items as invalid and echoes the original value", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: ["top", 5, null],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual(["top"]);
+        expect(result.diagnostics).toHaveLength(1);
+        expect(result.diagnostics[0].message).toContain("`5`");
+        expect(result.diagnostics[0].message).toContain("`null`");
+    });
+
+    it("returns an empty result with no diagnostics for an empty list", () => {
+        const result = validateListItemsAgainstValidValues({
+            items: [],
+            validValues,
+            attribute: "valigns",
+        });
+        expect(result.value).toEqual([]);
+        expect(result.diagnostics).toEqual([]);
     });
 });

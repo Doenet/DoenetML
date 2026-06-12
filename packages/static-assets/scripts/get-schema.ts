@@ -379,6 +379,14 @@ type SchemaAttribute = {
      * are intentionally kept out of this list and live only in `values`.
      */
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when the attribute is list-valued (e.g. `createComponentOfType:
+     * "textList"`) and declares `validValues`. In that case `validValues`
+     * constrains *each item* of the list, so the LSP and docs phrase the
+     * constraint per-item and the schema-violation check validates each
+     * whitespace-separated token rather than the whole value.
+     */
+    isList?: boolean;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description: string;
     /** Default value for the attribute (if defined). */
@@ -907,6 +915,21 @@ export function getSchema(
                           ]
                         : validValueStrings;
                 attrSpec.autocompleteValues = attrDef.validValues;
+
+                // List-valued attributes (e.g. `createComponentOfType:
+                // "textList"`, or a `*Array` primitive) interpret `validValues`
+                // per-item. Mark the schema entry so the LSP and docs phrase
+                // the constraint as "each item must be one of …" and the
+                // schema-violation check validates each token, not the whole
+                // value.
+                const isListType =
+                    (typeof attrDef.createComponentOfType === "string" &&
+                        attrDef.createComponentOfType.endsWith("List")) ||
+                    (typeof attrDef.createPrimitiveOfType === "string" &&
+                        attrDef.createPrimitiveOfType.endsWith("Array"));
+                if (isListType) {
+                    attrSpec.isList = true;
+                }
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"

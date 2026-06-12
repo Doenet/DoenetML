@@ -38,6 +38,11 @@ const schema = {
                 { name: "x" },
                 { name: "y" },
                 { name: "xyx", values: ["a", "B"] },
+                {
+                    name: "aligns",
+                    values: ["top", "middle", "bottom"],
+                    isList: true,
+                },
             ],
             top: true,
             acceptsStringChildren: false,
@@ -407,6 +412,35 @@ describe("AutoCompleter", () => {
             `);
         },
     );
+
+    it("validates each item of a list-valued enumerated attribute", async () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        // A multi-item list whose items are all allowed produces no warning.
+        source = `<a aligns="top middle bottom" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(await autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(
+            "[]",
+        );
+
+        // A single allowed item is fine too.
+        source = `<a aligns="middle" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(await autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(
+            "[]",
+        );
+
+        // An invalid item is flagged with the per-item wording, even when
+        // other items in the list are valid.
+        source = `<a aligns="top sideways" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        const violations = await autoCompleter.getSchemaViolations();
+        expect(violations).toHaveLength(1);
+        expect(violations[0].message).toBe(
+            'Attribute `aligns` of element `<a>` must be a list whose items are each one of: "top", "middle", "bottom"',
+        );
+    });
 
     it("substitutes `true` in for the value of an attribute that is not specified", async () => {
         let source: string;

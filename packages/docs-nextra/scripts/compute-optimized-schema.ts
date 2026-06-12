@@ -13,6 +13,7 @@ const SCHEMA: {
             defaultValue?: unknown;
             values?: string[];
             autocompleteValues?: { value: string; description: string }[];
+            isList?: boolean;
             groupName?: string;
             highlighted?: boolean;
         }[];
@@ -120,6 +121,12 @@ function getAttrInfo(element: (typeof SCHEMA)["elements"][number]) {
         // The type comes from the attribute's own schema entry.
         if (attr.type) {
             info.type = attr.type;
+        }
+        // A list-valued enumerated attribute (`isList`) renders its type as a
+        // list (e.g. `[ keyword ]`) and signals that each item is drawn from
+        // the value table below.
+        if (attr.isList) {
+            info.isArray = true;
         }
         if (attr.defaultValue !== undefined) {
             info.defaultValue = attr.defaultValue;
