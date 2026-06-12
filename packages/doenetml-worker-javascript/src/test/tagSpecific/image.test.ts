@@ -372,7 +372,7 @@ describe("Image tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("single")].stateValues
                 .licenseNames,
-        ).eqls(["Attribution-ShareAlike"]);
+        ).eqls(["Creative Commons Attribution-ShareAlike"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("single")].stateValues
                 .licenseUrls,
@@ -382,7 +382,10 @@ describe("Image tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("dual")].stateValues
                 .licenseNames,
-        ).eqls(["Attribution-ShareAlike", "CC0 1.0 Public Domain Dedication"]);
+        ).eqls([
+            "Creative Commons Attribution-ShareAlike",
+            "CC0 1.0 Public Domain Dedication",
+        ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("dual")].stateValues
                 .licenseUrls,
@@ -395,7 +398,7 @@ describe("Image tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("lowercase")].stateValues
                 .licenseNames,
-        ).eqls(["Attribution"]);
+        ).eqls(["Creative Commons Attribution"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("lowercase")].stateValues
                 .licenseUrls,
@@ -443,7 +446,7 @@ describe("Image tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("codesWin")].stateValues
                 .licenseNames,
-        ).eqls(["Attribution"]);
+        ).eqls(["Creative Commons Attribution"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("codesWin")].stateValues
                 .licenseUrls,
@@ -477,6 +480,9 @@ describe("Image tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("mixed")].stateValues
                 .licenseNames,
-        ).eqls(["Attribution", "CC0 1.0 Public Domain Dedication"]);
+        ).eqls([
+            "Creative Commons Attribution",
+            "CC0 1.0 Public Domain Dedication",
+        ]);
     });
 });

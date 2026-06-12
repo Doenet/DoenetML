@@ -12,7 +12,7 @@ describe("media licenses", () => {
         const lower = getMediaLicenseInfo("cc-by-sa");
         expect(upper).toBeDefined();
         expect(lower).toBe(upper);
-        expect(upper?.name).toBe("Attribution-ShareAlike");
+        expect(upper?.name).toBe("Creative Commons Attribution-ShareAlike");
     });
 
     it("returns undefined for an unknown code", () => {

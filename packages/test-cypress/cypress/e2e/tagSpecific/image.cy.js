@@ -516,7 +516,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
 
         // both licenses are shown in canonical case, each linked to its URL
         cy.get("#image-attribution")
-            .contains("a", "Attribution-ShareAlike")
+            .contains("a", "Creative Commons Attribution-ShareAlike")
             .should(
                 "have.attr",
                 "href",

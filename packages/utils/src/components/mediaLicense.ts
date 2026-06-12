@@ -30,7 +30,7 @@ export const defaultCreativeCommonsVersion: CreativeCommonsVersion = "4.0";
 export type MediaLicenseInfo = {
     /** Canonical code as displayed to authors (e.g. `"CC-BY-SA"`). */
     code: string;
-    /** Human-readable license name (e.g. `"Attribution-ShareAlike"`). */
+    /** Human-readable license name (e.g. `"Creative Commons Attribution-ShareAlike"`). */
     name: string;
     /** One-sentence description, surfaced in editor autocomplete and help. */
     description: string;
@@ -50,7 +50,10 @@ export type MediaLicenseInfo = {
 
 /**
  * Helper to build a Creative Commons license entry whose URL embeds the
- * version, e.g. `https://creativecommons.org/licenses/by-sa/4.0/`.
+ * version, e.g. `https://creativecommons.org/licenses/by-sa/4.0/`. The
+ * display name is prefixed with "Creative Commons " so an attribution link
+ * reads e.g. "Creative Commons Attribution-ShareAlike" rather than the
+ * ambiguous bare "Attribution-ShareAlike".
  */
 function creativeCommonsLicense(
     code: string,
@@ -60,7 +63,7 @@ function creativeCommonsLicense(
 ): MediaLicenseInfo {
     return {
         code,
-        name,
+        name: `Creative Commons ${name}`,
         description,
         isCreativeCommons: true,
         url: (version = defaultCreativeCommonsVersion) =>
