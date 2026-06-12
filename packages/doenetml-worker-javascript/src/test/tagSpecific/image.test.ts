@@ -485,4 +485,41 @@ describe("Image tag tests @group3", async () => {
             "CC0 1.0 Public Domain Dedication",
         ]);
     });
+
+    it("when all license codes are unknown, fall back to preliminary attributes or empty lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="allBadNoFallback" licenseCodes="notALicense alsoNotALicense" />
+    <image name="allBadWithFallback" licenseCodes="notALicense" licenseName="Custom License" licenseUrl="https://example.com/license" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all unknown codes are dropped, leaving no codes
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseCodes,
+        ).eqls([]);
+
+        // with no valid codes and no fallback attributes, the lists are empty
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseNames,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadNoFallback")]
+                .stateValues.licenseUrls,
+        ).eqls([]);
+
+        // with no valid codes, the preliminary licenseName/licenseUrl are used
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadWithFallback")]
+                .stateValues.licenseNames,
+        ).eqls(["Custom License"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("allBadWithFallback")]
+                .stateValues.licenseUrls,
+        ).eqls(["https://example.com/license"]);
+    });
 });
