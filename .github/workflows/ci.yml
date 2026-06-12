@@ -434,22 +434,30 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
-            # Case-insensitive file systems (macOS, Windows) treat paths that
-            # differ only in case as the same file. Detect tracked source files
-            # whose paths collide once lowercased so they can't break clones on
-            # those platforms.
+            # Two TypeScript/JavaScript source paths that differ only by letter
+            # case and/or extension are ambiguous on case-insensitive file
+            # systems (macOS, Windows) and to the module resolver: an import
+            # like "./utils/Description" can resolve to "description.ts" instead
+            # of "Description.tsx". Detect tracked source files whose paths are
+            # equal after lowercasing and stripping the extension, so such pairs
+            # are caught before they break checkouts or imports on those
+            # platforms. Relies on GNU sed (the `s///i` flag is non-POSIX),
+            # which the ubuntu runner provides.
             - name: Check for case-insensitive filename collisions
               run: |
                   COLLISIONS=$(git ls-files | grep -Ei '\.(ts|tsx|js|jsx)$' | sed -E 's/\.(ts|tsx|js|jsx)$//i' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
 
                   if [ -n "$COLLISIONS" ]; then
-                    echo "❌ Error: Found files that will collide on case-insensitive file systems (like macOS/Windows):"
+                    echo "❌ Error: Found source files whose paths differ only by case and/or extension."
+                    echo "   These are ambiguous on case-insensitive file systems (macOS, Windows) and to the module resolver:"
                     echo ""
-                    for collision in $COLLISIONS; do
-                      echo "Collision base path: $collision"
-                      # Print the actual files that are conflicting
-                      git ls-files | grep -iE "^${collision}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
-                    done
+                    while IFS= read -r collision; do
+                      echo "Ambiguous base path: $collision"
+                      # Escape regex metacharacters so the base path matches literally.
+                      escaped=$(printf '%s' "$collision" | sed 's/[].^$*+?(){}|[]/\\&/g')
+                      # Print the actual files that are conflicting.
+                      git ls-files | grep -iE "^${escaped}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
+                    done <<< "$COLLISIONS"
                     exit 1
                   else
                     echo "✅ No case-insensitive collisions found."
