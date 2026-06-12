@@ -83,6 +83,10 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
+    // The `url` used to create the current JSXGraph image, so a later change
+    // (e.g. `source`/`imageId` becomes a different value, or resolves to the
+    // empty "missing" URL) can be detected and the graph image rebuilt/removed.
+    let lastUrl = useRef<string>("");
 
     const board = useContext(BoardContext);
 
@@ -267,6 +271,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
         imageJXG.current = newImageJXG;
         anchorPointJXG.current = newAnchorPointJXG;
+        lastUrl.current = url;
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
         currentSize.current = [width, height];
 
@@ -293,6 +298,20 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             // An empty `url` (e.g. an unsupported `doenet:` source mapped to
             // "missing") would otherwise be handed to JSXGraph, which can
             // request the current document like `<img src="">`.
+            if (url) {
+                createImageJXG();
+            }
+        } else if (url !== lastUrl.current) {
+            // The resolved URL changed after the image was created. Remove the
+            // stale image (and its anchor point) and rebuild from the new URL,
+            // or leave it removed when the URL is now empty/unsupported so the
+            // graph doesn't keep showing an image that should be suppressed.
+            detachAnchoredGraphElement(imageJXG, board);
+            if (anchorPointJXG.current) {
+                board.removeObject(anchorPointJXG.current);
+                anchorPointJXG.current = null;
+            }
+            lastUrl.current = url;
             if (url) {
                 createImageJXG();
             }

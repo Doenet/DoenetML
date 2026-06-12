@@ -824,4 +824,73 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             });
         });
     });
+
+    it("updates the graph image when a doenet: source changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph name="g">
+    <image name="image" source="$ti" anchor="(1,1)">
+      <shortDescription>A changeable source</shortDescription>
+    </image>
+  </graph>
+  <textInput name="ti" prefill="doenet:abc123" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        function imageCount(win, $g) {
+            const boardRegistry =
+                win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+            const board = Object.values(boardRegistry).find(
+                (b) => b?.containerObj === $g[0],
+            );
+            expect(board, "JSXGraph board for graph g").to.exist;
+            return Object.values(board.objects).filter(
+                (o) => o?.elType === "image",
+            );
+        }
+
+        cy.get("#g").should("exist");
+
+        // a valid doenet: source produces one image on the board
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const images = imageCount(win, $g);
+                expect(images, "image after valid source").to.have.length(1);
+                expect(images[0].url).to.eq(
+                    "https://doenet.org/api/media/abc123",
+                );
+            });
+        });
+
+        // changing to an unsupported doenet: form removes the stale image
+        cy.get("#ti_input").clear().type("doenet:cid=bafkreiabc123{enter}");
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                expect(
+                    imageCount(win, $g),
+                    "image after unsupported source",
+                ).to.have.length(0);
+            });
+        });
+
+        // changing back to a valid doenet: source rebuilds the image with the
+        // new resolved URL
+        cy.get("#ti_input").clear().type("doenet:xyz789{enter}");
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const images = imageCount(win, $g);
+                expect(images, "image after new valid source").to.have.length(
+                    1,
+                );
+                expect(images[0].url).to.eq(
+                    "https://doenet.org/api/media/xyz789",
+                );
+            });
+        });
+    });
 });
