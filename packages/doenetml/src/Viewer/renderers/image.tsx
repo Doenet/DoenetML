@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useContext, useMemo, useRef } from "react";
 import JXG from "jsxgraph";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
@@ -24,6 +24,7 @@ import {
     type MediaLicenseKind,
     type CreativeCommonsVersion,
 } from "@doenet/utils";
+import { DocContext } from "../DocViewer";
 
 interface ImageSVs {
     hidden: boolean;
@@ -33,7 +34,7 @@ interface ImageSVs {
     draggable: boolean;
     anchor: any;
     positionFromAnchor: any;
-    cid?: string;
+    imageId: string | null;
     source: string;
     widthForGraph?: { size: number };
     aspectRatio?: number;
@@ -74,10 +75,11 @@ type JXGTransform = JXGElement & {
 export default React.memo(function Image(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, children, actions, callAction } =
         useDoenetRenderer<ImageSVs>(props, false);
-    let [url, setUrl] = useState<string | null>(null);
 
     // @ts-ignore
     Image.ignoreActionsWithoutCore = () => true;
+
+    const { doenetMediaUrl } = useContext(DocContext) || {};
 
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
@@ -108,17 +110,19 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         destroy: () => detachAnchoredGraphElement(imageJXG, board),
     });
 
-    const urlOrSource = (SVs.cid ? url : SVs.source) || "";
+    const url = useMemo(
+        () =>
+            getUrlForImage({
+                url: SVs.source,
+                imageId: SVs.imageId,
+                doenetMediaUrl,
+            }),
+        [SVs.source, SVs.imageId, doenetMediaUrl],
+    );
 
     const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
-
-    useEffect(() => {
-        if (SVs.cid) {
-            // TODO: need new approach for getting media
-        }
-    }, []);
 
     function createImageJXG() {
         if (board === null) {
@@ -195,7 +199,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
         let newImageJXG = board.create(
             "image",
-            [urlOrSource, offset, [width, height]],
+            [url, offset, [width, height]],
             jsxImageAttributes,
         ) as JXGImage;
 
@@ -285,9 +289,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         lastPositionFromCore.current = anchorCoords;
 
         if (imageJXG.current === null) {
-            if (SVs.cid && !url) {
-                return null;
-            }
             createImageJXG();
         } else {
             anchorPointJXG.current?.coords.setCoordinates(
@@ -442,7 +443,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         imageStyle.aspectRatio = String(SVs.aspectRatio);
     }
 
-    if (!urlOrSource) {
+    if (!url) {
         imageStyle.border = "var(--mainBorder)";
     }
 
@@ -496,10 +497,10 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             );
     }
 
-    const media = urlOrSource ? (
+    const media = url ? (
         <img
             id={id}
-            src={urlOrSource}
+            src={url}
             style={imageStyle}
             alt={shortDescription}
             aria-details={descriptionId}
@@ -724,4 +725,21 @@ function renderImageAttribution({
             {sentence}
         </p>
     );
+}
+
+function getUrlForImage({
+    url,
+    imageId,
+    doenetMediaUrl = "https://doenet.org/api/media",
+}: {
+    url: string;
+    imageId: string | null;
+    doenetMediaUrl?: string;
+}) {
+    if (imageId) {
+        const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
+        return doenetMediaUrl + separator + imageId;
+    } else {
+        return url;
+    }
 }

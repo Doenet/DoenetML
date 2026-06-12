@@ -753,7 +753,7 @@ export default class Image extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.cid = {
+        stateVariableDefinitions.imageId = {
             forRenderer: true,
 
             returnDependencies: () => ({
@@ -763,24 +763,17 @@ export default class Image extends BlockComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                if (
-                    !dependencyValues.source ||
-                    dependencyValues.source.substring(0, 7).toLowerCase() !==
-                        "doenet:"
-                ) {
+                const result = dependencyValues.source.match(
+                    /^doenet:([a-zA-Z0-9]+)/i,
+                );
+
+                if (result) {
+                    return { setValue: { imageId: result[1] } };
+                } else {
                     return {
-                        setValue: { cid: null },
+                        setValue: { imageId: null },
                     };
                 }
-
-                let cid = null;
-
-                let result = dependencyValues.source.match(/[:&]cid=([^&]+)/i);
-                if (result) {
-                    cid = result[1];
-                }
-
-                return { setValue: { cid } };
             },
         };
 

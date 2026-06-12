@@ -545,4 +545,41 @@ describe("Image tag tests @group3", async () => {
                 .stateValues.licenseUrls,
         ).eqls(["https://example.com/license"]);
     });
+
+    it("imageId is derived from a doenet: source", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="withId" source="doenet:abcDEF123" />
+    <image name="upperPrefix" source="DOENET:xyz789" />
+    <image name="external" source="./some_image.png" />
+    <image name="noSource" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // a doenet: source exposes the trailing identifier as imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withId")].stateValues
+                .imageId,
+        ).eq("abcDEF123");
+
+        // the doenet: prefix is matched case-insensitively
+        expect(
+            stateVariables[await resolvePathToNodeIdx("upperPrefix")]
+                .stateValues.imageId,
+        ).eq("xyz789");
+
+        // an ordinary URL source has no imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("external")].stateValues
+                .imageId,
+        ).eq(null);
+
+        // a missing source has no imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("noSource")].stateValues
+                .imageId,
+        ).eq(null);
+    });
 });

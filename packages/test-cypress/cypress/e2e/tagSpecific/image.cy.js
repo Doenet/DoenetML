@@ -688,4 +688,83 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             .contains("a", "Jane Doe")
             .should("have.attr", "href", "https://example.com/jane");
     });
+
+    it("doenet: source resolves against the default media URL", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://doenet.org/api/media/abcDEF123");
+    });
+
+    it("doenet: source resolves against a custom doenetMediaUrl", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("trailing slash on doenetMediaUrl is not doubled", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media/",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("an ordinary source URL is used unchanged", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="./Doenet_Logo_Frontpage.png">
+    <shortDescription>The Doenet logo</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("match", /Doenet_Logo_Frontpage\.png$/);
+    });
 });

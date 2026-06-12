@@ -59,6 +59,7 @@ export function CypressTest() {
             attemptNumber,
             externalDoenetMLs,
             answerResponseCounts,
+            doenetMediaUrl,
         },
         setBaseState,
     ] = useState<{
@@ -66,6 +67,7 @@ export function CypressTest() {
         attemptNumber: number;
         externalDoenetMLs: Record<string, string>;
         answerResponseCounts?: Record<string, number>;
+        doenetMediaUrl?: string;
     }>({
         doenetMLstring: null,
         attemptNumber: testSettings.attemptNumber,
@@ -154,6 +156,7 @@ export function CypressTest() {
         let newExternalDoenetMLs: Record<string, string> = {};
         let newAnswerResponseCounts: Record<string, number> | undefined =
             undefined;
+        let newDoenetMediaUrl: string | undefined = undefined;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -176,6 +179,10 @@ export function CypressTest() {
             newAnswerResponseCounts = e.data.answerResponseCounts;
         }
 
+        if (e.data.doenetMediaUrl !== undefined) {
+            newDoenetMediaUrl = e.data.doenetMediaUrl;
+        }
+
         // don't do anything if receive a message from another source (like the youtube player)
         if (
             typeof newDoenetMLstring === "string" ||
@@ -186,6 +193,7 @@ export function CypressTest() {
                 attemptNumber: newAttemptNumber,
                 externalDoenetMLs: newExternalDoenetMLs,
                 answerResponseCounts: newAnswerResponseCounts,
+                doenetMediaUrl: newDoenetMediaUrl,
             });
         }
     };
@@ -604,6 +612,7 @@ export function CypressTest() {
                 fetchExternalDoenetML={fetchExternalDoenetML}
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
+                doenetMediaUrl={doenetMediaUrl}
                 readOnly={readOnly}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
@@ -652,6 +661,7 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 includeVariantSelector={includeVariantSelector}
+                doenetMediaUrl={doenetMediaUrl}
             />
         );
 
