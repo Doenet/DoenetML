@@ -733,7 +733,12 @@ function renderImageAttribution({
  * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
  * `imageId` holds the `<id>` and the URL is built from `doenetMediaUrl` and that
  * id (avoiding a doubled slash when `doenetMediaUrl` already ends with `/`).
- * Otherwise the `source` is an ordinary URL/path and is returned unchanged.
+ *
+ * A `doenet:` source that did not yield an `imageId` is an unsupported media
+ * reference (e.g. a legacy `doenet:cid=<hash>` form); rather than passing the
+ * `doenet:` URI through to `<img src>` (which would request an unknown scheme
+ * and show a broken-image icon), treat it as missing so the placeholder UI is
+ * used. Any other source is an ordinary URL/path and is returned unchanged.
  */
 function getUrlForImage({
     source,
@@ -747,6 +752,8 @@ function getUrlForImage({
     if (imageId) {
         const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
         return doenetMediaUrl + separator + imageId;
+    } else if (/^\s*doenet:/i.test(source)) {
+        return "";
     } else {
         return source;
     }

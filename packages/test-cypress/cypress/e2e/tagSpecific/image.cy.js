@@ -767,4 +767,23 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             .should("have.attr", "src")
             .and("match", /Doenet_Logo_Frontpage\.png$/);
     });
+
+    it("an unsupported doenet: source renders the placeholder, not a broken image", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:cid=bafkreiabc123">
+    <shortDescription>A legacy media reference</shortDescription>
+  </image>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // the unsupported doenet: URI must not be passed through to an <img>
+        cy.get("#image").should("be.visible");
+        cy.get("img#image").should("not.exist");
+    });
 });

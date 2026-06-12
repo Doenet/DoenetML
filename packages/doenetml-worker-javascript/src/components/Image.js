@@ -765,10 +765,12 @@ export default class Image extends BlockComponent {
             definition: function ({ dependencyValues }) {
                 // A `doenet:<id>` source references an image in Doenet's media
                 // library; expose the `<id>` so the renderer can build its URL.
-                // Any other source (an ordinary URL/path, or none) has no id.
-                const result = dependencyValues.source.match(
-                    /^doenet:([a-zA-Z0-9]+)/i,
-                );
+                // The whole source must be exactly `doenet:<id>` (an
+                // alphanumeric id) — any other source, including unsupported
+                // `doenet:` forms like `doenet:cid=<hash>`, has no id.
+                const result = dependencyValues.source
+                    .trim()
+                    .match(/^doenet:([a-zA-Z0-9]+)$/i);
 
                 return { setValue: { imageId: result ? result[1] : null } };
             },

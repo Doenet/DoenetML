@@ -552,6 +552,7 @@ describe("Image tag tests @group3", async () => {
     <image name="withId" source="doenet:abcDEF123" />
     <image name="upperPrefix" source="DOENET:xyz789" />
     <image name="emptyId" source="doenet:" />
+    <image name="legacyCid" source="doenet:cid=bafkreiabc123" />
     <image name="external" source="./some_image.png" />
     <image name="noSource" />
     `,
@@ -574,6 +575,13 @@ describe("Image tag tests @group3", async () => {
         // a doenet: prefix with no id is not treated as a media reference
         expect(
             stateVariables[await resolvePathToNodeIdx("emptyId")].stateValues
+                .imageId,
+        ).eq(null);
+
+        // an unsupported doenet: form (e.g. a legacy cid reference) is not
+        // partially matched into an imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("legacyCid")].stateValues
                 .imageId,
         ).eq(null);
 
