@@ -347,6 +347,70 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 
 
 
+## Property Examples
+
+### Property Example: Attributes as properties 1
+
+
+```doenet-editor-horiz
+<image 
+  name="leviathan" 
+  size="tiny" 
+  horizontalAlign="left" 
+  aspectRatio="3/2" 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg/640px-1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg"  
+  draggable="false">
+  <shortDescription>An engraving of sea monsters attacking a sailing vessel</shortDescription>
+</image>
+
+<p><c>displayMode</c> = $leviathan.displayMode</p>
+<p><c>horizontalAlign</c> = $leviathan.horizontalAlign</p>
+<p><c>size</c> = $leviathan.size</p>
+<p><c>width</c> = $leviathan.width</p>
+<p><c>aspectRatio</c> = $leviathan.aspectRatio</p>
+<p><c>shortDescription</c> = $leviathan.shortDescription</p>
+<p><c>source</c> = $leviathan.source</p>
+```
+
+
+
+The above listed `<image/>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Property Example: Attributes as properties 2
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>graph with a layered rabbit image</shortDescription>
+  <circle  radius="7" filled/>
+  <image 
+    name="bunny"
+    rotate="$angle"
+    source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+    draggable="false" 
+    size="small" 
+    anchor="(4,4)"
+    layer="1"
+  >
+    <shortDescription>large brown rabbit</shortDescription>
+  </image>
+</graph>
+
+<p><c>draggable</c> = $bunny.draggable</p>
+<p><c>layer</c> = $bunny.layer</p>
+<p><c>rotate</c> = $bunny.rotate</p>
+```
+
+
+
+The above listed `<image/>{:dn}` attributes are also accessible as properties.
+
+
+
 ## Attribution
 
 The attribution attributes let you credit an image's source and license.
@@ -538,69 +602,5 @@ The resolved license names and URLs are available as the `licenseNames` and
 `licenseUrls` properties. They are derived from `licenseCodes` (and
 `licenseVersion`) when those are given, and otherwise reflect the
 `licenseName`/`licenseUrl` fallback attributes.
-
-
-
-## Property Examples
-
-### Property Example: Attributes as properties 1
-
-
-```doenet-editor-horiz
-<image 
-  name="leviathan" 
-  size="tiny" 
-  horizontalAlign="left" 
-  aspectRatio="3/2" 
-  source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg/640px-1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg"  
-  draggable="false">
-  <shortDescription>An engraving of sea monsters attacking a sailing vessel</shortDescription>
-</image>
-
-<p><c>displayMode</c> = $leviathan.displayMode</p>
-<p><c>horizontalAlign</c> = $leviathan.horizontalAlign</p>
-<p><c>size</c> = $leviathan.size</p>
-<p><c>width</c> = $leviathan.width</p>
-<p><c>aspectRatio</c> = $leviathan.aspectRatio</p>
-<p><c>shortDescription</c> = $leviathan.shortDescription</p>
-<p><c>source</c> = $leviathan.source</p>
-```
-
-
-
-The above listed `<image/>{:dn}` attributes are also accessible as properties.
-
-
-
----
-
-### Property Example: Attributes as properties 2
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <shortDescription>graph with a layered rabbit image</shortDescription>
-  <circle  radius="7" filled/>
-  <image 
-    name="bunny"
-    rotate="$angle"
-    source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
-    draggable="false" 
-    size="small" 
-    anchor="(4,4)"
-    layer="1"
-  >
-    <shortDescription>large brown rabbit</shortDescription>
-  </image>
-</graph>
-
-<p><c>draggable</c> = $bunny.draggable</p>
-<p><c>layer</c> = $bunny.layer</p>
-<p><c>rotate</c> = $bunny.rotate</p>
-```
-
-
-
-The above listed `<image/>{:dn}` attributes are also accessible as properties.
 
 
