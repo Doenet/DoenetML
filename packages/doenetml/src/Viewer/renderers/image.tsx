@@ -519,11 +519,14 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
  * Render the author/license attribution shown at the bottom of the image's
  * description content (so it appears in the same info popover/`<details>` UI as
  * an authored `<description>`), or `null` when there is nothing to attribute.
- * It is a `<p>` so it sits alongside the description's authored paragraphs.
- * License names are displayed in the canonical case provided by the worker
- * (derived from `licenseCodes`, or from the `licenseName`/`licenseUrl`
- * attributes as a fallback); each name links to its license URL when one is
- * available. `licenseNames` and `licenseUrls` are index-aligned by the worker.
+ *
+ * The text follows Creative Commons' recommended practice of a single
+ * self-describing credit sentence (rather than a `label: value` line or a
+ * separate heading): "Image by <author> is licensed under <license>." The
+ * author links to its source (`originalUrl`) and each license name links to its
+ * deed. Dual licensing (two codes) reads as "<A> or <B>" since the reuser may
+ * choose either. License names are shown in the canonical case provided by the
+ * worker; `licenseNames` and `licenseUrls` are index-aligned.
  */
 function renderImageAttribution({
     idPrefix,
@@ -558,6 +561,8 @@ function renderImageAttribution({
         )
     ) : null;
 
+    // License names, each linked to its deed, joined with "or" since two codes
+    // mean the image is dual-licensed (the reuser may choose either license).
     const licenseNodes = names.map((name, i) => {
         const url = urls[i];
         const node = url ? (
@@ -567,20 +572,31 @@ function renderImageAttribution({
         ) : (
             <span key={i}>{name}</span>
         );
-        // Join multiple licenses with commas; the leading separator before the
-        // first entry is added by the surrounding template below.
         return i === 0 ? (
             node
         ) : (
-            <React.Fragment key={i}>, {node}</React.Fragment>
+            <React.Fragment key={i}> or {node}</React.Fragment>
         );
     });
 
+    // Compose the credit sentence from whichever pieces are present, keeping a
+    // consistent "Image …" subject so each variant reads naturally on its own.
+    let sentence: React.ReactNode;
+    if (hasAuthor && hasLicense) {
+        sentence = (
+            <>
+                Image by {authorNode} is licensed under {licenseNodes}.
+            </>
+        );
+    } else if (hasAuthor) {
+        sentence = <>Image by {authorNode}.</>;
+    } else {
+        sentence = <>Image licensed under {licenseNodes}.</>;
+    }
+
     return (
         <p id={`${idPrefix}-attribution`} className="image-attribution">
-            {hasAuthor ? <>By {authorNode}</> : null}
-            {hasAuthor && hasLicense ? ". " : null}
-            {hasLicense ? <>License: {licenseNodes}</> : null}
+            {sentence}
         </p>
     );
 }

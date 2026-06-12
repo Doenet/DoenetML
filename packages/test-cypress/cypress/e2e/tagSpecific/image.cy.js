@@ -520,6 +520,15 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             "A longer description.",
         );
 
+        // attribution reads as a single credit sentence; dual-licensed images
+        // join the licenses with "or"
+        cy.get("#image-attribution")
+            .invoke("text")
+            .should(
+                "match",
+                /^Image by Jane Doe is licensed under Creative Commons Attribution-ShareAlike or CC0 1\.0 Public Domain Dedication\.$/,
+            );
+
         // author is shown and linked to the original URL
         cy.get("#image-attribution")
             .contains("a", "Jane Doe")
