@@ -113,7 +113,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
     const url = useMemo(
         () =>
             getUrlForImage({
-                url: SVs.source,
+                source: SVs.source,
                 imageId: SVs.imageId,
                 doenetMediaUrl,
             }),
@@ -727,12 +727,20 @@ function renderImageAttribution({
     );
 }
 
+/**
+ * Resolve the URL to use for an image.
+ *
+ * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
+ * `imageId` holds the `<id>` and the URL is built from `doenetMediaUrl` and that
+ * id (avoiding a doubled slash when `doenetMediaUrl` already ends with `/`).
+ * Otherwise the `source` is an ordinary URL/path and is returned unchanged.
+ */
 function getUrlForImage({
-    url,
+    source,
     imageId,
     doenetMediaUrl = "https://doenet.org/api/media",
 }: {
-    url: string;
+    source: string;
     imageId: string | null;
     doenetMediaUrl?: string;
 }) {
@@ -740,6 +748,6 @@ function getUrlForImage({
         const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
         return doenetMediaUrl + separator + imageId;
     } else {
-        return url;
+        return source;
     }
 }
