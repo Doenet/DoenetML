@@ -434,14 +434,6 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
-    check-case-collisions:
-        name: Check Case-Insensitive Filename Collisions
-        runs-on: ubuntu-latest
-
-        steps:
-            - name: Checkout sources
-              uses: actions/checkout@v6
-
             # Case-insensitive file systems (macOS, Windows) treat paths that
             # differ only in case as the same file. Detect tracked source files
             # whose paths collide once lowercased so they can't break clones on
