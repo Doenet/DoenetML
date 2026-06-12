@@ -491,7 +491,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#image").should("not.have.attr", "aria-details");
     });
 
-    it("license codes render an attribution caption with linked license names", () => {
+    it("license codes render attribution at the bottom of the description", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -500,6 +500,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         authorName="Jane Doe" originalUrl="https://example.com/original"
         licenseCodes="CC-BY-SA CC0">
         <shortDescription>An image</shortDescription>
+        <description><p>A longer description.</p></description>
     </image>
     `,
                 },
@@ -508,6 +509,16 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.get("#image").should("be.visible");
+
+        // The attribution lives inside the description content, beneath the
+        // authored description paragraph; open the description to reveal it.
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        // authored description paragraph comes first
+        cy.get("#image-description-content").should(
+            "contain.text",
+            "A longer description.",
+        );
 
         // author is shown and linked to the original URL
         cy.get("#image-attribution")
@@ -528,6 +539,35 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
                 "have.attr",
                 "href",
                 "https://creativecommons.org/publicdomain/zero/1.0/",
+            );
+    });
+
+    it("attribution alone produces a description UI when no description is authored", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png"
+        authorName="Jane Doe" licenseCodes="CC-BY">
+        <shortDescription>An image</shortDescription>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+
+        // even without an authored <description>, the attribution produces the
+        // same description disclosure UI
+        cy.get("#image-container [data-test='Description Summary']").click();
+        cy.get("#image-attribution")
+            .contains("a", "Creative Commons Attribution")
+            .should(
+                "have.attr",
+                "href",
+                "https://creativecommons.org/licenses/by/4.0/",
             );
     });
 });

@@ -447,19 +447,38 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
+    // The author/license attribution is shown at the bottom of the
+    // description content. Building it as a sibling of `descriptionChild`
+    // inside the description-content `<div>` (which this renderer owns) lets
+    // us append it without injecting a component into the `<description>` on
+    // the worker side. When there is no authored `<description>`, the
+    // attribution alone still produces the same description UI (info
+    // button/popover when inline, `<details>` otherwise).
+    const attribution = renderImageAttribution({
+        idPrefix: id,
+        authorName: SVs.authorName,
+        originalUrl: SVs.originalUrl,
+        licenseNames: SVs.licenseNames,
+        licenseUrls: SVs.licenseUrls,
+    });
+
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;
 
-    if (descriptionChild) {
+    if (descriptionChild || attribution) {
         descriptionId = `${id}-description-content`;
+        const descriptionContent = (
+            <div id={descriptionId}>
+                {descriptionChild}
+                {attribution}
+            </div>
+        );
         description =
             SVs.displayMode === "inline" ? (
-                <DescriptionPopover>
-                    <div id={descriptionId}>{descriptionChild}</div>
-                </DescriptionPopover>
+                <DescriptionPopover>{descriptionContent}</DescriptionPopover>
             ) : (
                 <DescriptionAsDetails>
-                    <div id={descriptionId}>{descriptionChild}</div>
+                    {descriptionContent}
                 </DescriptionAsDetails>
             );
     }
@@ -478,23 +497,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         </div>
     );
 
-    const attribution = renderImageAttribution({
-        idPrefix: id,
-        authorName: SVs.authorName,
-        originalUrl: SVs.originalUrl,
-        licenseNames: SVs.licenseNames,
-        licenseUrls: SVs.licenseUrls,
-    });
-
-    const mediaWithAttribution = attribution ? (
-        <>
-            {media}
-            {attribution}
-        </>
-    ) : (
-        media
-    );
-
     return (
         <NonInlineMediaWrapper
             id={id}
@@ -506,7 +508,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 mediaContainerStyle,
                 mediaColumnStyle,
             }}
-            media={mediaWithAttribution}
+            media={media}
             description={description}
             containerRef={ref}
         />
@@ -514,12 +516,14 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 });
 
 /**
- * Render the author/license attribution caption shown beneath an image, or
- * `null` when there is nothing to attribute. License names are displayed in the
- * canonical case provided by the worker (derived from `licenseCodes`, or from
- * the `licenseName`/`licenseUrl` attributes as a fallback); each name links to
- * its license URL when one is available. `licenseNames` and `licenseUrls` are
- * index-aligned by the worker.
+ * Render the author/license attribution shown at the bottom of the image's
+ * description content (so it appears in the same info popover/`<details>` UI as
+ * an authored `<description>`), or `null` when there is nothing to attribute.
+ * It is a `<p>` so it sits alongside the description's authored paragraphs.
+ * License names are displayed in the canonical case provided by the worker
+ * (derived from `licenseCodes`, or from the `licenseName`/`licenseUrl`
+ * attributes as a fallback); each name links to its license URL when one is
+ * available. `licenseNames` and `licenseUrls` are index-aligned by the worker.
  */
 function renderImageAttribution({
     idPrefix,
@@ -573,14 +577,10 @@ function renderImageAttribution({
     });
 
     return (
-        <figcaption
-            id={`${idPrefix}-attribution`}
-            className="image-attribution"
-            style={{ fontSize: "0.85em", marginTop: "0.25em" }}
-        >
+        <p id={`${idPrefix}-attribution`} className="image-attribution">
             {hasAuthor ? <>By {authorNode}</> : null}
             {hasAuthor && hasLicense ? ". " : null}
             {hasLicense ? <>License: {licenseNodes}</> : null}
-        </figcaption>
+        </p>
     );
 }
