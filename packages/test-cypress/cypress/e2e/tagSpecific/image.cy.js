@@ -499,6 +499,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     <image name="image" source="./Doenet_Logo_Frontpage.png"
         imageName="A Squirrel" authorName="Jane Doe"
         originalUrl="https://example.com/original"
+        authorUrl="https://example.com/jane"
         licenseCodes="CC-BY-SA GFDL">
         <shortDescription>An image</shortDescription>
         <description><p>A longer description.</p></description>
@@ -532,10 +533,15 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
                 /^\u201CA Squirrel\u201D by Jane Doe is licensed under a Creative Commons Attribution-ShareAlike 4\.0 license or the GNU Free Documentation License\.$/,
             );
 
-        // the imageName (TASL title) is what links to the source URL
+        // the imageName (TASL title) links to the source URL
         cy.get("#image-attribution")
             .contains("a", "A Squirrel")
             .should("have.attr", "href", "https://example.com/original");
+
+        // the author name links to the author URL (independent of the source)
+        cy.get("#image-attribution")
+            .contains("a", "Jane Doe")
+            .should("have.attr", "href", "https://example.com/jane");
 
         // each license links to its deed, with the CC version in the label
         cy.get("#image-attribution")

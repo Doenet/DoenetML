@@ -132,6 +132,15 @@ export default class Image extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.authorUrl = {
+            description:
+                "URL to link the author's name to in the attribution (e.g. the author's profile page).",
+            createComponentOfType: "text",
+            createStateVariable: "authorUrl",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
         attributes.imageName = {
             description:
                 "Name of the image, used in place of the generic word \u201CImage\u201D in the attribution.",
@@ -142,7 +151,8 @@ export default class Image extends BlockComponent {
             forRenderer: true,
         };
         attributes.originalUrl = {
-            description: "Original URL of the image.",
+            description:
+                "Original URL where the image can be found, used to link the image name in the attribution.",
             createComponentOfType: "text",
             createStateVariable: "originalUrl",
             defaultValue: null,

@@ -45,6 +45,7 @@ interface ImageSVs {
     shortDescription?: string;
     renderInlineForListItem?: boolean;
     authorName?: string | null;
+    authorUrl?: string | null;
     imageName?: string | null;
     originalUrl?: string | null;
     licenseCodes?: string[] | null;
@@ -466,6 +467,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         idPrefix: id,
         imageName: SVs.imageName,
         authorName: SVs.authorName,
+        authorUrl: SVs.authorUrl,
         originalUrl: SVs.originalUrl,
         licenseCodes: SVs.licenseCodes,
         licenseVersion: SVs.licenseVersion,
@@ -545,8 +547,11 @@ type AttributionLicense = {
  * self-describing credit sentence (rather than a `label: value` line or a
  * separate heading). Following the TASL convention (Title, Author, Source,
  * License), the subject is the quoted `imageName` when supplied, otherwise the
- * generic word "Image"; it links to the source (`originalUrl`). The license
- * clause is phrased by kind so each reads naturally:
+ * generic word "Image"; it links to the source (`originalUrl`), and the author
+ * name links to `authorUrl` (e.g. the author's profile). The two links are
+ * independent — each name carries its own URL — so there is no contention when
+ * both are supplied. The license clause is phrased by kind so each reads
+ * naturally:
  *   - Creative Commons: "is licensed under a <name> <version> license"
  *   - other licenses (MIT, Apache, GFDL, …): "is licensed under the <name>"
  *     (their names already contain the word "License"/"Licence")
@@ -560,6 +565,7 @@ function renderImageAttribution({
     idPrefix,
     imageName,
     authorName,
+    authorUrl,
     originalUrl,
     licenseCodes,
     licenseVersion,
@@ -569,6 +575,7 @@ function renderImageAttribution({
     idPrefix: string;
     imageName?: string | null;
     authorName?: string | null;
+    authorUrl?: string | null;
     originalUrl?: string | null;
     licenseCodes?: string[] | null;
     licenseVersion?: string;
@@ -627,7 +634,14 @@ function renderImageAttribution({
 
     const subjectAndAuthor = hasAuthor ? (
         <>
-            {subjectNode} by <span>{authorName}</span>
+            {subjectNode} by{" "}
+            {authorUrl ? (
+                <a href={authorUrl} target="_blank" rel="noopener noreferrer">
+                    {authorName}
+                </a>
+            ) : (
+                <span>{authorName}</span>
+            )}
         </>
     ) : (
         subjectNode
