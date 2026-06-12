@@ -786,4 +786,42 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#image").should("be.visible");
         cy.get("img#image").should("not.exist");
     });
+
+    it("an unsupported doenet: source in a graph creates no JSXGraph image", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph name="g">
+    <image name="image" source="doenet:cid=bafkreiabc123" anchor="(1,1)">
+      <shortDescription>A legacy media reference</shortDescription>
+    </image>
+  </graph>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // the graph renders, but the unsupported doenet: source must not be
+        // handed to JSXGraph (which would request an empty URL); so no image
+        // element should be created on the board.
+        cy.get("#g").should("exist");
+
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const boardRegistry =
+                    win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+                const board = Object.values(boardRegistry).find(
+                    (b) => b?.containerObj === $g[0],
+                );
+                expect(board, "JSXGraph board for graph g").to.exist;
+
+                const images = Object.values(board.objects).filter(
+                    (o) => o?.elType === "image",
+                );
+                expect(images, "JSXGraph image elements").to.have.length(0);
+            });
+        });
+    });
 });

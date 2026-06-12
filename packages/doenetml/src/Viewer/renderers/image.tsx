@@ -289,7 +289,13 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         lastPositionFromCore.current = anchorCoords;
 
         if (imageJXG.current === null) {
-            createImageJXG();
+            // Don't create the JSXGraph image until we have a non-empty URL.
+            // An empty `url` (e.g. an unsupported `doenet:` source mapped to
+            // "missing") would otherwise be handed to JSXGraph, which can
+            // request the current document like `<img src="">`.
+            if (url) {
+                createImageJXG();
+            }
         } else {
             anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
