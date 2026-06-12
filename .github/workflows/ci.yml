@@ -434,6 +434,35 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
+    check-case-collisions:
+        name: Check Case-Insensitive Filename Collisions
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
+
+            # Case-insensitive file systems (macOS, Windows) treat paths that
+            # differ only in case as the same file. Detect tracked source files
+            # whose paths collide once lowercased so they can't break clones on
+            # those platforms.
+            - name: Check for case-insensitive filename collisions
+              run: |
+                  COLLISIONS=$(git ls-files | grep -Ei '\.(ts|tsx|js|jsx)$' | sed -E 's/\.(ts|tsx|js|jsx)$//i' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+
+                  if [ -n "$COLLISIONS" ]; then
+                    echo "❌ Error: Found files that will collide on case-insensitive file systems (like macOS/Windows):"
+                    echo ""
+                    for collision in $COLLISIONS; do
+                      echo "Collision base path: $collision"
+                      # Print the actual files that are conflicting
+                      git ls-files | grep -iE "^${collision}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
+                    done
+                    exit 1
+                  else
+                    echo "✅ No case-insensitive collisions found."
+                  fi
+
     schema-freshness:
         name: Verify schema regenerated
         runs-on: ubuntu-latest
