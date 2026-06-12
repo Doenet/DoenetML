@@ -40,6 +40,14 @@ const PassThroughWithoutTagConverter: ComponentWithPassthroughChildren = {
     component: PretextComponent._PassThroughWithoutTag,
     passthroughChildren: true,
 };
+/**
+ * Special converter only used for logging.
+ */
+const _DEBUG_PassThroughWithLoggingConverter: ComponentWithPassthroughChildren =
+    {
+        component: PretextComponent._PassThroughWithLogging,
+        passthroughChildren: true,
+    };
 const OmitElementConverter = {
     component: PretextComponent._Omit,
     passthroughChildren: false,
@@ -69,10 +77,90 @@ function passThroughWithRenamedTag(
 }
 
 /**
+ * Component that renders the value of `props[attr]` and nothing else. This can be used to render the `value` or `text` prop of a component.
+ */
+function showAttrOnly<T extends string>(
+    attr: T,
+): { component: BasicComponent<{ props: { [K in T]: string } }> } {
+    return {
+        component: ({ node }) => {
+            return node.data.props[attr];
+        },
+    };
+}
+
+/**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
  */
 export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
+    image: {
+        component: PretextComponent.Image,
+        passthroughChildren: true,
+    },
+    extractMathOperator: {
+        component: PretextComponent.ExtractMathOperator,
+    },
+    evaluate: {
+        component: PretextComponent.Math,
+    },
+    function: {
+        component: PretextComponent.Math,
+    },
+    extractMath: {
+        component: PretextComponent.Math,
+    },
+    intComma: showAttrOnly("text"),
+    integer: showAttrOnly("text"),
+    interval: {
+        component: PretextComponent.Math,
+    },
+    ion: {
+        component: PretextComponent.Math,
+    },
+    ionicCompound: {
+        component: PretextComponent.Math,
+    },
+    isBetween: {
+        component: PretextComponent.Boolean,
+    },
+    isInteger: {
+        component: PretextComponent.Boolean,
+    },
+    isNumber: {
+        component: PretextComponent.Boolean,
+    },
+    // Labels should be inside of things and removed from the DAST tree, but if someone happens to put a top-level label, show something
+    label: showAttrOnly("value"),
+    latex: showAttrOnly("text"),
+    matrix: {
+        component: PretextComponent.Math,
+    },
+    matrixInput: {
+        component: PretextComponent.MathInput,
+    },
+    orbitalDiagramInput: {
+        component: PretextComponent.MathInput,
+    },
+    paginator: PassThroughWithoutTagConverter,
+    paginatorControls: OmitElementConverter,
+    pluralize: showAttrOnly("text"),
+    hasSameFactoring: {
+        component: PretextComponent.Boolean,
+    },
+    displayDoenetML: {
+        component: PretextComponent.DisplayDoenetML,
+    },
+    spreadsheet: {
+        component: PretextComponent.Spreadsheet,
+    },
+    booleanInput: {
+        component: PretextComponent.MathInput,
+    },
+    asList: {
+        component: PretextComponent.asList,
+        passthroughChildren: true,
+    },
     orbitalDiagram: {
         component: PretextComponent.OrbitalDiagram,
     },
@@ -104,6 +192,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     men: { component: PretextComponent.DisplayMathNumbered },
     mdn: { component: PretextComponent.DisplayMathNumbered },
     math: { component: PretextComponent.Math },
+    derivative: { component: PretextComponent.Math },
     graph: { component: PretextComponent.Graph },
     point: { component: PretextComponent.PointInText },
     division: {
@@ -182,12 +271,18 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     // Tags with no representation in PreTeXt
     br: OmitElementConverter,
     hr: OmitElementConverter,
+    polygon: OmitElementConverter,
 
     // DoenetML documents all start with `<document>` (if the user didn't supply it, it is automatically added).
     // This should not be included in Pretext.
     document: PassThroughWithoutTagConverter,
     div: PassThroughWithoutTagConverter,
     cascade: PassThroughWithoutTagConverter,
+
+    // XXX: Currently we have no access to the children of <solution>. Update this to a passthrough when we do.
+    solution: _DEBUG_PassThroughWithLoggingConverter,
+    // XXX: <givenAnswer> should be renamed to <answer> in PreTeXt, but we currently don't have access to the children. Update this when we do.
+    givenAnswer: _DEBUG_PassThroughWithLoggingConverter,
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.
