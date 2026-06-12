@@ -545,4 +545,56 @@ describe("Image tag tests @group3", async () => {
                 .stateValues.licenseUrls,
         ).eqls(["https://example.com/license"]);
     });
+
+    it("imageId is derived from a doenet: source", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <image name="withId" source="doenet:abcDEF123" />
+    <image name="upperPrefix" source="DOENET:xyz789" />
+    <image name="emptyId" source="doenet:" />
+    <image name="legacyCid" source="doenet:cid=bafkreiabc123" />
+    <image name="external" source="./some_image.png" />
+    <image name="noSource" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // a doenet: source exposes the trailing identifier as imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("withId")].stateValues
+                .imageId,
+        ).eq("abcDEF123");
+
+        // the doenet: prefix is matched case-insensitively
+        expect(
+            stateVariables[await resolvePathToNodeIdx("upperPrefix")]
+                .stateValues.imageId,
+        ).eq("xyz789");
+
+        // a doenet: prefix with no id is not treated as a media reference
+        expect(
+            stateVariables[await resolvePathToNodeIdx("emptyId")].stateValues
+                .imageId,
+        ).eq(null);
+
+        // an unsupported doenet: form (e.g. a legacy cid reference) is not
+        // partially matched into an imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("legacyCid")].stateValues
+                .imageId,
+        ).eq(null);
+
+        // an ordinary URL source has no imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("external")].stateValues
+                .imageId,
+        ).eq(null);
+
+        // a missing source has no imageId
+        expect(
+            stateVariables[await resolvePathToNodeIdx("noSource")].stateValues
+                .imageId,
+        ).eq(null);
+    });
 });

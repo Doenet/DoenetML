@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useContext, useMemo, useRef } from "react";
 import JXG from "jsxgraph";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
@@ -24,6 +24,7 @@ import {
     type MediaLicenseKind,
     type CreativeCommonsVersion,
 } from "@doenet/utils";
+import { DocContext } from "../DocViewer";
 
 interface ImageSVs {
     hidden: boolean;
@@ -33,7 +34,7 @@ interface ImageSVs {
     draggable: boolean;
     anchor: any;
     positionFromAnchor: any;
-    cid?: string;
+    imageId: string | null;
     source: string;
     widthForGraph?: { size: number };
     aspectRatio?: number;
@@ -74,13 +75,18 @@ type JXGTransform = JXGElement & {
 export default React.memo(function Image(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, children, actions, callAction } =
         useDoenetRenderer<ImageSVs>(props, false);
-    let [url, setUrl] = useState<string | null>(null);
 
     // @ts-ignore
     Image.ignoreActionsWithoutCore = () => true;
 
+    const { doenetMediaUrl } = useContext(DocContext) || {};
+
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
+    // The `url` used to create the current JSXGraph image, so a later change
+    // (e.g. `source`/`imageId` becomes a different value, or resolves to the
+    // empty "missing" URL) can be detected and the graph image rebuilt/removed.
+    let lastUrl = useRef<string>("");
 
     const board = useContext(BoardContext);
 
@@ -108,17 +114,19 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         destroy: () => detachAnchoredGraphElement(imageJXG, board),
     });
 
-    const urlOrSource = (SVs.cid ? url : SVs.source) || "";
+    const url = useMemo(
+        () =>
+            getUrlForImage({
+                source: SVs.source,
+                imageId: SVs.imageId,
+                doenetMediaUrl,
+            }),
+        [SVs.source, SVs.imageId, doenetMediaUrl],
+    );
 
     const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
-
-    useEffect(() => {
-        if (SVs.cid) {
-            // TODO: need new approach for getting media
-        }
-    }, []);
 
     function createImageJXG() {
         if (board === null) {
@@ -195,7 +203,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
         let newImageJXG = board.create(
             "image",
-            [urlOrSource, offset, [width, height]],
+            [url, offset, [width, height]],
             jsxImageAttributes,
         ) as JXGImage;
 
@@ -263,6 +271,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
         imageJXG.current = newImageJXG;
         anchorPointJXG.current = newAnchorPointJXG;
+        lastUrl.current = url;
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
         currentSize.current = [width, height];
 
@@ -285,10 +294,27 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         lastPositionFromCore.current = anchorCoords;
 
         if (imageJXG.current === null) {
-            if (SVs.cid && !url) {
-                return null;
+            // Don't create the JSXGraph image until we have a non-empty URL.
+            // An empty `url` (e.g. an unsupported `doenet:` source mapped to
+            // "missing") would otherwise be handed to JSXGraph, which can
+            // request the current document like `<img src="">`.
+            if (url) {
+                createImageJXG();
             }
-            createImageJXG();
+        } else if (url !== lastUrl.current) {
+            // The resolved URL changed after the image was created. Remove the
+            // stale image (and its anchor point) and rebuild from the new URL,
+            // or leave it removed when the URL is now empty/unsupported so the
+            // graph doesn't keep showing an image that should be suppressed.
+            detachAnchoredGraphElement(imageJXG, board);
+            if (anchorPointJXG.current) {
+                board.removeObject(anchorPointJXG.current);
+                anchorPointJXG.current = null;
+            }
+            lastUrl.current = url;
+            if (url) {
+                createImageJXG();
+            }
         } else {
             anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
@@ -442,7 +468,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         imageStyle.aspectRatio = String(SVs.aspectRatio);
     }
 
-    if (!urlOrSource) {
+    if (!url) {
         imageStyle.border = "var(--mainBorder)";
     }
 
@@ -496,10 +522,10 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             );
     }
 
-    const media = urlOrSource ? (
+    const media = url ? (
         <img
             id={id}
-            src={urlOrSource}
+            src={url}
             style={imageStyle}
             alt={shortDescription}
             aria-details={descriptionId}
@@ -724,4 +750,36 @@ function renderImageAttribution({
             {sentence}
         </p>
     );
+}
+
+/**
+ * Resolve the URL to use for an image.
+ *
+ * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
+ * `imageId` holds the `<id>` and the URL is built from `doenetMediaUrl` and that
+ * id (avoiding a doubled slash when `doenetMediaUrl` already ends with `/`).
+ *
+ * A `doenet:` source that did not yield an `imageId` is an unsupported media
+ * reference (e.g. a legacy `doenet:cid=<hash>` form); rather than passing the
+ * `doenet:` URI through to `<img src>` (which would request an unknown scheme
+ * and show a broken-image icon), treat it as missing so the placeholder UI is
+ * used. Any other source is an ordinary URL/path and is returned unchanged.
+ */
+function getUrlForImage({
+    source,
+    imageId,
+    doenetMediaUrl = "https://doenet.org/api/media",
+}: {
+    source: string;
+    imageId: string | null;
+    doenetMediaUrl?: string;
+}) {
+    if (imageId) {
+        const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
+        return doenetMediaUrl + separator + imageId;
+    } else if (/^\s*doenet:/i.test(source)) {
+        return "";
+    } else {
+        return source;
+    }
 }

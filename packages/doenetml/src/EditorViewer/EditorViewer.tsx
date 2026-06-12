@@ -82,6 +82,7 @@ type EditorViewerProps = {
     activityId?: string;
     prefixForIds?: string;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -141,6 +142,7 @@ export const EditorViewer = React.forwardRef<
         activityId: specifiedActivityId,
         prefixForIds = "",
         doenetViewerUrl,
+        doenetMediaUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -1061,6 +1063,7 @@ export const EditorViewer = React.forwardRef<
                         documentStructureThenChangeCallback
                     }
                     doenetViewerUrl={doenetViewerUrl}
+                    doenetMediaUrl={doenetMediaUrl}
                     darkMode={darkMode}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}

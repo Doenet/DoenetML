@@ -86,6 +86,7 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
+    doenetMediaUrl,
     darkMode = "light",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -133,6 +134,7 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -276,6 +278,7 @@ export function DoenetViewer({
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
+            doenetMediaUrl={doenetMediaUrl}
             darkMode={darkMode}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -318,6 +321,7 @@ type DoenetEditorProps = {
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -371,6 +375,7 @@ export const DoenetEditor = React.forwardRef<
         addVirtualKeyboard = true,
         externalVirtualKeyboardProvided = false,
         doenetViewerUrl,
+        doenetMediaUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -444,6 +449,7 @@ export const DoenetEditor = React.forwardRef<
             activityId={activityId}
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
+            doenetMediaUrl={doenetMediaUrl}
             darkMode={darkMode}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}

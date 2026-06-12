@@ -688,4 +688,209 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             .contains("a", "Jane Doe")
             .should("have.attr", "href", "https://example.com/jane");
     });
+
+    it("doenet: source resolves against the default media URL", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://doenet.org/api/media/abcDEF123");
+    });
+
+    it("doenet: source resolves against a custom doenetMediaUrl", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("trailing slash on doenetMediaUrl is not doubled", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:abcDEF123">
+    <shortDescription>A Doenet-hosted image</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media/",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("an ordinary source URL is used unchanged", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="./Doenet_Logo_Frontpage.png">
+    <shortDescription>The Doenet logo</shortDescription>
+  </image>
+  `,
+                    doenetMediaUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image")
+            .should("have.attr", "src")
+            .and("match", /Doenet_Logo_Frontpage\.png$/);
+    });
+
+    it("an unsupported doenet: source renders the placeholder, not a broken image", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <image name="image" source="doenet:cid=bafkreiabc123">
+    <shortDescription>A legacy media reference</shortDescription>
+  </image>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // the unsupported doenet: URI must not be passed through to an <img>
+        cy.get("#image").should("be.visible");
+        cy.get("img#image").should("not.exist");
+    });
+
+    it("an unsupported doenet: source in a graph creates no JSXGraph image", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph name="g">
+    <image name="image" source="doenet:cid=bafkreiabc123" anchor="(1,1)">
+      <shortDescription>A legacy media reference</shortDescription>
+    </image>
+  </graph>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // the graph renders, but the unsupported doenet: source must not be
+        // handed to JSXGraph (which would request an empty URL); so no image
+        // element should be created on the board.
+        cy.get("#g").should("exist");
+
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const boardRegistry =
+                    win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+                const board = Object.values(boardRegistry).find(
+                    (b) => b?.containerObj === $g[0],
+                );
+                expect(board, "JSXGraph board for graph g").to.exist;
+
+                const images = Object.values(board.objects).filter(
+                    (o) => o?.elType === "image",
+                );
+                expect(images, "JSXGraph image elements").to.have.length(0);
+            });
+        });
+    });
+
+    it("updates the graph image when a doenet: source changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph name="g">
+    <image name="image" source="$ti" anchor="(1,1)">
+      <shortDescription>A changeable source</shortDescription>
+    </image>
+  </graph>
+  <textInput name="ti" prefill="doenet:abc123" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        function imageCount(win, $g) {
+            const boardRegistry =
+                win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+            const board = Object.values(boardRegistry).find(
+                (b) => b?.containerObj === $g[0],
+            );
+            expect(board, "JSXGraph board for graph g").to.exist;
+            return Object.values(board.objects).filter(
+                (o) => o?.elType === "image",
+            );
+        }
+
+        cy.get("#g").should("exist");
+
+        // a valid doenet: source produces one image on the board
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const images = imageCount(win, $g);
+                expect(images, "image after valid source").to.have.length(1);
+                expect(images[0].url).to.eq(
+                    "https://doenet.org/api/media/abc123",
+                );
+            });
+        });
+
+        // changing to an unsupported doenet: form removes the stale image
+        cy.get("#ti_input").clear().type("doenet:cid=bafkreiabc123{enter}");
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                expect(
+                    imageCount(win, $g),
+                    "image after unsupported source",
+                ).to.have.length(0);
+            });
+        });
+
+        // changing back to a valid doenet: source rebuilds the image with the
+        // new resolved URL
+        cy.get("#ti_input").clear().type("doenet:xyz789{enter}");
+        cy.get("#g").then(($g) => {
+            cy.window().should((win) => {
+                const images = imageCount(win, $g);
+                expect(images, "image after new valid source").to.have.length(
+                    1,
+                );
+                expect(images[0].url).to.eq(
+                    "https://doenet.org/api/media/xyz789",
+                );
+            });
+        });
+    });
 });
