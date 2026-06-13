@@ -109,6 +109,15 @@ export function seedInstructionMaps(
  * `changedState` objects are merged (`Object.assign`) and `newChildren` is
  * replaced.
  *
+ * Known limitation: when a batch omits `childrenInstructions` (common when only
+ * state changed), the synthetic element is given an empty `children` array. A
+ * fixup that consults children (currently only `sectionJsToRust`, which removes
+ * a `titleChild` and clears `xrefLabel.label`) can therefore compute a slightly
+ * wrong `changedState` for such an update. This does not affect the components
+ * this milestone drives (e.g. `textInput`); a correct fix needs the last-known
+ * children retained per component, which belongs with the deferred prototype
+ * update wiring where `section` updates are actually exercised.
+ *
  * @param updateInstructions The batches pushed by the JS core's
  *   `updateRenderersCallback`.
  * @param componentIdxToName Map from `componentIdx` to the JS component

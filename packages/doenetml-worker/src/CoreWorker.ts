@@ -117,6 +117,15 @@ export class CoreWorker {
      */
     _javascriptUpdateBuffer: UpdateInstruction[] = [];
     /**
+     * Whether the persistent `updateRenderersCallback` should buffer pushes.
+     * Only set while `dispatchActionJavascriptFlat` has an action in flight, so
+     * pushes that arrive with no in-flight action (animations, deferred async
+     * resolution — which this return-based API does not deliver anyway) are
+     * dropped rather than accumulating in `_javascriptUpdateBuffer` unbounded
+     * for the core's lifetime.
+     */
+    _capturingJavascriptUpdates = false;
+    /**
      * Map from `componentIdx` to the JS component type/name, retained from the
      * initial render and extended by each update batch. Used to select the
      * JS->Rust prop fixup in `flatDastUpdateFromJS`.
@@ -475,12 +484,17 @@ export class CoreWorker {
         // batch (e.g. triggered by `requestAction`) is appended to a buffer that
         // `dispatchActionJavascriptFlat` drains. This callback is installed once
         // on the persistent core, so it keeps receiving pushes for the core's
-        // lifetime.
+        // lifetime; later batches are only buffered while an action is in flight
+        // (`_capturingJavascriptUpdates`) so out-of-action pushes don't grow the
+        // buffer without bound.
         this._javascriptUpdateBuffer = [];
         const updateRenderersCallback = (args: any) => {
             if (args.init) {
                 updateInstructions = args.updateInstructions;
-            } else if (args.updateInstructions) {
+            } else if (
+                this._capturingJavascriptUpdates &&
+                args.updateInstructions
+            ) {
                 this._javascriptUpdateBuffer.push(...args.updateInstructions);
             }
         };
@@ -577,7 +591,9 @@ export class CoreWorker {
      *
      * Known gaps (acceptable for this milestone):
      * - Updates that arrive with no in-flight action (animations, deferred async
-     *   resolution) are not delivered by this return-based API.
+     *   resolution) are not delivered by this return-based API. The persistent
+     *   callback only buffers while an action is in flight, so such pushes are
+     *   dropped rather than buffered.
      * - `requestAction` resolving does not guarantee every async renderer push
      *   has flushed; only synchronously-available batches are drained.
      */
@@ -600,7 +616,9 @@ export class CoreWorker {
 
         try {
             this._javascriptUpdateBuffer = [];
+            this._capturingJavascriptUpdates = true;
             await this.javascriptCore.requestAction(actionArgs);
+            this._capturingJavascriptUpdates = false;
 
             const batches = this._javascriptUpdateBuffer;
             this._javascriptUpdateBuffer = [];
@@ -622,6 +640,7 @@ export class CoreWorker {
             console.error(err);
             throw err;
         } finally {
+            this._capturingJavascriptUpdates = false;
             resolve();
         }
     }
