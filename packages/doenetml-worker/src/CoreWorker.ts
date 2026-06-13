@@ -608,13 +608,15 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (!this.source_set || !this.flags_set || !this.javascriptCore) {
-            throw Error("Cannot handle action before setting source and flags");
-        }
-
         // TODO: handle case if dispatchAction is called before returnDast
 
         try {
+            if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+                throw Error(
+                    "Cannot handle action before setting source and flags",
+                );
+            }
+
             this._javascriptUpdateBuffer = [];
             this._capturingJavascriptUpdates = true;
             await this.javascriptCore.requestAction(actionArgs);
