@@ -170,10 +170,10 @@ export function flatDastFromJS(
                         continue;
                     }
 
-                    let child = elements[childInstruction.componentIdx];
+                    const child = elements[childInstruction.componentIdx];
 
                     if (!child) {
-                        child = elements[childInstruction.componentIdx] = {
+                        elements[childInstruction.componentIdx] = {
                             type: "element",
                             name: childInstruction.componentType,
                             attributes: {},
@@ -185,15 +185,13 @@ export function flatDastFromJS(
                                 ),
                             },
                         };
-                    } else {
+                    } else if (child.type === "element") {
                         // XXX: handle DastError
-                        if (child.type === "element") {
-                            child.name = childInstruction.componentType;
-                            child.data.id = childInstruction.componentIdx;
-                            child.data.action_names = Object.keys(
-                                childInstruction.actions,
-                            );
-                        }
+                        child.name = childInstruction.componentType;
+                        child.data.id = childInstruction.componentIdx;
+                        child.data.action_names = Object.keys(
+                            childInstruction.actions,
+                        );
                     }
                 }
             }
