@@ -45,6 +45,7 @@ import type { UpdateInstruction } from "./flatDastFromJS";
 import {
     collectInstructionMaps,
     flatDastUpdateFromJS,
+    seedInstructionMaps,
     type FlatDastElementUpdateFromJS,
 } from "./flatDastUpdateFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
@@ -521,17 +522,10 @@ export class CoreWorker {
         // Retain the maps that `flatDastUpdateFromJS` needs (element-type lookup
         // for fixups and the `ref` referent lookup), seeded with the document
         // root and extended with every component in the initial render.
-        this._componentIdxToName = {
-            [documentToRender.componentIdx]: documentToRender.componentType,
-        };
-        this._doenetIdToComponentIdx = {
-            [documentToRender.id]: documentToRender.componentIdx,
-        };
-        collectInstructionMaps(
-            updateInstructions,
-            this._componentIdxToName,
-            this._doenetIdToComponentIdx,
-        );
+        const { componentIdxToName, doenetIdToComponentIdx } =
+            seedInstructionMaps(documentToRender, updateInstructions);
+        this._componentIdxToName = componentIdxToName;
+        this._doenetIdToComponentIdx = doenetIdToComponentIdx;
 
         const flat_dast = flatDastFromJS(documentToRender, updateInstructions);
         return flat_dast;

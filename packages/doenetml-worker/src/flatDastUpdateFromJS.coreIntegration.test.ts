@@ -25,6 +25,7 @@ import type { ComponentInstruction, UpdateInstruction } from "./flatDastFromJS";
 import {
     collectInstructionMaps,
     flatDastUpdateFromJS,
+    seedInstructionMaps,
 } from "./flatDastUpdateFromJS";
 
 // The JS core posts diagnostics; silence it so test output stays readable.
@@ -144,16 +145,9 @@ async function createCapturingCore(doenetML: string) {
         coreResult.coreInfo.documentToRender;
 
     // Seed the lookup maps the same way `CoreWorker.returnFlatDastFromJS` does.
-    const componentIdxToName: Record<number, string> = {
-        [documentToRender.componentIdx]: documentToRender.componentType,
-    };
-    const doenetIdToComponentIdx: Record<string, number> = {
-        [documentToRender.id]: documentToRender.componentIdx,
-    };
-    collectInstructionMaps(
+    const { componentIdxToName, doenetIdToComponentIdx } = seedInstructionMaps(
+        documentToRender,
         initialUpdateInstructions,
-        componentIdxToName,
-        doenetIdToComponentIdx,
     );
 
     function resolvePathToNodeIdx(name: string, origin = 0) {

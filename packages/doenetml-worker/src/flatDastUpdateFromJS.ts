@@ -2,6 +2,7 @@ import type { FlatDastElement, FlatDastElementContent } from "./CoreWorker";
 import {
     applyElementJsToRustFixups,
     childInstructionToContent,
+    type ComponentInstruction,
     type UpdateInstruction,
 } from "./flatDastFromJS";
 
@@ -51,6 +52,37 @@ export function collectInstructionMaps(
             }
         }
     }
+    return { componentIdxToName, doenetIdToComponentIdx };
+}
+
+/**
+ * Seed the retained lookup maps for the update path from the initial render.
+ *
+ * `CoreWorker` (and the integration test that mirrors it) keep a
+ * `componentIdx -> name` map and a `doenetId -> componentIdx` map alive for the
+ * core's lifetime so `flatDastUpdateFromJS` can resolve element types and `ref`
+ * referents. This builds those maps from the document root plus the initial
+ * render's `updateInstructions`, matching the seeding `flatDastFromJS` performs
+ * internally.
+ */
+export function seedInstructionMaps(
+    documentToRender: ComponentInstruction,
+    updateInstructions: UpdateInstruction[],
+): {
+    componentIdxToName: Record<number, string>;
+    doenetIdToComponentIdx: Record<string, number>;
+} {
+    const componentIdxToName: Record<number, string> = {
+        [documentToRender.componentIdx]: documentToRender.componentType,
+    };
+    const doenetIdToComponentIdx: Record<string, number> = {
+        [documentToRender.id]: documentToRender.componentIdx,
+    };
+    collectInstructionMaps(
+        updateInstructions,
+        componentIdxToName,
+        doenetIdToComponentIdx,
+    );
     return { componentIdxToName, doenetIdToComponentIdx };
 }
 
