@@ -35,7 +35,13 @@ export type UpdateInstruction = {
 
 export type RendererStateToUpdate = {
     componentIdx: number;
-    childrenInstructions?: (ComponentInstruction | string)[];
+    // The renderer type of the component. The JS core includes this on every
+    // renderer-state entry, but the converters select fixups by
+    // `componentIdx -> name` and never read it, so it is optional here.
+    rendererType?: string;
+    // The JS core pushes `null` placeholders for children that are absent
+    // (e.g. an unrendered conditional branch), so entries may be `null`.
+    childrenInstructions?: (ComponentInstruction | string | null)[];
     stateValues: Record<string, any>;
 };
 
