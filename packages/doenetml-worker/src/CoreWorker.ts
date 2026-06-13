@@ -136,6 +136,14 @@ export class CoreWorker {
      * Retained from the initial render and extended by each update batch.
      */
     _doenetIdToComponentIdx: Record<string, number> = {};
+    /**
+     * Whether `returnFlatDastFromJS` has run, installing the persistent
+     * `updateRenderersCallback` and seeding the lookup maps above. Until then,
+     * `dispatchActionJavascriptFlat` has no callback to capture pushes and no
+     * maps to convert them, so it refuses to run rather than silently
+     * returning an empty update map.
+     */
+    _javascriptInitialRenderDone = false;
 
     isProcessingPromise = Promise.resolve();
 
@@ -540,6 +548,7 @@ export class CoreWorker {
             seedInstructionMaps(documentToRender, updateInstructions);
         this._componentIdxToName = componentIdxToName;
         this._doenetIdToComponentIdx = doenetIdToComponentIdx;
+        this._javascriptInitialRenderDone = true;
 
         const flat_dast = flatDastFromJS(documentToRender, updateInstructions);
         return flat_dast;
@@ -589,6 +598,10 @@ export class CoreWorker {
      * thunk: it clears the update buffer, awaits the action, then drains and
      * converts the buffered batches via `flatDastUpdateFromJS`.
      *
+     * Requires the initial render (`returnFlatDastFromJS`, via `returnDast`) to
+     * have run first — that is what installs the persistent callback and seeds
+     * the lookup maps; otherwise this throws rather than returning an empty map.
+     *
      * Known gaps (acceptable for this milestone):
      * - Updates that arrive with no in-flight action (animations, deferred async
      *   resolution) are not delivered by this return-based API. The persistent
@@ -608,18 +621,41 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        // TODO: handle case if dispatchAction is called before returnDast
-
         try {
             if (!this.source_set || !this.flags_set || !this.javascriptCore) {
                 throw Error(
                     "Cannot handle action before setting source and flags",
                 );
             }
+            if (!this._javascriptInitialRenderDone) {
+                // The persistent update callback and the lookup maps are
+                // installed by `returnFlatDastFromJS`; without them this method
+                // would capture nothing and return an empty update map.
+                throw Error(
+                    "Cannot dispatch a flat action before the initial render (returnDast) has run",
+                );
+            }
 
             this._javascriptUpdateBuffer = [];
             this._capturingJavascriptUpdates = true;
-            await this.javascriptCore.requestAction(actionArgs);
+            const actionResult =
+                await this.javascriptCore.requestAction(actionArgs);
+
+            // `requestAction` reports failures by returning `{ success: false,
+            // errMsg }` rather than throwing, so surface them instead of
+            // silently returning an empty update map.
+            if (
+                actionResult &&
+                typeof actionResult === "object" &&
+                "success" in actionResult &&
+                actionResult.success === false
+            ) {
+                throw Error(
+                    `Action "${actionArgs.actionName}" failed: ${
+                        actionResult.errMsg ?? "unknown error"
+                    }`,
+                );
+            }
 
             // Snapshot and clear the buffer *before* disabling capture, so a
             // renderer push that lands between `requestAction` resolving and
