@@ -128,6 +128,46 @@ describe("flatDastUpdateFromJS", () => {
         });
     });
 
+    it("replaces newChildren across batches, but preserves them when a later batch omits childrenInstructions", () => {
+        const replacedIdx = 1;
+        const preservedIdx = 4;
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: replacedIdx,
+                        stateValues: {},
+                        childrenInstructions: ["first"],
+                    },
+                    {
+                        componentIdx: preservedIdx,
+                        stateValues: {},
+                        childrenInstructions: ["only"],
+                    },
+                ],
+            },
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: replacedIdx,
+                        stateValues: {},
+                        childrenInstructions: ["second"],
+                    },
+                    // No `childrenInstructions`, so `preservedIdx`'s children
+                    // from the first batch must survive.
+                    { componentIdx: preservedIdx, stateValues: {} },
+                ],
+            },
+        ];
+
+        const updates = flatDastUpdateFromJS(updateInstructions, {});
+
+        expect(updates[replacedIdx].newChildren).toEqual(["second"]);
+        expect(updates[preservedIdx].newChildren).toEqual(["only"]);
+    });
+
     it("falls back to an empty name (no fixup) for unknown components", () => {
         const updateInstructions: UpdateInstruction[] = [
             {
