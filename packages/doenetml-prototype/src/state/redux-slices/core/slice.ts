@@ -3,11 +3,22 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DoenetMLFlags } from "../../../DoenetML";
 
+/**
+ * Which DoenetML core backs the worker. `"rust"` is the default; `"javascript"`
+ * routes `dispatchAction` through `dispatchActionJavascriptFlat` so the prototype
+ * renderers are driven by the JavaScript core via the FlatDast update path.
+ */
+export type CoreType = "rust" | "javascript";
+
 export interface CoreState {
     /**
      * Flags specifying the behavior of core
      */
     flags?: DoenetMLFlags;
+    /**
+     * Which core (`"rust"` or `"javascript"`) the worker should use.
+     */
+    coreType: CoreType;
     /**
      * The webworker used by core is stored outside of the redux store (since it is not serializable).
      * This key is used to retrieve it.
@@ -19,6 +30,7 @@ export interface CoreState {
 // Define the initial state using that type
 const initialState: CoreState = {
     flags: undefined,
+    coreType: "rust",
     workerCacheKey: undefined,
     inErrorState: false,
 };
@@ -29,6 +41,9 @@ const coreSlice = createSlice({
     reducers: {
         _setFlags: (state, action: PayloadAction<DoenetMLFlags>) => {
             state.flags = action.payload;
+        },
+        _setCoreType: (state, action: PayloadAction<CoreType>) => {
+            state.coreType = action.payload;
         },
         _setWorkerCacheKey: (state, action: PayloadAction<number>) => {
             state.workerCacheKey = action.payload;

@@ -1,6 +1,10 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import type { Action, CoreWorker } from "@doenet/doenetml-worker";
+import type {
+    Action,
+    ActionResponse,
+    CoreWorker,
+} from "@doenet/doenetml-worker";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
@@ -37,7 +41,8 @@ export const coreThunks = {
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
-            await worker.setCoreType("rust");
+            const { coreType } = selfSelector(getState());
+            await worker.setCoreType(coreType);
             const key = workerCache.length;
             workerCache[key] = { worker };
             dispatch(_coreReducerActions._setWorkerCacheKey(key));
@@ -99,11 +104,37 @@ export const coreThunks = {
                 throw new Error("No worker loaded");
             }
 
+            const { coreType } = selfSelector(getState());
+
             try {
-                const updates = await worker.dispatchAction(action);
-                dispatch(
-                    _dastReducerActions.processElementUpdates(updates.payload),
-                );
+                if (coreType === "javascript") {
+                    // The JavaScript core pushes renderer updates asynchronously
+                    // rather than returning them; `dispatchActionJavascriptFlat`
+                    // bridges that to the same `Record<componentIdx, update>`
+                    // shape the rust core returns in `ActionResponse["payload"]`.
+                    const updates = await worker.dispatchActionJavascriptFlat({
+                        actionName: action.actionName,
+                        componentIdx: action.componentIdx,
+                        args: action.args ?? {},
+                    });
+                    // The JS-core update map mirrors the rust
+                    // `ActionResponse["payload"]` shape that
+                    // `processElementUpdates` consumes (the reducer reads
+                    // `changedState`/`newChildren` loosely). The generated rust
+                    // type and the JS-shaped type differ only nominally, so cast.
+                    dispatch(
+                        _dastReducerActions.processElementUpdates(
+                            updates as unknown as ActionResponse["payload"],
+                        ),
+                    );
+                } else {
+                    const updates = await worker.dispatchAction(action);
+                    dispatch(
+                        _dastReducerActions.processElementUpdates(
+                            updates.payload,
+                        ),
+                    );
+                }
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
                 console.warn("Error while dispatching action", e);

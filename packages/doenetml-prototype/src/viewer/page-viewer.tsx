@@ -4,15 +4,18 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { dastActions, errorsSelector } from "../state/redux-slices/dast";
 import { Element } from "../renderers";
 import { globalActions } from "../state/redux-slices/global";
+import type { CoreType } from "../state/redux-slices/core/slice";
 
 export function PageViewer({
     source,
     flags,
     darkMode,
+    coreType = "rust",
 }: {
     source: string;
     flags: DoenetMLFlags;
     darkMode: string;
+    coreType?: CoreType;
 }) {
     const dispatch = useAppDispatch();
     const errors = useAppSelector(errorsSelector);
@@ -20,7 +23,9 @@ export function PageViewer({
 
     React.useEffect(() => {
         dispatch(globalActions.watchForDarkModePreferenceChange());
-        dispatch(dastActions.setSourceAndStartWorker({ source, flags }));
+        dispatch(
+            dastActions.setSourceAndStartWorker({ source, flags, coreType }),
+        );
     }, [source]);
 
     if (isInErrorState) {

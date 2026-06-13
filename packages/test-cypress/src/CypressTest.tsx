@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
+import { DoenetML as PrototypeDoenetML } from "@doenet/doenetml-prototype";
+import "@doenet/doenetml-prototype/style.css";
 import { Button } from "@doenet/ui-components";
 
 export function CypressTest() {
@@ -60,6 +62,8 @@ export function CypressTest() {
             externalDoenetMLs,
             answerResponseCounts,
             doenetMediaUrl,
+            usePrototype,
+            prototypeCoreType,
         },
         setBaseState,
     ] = useState<{
@@ -68,6 +72,8 @@ export function CypressTest() {
         externalDoenetMLs: Record<string, string>;
         answerResponseCounts?: Record<string, number>;
         doenetMediaUrl?: string;
+        usePrototype?: boolean;
+        prototypeCoreType?: "rust" | "javascript";
     }>({
         doenetMLstring: null,
         attemptNumber: testSettings.attemptNumber,
@@ -157,6 +163,8 @@ export function CypressTest() {
         let newAnswerResponseCounts: Record<string, number> | undefined =
             undefined;
         let newDoenetMediaUrl: string | undefined = undefined;
+        let newUsePrototype: boolean | undefined = undefined;
+        let newPrototypeCoreType: "rust" | "javascript" | undefined = undefined;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -183,6 +191,14 @@ export function CypressTest() {
             newDoenetMediaUrl = e.data.doenetMediaUrl;
         }
 
+        if (e.data.usePrototype !== undefined) {
+            newUsePrototype = e.data.usePrototype;
+        }
+
+        if (e.data.prototypeCoreType !== undefined) {
+            newPrototypeCoreType = e.data.prototypeCoreType;
+        }
+
         // don't do anything if receive a message from another source (like the youtube player)
         if (
             typeof newDoenetMLstring === "string" ||
@@ -194,6 +210,8 @@ export function CypressTest() {
                 externalDoenetMLs: newExternalDoenetMLs,
                 answerResponseCounts: newAnswerResponseCounts,
                 doenetMediaUrl: newDoenetMediaUrl,
+                usePrototype: newUsePrototype,
+                prototypeCoreType: newPrototypeCoreType,
             });
         }
     };
@@ -666,6 +684,34 @@ export function CypressTest() {
         );
 
         editorOrViewer = showEditor ? editor : viewer;
+
+        if (usePrototype) {
+            // The prototype renderers are driven by the FlatDast format and can
+            // be backed by either the rust core (default) or the JavaScript core
+            // (`prototypeCoreType="javascript"`). Gated behind `usePrototype` so
+            // existing `@doenet/doenetml` specs are unaffected.
+            editorOrViewer = (
+                <PrototypeDoenetML
+                    key={"prototype" + updateNumber}
+                    doenetML={doenetMLstring}
+                    flags={{
+                        showCorrectness,
+                        readOnly,
+                        solutionDisplayMode,
+                        showFeedback,
+                        showHints,
+                        allowLoadState,
+                        allowSaveState,
+                        saveRendererState,
+                        allowLocalState,
+                        allowSaveEvents,
+                        autoSubmit,
+                    }}
+                    darkMode={darkMode}
+                    coreType={prototypeCoreType ?? "rust"}
+                />
+            );
+        }
     }
 
     return (
