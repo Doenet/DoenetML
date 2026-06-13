@@ -618,10 +618,14 @@ export class CoreWorker {
             this._javascriptUpdateBuffer = [];
             this._capturingJavascriptUpdates = true;
             await this.javascriptCore.requestAction(actionArgs);
-            this._capturingJavascriptUpdates = false;
 
+            // Snapshot and clear the buffer *before* disabling capture, so a
+            // renderer push that lands between `requestAction` resolving and
+            // this drain (e.g. a microtask/next-tick continuation) is still
+            // captured rather than dropped.
             const batches = this._javascriptUpdateBuffer;
             this._javascriptUpdateBuffer = [];
+            this._capturingJavascriptUpdates = false;
 
             // Keep the lookup maps current in case the action introduced new
             // components, then convert the drained batches into the update map.
