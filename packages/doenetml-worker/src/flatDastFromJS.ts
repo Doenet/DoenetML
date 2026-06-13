@@ -26,10 +26,11 @@ export type ComponentInstruction = {
 };
 
 export type UpdateInstruction = {
-    // The initial render emits the singular `"updateRendererState"`; later
-    // batches emit the plural `"updateRendererStates"`. Both carry the renderer
-    // states the same way, so consumers read `rendererStatesToUpdate` directly.
-    instructionType: "updateRendererState" | "updateRendererStates";
+    // The JS core emits the plural `"updateRendererStates"` for every batch,
+    // including the initial render. The singular `"updateRendererState"` is
+    // accepted only for backwards/historical compatibility. Consumers ignore
+    // this field and read `rendererStatesToUpdate` directly.
+    instructionType: "updateRendererStates" | "updateRendererState";
     rendererStatesToUpdate: RendererStateToUpdate[];
 };
 

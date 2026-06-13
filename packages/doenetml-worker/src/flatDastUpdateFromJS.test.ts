@@ -188,7 +188,7 @@ describe("collectInstructionMaps", () => {
     it("records componentType and string id for every component child", () => {
         const updateInstructions: UpdateInstruction[] = [
             {
-                instructionType: "updateRendererState",
+                instructionType: "updateRendererStates",
                 rendererStatesToUpdate: [
                     {
                         componentIdx: 1,
@@ -224,7 +224,7 @@ describe("flatDastFromJS (shared-helper refactor)", () => {
     it("builds a flat root, registers children, and applies fixups", () => {
         const updateInstructions: UpdateInstruction[] = [
             {
-                instructionType: "updateRendererState",
+                instructionType: "updateRendererStates",
                 rendererStatesToUpdate: [
                     {
                         componentIdx: 0,
