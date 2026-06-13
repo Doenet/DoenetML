@@ -657,13 +657,17 @@ export class CoreWorker {
                 );
             }
 
-            // Snapshot and clear the buffer *before* disabling capture, so a
-            // renderer push that lands between `requestAction` resolving and
-            // this drain (e.g. a microtask/next-tick continuation) is still
-            // captured rather than dropped.
+            // Disable capture and snapshot+clear the buffer as one synchronous
+            // unit. There is no `await` between these statements, so no
+            // `updateRenderersCallback` push can interleave: turning capture off
+            // first guarantees a push can never land in the fresh buffer before
+            // we stop accepting, while the snapshot still holds everything that
+            // accumulated during `requestAction`. (Pushes that arrive on later
+            // ticks, after capture is off, are the documented animation/async
+            // gap and are intentionally not delivered by this return-based API.)
+            this._capturingJavascriptUpdates = false;
             const batches = this._javascriptUpdateBuffer;
             this._javascriptUpdateBuffer = [];
-            this._capturingJavascriptUpdates = false;
 
             // Keep the lookup maps current in case the action introduced new
             // components, then convert the drained batches into the update map.
