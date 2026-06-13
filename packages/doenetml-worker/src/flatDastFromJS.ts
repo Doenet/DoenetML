@@ -1,6 +1,7 @@
 import type {
     DastError,
     FlatDastElement,
+    FlatDastElementContent,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
 import { pointJsToRust } from "./jsRustConversions/point";
@@ -25,7 +26,10 @@ export type ComponentInstruction = {
 };
 
 export type UpdateInstruction = {
-    instructionType: "updateRendererState";
+    // The initial render emits the singular `"updateRendererState"`; later
+    // batches emit the plural `"updateRendererStates"`. Both carry the renderer
+    // states the same way, so consumers read `rendererStatesToUpdate` directly.
+    instructionType: "updateRendererState" | "updateRendererStates";
     rendererStatesToUpdate: RendererStateToUpdate[];
 };
 
@@ -34,6 +38,67 @@ export type RendererStateToUpdate = {
     childrenInstructions?: (ComponentInstruction | string)[];
     stateValues: Record<string, any>;
 };
+
+/**
+ * Convert a single child instruction from the JS core into the
+ * `FlatDastElementContent` form expected by the rust core / `doenetml-prototype`.
+ *
+ * Component children become `{ id, annotation: "original" }`; text children are
+ * passed through as raw strings. As a side effect, any component child's string
+ * id is recorded in `doenetIdToComponentIdx` so that later fixups (e.g. `ref`)
+ * can map a JS string id back to its `componentIdx`.
+ *
+ * Shared by both the initial converter (`flatDastFromJS`) and the update
+ * converter (`flatDastUpdateFromJS`) so the two paths cannot drift.
+ */
+export function childInstructionToContent(
+    childInstruction: ComponentInstruction | string,
+    doenetIdToComponentIdx: Record<string, number>,
+): FlatDastElementContent {
+    if (typeof childInstruction === "string") {
+        return childInstruction;
+    }
+    doenetIdToComponentIdx[childInstruction.id] = childInstruction.componentIdx;
+    return {
+        id: childInstruction.componentIdx,
+        annotation: "original",
+    };
+}
+
+/**
+ * Apply the per-component JS->Rust prop fixups to a single element, mutating
+ * `element` (and its `data.props`) in place.
+ *
+ * The fixup is selected by the element's `name`. Factored out of
+ * `flatDastFromJS` so the initial render and the update path
+ * (`flatDastUpdateFromJS`) apply identical transformations and cannot drift.
+ */
+export function applyElementJsToRustFixups(
+    element: DastError | FlatDastElement,
+    doenetIdToComponentIdx: Record<string, number>,
+) {
+    if (element?.type !== "element" || !element.data.props) {
+        return;
+    }
+
+    switch (element.name) {
+        case "text":
+            textJsToRust(element.data.props);
+            break;
+        case "section":
+            sectionJsToRust(element.data.props, element);
+            break;
+        case "point":
+            pointJsToRust(element.data.props);
+            break;
+        case "ref":
+            refJsToRust(element.data.props, doenetIdToComponentIdx);
+            break;
+        case "coords":
+            element.name = "math";
+            break;
+    }
+}
 
 /**
  * Transform the initial output from the JS core, i.e., `documentToRender` and `updateInstructions`
@@ -90,40 +155,44 @@ export function flatDastFromJS(
 
             if (rendererState.childrenInstructions) {
                 for (const childInstruction of rendererState.childrenInstructions) {
+                    if (childInstruction == null) {
+                        continue;
+                    }
+
+                    element.children.push(
+                        childInstructionToContent(
+                            childInstruction,
+                            doenetIdToComponentIdx,
+                        ),
+                    );
+
                     if (typeof childInstruction === "string") {
-                        element.children.push(childInstruction);
-                    } else if (childInstruction != null) {
-                        doenetIdToComponentIdx[childInstruction.id] =
-                            childInstruction.componentIdx;
-                        element.children.push({
-                            id: childInstruction.componentIdx,
-                            annotation: "original",
-                        });
+                        continue;
+                    }
 
-                        let child = elements[childInstruction.componentIdx];
+                    let child = elements[childInstruction.componentIdx];
 
-                        if (!child) {
-                            child = {
-                                type: "element",
-                                name: childInstruction.componentType,
-                                attributes: {},
-                                children: [],
-                                data: {
-                                    id: childInstruction.componentIdx,
-                                    action_names: Object.keys(
-                                        childInstruction.actions,
-                                    ),
-                                },
-                            };
-                        } else {
-                            // XXX: handle DastError
-                            if (child.type === "element") {
-                                child.name = childInstruction.componentType;
-                                child.data.id = childInstruction.componentIdx;
-                                child.data.action_names = Object.keys(
+                    if (!child) {
+                        child = {
+                            type: "element",
+                            name: childInstruction.componentType,
+                            attributes: {},
+                            children: [],
+                            data: {
+                                id: childInstruction.componentIdx,
+                                action_names: Object.keys(
                                     childInstruction.actions,
-                                );
-                            }
+                                ),
+                            },
+                        };
+                    } else {
+                        // XXX: handle DastError
+                        if (child.type === "element") {
+                            child.name = childInstruction.componentType;
+                            child.data.id = childInstruction.componentIdx;
+                            child.data.action_names = Object.keys(
+                                childInstruction.actions,
+                            );
                         }
                     }
                 }
@@ -133,27 +202,7 @@ export function flatDastFromJS(
 
     // Make transformations for JS data to rust data specific to particular elements
     for (const element of elements) {
-        if (element?.type !== "element" || !element.data.props) {
-            continue;
-        }
-
-        switch (element.name) {
-            case "text":
-                textJsToRust(element.data.props);
-                break;
-            case "section":
-                sectionJsToRust(element.data.props, element);
-                break;
-            case "point":
-                pointJsToRust(element.data.props);
-                break;
-            case "ref":
-                refJsToRust(element.data.props, doenetIdToComponentIdx);
-                break;
-            case "coords":
-                element.name = "math";
-                break;
-        }
+        applyElementJsToRustFixups(element, doenetIdToComponentIdx);
     }
 
     const flat_root: FlatDastRootWithErrors = {
