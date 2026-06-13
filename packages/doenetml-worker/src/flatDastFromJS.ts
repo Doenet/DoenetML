@@ -173,7 +173,7 @@ export function flatDastFromJS(
                     let child = elements[childInstruction.componentIdx];
 
                     if (!child) {
-                        child = {
+                        child = elements[childInstruction.componentIdx] = {
                             type: "element",
                             name: childInstruction.componentType,
                             attributes: {},
