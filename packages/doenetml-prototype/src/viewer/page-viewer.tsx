@@ -28,11 +28,18 @@ export function PageViewer({
         dispatch(globalActions.watchForDarkModePreferenceChange());
     }, []);
 
+    // Re-run when the source, core, or any flag *value* changes. The parent
+    // rebuilds the `flags` object on every render, so depend on a serialized
+    // key of its values rather than its identity to avoid re-initializing the
+    // worker on unrelated re-renders while still picking up real flag changes.
+    const flagsKey = JSON.stringify(flags);
     React.useEffect(() => {
         dispatch(
             dastActions.setSourceAndStartWorker({ source, flags, coreType }),
         );
-    }, [source, coreType]);
+        // `flags` is intentionally tracked via `flagsKey`, not by object identity.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [source, coreType, flagsKey]);
 
     if (isInErrorState) {
         return `Error: ${JSON.stringify(errors)}`;
