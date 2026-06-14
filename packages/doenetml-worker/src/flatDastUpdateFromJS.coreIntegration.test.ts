@@ -252,17 +252,22 @@ describe.skipIf(!wasmAvailable)(
             const pIdx = await resolvePathToNodeIdx("P");
             const nIdx = await resolvePathToNodeIdx("n");
 
-            // The prototype's graph-point renderer dispatches the rust action
-            // name `move`; the JS core registers it as `movePoint`. Without the
-            // translation `CoreWorker.dispatchActionJavascriptFlat` applies, the
-            // JS core silently no-ops and nothing updates.
-            expect(translateJsCoreActionName("point", "move")).toBe(
-                "movePoint",
+            // Exercise the exact lookup `CoreWorker.dispatchActionJavascriptFlat`
+            // performs: resolve the component type from the map seeded during the
+            // initial render, then translate. The prototype's graph-point
+            // renderer dispatches the rust action name `move`; the JS core
+            // registers it as `movePoint`. Without the translation the JS core
+            // silently no-ops and nothing updates.
+            expect(componentIdxToName[pIdx]).toBe("point");
+            const movePointAction = translateJsCoreActionName(
+                componentIdxToName[pIdx],
+                "move",
             );
+            expect(movePointAction).toBe("movePoint");
 
             await core.requestAction({
                 componentIdx: pIdx,
-                actionName: translateJsCoreActionName("point", "move"),
+                actionName: movePointAction,
                 args: { x: 7, y: 9 },
             });
 
@@ -301,21 +306,23 @@ describe.skipIf(!wasmAvailable)(
             const gIdx = await resolvePathToNodeIdx("g");
             const xmaxIdx = await resolvePathToNodeIdx("xmax");
 
-            // The prototype's graph renderer dispatches the rust action name
-            // `changeBoundingBox`; the JS core registers it as `changeAxisLimits`.
-            expect(
-                translateJsCoreActionName("graph", "changeBoundingBox"),
-            ).toBe("changeAxisLimits");
+            // Mirror the bridge's lookup: resolve the component type from the
+            // seeded map, then translate. The prototype's graph renderer
+            // dispatches the rust action name `changeBoundingBox`; the JS core
+            // registers it as `changeAxisLimits`.
+            expect(componentIdxToName[gIdx]).toBe("graph");
+            const changeBoundingBoxAction = translateJsCoreActionName(
+                componentIdxToName[gIdx],
+                "changeBoundingBox",
+            );
+            expect(changeBoundingBoxAction).toBe("changeAxisLimits");
 
             // Panning/zooming the graph in the renderer changes its bounding box.
             // Because `xmax` is the source of the graph's `xMax`, the new value
             // must flow back to the `number` so its `$xmax` display updates.
             await core.requestAction({
                 componentIdx: gIdx,
-                actionName: translateJsCoreActionName(
-                    "graph",
-                    "changeBoundingBox",
-                ),
+                actionName: changeBoundingBoxAction,
                 args: { xMin: -5, xMax: 25, yMin: -5, yMax: 5 },
             });
 
