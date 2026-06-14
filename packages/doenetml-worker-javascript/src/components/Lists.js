@@ -84,6 +84,11 @@ export class Ol extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnScoredSectionStateVariableDefinition(),
+        );
+
         stateVariableDefinitions.numbered = {
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -129,11 +134,6 @@ export class Ol extends BlockComponent {
                 return { setValue: { level } };
             },
         };
-
-        Object.assign(
-            stateVariableDefinitions,
-            returnScoredSectionStateVariableDefinition(),
-        );
 
         return stateVariableDefinitions;
     }
