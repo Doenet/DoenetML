@@ -328,5 +328,89 @@ describe.skipIf(!wasmAvailable)(
             expect(updates[xmaxIdx]).toBeDefined();
             expect(updates[xmaxIdx].changedState?.text).toBe("25");
         });
+
+        it("updates a point's `coordsLatex` after a move, so a `$P` point-in-text echo re-renders", async () => {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+                drainBatches,
+            } = await createCapturingCore(
+                `<graph><point name="P">(3,4)</point></graph>
+<p>pt: $P</p>`,
+            );
+
+            const pIdx = await resolvePathToNodeIdx("P");
+
+            await core.requestAction({
+                componentIdx: pIdx,
+                actionName: translateJsCoreActionName("point", "move"),
+                args: { x: 7, y: 8 },
+            });
+
+            const batches = drainBatches();
+            expect(batches.length).toBeGreaterThan(0);
+
+            collectInstructionMaps(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+            const updates = flatDastUpdateFromJS(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+
+            // `$P` rendered in text is the prototype's `PointInText`, which reads
+            // `coordsLatex`. The `pointJsToRust` fixup must produce it on the
+            // update path so the echo shows the moved coordinates.
+            expect(updates[pIdx]).toBeDefined();
+            expect(updates[pIdx].changedState?.coordsLatex).toBe(
+                "\\left( 7, 8 \\right)",
+            );
+        });
+
+        it("updates a `<math>$P.x</math>`'s latex after the referenced point moves", async () => {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+                drainBatches,
+            } = await createCapturingCore(
+                `<graph><point name="P">(3,4)</point></graph>
+<p>x: <math name="mx">$P.x</math></p>`,
+            );
+
+            const pIdx = await resolvePathToNodeIdx("P");
+            const mxIdx = await resolvePathToNodeIdx("mx");
+
+            await core.requestAction({
+                componentIdx: pIdx,
+                actionName: translateJsCoreActionName("point", "move"),
+                args: { x: 7, y: 8 },
+            });
+
+            const batches = drainBatches();
+            expect(batches.length).toBeGreaterThan(0);
+
+            collectInstructionMaps(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+            const updates = flatDastUpdateFromJS(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+
+            // The prototype's `Math` renderer reads `latex`; after the point
+            // moves, `$P.x` is `7`.
+            expect(updates[mxIdx]).toBeDefined();
+            expect(updates[mxIdx].changedState?.latex).toBe("7");
+        });
     },
 );
