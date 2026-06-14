@@ -22,6 +22,7 @@ import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 
 import { defaultFlags } from "../../doenetml/src/flags";
 import type { ComponentInstruction, UpdateInstruction } from "./flatDastFromJS";
+import { flatDastFromJS } from "./flatDastFromJS";
 import {
     collectInstructionMaps,
     flatDastUpdateFromJS,
@@ -172,12 +173,20 @@ async function createCapturingCore(doenetML: string) {
         return batches;
     }
 
+    // Build the initial FlatDast root the same way `CoreWorker` does, so tests
+    // can assert on the initial-render props the prototype renderers consume.
+    const flatDastRoot = flatDastFromJS(
+        documentToRender,
+        initialUpdateInstructions,
+    );
+
     return {
         core,
         resolvePathToNodeIdx,
         componentIdxToName,
         doenetIdToComponentIdx,
         drainBatches,
+        flatDastRoot,
     };
 }
 
@@ -411,6 +420,57 @@ describe.skipIf(!wasmAvailable)(
             // moves, `$P.x` is `7`.
             expect(updates[mxIdx]).toBeDefined();
             expect(updates[mxIdx].changedState?.latex).toBe("7");
+        });
+
+        it("populates a `<m>`'s latex prop so the renderer can show it (initial render + value-commit update)", async () => {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+                drainBatches,
+                flatDastRoot,
+            } = await createCapturingCore(
+                `<textInput name="ti" prefill="abc" />
+<m name="mm">$ti</m>`,
+            );
+
+            const tiIdx = await resolvePathToNodeIdx("ti");
+            const mmIdx = await resolvePathToNodeIdx("mm");
+
+            // The JS core (like production doenetml) carries `<m>`'s content in a
+            // `latex` prop with no children; the prototype `M` renderer reads it.
+            const mmElement = flatDastRoot.elements[mmIdx];
+            expect(mmElement.type).toBe("element");
+            expect((mmElement as any).data.props.latex).toBe("abc");
+
+            // Commit a new value (`<m>$ti</m>` references `value`, which updates
+            // on commit rather than per-keystroke), then convert the batches.
+            await core.requestAction({
+                componentIdx: tiIdx,
+                actionName: "updateImmediateValue",
+                args: { text: "xyz" },
+            });
+            await core.requestAction({
+                componentIdx: tiIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+
+            const batches = drainBatches();
+            collectInstructionMaps(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+            const updates = flatDastUpdateFromJS(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+
+            expect(updates[mmIdx]).toBeDefined();
+            expect(updates[mmIdx].changedState?.latex).toBe("xyz");
         });
     },
 );
