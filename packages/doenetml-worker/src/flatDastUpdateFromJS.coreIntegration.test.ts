@@ -27,6 +27,7 @@ import {
     flatDastUpdateFromJS,
     seedInstructionMaps,
 } from "./flatDastUpdateFromJS";
+import { translateJsCoreActionName } from "./jsCoreActionNames";
 
 // The JS core posts diagnostics; silence it so test output stays readable.
 vi.stubGlobal("postMessage", vi.fn());
@@ -225,6 +226,55 @@ describe.skipIf(!wasmAvailable)(
             // what the prototype's `processElementUpdates` reducer consumes.
             expect(updates[tiIdx]).toBeDefined();
             expect(updates[tiIdx].changedState?.immediateValue).toBe("world");
+        });
+
+        it("translates the prototype `move` action to the JS core's `movePoint` and updates referencing components", async () => {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+                drainBatches,
+            } = await createCapturingCore(
+                `<graph><point name="P">(3,4)</point></graph>
+<p>x is <number name="n">$P.x</number></p>`,
+            );
+
+            const pIdx = await resolvePathToNodeIdx("P");
+            const nIdx = await resolvePathToNodeIdx("n");
+
+            // The prototype's graph-point renderer dispatches the rust action
+            // name `move`; the JS core registers it as `movePoint`. Without the
+            // translation `CoreWorker.dispatchActionJavascriptFlat` applies, the
+            // JS core silently no-ops and nothing updates.
+            expect(translateJsCoreActionName("point", "move")).toBe(
+                "movePoint",
+            );
+
+            await core.requestAction({
+                componentIdx: pIdx,
+                actionName: translateJsCoreActionName("point", "move"),
+                args: { x: 7, y: 9 },
+            });
+
+            const batches = drainBatches();
+            expect(batches.length).toBeGreaterThan(0);
+
+            collectInstructionMaps(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+            const updates = flatDastUpdateFromJS(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+
+            // The moved point's new x-coordinate reached the referencing
+            // `number`'s `changedState`, so the prototype's `$P.x` echo updates.
+            expect(updates[nIdx]).toBeDefined();
+            expect(updates[nIdx].changedState?.text).toBe("7");
         });
     },
 );
