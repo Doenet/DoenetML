@@ -21,8 +21,14 @@ export function PageViewer({
     const errors = useAppSelector(errorsSelector);
     const isInErrorState = errors.length > 0;
 
+    // Register the dark-mode watcher once. It adds a `matchMedia` listener
+    // that is never removed, so it must not run on every `source`/`coreType`
+    // change (that would register duplicate listeners).
     React.useEffect(() => {
         dispatch(globalActions.watchForDarkModePreferenceChange());
+    }, []);
+
+    React.useEffect(() => {
         dispatch(
             dastActions.setSourceAndStartWorker({ source, flags, coreType }),
         );

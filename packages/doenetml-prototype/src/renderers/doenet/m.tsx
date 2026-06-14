@@ -20,22 +20,29 @@ export const M: BasicComponentWithPassthroughChildren<MData> = ({
     const onServer = useAppSelector(renderingOnServerSelector);
 
     const latex = node.data.props.latex;
-    const content =
-        latex != null && latex !== ""
+    const hasLatex = latex != null && latex !== "";
+
+    if (onServer) {
+        // Use the JS core's `latex` prop when present; otherwise render the
+        // children directly, preserving the rust core's referenced child
+        // element (stringifying it would yield "[object Object]").
+        return (
+            <span className="process-math">{hasLatex ? latex : children}</span>
+        );
+    }
+    // better-react-mathjax cannot handle multiple children (it will not update
+    // when they change), so create a single string. Without a `latex` prop
+    // (rust core) fall back to joining the children.
+    const latexString = `\\(${
+        hasLatex
             ? latex
             : Array.isArray(children)
               ? children.join("")
-              : String(children);
-
-    if (onServer) {
-        return <span className="process-math">{content}</span>;
-    }
-    // better-react-mathjax cannot handle multiple children (it will not update when they change)
-    // so create a single string.
-    const childrenString = `\\(${content}\\)`;
+              : String(children)
+    }\\)`;
     return (
         <MathJax inline dynamic>
-            {childrenString}
+            {latexString}
         </MathJax>
     );
 };
