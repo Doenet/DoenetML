@@ -167,8 +167,13 @@ export function CypressTest() {
         let newAnswerResponseCounts: Record<string, number> | undefined =
             undefined;
         let newDoenetMediaUrl: string | undefined = undefined;
-        let newUsePrototype: boolean | undefined = undefined;
-        let newPrototypeCoreType: "rust" | "javascript" | undefined = undefined;
+        // Keep the selected renderer sticky across incremental messages (e.g. a
+        // later message that only changes `attemptNumber` or re-sends
+        // `doenetML`): default to the current values and only override when the
+        // message explicitly includes these fields.
+        let newUsePrototype: boolean | undefined = usePrototype;
+        let newPrototypeCoreType: "rust" | "javascript" | undefined =
+            prototypeCoreType;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
