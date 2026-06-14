@@ -10,6 +10,7 @@ import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
 import { _dastReducerActions } from "../dast";
 import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
+import type { CoreType } from "./slice";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -22,7 +23,10 @@ export function createWrappedCoreWorker() {
     return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
 }
 
-export const workerCache: { worker: Comlink.Remote<CoreWorker> }[] = [];
+export const workerCache: {
+    worker: Comlink.Remote<CoreWorker>;
+    coreType: CoreType;
+}[] = [];
 // XXX: temporary for debugging
 (window as any).wc = workerCache;
 
@@ -33,18 +37,18 @@ export const coreThunks = {
     _loadWorker: createLoggingAsyncThunk(
         "core/loadWorker",
         async (_: void, { dispatch, getState }) => {
-            const { workerCacheKey } = selfSelector(getState());
-            if (workerCacheKey != null && workerCache[workerCacheKey]?.worker) {
+            const { workerCacheKey, coreType } = selfSelector(getState());
+            const cachedWorker = workerCache[workerCacheKey ?? -1];
+            if (cachedWorker?.worker && cachedWorker.coreType === coreType) {
                 // There's already a worker loaded
                 return;
             }
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
-            const { coreType } = selfSelector(getState());
             await worker.setCoreType(coreType);
             const key = workerCache.length;
-            workerCache[key] = { worker };
+            workerCache[key] = { worker, coreType };
             dispatch(_coreReducerActions._setWorkerCacheKey(key));
         },
     ),

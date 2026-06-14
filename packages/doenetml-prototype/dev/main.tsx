@@ -8,8 +8,7 @@ import doenetMLstring from "./testCode.doenet?raw";
 type CoreType = "rust" | "javascript";
 
 /**
- * Read the selected core from the `?core=` query param so the choice survives
- * the page reload that switching cores triggers (see `selectCore`).
+ * Read the selected core from the `?core=` query param so the choice survives reloads.
  */
 function getInitialCoreType(): CoreType {
     const param = new URLSearchParams(window.location.search).get("core");
@@ -20,18 +19,16 @@ const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
-    const coreType = getInitialCoreType();
+    const [coreType, setCoreType] = React.useState(getInitialCoreType);
 
     function selectCore(next: CoreType) {
         if (next === coreType) {
             return;
         }
-        // The worker is created once and cached for the lifetime of the page,
-        // so a full reload is the reliable way to spin up a fresh worker
-        // initialized with the newly chosen core.
+        setCoreType(next);
         const url = new URL(window.location.href);
         url.searchParams.set("core", next);
-        window.location.href = url.href;
+        window.history.replaceState(null, "", url.href);
     }
 
     return (

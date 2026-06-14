@@ -77,6 +77,65 @@ describe("flatDastUpdateFromJS", () => {
         expect(updates[1].changedState).toEqual({});
     });
 
+    it("includes full elements for components first introduced by an update", () => {
+        const knownElementIds = new Set([1]);
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 1,
+                        stateValues: {},
+                        childrenInstructions: [
+                            componentInstruction({
+                                actions: {
+                                    updateValue: {
+                                        actionName: "updateValue",
+                                        componentIdx: 3,
+                                    },
+                                },
+                                componentIdx: 3,
+                                componentType: "textInput",
+                                id: "/_textInput1",
+                            }),
+                        ],
+                    },
+                    {
+                        componentIdx: 3,
+                        stateValues: {
+                            immediateValue: "new",
+                            value: "new",
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const updates = flatDastUpdateFromJS(
+            updateInstructions,
+            { 1: "p", 3: "textInput" },
+            {},
+            knownElementIds,
+        );
+
+        expect(updates[1].newChildren).toEqual([
+            { id: 3, annotation: "original" },
+        ]);
+        expect(updates[3].element).toMatchObject({
+            type: "element",
+            name: "textInput",
+            data: {
+                id: 3,
+                action_names: ["updateValue"],
+                props: {
+                    immediateValue: "new",
+                    value: "new",
+                },
+            },
+        });
+        expect(knownElementIds.has(3)).toBe(true);
+    });
+
     it("applies the point fixup, deriving math objects from numericalXs", () => {
         const updateInstructions: UpdateInstruction[] = [
             {

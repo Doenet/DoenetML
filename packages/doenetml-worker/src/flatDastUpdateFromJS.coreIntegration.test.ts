@@ -176,6 +176,7 @@ async function createCapturingCore(doenetML: string) {
         documentToRender,
         initialUpdateInstructions,
     );
+    let knownElementIds = new Set<number>();
 
     function resolvePathToNodeIdx(name: string, origin = 0) {
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
@@ -198,6 +199,7 @@ async function createCapturingCore(doenetML: string) {
             batches,
             componentIdxToName,
             doenetIdToComponentIdx,
+            knownElementIds,
         );
         return { batches, updates };
     }
@@ -207,6 +209,11 @@ async function createCapturingCore(doenetML: string) {
     const flatDastRoot = flatDastFromJS(
         documentToRender,
         initialUpdateInstructions,
+    );
+    knownElementIds = new Set(
+        flatDastRoot.elements
+            .map((element, index) => (element == null ? undefined : index))
+            .filter((index): index is number => index != null),
     );
 
     return {
