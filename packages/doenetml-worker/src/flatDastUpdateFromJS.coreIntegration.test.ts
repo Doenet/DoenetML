@@ -276,5 +276,57 @@ describe.skipIf(!wasmAvailable)(
             expect(updates[nIdx]).toBeDefined();
             expect(updates[nIdx].changedState?.text).toBe("7");
         });
+
+        it("translates the prototype `changeBoundingBox` action and propagates back to a bound number", async () => {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+                drainBatches,
+            } = await createCapturingCore(
+                `<number name="xmax">10</number>
+<graph name="g" xmax="$xmax"><point name="P">(1,2)</point></graph>`,
+            );
+
+            const gIdx = await resolvePathToNodeIdx("g");
+            const xmaxIdx = await resolvePathToNodeIdx("xmax");
+
+            // The prototype's graph renderer dispatches the rust action name
+            // `changeBoundingBox`; the JS core registers it as `changeAxisLimits`.
+            expect(
+                translateJsCoreActionName("graph", "changeBoundingBox"),
+            ).toBe("changeAxisLimits");
+
+            // Panning/zooming the graph in the renderer changes its bounding box.
+            // Because `xmax` is the source of the graph's `xMax`, the new value
+            // must flow back to the `number` so its `$xmax` display updates.
+            await core.requestAction({
+                componentIdx: gIdx,
+                actionName: translateJsCoreActionName(
+                    "graph",
+                    "changeBoundingBox",
+                ),
+                args: { xMin: -5, xMax: 25, yMin: -5, yMax: 5 },
+            });
+
+            const batches = drainBatches();
+            expect(batches.length).toBeGreaterThan(0);
+
+            collectInstructionMaps(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+            const updates = flatDastUpdateFromJS(
+                batches,
+                componentIdxToName,
+                doenetIdToComponentIdx,
+            );
+
+            // The bound `number`'s rendered `text` reflects the new x-max (25).
+            expect(updates[xmaxIdx]).toBeDefined();
+            expect(updates[xmaxIdx].changedState?.text).toBe("25");
+        });
     },
 );
