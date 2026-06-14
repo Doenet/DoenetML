@@ -78,7 +78,9 @@ function App() {
                     Using <strong>{coreType}</strong> core
                 </span>
             </div>
-            <div style={{ flex: "1 1 auto", overflow: "auto", padding: "12px" }}>
+            <div
+                style={{ flex: "1 1 auto", overflow: "auto", padding: "12px" }}
+            >
                 <DoenetML
                     key={coreType}
                     doenetML={doenetMLstring}
