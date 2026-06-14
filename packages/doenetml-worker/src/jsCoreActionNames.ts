@@ -11,6 +11,12 @@
  * graph actions take `{xMin, xMax, yMin, yMax}`), so only the name needs
  * translating.
  *
+ * This name translation is temporary scaffolding. The differing names are an
+ * artifact of the JS and Rust cores being developed separately; once the action
+ * names are unified there will be a single name in both cores (the old JS name
+ * may linger internally for a while, since the JS core will eventually be
+ * replaced by Rust). When that happens this whole module can go away.
+ *
  * Keyed by component type, then by the rust/prototype action name. Component
  * types absent here (or action names that aren't overridden) pass through
  * unchanged. Keep this in sync with the rust `Actions` enums in

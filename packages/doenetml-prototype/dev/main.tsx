@@ -1,11 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { EditorViewer } from "../src/index";
+import type { CoreType } from "../src/index";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
-
-type CoreType = "rust" | "javascript";
 
 /**
  * Read the selected core from the `?core=` query param so the choice survives

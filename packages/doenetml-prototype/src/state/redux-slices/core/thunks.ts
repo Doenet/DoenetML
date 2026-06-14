@@ -128,20 +128,21 @@ export const coreThunks = {
 
             try {
                 if (coreType === "javascript") {
-                    // The JavaScript core pushes renderer updates asynchronously
-                    // rather than returning them; `dispatchActionJavascriptFlat`
-                    // bridges that to the same `Record<componentIdx, update>`
-                    // shape the rust core returns in `ActionResponse["payload"]`.
+                    // The JavaScript core does not return renderer updates from
+                    // an action; instead it pushes them through a callback.
+                    // `dispatchActionJavascriptFlat` collects those pushed
+                    // updates and returns them as the same
+                    // `Record<componentIdx, update>` map the rust core returns
+                    // in `ActionResponse["payload"]`.
                     const updates = await worker.dispatchActionJavascriptFlat({
                         actionName: action.actionName,
                         componentIdx: action.componentIdx,
                         args: action.args ?? {},
                     });
-                    // The JS-core update map mirrors the rust
-                    // `ActionResponse["payload"]` shape that
-                    // `processElementUpdates` consumes (the reducer reads
-                    // `changedState`/`newChildren` loosely). The generated rust
-                    // type and the JS-shaped type differ only nominally, so cast.
+                    // XXX (June 2026): dispatchActionJavascriptFlat returns
+                    // `Record<number, FlatDastElementUpdateFromJS>`, which is
+                    // shaped like ActionResponse["payload"] but is a distinct
+                    // (JS-side) type. Remove this cast once the two share a type.
                     dispatch(
                         _dastReducerActions.processElementUpdates(
                             updates as unknown as ActionResponse["payload"],
