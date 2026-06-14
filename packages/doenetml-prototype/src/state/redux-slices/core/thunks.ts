@@ -46,6 +46,19 @@ export const coreThunks = {
                 // There's already a worker loaded for this core
                 return;
             }
+
+            // The selected worker runs a different core. Before allocating a new
+            // one, reuse any previously-created worker for the requested core
+            // (e.g. after switching cores back and forth) so the cache doesn't
+            // grow and leave duplicate workers running.
+            const existingKey = workerCache.findIndex(
+                (entry) => entry?.worker && entry.coreType === coreType,
+            );
+            if (existingKey !== -1) {
+                dispatch(_coreReducerActions._setWorkerCacheKey(existingKey));
+                return;
+            }
+
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
