@@ -143,6 +143,40 @@ describe("section-wide check work attribute tests @group2", async () => {
         await test_section_wide_check_work(core, resolvePathToNodeIdx, "li2");
     });
 
+    it("ol with section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <ol name="ol1">
+        <li>1: <answer name="a1">1</answer>, 2: <answer name="a2">2</answer></li>
+    </ol>
+    <ol name="ol2" sectionWideCheckWork>
+        <li>3: <answer name="a3">3</answer>, 4: <answer name="a4">4</answer></li>
+    </ol>
+  </document>
+  `,
+        });
+
+        await test_section_wide_check_work(core, resolvePathToNodeIdx, "ol2");
+    });
+
+    it("ul with section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <ul name="ul1">
+        <li>1: <answer name="a1">1</answer>, 2: <answer name="a2">2</answer></li>
+    </ul>
+    <ul name="ul2" sectionWideCheckWork>
+        <li>3: <answer name="a3">3</answer>, 4: <answer name="a4">4</answer></li>
+    </ul>
+  </document>
+  `,
+        });
+
+        await test_section_wide_check_work(core, resolvePathToNodeIdx, "ul2");
+    });
+
     it("span with section-wide check work", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -273,7 +307,9 @@ describe("section-wide check work attribute tests @group2", async () => {
             doenetML: `
   <document name="d">
     <section name="sec" sectionWideCheckWork>
-      <answer name="a1" maxNumAttempts="3">1</answer>
+      <section>
+        <answer name="a1" maxNumAttempts="3">1</answer>
+      </section>
     </section>
   </document>
   `,

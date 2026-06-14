@@ -5,7 +5,7 @@
  * number of submissions via `maxNumAttempts`).
  *
  * This is shared by all containers that can host section-wide check work
- * (sections, `<p>`, `<li>`, `<div>`, `<span>`, lists, divisions, and the
+ * (sections, `<p>`, `<ol>`, `<ul>`, `<li>`, `<div>`, `<span>`, and the
  * document), so the feature is defined in exactly one place. The document
  * reuses this set but removes the score-aggregation attributes it does not
  * expose; see `Document.js`.
@@ -118,7 +118,7 @@ export function returnScoredSectionAttributes() {
 /**
  * State variables implementing a "scored section": the section-wide check work
  * feature plus score aggregation, shared by containers (sections, `<p>`,
- * `<li>`, `<div>`, `<span>`, lists, divisions, and the document). Pairs with
+ * `<ol>`, `<ul>`, `<li>`, `<div>`, `<span>`, and the document). Pairs with
  * {@link returnScoredSectionAttributes}.
  *
  * The section-wide check work portion includes the section-wide submit button
@@ -358,6 +358,8 @@ export function returnScoredSectionStateVariableDefinition() {
                     "setup",
                     "_blockScoredComponent",
                     "p",
+                    "ol",
+                    "ul",
                     "li",
                     "div",
                     "span",

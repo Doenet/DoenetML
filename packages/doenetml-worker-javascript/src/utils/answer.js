@@ -3,6 +3,13 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 
+function returnScoredContainerAncestorDependency(variableName) {
+    return {
+        dependencyType: "ancestor",
+        variableNames: [variableName],
+    };
+}
+
 export function returnStandardAnswerAttributes() {
     return {
         weight: {
@@ -515,54 +522,17 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
-            // Used only to warn when an answer's own `maxNumAttempts` is set
-            // inside a container with section-wide check work, where the answer
-            // limit does not make sense. Mirror the ancestor enumeration used
-            // for `suppressAnswerSubmitButtons` in Answer.js.
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
-                variableNames: ["sectionWideCheckWork"],
-            },
-            sectionAncestor: {
-                dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["sectionWideCheckWork"],
-            },
-            pAncestor: {
-                dependencyType: "ancestor",
-                componentType: "p",
-                variableNames: ["sectionWideCheckWork"],
-            },
-            liAncestor: {
-                dependencyType: "ancestor",
-                componentType: "li",
-                variableNames: ["sectionWideCheckWork"],
-            },
-            divAncestor: {
-                dependencyType: "ancestor",
-                componentType: "div",
-                variableNames: ["sectionWideCheckWork"],
-            },
-            spanAncestor: {
-                dependencyType: "ancestor",
-                componentType: "span",
-                variableNames: ["sectionWideCheckWork"],
-            },
+            ancestorSuppressingAnswerSubmitButtons:
+                returnScoredContainerAncestorDependency(
+                    "suppressAnswerSubmitButtons",
+                ),
         }),
         definition({ dependencyValues, usedDefault }) {
             let sendDiagnostics = [];
 
             let insideSectionWideCheckWork =
-                dependencyValues.documentAncestor?.stateValues
-                    .sectionWideCheckWork ||
-                dependencyValues.sectionAncestor?.stateValues
-                    .sectionWideCheckWork ||
-                dependencyValues.pAncestor?.stateValues.sectionWideCheckWork ||
-                dependencyValues.liAncestor?.stateValues.sectionWideCheckWork ||
-                dependencyValues.divAncestor?.stateValues
-                    .sectionWideCheckWork ||
-                dependencyValues.spanAncestor?.stateValues.sectionWideCheckWork;
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
 
             if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
                 sendDiagnostics.push({
@@ -642,40 +612,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                     dependencyType: "stateVariable",
                     variableName: "disableAfterCorrect",
                 },
-                // An enclosing container with section-wide check work whose
-                // attempts have been exhausted disables all of its answers.
-                // Mirror the ancestor enumeration used for
-                // `suppressAnswerSubmitButtons` in Answer.js.
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
-                sectionAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "_sectioningComponent",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
-                pAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "p",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
-                liAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "li",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
-                divAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "div",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
-                spanAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "span",
-                    variableNames: ["descendantsDisabledByAttempts"],
-                },
+                ancestorDisabledByAttempts:
+                    returnScoredContainerAncestorDependency(
+                        "descendantsDisabledByAttempts",
+                    ),
             };
 
             if (stateValues.disableAfterCorrect) {
@@ -689,17 +629,7 @@ export function returnStandardAnswerStateVariableDefinition() {
         },
         definition({ dependencyValues }) {
             let disabledBySectionAttempts =
-                dependencyValues.documentAncestor?.stateValues
-                    .descendantsDisabledByAttempts ||
-                dependencyValues.sectionAncestor?.stateValues
-                    .descendantsDisabledByAttempts ||
-                dependencyValues.pAncestor?.stateValues
-                    .descendantsDisabledByAttempts ||
-                dependencyValues.liAncestor?.stateValues
-                    .descendantsDisabledByAttempts ||
-                dependencyValues.divAncestor?.stateValues
-                    .descendantsDisabledByAttempts ||
-                dependencyValues.spanAncestor?.stateValues
+                dependencyValues.ancestorDisabledByAttempts?.stateValues
                     .descendantsDisabledByAttempts;
 
             let disabled =
