@@ -667,8 +667,12 @@ export class CoreWorker {
                 "success" in actionResult &&
                 actionResult.success === false
             ) {
+                const actionLabel =
+                    translatedActionName === actionArgs.actionName
+                        ? `"${actionArgs.actionName}"`
+                        : `"${actionArgs.actionName}" (translated to "${translatedActionName}")`;
                 throw Error(
-                    `Action "${actionArgs.actionName}" failed: ${
+                    `Action ${actionLabel} failed: ${
                         actionResult.errMsg ?? "unknown error"
                     }`,
                 );
