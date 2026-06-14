@@ -8,6 +8,7 @@ import type {
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
+import type { CoreType } from "./slice";
 import { _dastReducerActions } from "../dast";
 import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
 
@@ -22,7 +23,10 @@ export function createWrappedCoreWorker() {
     return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
 }
 
-export const workerCache: { worker: Comlink.Remote<CoreWorker> }[] = [];
+export const workerCache: {
+    worker: Comlink.Remote<CoreWorker>;
+    coreType: CoreType;
+}[] = [];
 // XXX: temporary for debugging
 (window as any).wc = workerCache;
 
@@ -33,18 +37,21 @@ export const coreThunks = {
     _loadWorker: createLoggingAsyncThunk(
         "core/loadWorker",
         async (_: void, { dispatch, getState }) => {
-            const { workerCacheKey } = selfSelector(getState());
-            if (workerCacheKey != null && workerCache[workerCacheKey]?.worker) {
-                // There's already a worker loaded
+            const { workerCacheKey, coreType } = selfSelector(getState());
+            const cachedWorker = workerCache[workerCacheKey ?? -1];
+            // Reuse the cached worker only if it is running the requested core.
+            // `setCoreType` is applied once at creation, so a worker created for
+            // a different core cannot be reused after `coreType` changes.
+            if (cachedWorker?.worker && cachedWorker.coreType === coreType) {
+                // There's already a worker loaded for this core
                 return;
             }
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
-            const { coreType } = selfSelector(getState());
             await worker.setCoreType(coreType);
             const key = workerCache.length;
-            workerCache[key] = { worker };
+            workerCache[key] = { worker, coreType };
             dispatch(_coreReducerActions._setWorkerCacheKey(key));
         },
     ),
