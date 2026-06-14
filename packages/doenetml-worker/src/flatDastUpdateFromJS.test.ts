@@ -104,6 +104,42 @@ describe("flatDastUpdateFromJS", () => {
         });
     });
 
+    it("clears the section xrefLabel.label on a state-only update with a title child (regression: duplicated section title)", () => {
+        // A section whose `<title>` references a value pushes a state-only
+        // update (no `childrenInstructions`) when the referenced value changes.
+        // Even without children in the batch, the section fixup must clear
+        // `xrefLabel.label` because the section has a title child — otherwise the
+        // renderer prints the title text twice (once as the label-derived
+        // display name and once as the separately-rendered title element).
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            level: 1,
+                            title: "My cool section hi",
+                            titleChildName: 2,
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const updates = flatDastUpdateFromJS(updateInstructions, {
+            1: "section",
+        });
+
+        expect(updates[1].changedState).toMatchObject({
+            title: 2,
+            xrefLabel: { label: "" },
+            divisionType: "section",
+        });
+        // A state-only update carries no children to replace.
+        expect(updates[1].newChildren).toBeUndefined();
+    });
+
     it("merges multiple batches for the same component, later batches winning", () => {
         const updateInstructions: UpdateInstruction[] = [
             {
