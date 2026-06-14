@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { EditorViewer } from "../src/index";
 import type { CoreType } from "../src/index";
+import "./main.css";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
@@ -34,35 +35,11 @@ function App() {
     }
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-            }}
-        >
-            <div
-                style={{
-                    flex: "0 0 auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "8px 12px",
-                    borderBottom: "1px solid #ccc",
-                    background: "#f5f5f5",
-                }}
-            >
-                <span style={{ fontWeight: "bold" }}>Core:</span>
+        <div className="dev-app">
+            <div className="dev-core-toolbar">
+                <span className="dev-core-toolbar-label">Core:</span>
                 {(["rust", "javascript"] as CoreType[]).map((ct) => (
-                    <label
-                        key={ct}
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            cursor: "pointer",
-                        }}
-                    >
+                    <label key={ct} className="dev-core-option">
                         <input
                             type="radio"
                             name="coreType"
@@ -73,11 +50,11 @@ function App() {
                         {ct}
                     </label>
                 ))}
-                <span style={{ marginLeft: "auto", color: "#666" }}>
+                <span className="dev-core-status">
                     Using <strong>{coreType}</strong> core
                 </span>
             </div>
-            <div style={{ flex: "1 1 auto", overflow: "hidden" }}>
+            <div className="dev-viewer">
                 <EditorViewer
                     key={coreType}
                     doenetML={doenetMLstring}
