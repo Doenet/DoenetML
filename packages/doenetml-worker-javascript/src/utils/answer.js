@@ -515,14 +515,70 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            // Used only to warn when an answer's own `maxNumAttempts` is set
+            // inside a container with section-wide check work, where the answer
+            // limit does not make sense. Mirror the ancestor enumeration used
+            // for `suppressAnswerSubmitButtons` in Answer.js.
+            documentAncestor: {
+                dependencyType: "ancestor",
+                componentType: "document",
+                variableNames: ["sectionWideCheckWork"],
+            },
+            sectionAncestor: {
+                dependencyType: "ancestor",
+                componentType: "_sectioningComponent",
+                variableNames: ["sectionWideCheckWork"],
+            },
+            pAncestor: {
+                dependencyType: "ancestor",
+                componentType: "p",
+                variableNames: ["sectionWideCheckWork"],
+            },
+            liAncestor: {
+                dependencyType: "ancestor",
+                componentType: "li",
+                variableNames: ["sectionWideCheckWork"],
+            },
+            divAncestor: {
+                dependencyType: "ancestor",
+                componentType: "div",
+                variableNames: ["sectionWideCheckWork"],
+            },
+            spanAncestor: {
+                dependencyType: "ancestor",
+                componentType: "span",
+                variableNames: ["sectionWideCheckWork"],
+            },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.documentAncestor?.stateValues
+                    .sectionWideCheckWork ||
+                dependencyValues.sectionAncestor?.stateValues
+                    .sectionWideCheckWork ||
+                dependencyValues.pAncestor?.stateValues.sectionWideCheckWork ||
+                dependencyValues.liAncestor?.stateValues.sectionWideCheckWork ||
+                dependencyValues.divAncestor?.stateValues
+                    .sectionWideCheckWork ||
+                dependencyValues.spanAncestor?.stateValues.sectionWideCheckWork;
+
+            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` does not make sense, as the number of attempts is controlled by the section. The answer's `maxNumAttempts` will lead to confusing behavior.",
+                });
+            }
+
             return {
                 setValue: {
                     numAttemptsLeft:
                         dependencyValues.maxNumAttempts -
                         dependencyValues.numSubmissions,
                 },
+                sendDiagnostics,
             };
         },
     };
@@ -586,6 +642,40 @@ export function returnStandardAnswerStateVariableDefinition() {
                     dependencyType: "stateVariable",
                     variableName: "disableAfterCorrect",
                 },
+                // An enclosing container with section-wide check work whose
+                // attempts have been exhausted disables all of its answers.
+                // Mirror the ancestor enumeration used for
+                // `suppressAnswerSubmitButtons` in Answer.js.
+                documentAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "document",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
+                sectionAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "_sectioningComponent",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
+                pAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "p",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
+                liAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "li",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
+                divAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "div",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
+                spanAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "span",
+                    variableNames: ["descendantsDisabledByAttempts"],
+                },
             };
 
             if (stateValues.disableAfterCorrect) {
@@ -598,9 +688,24 @@ export function returnStandardAnswerStateVariableDefinition() {
             return dependencies;
         },
         definition({ dependencyValues }) {
+            let disabledBySectionAttempts =
+                dependencyValues.documentAncestor?.stateValues
+                    .descendantsDisabledByAttempts ||
+                dependencyValues.sectionAncestor?.stateValues
+                    .descendantsDisabledByAttempts ||
+                dependencyValues.pAncestor?.stateValues
+                    .descendantsDisabledByAttempts ||
+                dependencyValues.liAncestor?.stateValues
+                    .descendantsDisabledByAttempts ||
+                dependencyValues.divAncestor?.stateValues
+                    .descendantsDisabledByAttempts ||
+                dependencyValues.spanAncestor?.stateValues
+                    .descendantsDisabledByAttempts;
+
             let disabled =
                 dependencyValues.disabledOriginal ||
                 dependencyValues.numAttemptsLeft < 1 ||
+                Boolean(disabledBySectionAttempts) ||
                 (dependencyValues.disableAfterCorrect &&
                     dependencyValues.hasBeenCorrect);
 

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -166,5 +167,159 @@ describe("section-wide check work attribute tests @group2", async () => {
         });
 
         await test_section_wide_check_work(core, resolvePathToNodeIdx, "div2");
+    });
+
+    it("section-wide maxNumAttempts decrements and disables answers when exhausted", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="sec" sectionWideCheckWork maxNumAttempts="2">
+      <answer name="a1">1</answer>
+      <answer name="a2">2</answer>
+    </section>
+  </document>
+  `,
+        });
+
+        async function fillInAnswers() {
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["a1", "a2"]) {
+                const inputIdx =
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .inputChildren[0].componentIdx;
+                await updateMathInputValue({
+                    latex: name === "a1" ? "1" : "2",
+                    componentIdx: inputIdx,
+                    core,
+                });
+            }
+        }
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .disabled,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .disabled,
+        ).eq(false);
+
+        // First section-wide submission
+        await fillInAnswers();
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("sec"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .disabled,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .disabled,
+        ).eq(false);
+
+        // Second section-wide submission exhausts attempts
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("sec"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .numAttemptsLeft,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .disabled,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .disabled,
+        ).eq(true);
+
+        // Further section-wide submissions do not decrement past zero
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("sec"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .numAttemptsLeft,
+        ).eq(0);
+    });
+
+    it("warning when an answer sets maxNumAttempts inside section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="sec" sectionWideCheckWork>
+      <answer name="a1" maxNumAttempts="3">1</answer>
+    </section>
+  </document>
+  `,
+        });
+
+        // Force evaluation of the answer's numAttemptsLeft (which emits the warning)
+        await core.returnAllStateVariables(false, true);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.some((w: any) =>
+                w.message.includes(
+                    "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork`",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("documentWideCheckWork is deprecated but still enables section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d" documentWideCheckWork>
+    <answer name="a1">1</answer>
+    <answer name="a2">2</answer>
+  </document>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                .sectionWideCheckWork,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                .createSubmitAllButton,
+        ).eq(true);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(
+            diagnosticsByType.warnings.some((w: any) =>
+                w.message.includes(
+                    "Attribute `documentWideCheckWork` on `<document>` is deprecated",
+                ),
+            ),
+        ).eq(true);
     });
 });

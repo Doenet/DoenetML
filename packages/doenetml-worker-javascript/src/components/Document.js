@@ -6,6 +6,7 @@ import {
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
+    returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
@@ -45,62 +46,14 @@ export default class Document extends BaseComponent {
         delete attributes.isResponse;
         delete attributes.isPotentialResponse;
 
-        attributes.documentWideCheckWork = {
-            description:
-                "Whether to show a single check-work button for the entire document.",
-            createComponentOfType: "boolean",
-            createStateVariable: "documentWideCheckWork",
-            defaultValue: false,
-            public: true,
-        };
-        attributes.showCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: true,
-            description:
-                "Whether to display correctness indicators next to answers.",
-        };
-        attributes.colorCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "colorCorrectnessPreliminary",
-            defaultValue: true,
-            description:
-                "Whether to color answer regions based on correctness.",
-        };
-        attributes.forceIndividualAnswerColoring = {
-            createComponentOfType: "boolean",
-            createStateVariable: "forceIndividualAnswerColoring",
-            defaultValue: false,
-            description:
-                "Whether to color individual answer regions even when document-wide check work is enabled.",
-        };
-        attributes.submitLabel = {
-            description:
-                "Label for the submit button when correctness is shown.",
-            createComponentOfType: "text",
-            createStateVariable: "submitLabel",
-            defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
-        };
-        attributes.submitLabelNoCorrectness = {
-            description:
-                "Label for the submit button when correctness is not shown.",
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
-            defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
-        };
-
-        attributes.displayDigitsForCreditAchieved = {
-            description:
-                "Number of significant digits to display for credit achieved.",
-            createComponentOfType: "integer",
-            createStateVariable: "displayDigitsForCreditAchieved",
-            defaultValue: 3,
-            public: true,
-        };
+        // The document shares the scored-section attributes (score aggregation
+        // plus section-wide check work), but always aggregates the scores of
+        // its children and has no enclosing section to weight it, so it drops
+        // the `aggregateScores`/`weight` attributes.
+        let scoredAttributes = returnScoredSectionAttributes();
+        delete scoredAttributes.aggregateScores;
+        delete scoredAttributes.weight;
+        Object.assign(attributes, scoredAttributes);
 
         // at this point, we are creating these attributes
         // so that having them in the doenetML is valid
@@ -168,6 +121,13 @@ export default class Document extends BaseComponent {
             returnScoredSectionStateVariableDefinition(),
         );
 
+        // `returnScoredSectionStateVariableDefinition()` defines `aggregateScores`,
+        // `creditAchieved`, and `creditAchievedIfSubmit` for an opt-in scored
+        // section. The document is the top-level scored container and always
+        // aggregates the scores of its children, so it drops the
+        // `aggregateScores` state variable and replaces `creditAchieved`/
+        // `creditAchievedIfSubmit` below with unconditionally-aggregating
+        // versions.
         delete stateVariableDefinitions.aggregateScores;
 
         stateVariableDefinitions.titleChildName = {
@@ -432,6 +392,13 @@ export default class Document extends BaseComponent {
             },
         };
 
+        // Overrides the shared `creditAchieved` from
+        // `returnScoredSectionStateVariableDefinition()` for two reasons: that
+        // version returns 0 unless `aggregateScores` is enabled (the document
+        // always aggregates), and this version aggregates from the
+        // document-specific `componentCreditAchieved` array (which the core
+        // also reads to report per-item scores to the host) instead of
+        // re-resolving each descendant's `creditAchieved`.
         stateVariableDefinitions.creditAchieved = {
             description:
                 "Aggregate credit achieved (0 to 1) for scored content in the document.",
@@ -509,6 +476,9 @@ export default class Document extends BaseComponent {
             },
         };
 
+        // Overrides the shared `creditAchievedIfSubmit` for the same reason as
+        // `creditAchieved` above: the document always aggregates, rather than
+        // only when `aggregateScores` is enabled.
         stateVariableDefinitions.creditAchievedIfSubmit = {
             defaultValue: 0,
             stateVariablesDeterminingDependencies: ["scoredDescendants"],
@@ -625,45 +595,6 @@ export default class Document extends BaseComponent {
                 }
 
                 return { setValue: { generatedVariantInfo } };
-            },
-        };
-
-        stateVariableDefinitions.createSubmitAllButton = {
-            forRenderer: true,
-            additionalStateVariablesDefined: [
-                "suppressAnswerSubmitButtons",
-                "descendantColorCorrectnessBasedOnIdx",
-            ],
-            returnDependencies: () => ({
-                documentWideCheckWork: {
-                    dependencyType: "stateVariable",
-                    variableName: "documentWideCheckWork",
-                },
-                forceIndividualAnswerColoring: {
-                    dependencyType: "stateVariable",
-                    variableName: "forceIndividualAnswerColoring",
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                let createSubmitAllButton = false;
-                let suppressAnswerSubmitButtons = false;
-                let descendantColorCorrectnessBasedOnIdx = null;
-
-                if (dependencyValues.documentWideCheckWork) {
-                    createSubmitAllButton = true;
-                    suppressAnswerSubmitButtons = true;
-                    if (!dependencyValues.forceIndividualAnswerColoring) {
-                        descendantColorCorrectnessBasedOnIdx = componentIdx;
-                    }
-                }
-
-                return {
-                    setValue: {
-                        createSubmitAllButton,
-                        suppressAnswerSubmitButtons,
-                        descendantColorCorrectnessBasedOnIdx,
-                    },
-                };
             },
         };
 

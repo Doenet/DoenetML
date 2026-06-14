@@ -8785,7 +8785,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("answer coloring based on document-wide check work by default", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork>
+    <document name="doc" sectionWideCheckWork>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8854,7 +8854,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("force individual answer coloring  with document-wide check work", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork forceIndividualAnswerColoring>
+    <document name="doc" sectionWideCheckWork forceIndividualAnswerColoring>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x

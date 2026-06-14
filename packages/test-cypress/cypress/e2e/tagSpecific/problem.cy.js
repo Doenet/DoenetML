@@ -148,6 +148,61 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("section wide check work with maxNumAttempts disables answers when exhausted", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem sectionWideCheckWork maxNumAttempts="1" name="theProblem">
+        <title>Problem 1</title>
+        <p>2x: <answer name="twox">2x</answer></p>
+        <p>3x: <answer name="threex">3x</answer></p>
+      </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // One attempt remaining initially
+        cy.get("#theProblem_button").should("contain.text", "Check Work");
+        cy.get("[data-test=attempts-remaining]").should(
+            "contain.text",
+            "1 attempt remaining",
+        );
+        cy.get("#theProblem_button").should("not.be.disabled");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let twoxInputIdx =
+                stateVariables[await win.resolvePath1("twox")].stateValues
+                    .inputChildren[0].componentIdx;
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+
+            let threexInputIdx =
+                stateVariables[await win.resolvePath1("threex")].stateValues
+                    .inputChildren[0].componentIdx;
+            let threexInputAnchor =
+                cesc("#_id_" + threexInputIdx) + " textarea";
+
+            // A single section-wide submission exhausts the one attempt
+            cy.get(twoxInputAnchor).type("y{enter}", { force: true });
+            cy.get(threexInputAnchor).type("y{enter}", { force: true });
+            cy.get("#theProblem_button").click();
+
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "no attempts remaining",
+            );
+            cy.get("#theProblem_button").should("be.disabled");
+
+            // Answer inputs are disabled once attempts are exhausted
+            cy.get(twoxInputAnchor).should("be.disabled");
+            cy.get(threexInputAnchor).should("be.disabled");
+        });
+    });
+
     it("section wide check work in section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
