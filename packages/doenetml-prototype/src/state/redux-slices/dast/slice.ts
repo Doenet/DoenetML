@@ -71,20 +71,7 @@ const dastSlice = createSlice({
             state,
             action: PayloadAction<ElementUpdates>,
         ) => {
-            const entries = Object.entries(action.payload);
-
-            // JS-core updates can introduce components that were absent from
-            // the initial FlatDast (e.g. newly revealed conditional content).
-            // Upsert those full element definitions before applying child refs
-            // or state updates that may point at them.
-            for (const [id, update] of entries) {
-                const element = (update as any).element;
-                if (element) {
-                    state.flatDastRoot.elements[Number(id)] = element;
-                }
-            }
-
-            for (const [id, update] of entries) {
+            for (const [id, update] of Object.entries(action.payload)) {
                 const elm = state.flatDastRoot.elements[Number(id)];
                 if (elm == null) {
                     console.error(

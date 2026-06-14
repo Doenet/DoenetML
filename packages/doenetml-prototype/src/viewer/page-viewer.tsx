@@ -26,7 +26,7 @@ export function PageViewer({
         dispatch(
             dastActions.setSourceAndStartWorker({ source, flags, coreType }),
         );
-    }, [source, coreType]);
+    }, [source]);
 
     if (isInErrorState) {
         return `Error: ${JSON.stringify(errors)}`;

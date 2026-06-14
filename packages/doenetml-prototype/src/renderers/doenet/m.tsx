@@ -11,7 +11,7 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
  * LaTeX in a `latex` prop with no children. Prefer `latex` when present and
  * fall back to children, so a single renderer works against both cores.
  */
-type MData = { props?: { latex?: string } };
+type MData = { props: { latex?: string } };
 
 export const M: BasicComponentWithPassthroughChildren<MData> = ({
     node,
@@ -19,7 +19,7 @@ export const M: BasicComponentWithPassthroughChildren<MData> = ({
 }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
 
-    const latex = node.data.props?.latex;
+    const latex = node.data.props.latex;
     const content =
         latex != null && latex !== ""
             ? latex

@@ -16,28 +16,7 @@ import {
 export type FlatDastElementUpdateFromJS = {
     changedState?: Record<string, any>;
     newChildren?: FlatDastElementContent[];
-    /**
-     * Full element definition for components first introduced by this update
-     * batch. Existing rust-core updates never include this field; the prototype
-     * reducer consumes it before applying `changedState`/`newChildren`.
-     */
-    element?: FlatDastElement;
 };
-
-function elementFromComponentInstruction(
-    childInstruction: ComponentInstruction,
-): FlatDastElement {
-    return {
-        type: "element",
-        name: childInstruction.componentType,
-        attributes: {},
-        children: [],
-        data: {
-            id: childInstruction.componentIdx,
-            action_names: Object.keys(childInstruction.actions),
-        },
-    };
-}
 
 /**
  * Walk the child instructions of a set of `updateInstructions` batches and
@@ -148,64 +127,18 @@ export function seedInstructionMaps(
  * @param doenetIdToComponentIdx Map from JS string id to `componentIdx`,
  *   required by the `ref` fixup. Defaults to an empty map and is extended in
  *   place as component children are encountered.
- * @param knownElementIds Set of component ids already present in the consumer's
- *   FlatDast. When provided, the converter includes full `element` definitions
- *   for components first introduced by the update and mutates the set to mark
- *   them known.
  */
 export function flatDastUpdateFromJS(
     updateInstructions: UpdateInstruction[],
     componentIdxToName: Record<number, string>,
     doenetIdToComponentIdx: Record<string, number> = {},
-    knownElementIds?: Set<number>,
 ): Record<number, FlatDastElementUpdateFromJS> {
     const updates: Record<number, FlatDastElementUpdateFromJS> = {};
-    const newComponentInstructions = new Map<number, ComponentInstruction>();
-    const newElementIds = new Set<number>();
-
-    function isNewElement(componentIdx: number) {
-        return knownElementIds != null && !knownElementIds.has(componentIdx);
-    }
-
-    function ensureNewElement(componentIdx: number, element: FlatDastElement) {
-        if (!isNewElement(componentIdx)) {
-            return;
-        }
-        newElementIds.add(componentIdx);
-        updates[componentIdx] ??= {};
-        updates[componentIdx].element = element;
-    }
-
-    for (const instruction of updateInstructions) {
-        for (const rendererState of instruction.rendererStatesToUpdate) {
-            for (const childInstruction of rendererState.childrenInstructions ??
-                []) {
-                if (
-                    childInstruction == null ||
-                    typeof childInstruction === "string"
-                ) {
-                    continue;
-                }
-                if (isNewElement(childInstruction.componentIdx)) {
-                    newComponentInstructions.set(
-                        childInstruction.componentIdx,
-                        childInstruction,
-                    );
-                    ensureNewElement(
-                        childInstruction.componentIdx,
-                        elementFromComponentInstruction(childInstruction),
-                    );
-                }
-            }
-        }
-    }
 
     for (const instruction of updateInstructions) {
         for (const rendererState of instruction.rendererStatesToUpdate) {
             const { componentIdx, stateValues, childrenInstructions } =
                 rendererState;
-            const componentInstruction =
-                newComponentInstructions.get(componentIdx);
 
             const children: FlatDastElementContent[] = [];
             if (childrenInstructions) {
@@ -226,24 +159,10 @@ export function flatDastUpdateFromJS(
             // read or mutate children, e.g. `section`) can be reused verbatim.
             const element: FlatDastElement = {
                 type: "element",
-                name:
-                    componentInstruction?.componentType ??
-                    componentIdxToName[componentIdx] ??
-                    rendererState.rendererType ??
-                    "",
+                name: componentIdxToName[componentIdx] ?? "",
                 attributes: {},
                 children,
-                data: {
-                    id: componentIdx,
-                    ...(componentInstruction
-                        ? {
-                              action_names: Object.keys(
-                                  componentInstruction.actions,
-                              ),
-                          }
-                        : {}),
-                    props: { ...stateValues },
-                },
+                data: { id: componentIdx, props: { ...stateValues } },
             };
 
             applyElementJsToRustFixups(element, doenetIdToComponentIdx);
@@ -251,10 +170,6 @@ export function flatDastUpdateFromJS(
             const update: FlatDastElementUpdateFromJS = {
                 changedState: element.data.props,
             };
-            if (isNewElement(componentIdx)) {
-                newElementIds.add(componentIdx);
-                update.element = element;
-            }
             // Only report children when the batch carried child instructions;
             // otherwise leave the consumer's existing children untouched.
             if (childrenInstructions) {
@@ -263,7 +178,6 @@ export function flatDastUpdateFromJS(
 
             const existing = updates[componentIdx];
             if (existing) {
-                existing.element = update.element ?? existing.element;
                 existing.changedState = {
                     ...existing.changedState,
                     ...update.changedState,
@@ -275,10 +189,6 @@ export function flatDastUpdateFromJS(
                 updates[componentIdx] = update;
             }
         }
-    }
-
-    for (const componentIdx of newElementIds) {
-        knownElementIds?.add(componentIdx);
     }
 
     return updates;

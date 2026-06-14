@@ -138,12 +138,6 @@ export class CoreWorker {
      */
     _doenetIdToComponentIdx: Record<string, number> = {};
     /**
-     * Component ids already present in the FlatDast returned to the prototype.
-     * Used by the JS update bridge to include full element definitions only for
-     * components first introduced by an update batch.
-     */
-    _javascriptFlatDastElementIds = new Set<number>();
-    /**
      * Whether `returnFlatDastFromJS` has run, installing the persistent
      * `updateRenderersCallback` and seeding the lookup maps above. Until then,
      * `dispatchActionJavascriptFlat` has no callback to capture pushes and no
@@ -558,11 +552,6 @@ export class CoreWorker {
         this._javascriptInitialRenderDone = true;
 
         const flat_dast = flatDastFromJS(documentToRender, updateInstructions);
-        this._javascriptFlatDastElementIds = new Set(
-            flat_dast.elements
-                .map((element, index) => (element == null ? undefined : index))
-                .filter((index): index is number => index != null),
-        );
         return flat_dast;
     }
 
@@ -713,7 +702,6 @@ export class CoreWorker {
                 batches,
                 this._componentIdxToName,
                 this._doenetIdToComponentIdx,
-                this._javascriptFlatDastElementIds,
             );
         } catch (err) {
             console.error(err);
