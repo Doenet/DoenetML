@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
-import { DoenetML as PrototypeDoenetML } from "@doenet/doenetml-prototype";
-import "@doenet/doenetml-prototype/style.css";
 import { Button } from "@doenet/ui-components";
+
+// Lazy-load the prototype renderer so its stylesheet (which starts with a
+// Tailwind preflight reset) is only applied when a spec actually renders the
+// prototype. A static import would leak that global CSS into the
+// `@doenet/doenetml` viewer used by the existing specs and change their layout.
+const PrototypeRenderer = React.lazy(() => import("./PrototypeRenderer"));
 
 export function CypressTest() {
     const defaultTestSettings: {
@@ -691,25 +695,27 @@ export function CypressTest() {
             // (`prototypeCoreType="javascript"`). Gated behind `usePrototype` so
             // existing `@doenet/doenetml` specs are unaffected.
             editorOrViewer = (
-                <PrototypeDoenetML
-                    key={"prototype" + updateNumber}
-                    doenetML={doenetMLstring}
-                    flags={{
-                        showCorrectness,
-                        readOnly,
-                        solutionDisplayMode,
-                        showFeedback,
-                        showHints,
-                        allowLoadState,
-                        allowSaveState,
-                        saveRendererState,
-                        allowLocalState,
-                        allowSaveEvents,
-                        autoSubmit,
-                    }}
-                    darkMode={darkMode}
-                    coreType={prototypeCoreType ?? "rust"}
-                />
+                <React.Suspense fallback={null}>
+                    <PrototypeRenderer
+                        key={"prototype" + updateNumber}
+                        doenetML={doenetMLstring}
+                        flags={{
+                            showCorrectness,
+                            readOnly,
+                            solutionDisplayMode,
+                            showFeedback,
+                            showHints,
+                            allowLoadState,
+                            allowSaveState,
+                            saveRendererState,
+                            allowLocalState,
+                            allowSaveEvents,
+                            autoSubmit,
+                        }}
+                        darkMode={darkMode}
+                        coreType={prototypeCoreType ?? "rust"}
+                    />
+                </React.Suspense>
             );
         }
     }
