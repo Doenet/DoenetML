@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { DoenetML } from "../src/index";
+import { EditorViewer } from "../src/index";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
@@ -78,10 +78,8 @@ function App() {
                     Using <strong>{coreType}</strong> core
                 </span>
             </div>
-            <div
-                style={{ flex: "1 1 auto", overflow: "auto", padding: "12px" }}
-            >
-                <DoenetML
+            <div style={{ flex: "1 1 auto", overflow: "hidden" }}>
+                <EditorViewer
                     key={coreType}
                     doenetML={doenetMLstring}
                     coreType={coreType}
