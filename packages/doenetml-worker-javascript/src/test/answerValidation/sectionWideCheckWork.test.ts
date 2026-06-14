@@ -67,6 +67,10 @@ describe("section-wide check work attribute tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
+            stateVariables[await resolvePathToNodeIdx(section2Name)].stateValues
+                .numSubmissions,
+        ).eq(1);
+        expect(
             stateVariables[await resolvePathToNodeIdx("d")].stateValues
                 .creditAchieved,
         ).eq(2 / 3);

@@ -694,8 +694,6 @@ export async function submitAllAnswers({
     // Submit the answers before counting the attempt. If counting the attempt
     // exhausts the limit, the answers become disabled, so they must be
     // submitted (and graded) while still enabled.
-    const finite = Number.isFinite(numAttemptsLeft);
-
     let answersToSubmit = [];
     for (let answer of await component.stateValues.answerDescendants) {
         if (!(await answer.stateValues.justSubmitted)) {
@@ -703,35 +701,30 @@ export async function submitAllAnswers({
         }
     }
 
-    let numAnswers = answersToSubmit.length;
-
-    for (let [ind, answer] of answersToSubmit.entries()) {
+    for (let answer of answersToSubmit) {
         await component.coreFunctions.performAction({
             componentIdx: answer.componentIdx,
             actionName: "submitAnswer",
             args: {
                 actionId,
                 sourceInformation,
-                // When tracking a finite attempt limit, the renderer update is
-                // deferred to the numSubmissions update below so that the
-                // attempts-remaining message and disabled state update together.
-                skipRendererUpdate:
-                    skipRendererUpdate || finite || ind < numAnswers - 1,
+                // Defer renderer updates to the numSubmissions update below so
+                // the rendered answer validation state and attempts message
+                // update together.
+                skipRendererUpdate: true,
             },
         });
     }
 
-    if (finite) {
-        await component.coreFunctions.performUpdate({
-            updateInstructions: [
-                {
-                    updateType: "updateValue",
-                    componentIdx: component.componentIdx,
-                    stateVariable: "numSubmissions",
-                    value: (await component.stateValues.numSubmissions) + 1,
-                },
-            ],
-            skipRendererUpdate,
-        });
-    }
+    await component.coreFunctions.performUpdate({
+        updateInstructions: [
+            {
+                updateType: "updateValue",
+                componentIdx: component.componentIdx,
+                stateVariable: "numSubmissions",
+                value: (await component.stateValues.numSubmissions) + 1,
+            },
+        ],
+        skipRendererUpdate,
+    });
 }
