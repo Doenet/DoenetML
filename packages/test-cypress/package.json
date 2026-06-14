@@ -55,7 +55,7 @@
         "react-dom": "^19.2.3"
     },
     "dependencies": {
-        "@doenet/doenetml-prototype": "^*",
+        "@doenet/doenetml-prototype": "*",
         "@doenet/utils": "^*",
         "vite": "^*"
     },
