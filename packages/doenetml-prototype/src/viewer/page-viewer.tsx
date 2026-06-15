@@ -21,23 +21,17 @@ export function PageViewer({
     const errors = useAppSelector(errorsSelector);
     const isInErrorState = errors.length > 0;
 
-    // Register the dark-mode watcher once. It adds a `matchMedia` listener
-    // that is never removed, so it must not run on every `source`/`coreType`
-    // change (that would register duplicate listeners).
     React.useEffect(() => {
         dispatch(globalActions.watchForDarkModePreferenceChange());
     }, []);
 
-    // Re-run when the source, core, or any flag *value* changes. The parent
-    // rebuilds the `flags` object on every render, so depend on a serialized
-    // key of its values rather than its identity to avoid re-initializing the
-    // worker on unrelated re-renders while still picking up real flag changes.
     const flagsKey = JSON.stringify(flags);
     React.useEffect(() => {
         dispatch(
             dastActions.setSourceAndStartWorker({ source, flags, coreType }),
         );
-        // `flags` is intentionally tracked via `flagsKey`, not by object identity.
+        // `flags` is a fresh object every render, but the core should only restart
+        // when the actual flag values change, so depend on its serialized value (`flagsKey`).
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [source, coreType, flagsKey]);
 

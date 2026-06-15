@@ -640,10 +640,8 @@ export class CoreWorker {
             this._javascriptUpdateBuffer = [];
             this._capturingJavascriptUpdates = true;
 
-            // Translate the rust/prototype action name to the JS core's name
-            // when they differ (e.g. point `move` -> `movePoint`). The component
-            // type is looked up from the lookup map seeded during the initial
-            // render; an unknown component or unmapped action passes through.
+            // Translate the prototype's rust action name to the JS core's name
+            // when they differ (e.g. point `move` -> `movePoint`).
             const componentType =
                 actionArgs.componentIdx != null
                     ? this._componentIdxToName[actionArgs.componentIdx]

@@ -38,7 +38,10 @@ export const coreThunks = {
         "core/loadWorker",
         async (_: void, { dispatch, getState }) => {
             const { workerCacheKey, coreType } = selfSelector(getState());
-            const cachedWorker = workerCache[workerCacheKey ?? -1];
+            const cachedWorker =
+                workerCacheKey != null
+                    ? workerCache[workerCacheKey]
+                    : undefined;
             // Reuse the cached worker only if it is running the requested core.
             // `setCoreType` is applied once at creation, so a worker created for
             // a different core cannot be reused after `coreType` changes.
@@ -168,6 +171,9 @@ export function getWorker(
     state: RootState,
 ): ReturnType<typeof createWrappedCoreWorker> | undefined {
     const { workerCacheKey } = selfSelector(state);
-    const { worker } = workerCache[workerCacheKey ?? -1] || {};
+    if (workerCacheKey == null) {
+        return undefined;
+    }
+    const { worker } = workerCache[workerCacheKey] ?? {};
     return worker;
 }
