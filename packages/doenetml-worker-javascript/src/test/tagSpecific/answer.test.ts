@@ -4059,6 +4059,51 @@ Enter any letter:
         });
     });
 
+    it("numAttemptsLeft does not go negative when maxNumAttempts is reduced", async () => {
+        const doenetML = `
+    <p>Attempt limit: <mathInput name="limit" prefill="3" /></p>
+    <answer name="answer1" maxNumAttempts="$limit">x</answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+        const limitIdx = await resolvePathToNodeIdx("limit");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(3);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(1);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: limitIdx,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(0);
+    });
+
     it("disable after correct", async () => {
         const doenetML = `<answer name="answer1" disableAfterCorrect>x</answer>`;
 

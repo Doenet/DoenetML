@@ -559,8 +559,11 @@ export function returnStandardAnswerStateVariableDefinition() {
             const numAttemptsLeft = insideSectionWideCheckWork
                 ? dependencyValues.ancestorSuppressingAnswerSubmitButtons
                       .stateValues.numAttemptsLeft
-                : dependencyValues.maxNumAttempts -
-                  dependencyValues.numSubmissions;
+                : Math.max(
+                      0,
+                      dependencyValues.maxNumAttempts -
+                          dependencyValues.numSubmissions,
+                  );
 
             return {
                 setValue: { numAttemptsLeft },
