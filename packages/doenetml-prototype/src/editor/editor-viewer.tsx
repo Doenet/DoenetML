@@ -29,6 +29,8 @@ export type EditorViewerProps = {
      * intended to work with the JavaScript core.
      */
     coreType?: CoreType;
+    /** Called whenever the source in the editor changes. */
+    onChange?: (source: string) => void;
 };
 
 /**
@@ -37,6 +39,7 @@ export type EditorViewerProps = {
 export function EditorViewer({
     doenetML = "",
     coreType = "rust",
+    onChange,
 }: EditorViewerProps) {
     const [sourceForRender, setSourceForRender] = React.useState(doenetML);
     const [sourceInEditor, setSourceInEditor] = React.useState(doenetML);
@@ -121,6 +124,7 @@ export function EditorViewer({
                                         onChange={(source) => {
                                             if (source !== sourceInEditor) {
                                                 setSourceInEditor(source);
+                                                onChange?.(source);
                                             }
                                         }}
                                     />

@@ -21,3 +21,4 @@ export * from "./ul";
 export * from "./li";
 export * from "./choice-input";
 export * from "./em";
+export * from "./_pass-through-with-logging";
