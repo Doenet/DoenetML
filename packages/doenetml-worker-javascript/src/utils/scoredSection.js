@@ -123,12 +123,12 @@ export function returnScoredSectionAttributes() {
  *
  * The section-wide check work portion includes the section-wide submit button
  * (`createSubmitAllButton`), the suppression of per-answer submit buttons
- * (`suppressAnswerSubmitButtons`), the attempt cap (`numSubmissions`,
- * `numAttemptsLeft`), and the flag that disables all enclosed answers once
- * attempts are exhausted (`descendantsDisabledByAttempts`). The aggregation
- * portion includes `scoredDescendants`, `aggregateScores`, `creditAchieved`,
- * and related variables. The document reuses this set but deletes
- * `aggregateScores` and overrides `creditAchieved`; see `Document.js`.
+ * (`suppressAnswerSubmitButtons`), and the attempt cap (`numSubmissions`,
+ * `numAttemptsLeft`) — which, when exhausted, disables the enclosed answers via
+ * their own propagated `numAttemptsLeft`. The aggregation portion includes
+ * `scoredDescendants`, `aggregateScores`, `creditAchieved`, and related
+ * variables. The document reuses this set but deletes `aggregateScores` and
+ * overrides `creditAchieved`; see `Document.js`.
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
@@ -280,36 +280,6 @@ export function returnScoredSectionStateVariableDefinition() {
                 setValue: { numAttemptsLeft },
                 sendDiagnostics,
             };
-        },
-    };
-
-    // Whether descendant answers should be disabled because the section-wide
-    // check-work attempts have been exhausted. Propagates from an enclosing
-    // container so that a nested container also reports its answers as disabled
-    // when an outer section-wide check work has run out of attempts.
-    stateVariableDefinitions.descendantsDisabledByAttempts = {
-        returnDependencies: () => ({
-            sectionWideCheckWork: {
-                dependencyType: "stateVariable",
-                variableName: "sectionWideCheckWork",
-            },
-            numAttemptsLeft: {
-                dependencyType: "stateVariable",
-                variableName: "numAttemptsLeft",
-            },
-            ancestorDisabled: {
-                dependencyType: "ancestor",
-                variableNames: ["descendantsDisabledByAttempts"],
-            },
-        }),
-        definition({ dependencyValues }) {
-            const descendantsDisabledByAttempts =
-                dependencyValues.ancestorDisabled?.stateValues
-                    .descendantsDisabledByAttempts ||
-                (dependencyValues.sectionWideCheckWork &&
-                    dependencyValues.numAttemptsLeft < 1);
-
-            return { setValue: { descendantsDisabledByAttempts } };
         },
     };
 

@@ -628,10 +628,6 @@ export function returnStandardAnswerStateVariableDefinition() {
                     dependencyType: "stateVariable",
                     variableName: "disableAfterCorrect",
                 },
-                ancestorDisabledByAttempts:
-                    returnScoredContainerAncestorDependency(
-                        "descendantsDisabledByAttempts",
-                    ),
             };
 
             if (stateValues.disableAfterCorrect) {
@@ -644,14 +640,9 @@ export function returnStandardAnswerStateVariableDefinition() {
             return dependencies;
         },
         definition({ dependencyValues }) {
-            let disabledBySectionAttempts =
-                dependencyValues.ancestorDisabledByAttempts?.stateValues
-                    .descendantsDisabledByAttempts;
-
             let disabled =
                 dependencyValues.disabledOriginal ||
                 dependencyValues.numAttemptsLeft < 1 ||
-                Boolean(disabledBySectionAttempts) ||
                 (dependencyValues.disableAfterCorrect &&
                     dependencyValues.hasBeenCorrect);
 
