@@ -526,6 +526,12 @@ export function returnStandardAnswerStateVariableDefinition() {
                 returnScoredContainerAncestorDependency(
                     "suppressAnswerSubmitButtons",
                 ),
+            // Used to target the ignored-`maxNumAttempts` warning at the
+            // attribute itself rather than the whole `<answer>`.
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+            },
         }),
         definition({ dependencyValues, usedDefault }) {
             let sendDiagnostics = [];
@@ -539,6 +545,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                     type: "warning",
                     message:
                         "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
+                    position: dependencyValues.maxNumAttemptsAttr?.position,
                 });
             }
 

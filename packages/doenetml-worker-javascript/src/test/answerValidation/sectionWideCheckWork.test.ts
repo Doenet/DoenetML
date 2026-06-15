@@ -380,13 +380,17 @@ describe("section-wide check work attribute tests @group2", async () => {
 
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.some((w: any) =>
-                w.message.includes(
-                    "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork`",
-                ),
+        const warning = diagnosticsByType.warnings.find((w: any) =>
+            w.message.includes(
+                "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork`",
             ),
-        ).eq(true);
+        );
+        expect(warning).toBeDefined();
+        // The warning targets just the `maxNumAttempts` attribute, not the
+        // whole `<answer>`.
+        expect(warning.position.end.offset - warning.position.start.offset).eq(
+            'maxNumAttempts="3"'.length,
+        );
     });
 
     it("warning when a nested section-wide check work sets maxNumAttempts inside another section-wide check work", async () => {
@@ -408,13 +412,18 @@ describe("section-wide check work attribute tests @group2", async () => {
 
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.some((w: any) =>
-                w.message.includes(
-                    "Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork`",
-                ),
+        const warning = diagnosticsByType.warnings.find((w: any) =>
+            w.message.includes(
+                "Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork`",
             ),
-        ).eq(true);
+        );
+        expect(warning).toBeDefined();
+        // The warning targets just the `maxNumAttempts` attribute, not the
+        // whole (multi-line) `<section>`.
+        expect(warning.position.start.line).eq(warning.position.end.line);
+        expect(warning.position.end.offset - warning.position.start.offset).eq(
+            'maxNumAttempts="3"'.length,
+        );
     });
 
     it("no nested section-wide check work warning for a top-level section-wide check work with maxNumAttempts", async () => {
