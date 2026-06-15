@@ -2,9 +2,20 @@
     .text-input {
         label {
             @apply max-w-full;
+            .input-label {
+                @apply me-1;
+            }
+            &.input-label-right {
+                direction: rtl;
+            }
         }
-        input {
-            @apply border-black border-2 px-1 py-0.5 w-24;
+        input, textarea {
+            direction: ltr;
+            @apply border-black border-2 px-1 py-0.5 w-32;
+        }
+        textarea {
+            width: unset;
+            resize: both;
         }
     }
 }

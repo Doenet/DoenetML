@@ -9,16 +9,16 @@ b - both
 
 ## Trivial — static character output (~18 lines each)
 
-- [ ] `br`
-- [ ] `hr`
-- [ ] `ellipsis`
-- [ ] `mdash`
-- [ ] `nbsp`
-- [ ] `ndash`
-- [ ] `lq`
-- [ ] `rq`
-- [ ] `lsq`
-- [ ] `rsq`
+- [x] `br`
+- [x] `hr`
+- [x] `ellipsis`
+- [x] `mdash`
+- [x] `nbsp`
+- [x] `ndash`
+- [x] `lq`
+- [x] `rq`
+- [x] `lsq`
+- [x] `rsq`
 - [ ] `sq`
 
 ## Minimal wrapper — single HTML element with children (~19–37 lines)
@@ -91,6 +91,7 @@ b - both
 ## Most complex — large interactive UI with deep JSXGraph or MathQuill integration (~650–1138 lines)
 
 - [ ] `booleanInput`
+- [p] `textInput` - text mode but without check work buttons
 - [ ] `image`
 - [ ] `circle`
 - [ ] `mathInput`
