@@ -7,7 +7,11 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { mean, variance } from "mathjs";
+import type { mean as MeanType, variance as VarianceType } from "mathjs";
+const { mean, variance } = me.math as {
+    mean: MeanType;
+    variance: VarianceType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

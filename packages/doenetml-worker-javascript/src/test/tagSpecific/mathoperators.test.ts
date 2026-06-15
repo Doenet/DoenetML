@@ -3,7 +3,16 @@ import { createTestCore } from "../utils/test-core";
 import me from "math-expressions";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { mod, std, variance } from "mathjs";
+import type {
+    mod as ModType,
+    std as StdType,
+    variance as VarianceType,
+} from "mathjs";
+const { mod, std, variance } = me.math as {
+    mod: ModType;
+    std: StdType;
+    variance: VarianceType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

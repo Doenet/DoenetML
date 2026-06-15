@@ -1,6 +1,6 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
-import { mean, std, variance, median, quantileSeq } from "mathjs";
+const { mean, std, variance, median, quantileSeq } = me.math;
 import { roundForDisplay } from "../utils/math";
 import {
     returnNumberDisplayAttributeComponentShadowing,

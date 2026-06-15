@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { mod, min, fraction, number as mathNumber } from "mathjs";
+const { mod, min, fraction, number: mathNumber } = me.math;
 
 export default function periodicSetEquality(
     expr,

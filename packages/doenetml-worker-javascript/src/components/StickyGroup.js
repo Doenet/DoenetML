@@ -11,7 +11,7 @@ import {
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { mod } from "mathjs";
+const { mod } = me.math;
 
 export default class StickyGroup extends GraphicalComponent {
     static componentType = "stickyGroup";

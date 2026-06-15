@@ -5,7 +5,18 @@ import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { index, matrix, multiply, subset } from "mathjs";
+import type {
+    index as IndexType,
+    matrix as MatrixType,
+    multiply as MultiplyType,
+    subset as SubsetType,
+} from "mathjs";
+const { index, matrix, multiply, subset } = me.math as {
+    index: IndexType;
+    matrix: MatrixType;
+    multiply: MultiplyType;
+    subset: SubsetType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

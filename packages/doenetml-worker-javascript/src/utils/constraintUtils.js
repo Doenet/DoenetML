@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { mod } from "mathjs";
+const { mod } = me.math;
 
 // Attract the points to the line determined numericalNearestPointAsLineFunction.
 // Succeed only if each point moved less than the distance determined by threshold2.

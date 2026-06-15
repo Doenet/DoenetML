@@ -5,7 +5,7 @@ import {
 } from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
-import { eigs, square, abs, divide } from "mathjs";
+const { eigs, square, abs, divide } = me.math;
 
 export default class EigenDecomposition extends BaseComponent {
     static componentType = "eigenDecomposition";

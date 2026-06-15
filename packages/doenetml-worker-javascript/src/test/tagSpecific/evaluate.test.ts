@@ -8,7 +8,8 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { round } from "mathjs";
+import type { round as RoundType } from "mathjs";
+const { round } = me.math as { round: RoundType };
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

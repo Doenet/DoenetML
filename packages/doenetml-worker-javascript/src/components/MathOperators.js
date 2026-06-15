@@ -2,7 +2,7 @@ import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisp
 import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
-import { mod, median } from "mathjs";
+const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
     static componentType = "sum";

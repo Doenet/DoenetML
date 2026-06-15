@@ -1,6 +1,6 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
-import { gcd } from "mathjs";
+const { gcd } = me.math;
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,

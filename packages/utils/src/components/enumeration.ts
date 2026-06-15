@@ -1,5 +1,6 @@
 import me from "math-expressions";
-import { gcd, lcm as mathLcm } from "mathjs";
+import type { gcd as GcdType, lcm as LcmType } from "mathjs";
+const { gcd, lcm: mathLcm } = me.math as { gcd: GcdType; lcm: LcmType };
 
 // Enumerates the unique combinations of repeeated selecting an index
 // from the same set of options, with or without replacement

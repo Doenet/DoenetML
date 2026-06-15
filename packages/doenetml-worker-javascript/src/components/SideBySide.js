@@ -1,7 +1,7 @@
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
-import { max } from "mathjs";
+const { max } = me.math;
 
 export class SideBySide extends BlockComponent {
     constructor(args) {

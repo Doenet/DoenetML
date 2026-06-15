@@ -20,7 +20,7 @@ import {
     mergeContainingNumberCombinations,
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
-import { gcd } from "mathjs";
+const { gcd } = me.math;
 
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";

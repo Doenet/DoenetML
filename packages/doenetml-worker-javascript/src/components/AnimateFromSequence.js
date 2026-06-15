@@ -5,7 +5,7 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import me from "math-expressions";
-import { mod } from "mathjs";
+const { mod } = me.math;
 import { nanoid } from "nanoid";
 
 export default class AnimateFromSequence extends BaseComponent {

@@ -3,7 +3,16 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 //@ts-expect-error no type declaration
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { complex, conj, divide } from "mathjs";
+import type {
+    complex as ComplexType,
+    conj as ConjType,
+    divide as DivideType,
+} from "mathjs";
+const { complex, conj, divide } = me.math as {
+    complex: ComplexType;
+    conj: ConjType;
+    divide: DivideType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

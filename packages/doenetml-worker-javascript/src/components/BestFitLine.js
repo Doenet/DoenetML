@@ -1,7 +1,7 @@
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Line from "./Line";
 import me from "math-expressions";
-import { matrix, transpose, multiply, lusolve, subset, index } from "mathjs";
+const { matrix, transpose, multiply, lusolve, subset, index } = me.math;
 
 export default class BestFitLine extends Line {
     static componentType = "bestFitLine";
