@@ -599,8 +599,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ];
 
         let vals = [-3, -1, 1, 2, 3, 4, 5];
-        let mean = mean(vals);
-        let variance = variance(vals, "uncorrected");
+        const computedMean = mean(vals);
+        const computedVariance = variance(vals, "uncorrected");
 
         for (let doenetML of doenetMLs) {
             await test_combined_statistics({
@@ -609,12 +609,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 numSamplesPerComponent: 5,
                 numRepetitions: 5,
                 validValues: vals,
-                allowedMeanMid: mean,
+                allowedMeanMid: computedMean,
                 allowedMeanSpread: 0.6,
-                allowedVarianceMid: variance,
+                allowedVarianceMid: computedVariance,
                 allowedVarianceSpread: 1,
-                expectedMean: mean,
-                expectedVariance: variance,
+                expectedMean: computedMean,
+                expectedVariance: computedVariance,
             });
         }
     });
@@ -626,8 +626,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ];
 
         let vals = [-3, -1, 1, 5];
-        let mean = mean(vals);
-        let variance = variance(vals, "uncorrected");
+        const computedMean = mean(vals);
+        const computedVariance = variance(vals, "uncorrected");
 
         for (let doenetML of doenetMLs) {
             await test_combined_statistics({
@@ -636,12 +636,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 numSamplesPerComponent: 10,
                 numRepetitions: 5,
                 validValues: vals,
-                allowedMeanMid: mean,
+                allowedMeanMid: computedMean,
                 allowedMeanSpread: 0.5,
-                allowedVarianceMid: variance,
+                allowedVarianceMid: computedVariance,
                 allowedVarianceSpread: 1,
-                expectedMean: mean,
-                expectedVariance: variance,
+                expectedMean: computedMean,
+                expectedVariance: computedVariance,
             });
         }
     });

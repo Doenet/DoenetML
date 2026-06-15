@@ -267,11 +267,11 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let mean = null;
+                let computedMean = null;
                 if (dependencyValues.dataColumn !== null) {
-                    mean = mean(dependencyValues.dataColumn);
+                    computedMean = mean(dependencyValues.dataColumn);
                 }
-                return { setValue: { mean } };
+                return { setValue: { mean: computedMean } };
             },
         };
 
@@ -290,12 +290,12 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let stdev = null;
+                let computedStdev = null;
                 if (dependencyValues.dataColumn) {
-                    stdev = std(dependencyValues.dataColumn);
+                    computedStdev = std(dependencyValues.dataColumn);
                 }
 
-                return { setValue: { stdev } };
+                return { setValue: { stdev: computedStdev } };
             },
         };
 
@@ -314,12 +314,12 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let variance = null;
+                let computedVariance = null;
                 if (dependencyValues.dataColumn) {
-                    variance = variance(dependencyValues.dataColumn);
+                    computedVariance = variance(dependencyValues.dataColumn);
                 }
 
-                return { setValue: { variance } };
+                return { setValue: { variance: computedVariance } };
             },
         };
 
@@ -414,11 +414,11 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let median = null;
+                let computedMedian = null;
                 if (dependencyValues.dataColumn) {
-                    median = median(dependencyValues.dataColumn);
+                    computedMedian = median(dependencyValues.dataColumn);
                 }
-                return { setValue: { median } };
+                return { setValue: { median: computedMedian } };
             },
         };
 
