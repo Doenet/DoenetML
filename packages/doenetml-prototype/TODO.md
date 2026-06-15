@@ -23,7 +23,7 @@ b - both
 
 ## Minimal wrapper — single HTML element with children (~19–37 lines)
 
-- [ ] `q`
+- [x] `q`
 - [ ] `c`
 - [ ] `asList`
 - [ ] `tag`

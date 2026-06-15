@@ -9,7 +9,8 @@
                 direction: rtl;
             }
         }
-        input, textarea {
+        input,
+        textarea {
             direction: ltr;
             @apply border-black border-2 px-1 py-0.5 w-32;
         }
