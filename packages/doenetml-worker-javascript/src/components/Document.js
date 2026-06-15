@@ -388,13 +388,11 @@ export default class Document extends BaseComponent {
             },
         };
 
-        // Overrides the shared `creditAchieved` from
-        // `returnScoredSectionStateVariableDefinition()` for two reasons: that
-        // version returns 0 unless `aggregateScores` is enabled (the document
-        // always aggregates), and this version aggregates from the
-        // document-specific `componentCreditAchieved` array (which the core
-        // also reads to report per-item scores to the host) instead of
-        // re-resolving each descendant's `creditAchieved`.
+        // Overrides the shared `creditAchieved` for two reasons: that version
+        // returns 0 unless `aggregateScores` is enabled (the document always
+        // aggregates), and this version aggregates from the document-specific
+        // `componentCreditAchieved` array (which the core also reads to report
+        // per-item scores to the host) instead of re-resolving each descendant.
         stateVariableDefinitions.creditAchieved = {
             description:
                 "Aggregate credit achieved (0 to 1) for scored content in the document.",
