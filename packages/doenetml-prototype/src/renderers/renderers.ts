@@ -1,3 +1,4 @@
+import React from "react";
 import { BasicComponent, BasicComponentWithPassthroughChildren } from "./types";
 import {
     Answer,
@@ -23,6 +24,10 @@ import {
     Ul,
     ChoiceInput,
     Em,
+    _Omit,
+    _PassThroughWithTag,
+    _PassThroughWithLogging,
+    Angle,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -56,11 +61,98 @@ export type RendererObject = Record<
  */
 export const FALLBACK_RENDERER_KEY = Symbol("fallback");
 
+const NoProcessingConverter: ComponentWithPassthroughChildren = {
+    component: _PassThroughWithTag,
+    passthroughChildren: true,
+};
+const PassThroughWithoutTagConverter: ComponentWithPassthroughChildren = {
+    component: _Fragment,
+    passthroughChildren: true,
+};
+const OmitElementConverter: Component = {
+    component: _Omit,
+};
+/**
+ * Special converter only used for logging.
+ */
+const _DEBUG_PassThroughWithLoggingConverter: ComponentWithPassthroughChildren =
+    {
+        component: _PassThroughWithLogging,
+        passthroughChildren: true,
+    };
+
+/**
+ * Pass through the element and all its children, but render it under a
+ * different HTML tag name.
+ */
+function passThroughWithRenamedTag(
+    newTagName: string,
+): ComponentWithPassthroughChildren {
+    return {
+        component: ({ ...args }) => {
+            const { node, ...rest } = args;
+            const newNode = { ...node, name: newTagName };
+            return _PassThroughWithTag({ node: newNode, ...rest });
+        },
+        passthroughChildren: true,
+    };
+}
+
+/**
+ * Render this component as `reactNode`, possibly wrapped in a span with htmlId applied to the id field
+ * @param reactNode
+ */
+function renderAs(
+    reactNode: React.ReactNode,
+    options?: { wrapInSpanWithId?: boolean },
+): Component {
+    return {
+        component: ({ node, htmlId }) => {
+            if (options?.wrapInSpanWithId) {
+                return React.createElement("span", { id: htmlId }, [reactNode]);
+            }
+            return reactNode;
+        },
+        passthroughChildren: false,
+    };
+}
+
+/**
+ * Component that renders the value of `props[attr]` and nothing else. This
+ * can be used to render the `value` or `text` prop of a component.
+ */
+function showAttrOnly<T extends string>(
+    attr: T,
+): { component: BasicComponent<{ props: { [K in T]: string } }> } {
+    return {
+        component: ({ node }) => {
+            return node.data.props[attr];
+        },
+    };
+}
+
 /**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
+    angle: { component: Angle },
+    abs: { component: M },
+    alert: passThroughWithRenamedTag("strong"),
+    br: { component: _PassThroughWithTag },
+    hr: { component: _PassThroughWithTag },
+
+    // Basic symbols - none of these wrap in a span with id in the original doenetml renderers
+    ellipsis: renderAs("…", { wrapInSpanWithId: true }),
+    mdash: renderAs("—"),
+    nbsp: renderAs(" "),
+    ndash: renderAs("–"),
+    lq: renderAs("“"),
+    rq: renderAs("”"),
+    lsq: renderAs("‘"),
+    rsq: renderAs("’"),
+
+    // br: { component: Br },
     answer: { component: Answer },
     choiceInput: { component: ChoiceInput },
     p: { component: P, passthroughChildren: true },

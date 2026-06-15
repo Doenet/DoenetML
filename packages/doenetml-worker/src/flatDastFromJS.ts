@@ -4,6 +4,7 @@ import type {
     FlatDastElementContent,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
+import { generalRename } from "./jsRustConversions/_general-rename";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust } from "./jsRustConversions/section";
@@ -88,6 +89,10 @@ export function applyElementJsToRustFixups(
     }
 
     switch (element.name) {
+        case "angle":
+            generalRename(element.data.props, {
+                latexForRenderer: "latex",
+            });
         case "text":
             textJsToRust(element.data.props);
             break;

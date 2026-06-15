@@ -19,6 +19,10 @@ export type BasicComponentProps<Data = {}> = {
      * The ancestors of this node, with the closest ancestor first.
      */
     ancestors: AncestorChain;
+    /**
+     * If this element can be referenced in HTML, the `id` attribute to use for this element.
+     */
+    htmlId?: string;
 };
 export type BasicComponent<Data = {}> = React.FunctionComponent<
     BasicComponentProps<Data>

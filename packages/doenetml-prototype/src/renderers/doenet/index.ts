@@ -22,3 +22,6 @@ export * from "./li";
 export * from "./choice-input";
 export * from "./em";
 export * from "./_pass-through-with-logging";
+export * from "./_pass-through-with-tag";
+export * from "./_omit";
+export * from "./angle";

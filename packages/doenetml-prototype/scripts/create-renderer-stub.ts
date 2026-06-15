@@ -119,8 +119,8 @@ async function main() {
         ? "BasicComponentWithPassthroughChildren"
         : "BasicComponent";
     const componentArgs = useChildren
-        ? "\n    node,\n    children,\n"
-        : "\n    node,\n";
+        ? "\n    node,\n    children,\n    htmlId,\n"
+        : "\n    node,\n    htmlId,\n";
     const componentReturn = useChildren
         ? "<React.Fragment>{children}</React.Fragment>"
         : "<React.Fragment></React.Fragment>";

@@ -1,8 +1,8 @@
 import React from "react";
-import { MathJax } from "better-react-mathjax";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import { useAppSelector } from "../../state/hooks";
-import { renderingOnServerSelector } from "../../state/redux-slices/global";
+import { _ServerSafeMath } from "./_server-safe-math";
+import { ResolvedStyleDefinition } from "@doenet/utils";
+import { useTextRendererStyle } from "../../utils/use-renderer-style";
 
 /**
  * The two cores represent `<m>` differently: the rust core renders its content
@@ -16,38 +16,22 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
  * JS->Dast conversion) so the renderer can assume a single representation; until
  * that prop reconciliation happens, the renderer tolerates both forms.
  */
-type MData = { props: { latex?: string } };
+type MData = {
+    props: { latex?: string; selectedStyle: ResolvedStyleDefinition };
+};
 
 export const M: BasicComponentWithPassthroughChildren<MData> = ({
     node,
     children,
+    htmlId,
 }) => {
-    const onServer = useAppSelector(renderingOnServerSelector);
+    const style = useTextRendererStyle(node.data.props.selectedStyle);
 
-    const latex = node.data.props.latex;
-    const hasLatex = latex != null && latex !== "";
-
-    if (onServer) {
-        // Use the JS core's `latex` prop when present; otherwise render the
-        // children directly, preserving the rust core's referenced child
-        // element (stringifying it would yield "[object Object]").
-        return (
-            <span className="process-math">{hasLatex ? latex : children}</span>
-        );
-    }
-    // better-react-mathjax cannot handle multiple children (it will not update
-    // when they change), so create a single string. Without a `latex` prop
-    // (rust core) fall back to joining the children.
-    const latexString = `\\(${
-        hasLatex
-            ? latex
-            : Array.isArray(children)
-              ? children.join("")
-              : String(children)
-    }\\)`;
     return (
-        <MathJax inline dynamic>
-            {latexString}
-        </MathJax>
+        <span id={htmlId} style={style}>
+            <_ServerSafeMath latex={node.data.props.latex}>
+                {children}
+            </_ServerSafeMath>
+        </span>
     );
 };
