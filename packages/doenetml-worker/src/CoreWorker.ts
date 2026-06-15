@@ -49,6 +49,7 @@ import {
     type FlatDastElementUpdateFromJS,
 } from "./flatDastUpdateFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
+import { translateJsCoreActionName } from "./jsCoreActionNames";
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
 try {
     // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
@@ -638,8 +639,22 @@ export class CoreWorker {
 
             this._javascriptUpdateBuffer = [];
             this._capturingJavascriptUpdates = true;
-            const actionResult =
-                await this.javascriptCore.requestAction(actionArgs);
+
+            // Translate the prototype's rust action name to the JS core's name
+            // when they differ (e.g. point `move` -> `movePoint`).
+            const componentType =
+                actionArgs.componentIdx != null
+                    ? this._componentIdxToName[actionArgs.componentIdx]
+                    : undefined;
+            const translatedActionName = translateJsCoreActionName(
+                componentType,
+                actionArgs.actionName,
+            );
+
+            const actionResult = await this.javascriptCore.requestAction({
+                ...actionArgs,
+                actionName: translatedActionName,
+            });
 
             // `requestAction` reports failures by returning `{ success: false,
             // errMsg }` rather than throwing, so surface them instead of
@@ -650,8 +665,12 @@ export class CoreWorker {
                 "success" in actionResult &&
                 actionResult.success === false
             ) {
+                const actionLabel =
+                    translatedActionName === actionArgs.actionName
+                        ? `"${actionArgs.actionName}"`
+                        : `"${actionArgs.actionName}" (translated to "${translatedActionName}")`;
                 throw Error(
-                    `Action "${actionArgs.actionName}" failed: ${
+                    `Action ${actionLabel} failed: ${
                         actionResult.errMsg ?? "unknown error"
                     }`,
                 );

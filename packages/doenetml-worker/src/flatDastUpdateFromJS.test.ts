@@ -104,6 +104,50 @@ describe("flatDastUpdateFromJS", () => {
         });
     });
 
+    it("derives the section heading from titlePrefix on a state-only update with a title child (regression: duplicated section title)", () => {
+        // A section whose `<title>` references a value pushes a state-only
+        // update (no `childrenInstructions`) when the referenced value changes.
+        // Even without children in the batch, the section converter must build
+        // the heading from `titlePrefix` (the auto prefix) rather than from the
+        // displayed `title` text — otherwise the renderer prints the title text
+        // twice (once as the heading and once as the separately-rendered title
+        // element).
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            level: 1,
+                            title: "My cool section hi",
+                            titlePrefix: "Section 1",
+                            titleChildName: 2,
+                            sectionNumber: "1",
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const updates = flatDastUpdateFromJS(updateInstructions, {
+            1: "section",
+        });
+
+        expect(updates[1].changedState).toMatchObject({
+            title: 2,
+            xrefLabel: { label: "Section 1" },
+            codeNumber: "",
+            divisionType: "section",
+        });
+        // The displayed title text must not leak into the heading label.
+        expect(updates[1].changedState?.xrefLabel.label).not.toContain(
+            "My cool section",
+        );
+        // A state-only update carries no children to replace.
+        expect(updates[1].newChildren).toBeUndefined();
+    });
+
     it("merges multiple batches for the same component, later batches winning", () => {
         const updateInstructions: UpdateInstruction[] = [
             {

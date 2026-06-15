@@ -19,14 +19,14 @@ export type FlatDastElementUpdateFromJS = {
 };
 
 /**
- * Walk the child instructions of a set of `updateInstructions` batches and
- * record, for every component child, its `componentType` (keyed by
+ * Walk the child instructions in a set of `updateInstructions` and record, for every component child, its `componentType` (keyed by
  * `componentIdx`) and its JS string id (keyed into `doenetIdToComponentIdx`).
  *
- * `CoreWorker` calls this on the initial render and on every subsequent update
- * batch so the maps that `flatDastUpdateFromJS` needs — the element-type lookup
- * for fixups and the `ref` referent lookup — stay current as new components
- * appear. The maps are mutated in place and also returned for convenience.
+ * `CoreWorker` calls this on the initial render and on every subsequent set of
+ * update instructions so the maps that `flatDastUpdateFromJS` needs — the
+ * element-type lookup for the JS->Rust converters and the `ref` referent
+ * lookup — stay current as new components appear. The maps are mutated in place
+ * and also returned for convenience.
  */
 export function collectInstructionMaps(
     updateInstructions: UpdateInstruction[],
@@ -87,44 +87,43 @@ export function seedInstructionMaps(
 }
 
 /**
- * Pure converter that turns the JS core's pushed `updateInstructions` batches
- * into the per-`componentIdx` update map expected by `doenetml-prototype`'s
+ * Pure converter that turns the JS core's pushed `updateInstructions` into the
+ * per-`componentIdx` update map expected by `doenetml-prototype`'s
  * `processElementUpdates` reducer. This is the update-path analogue of
  * `flatDastFromJS` and mirrors the rust core's
  * `DocumentRenderer::get_flat_dast_updates`.
  *
  * For each renderer state to update:
  * - `changedState` <- `stateValues`, after running the same per-component
- *   JS->Rust prop fixups used by `flatDastFromJS` (selected by the element's
- *   `name`, looked up from `componentIdxToName`).
+ *   JS->Rust prop converters used by `flatDastFromJS` (selected by the
+ *   element's `name`, looked up from `componentIdxToName`).
  * - `newChildren` <- the converted `childrenInstructions`, included only when
  *   `childrenInstructions` is present.
  *
- * To reuse the exact fixups from the initial path (including those that read or
- * mutate an element's children, e.g. `section`), each renderer state is
- * assembled into a synthetic `FlatDastElement` that the shared fixup helper
+ * To reuse the exact converters from the initial path (including those that
+ * read or mutate an element's children, e.g. `section`), each renderer state is
+ * assembled into a synthetic `FlatDastElement` that the shared converter
  * operates on; the resulting props and children are then read back out.
  *
- * When several batches touch the same `componentIdx`, later batches win:
- * `changedState` objects are merged (`Object.assign`) and `newChildren` is
- * replaced.
+ * When several update instructions touch the same `componentIdx`, the later one
+ * wins: `changedState` objects are merged (`Object.assign`) and `newChildren`
+ * is replaced.
  *
- * Known limitation: when a batch omits `childrenInstructions` (common when only
- * state changed), the synthetic element is given an empty `children` array. A
- * fixup that consults children (currently only `sectionJsToRust`, which removes
- * a `titleChild` and clears `xrefLabel.label`) can therefore compute a slightly
- * wrong `changedState` for such an update. This does not affect the components
- * this milestone drives (e.g. `textInput`); a correct fix needs the last-known
- * children retained per component, which belongs with the deferred prototype
- * update wiring where `section` updates are actually exercised.
+ * A state-only update carries no `childrenInstructions`, so the synthetic
+ * element is given an empty `children` array. The only converter that consults
+ * children, `sectionJsToRust`, still produces the correct `changedState`
+ * without them: it derives the heading from `titlePrefix`/`title` and the title
+ * pointer from `titleChildName`. It only skips splicing the title child out of
+ * `element.children`, which is harmless because an update without
+ * `childrenInstructions` does not replace the consumer's children.
  *
- * @param updateInstructions The batches pushed by the JS core's
+ * @param updateInstructions The update instructions pushed by the JS core's
  *   `updateRenderersCallback`.
  * @param componentIdxToName Map from `componentIdx` to the JS component
- *   type/name, used to select the JS->Rust fixup. Built by `CoreWorker` during
- *   the initial render.
+ *   type/name, used to select the JS->Rust converter. Built by `CoreWorker`
+ *   during the initial render.
  * @param doenetIdToComponentIdx Map from JS string id to `componentIdx`,
- *   required by the `ref` fixup. Defaults to an empty map and is extended in
+ *   required by the `ref` converter. Defaults to an empty map and is extended in
  *   place as component children are encountered.
  */
 export function flatDastUpdateFromJS(
@@ -154,8 +153,9 @@ export function flatDastUpdateFromJS(
                 }
             }
 
-            // Assemble a synthetic element so the shared fixup helper (which may
-            // read or mutate children, e.g. `section`) can be reused verbatim.
+            // Assemble a synthetic element so the shared JS->Rust converter
+            // (which may read or mutate children, e.g. `section`) can be reused
+            // verbatim.
             const element: FlatDastElement = {
                 type: "element",
                 name: componentIdxToName[componentIdx] ?? "",
