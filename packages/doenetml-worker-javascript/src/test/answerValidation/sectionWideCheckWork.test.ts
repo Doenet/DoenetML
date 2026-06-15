@@ -389,6 +389,13 @@ describe("section-wide check work attribute tests @group2", async () => {
 
         // The answer is still not disabled by its own (ignored) maxNumAttempts.
         stateVariables = await core.returnAllStateVariables(false, true);
+        // Both submissions actually went through (numSubmissions would be stuck
+        // at 1 if the answer's maxNumAttempts="1" had disabled it after the
+        // first submission).
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numSubmissions,
+        ).eq(2);
         expect(
             stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .numAttemptsLeft,
