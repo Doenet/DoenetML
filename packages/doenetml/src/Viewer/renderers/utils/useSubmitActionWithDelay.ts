@@ -22,9 +22,11 @@ type UseSubmitActionWithDelayProps = {
  *
  * Use this hook when a renderer needs to submit an answer (or submit all answers)
  * through `callAction` and wants pending UI behavior that:
- * - ignores duplicate submit attempts while one is in flight
+ * - ignores duplicate unvalidated submit attempts while one is in flight
  * - waits briefly before showing pending state (to avoid flicker on fast responses)
  * - clears pending state when validation completes
+ * - forwards already-validated `submitAllAnswers` calls because each
+ *   section-wide button press counts as an attempt
  *
  * Inputs:
  * - `actionKey`: which action to submit (`submitAnswer` or `submitAllAnswers`)

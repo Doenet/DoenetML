@@ -22,9 +22,14 @@ type UseDelayedSubmissionPendingOptions = {
  * Hook for delayed submission pending UI feedback.
  *
  * Shows a "Checking..." message only if submission takes longer than the specified delay.
- * Prevents duplicate submissions while in-flight. Automatically clears the pending state
- * when validation completes (via validationState change from "unvalidated") or when a new
- * answer is submitted (via justSubmitted flag).
+ * For unvalidated submissions, prevents duplicate submissions while in-flight.
+ * Automatically clears the pending state when validation completes (via
+ * validationState change from "unvalidated") or when a new answer is submitted
+ * (via justSubmitted flag).
+ *
+ * When `allowSubmitWhenValidated` is true, already-validated submissions are
+ * forwarded without pending UI so repeated section-wide button presses can count
+ * as attempts even if the validation state itself does not change.
  *
  * The delay default (500ms) balances user experience:
  * - Avoids flashing spinners for quick validations
