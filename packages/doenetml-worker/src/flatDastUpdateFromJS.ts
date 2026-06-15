@@ -112,12 +112,12 @@ export function seedInstructionMaps(
  * A state-only update carries no `childrenInstructions`, so the synthetic
  * element is given an empty `children` array. The only converter that consults
  * children, `sectionJsToRust`, still produces the correct `changedState`
- * without them: it clears `xrefLabel.label` based on `titleChildName` alone. It
- * also skips splicing the title child out of `element.children`, which is
- * harmless because an update without `childrenInstructions` does not replace
- * the consumer's children.
+ * without them: it derives the heading from `titlePrefix`/`title` and the title
+ * pointer from `titleChildName`. It only skips splicing the title child out of
+ * `element.children`, which is harmless because an update without
+ * `childrenInstructions` does not replace the consumer's children.
  *
- * @param updateInstructions The batches pushed by the JS core's
+ * @param updateInstructions The update instructions pushed by the JS core's
  *   `updateRenderersCallback`.
  * @param componentIdxToName Map from `componentIdx` to the JS component
  *   type/name, used to select the JS->Rust converter. Built by `CoreWorker`
