@@ -219,17 +219,24 @@ describe("section-wide check work attribute tests @group2", async () => {
   `,
         });
 
-        async function fillInAnswers() {
+        // Fill in (or change) both answers' responses. Changing a response is
+        // what re-enables a section-wide submission in the UI, so each realistic
+        // submission below is preceded by a response change.
+        async function fillInAnswers(latex1: string, latex2: string) {
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            for (const name of ["a1", "a2"]) {
+            const inputs = [
+                [await resolvePathToNodeIdx("a1"), latex1],
+                [await resolvePathToNodeIdx("a2"), latex2],
+            ] as const;
+            for (const [answerIdx, latex] of inputs) {
                 const inputIdx =
-                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                        .inputChildren[0].componentIdx;
+                    stateVariables[answerIdx].stateValues.inputChildren[0]
+                        .componentIdx;
                 await updateMathInputValue({
-                    latex: name === "a1" ? "1" : "2",
+                    latex,
                     componentIdx: inputIdx,
                     core,
                 });
@@ -260,7 +267,7 @@ describe("section-wide check work attribute tests @group2", async () => {
         ).eq(false);
 
         // First section-wide submission
-        await fillInAnswers();
+        await fillInAnswers("1", "2");
         await core.requestAction({
             componentIdx: await resolvePathToNodeIdx("sec"),
             actionName: "submitAllAnswers",
@@ -289,7 +296,9 @@ describe("section-wide check work attribute tests @group2", async () => {
                 .disabled,
         ).eq(false);
 
-        // Second section-wide submission exhausts attempts
+        // Change the responses, then submit again, exhausting attempts.
+        // (Changing a response is required to re-enable the submit button.)
+        await fillInAnswers("3", "4");
         await core.requestAction({
             componentIdx: await resolvePathToNodeIdx("sec"),
             actionName: "submitAllAnswers",
@@ -318,7 +327,10 @@ describe("section-wide check work attribute tests @group2", async () => {
                 .disabled,
         ).eq(true);
 
-        // Further section-wide submissions do not decrement past zero
+        // Directly invoke the action again to confirm the worker-level guard
+        // never decrements past zero. This cannot happen through the UI — once
+        // attempts are exhausted the section-wide button (and the answers) are
+        // disabled — so no response change is performed here.
         await core.requestAction({
             componentIdx: await resolvePathToNodeIdx("sec"),
             actionName: "submitAllAnswers",
