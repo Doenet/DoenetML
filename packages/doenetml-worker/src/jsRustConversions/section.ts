@@ -12,8 +12,7 @@ import type { FlatDastElement } from "../CoreWorker";
  *
  * Note: `xrefLabel` is really meant for cross-references (an `<xref>` pointing
  * at this section); here we only borrow its `label` to render the heading.
- * Proper xref resolution from the JS core is not wired up — see issue for
- * follow-up.
+ * Proper xref resolution from the JS core is not wired up — see issue #1318.
  */
 export function sectionJsToRust(
     props: Record<string, any>,
