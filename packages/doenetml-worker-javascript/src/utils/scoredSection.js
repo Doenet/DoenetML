@@ -1,8 +1,6 @@
 /**
  * Attributes implementing a "scored section": score aggregation plus the
- * "section-wide check work" feature (a single submit button for a container
- * that submits all enclosed answers at once, with an optional cap on the
- * number of submissions via `maxNumAttempts`).
+ * "section-wide check work" feature.
  *
  * This is shared by all containers that can host section-wide check work
  * (sections, `<p>`, `<ol>`, `<ul>`, `<li>`, `<div>`, `<span>`, and the
@@ -48,6 +46,31 @@ export function returnScoredSectionAttributes() {
             description:
                 "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
         },
+        showCorrectness: {
+            createComponentOfType: "boolean",
+            createStateVariable: "showCorrectnessPreliminary",
+            // This default is shown to authors but is not used to resolve the
+            // value: when the attribute is unspecified, the `showCorrectness`
+            // state variable ignores this (defaulted) value and falls back to
+            // the enclosing ancestor and then the `showCorrectness` flag (which
+            // defaults to `true`). It is set to `true` to reflect that effective
+            // default.
+            defaultValue: true,
+            groupName: "scoring",
+            description:
+                "Whether to display correctness indicators for the answers it contains.",
+        },
+        colorCorrectness: {
+            createComponentOfType: "boolean",
+            createStateVariable: "colorCorrectnessPreliminary",
+            // See the note on `showCorrectness`: this default is shown to
+            // authors but the resolved value falls back to the ancestor and
+            // then to whether correctness is shown.
+            defaultValue: true,
+            groupName: "scoring",
+            description:
+                "Whether to color-code the answers it contains based on correctness.",
+        },
         forceIndividualAnswerColoring: {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
@@ -75,32 +98,6 @@ export function returnScoredSectionAttributes() {
             groupName: "scoring",
             description:
                 "Label for the section-wide submit button when correctness is not shown.",
-        },
-
-        showCorrectness: {
-            createComponentOfType: "boolean",
-            createStateVariable: "showCorrectnessPreliminary",
-            // This default is shown to authors but is not used to resolve the
-            // value: when the attribute is unspecified, the `showCorrectness`
-            // state variable ignores this (defaulted) value and falls back to
-            // the enclosing ancestor and then the `showCorrectness` flag (which
-            // defaults to `true`). It is set to `true` to reflect that effective
-            // default.
-            defaultValue: true,
-            groupName: "scoring",
-            description:
-                "Whether to display correctness indicators for the answers it contains.",
-        },
-        colorCorrectness: {
-            createComponentOfType: "boolean",
-            createStateVariable: "colorCorrectnessPreliminary",
-            // See the note on `showCorrectness`: this default is shown to
-            // authors but the resolved value falls back to the ancestor and
-            // then to whether correctness is shown.
-            defaultValue: true,
-            groupName: "scoring",
-            description:
-                "Whether to color-code the answers it contains based on correctness.",
         },
 
         displayDigitsForCreditAchieved: {
@@ -132,6 +129,54 @@ export function returnScoredSectionAttributes() {
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
+
+    stateVariableDefinitions.scoredDescendants = {
+        returnDependencies: () => ({
+            scoredDescendants: {
+                dependencyType: "descendant",
+                componentTypes: [
+                    "_sectioningComponent",
+                    "answer",
+                    "setup",
+                    "_blockScoredComponent",
+                    "p",
+                    "ol",
+                    "ul",
+                    "li",
+                    "div",
+                    "span",
+                ],
+                variableNames: [
+                    "scoredDescendants",
+                    "aggregateScores",
+                    "weight",
+                ],
+                recurseToMatchedChildren: false,
+                variablesOptional: true,
+            },
+        }),
+        definition({ dependencyValues }) {
+            let scoredDescendants = [];
+            for (let descendant of dependencyValues.scoredDescendants) {
+                // added setup just so that can skip them
+                if (descendant.componentType === "setup") {
+                    continue;
+                }
+                if (
+                    descendant.stateValues.aggregateScores ||
+                    descendant.stateValues.scoredDescendants === undefined
+                ) {
+                    scoredDescendants.push(descendant);
+                } else {
+                    scoredDescendants.push(
+                        ...descendant.stateValues.scoredDescendants,
+                    );
+                }
+            }
+
+            return { setValue: { scoredDescendants } };
+        },
+    };
 
     stateVariableDefinitions.answerDescendants = {
         returnDependencies: () => ({
@@ -280,147 +325,6 @@ export function returnScoredSectionStateVariableDefinition() {
                 setValue: { numAttemptsLeft },
                 sendDiagnostics,
             };
-        },
-    };
-
-    stateVariableDefinitions.createSubmitAllButton = {
-        forRenderer: true,
-        additionalStateVariablesDefined: [
-            "suppressAnswerSubmitButtons",
-            "descendantColorCorrectnessBasedOnIdx",
-        ],
-        returnDependencies: () => ({
-            sectionWideCheckWork: {
-                dependencyType: "stateVariable",
-                variableName: "sectionWideCheckWork",
-            },
-            forceIndividualAnswerColoring: {
-                dependencyType: "stateVariable",
-                variableName: "forceIndividualAnswerColoring",
-            },
-            ancestorDeterminingSubmit: {
-                dependencyType: "ancestor",
-                variableNames: [
-                    "suppressAnswerSubmitButtons",
-                    "descendantColorCorrectnessBasedOnIdx",
-                ],
-            },
-        }),
-        definition({ dependencyValues, componentIdx }) {
-            let createSubmitAllButton = false;
-            let suppressAnswerSubmitButtons = false;
-            let descendantColorCorrectnessBasedOnIdx = null;
-            if (
-                dependencyValues.ancestorDeterminingSubmit?.stateValues
-                    .suppressAnswerSubmitButtons
-            ) {
-                suppressAnswerSubmitButtons = true;
-                descendantColorCorrectnessBasedOnIdx =
-                    dependencyValues.ancestorDeterminingSubmit.stateValues
-                        .descendantColorCorrectnessBasedOnIdx;
-            } else if (dependencyValues.sectionWideCheckWork) {
-                createSubmitAllButton = true;
-                suppressAnswerSubmitButtons = true;
-                if (!dependencyValues.forceIndividualAnswerColoring) {
-                    descendantColorCorrectnessBasedOnIdx = componentIdx;
-                }
-            }
-
-            return {
-                setValue: {
-                    createSubmitAllButton,
-                    suppressAnswerSubmitButtons,
-                    descendantColorCorrectnessBasedOnIdx,
-                },
-            };
-        },
-    };
-
-    stateVariableDefinitions.suppressCheckWork = {
-        forRenderer: true,
-        returnDependencies: () => ({
-            autoSubmit: {
-                dependencyType: "flag",
-                flagName: "autoSubmit",
-            },
-        }),
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    suppressCheckWork: dependencyValues.autoSubmit,
-                },
-            };
-        },
-    };
-
-    stateVariableDefinitions.showCheckWork = {
-        forRenderer: true,
-        returnDependencies: () => ({
-            createSubmitAllButton: {
-                dependencyType: "stateVariable",
-                variableName: "createSubmitAllButton",
-            },
-            suppressCheckWork: {
-                dependencyType: "stateVariable",
-                variableName: "suppressCheckWork",
-            },
-        }),
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    showCheckWork:
-                        dependencyValues.createSubmitAllButton &&
-                        !dependencyValues.suppressCheckWork,
-                },
-            };
-        },
-    };
-
-    stateVariableDefinitions.scoredDescendants = {
-        returnDependencies: () => ({
-            scoredDescendants: {
-                dependencyType: "descendant",
-                componentTypes: [
-                    "_sectioningComponent",
-                    "answer",
-                    "setup",
-                    "_blockScoredComponent",
-                    "p",
-                    "ol",
-                    "ul",
-                    "li",
-                    "div",
-                    "span",
-                ],
-                variableNames: [
-                    "scoredDescendants",
-                    "aggregateScores",
-                    "weight",
-                ],
-                recurseToMatchedChildren: false,
-                variablesOptional: true,
-            },
-        }),
-        definition({ dependencyValues }) {
-            let scoredDescendants = [];
-            for (let descendant of dependencyValues.scoredDescendants) {
-                // added setup just so that can skip them
-                if (descendant.componentType === "setup") {
-                    continue;
-                }
-                if (
-                    descendant.stateValues.aggregateScores ||
-                    descendant.stateValues.scoredDescendants === undefined
-                ) {
-                    scoredDescendants.push(descendant);
-                } else {
-                    scoredDescendants.push(
-                        ...descendant.stateValues.scoredDescendants,
-                    );
-                }
-            }
-
-            return { setValue: { scoredDescendants } };
         },
     };
 
@@ -689,6 +593,99 @@ export function returnScoredSectionStateVariableDefinition() {
             let creditAchievedIfSubmit = creditSum / totalWeight;
 
             return { setValue: { creditAchievedIfSubmit } };
+        },
+    };
+
+    stateVariableDefinitions.createSubmitAllButton = {
+        forRenderer: true,
+        additionalStateVariablesDefined: [
+            "suppressAnswerSubmitButtons",
+            "descendantColorCorrectnessBasedOnIdx",
+        ],
+        returnDependencies: () => ({
+            sectionWideCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "sectionWideCheckWork",
+            },
+            forceIndividualAnswerColoring: {
+                dependencyType: "stateVariable",
+                variableName: "forceIndividualAnswerColoring",
+            },
+            ancestorDeterminingSubmit: {
+                dependencyType: "ancestor",
+                variableNames: [
+                    "suppressAnswerSubmitButtons",
+                    "descendantColorCorrectnessBasedOnIdx",
+                ],
+            },
+        }),
+        definition({ dependencyValues, componentIdx }) {
+            let createSubmitAllButton = false;
+            let suppressAnswerSubmitButtons = false;
+            let descendantColorCorrectnessBasedOnIdx = null;
+            if (
+                dependencyValues.ancestorDeterminingSubmit?.stateValues
+                    .suppressAnswerSubmitButtons
+            ) {
+                suppressAnswerSubmitButtons = true;
+                descendantColorCorrectnessBasedOnIdx =
+                    dependencyValues.ancestorDeterminingSubmit.stateValues
+                        .descendantColorCorrectnessBasedOnIdx;
+            } else if (dependencyValues.sectionWideCheckWork) {
+                createSubmitAllButton = true;
+                suppressAnswerSubmitButtons = true;
+                if (!dependencyValues.forceIndividualAnswerColoring) {
+                    descendantColorCorrectnessBasedOnIdx = componentIdx;
+                }
+            }
+
+            return {
+                setValue: {
+                    createSubmitAllButton,
+                    suppressAnswerSubmitButtons,
+                    descendantColorCorrectnessBasedOnIdx,
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.suppressCheckWork = {
+        forRenderer: true,
+        returnDependencies: () => ({
+            autoSubmit: {
+                dependencyType: "flag",
+                flagName: "autoSubmit",
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    suppressCheckWork: dependencyValues.autoSubmit,
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.showCheckWork = {
+        forRenderer: true,
+        returnDependencies: () => ({
+            createSubmitAllButton: {
+                dependencyType: "stateVariable",
+                variableName: "createSubmitAllButton",
+            },
+            suppressCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "suppressCheckWork",
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    showCheckWork:
+                        dependencyValues.createSubmitAllButton &&
+                        !dependencyValues.suppressCheckWork,
+                },
+            };
         },
     };
 
