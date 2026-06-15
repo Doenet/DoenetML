@@ -5,6 +5,7 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import me from "math-expressions";
+import { mod } from "mathjs";
 import { nanoid } from "nanoid";
 
 export default class AnimateFromSequence extends BaseComponent {
@@ -178,7 +179,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         {
                             setEssentialValue: "selectedIndex",
                             value:
-                                me.math.mod(
+                                mod(
                                     desiredStateVariableValues.selectedIndex -
                                         1,
                                     await stateValues.numValues,
@@ -669,7 +670,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 let additionalInstructions =
                     await this.getUpdateInstructionsToSetTargetsToValue(
                         (await this.stateValues.possibleValues)[
-                            me.math.mod(startIndex - 1, numValues)
+                            mod(startIndex - 1, numValues)
                         ],
                     );
                 updateInstructions.push(...additionalInstructions);
@@ -877,10 +878,7 @@ export default class AnimateFromSequence extends BaseComponent {
         let additionalInstructions =
             await this.getUpdateInstructionsToSetTargetsToValue(
                 (await this.stateValues.possibleValues)[
-                    me.math.mod(
-                        newSelectedIndex - 1,
-                        await this.stateValues.numValues,
-                    )
+                    mod(newSelectedIndex - 1, await this.stateValues.numValues)
                 ],
             );
         updateInstructions.push(...additionalInstructions);

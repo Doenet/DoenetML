@@ -20,6 +20,7 @@ import {
     mergeContainingNumberCombinations,
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
+import { gcd } from "mathjs";
 
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
@@ -1025,7 +1026,7 @@ function makeSelection({ dependencyValues }) {
                 errorMessage =
                     "Cannot select coprime combinations as not selecting positive integers.";
             } else if (
-                me.math.gcd(dependencyValues.from, dependencyValues.step) !== 1
+                gcd(dependencyValues.from, dependencyValues.step) !== 1
             ) {
                 errorMessage = `Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)`;
             } else if (dependencyValues.numToSelect === 1) {
@@ -1246,7 +1247,7 @@ function makeSelection({ dependencyValues }) {
                 continue;
             }
 
-            if (coprime && me.math.gcd(...selectedValues) !== 1) {
+            if (coprime && gcd(...selectedValues) !== 1) {
                 continue;
             }
 

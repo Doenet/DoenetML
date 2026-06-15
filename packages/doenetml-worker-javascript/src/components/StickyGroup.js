@@ -11,6 +11,7 @@ import {
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { mod } from "mathjs";
 
 export default class StickyGroup extends GraphicalComponent {
     static componentType = "stickyGroup";
@@ -1039,10 +1040,7 @@ function rotateToAttractAngles({
 
         for (let attractingAngle of anglesToAttract) {
             let dAngle =
-                me.math.mod(
-                    attractingAngle - edgeAngle + Math.PI / 2,
-                    Math.PI,
-                ) -
+                mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) -
                 Math.PI / 2;
 
             if (Math.abs(dAngle) < Math.abs(minDAngle)) {
@@ -1098,8 +1096,7 @@ function rotateIfClose({
     );
 
     let dAngle =
-        me.math.mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) -
-        Math.PI / 2;
+        mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) - Math.PI / 2;
 
     if (!(Math.abs(dAngle) < angleThreshold)) {
         return null;

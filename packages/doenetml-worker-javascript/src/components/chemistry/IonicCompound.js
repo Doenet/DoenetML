@@ -1,5 +1,6 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
+import { gcd } from "mathjs";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
@@ -99,7 +100,7 @@ export default class IonicCompound extends InlineComponent {
                 let n1 = Math.abs(charges[1]);
                 let n2 = Math.abs(charges[0]);
 
-                let gcd = me.math.gcd(n1, n2);
+                let gcd = gcd(n1, n2);
                 n1 /= gcd;
                 n2 /= gcd;
 

@@ -1,5 +1,6 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+import { mean, std, variance, median, quantileSeq } from "mathjs";
 import { roundForDisplay } from "../utils/math";
 import {
     returnNumberDisplayAttributeComponentShadowing,
@@ -268,7 +269,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let mean = null;
                 if (dependencyValues.dataColumn !== null) {
-                    mean = me.math.mean(dependencyValues.dataColumn);
+                    mean = mean(dependencyValues.dataColumn);
                 }
                 return { setValue: { mean } };
             },
@@ -291,7 +292,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let stdev = null;
                 if (dependencyValues.dataColumn) {
-                    stdev = me.math.std(dependencyValues.dataColumn);
+                    stdev = std(dependencyValues.dataColumn);
                 }
 
                 return { setValue: { stdev } };
@@ -315,7 +316,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let variance = null;
                 if (dependencyValues.dataColumn) {
-                    variance = me.math.variance(dependencyValues.dataColumn);
+                    variance = variance(dependencyValues.dataColumn);
                 }
 
                 return { setValue: { variance } };
@@ -415,7 +416,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let median = null;
                 if (dependencyValues.dataColumn) {
-                    median = me.math.median(dependencyValues.dataColumn);
+                    median = median(dependencyValues.dataColumn);
                 }
                 return { setValue: { median } };
             },
@@ -438,10 +439,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let quartile1 = null;
                 if (dependencyValues.dataColumn) {
-                    quartile1 = me.math.quantileSeq(
-                        dependencyValues.dataColumn,
-                        0.25,
-                    );
+                    quartile1 = quantileSeq(dependencyValues.dataColumn, 0.25);
                 }
                 return { setValue: { quartile1 } };
             },
@@ -464,10 +462,7 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let quartile3 = null;
                 if (dependencyValues.dataColumn) {
-                    quartile3 = me.math.quantileSeq(
-                        dependencyValues.dataColumn,
-                        0.75,
-                    );
+                    quartile3 = quantileSeq(dependencyValues.dataColumn, 0.75);
                 }
                 return { setValue: { quartile3 } };
             },

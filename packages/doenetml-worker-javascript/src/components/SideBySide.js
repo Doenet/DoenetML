@@ -1,6 +1,7 @@
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+import { max } from "mathjs";
 
 export class SideBySide extends BlockComponent {
     constructor(args) {
@@ -1375,7 +1376,7 @@ export class SbsGroup extends BlockComponent {
                         maxNPanelsPerRow:
                             dependencyValues.sideBySideChildren.length === 0
                                 ? 0
-                                : me.math.max(
+                                : max(
                                       dependencyValues.sideBySideChildren.map(
                                           (x) => x.stateValues.numPanels,
                                       ),

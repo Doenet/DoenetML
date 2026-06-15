@@ -1,6 +1,7 @@
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Line from "./Line";
 import me from "math-expressions";
+import { matrix, transpose, multiply, lusolve, subset, index } from "mathjs";
 
 export default class BestFitLine extends Line {
     static componentType = "bestFitLine";
@@ -127,18 +128,18 @@ export default class BestFitLine extends Line {
                 };
             }
 
-            X = me.math.matrix(X);
-            Y = me.math.matrix(Y);
-            let Xt = me.math.transpose(X);
+            X = matrix(X);
+            Y = matrix(Y);
+            let Xt = transpose(X);
 
-            let b = me.math.multiply(Xt, Y);
+            let b = multiply(Xt, Y);
 
-            let A = me.math.multiply(Xt, X);
+            let A = multiply(Xt, X);
 
-            let s = me.math.lusolve(A, b);
+            let s = lusolve(A, b);
 
-            let coeff0 = me.fromAst(me.math.subset(s, me.math.index(0, 0)));
-            let coeffvar1 = me.fromAst(me.math.subset(s, me.math.index(1, 0)));
+            let coeff0 = me.fromAst(subset(s, index(0, 0)));
+            let coeffvar1 = me.fromAst(subset(s, index(1, 0)));
             let coeffvar2 = me.fromAst(-1);
 
             let variables = dependencyValues.variables;

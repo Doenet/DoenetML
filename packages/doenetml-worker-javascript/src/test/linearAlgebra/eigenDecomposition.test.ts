@@ -3,6 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 //@ts-expect-error no type declaration
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { complex, conj, divide } from "mathjs";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -11,9 +12,9 @@ vi.mock("hyperformula");
 describe("EigenDecomposition Tag Tests @group1", async () => {
     function reviveComplex(num: number | { re: number; im: number }) {
         if (typeof num === "number") {
-            return me.math.complex({ re: num, im: 0 });
+            return complex({ re: num, im: 0 });
         } else {
-            return me.math.complex({ re: num.re, im: num.im });
+            return complex({ re: num.re, im: num.im });
         }
     }
 
@@ -202,7 +203,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .value.im,
         ).closeTo(-2, 1e-14);
 
-        let ratio = me.math.divide(
+        let ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][1],
@@ -214,7 +215,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         );
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
-        ratio = me.math.divide(
+        ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][1],
@@ -227,7 +228,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevec1")]
@@ -244,7 +245,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
@@ -261,7 +262,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevec2")]
@@ -278,7 +279,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
@@ -295,7 +296,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bevec1y")]
                     .stateValues.value,
@@ -493,7 +494,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .value.im,
         ).closeTo(-2, 1e-14);
 
-        let ratio = me.math.divide(
+        let ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][1],
@@ -505,7 +506,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         );
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
-        ratio = me.math.divide(
+        ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][1],
@@ -518,7 +519,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevec1")]
@@ -535,7 +536,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
@@ -552,7 +553,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevec2")]
@@ -569,7 +570,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
@@ -586,7 +587,7 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         expect(ratio.re).closeTo(0, 1e-14);
         expect(ratio.im).closeTo(-1, 1e-14);
 
-        ratio = me.math.divide(
+        ratio = divide(
             reviveComplex(
                 stateVariables[await resolvePathToNodeIdx("Bevec1y")]
                     .stateValues.value,
@@ -673,11 +674,8 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
             expect(actualEvals[i].im).closeTo(evals[i].im, 1e-12);
 
             for (let j = 1; j < n; j++) {
-                let ratio = me.math.divide(evecs[i][0], evecs[i][j]);
-                let actualRatio = me.math.divide(
-                    actualEvecs[i][0],
-                    actualEvecs[i][j],
-                );
+                let ratio = divide(evecs[i][0], evecs[i][j]);
+                let actualRatio = divide(actualEvecs[i][0], actualEvecs[i][j]);
                 expect(actualRatio.re).closeTo(ratio.re, 1e-12);
                 expect(actualRatio.im).closeTo(ratio.im, 1e-12);
             }
@@ -729,27 +727,27 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
         });
 
         // Center
-        let evals = [me.math.complex({ re: 0, im: 14.78846823004614 })];
-        evals.push(me.math.conj(evals[0]));
-        evals.push(me.math.complex({ re: -22, im: 0 }));
+        let evals = [complex({ re: 0, im: 14.78846823004614 })];
+        evals.push(conj(evals[0]));
+        evals.push(complex({ re: -22, im: 0 }));
 
         let evecs = [
             [
-                me.math.complex({
+                complex({
                     re: -0.426486035260864,
                     im: -0.270682079730474,
                 }),
-                me.math.complex({ re: 0.627291349345459, im: 0 }),
-                me.math.complex({
+                complex({ re: 0.627291349345459, im: 0 }),
+                complex({
                     re: -0.173343062597144,
                     im: 0.566832090769437,
                 }),
             ],
         ];
-        evecs.push(evecs[0].map((v) => me.math.conj(v)));
+        evecs.push(evecs[0].map((v) => conj(v)));
         evecs.push(
             [-0.725759948499824, -0.487701621853287, -0.485200603044974].map(
-                (v) => me.math.complex({ re: v, im: 0 }),
+                (v) => complex({ re: v, im: 0 }),
             ),
         );
         await check_eigendecomposition({
@@ -762,30 +760,30 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
 
         // Stable spiral
         evals = [
-            me.math.complex({ re: -0.048287227932923, im: 14.703099997319454 }),
-            me.math.complex({
+            complex({ re: -0.048287227932923, im: 14.703099997319454 }),
+            complex({
                 re: -0.048287227932923,
                 im: -14.703099997319454,
             }),
-            me.math.complex({ re: -21.903425544134173, im: 0 }),
+            complex({ re: -21.903425544134173, im: 0 }),
         ];
         evecs = [
             [
-                me.math.complex({
+                complex({
                     re: -0.427048386266709,
                     im: -0.269189626634008,
                 }),
-                me.math.complex({ re: 0.627621340142377, im: 0 }),
-                me.math.complex({
+                complex({ re: 0.627621340142377, im: 0 }),
+                complex({
                     re: -0.172635887510845,
                     im: 0.566969950209772,
                 }),
             ],
         ];
-        evecs.push(evecs[0].map((v) => me.math.conj(v)));
+        evecs.push(evecs[0].map((v) => conj(v)));
         evecs.push(
             [-0.726546459838247, -0.48712036969194, -0.484607044034337].map(
-                (v) => me.math.complex({ re: v, im: 0 }),
+                (v) => complex({ re: v, im: 0 }),
             ),
         );
 
@@ -799,27 +797,27 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
 
         // Unstable spiral
         evals = [
-            me.math.complex({ re: 0.048306535292557, im: 14.873845525216694 }),
-            me.math.complex({ re: 0.048306535292557, im: -14.873845525216694 }),
-            me.math.complex({ re: -22.0966130705851, im: 0 }),
+            complex({ re: 0.048306535292557, im: 14.873845525216694 }),
+            complex({ re: 0.048306535292557, im: -14.873845525216694 }),
+            complex({ re: -22.0966130705851, im: 0 }),
         ];
         evecs = [
             [
-                me.math.complex({
+                complex({
                     re: -0.425927192657446,
                     im: -0.272156678632516,
                 }),
-                me.math.complex({ re: 0.626965239909586, im: 0 }),
-                me.math.complex({
+                complex({ re: 0.626965239909586, im: 0 }),
+                complex({
                     re: -0.174042517907594,
                     im: 0.566692649269571,
                 }),
             ],
         ];
-        evecs.push(evecs[0].map((v) => me.math.conj(v)));
+        evecs.push(evecs[0].map((v) => conj(v)));
         evecs.push(
             [-0.724981295406814, -0.488275620239871, -0.485787031516515].map(
-                (v) => me.math.complex({ re: v, im: 0 }),
+                (v) => complex({ re: v, im: 0 }),
             ),
         );
 

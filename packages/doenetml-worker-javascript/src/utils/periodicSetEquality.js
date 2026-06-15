@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { mod, min, fraction, number as mathNumber } from "mathjs";
 
 export default function periodicSetEquality(
     expr,
@@ -99,11 +100,9 @@ export default function periodicSetEquality(
         );
 
         // use me.math.mod rather than % so it always non-negative
-        let offset_diff = me.math.mod(number_list[0] - offset, period);
+        let offset_diff = mod(number_list[0] - offset, period);
 
-        if (
-            !(me.math.min(offset_diff, period - offset_diff) < 1e-10 * period)
-        ) {
+        if (!(min(offset_diff, period - offset_diff) < 1e-10 * period)) {
             return false;
         }
 
@@ -267,14 +266,14 @@ function contained_in(tree, i_set, match_partial) {
 
         if (typeof period !== "number" || Number.isNaN(period)) return false;
 
-        let frac = me.math.fraction(period);
-        let p = me.math.number(frac.n);
+        let frac = fraction(period);
+        let p = mathNumber(frac.n);
 
         if (p > 1000) {
             return false;
         }
 
-        let q = me.math.number(frac.d);
+        let q = mathNumber(frac.d);
         data.push([p, q, offset, period]);
     }
 
@@ -296,9 +295,9 @@ function contained_in(tree, i_set, match_partial) {
 
         if (Number.isFinite(offset_diff) && Number.isFinite(period)) {
             // use me.math.mod rather than % so it always non-negative
-            offset_diff = me.math.mod(offset_diff, period);
+            offset_diff = mod(offset_diff, period);
 
-            if (me.math.min(offset_diff, period - offset_diff) < 1e-10 * period)
+            if (min(offset_diff, period - offset_diff) < 1e-10 * period)
                 return true;
         }
         data.splice(0, 1); // remove first entry from data
@@ -335,10 +334,10 @@ function contained_in(tree, i_set, match_partial) {
 
                 // use me.math.mod rather than % so it always non-negative
                 if (Number.isFinite(offset_diff) && Number.isFinite(period)) {
-                    offset_diff = me.math.mod(offset_diff, period);
+                    offset_diff = mod(offset_diff, period);
 
                     if (
-                        me.math.min(offset_diff, period - offset_diff) <
+                        min(offset_diff, period - offset_diff) <
                         1e-10 * period
                     ) {
                         for (let k = 0; k < m; k++) {

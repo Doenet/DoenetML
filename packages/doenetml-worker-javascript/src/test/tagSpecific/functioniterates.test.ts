@@ -5,6 +5,7 @@ import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { index, matrix, multiply, subset } from "mathjs";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -282,20 +283,20 @@ describe("FunctionIterates tag tests @group2", async () => {
                 true,
             );
 
-            let A = me.math.matrix([
+            let A = matrix([
                 [a, b],
                 [c, d],
             ]);
-            let x = me.math.matrix([[u1], [u2]]);
+            let x = matrix([[u1], [u2]]);
 
             let iterNames = stateVariables[
                 await resolvePathToNodeIdx("iterates")
             ].replacements!.map((x) => x.componentIdx);
 
             for (let i = 0; i < n; i++) {
-                x = me.math.multiply(A, x);
-                let x1 = me.math.subset(x, me.math.index(0, 0));
-                let x2 = me.math.subset(x, me.math.index(1, 0));
+                x = multiply(A, x);
+                let x1 = subset(x, index(0, 0));
+                let x2 = subset(x, index(1, 0));
                 expect(
                     stateVariables[iterNames[i]].stateValues.value.tree,
                 ).eqls(["vector", x1, x2]);
