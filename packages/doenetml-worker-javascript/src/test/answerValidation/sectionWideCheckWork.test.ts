@@ -306,6 +306,62 @@ describe("section-wide check work attribute tests @group2", async () => {
         ).eq(0);
     });
 
+    it("answer maxNumAttempts is ignored inside section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="sec" sectionWideCheckWork>
+      <answer name="a1" maxNumAttempts="1">x</answer>
+    </section>
+  </document>
+  `,
+        });
+
+        async function fillInAnswer(latex: string) {
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const inputIdx =
+                stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                    .inputChildren[0].componentIdx;
+            await updateMathInputValue({ latex, componentIdx: inputIdx, core });
+        }
+
+        // The answer's own maxNumAttempts is ignored: its remaining attempts are
+        // unlimited even though maxNumAttempts="1".
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(Infinity);
+
+        // Submit via the section more times than the answer's maxNumAttempts.
+        await fillInAnswer("y");
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("sec"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+        await fillInAnswer("z");
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("sec"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        // The answer is still not disabled by its own (ignored) maxNumAttempts.
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(Infinity);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .disabled,
+        ).eq(false);
+    });
+
     it("warning when an answer sets maxNumAttempts inside section-wide check work", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -331,6 +387,58 @@ describe("section-wide check work attribute tests @group2", async () => {
                 ),
             ),
         ).eq(true);
+    });
+
+    it("warning when a nested section-wide check work sets maxNumAttempts inside another section-wide check work", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="outer" sectionWideCheckWork>
+      <section name="inner" sectionWideCheckWork maxNumAttempts="3">
+        <answer name="a1">1</answer>
+      </section>
+    </section>
+  </document>
+  `,
+        });
+
+        // Force evaluation of the inner section's numAttemptsLeft (which emits
+        // the warning)
+        await core.returnAllStateVariables(false, true);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.some((w: any) =>
+                w.message.includes(
+                    "Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork`",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("no nested section-wide check work warning for a top-level section-wide check work with maxNumAttempts", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="sec" sectionWideCheckWork maxNumAttempts="3">
+      <answer name="a1">1</answer>
+    </section>
+  </document>
+  `,
+        });
+
+        await core.returnAllStateVariables(false, true);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.some((w: any) =>
+                w.message.includes(
+                    "that is inside another container with `sectionWideCheckWork`",
+                ),
+            ),
+        ).eq(false);
     });
 
     it("documentWideCheckWork is deprecated but still enables section-wide check work", async () => {

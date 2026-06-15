@@ -538,16 +538,22 @@ export function returnStandardAnswerStateVariableDefinition() {
                 sendDiagnostics.push({
                     type: "warning",
                     message:
-                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` does not make sense, as the number of attempts is controlled by the section. The answer's `maxNumAttempts` will lead to confusing behavior.",
+                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
                 });
             }
 
+            // Inside a section-wide check work, the answer's own `maxNumAttempts`
+            // is ignored: the enclosing container controls the number of
+            // attempts (and disables its answers when exhausted). This matches
+            // how a `maxNumAttempts` on a nested `sectionWideCheckWork` container
+            // is ignored.
+            const numAttemptsLeft = insideSectionWideCheckWork
+                ? Infinity
+                : dependencyValues.maxNumAttempts -
+                  dependencyValues.numSubmissions;
+
             return {
-                setValue: {
-                    numAttemptsLeft:
-                        dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
-                },
+                setValue: { numAttemptsLeft },
                 sendDiagnostics,
             };
         },

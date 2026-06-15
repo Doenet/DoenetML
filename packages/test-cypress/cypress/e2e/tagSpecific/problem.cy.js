@@ -191,20 +191,35 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(threexInputAnchor).type("y{enter}", { force: true });
             cy.get("#theProblem_button").click();
 
+            cy.get("#theProblem_button").should("contain.text", "Incorrect");
             cy.get("[data-test=attempts-remaining]").should(
                 "contain.text",
                 "1 attempt remaining",
             );
             cy.get("#theProblem_button").should("not.be.disabled");
 
-            // Pressing the already-validated button does nothing (no new
-            // submission, no attempt consumed) until an input changes.
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(1);
+            });
+
+            // Pressing the already-validated button does nothing: no new
+            // submission, the button stays "Incorrect", and the attempt count
+            // does not change until an input changes.
             cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "Incorrect");
             cy.get("[data-test=attempts-remaining]").should(
                 "contain.text",
                 "1 attempt remaining",
             );
             cy.get("#theProblem_button").should("not.be.disabled");
+
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(1);
+            });
 
             // Changing an input returns the button to "Check Work"; submitting
             // again exhausts the remaining attempt.
@@ -219,6 +234,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                 "no attempts remaining",
             );
             cy.get("#theProblem_button").should("be.disabled");
+
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(2);
+            });
 
             // Answer inputs are disabled once attempts are exhausted
             cy.get(twoxInputAnchor).should("be.disabled");

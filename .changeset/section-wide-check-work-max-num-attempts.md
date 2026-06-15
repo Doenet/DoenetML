@@ -12,6 +12,6 @@ Any container that supports `sectionWideCheckWork` (`<section>`, `<problem>`, `<
 
 The document's `documentWideCheckWork` attribute is renamed to `sectionWideCheckWork` so the document shares the same abstraction as other containers. `documentWideCheckWork` continues to work as a deprecated alias (with a deprecation warning).
 
-Setting `maxNumAttempts` on an `<answer>` that is inside a container with `sectionWideCheckWork` now emits a warning, since the per-answer limit conflicts with the section-wide limit.
+Within a `sectionWideCheckWork` container, the attempt count is controlled solely by that container. A `maxNumAttempts` set on an enclosed `<answer>` — or on a nested `sectionWideCheckWork` container — is ignored, and DoenetML emits a warning suggesting that `maxNumAttempts` be set on the (outer) container instead.
 
 Closes #1308.

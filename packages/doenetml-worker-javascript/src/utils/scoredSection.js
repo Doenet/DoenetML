@@ -213,8 +213,38 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            sectionWideCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "sectionWideCheckWork",
+            },
+            // The nearest enclosing scored container. If it suppresses answer
+            // submit buttons, then this container is itself inside a
+            // section-wide check work, so its own section-wide button (and thus
+            // its `maxNumAttempts`) is not shown.
+            ancestorSuppressingAnswerSubmitButtons: {
+                dependencyType: "ancestor",
+                variableNames: ["suppressAnswerSubmitButtons"],
+            },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
+
+            if (
+                !usedDefault.maxNumAttempts &&
+                dependencyValues.sectionWideCheckWork &&
+                insideSectionWideCheckWork
+            ) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.",
+                });
+            }
+
             // Clamp at 0: a public "remaining attempts" value should never go
             // negative, even if `maxNumAttempts` is lowered below the number of
             // submissions already made (or a persisted `numSubmissions` exceeds
@@ -227,6 +257,7 @@ export function returnScoredSectionStateVariableDefinition() {
                             dependencyValues.numSubmissions,
                     ),
                 },
+                sendDiagnostics,
             };
         },
     };
