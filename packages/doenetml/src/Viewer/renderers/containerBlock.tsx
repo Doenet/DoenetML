@@ -38,6 +38,7 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
         callAction,
         validationState,
         justSubmitted: SVs.justSubmitted,
+        submissionCount: SVs.numSubmissions,
     });
 
     if (actions.submitAllAnswers) {

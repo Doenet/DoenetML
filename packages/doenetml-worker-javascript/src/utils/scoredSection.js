@@ -177,6 +177,7 @@ export function returnScoredSectionStateVariableDefinition() {
         shadowingInstructions: {
             createComponentOfType: "integer",
         },
+        forRenderer: true,
         defaultValue: 0,
         hasEssential: true,
         returnDependencies: () => ({}),
@@ -215,11 +216,17 @@ export function returnScoredSectionStateVariableDefinition() {
             },
         }),
         definition({ dependencyValues }) {
+            // Clamp at 0: a public "remaining attempts" value should never go
+            // negative, even if `maxNumAttempts` is lowered below the number of
+            // submissions already made (or a persisted `numSubmissions` exceeds
+            // it).
             return {
                 setValue: {
-                    numAttemptsLeft:
+                    numAttemptsLeft: Math.max(
+                        0,
                         dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
+                            dependencyValues.numSubmissions,
+                    ),
                 },
             };
         },

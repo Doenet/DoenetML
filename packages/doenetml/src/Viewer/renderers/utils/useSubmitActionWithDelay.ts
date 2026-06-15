@@ -13,6 +13,11 @@ type UseSubmitActionWithDelayProps = {
     validationState: ValidationState;
     /** Whether the answer or section-wide answers were just submitted */
     justSubmitted?: boolean;
+    /**
+     * The section-wide `numSubmissions` counter, used to clear the in-flight
+     * guard for already-validated `submitAllAnswers` re-submissions.
+     */
+    submissionCount?: number;
     /** Optional delay in milliseconds before showing pending UI (default: 500ms) */
     delayMs?: number;
 };
@@ -44,6 +49,7 @@ export function useSubmitActionWithDelay({
     callAction,
     validationState,
     justSubmitted,
+    submissionCount,
     delayMs = 500,
 }: UseSubmitActionWithDelayProps) {
     const submitCallback = useCallback(
@@ -56,6 +62,7 @@ export function useSubmitActionWithDelay({
         validationState,
         justSubmitted,
         allowSubmitWhenValidated: actionKey === "submitAllAnswers",
+        submissionCount,
         delayMs,
     });
 

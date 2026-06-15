@@ -297,6 +297,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         callAction,
         validationState,
         justSubmitted: SVs.justSubmitted,
+        submissionCount: SVs.numSubmissions,
     });
 
     let title;

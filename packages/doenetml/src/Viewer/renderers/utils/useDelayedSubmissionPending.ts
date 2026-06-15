@@ -16,20 +16,27 @@ type UseDelayedSubmissionPendingOptions = {
      * button again still counts as an attempt.
      */
     allowSubmitWhenValidated?: boolean;
+    /**
+     * A monotonically-increasing submission counter (the section-wide
+     * `numSubmissions`). Used to clear the in-flight guard for already-validated
+     * re-submissions, where `validationState`/`justSubmitted` need not change.
+     */
+    submissionCount?: number;
 };
 
 /**
  * Hook for delayed submission pending UI feedback.
  *
  * Shows a "Checking..." message only if submission takes longer than the specified delay.
- * For unvalidated submissions, prevents duplicate submissions while in-flight.
- * Automatically clears the pending state when validation completes (via
- * validationState change from "unvalidated") or when a new answer is submitted
- * (via justSubmitted flag).
+ * Prevents duplicate submissions (e.g. a double-click) while one is in-flight.
+ * The in-flight guard is cleared when validation completes (via validationState
+ * change from "unvalidated"), when a new answer is submitted (via justSubmitted),
+ * or when `submissionCount` changes.
  *
  * When `allowSubmitWhenValidated` is true, already-validated submissions are
- * forwarded without pending UI so repeated section-wide button presses can count
- * as attempts even if the validation state itself does not change.
+ * forwarded too, so repeated section-wide button presses can count as attempts
+ * even if the validation state itself does not change; the in-flight guard then
+ * relies on `submissionCount` to reset.
  *
  * The delay default (500ms) balances user experience:
  * - Avoids flashing spinners for quick validations
@@ -43,6 +50,7 @@ export function useDelayedSubmissionPending({
     validationState,
     justSubmitted,
     allowSubmitWhenValidated = false,
+    submissionCount,
 }: UseDelayedSubmissionPendingOptions) {
     const [isPending, setIsPending] = React.useState(false);
     const isSubmissionInFlight = React.useRef(false);
@@ -67,6 +75,15 @@ export function useDelayedSubmissionPending({
         }
     }, [clearPending, justSubmitted, validationState]);
 
+    // Clear the in-flight guard once a submission has registered. For
+    // already-validated re-submissions this is the only reliable signal, since
+    // `validationState` and `justSubmitted` need not change between presses.
+    React.useEffect(() => {
+        if (isSubmissionInFlight.current) {
+            clearPending();
+        }
+    }, [clearPending, submissionCount]);
+
     React.useEffect(() => {
         return () => {
             if (timeoutRef.current !== null) {
@@ -78,15 +95,15 @@ export function useDelayedSubmissionPending({
     const submitActionWithPending = React.useCallback(() => {
         const alreadyValidated = validationState !== "unvalidated";
 
+        // Normally a validated component does not re-submit; section-wide check
+        // work is the exception (each press counts as an attempt).
         if (alreadyValidated && !allowSubmitWhenValidated) {
             return;
         }
 
-        if (alreadyValidated) {
-            submitAction();
-            return;
-        }
-
+        // Ignore duplicate presses (e.g. a double-click) while a submission is
+        // already in flight, so a single user gesture cannot burn multiple
+        // attempts.
         if (isSubmissionInFlight.current) {
             return;
         }
