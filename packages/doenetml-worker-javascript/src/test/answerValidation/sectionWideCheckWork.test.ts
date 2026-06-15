@@ -241,6 +241,15 @@ describe("section-wide check work attribute tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues
                 .numAttemptsLeft,
         ).eq(2);
+        // The answers report the section's remaining attempts.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
         expect(
             stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .disabled,
@@ -265,6 +274,14 @@ describe("section-wide check work attribute tests @group2", async () => {
         ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .disabled,
         ).eq(false);
         expect(
@@ -282,6 +299,14 @@ describe("section-wide check work attribute tests @group2", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .numAttemptsLeft,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .numAttemptsLeft,
         ).eq(0);
         expect(
@@ -360,6 +385,69 @@ describe("section-wide check work attribute tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("a1")].stateValues
                 .disabled,
         ).eq(false);
+    });
+
+    it("numAttemptsLeft propagates from the outer section through nested section-wide check work", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="outer" sectionWideCheckWork maxNumAttempts="2">
+      <section name="inner" sectionWideCheckWork maxNumAttempts="5">
+        <answer name="a1">x</answer>
+      </section>
+    </section>
+  </document>
+  `,
+        });
+
+        async function fillInAnswer(latex: string) {
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const inputIdx =
+                stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                    .inputChildren[0].componentIdx;
+            await updateMathInputValue({ latex, componentIdx: inputIdx, core });
+        }
+
+        // The inner section's and answer's remaining attempts all reflect the
+        // outer (controlling) section, ignoring the inner maxNumAttempts="5".
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("outer")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inner")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(2);
+
+        // One submission via the outer section decrements all three.
+        await fillInAnswer("y");
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("outer"),
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("outer")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inner")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .numAttemptsLeft,
+        ).eq(1);
     });
 
     it("warning when an answer sets maxNumAttempts inside section-wide check work", async () => {

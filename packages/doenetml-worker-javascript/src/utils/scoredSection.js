@@ -220,10 +220,14 @@ export function returnScoredSectionStateVariableDefinition() {
             // The nearest enclosing scored container. If it suppresses answer
             // submit buttons, then this container is itself inside a
             // section-wide check work, so its own section-wide button (and thus
-            // its `maxNumAttempts`) is not shown.
+            // its `maxNumAttempts`) is not shown — the enclosing container
+            // controls the number of attempts.
             ancestorSuppressingAnswerSubmitButtons: {
                 dependencyType: "ancestor",
-                variableNames: ["suppressAnswerSubmitButtons"],
+                variableNames: [
+                    "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
+                ],
             },
             // Used to target the ignored-`maxNumAttempts` warning at the
             // attribute itself rather than the whole container.
@@ -252,18 +256,28 @@ export function returnScoredSectionStateVariableDefinition() {
                 });
             }
 
-            // Clamp at 0: a public "remaining attempts" value should never go
-            // negative, even if `maxNumAttempts` is lowered below the number of
-            // submissions already made (or a persisted `numSubmissions` exceeds
-            // it).
+            let numAttemptsLeft;
+            if (insideSectionWideCheckWork) {
+                // Inside an enclosing section-wide check work, this container's
+                // own `maxNumAttempts` is ignored; report the enclosing
+                // container's remaining attempts so the value is accurate.
+                numAttemptsLeft =
+                    dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                        .stateValues.numAttemptsLeft;
+            } else {
+                // Clamp at 0: a public "remaining attempts" value should never
+                // go negative, even if `maxNumAttempts` is lowered below the
+                // number of submissions already made (or a persisted
+                // `numSubmissions` exceeds it).
+                numAttemptsLeft = Math.max(
+                    0,
+                    dependencyValues.maxNumAttempts -
+                        dependencyValues.numSubmissions,
+                );
+            }
+
             return {
-                setValue: {
-                    numAttemptsLeft: Math.max(
-                        0,
-                        dependencyValues.maxNumAttempts -
-                            dependencyValues.numSubmissions,
-                    ),
-                },
+                setValue: { numAttemptsLeft },
                 sendDiagnostics,
             };
         },

@@ -3,10 +3,10 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 
-function returnScoredContainerAncestorDependency(variableName) {
+function returnScoredContainerAncestorDependency(...variableNames) {
     return {
         dependencyType: "ancestor",
-        variableNames: [variableName],
+        variableNames,
     };
 }
 
@@ -525,6 +525,7 @@ export function returnStandardAnswerStateVariableDefinition() {
             ancestorSuppressingAnswerSubmitButtons:
                 returnScoredContainerAncestorDependency(
                     "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
                 ),
             // Used to target the ignored-`maxNumAttempts` warning at the
             // attribute itself rather than the whole `<answer>`.
@@ -549,13 +550,15 @@ export function returnStandardAnswerStateVariableDefinition() {
                 });
             }
 
-            // Inside a section-wide check work, the answer's own `maxNumAttempts`
-            // is ignored: the enclosing container controls the number of
-            // attempts (and disables its answers when exhausted). This matches
-            // how a `maxNumAttempts` on a nested `sectionWideCheckWork` container
-            // is ignored.
+            // Inside a section-wide check work, the answer's own
+            // `maxNumAttempts` is ignored: the enclosing container controls the
+            // number of attempts. Report that container's remaining attempts so
+            // the public `numAttemptsLeft` is accurate. This matches how a
+            // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
+            // ignored.
             const numAttemptsLeft = insideSectionWideCheckWork
-                ? Infinity
+                ? dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                      .stateValues.numAttemptsLeft
                 : dependencyValues.maxNumAttempts -
                   dependencyValues.numSubmissions;
 
