@@ -121,13 +121,9 @@ export default class Document extends BaseComponent {
             returnScoredSectionStateVariableDefinition(),
         );
 
-        // `returnScoredSectionStateVariableDefinition()` defines `aggregateScores`,
-        // `creditAchieved`, and `creditAchievedIfSubmit` for an opt-in scored
-        // section. The document is the top-level scored container and always
-        // aggregates the scores of its children, so it drops the
-        // `aggregateScores` state variable and replaces `creditAchieved`/
-        // `creditAchievedIfSubmit` below with unconditionally-aggregating
-        // versions.
+        // The document is the top-level scored container and always aggregates
+        // the scores of its children, so it drops the opt-in `aggregateScores`
+        // state variable.
         delete stateVariableDefinitions.aggregateScores;
 
         stateVariableDefinitions.titleChildName = {
