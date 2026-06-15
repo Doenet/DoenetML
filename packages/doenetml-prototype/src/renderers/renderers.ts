@@ -28,6 +28,7 @@ import {
     _PassThroughWithTag,
     _PassThroughWithLogging,
     Angle,
+    Q,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
