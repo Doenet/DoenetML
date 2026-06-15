@@ -203,6 +203,51 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("section wide check work buttons render for ordered and unordered lists", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <ol name="ordered" sectionWideCheckWork>
+          <li>1: <answer name="orderedAnswer">1</answer></li>
+        </ol>
+        <ul name="unordered" sectionWideCheckWork>
+          <li>2: <answer name="unorderedAnswer">2</answer></li>
+        </ul>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ordered_button").should("contain.text", "Check Work");
+        cy.get("#unordered_button").should("contain.text", "Check Work");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let orderedInputIdx =
+                stateVariables[await win.resolvePath1("orderedAnswer")]
+                    .stateValues.inputChildren[0].componentIdx;
+            let orderedInputAnchor =
+                cesc("#_id_" + orderedInputIdx) + " textarea";
+
+            let unorderedInputIdx =
+                stateVariables[await win.resolvePath1("unorderedAnswer")]
+                    .stateValues.inputChildren[0].componentIdx;
+            let unorderedInputAnchor =
+                cesc("#_id_" + unorderedInputIdx) + " textarea";
+
+            cy.get(orderedInputAnchor).type("1{enter}", { force: true });
+            cy.get("#ordered_button").click();
+            cy.get("#ordered_button").should("contain.text", "Correct");
+
+            cy.get(unorderedInputAnchor).type("2{enter}", { force: true });
+            cy.get("#unordered_button").click();
+            cy.get("#unordered_button").should("contain.text", "Correct");
+        });
+    });
+
     it("section wide check work in section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
