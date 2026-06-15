@@ -153,7 +153,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-        <problem sectionWideCheckWork maxNumAttempts="1" name="theProblem">
+        <problem sectionWideCheckWork maxNumAttempts="2" name="theProblem">
         <title>Problem 1</title>
         <p>2x: <answer name="twox">2x</answer></p>
         <p>3x: <answer name="threex">3x</answer></p>
@@ -164,11 +164,11 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        // One attempt remaining initially
+        // Two attempts remaining initially
         cy.get("#theProblem_button").should("contain.text", "Check Work");
         cy.get("[data-test=attempts-remaining]").should(
             "contain.text",
-            "1 attempt remaining",
+            "2 attempts remaining",
         );
         cy.get("#theProblem_button").should("not.be.disabled");
 
@@ -186,9 +186,19 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             let threexInputAnchor =
                 cesc("#_id_" + threexInputIdx) + " textarea";
 
-            // A single section-wide submission exhausts the one attempt
+            // First section-wide submission validates but leaves one attempt.
             cy.get(twoxInputAnchor).type("y{enter}", { force: true });
             cy.get(threexInputAnchor).type("y{enter}", { force: true });
+            cy.get("#theProblem_button").click();
+
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "1 attempt remaining",
+            );
+            cy.get("#theProblem_button").should("not.be.disabled");
+
+            // Pressing the already-validated section-wide button again
+            // exhausts the remaining attempt.
             cy.get("#theProblem_button").click();
 
             cy.get("[data-test=attempts-remaining]").should(

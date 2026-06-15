@@ -9,16 +9,16 @@ type UseSubmitActionWithDelayProps = {
     actions: Record<string, any>;
     /** Function to invoke the action */
     callAction: (params: { action: any }) => void;
-    /** Current validation state of the answer */
+    /** Current validation state of the answer or section-wide button */
     validationState: ValidationState;
-    /** Whether the answer was just submitted */
+    /** Whether the answer or section-wide answers were just submitted */
     justSubmitted?: boolean;
     /** Optional delay in milliseconds before showing pending UI (default: 500ms) */
     delayMs?: number;
 };
 
 /**
- * Creates a submit handler that shows delayed "pending" feedback for answer checks.
+ * Creates a submit handler that shows delayed "pending" feedback for check-work buttons.
  *
  * Use this hook when a renderer needs to submit an answer (or submit all answers)
  * through `callAction` and wants pending UI behavior that:
@@ -53,6 +53,7 @@ export function useSubmitActionWithDelay({
         submitAction: submitCallback,
         validationState,
         justSubmitted,
+        allowSubmitWhenValidated: actionKey === "submitAllAnswers",
         delayMs,
     });
 

@@ -4,12 +4,18 @@ import type { ValidationState } from "./checkWork";
 type UseDelayedSubmissionPendingOptions = {
     /** Delay in milliseconds before showing pending UI (default: 500ms) */
     delayMs?: number;
-    /** Function to call to submit the answer */
+    /** Function to call to submit the answer or section-wide answers */
     submitAction: () => void;
-    /** Current validation state of the answer */
+    /** Current validation state of the answer or section-wide button */
     validationState: ValidationState;
-    /** Whether the answer was just submitted */
+    /** Whether the answer or section-wide answers were just submitted */
     justSubmitted?: boolean;
+    /**
+     * Whether to allow submissions when the component is already validated.
+     * Used by section-wide check work, where pressing the already-validated
+     * button again still counts as an attempt.
+     */
+    allowSubmitWhenValidated?: boolean;
 };
 
 /**
@@ -31,6 +37,7 @@ export function useDelayedSubmissionPending({
     submitAction,
     validationState,
     justSubmitted,
+    allowSubmitWhenValidated = false,
 }: UseDelayedSubmissionPendingOptions) {
     const [isPending, setIsPending] = React.useState(false);
     const isSubmissionInFlight = React.useRef(false);
@@ -64,7 +71,14 @@ export function useDelayedSubmissionPending({
     }, []);
 
     const submitActionWithPending = React.useCallback(() => {
-        if (validationState !== "unvalidated") {
+        const alreadyValidated = validationState !== "unvalidated";
+
+        if (alreadyValidated && !allowSubmitWhenValidated) {
+            return;
+        }
+
+        if (alreadyValidated) {
+            submitAction();
             return;
         }
 
@@ -88,7 +102,7 @@ export function useDelayedSubmissionPending({
         }, delayMs);
 
         submitAction();
-    }, [delayMs, submitAction, validationState]);
+    }, [allowSubmitWhenValidated, delayMs, submitAction, validationState]);
 
     return {
         isPending,
