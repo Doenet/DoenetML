@@ -9,29 +9,22 @@ type UseSubmitActionWithDelayProps = {
     actions: Record<string, any>;
     /** Function to invoke the action */
     callAction: (params: { action: any }) => void;
-    /** Current validation state of the answer or section-wide button */
+    /** Current validation state of the answer */
     validationState: ValidationState;
-    /** Whether the answer or section-wide answers were just submitted */
+    /** Whether the answer was just submitted */
     justSubmitted?: boolean;
-    /**
-     * The section-wide `numSubmissions` counter, used to clear the in-flight
-     * guard for already-validated `submitAllAnswers` re-submissions.
-     */
-    submissionCount?: number;
     /** Optional delay in milliseconds before showing pending UI (default: 500ms) */
     delayMs?: number;
 };
 
 /**
- * Creates a submit handler that shows delayed "pending" feedback for check-work buttons.
+ * Creates a submit handler that shows delayed "pending" feedback for answer checks.
  *
  * Use this hook when a renderer needs to submit an answer (or submit all answers)
  * through `callAction` and wants pending UI behavior that:
- * - ignores duplicate unvalidated submit attempts while one is in flight
+ * - ignores duplicate submit attempts while one is in flight
  * - waits briefly before showing pending state (to avoid flicker on fast responses)
  * - clears pending state when validation completes
- * - forwards already-validated `submitAllAnswers` calls because each
- *   section-wide button press counts as an attempt
  *
  * Inputs:
  * - `actionKey`: which action to submit (`submitAnswer` or `submitAllAnswers`)
@@ -49,7 +42,6 @@ export function useSubmitActionWithDelay({
     callAction,
     validationState,
     justSubmitted,
-    submissionCount,
     delayMs = 500,
 }: UseSubmitActionWithDelayProps) {
     const submitCallback = useCallback(
@@ -61,8 +53,6 @@ export function useSubmitActionWithDelay({
         submitAction: submitCallback,
         validationState,
         justSubmitted,
-        allowSubmitWhenValidated: actionKey === "submitAllAnswers",
-        submissionCount,
         delayMs,
     });
 

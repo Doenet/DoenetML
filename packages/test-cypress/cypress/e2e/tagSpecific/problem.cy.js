@@ -197,8 +197,21 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
             cy.get("#theProblem_button").should("not.be.disabled");
 
-            // Pressing the already-validated section-wide button again
-            // exhausts the remaining attempt.
+            // Pressing the already-validated button does nothing (no new
+            // submission, no attempt consumed) until an input changes.
+            cy.get("#theProblem_button").click();
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "1 attempt remaining",
+            );
+            cy.get("#theProblem_button").should("not.be.disabled");
+
+            // Changing an input returns the button to "Check Work"; submitting
+            // again exhausts the remaining attempt.
+            cy.get(twoxInputAnchor).type("{backspace}z{enter}", {
+                force: true,
+            });
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
             cy.get("#theProblem_button").click();
 
             cy.get("[data-test=attempts-remaining]").should(

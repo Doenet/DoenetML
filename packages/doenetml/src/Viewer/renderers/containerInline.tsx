@@ -34,7 +34,6 @@ export default React.memo(function ContainerInline(
         callAction,
         validationState,
         justSubmitted: SVs.justSubmitted,
-        submissionCount: SVs.numSubmissions,
     });
 
     if (actions.submitAllAnswers) {

@@ -177,7 +177,6 @@ export function returnScoredSectionStateVariableDefinition() {
         shadowingInstructions: {
             createComponentOfType: "integer",
         },
-        forRenderer: true,
         defaultValue: 0,
         hasEssential: true,
         returnDependencies: () => ({}),
