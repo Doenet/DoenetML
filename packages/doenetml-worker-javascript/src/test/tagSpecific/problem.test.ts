@@ -740,7 +740,7 @@ describe("Problem tag tests @group2", async () => {
     it("document wide checkWork", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <document documentWideCheckWork="$swcw" name="theDocument">
+        <document sectionWideCheckWork="$swcw" name="theDocument">
         <title>The problem</title>
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
@@ -819,7 +819,7 @@ describe("Problem tag tests @group2", async () => {
     it("document wide checkWork, show correctness turned off", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <document documentWideCheckWork="$swcw" name="theDocument" showCorrectness="false">
+        <document sectionWideCheckWork="$swcw" name="theDocument" showCorrectness="false">
         <title>The problem</title>
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
@@ -1173,7 +1173,7 @@ describe("Problem tag tests @group2", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <text>a</text>
-        <document documentWideCheckWork="$swcw" name="theDocument">
+        <document sectionWideCheckWork="$swcw" name="theDocument">
         <title>The problem</title>
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
@@ -1268,7 +1268,7 @@ describe("Problem tag tests @group2", async () => {
     it("document wide checkWork, submit label", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-      <document documentWideCheckWork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
+      <document sectionWideCheckWork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <answer name="ans1">x</answer>
       </document>
     `,

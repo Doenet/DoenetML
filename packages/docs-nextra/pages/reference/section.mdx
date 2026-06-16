@@ -229,6 +229,26 @@ single "Check Work" button.
 
 ---
 
+### Attribute Example: maxNumAttempts
+
+
+```doenet-example
+<section sectionWideCheckWork maxNumAttempts="2"><title>Multiple questions</title>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
+</section>
+```
+
+
+When combined with `sectionWideCheckWork`, the `maxNumAttempts` attribute limits how
+many times the section-wide "Check Work" button can be submitted. The number of
+attempts remaining is shown next to the button, and once the attempts are exhausted,
+all `<answer>{:dn}` components within the `<section>{:dn}` become disabled.
+
+
+---
+
 ### Attribute Example: forceIndividualAnswerColoring
 
 

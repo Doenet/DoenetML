@@ -70,6 +70,15 @@ function ignoredAttributes(
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
+        document: {
+            documentWideCheckWork: {
+                to: "sectionWideCheckWork",
+                warningMessage:
+                    "[deprecation] Attribute `documentWideCheckWork` on `<document>` is deprecated; use `sectionWideCheckWork` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `documentWideCheckWork` on `<document>` is deprecated and ignored because `sectionWideCheckWork` is also specified.",
+            },
+        },
         selectFromSequence: {
             sortResults: {
                 to: "sort",
