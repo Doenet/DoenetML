@@ -1,4 +1,5 @@
 import me from "math-expressions";
+const { mod } = me.math;
 
 // Attract the points to the line determined numericalNearestPointAsLineFunction.
 // Succeed only if each point moved less than the distance determined by threshold2.
@@ -142,7 +143,7 @@ function findAttractedSegmentPoints({
             Math.atan2(original_rel[1], original_rel[0]);
 
         // make dTheta be between -pi and pi
-        dTheta = me.math.mod(dTheta + Math.PI, 2 * Math.PI) - Math.PI;
+        dTheta = mod(dTheta + Math.PI, 2 * Math.PI) - Math.PI;
 
         // we had a rotation, so don't attract
         if (Math.abs(dTheta) > eps) {
