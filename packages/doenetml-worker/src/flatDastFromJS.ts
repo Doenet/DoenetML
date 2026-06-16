@@ -5,6 +5,7 @@ import type {
     FlatDastRootWithErrors,
 } from "./CoreWorker";
 import { generalRename } from "./jsRustConversions/_general-rename";
+import { booleanInputJsToRust } from "./jsRustConversions/booleanInput";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust } from "./jsRustConversions/section";
@@ -93,6 +94,9 @@ export function applyElementJsToRustFixups(
             generalRename(element.data.props, {
                 latexForRenderer: "latex",
             });
+        case "booleanInput":
+            booleanInputJsToRust(element.data.props);
+            break;
         case "text":
             textJsToRust(element.data.props);
             break;

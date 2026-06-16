@@ -1,0 +1,19 @@
+.doenet-document {
+    .boolean-input {
+        label {
+            @apply max-w-full;
+            .input-label {
+                @apply me-1;
+            }
+            &.input-label-right {
+                direction: rtl;
+                input[type="checkbox"] {
+                    direction: ltr;
+                }
+            }
+        }
+        input[type="checkbox"] {
+            @apply border-black border-2;
+        }
+    }
+}

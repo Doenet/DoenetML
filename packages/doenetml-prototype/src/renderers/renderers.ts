@@ -29,6 +29,10 @@ import {
     _PassThroughWithLogging,
     Angle,
     Q,
+    Tag,
+    Sq,
+    TagC,
+    BooleanInput,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -137,11 +141,18 @@ function showAttrOnly<T extends string>(
  * tag name uniquely determines the component to render.
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
+    booleanInput: { component: BooleanInput },
+    tag: { component: Tag, passthroughChildren: true },
+    tagc: { component: TagC, passthroughChildren: true },
     angle: { component: Angle },
     abs: { component: M },
     alert: passThroughWithRenamedTag("strong"),
     br: { component: _PassThroughWithTag },
+    c: passThroughWithRenamedTag("code"),
+    blockQuote: passThroughWithRenamedTag("blockquote"),
     hr: { component: _PassThroughWithTag },
+    q: { component: Q, passthroughChildren: true },
+    sq: { component: Sq, passthroughChildren: true },
 
     // Basic symbols - none of these wrap in a span with id in the original doenetml renderers
     ellipsis: renderAs("…", { wrapInSpanWithId: true }),

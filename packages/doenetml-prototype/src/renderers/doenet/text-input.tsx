@@ -33,7 +33,6 @@ type TextInputData = {
 };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node, htmlId }) => {
-    console.log("Rendering TextInput with id", node.data.id, node);
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
     const value = node.data.props.immediateValue;

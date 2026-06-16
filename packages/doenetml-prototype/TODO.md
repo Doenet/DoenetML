@@ -19,15 +19,15 @@ b - both
 - [x] `rq`
 - [x] `lsq`
 - [x] `rsq`
-- [ ] `sq`
+- [x] `sq`
 
 ## Minimal wrapper — single HTML element with children (~19–37 lines)
 
 - [x] `q`
-- [ ] `c`
+- [x] `c`
 - [ ] `asList`
 - [ ] `tag`
-- [ ] `alert`
+- [x] `alert`
 - [ ] `blockQuote`
 - [ ] `row`
 
