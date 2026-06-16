@@ -6,9 +6,11 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import { Action } from "@doenet/doenetml-worker";
 import { coreActions } from "../../state/redux-slices/core";
 import "./boolean-input.css";
+import classNames from "classnames";
 
 type BooleanInputData = {
     props: {
+        asToggleButton: boolean;
         immediateValue: boolean;
         label: string;
         labelHasLatex: boolean;
@@ -22,6 +24,7 @@ export const BooleanInput: BasicComponent<BooleanInputData> = ({
     node,
     htmlId,
 }) => {
+    console.log("Rendering BooleanInput with id", node.data.id, node); // --- IGNORE ---
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
     const {
@@ -48,16 +51,20 @@ export const BooleanInput: BasicComponent<BooleanInputData> = ({
     const hasLabel = !!label?.trim();
     const displayLabel = processLabelWithMath(label, labelHasLatex);
 
+    const containerClasses = classNames("boolean-input", {
+        "as-toggle-button": node.data.props.asToggleButton,
+    });
+
     if (onServer) {
         return (
-            <span className="boolean-input" id={htmlId}>
+            <span className={containerClasses} id={htmlId}>
                 {immediateValue ? "true" : "false"}
             </span>
         );
     }
 
     return (
-        <span className="boolean-input" id={htmlId}>
+        <span className={containerClasses} id={htmlId}>
             <label className={`input-label-${labelPosition}`}>
                 <span className="input-label">{displayLabel}</span>
                 <input
