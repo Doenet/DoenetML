@@ -8,6 +8,8 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import type { round as RoundType } from "mathjs";
+const { round } = me.math as { round: RoundType };
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3064,20 +3066,19 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("result_numeric")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
         expect(
             stateVariables[result_numeric2_name].stateValues.value.tree.map(
-                (x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                (x) => (typeof x === "number" && round(x, 10) === 0 ? 0 : x),
             ),
         ).eqls(["vector", 0, -1]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("result_numeric3")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
         expect(
@@ -3093,7 +3094,7 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("result_force_numeric_symbolic")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
 
@@ -3210,20 +3211,19 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("result_numeric")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
         expect(
             stateVariables[result_numeric2_name].stateValues.value.tree.map(
-                (x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                (x) => (typeof x === "number" && round(x, 10) === 0 ? 0 : x),
             ),
         ).eqls(["vector", 0, -1]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("result_numeric3")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
         expect(
@@ -3239,7 +3239,7 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("result_force_numeric_symbolic")
             ].stateValues.value.tree.map((x) =>
-                typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                typeof x === "number" && round(x, 10) === 0 ? 0 : x,
             ),
         ).eqls(["vector", 0, -1]);
     });
