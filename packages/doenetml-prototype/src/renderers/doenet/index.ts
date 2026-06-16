@@ -30,3 +30,4 @@ export * from "./sq";
 export * from "./tag";
 export * from "./tagc";
 export * from "./boolean-input";
+export * from "./block-quote";

@@ -24,7 +24,6 @@ export const BooleanInput: BasicComponent<BooleanInputData> = ({
     node,
     htmlId,
 }) => {
-    console.log("Rendering BooleanInput with id", node.data.id, node); // --- IGNORE ---
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
     const {

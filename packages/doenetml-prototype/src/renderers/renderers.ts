@@ -33,6 +33,7 @@ import {
     Sq,
     TagC,
     BooleanInput,
+    BlockQuote,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -149,7 +150,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     alert: passThroughWithRenamedTag("strong"),
     br: { component: _PassThroughWithTag },
     c: passThroughWithRenamedTag("code"),
-    blockQuote: passThroughWithRenamedTag("blockquote"),
+    blockQuote: { component: BlockQuote, passthroughChildren: true },
     hr: { component: _PassThroughWithTag },
     q: { component: Q, passthroughChildren: true },
     sq: { component: Sq, passthroughChildren: true },

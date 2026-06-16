@@ -8,7 +8,7 @@
         --bg-hover: color-mix(in srgb, var(--primary) 25%, white);
         --bg-checked: var(--primary);
         --bg-hover-checked: color-mix(in srgb, var(--primary) 85%, black);
-        --color: var(--neutral);
+        --color: black;
         --color-hover: color-mix(in srgb, var(--primary) 60%, black);
         --border: var(--neutral);
         --border-checked: var(--primary);
