@@ -16,18 +16,28 @@ import { store } from "../state/store";
 import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
 import Alert from "react-bootstrap/Alert";
+import type { CoreType } from "../state/redux-slices/core/slice";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
 
 export type EditorViewerProps = {
     doenetML: string;
+    /**
+     * Which core backs the rendered viewer panel. The editor-only features
+     * (PreTeXt/Markdown export) operate on the FlatDast in the store and are not
+     * intended to work with the JavaScript core.
+     */
+    coreType?: CoreType;
 };
 
 /**
  * A component that renders A source editor and rendered doenetml side-by-side.
  */
-export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
+export function EditorViewer({
+    doenetML = "",
+    coreType = "rust",
+}: EditorViewerProps) {
     const [sourceForRender, setSourceForRender] = React.useState(doenetML);
     const [sourceInEditor, setSourceInEditor] = React.useState(doenetML);
     const [formatMode, setFormatMode] = React.useState<"doenetml" | "xml">(
@@ -180,7 +190,12 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                                 </div>
                             </div>
                         }
-                        panelB={<DoenetML doenetML={sourceForRender} />}
+                        panelB={
+                            <DoenetML
+                                doenetML={sourceForRender}
+                                coreType={coreType}
+                            />
+                        }
                     />
                 </div>
             </div>

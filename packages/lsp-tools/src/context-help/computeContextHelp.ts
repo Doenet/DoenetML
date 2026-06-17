@@ -860,6 +860,7 @@ function helpForAttribute(
         // true/false. Boolean aliases injected via valueForTrue/valueForFalse
         // are kept out of `autocompleteValues` by the schema generator.
         allowedValues: schemaAttr.autocompleteValues,
+        allowedValuesArePerItem: schemaAttr.isList,
         defaultValue: schemaAttr.defaultValue,
         ...(activeDefault ? { activeDefault } : {}),
         ...(styleBreakdown ? { styleBreakdown } : {}),

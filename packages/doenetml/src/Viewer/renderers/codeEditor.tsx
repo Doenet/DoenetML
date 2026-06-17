@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
+import type { DiagnosticsTabId } from "../../EditorViewer/DiagnosticsResponseTabs";
 
 interface CodeEditorSVs {
     [key: string]: any;
@@ -17,6 +18,7 @@ interface CodeEditorSVs {
     immediateValue: string;
     width: any;
     height: any;
+    initialOpenTab: string;
 }
 
 export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
@@ -88,6 +90,17 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
         setCurrentValue(SVs.immediateValue);
     }
 
+    // Map initialOpenTab string values to EditorViewer prop type
+    let initialOpenTab: DiagnosticsTabId | null | undefined;
+    if (SVs.initialOpenTab === "none") {
+        initialOpenTab = null;
+    } else if (SVs.initialOpenTab === "first") {
+        initialOpenTab = undefined;
+    } else {
+        // Pass through diagnostic tab IDs: errors, warnings, info, accessibility, responses, help
+        initialOpenTab = SVs.initialOpenTab as DiagnosticsTabId;
+    }
+
     return (
         <div ref={ref}>
             <EditorViewer
@@ -99,9 +112,10 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                 height={sizeToCSS(SVs.height)}
                 showViewer={SVs.showResults}
                 viewerLocation={SVs.resultsLocation}
-                showResponses={false}
+                showResponses={SVs.showResults}
                 showFormatter={SVs.showFormatter}
                 readOnly={SVs.readOnly}
+                initialOpenTab={initialOpenTab}
                 immediateDoenetmlChangeCallback={
                     immediateDoenetmlChangeCallback
                 }

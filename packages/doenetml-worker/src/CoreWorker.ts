@@ -41,7 +41,15 @@ import {
 // @ts-ignore
 import WASM_BYTES_DATA_URL from "@doenet/doenetml-worker-rust/lib_doenetml_worker_bg.wasm?url";
 import { flatDastFromJS } from "./flatDastFromJS";
+import type { UpdateInstruction } from "./flatDastFromJS";
+import {
+    collectInstructionMaps,
+    flatDastUpdateFromJS,
+    seedInstructionMaps,
+    type FlatDastElementUpdateFromJS,
+} from "./flatDastUpdateFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
+import { translateJsCoreActionName } from "./jsCoreActionNames";
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
 try {
     // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
@@ -102,6 +110,41 @@ export class CoreWorker {
     source_set = false;
     flags_set = false;
     core_type: "rust" | "javascript" = "rust";
+
+    /**
+     * Buffer of update batches pushed by the JS core's persistent
+     * `updateRenderersCallback` (set up during the initial render). Drained by
+     * `dispatchActionJavascriptFlat` to build the FlatDast update map.
+     */
+    _javascriptUpdateBuffer: UpdateInstruction[] = [];
+    /**
+     * Whether the persistent `updateRenderersCallback` should buffer pushes.
+     * Only set while `dispatchActionJavascriptFlat` has an action in flight, so
+     * pushes that arrive with no in-flight action (animations, deferred async
+     * resolution — which this return-based API does not deliver anyway) are
+     * dropped rather than accumulating in `_javascriptUpdateBuffer` unbounded
+     * for the core's lifetime.
+     */
+    _capturingJavascriptUpdates = false;
+    /**
+     * Map from `componentIdx` to the JS component type/name, retained from the
+     * initial render and extended by each update batch. Used to select the
+     * JS->Rust prop fixup in `flatDastUpdateFromJS`.
+     */
+    _componentIdxToName: Record<number, string> = {};
+    /**
+     * Map from JS string id to `componentIdx`, required by the `ref` fixup.
+     * Retained from the initial render and extended by each update batch.
+     */
+    _doenetIdToComponentIdx: Record<string, number> = {};
+    /**
+     * Whether `returnFlatDastFromJS` has run, installing the persistent
+     * `updateRenderersCallback` and seeding the lookup maps above. Until then,
+     * `dispatchActionJavascriptFlat` has no callback to capture pushes and no
+     * maps to convert them, so it refuses to run rather than silently
+     * returning an empty update map.
+     */
+    _javascriptInitialRenderDone = false;
 
     isProcessingPromise = Promise.resolve();
 
@@ -445,10 +488,23 @@ export class CoreWorker {
 
         let updateInstructions = null;
 
-        // JS core sends most of the dast data with `updateRendersCallback` with `{ init: true }`
+        // The JS core pushes renderer updates through `updateRenderersCallback`.
+        // The initial render arrives once with `{ init: true }`; every later
+        // batch (e.g. triggered by `requestAction`) is appended to a buffer that
+        // `dispatchActionJavascriptFlat` drains. This callback is installed once
+        // on the persistent core, so it keeps receiving pushes for the core's
+        // lifetime; later batches are only buffered while an action is in flight
+        // (`_capturingJavascriptUpdates`) so out-of-action pushes don't grow the
+        // buffer without bound.
+        this._javascriptUpdateBuffer = [];
         const updateRenderersCallback = (args: any) => {
             if (args.init) {
                 updateInstructions = args.updateInstructions;
+            } else if (
+                this._capturingJavascriptUpdates &&
+                args.updateInstructions
+            ) {
+                this._javascriptUpdateBuffer.push(...args.updateInstructions);
             }
         };
 
@@ -486,6 +542,15 @@ export class CoreWorker {
 
         const documentToRender = coreResult.coreInfo.documentToRender;
 
+        // Retain the maps that `flatDastUpdateFromJS` needs (element-type lookup
+        // for fixups and the `ref` referent lookup), seeded with the document
+        // root and extended with every component in the initial render.
+        const { componentIdxToName, doenetIdToComponentIdx } =
+            seedInstructionMaps(documentToRender, updateInstructions);
+        this._componentIdxToName = componentIdxToName;
+        this._doenetIdToComponentIdx = doenetIdToComponentIdx;
+        this._javascriptInitialRenderDone = true;
+
         const flat_dast = flatDastFromJS(documentToRender, updateInstructions);
         return flat_dast;
     }
@@ -517,6 +582,130 @@ export class CoreWorker {
             console.error(err);
             throw err;
         } finally {
+            resolve();
+        }
+    }
+
+    /**
+     * Dispatch the action `actionName` of `componentIdx` to the JavaScript core
+     * and return the resulting FlatDast update map, matching the shape returned
+     * by the rust core's `dispatchAction` (`ActionResponse["payload"]`).
+     *
+     * The JS core uses a push model: `requestAction` resolves with only
+     * `{ actionId }`, while the actual renderer updates are pushed
+     * asynchronously through the persistent `updateRenderersCallback` installed
+     * during the initial render (see `returnFlatDastFromJS`). This method
+     * bridges that push model to the prototype's pull-based `dispatchAction`
+     * thunk: it clears the update buffer, awaits the action, then drains and
+     * converts the buffered batches via `flatDastUpdateFromJS`.
+     *
+     * Requires the initial render (`returnFlatDastFromJS`, via `returnDast`) to
+     * have run first — that is what installs the persistent callback and seeds
+     * the lookup maps; otherwise this throws rather than returning an empty map.
+     *
+     * Known gaps (acceptable for this milestone):
+     * - Updates that arrive with no in-flight action (animations, deferred async
+     *   resolution) are not delivered by this return-based API. The persistent
+     *   callback only buffers while an action is in flight, so such pushes are
+     *   dropped rather than buffered.
+     * - `requestAction` resolving does not guarantee every async renderer push
+     *   has flushed; only synchronously-available batches are drained.
+     */
+    async dispatchActionJavascriptFlat(actionArgs: {
+        actionName: string;
+        componentIdx: number | undefined;
+        args: Record<string, any>;
+    }): Promise<Record<number, FlatDastElementUpdateFromJS>> {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        try {
+            if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+                throw Error(
+                    "Cannot handle action before setting source and flags",
+                );
+            }
+            if (!this._javascriptInitialRenderDone) {
+                // The persistent update callback and the lookup maps are
+                // installed by `returnFlatDastFromJS`; without them this method
+                // would capture nothing and return an empty update map.
+                throw Error(
+                    "Cannot dispatch a flat action before the initial render (returnDast) has run",
+                );
+            }
+
+            this._javascriptUpdateBuffer = [];
+            this._capturingJavascriptUpdates = true;
+
+            // Translate the prototype's rust action name to the JS core's name
+            // when they differ (e.g. point `move` -> `movePoint`).
+            const componentType =
+                actionArgs.componentIdx != null
+                    ? this._componentIdxToName[actionArgs.componentIdx]
+                    : undefined;
+            const translatedActionName = translateJsCoreActionName(
+                componentType,
+                actionArgs.actionName,
+            );
+
+            const actionResult = await this.javascriptCore.requestAction({
+                ...actionArgs,
+                actionName: translatedActionName,
+            });
+
+            // `requestAction` reports failures by returning `{ success: false,
+            // errMsg }` rather than throwing, so surface them instead of
+            // silently returning an empty update map.
+            if (
+                actionResult &&
+                typeof actionResult === "object" &&
+                "success" in actionResult &&
+                actionResult.success === false
+            ) {
+                const actionLabel =
+                    translatedActionName === actionArgs.actionName
+                        ? `"${actionArgs.actionName}"`
+                        : `"${actionArgs.actionName}" (translated to "${translatedActionName}")`;
+                throw Error(
+                    `Action ${actionLabel} failed: ${
+                        actionResult.errMsg ?? "unknown error"
+                    }`,
+                );
+            }
+
+            // Disable capture and snapshot+clear the buffer as one synchronous
+            // unit. There is no `await` between these statements, so no
+            // `updateRenderersCallback` push can interleave: turning capture off
+            // first guarantees a push can never land in the fresh buffer before
+            // we stop accepting, while the snapshot still holds everything that
+            // accumulated during `requestAction`. (Pushes that arrive on later
+            // ticks, after capture is off, are the documented animation/async
+            // gap and are intentionally not delivered by this return-based API.)
+            this._capturingJavascriptUpdates = false;
+            const batches = this._javascriptUpdateBuffer;
+            this._javascriptUpdateBuffer = [];
+
+            // Keep the lookup maps current in case the action introduced new
+            // components, then convert the drained batches into the update map.
+            collectInstructionMaps(
+                batches,
+                this._componentIdxToName,
+                this._doenetIdToComponentIdx,
+            );
+
+            return flatDastUpdateFromJS(
+                batches,
+                this._componentIdxToName,
+                this._doenetIdToComponentIdx,
+            );
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            this._capturingJavascriptUpdates = false;
             resolve();
         }
     }

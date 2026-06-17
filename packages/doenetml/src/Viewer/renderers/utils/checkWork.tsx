@@ -65,7 +65,11 @@ export function createCheckWorkComponent(
 
     const buttonClassNames = ["check-work"];
 
-    const tabIndex = SVs.disabled ? -1 : 0;
+    // Disable the button when the component is disabled or when the (section-wide
+    // or per-answer) attempts have been exhausted.
+    const buttonDisabled = Boolean(SVs.disabled) || SVs.numAttemptsLeft < 1;
+
+    const tabIndex = buttonDisabled ? -1 : 0;
 
     let buttonContent: React.ReactElement | string | null = null;
 
@@ -172,7 +176,7 @@ export function createCheckWorkComponent(
             className={buttonClassNames.join(" ")}
             id={id + "_button"}
             tabIndex={tabIndex}
-            disabled={SVs.disabled}
+            disabled={buttonDisabled}
             aria-disabled={isPending ? true : undefined}
             onClick={submitAnswer}
         >

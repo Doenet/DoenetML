@@ -2,6 +2,7 @@ import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisp
 import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
+const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
     static componentType = "sum";
@@ -272,8 +273,7 @@ function makePeriodic({ value, lowerValue, upperValue }) {
     }
 
     return me.fromAst(
-        lowerValue +
-            me.math.mod(numericValue - lowerValue, upperValue - lowerValue),
+        lowerValue + mod(numericValue - lowerValue, upperValue - lowerValue),
     );
 }
 
@@ -723,7 +723,7 @@ export class Median extends MathBaseOperator {
             definition: () => ({
                 setValue: {
                     numericOperator: function (inputs) {
-                        return me.math.median(inputs);
+                        return median(inputs);
                     },
                 },
             }),
@@ -1123,7 +1123,7 @@ export class Mod extends MathBaseOperator {
                         if (inputs.length !== 2) {
                             return NaN;
                         }
-                        return me.math.mod(inputs[0], inputs[1]);
+                        return mod(inputs[0], inputs[1]);
                     },
                 },
             }),

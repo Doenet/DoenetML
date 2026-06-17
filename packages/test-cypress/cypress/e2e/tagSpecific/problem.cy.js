@@ -148,6 +148,150 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("section wide check work with maxNumAttempts disables answers when exhausted", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem sectionWideCheckWork maxNumAttempts="2" name="theProblem">
+        <title>Problem 1</title>
+        <p>2x: <answer name="twox">2x</answer></p>
+        <p>3x: <answer name="threex">3x</answer></p>
+      </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Two attempts remaining initially
+        cy.get("#theProblem_button").should("contain.text", "Check Work");
+        cy.get("[data-test=attempts-remaining]").should(
+            "contain.text",
+            "2 attempts remaining",
+        );
+        cy.get("#theProblem_button").should("not.be.disabled");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let twoxInputIdx =
+                stateVariables[await win.resolvePath1("twox")].stateValues
+                    .inputChildren[0].componentIdx;
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+
+            let threexInputIdx =
+                stateVariables[await win.resolvePath1("threex")].stateValues
+                    .inputChildren[0].componentIdx;
+            let threexInputAnchor =
+                cesc("#_id_" + threexInputIdx) + " textarea";
+
+            // First section-wide submission validates but leaves one attempt.
+            cy.get(twoxInputAnchor).type("y{enter}", { force: true });
+            cy.get(threexInputAnchor).type("y{enter}", { force: true });
+            cy.get("#theProblem_button").click();
+
+            cy.get("#theProblem_button").should("contain.text", "Incorrect");
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "1 attempt remaining",
+            );
+            cy.get("#theProblem_button").should("not.be.disabled");
+
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(1);
+            });
+
+            // Pressing the already-validated button does nothing: no new
+            // submission, the button stays "Incorrect", and the attempt count
+            // does not change until an input changes.
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "Incorrect");
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "1 attempt remaining",
+            );
+            cy.get("#theProblem_button").should("not.be.disabled");
+
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(1);
+            });
+
+            // Changing an input returns the button to "Check Work"; submitting
+            // again exhausts the remaining attempt.
+            cy.get(twoxInputAnchor).type("{backspace}z{enter}", {
+                force: true,
+            });
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
+            cy.get("#theProblem_button").click();
+
+            cy.get("[data-test=attempts-remaining]").should(
+                "contain.text",
+                "no attempts remaining",
+            );
+            cy.get("#theProblem_button").should("be.disabled");
+
+            cy.window().then(async (win2) => {
+                const problemIdx = await win2.resolvePath1("theProblem");
+                const sv = await win2.returnAllStateVariables1();
+                expect(sv[problemIdx].stateValues.numSubmissions).eq(2);
+            });
+
+            // Answer inputs are disabled once attempts are exhausted
+            cy.get(twoxInputAnchor).should("be.disabled");
+            cy.get(threexInputAnchor).should("be.disabled");
+        });
+    });
+
+    it("section wide check work buttons render for ordered and unordered lists", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <ol name="ordered" sectionWideCheckWork>
+          <li>1: <answer name="orderedAnswer">1</answer></li>
+        </ol>
+        <ul name="unordered" sectionWideCheckWork>
+          <li>2: <answer name="unorderedAnswer">2</answer></li>
+        </ul>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ordered_button").should("contain.text", "Check Work");
+        cy.get("#unordered_button").should("contain.text", "Check Work");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let orderedInputIdx =
+                stateVariables[await win.resolvePath1("orderedAnswer")]
+                    .stateValues.inputChildren[0].componentIdx;
+            let orderedInputAnchor =
+                cesc("#_id_" + orderedInputIdx) + " textarea";
+
+            let unorderedInputIdx =
+                stateVariables[await win.resolvePath1("unorderedAnswer")]
+                    .stateValues.inputChildren[0].componentIdx;
+            let unorderedInputAnchor =
+                cesc("#_id_" + unorderedInputIdx) + " textarea";
+
+            cy.get(orderedInputAnchor).type("1{enter}", { force: true });
+            cy.get("#ordered_button").click();
+            cy.get("#ordered_button").should("contain.text", "Correct");
+
+            cy.get(unorderedInputAnchor).type("2{enter}", { force: true });
+            cy.get("#unordered_button").click();
+            cy.get("#unordered_button").should("contain.text", "Correct");
+        });
+    });
+
     it("section wide check work in section", () => {
         cy.window().then(async (win) => {
             win.postMessage(

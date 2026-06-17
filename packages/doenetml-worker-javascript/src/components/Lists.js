@@ -12,6 +12,7 @@ export class Ol extends BlockComponent {
         super(args);
 
         Object.assign(this.actions, {
+            submitAllAnswers: this.submitAllAnswers.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
         });
     }
@@ -52,6 +53,9 @@ export class Ol extends BlockComponent {
                 "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
         };
 
+        let scoredSectionAttributes = returnScoredSectionAttributes();
+        Object.assign(attributes, scoredSectionAttributes);
+
         // Accepted for backward compatibility but currently ignored, so hidden
         // from the schema (docs tables and editor autocomplete).
         attributes.cols = {
@@ -79,6 +83,11 @@ export class Ol extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnScoredSectionStateVariableDefinition(),
+        );
 
         stateVariableDefinitions.numbered = {
             forRenderer: true,
@@ -127,6 +136,19 @@ export class Ol extends BlockComponent {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async submitAllAnswers({
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        return submitAllAnswers({
+            component: this,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
     }
 
     recordVisibilityChange({ isVisible }) {

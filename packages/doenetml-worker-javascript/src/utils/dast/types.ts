@@ -328,6 +328,13 @@ export type AttributeDefinition<T> = {
      *
      * Each entry is a `{value, description}` pair. The description is
      * surfaced in editor autocomplete and the context-sensitive help panel.
+     *
+     * On a list-typed attribute (e.g. `createComponentOfType: "textList"`),
+     * `validValues` constrains *each item* of the list rather than the whole
+     * value: every item must be one of the listed values. At runtime, items
+     * that aren't allowed are dropped with a diagnostic (see
+     * `validateAttributeValue`); in the schema the attribute is marked as a
+     * list of keywords so the LSP and docs phrase the constraint per-item.
      */
     validValues?: ValidValueEntry[];
     /** When the value of this attribute is changed, call the action `triggerActionOnChange`. */

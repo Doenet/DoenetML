@@ -1,5 +1,6 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
+const { dopri } = me.math;
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
@@ -863,7 +864,7 @@ export default class ODESystem extends InlineComponent {
                                     x0 = x0s;
                                 }
                                 let t0shifted = t0 + tind * chunkSize;
-                                let result = me.math.dopri(
+                                let result = dopri(
                                     t0shifted,
                                     t0shifted + chunkSize,
                                     x0,

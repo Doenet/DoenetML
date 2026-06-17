@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
 import { Button } from "@doenet/ui-components";
 
+// Lazy-load the prototype renderer so its stylesheet (which starts with a
+// Tailwind preflight reset) is only applied when a spec actually renders the
+// prototype. A static import would leak that global CSS into the
+// `@doenet/doenetml` viewer used by the existing specs and change their layout.
+const PrototypeRenderer = React.lazy(() => import("./PrototypeRenderer"));
+
 export function CypressTest() {
     const defaultTestSettings: {
         updateNumber: number;
@@ -59,6 +65,9 @@ export function CypressTest() {
             attemptNumber,
             externalDoenetMLs,
             answerResponseCounts,
+            doenetMediaUrl,
+            usePrototype,
+            prototypeCoreType,
         },
         setBaseState,
     ] = useState<{
@@ -66,6 +75,9 @@ export function CypressTest() {
         attemptNumber: number;
         externalDoenetMLs: Record<string, string>;
         answerResponseCounts?: Record<string, number>;
+        doenetMediaUrl?: string;
+        usePrototype?: boolean;
+        prototypeCoreType?: "rust" | "javascript";
     }>({
         doenetMLstring: null,
         attemptNumber: testSettings.attemptNumber,
@@ -154,6 +166,14 @@ export function CypressTest() {
         let newExternalDoenetMLs: Record<string, string> = {};
         let newAnswerResponseCounts: Record<string, number> | undefined =
             undefined;
+        let newDoenetMediaUrl: string | undefined = undefined;
+        // Keep the selected renderer sticky across incremental messages (e.g. a
+        // later message that only changes `attemptNumber` or re-sends
+        // `doenetML`): default to the current values and only override when the
+        // message explicitly includes these fields.
+        let newUsePrototype: boolean | undefined = usePrototype;
+        let newPrototypeCoreType: "rust" | "javascript" | undefined =
+            prototypeCoreType;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -176,6 +196,18 @@ export function CypressTest() {
             newAnswerResponseCounts = e.data.answerResponseCounts;
         }
 
+        if (e.data.doenetMediaUrl !== undefined) {
+            newDoenetMediaUrl = e.data.doenetMediaUrl;
+        }
+
+        if (e.data.usePrototype !== undefined) {
+            newUsePrototype = e.data.usePrototype;
+        }
+
+        if (e.data.prototypeCoreType !== undefined) {
+            newPrototypeCoreType = e.data.prototypeCoreType;
+        }
+
         // don't do anything if receive a message from another source (like the youtube player)
         if (
             typeof newDoenetMLstring === "string" ||
@@ -186,6 +218,9 @@ export function CypressTest() {
                 attemptNumber: newAttemptNumber,
                 externalDoenetMLs: newExternalDoenetMLs,
                 answerResponseCounts: newAnswerResponseCounts,
+                doenetMediaUrl: newDoenetMediaUrl,
+                usePrototype: newUsePrototype,
+                prototypeCoreType: newPrototypeCoreType,
             });
         }
     };
@@ -604,6 +639,7 @@ export function CypressTest() {
                 fetchExternalDoenetML={fetchExternalDoenetML}
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
+                doenetMediaUrl={doenetMediaUrl}
                 readOnly={readOnly}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
@@ -652,10 +688,41 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 includeVariantSelector={includeVariantSelector}
+                doenetMediaUrl={doenetMediaUrl}
             />
         );
 
         editorOrViewer = showEditor ? editor : viewer;
+
+        if (usePrototype) {
+            // The prototype renderers are driven by the FlatDast format and can
+            // be backed by either the rust core (default) or the JavaScript core
+            // (`prototypeCoreType="javascript"`). Gated behind `usePrototype` so
+            // existing `@doenet/doenetml` specs are unaffected.
+            editorOrViewer = (
+                <React.Suspense fallback={null}>
+                    <PrototypeRenderer
+                        key={"prototype" + updateNumber}
+                        doenetML={doenetMLstring}
+                        flags={{
+                            showCorrectness,
+                            readOnly,
+                            solutionDisplayMode,
+                            showFeedback,
+                            showHints,
+                            allowLoadState,
+                            allowSaveState,
+                            saveRendererState,
+                            allowLocalState,
+                            allowSaveEvents,
+                            autoSubmit,
+                        }}
+                        darkMode={darkMode}
+                        coreType={prototypeCoreType ?? "rust"}
+                    />
+                </React.Suspense>
+            );
+        }
     }
 
     return (
