@@ -31,3 +31,5 @@ export * from "./tag";
 export * from "./tagc";
 export * from "./boolean-input";
 export * from "./block-quote";
+export * from "./as-list";
+export * from "./aside";

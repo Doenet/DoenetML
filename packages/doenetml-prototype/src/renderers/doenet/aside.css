@@ -1,0 +1,44 @@
+.doenet-document {
+    .division > .summary {
+        display: flex;
+    }
+
+    .division.collapsible {
+        > .summary .heading::before {
+            content: "";
+            @apply inline-block me-2;
+            width: 0.45em;
+            height: 0.45em;
+            border-right: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            transform: rotate(-45deg);
+            transform-origin: 65% 60%;
+            transition: transform 0.2s ease;
+            vertical-align: middle;
+            margin-bottom: 0.3em;
+            margin-left: -0.3em;
+        }
+        &[open] > summary .heading::before {
+            transform: rotate(45deg);
+        }
+    }
+
+    .boxed {
+        @apply border-2 rounded-md border-black my-3;
+        summary .heading {
+            @apply bg-gray-200 px-3 py-2 m-0 font-bold text-base w-full rounded-t-md;
+        }
+        .content {
+            @apply px-3 py-0;
+        }
+    }
+
+    .division.boxed {
+        &[open] > .summary .heading {
+            @apply border-black border-b-2;
+        }
+        &:not([open]) > .summary .heading {
+            @apply rounded-md;
+        }
+    }
+}

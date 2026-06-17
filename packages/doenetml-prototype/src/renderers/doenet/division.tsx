@@ -2,12 +2,10 @@ import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 import type { DivisionPropsInText } from "@doenet/doenetml-worker";
-import { generateHtmlId } from "../utils";
 
 export const Division: BasicComponentWithPassthroughChildren<{
     props: DivisionPropsInText;
-}> = ({ children, node, visibilityRef, annotation, ancestors }) => {
-    const htmlId = generateHtmlId(node, annotation, ancestors);
+}> = ({ children, node, visibilityRef, ancestors, htmlId }) => {
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
@@ -32,7 +30,7 @@ export const Division: BasicComponentWithPassthroughChildren<{
     );
 };
 
-const Header: React.FunctionComponent<
+export const Header: React.FunctionComponent<
     React.PropsWithChildren<{ depth: number }>
 > = ({ depth, children }) => {
     if (depth > 5) {
@@ -43,5 +41,5 @@ const Header: React.FunctionComponent<
     }
     depth += 1;
 
-    return React.createElement(`h${depth}`, {}, children);
+    return React.createElement(`h${depth}`, { className: "heading" }, children);
 };

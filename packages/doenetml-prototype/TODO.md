@@ -25,10 +25,10 @@ b - both
 
 - [x] `q`
 - [x] `c`
-- [ ] `asList`
-- [ ] `tag`
+- [x] `asList`
+- [x] `tag`
 - [x] `alert`
-- [ ] `blockQuote`
+- [x] `blockQuote`
 - [ ] `row`
 
 ## Simple with minor state/style (~40–82 lines)

@@ -34,6 +34,8 @@ import {
     TagC,
     BooleanInput,
     BlockQuote,
+    AsList,
+    Aside,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -142,6 +144,8 @@ function showAttrOnly<T extends string>(
  * tag name uniquely determines the component to render.
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
+    aside: { component: Aside, passthroughChildren: true },
+    asList: { component: AsList, passthroughChildren: true },
     booleanInput: { component: BooleanInput },
     tag: { component: Tag, passthroughChildren: true },
     tagc: { component: TagC, passthroughChildren: true },
