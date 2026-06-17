@@ -2080,4 +2080,53 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             "true",
         );
     });
+
+    it("responses tab only records submissions from its code editor", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" showResults initialOpenTab="responses">
+      <p>First: <mathInput name="mi1" />
+        <answer name="ans1">
+          <award>
+            <when><math isResponse extend="$mi1" /> = <math>1</math></when>
+          </award>
+        </answer>
+      </p>
+    </codeEditor>
+
+    <codeEditor name="editor2" showResults initialOpenTab="responses">
+      <p>Second: <mathInput name="mi2" />
+        <answer name="ans2">
+          <award>
+            <when><math isResponse extend="$mi2" /> = <math>2</math></when>
+          </award>
+        </answer>
+      </p>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#editor1::mi1")} textarea`).type("1", {
+            force: true,
+        });
+        cy.get(cesc("#editor1::ans1_button")).click();
+        cy.get(cesc("#editor1::ans1_button")).should("contain.text", "Correct");
+
+        cy.get("#editor1 .diagnostics-response-tabs-container table tbody tr")
+            .should("have.length", 1)
+            .and("contain.text", "ans1")
+            .and("contain.text", "100%");
+        cy.get("#editor2 .diagnostics-response-tabs-container").should(
+            "contain.text",
+            "No submitted responses yet",
+        );
+        cy.get(
+            "#editor2 .diagnostics-response-tabs-container table tbody tr",
+        ).should("not.exist");
+    });
 });
