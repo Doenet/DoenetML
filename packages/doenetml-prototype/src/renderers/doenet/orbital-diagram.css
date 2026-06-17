@@ -1,0 +1,58 @@
+.doenet-document {
+    .orbital-diagram {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 0.75em;
+        margin: 0.5em 0;
+        font-family: serif;
+
+        .orbital-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .orbital-boxes {
+            display: flex;
+        }
+
+        .orbital-box {
+            @apply border-2 border-black;
+            width: 2.4em;
+            height: 2.6em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            & + .orbital-box {
+                border-left: none;
+            }
+            &:first-child {
+                @apply rounded-l-md;
+            }
+            &:last-child {
+                @apply rounded-r-md;
+            }
+        }
+
+        .orbital-arrow {
+            margin-left: -.3em;
+            font-size: 1.35em;
+            line-height: 1;
+            width: .6em;
+            text-align: center;
+            display: inline-block;
+            user-select: none;
+
+            & + .orbital-arrow {
+                margin-inline-start: -0.3em;
+            }
+        }
+
+        .orbital-label {
+            font-size: 0.8em;
+            text-align: center;
+        }
+    }
+}

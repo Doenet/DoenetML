@@ -1,0 +1,30 @@
+.doenet-document {
+    .division > .summary {
+        display: flex;
+    }
+
+    .boxed {
+        @apply border-2 rounded-md border-black my-3;
+        > .summary .heading,
+        > .heading {
+            @apply bg-gray-200 px-3 py-2 m-0 font-bold text-base w-full rounded-t-md;
+        }
+        .content {
+            @apply px-3 py-0;
+        }
+    }
+
+    .division.boxed {
+        &[open] > .summary .heading,
+        &[open] > .heading,
+        &:not(.collapsible) > .heading {
+            @apply border-black border-b-2;
+        }
+        &.collapsible:not([open]) {
+            > .summary .heading,
+            > .heading {
+                @apply border-gray-300 border-b-2 rounded-b-md;
+            }
+        }
+    }
+}

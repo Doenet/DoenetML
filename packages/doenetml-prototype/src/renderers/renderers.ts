@@ -36,6 +36,7 @@ import {
     BlockQuote,
     AsList,
     Aside,
+    OrbitalDiagram,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -144,9 +145,12 @@ function showAttrOnly<T extends string>(
  * tag name uniquely determines the component to render.
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
+    orbitalDiagram: { component: OrbitalDiagram },
+    atom: { component: M },
     aside: { component: Aside, passthroughChildren: true },
     asList: { component: AsList, passthroughChildren: true },
     booleanInput: { component: BooleanInput },
+    // ciel: { component: M },
     tag: { component: Tag, passthroughChildren: true },
     tagc: { component: TagC, passthroughChildren: true },
     angle: { component: Angle },
