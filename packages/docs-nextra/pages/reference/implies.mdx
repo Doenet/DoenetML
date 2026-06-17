@@ -24,13 +24,13 @@ This is a binary logical implication operator, e.g. it checks to see whether enc
 <boolean name="check1">$n > 10</boolean>
 <boolean name="check2">$n = 15</boolean>
       
-<p>You have entered a number ≤ 10 or = 15: ):
+<p>You have entered a number ≤ 10 or = 15:
   <boolean>
     <implies>$check1 $check2</implies>
   </boolean></p>
 ```
 
-The `<implies>{:dn}` component functions as the boolean logical biconditional operator `imp` or `→`, and checks to see 
+The `<implies>{:dn}` component functions as the boolean binary logical operator `imp` or `→`, and checks to see 
 whether enclosed `<boolean>{:dn}` are true when P implies Q. This is true when either the first argument is 'false' OR the second argument is 'true'.
 
 ---

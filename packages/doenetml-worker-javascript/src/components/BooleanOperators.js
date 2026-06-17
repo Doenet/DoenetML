@@ -58,7 +58,7 @@ export class Iff extends BooleanBaseOperator {
 
     static componentDocs = {
         summary:
-            "IF and only iF: Logical exclusive NOR: true when exactly one child boolean value is false",
+            "IF and only iF: Logical bicondition (IFF): true when all child boolean values are the same",
     };
 
     static applyBooleanOperator(values) {
