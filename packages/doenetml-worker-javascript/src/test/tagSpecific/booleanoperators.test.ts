@@ -309,7 +309,7 @@ describe("Boolean Operator tag tests @group3", async () => {
         await test_three_operators(core, resolvePathToNodeIdx, xorOperator);
     });
 
-    it("show point based on logic", async () => {
+    it("show point based on <xor> logic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi">
@@ -383,7 +383,7 @@ describe("Boolean Operator tag tests @group3", async () => {
         await test_three_operators(core, resolvePathToNodeIdx, iffOperator);
     });
 
-    it("show point based on logic", async () => {
+    it("show point based on <iff> logic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi">
@@ -465,7 +465,7 @@ describe("Boolean Operator tag tests @group3", async () => {
         await test_three_operators(core, resolvePathToNodeIdx, impliesOperator);
     });
 
-    it("show point based on logic", async () => {
+    it("show point based on <implies> logic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi">
