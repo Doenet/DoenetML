@@ -17,7 +17,12 @@ import { useTextRendererStyle } from "../../utils/use-renderer-style";
  * that prop reconciliation happens, the renderer tolerates both forms.
  */
 type MData = {
-    props: { latex?: string; selectedStyle: ResolvedStyleDefinition };
+    props: {
+        latex?: string;
+        selectedStyle: ResolvedStyleDefinition;
+        renderMode?: "inline" | "display" | "numbered" | "align";
+        equationTag?: string;
+    };
 };
 
 export const M: BasicComponentWithPassthroughChildren<MData> = ({
@@ -27,9 +32,18 @@ export const M: BasicComponentWithPassthroughChildren<MData> = ({
 }) => {
     const style = useTextRendererStyle(node.data.props.selectedStyle);
 
+    // Construct a suitable `renderMode` prop for `_ServerSafeMath`
+    const renderMode =
+        node.data.props.renderMode === "numbered"
+            ? { numbered: node.data.props.equationTag ?? "" }
+            : node.data.props.renderMode;
+
     return (
         <span id={htmlId} style={style}>
-            <_ServerSafeMath latex={node.data.props.latex}>
+            <_ServerSafeMath
+                latex={node.data.props.latex}
+                renderMode={renderMode}
+            >
                 {children}
             </_ServerSafeMath>
         </span>

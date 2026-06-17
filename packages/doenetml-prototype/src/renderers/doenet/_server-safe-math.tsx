@@ -9,8 +9,11 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
  * It is also safe to be called when the rendering mode is "server", in which case no MathJax wrapper is added.
  */
 export const _ServerSafeMath: React.FC<
-    React.PropsWithChildren<{ latex?: string | null }>
-> = ({ children, latex }) => {
+    React.PropsWithChildren<{
+        latex?: string | null;
+        renderMode?: "inline" | "display" | { numbered: string } | "align";
+    }>
+> = ({ children, latex, renderMode }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
 
     const hasLatex = latex != null && latex !== "";
@@ -23,16 +26,29 @@ export const _ServerSafeMath: React.FC<
             <span className="process-math">{hasLatex ? latex : children}</span>
         );
     }
+    let mathStartMarker = "\\(";
+    let mathEndMarker = "\\)";
+    if (renderMode === "display") {
+        mathStartMarker = "\\[";
+        mathEndMarker = "\\]";
+    } else if (typeof renderMode === "object" && "numbered" in renderMode) {
+        mathStartMarker = `\\begin{equation}\\tag{${renderMode.numbered}}`;
+        mathEndMarker = "\\end{equation}";
+    } else if (renderMode === "align") {
+        mathStartMarker = "\\begin{align*}";
+        mathEndMarker = "\\end{align*}";
+    }
+
     // better-react-mathjax cannot handle multiple children (it will not update
     // when they change), so create a single string. Without a `latex` prop
     // (rust core) fall back to joining the children.
-    const latexString = `\\(${
+    const latexString = `${mathStartMarker}${
         hasLatex
             ? latex
             : Array.isArray(children)
               ? children.join("")
               : String(children)
-    }\\)`;
+    }${mathEndMarker}`;
     return (
         <MathJax inline dynamic>
             {latexString}
