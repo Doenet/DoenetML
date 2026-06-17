@@ -547,6 +547,10 @@ export const EditorViewer = React.forwardRef<
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
                 const data = event.data.data;
+                if (data.activityId !== activityId) {
+                    return;
+                }
+
                 if (data.verb !== "experienced" && data.verb !== "isVisible") {
                     setDocumentInteracted(true);
                     if (!codeChangedRef.current) {
@@ -599,7 +603,7 @@ export const EditorViewer = React.forwardRef<
         return () => {
             removeEventListener("message", submittedResponseListener);
         };
-    }, [showViewer]);
+    }, [activityId]);
 
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
