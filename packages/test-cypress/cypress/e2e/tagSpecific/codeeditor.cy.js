@@ -1975,4 +1975,85 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#p3").should("have.text", "<p name='p1'>Cherry</p>\n");
         cy.get(cesc("#editor3::p1")).should("contain.text", "Cherry");
     });
+
+    it("initialOpenTab attribute controls panel visibility and active tab", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" showResults initialOpenTab="none">
+      <text>Hello</text>
+    </codeEditor>
+    
+    <codeEditor name="editor2" showResults initialOpenTab="first">
+      <text>World</text>
+    </codeEditor>
+    
+    <codeEditor name="editor3" showResults initialOpenTab="errors">
+      <text>Test</text>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Verify all editors exist");
+        cy.get("#editor1").should("exist");
+        cy.get("#editor2").should("exist");
+        cy.get("#editor3").should("exist");
+
+        cy.log("Verify initialOpenTab state variable values");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("editor1")].stateValues
+                    .initialOpenTab,
+            ).eq("none");
+            expect(
+                stateVariables[await win.resolvePath1("editor2")].stateValues
+                    .initialOpenTab,
+            ).eq("first");
+            expect(
+                stateVariables[await win.resolvePath1("editor3")].stateValues
+                    .initialOpenTab,
+            ).eq("errors");
+        });
+    });
+
+    it("initialOpenTab with showResults=false", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" initialOpenTab="none">
+      <text>Hello</text>
+    </codeEditor>
+    
+    <codeEditor name="editor2" initialOpenTab="errors">
+      <text>World</text>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Editor without showResults can still use initialOpenTab");
+        cy.get("#editor1").should("exist");
+        cy.get("#editor2").should("exist");
+
+        // Both should work even without showResults
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("editor1")].stateValues
+                    .initialOpenTab,
+            ).eq("none");
+            expect(
+                stateVariables[await win.resolvePath1("editor2")].stateValues
+                    .initialOpenTab,
+            ).eq("errors");
+        });
+    });
 });
