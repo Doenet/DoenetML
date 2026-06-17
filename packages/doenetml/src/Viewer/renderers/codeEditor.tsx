@@ -112,7 +112,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                 height={sizeToCSS(SVs.height)}
                 showViewer={SVs.showResults}
                 viewerLocation={SVs.resultsLocation}
-                showResponses={false}
+                showResponses={SVs.showResults}
                 showFormatter={SVs.showFormatter}
                 readOnly={SVs.readOnly}
                 initialOpenTab={initialOpenTab}

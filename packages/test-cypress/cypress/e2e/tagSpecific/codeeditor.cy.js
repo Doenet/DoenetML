@@ -1976,7 +1976,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(cesc("#editor3::p1")).should("contain.text", "Cherry");
     });
 
-    it("initialOpenTab attribute controls panel visibility and active tab", () => {
+    it("initialOpenTab attribute controls which panel/tab is open at load", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1992,46 +1992,68 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
     <codeEditor name="editor3" showResults initialOpenTab="errors">
       <text>Test</text>
     </codeEditor>
+    
+    <codeEditor name="editor4" showResults initialOpenTab="responses">
+      <text>Responses</text>
+    </codeEditor>
     `,
                 },
                 "*",
             );
         });
 
-        cy.log("Verify all editors exist");
+        cy.log('initialOpenTab="none" leaves the diagnostics panel closed');
         cy.get("#editor1").should("exist");
-        cy.get("#editor2").should("exist");
-        cy.get("#editor3").should("exist");
+        cy.get("#editor1 .diagnostics-response-tabs-container").should(
+            "not.have.class",
+            "is-open",
+        );
 
-        cy.log("Verify initialOpenTab state variable values");
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("editor1")].stateValues
-                    .initialOpenTab,
-            ).eq("none");
-            expect(
-                stateVariables[await win.resolvePath1("editor2")].stateValues
-                    .initialOpenTab,
-            ).eq("first");
-            expect(
-                stateVariables[await win.resolvePath1("editor3")].stateValues
-                    .initialOpenTab,
-            ).eq("errors");
-        });
+        cy.log(
+            'initialOpenTab="first" opens the panel on the first available tab (help)',
+        );
+        cy.get("#editor2 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor2 [data-test='footer-tab-help']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log('initialOpenTab="errors" opens the panel on the errors tab');
+        cy.get("#editor3 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor3 [data-test='footer-tab-errors']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log(
+            'initialOpenTab="responses" opens the responses tab when results are shown',
+        );
+        cy.get("#editor4 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor4 [data-test='footer-tab-responses']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
     });
 
-    it("initialOpenTab with showResults=false", () => {
+    it('initialOpenTab="responses" falls back to the first tab when results are hidden', () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <codeEditor name="editor1" initialOpenTab="none">
+    <codeEditor name="editor1" initialOpenTab="responses">
       <text>Hello</text>
-    </codeEditor>
-    
-    <codeEditor name="editor2" initialOpenTab="errors">
-      <text>World</text>
     </codeEditor>
     `,
                 },
@@ -2039,21 +2061,23 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.log("Editor without showResults can still use initialOpenTab");
+        cy.log("Without showResults, the responses tab is not rendered");
         cy.get("#editor1").should("exist");
-        cy.get("#editor2").should("exist");
+        cy.get("#editor1 [data-test='footer-tab-responses']").should(
+            "not.exist",
+        );
 
-        // Both should work even without showResults
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("editor1")].stateValues
-                    .initialOpenTab,
-            ).eq("none");
-            expect(
-                stateVariables[await win.resolvePath1("editor2")].stateValues
-                    .initialOpenTab,
-            ).eq("errors");
-        });
+        cy.log(
+            "The panel falls back to the first available tab (help) instead",
+        );
+        cy.get("#editor1 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor1 [data-test='footer-tab-help']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
     });
 });
