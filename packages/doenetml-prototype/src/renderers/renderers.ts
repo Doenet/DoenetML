@@ -202,9 +202,11 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     mod: { component: M },
     extractMath: { component: M },
     convertSetToList: { component: M },
+    rightHandSide: { component: M },
 
     men: { component: M },
     md: { component: M },
+    mdn: { component: M },
     odeSystem: { component: M },
 
     // br: { component: Br },
