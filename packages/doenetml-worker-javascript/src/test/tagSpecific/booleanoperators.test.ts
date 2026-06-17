@@ -309,7 +309,163 @@ describe("Boolean Operator tag tests @group3", async () => {
         await test_three_operators(core, resolvePathToNodeIdx, xorOperator);
     });
 
-    it("show point based on logic", async () => {
+    it("show point based on <xor> logic", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi">
+      <label>show point</label>
+    </booleanInput>
+    <graph>
+      <point hide="not $bi" name="P">
+       (1,2)
+      </point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(true);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(false);
+    });
+
+    it("iff", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi1" />
+    <booleanInput name="bi2" />
+    <booleanInput name="bi3" />
+    <iff name="op1">
+      $bi1
+      $bi2
+      $bi3
+    </iff>
+    <iff name="op2">
+      $bi1
+      $bi2
+      $bi3
+      true
+    </iff>
+    <iff name="op3">
+      $bi1
+      $bi2
+      $bi3
+      false
+    </iff>
+    <p>
+      <boolean extend="$bi1" name="bv1" />
+      <boolean extend="$bi2" name="bv2" />
+      <boolean extend="$bi3" name="bv3" />
+    </p>
+    `,
+        });
+
+        let iffOperator = function (booleans: boolean[]) {
+            return booleans.every((x) => x === booleans[0]);
+        };
+
+        await test_three_operators(core, resolvePathToNodeIdx, iffOperator);
+    });
+
+    it("show point based on <iff> logic", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi">
+      <label>show point</label>
+    </booleanInput>
+    <graph>
+      <point hide="not $bi" name="P">
+       (1,2)
+      </point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(true);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.hide,
+        ).eq(false);
+    });
+
+    it("implies", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi1" />
+    <booleanInput name="bi2" />
+    <booleanInput name="bi3" />
+    <implies name="op1">
+      $bi1
+      $bi2
+      $bi3
+    </implies>
+    <implies name="op2">
+      $bi1
+      $bi2
+      true
+    </implies>
+    <implies name="op3">
+      $bi1
+      $bi2
+      false
+    </implies>
+    <p>
+      <boolean extend="$bi1" name="bv1" />
+      <boolean extend="$bi2" name="bv2" />
+      <boolean extend="$bi3" name="bv3" />
+    </p>
+    `,
+        });
+
+        let impliesOperator = function (booleans: boolean[]) {
+            // Implementation for implication operator
+            switch (booleans.length) {
+                case 0:
+                    return true;
+                case 1:
+                    return !booleans[0];
+                case 2:
+                    return !booleans[0] || booleans[1];
+                default:
+                    return false;
+            }
+        };
+
+        await test_three_operators(core, resolvePathToNodeIdx, impliesOperator);
+    });
+
+    it("show point based on <implies> logic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi">
