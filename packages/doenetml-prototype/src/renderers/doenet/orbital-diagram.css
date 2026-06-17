@@ -37,10 +37,10 @@
         }
 
         .orbital-arrow {
-            margin-left: -.3em;
+            margin-left: -0.3em;
             font-size: 1.35em;
             line-height: 1;
-            width: .6em;
+            width: 0.6em;
             text-align: center;
             display: inline-block;
             user-select: none;
