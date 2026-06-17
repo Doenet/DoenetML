@@ -1,11 +1,45 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
-import type { DivisionPropsInText } from "@doenet/doenetml-worker";
+import type { DivisionPropsInText, XrefLabel } from "@doenet/doenetml-worker";
+import { Header } from "./_header";
 
-export const Division: BasicComponentWithPassthroughChildren<{
-    props: DivisionPropsInText;
-}> = ({ children, node, visibilityRef, ancestors, htmlId }) => {
+import classNames from "classnames";
+
+import "./division.css";
+
+type DivisionData = {
+    props: {
+        /**
+         * The id of the title element.
+         */
+        title: number;
+        titlePrefix: string;
+        codeNumber: string;
+        divisionDepth: number;
+        /**
+         * Is there a toggle button to collapse this?
+         */
+        collapsible: boolean;
+        /**
+         * Is this to be rendered in a frame? (collapsible implies this.)
+         */
+        boxed: boolean;
+        xrefLabel: XrefLabel;
+        /**
+         * The open state.
+         */
+        open: boolean;
+    };
+};
+
+export const Division: BasicComponentWithPassthroughChildren<DivisionData> = ({
+    children,
+    node,
+    visibilityRef,
+    ancestors,
+    htmlId,
+}) => {
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
@@ -21,25 +55,18 @@ export const Division: BasicComponentWithPassthroughChildren<{
         );
 
     return (
-        <div className="section" ref={visibilityRef} id={htmlId}>
+        <section
+            className={classNames("division", "section", {
+                boxed: node.data.props.boxed,
+            })}
+            ref={visibilityRef}
+            id={htmlId}
+        >
             <Header depth={node.data.props.divisionDepth}>
-                {displayName} {title}
+                <span className="title-prefix">{displayName}</span>{" "}
+                <span className="title">{title}</span>
             </Header>
-            {children}
-        </div>
+            <div className="content">{children}</div>
+        </section>
     );
-};
-
-export const Header: React.FunctionComponent<
-    React.PropsWithChildren<{ depth: number }>
-> = ({ depth, children }) => {
-    if (depth > 5) {
-        depth = 5;
-    }
-    if (depth < 0) {
-        depth = 0;
-    }
-    depth += 1;
-
-    return React.createElement(`h${depth}`, { className: "heading" }, children);
 };

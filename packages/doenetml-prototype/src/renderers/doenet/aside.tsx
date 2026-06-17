@@ -1,10 +1,10 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
-import { Header } from "./division";
 import { XrefLabel } from "@doenet/doenetml-worker";
 import classNames from "classnames";
 import "./aside.css";
+import { Header } from "./_header";
 
 type AsideData = {
     props: {
@@ -31,6 +31,39 @@ type AsideData = {
     };
 };
 
+/**
+ * An `<aside>` element.
+ * 
+ * Sample code
+ * -----------
+ * ```xml
+ <section boxed>
+  <aside includeAutoNumber>
+    <title>Title with <m>math</m></title>
+    <p>
+      This aside is nested inside a section. The default number does not include
+      the parent number.
+    </p>
+  </aside>
+</section>
+
+<section>
+  <aside includeParentNumber="true" startOpen="true">
+    <p>
+      This aside is nested inside a section. Rendering of the parent section
+      number has been included.
+    </p>
+  </aside>
+  <aside collapsible="false" boxed>
+    <title>foo</title>
+    <p>
+      This aside is nested inside a section. Rendering of the parent section
+      number has been included.
+    </p>
+  </aside>
+</section>
+ * ```
+ */
 export const Aside: BasicComponentWithPassthroughChildren<AsideData> = ({
     children,
     node,
@@ -38,7 +71,6 @@ export const Aside: BasicComponentWithPassthroughChildren<AsideData> = ({
     ancestors,
     htmlId,
 }) => {
-    console.log("Aside node:", node, children);
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
@@ -54,8 +86,25 @@ export const Aside: BasicComponentWithPassthroughChildren<AsideData> = ({
             ""
         );
 
+    // The container element will be `<details>` or `<aside>` as needed.
+    const ContainerElement: React.FC<
+        React.HTMLAttributes<HTMLElement> & {
+            open?: boolean;
+            ref?: typeof visibilityRef;
+        }
+    > = React.useCallback(
+        (props) => {
+            if (node.data.props.collapsible) {
+                return <details {...props} />;
+            } else {
+                return <aside {...props} />;
+            }
+        },
+        [node.data.props.collapsible],
+    );
+
     return (
-        <details
+        <ContainerElement
             // Make this tag appear like an `<aside>` to screen readers.
             role="complementary"
             className={classNames("division", "aside", {
@@ -80,6 +129,6 @@ export const Aside: BasicComponentWithPassthroughChildren<AsideData> = ({
                 </Header>
             </summary>
             <div className="content">{children}</div>
-        </details>
+        </ContainerElement>
     );
 };
