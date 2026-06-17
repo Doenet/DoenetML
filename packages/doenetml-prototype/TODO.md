@@ -21,78 +21,223 @@ b - both
 - [x] `rsq`
 - [x] `sq`
 
-## Minimal wrapper — single HTML element with children (~19–37 lines)
+## Simple inline wrappers (~19–37 lines)
 
 - [x] `q`
-- [x] `c`
-- [x] `asList`
-- [x] `tag`
+- [x] `c` / `attr` — inline code
+- [x] `tag` / `tagc`
 - [x] `alert`
+- [x] `em`
+- [x] `asList`
 - [x] `blockQuote`
-- [ ] `row`
+- [x] `p`
+- [x] `ol` / `ul` / `li`
+- [x] `title`
+- [x] `aside`
+- [ ] `tage` — closing-tag counterpart to `tag`
+- [ ] `term` — inline term definition (semantically like `em`)
+- [ ] `div` / `span` — generic containers
 
-## Simple with minor state/style (~40–82 lines)
+## Math display (~30–50 lines)
 
-- [ ] `feedback`
-- [ ] `pre`
-- [ ] `tabular`
-- [ ] `containerInline`
+- [x] `m` — inline math
+- [x] `math` / `md` / `mdn` / `men` — display and numbered math
+
+## Math/chemistry expression elements (all render via math component)
+
+- [x] `abs`
+- [x] `angle` [t]
+- [x] `atom`
+- [x] `ceil`
+- [x] `clampNumber`
+- [x] `convertSetToList`
+- [x] `count`
+- [x] `electronConfiguration`
+- [x] `evaluate`
+- [x] `extractMath`
+- [x] `floor`
+- [x] `function`
+- [x] `gcd`
+- [x] `interval`
+- [x] `ion`
+- [x] `ionicCompound`
+- [x] `lcm`
+- [x] `matrix` — display only (not input)
+- [x] `max` / `min`
+- [x] `mean` / `median` / `standardDeviation` / `variance`
+- [x] `mod`
+- [x] `odeSystem`
+- [x] `product` / `sum`
+- [x] `rightHandSide`
+- [x] `round`
+- [x] `setSmallToZero`
+- [x] `sign`
+- [x] `subsetOfReals`
+- [x] `wrapNumberPeriodic`
+
+## Value display elements (~30–60 lines)
+
+- [x] `text`
+- [x] `boolean`
+- [x] `number`
+- [x] `point` — text-mode coordinate display
+- [x] `orbitalDiagram`
+- [x] `xref`
+- [ ] `numberList` / `textList` / `booleanList` / `mathList`
+- [ ] `pointList`
+- [ ] `description` / `shortDescription`
+- [ ] `caption`
+- [ ] `annotation`
+- [ ] `lorem`
+
+## Verbatim / code display (~30–60 lines)
+
+- [ ] `pre` / `displayDoenetML`
+
+## Simple interactive elements (~40–82 lines)
+
+- [x] `answer`
+- [x] `booleanInput`
+- [x] `choiceInput`
+- [x] `button` (`updateValue` / `callAction` / `triggerSet`)
 - [ ] `summaryStatistics`
-- [ ] `containerBlock`
+- [ ] `containerInline` / `containerBlock`
 
-## Medium — layout logic or conditional rendering (~83–160 lines)
+## Structural / division elements (~50–120 lines)
 
-- [ ] `table`
-- [ ] `cell`
-- [ ] `spreadsheet`
-- [ ] `codeEditor`
-- [ ] `footnote`
-- [ ] `list`
-- [ ] `sideBySide`
+- [x] `document`
+- [x] `division` — covers `section`, `subsection`, `subsubsection`, `paragraphs`, `example`, `definition`, `theorem`, `note`, `proof`, `exercise`, `question`, `activity`, `objectives`, `part`, `task`, `problems`, `exercises`
+- [x] `problem`
+- [x] `graph` — graph container
 - [ ] `hint`
 - [ ] `solution`
-- [ ] `embed`
+- [ ] `feedback`
 - [ ] `ref`
-- [ ] `figure`
-- [ ] `pretzel`
-
-## Substantial — significant props, DOM manipulation, or interaction (~200–360 lines)
-
-- [ ] `regionBetweenCurveXAxis`
-- [ ] `regionBetweenCurves`
-- [ ] `orbitalDiagram`
-- [ ] `pegboard`
-- [t] `angle`
-- [ ] `matrixInput`
-- [ ] `graph`
-- [ ] `line`
-- [ ] `ray`
-- [ ] `label`
-- [ ] `legend`
+- [ ] `footnote`
+- [ ] `embed`
 - [ ] `prefigure`
 
-## Complex — full interactive components with actions/effects (~390–610 lines)
+## Layout elements (~83–160 lines)
 
+- [ ] `sideBySide` / `sbsGroup` / `stack` / `panel`
+- [ ] `table`
+- [ ] `tabular`
+- [ ] `row` / `cell` / `column`
+- [ ] `spreadsheet`
+- [ ] `figure`
+- [ ] `list`
+
+## Media (~100–200 lines)
+
+- [ ] `image`
+- [ ] `video`
+
+## Complex interactive (~200–400 lines)
+
+- [p] `textInput` — text mode but without check work buttons
+- [ ] `mathInput`
+- [ ] `matrixInput`
+- [ ] `slider`
 - [ ] `subsetOfRealsInput`
-- [ ] `number`
+- [ ] `orbitalDiagramInput`
+- [ ] `codeEditor`
+- [ ] `pegboard`
+- [ ] `pretzel`
 - [ ] `paginatorControls`
+- [ ] `label` — interactive element label
+
+## Graph-only elements (require a `<graph>` container)
+
+- [ ] `attractTo` / `attractToConstraint` / `attractToGrid`
+- [ ] `bestFitLine`
+- [ ] `bezierControls`
+- [ ] `circle`
 - [ ] `cobwebPolyline`
-- [ ] `point`
+- [ ] `constrainTo` / `constrainToGraph` / `constrainToGrid` / `constrainToInterior`
+- [ ] `constraintUnion`
+- [ ] `controlVectors`
+- [ ] `coords`
+- [ ] `curve`
+- [ ] `endpoint`
+- [ ] `equilibriumCurve` / `equilibriumLine` / `equilibriumPoint`
+- [ ] `legend`
+- [ ] `line`
+- [ ] `lineSegment`
+- [ ] `parabola`
 - [ ] `polygon`
 - [ ] `polyline`
+- [ ] `ray`
+- [ ] `rectangle`
+- [ ] `regionBetweenCurveXAxis` / `regionBetweenCurves` / `regionHalfPlane`
+- [ ] `regularPolygon`
+- [ ] `triangle`
 - [ ] `vector`
-- [ ] `lineSegment`
-- [ ] `video`
-- [ ] `section`
-- [ ] `button`
-- [ ] `slider`
-- [ ] `orbitalDiagramInput`
+- [ ] `xLabel` / `yLabel`
 
-## Most complex — large interactive UI with deep JSXGraph or MathQuill integration (~650–1138 lines)
+## Additional math expression elements (render via math component)
 
-- [ ] `booleanInput`
-- [p] `textInput` - text mode but without check work buttons
-- [ ] `image`
-- [ ] `circle`
-- [ ] `mathInput`
-- [ ] `curve`
+- [ ] `clampFunction`
+- [ ] `derivative`
+- [ ] `eigenDecomposition`
+- [ ] `extractMathOperator`
+- [ ] `functionIterates`
+- [ ] `intersection`
+- [ ] `intervalList`
+- [ ] `me`
+- [ ] `mrow`
+- [ ] `periodicSet`
+- [ ] `piecewiseFunction`
+- [ ] `sequence`
+- [ ] `solveEquations`
+- [ ] `substitute`
+- [ ] `tupleList`
+- [ ] `wrapFunctionPeriodic`
+
+## Additional text display elements
+
+- [ ] `intComma` — number with comma formatting
+- [ ] `integer` — integer display
+- [ ] `latex` — raw LaTeX passthrough
+- [ ] `pluralize` — conditional pluralization
+- [ ] `vectorList`
+
+## Logic, conditional, and container elements
+
+- [ ] `animateFromSequence`
+- [ ] `annotations`
+- [ ] `award`
+- [ ] `cascade` / `cascadeMessage`
+- [ ] `case`
+- [ ] `cellBlock`
+- [ ] `choice`
+- [ ] `collect`
+- [ ] `conclusion` / `introduction`
+- [ ] `conditionalContent`
+- [ ] `considerAsResponses`
+- [ ] `feedbackDefinition`
+- [ ] `givenAnswer`
+- [ ] `group`
+- [ ] `module` / `moduleAttributes`
+- [ ] `option`
+- [ ] `paginator`
+- [ ] `repeat` / `repeatForSequence`
+- [ ] `samplePrimeNumbers` / `sampleRandomNumbers`
+- [ ] `select` / `selectFromSequence` / `selectPrimeNumbers` / `selectRandomNumbers`
+- [ ] `shuffle`
+- [ ] `sort`
+- [ ] `split`
+- [ ] `statement`
+- [ ] `stickyGroup`
+
+## Infrastructure (logic only, no visual renderer needed)
+
+- [ ] `and` / `or` / `not` / `xor`
+- [ ] `componentIndex` / `componentTypes`
+- [ ] `else`
+- [ ] `hasSameFactoring`
+- [ ] `isBetween` / `isInteger` / `isNumber`
+- [ ] `matchesPattern`
+- [ ] `setup`
+- [ ] `styleDefinition`
+- [ ] `variantControl`
+- [ ] `when`
