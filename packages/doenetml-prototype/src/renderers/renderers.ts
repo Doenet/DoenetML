@@ -151,9 +151,9 @@ function showAttrOnly<T extends string>(
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
     row: { component: Row, passthroughChildren: true },
-    table: { component: Table,  passthroughChildren: true },
-    tabular: { component: Tabular,  passthroughChildren: true },
-    cell: { component: Cell,  passthroughChildren: true },
+    table: { component: Table, passthroughChildren: true },
+    tabular: { component: Tabular, passthroughChildren: true },
+    cell: { component: Cell, passthroughChildren: true },
     // cell: passThroughWithRenamedTag("td"),
     _fragment: { component: _Fragment, passthroughChildren: true },
     abs: { component: M },
