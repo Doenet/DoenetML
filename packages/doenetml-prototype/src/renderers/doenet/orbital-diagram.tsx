@@ -55,14 +55,14 @@ function OrbitalBox({ box }: { box: Box }) {
  * Sample code
  * -----------
  * ```xml
- * <atom name="hydrogen" symbol="H" />, <atom name="helium" symbol="He" />,
- * <atom name="lithium" symbol="O" />
- *
- * <p>At standard temperature and pressure, hydrogen is a $hydrogen.phaseAtSTP.</p>
- *
- * <p>The atomic mass of helium is $helium.atomicMass <m>\text{amu}</m>.</p>
- *
- * <p>The orbitalDiagram for oxygen is $lithium.orbitalDiagram</p>
+ <atom name="hydrogen" symbol="H" />, <atom name="helium" symbol="He" />,
+ <atom name="lithium" symbol="O" />
+ 
+ <p>At standard temperature and pressure, hydrogen is a $hydrogen.phaseAtSTP.</p>
+ 
+ <p>The atomic mass of helium is $helium.atomicMass <m>\text{amu}</m>.</p>
+ 
+ <p>The orbitalDiagram for oxygen is $lithium.orbitalDiagram</p>
  * ```
  */
 export const OrbitalDiagram: BasicComponent<OrbitalDiagramData> = ({

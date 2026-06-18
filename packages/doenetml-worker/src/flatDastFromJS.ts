@@ -9,6 +9,7 @@ import { booleanInputJsToRust } from "./jsRustConversions/booleanInput";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust as divisionJsToRust } from "./jsRustConversions/section";
+import { tableJsToRust } from "./jsRustConversions/table";
 import { textJsToRust } from "./jsRustConversions/text";
 
 declare module "./CoreWorker" {
@@ -95,6 +96,11 @@ export function applyElementJsToRustFixups(
                 latexForRenderer: "latex",
             });
             break;
+        case "cell":
+            propRename(element.data.props, {
+                inHeader: "header",
+            });
+            break;
         case "booleanInput":
             booleanInputJsToRust(element.data.props);
             break;
@@ -108,6 +114,9 @@ export function applyElementJsToRustFixups(
             if (element.name === "section") {
                 elementRename(element, "division");
             }
+            break;
+        case "table":
+            tableJsToRust(element.data.props, element);
             break;
         case "point":
             pointJsToRust(element.data.props);

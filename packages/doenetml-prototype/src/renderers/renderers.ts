@@ -37,6 +37,11 @@ import {
     AsList,
     Aside,
     OrbitalDiagram,
+    Button,
+    Table,
+    Tabular,
+    Cell,
+    Row,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -145,6 +150,11 @@ function showAttrOnly<T extends string>(
  * tag name uniquely determines the component to render.
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
+    row: { component: Row, passthroughChildren: true },
+    table: { component: Table,  passthroughChildren: true },
+    tabular: { component: Tabular,  passthroughChildren: true },
+    cell: { component: Cell,  passthroughChildren: true },
+    // cell: passThroughWithRenamedTag("td"),
     _fragment: { component: _Fragment, passthroughChildren: true },
     abs: { component: M },
     alert: passThroughWithRenamedTag("strong"),
@@ -153,11 +163,13 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     aside: { component: Aside, passthroughChildren: true },
     asList: { component: AsList, passthroughChildren: true },
     atom: { component: M },
+    attr: passThroughWithRenamedTag("code"),
     blockQuote: { component: BlockQuote, passthroughChildren: true },
     boolean: { component: Boolean },
     booleanInput: { component: BooleanInput },
     br: { component: _PassThroughWithTag },
     c: passThroughWithRenamedTag("code"),
+    callAction: { component: Button },
     ceil: { component: M },
     choiceInput: { component: ChoiceInput },
     clampNumber: { component: M },
@@ -228,7 +240,9 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     text: { component: Text },
     textInput: { component: TextInput },
     title: { component: Title, passthroughChildren: true },
+    triggerSet: { component: Button },
     ul: { component: Ul, passthroughChildren: true },
+    updateValue: { component: Button },
     variance: { component: M },
     wrapNumberPeriodic: { component: M },
     xref: { component: Xref, passthroughChildren: true },

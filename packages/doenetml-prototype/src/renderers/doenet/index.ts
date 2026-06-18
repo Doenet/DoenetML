@@ -34,3 +34,8 @@ export * from "./block-quote";
 export * from "./as-list";
 export * from "./aside";
 export * from "./orbital-diagram";
+export * from "./_button";
+export * from "./table";
+export * from "./tabular";
+export * from "./cell";
+export * from "./row";

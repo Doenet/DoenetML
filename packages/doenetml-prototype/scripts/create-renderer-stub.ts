@@ -197,27 +197,20 @@ export const ${rendererName}: ${componentType}<${rendererName}Data> = ({${compon
         ? `    ${tagName}: { component: ${rendererName}, passthroughChildren: true },`
         : `    ${tagName}: { component: ${rendererName} },`;
 
-    if (!renderersContent.includes(`${tagName}:`)) {
-        const objectStart =
-            "export const TEXT_MODE_COMPONENTS: RendererObject = {";
-        const objectStartIndex = renderersContent.indexOf(objectStart);
+    const objectStart = "export const TEXT_MODE_COMPONENTS: RendererObject = {";
+    const objectStartIndex = renderersContent.indexOf(objectStart);
 
-        if (objectStartIndex === -1) {
-            console.warn(
-                "⚠ Could not find TEXT_MODE_COMPONENTS in renderers.ts",
-            );
-        } else {
-            const insertPosition = objectStartIndex + objectStart.length;
-            const newRenderersContent =
-                renderersContent.slice(0, insertPosition) +
-                "\n" +
-                mappingLine +
-                renderersContent.slice(insertPosition);
-            fs.writeFileSync(renderersFile, newRenderersContent);
-            console.log(
-                `✓ Added TEXT_MODE_COMPONENTS entry in ${renderersFile}`,
-            );
-        }
+    if (objectStartIndex === -1) {
+        console.warn("⚠ Could not find TEXT_MODE_COMPONENTS in renderers.ts");
+    } else {
+        const insertPosition = objectStartIndex + objectStart.length;
+        const newRenderersContent =
+            renderersContent.slice(0, insertPosition) +
+            "\n" +
+            mappingLine +
+            renderersContent.slice(insertPosition);
+        fs.writeFileSync(renderersFile, newRenderersContent);
+        console.log(`✓ Added TEXT_MODE_COMPONENTS entry in ${renderersFile}`);
     }
 
     console.log("\n✓ Renderer stub created successfully!");
