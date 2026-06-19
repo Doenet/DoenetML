@@ -1,6 +1,7 @@
 import { BasicComponent, BasicComponentWithPassthroughChildren } from "./types";
 import {
     Answer,
+    AsList,
     Document,
     Graph,
     LineInGraph,
@@ -62,6 +63,7 @@ export const FALLBACK_RENDERER_KEY = Symbol("fallback");
  */
 export const TEXT_MODE_COMPONENTS: RendererObject = {
     answer: { component: Answer },
+    asList: { component: AsList, passthroughChildren: true },
     choiceInput: { component: ChoiceInput },
     p: { component: P, passthroughChildren: true },
     document: { component: Document, passthroughChildren: true },

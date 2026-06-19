@@ -50,6 +50,28 @@ describe("applyCompositeListWrapping", () => {
         expect(wrapper.children).toEqual([ref(6), ref(7), ref(8)]);
     });
 
+    it("matches addCommasForCompositeRanges when potentialListComponents is omitted", () => {
+        const contents: ChildContent[] = [ref(6), ref(7)];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 2,
+                firstInd: 0,
+                lastInd: 1,
+                asList: true,
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(2)]);
+        expect(wrapperElements).toHaveLength(1);
+        expect(wrapperElements[0].name).toBe("asList");
+        expect(wrapperElements[0].children).toEqual([ref(6), ref(7)]);
+    });
+
     it("does not wrap a single-item asList composite (no comma would be added)", () => {
         const contents: ChildContent[] = ["x: ", ref(9)];
         const crar: CompositeReplacementRange[] = [

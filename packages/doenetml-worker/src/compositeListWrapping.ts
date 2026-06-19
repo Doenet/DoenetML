@@ -100,16 +100,10 @@ function processCompositeRanges(
 
             // Drop null children before deciding list-ness, mirroring
             // `childrenInRange.filter((x) => x !== null)`.
-            const itemsInRange: Item[] = [];
-            const eligibleInRange: boolean[] = [];
-            for (let i = 0; i < rawItems.length; i++) {
-                const it = rawItems[i];
-                if (it.kind === "content" && it.value === null) {
-                    continue;
-                }
-                itemsInRange.push(it);
-                eligibleInRange.push(rawEligible[i]);
-            }
+            const itemsInRange = rawItems.filter((it) => !isNullContent(it));
+            const eligibleInRange = rawEligible.filter(
+                (_, i) => !isNullContent(rawItems[i]),
+            );
 
             const allListComponents = eligibleInRange.every((x) => x);
             const isAsList =
@@ -156,6 +150,10 @@ function processCompositeRanges(
     }
 
     return { items, eligible };
+}
+
+function isNullContent(item: Item | undefined) {
+    return item?.kind === "content" && item.value === null;
 }
 
 /**
