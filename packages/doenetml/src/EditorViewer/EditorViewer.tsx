@@ -851,8 +851,18 @@ export const EditorViewer = React.forwardRef<
         };
 
         let codeEditorContainer = document.getElementById(id);
+        let viewerPanelContainer = viewerContainer.current;
         if (showViewer) {
             codeEditorContainer?.addEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
+            // Also listen on the viewer panel so the shortcut works when focus
+            // is in the rendered document. The viewer container has
+            // tabIndex={-1}, so clicking non-focusable content (e.g. plain
+            // text) keeps focus within it rather than falling back to
+            // document.body, which would bypass this listener.
+            viewerPanelContainer?.addEventListener(
                 "keydown",
                 handleEditorKeyDown,
             );
@@ -863,8 +873,12 @@ export const EditorViewer = React.forwardRef<
                 "keydown",
                 handleEditorKeyDown,
             );
+            viewerPanelContainer?.removeEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
         };
-    }, [showViewer, id, updateViewer]);
+    }, [showViewer, id, updateViewer, platform]);
 
     useEffect(() => {
         return () => {
@@ -1037,7 +1051,12 @@ export const EditorViewer = React.forwardRef<
                 isAccessibilityReportOpen={isAccessibilityReportOpen}
                 onToggleAccessibilityReport={toggleAccessibilityReport}
             />
-            <div className="viewer" id={id + "-viewer"} ref={viewerContainer}>
+            <div
+                className="viewer"
+                id={id + "-viewer"}
+                ref={viewerContainer}
+                tabIndex={-1}
+            >
                 <DocViewer
                     doenetML={viewerDoenetML}
                     flags={{
