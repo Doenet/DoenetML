@@ -34,7 +34,8 @@ export default class Choiceinput extends Input {
     static componentType = "choiceInput";
 
     static componentDocs = {
-        summary: "A multiple-choice or checkbox input from a list of choices.",
+        summary:
+            "A multiple-choice input, allowing selection from a list of choices",
     };
     static renderChildren = true;
 
@@ -1649,11 +1650,13 @@ export default class Choiceinput extends Input {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         if (!serializedComponent.attributes?.shuffleOrder?.primitive.value) {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
 
@@ -1705,6 +1708,7 @@ export default class Choiceinput extends Input {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

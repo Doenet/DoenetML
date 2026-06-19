@@ -15,7 +15,7 @@ export default class MathList extends CompositeComponent {
     static componentType = "mathList";
 
     static componentDocs = {
-        summary: "A list of math expressions.",
+        summary: "A list of math expressions",
     };
     static takesIndex = true;
 
@@ -82,7 +82,7 @@ export default class MathList extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         const numberDisplayAttrs = returnNumberDisplayAttributes();

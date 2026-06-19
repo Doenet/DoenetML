@@ -1,39 +1,38 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <not>{:dn}`
+# `<not>{:dn}`
 
-` <not>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+<ComponentDisplay name='not'/>
+
+`<not>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) 
 component that can be used in place of typing `not` or using the symbol `!` to construct boolean conditions.
 
-## Attributes and Properties 
- <AttrDisplay name='not'/> 
- <PropDisplay name='not'/>
+<AttrPropDisplay name='not'/>
 
----
+## Examples
 
-### Example: ` <not>{:dn}` in a ` <boolean>{:dn}`
+### Example: `<not>{:dn}` in a `<boolean>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Enter a 1, and then <c>not</c> a 1:
-      <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a 1, and then <c>not</c> a 1</label></mathInput></p>
 <p>You have not entered a 1: 
   <boolean><not>$n = 1</not></boolean></p>
 ```
 
 
 
-The ` <not>{:dn}` component functions as the boolean operator `not` or `!`.
+The `<not>{:dn}` component functions as the boolean operator `not` or `!`.
 
 
 
 ---
 
-### Example: ` <not>{:dn}` in an ` <award>{:dn}`
+### Example: `<not>{:dn}` in an `<award>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -55,6 +54,6 @@ The ` <not>{:dn}` component functions as the boolean operator `not` or `!`.
 
 
 
-A ` <not>{:dn}` component is used to construct a boolean condition within an ` <award>{:dn}`.
+A `<not>{:dn}` component is used to construct a boolean condition within an `<award>{:dn}`.
 
 

@@ -14,7 +14,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static componentType = "samplePrimeNumbers";
 
     static componentDocs = {
-        summary: "Samples random prime numbers.",
+        summary: "Samples random prime numbers",
     };
     static takesIndex = true;
 
@@ -77,7 +77,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -374,6 +374,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let variantDeterminesSeed =
             serializedComponent.attributes.variantDeterminesSeed.primitive
@@ -385,6 +386,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
     }

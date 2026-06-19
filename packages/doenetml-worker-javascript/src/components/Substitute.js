@@ -9,7 +9,7 @@ export default class Substitute extends CompositeComponent {
     static componentType = "substitute";
 
     static componentDocs = {
-        summary: "Substitutes math expressions into another expression.",
+        summary: "Substitutes math expressions into another expression",
     };
     static takesIndex = true;
 

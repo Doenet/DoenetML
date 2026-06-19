@@ -1,23 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <booleanInput>{:dn}`
+# `<booleanInput>{:dn}`
 
+<ComponentDisplay name='booleanInput'/>
 
-` <booleanInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+`<booleanInput>{:dn}` is an [Input](../concepts/essentialConcepts#component-types)
 component that renders a checkbox. If the box is checked by the user, Doenet 
-stores the boolean value `true` in the named ` <booleanInput>{:dn}`.
+stores the boolean value `true` in the named `<booleanInput>{:dn}`.
 
 
-## Attributes and Properties 
- <AttrDisplay name='booleanInput'/> 
- <PropDisplay name='booleanInput'/>
+<AttrPropDisplay name='booleanInput'/>
 
 
----
+## Examples
 
-### Example: ` <booleanInput>{:dn}` survey question
+### Example: `<booleanInput>{:dn}` survey question
 ```doenet-example
 <p>Click the box if you like chocolate: 
   <booleanInput name="likesChocolate"/>
@@ -31,7 +30,7 @@ stored as `true` if the box is checked.
 
 ---
 
-### Example: ` <booleanInput>{:dn}` to show/hide graph elements
+### Example: `<booleanInput>{:dn}` to show/hide graph elements
 ```doenet-example
 <graph grid="$showGrid" name="g"><shortDescription>A graph of a circle</shortDescription>
   <circle radius="5" center="(1,2)" hide="$hideCircle"/>
@@ -46,14 +45,14 @@ stored as `true` if the box is checked.
 </graph>
 ```
 
-The ` <booleanInput>{:dn}` component can be used to provide user-control over the 
+The `<booleanInput>{:dn}` component can be used to provide user-control over the 
 values of attributes that accept a boolean, such as the `<graph>{:dn}` attribute grid, 
 and the general attribute hide available to all rendered components.
 
 
 ---
 
-### Example: ` <booleanInput>{:dn}` with a label
+### Example: `<booleanInput>{:dn}` with a label
 ```doenet-example
 <booleanInput name="answeredYes">
   <label>Check for yes</label>
@@ -62,9 +61,9 @@ and the general attribute hide available to all rendered components.
 <p>The user answered yes: <alert>$answeredYes</alert></p>
 ```
 
-A `<label>{:dn}` child can be nested within a ` <booleanInput>{:dn}` to create a label.
+A `<label>{:dn}` child can be nested within a `<booleanInput>{:dn}` to create a label.
 
----
+## Attribute Examples
 
 ### Attribute Example: prefill
 ```doenet-example
@@ -72,7 +71,7 @@ A `<label>{:dn}` child can be nested within a ` <booleanInput>{:dn}` to create a
 <p><booleanInput prefill="true"/></p>
 ```
 
-The ` <booleanInput>{:dn}` component is false initially by default. 
+The `<booleanInput>{:dn}` component is false initially by default. 
 Use the `prefill` attribute set to true to reverse this behavior.
 
 ---
@@ -125,12 +124,12 @@ Type ON if you want the light on,
 ```
 
 A `<booleanInput>{:dn}` is used to simulate a light switch using the `bindValueTo` attribute. 
-The behavior of the `<booleanInput>{:dn}` checkbox is tied to the `<boolean>{:dn}`that is named 
+The behavior of the `<booleanInput>{:dn}` checkbox is tied to the `<boolean>{:dn}` that is named 
 `onBoolean` within the `bindValueTo` specification. When the user's `<textInput/>{:dn}` has value ON, 
 the condition inside the `<boolean>{:dn}` becomes true, which in turn causes the `<booleanInput>{:dn}` to 
 take on the value true, and the checkbox, or "lightbulb" becomes checked.
 
----
+## Property Examples
 
 ### Property Example: value
 ```doenet-example

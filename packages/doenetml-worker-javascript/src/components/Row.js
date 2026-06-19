@@ -3,9 +3,14 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class Row extends BaseComponent {
     static componentType = "row";
 
+    // `<row>` is also accepted inside `<matrix>`, where it sugars into
+    // `<matrixRow>`. Both entries appear in the docs index disambiguated by
+    // `displayContext`: this one is `<row> (in a table)`; the matrix-flavored
+    // alias (in `Aliases.js`) is `<row> (in a matrix)`.
     static componentDocs = {
-        summary: "A row within a tabular layout.",
+        summary: "A row within a tabular layout",
         docsSlug: "row_table",
+        displayContext: "in a table",
     };
     static rendererType = "row";
     static renderChildren = true;
@@ -48,10 +53,19 @@ export default class Row extends BaseComponent {
         };
 
         // Workaround for <row> in matrix, which is sugared into <matrixRow>.
-        // Since we are currently validating attributes before the sugar changes it,
-        // we need to put these mathList attributes on <row> for now.
-        // TODO: find a better solution (e.g., validating attributes after sugar is applied),
-        // especially necessary when we have an editor that can autocomplete attributes.
+        // The runtime validates attributes in `convertNormalizedDast.ts`
+        // before sugar fires, so removing these here would make
+        // `<row functionSymbols="h">` inside `<matrix>` throw `Invalid
+        // attribute` (see matrix.test.ts:513 "functionSymbols"). #1174
+        // resolved the editor-side concern (the LSP now routes `<row>`
+        // inside `<matrix>` through the `matrixRow` alias for completion
+        // and validation), but the canonical schema still leaks these
+        // four attributes onto the tabular `<row>` entry. The remaining
+        // work — tracked in #1186 — is to move the matrix sugar to the
+        // parser's `pluginComponentSugar` so the rename happens before
+        // attribute validation; then these declarations can be removed
+        // here (they're already on `MatrixRow` via `MathList`
+        // inheritance).
         attributes.functionSymbols = {
             createComponentOfType: "textList",
             description: "Symbols treated as function names when parsing.",

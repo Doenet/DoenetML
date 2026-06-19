@@ -1,23 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <image/>{:dn}`
+# `<image/>{:dn}`
 
-` <image/>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='image'/>
+
+`<image/>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types) 
 component that renders an image from a hyperlink or an uploaded file.
 
-## Attributes and Properties 
- <AttrDisplay name='image'/> 
- <PropDisplay name='image'/>
+<AttrPropDisplay name='image'/>
 
 
+## Examples
 
-
-
----
-
-### Example: ` <image/>{:dn}` from a hyperlink
+### Example: `<image/>{:dn}` from a hyperlink
 
 
 ```doenet-editor-horiz
@@ -28,13 +25,13 @@ component that renders an image from a hyperlink or an uploaded file.
 
 
 
-An ` <image/>{:dn}` may be inserted from a hyperlink using the `source` attribute. The `description` attribute is required for accessibility.
+An `<image/>{:dn}` may be inserted from a hyperlink using the `source` attribute. A `<shortDescription>{:dn}` child is required for accessibility.
 
 
 
 ---
 
-### Example: ` <image/>{:dn}` in a ` <figure>{:dn}`
+### Example: `<image/>{:dn}` in a `<figure>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -50,17 +47,18 @@ An ` <image/>{:dn}` may be inserted from a hyperlink using the `source` attribut
 
 
 
-An ` <image/>{:dn}` is often nested within a ` <figure>{:dn}` along with a ` <caption>{:dn}`. The `description` attribute is required for accessibility.
+An `<image/>{:dn}` is often nested within a `<figure>{:dn}` along with a `<caption>{:dn}`. A `<shortDescription>{:dn}` child is required for accessibility.
 
 
 
 ---
 
-### Example: ` <image/>{:dn}` on a ` <graph>{:dn}`
+### Example: `<image/>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>graph with a rabbit image placed on it</shortDescription>
   <image 
     source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
     size="small" anchor="(4,4)"
@@ -72,11 +70,11 @@ An ` <image/>{:dn}` is often nested within a ` <figure>{:dn}` along with a ` <ca
 
 
 
-An ` <image/>{:dn}` can be placed on a ` <graph>{:dn}`. Control the size of the image with the `size` attribute and its initial position with the `anchor` attribute.
+An `<image/>{:dn}` can be placed on a `<graph>{:dn}`. Control the size of the image with the `size` attribute and its initial position with the `anchor` attribute.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: width
 
@@ -108,13 +106,17 @@ The `width` attribute specifies the absolute width of the image. Doenet determin
   source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" >
   <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
 </image>
-<image extend="$doric" size="small"/>
-<image extend="$doric" size="full"/>
+<image extend="$doric" size="small">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+<image extend="$doric" size="full">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
 ```
 
 
 
-The `size` attribute specifies one of 5 size categories for the ` <image/>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+The `size` attribute specifies one of 5 size categories for the `<image/>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
 
 
 
@@ -151,12 +153,14 @@ The `aspectRatio` attribute allows for customization of the image's default prop
   <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
 </image>
 
-<image extend="$doric" displayMode="block"/>  
+<image extend="$doric" displayMode="block">
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>  
 ```
 
 
 
-The `displayMode` attribute affects how the ` <image/>{:dn}` is positioned on screen. The default mode is "block", which renders the image centered on screen. The available modes are `inline`, and `block`.
+The `displayMode` attribute affects how the `<image/>{:dn}` is positioned on screen. The default mode is "block", which renders the image centered on screen. The available modes are `inline`, and `block`.
 
 
 
@@ -183,7 +187,7 @@ The `horizontalAlign` attribute specifies the horizontal position on-screen for 
 
 ---
 
-### Attribute Example: description
+### Attribute Example: shortDescription
 
 
 ```doenet-editor-horiz
@@ -196,9 +200,9 @@ The `horizontalAlign` attribute specifies the horizontal position on-screen for 
 ```
 
 
-The `description` attribute provides a description of the ` <image/>{:dn}` for situations where the image 
-cannot load, or for use with screen-reading technology. It is a required attribute for accessibility.
-If a `description` is not supplied and `decorative` is not supplied, a warning is produced.
+A `<shortDescription>{:dn}` child provides a description of the `<image/>{:dn}` for situations where the image 
+cannot load, or for use with screen-reading technology. It is required for accessibility.
+If neither a `<shortDescription>{:dn}` nor the `decorative` attribute is supplied, a warning is produced.
 
 
 
@@ -208,7 +212,9 @@ If a `description` is not supplied and `decorative` is not supplied, a warning i
 
 
 ```doenet-editor-horiz
-<image width="100" decorative source="https://upload.wikimedia.org/wikipedia/commons/f/f5/Circle_file.487.png"/>
+<image width="100" decorative source="https://upload.wikimedia.org/wikipedia/commons/f/f5/Circle_file.487.png">
+  <shortDescription>Decorative circle image</shortDescription>
+</image>
 ```
 
 If `decorative` is specified, it indicates that the image doesn't add any information to the content of the page
@@ -233,7 +239,7 @@ and can be ignored by assistive technologies like screen readers.
 
 
 
-The `source` attribute specifies the url for a hyperlinked ` <image/>{:dn}` and the filepath for an uploaded ` <image/>{:dn}`.
+The `source` attribute specifies the url for a hyperlinked `<image/>{:dn}` and the filepath for an uploaded `<image/>{:dn}`.
 
 
 
@@ -244,6 +250,7 @@ The `source` attribute specifies the url for a hyperlinked ` <image/>{:dn}` and 
 
 ```doenet-editor-horiz
 <graph>
+  <shortDescription>graph with an anchored rabbit image</shortDescription>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
   size="small" 
@@ -256,7 +263,7 @@ The `source` attribute specifies the url for a hyperlinked ` <image/>{:dn}` and 
 
 
 
-The `anchor` attribute positions the ` <image/>{:dn}` on a ` <graph>{:dn}`.
+The `anchor` attribute positions the `<image/>{:dn}` on a `<graph>{:dn}`.
 
 
 
@@ -270,6 +277,7 @@ The `anchor` attribute positions the ` <image/>{:dn}` on a ` <graph>{:dn}`.
   <label>Draggable?</label>
 </booleanInput> $isDraggable.value
 <graph size="small">
+  <shortDescription>graph with a rabbit image that can be made draggable</shortDescription>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
   size="small" 
@@ -283,7 +291,7 @@ The `anchor` attribute positions the ` <image/>{:dn}` on a ` <graph>{:dn}`.
 
 
 
-The `draggable` attribute determines whether the ` <image/>{:dn}` can be dragged around the graph.
+The `draggable` attribute determines whether the `<image/>{:dn}` can be dragged around the graph.
 
 
 
@@ -294,6 +302,7 @@ The `draggable` attribute determines whether the ` <image/>{:dn}` can be dragged
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a filled circle and a layered rabbit image</shortDescription>
   <circle radius="7" filled/>
   <image 
   source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
@@ -321,6 +330,7 @@ By adjusting the `layer` attribute number, geometry can be placed in front of or
 ```doenet-editor-horiz
 <slider name="angle" from="0" to="2pi"/>
 <graph size="small">
+  <shortDescription>graph with a rotating rabbit image</shortDescription>
   <circle  radius="7" filled/>
   <image 
     rotate="$angle"
@@ -337,7 +347,7 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties 1
 
@@ -358,13 +368,13 @@ The `rotate` attribute allows for rotation of the `<image>{:dn}` about its cente
 <p><c>size</c> = $leviathan.size</p>
 <p><c>width</c> = $leviathan.width</p>
 <p><c>aspectRatio</c> = $leviathan.aspectRatio</p>
-<p><c>description</c> = $leviathan.description</p>
+<p><c>shortDescription</c> = $leviathan.shortDescription</p>
 <p><c>source</c> = $leviathan.source</p>
 ```
 
 
 
-The above listed ` <image/>{:dn}` attributes are also accessible as properties.
+The above listed `<image/>{:dn}` attributes are also accessible as properties.
 
 
 
@@ -375,6 +385,7 @@ The above listed ` <image/>{:dn}` attributes are also accessible as properties.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a layered rabbit image</shortDescription>
   <circle  radius="7" filled/>
   <image 
     name="bunny"
@@ -396,6 +407,200 @@ The above listed ` <image/>{:dn}` attributes are also accessible as properties.
 
 
 
-The above listed ` <image/>{:dn}` attributes are also accessible as properties.
+The above listed `<image/>{:dn}` attributes are also accessible as properties.
+
+
+
+## Attribution
+
+The attribution attributes let you credit an image's source and license.
+When any of them are supplied, Doenet builds a credit sentence and shows it
+inside the image's description (open the description disclosure — the "i"
+button — to see it). The wording follows the Creative Commons
+"TASL" convention: **T**itle, **A**uthor, **S**ource, **L**icense.
+
+
+
+### Attribute Example: licenseCodes
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  authorName="Jane Doe"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The `licenseCodes` attribute tags the image with one or more recognized
+open-license codes. From a code, Doenet derives the full license name and a
+link to the license deed, then renders the credit sentence in the image's
+description. Recognized codes are the six Creative Commons licenses (`CC-BY`,
+`CC-BY-SA`, `CC-BY-ND`, `CC-BY-NC`, `CC-BY-NC-SA`, `CC-BY-NC-ND`), the
+public-domain markers `CC0` and `PDM`, and `GFDL`, `FAL`, `OGL`, `MIT`, and
+`APACHE-2.0`. Codes are matched case-insensitively; an unrecognized code is
+ignored.
+
+
+
+---
+
+### Attribute Example: licenseVersion
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY"
+  licenseVersion="3.0"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The `licenseVersion` attribute selects which version of a Creative Commons
+license to name and link to. It defaults to `4.0` and is ignored for licenses
+that are not versioned this way (such as `MIT` or `PDM`).
+
+
+
+---
+
+### Example: dual licensing
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY-SA GFDL"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+Specifying two codes in `licenseCodes` marks the image as dual-licensed; the
+credit sentence names both licenses, joined with "or".
+
+
+
+---
+
+### Example: public-domain codes
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC0"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+The public-domain markers `CC0` and `PDM` are phrased differently in the credit
+sentence: the work is described as being in the public domain rather than
+licensed under a set of terms.
+
+
+
+---
+
+### Attribute Example: imageName, authorName, authorUrl, and originalUrl
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  originalUrl="https://commons.wikimedia.org/wiki/File:DoricParthenon.jpg"
+  authorName="Jane Doe"
+  authorUrl="https://commons.wikimedia.org/wiki/User:JaneDoe"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+These attributes flesh out the credit sentence. `imageName` supplies the
+work's title (used in place of the generic word "Image") and links to
+`originalUrl`, the page where the image is found. `authorName` names the
+creator and links to `authorUrl`, such as the author's profile page.
+
+
+
+---
+
+### Attribute Example: licenseName and licenseUrl
+
+
+```doenet-editor-horiz
+<image
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  authorName="Jane Doe"
+  licenseName="Custom Museum License"
+  licenseUrl="https://example.com/museum-license"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+```
+
+
+
+When an image uses a license that is not one of the recognized `licenseCodes`,
+give the license name and link directly with `licenseName` and `licenseUrl`.
+These are used only as a fallback: when `licenseCodes` is set, the derived
+names and URLs take precedence and `licenseName`/`licenseUrl` are ignored.
+
+
+
+---
+
+### Property Example: licenseNames and licenseUrls
+
+
+```doenet-editor-horiz
+<image
+  name="temple"
+  width="300"
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg"
+  imageName="Doric temple corner"
+  licenseCodes="CC-BY-SA"
+>
+  <shortDescription>A corner of a Doric temple with column capital, architrave, and triglyph</shortDescription>
+</image>
+
+<p><c>licenseNames</c> = $temple.licenseNames</p>
+<p><c>licenseUrls</c> = $temple.licenseUrls</p>
+```
+
+
+
+The resolved license names and URLs are available as the `licenseNames` and
+`licenseUrls` properties. They are derived from `licenseCodes` (and
+`licenseVersion`) when those are given, and otherwise reflect the
+`licenseName`/`licenseUrl` fallback attributes.
 
 

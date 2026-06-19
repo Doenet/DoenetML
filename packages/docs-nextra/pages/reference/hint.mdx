@@ -1,30 +1,28 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <hint>{:dn}`
+# `<hint>{:dn}`
 
+<ComponentDisplay name='hint'/>
 
-
-` <hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+`<hint>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
 component that renders a hidden block of content that can be expanded when its banner is clicked 
 or can be rendered visible only when triggered by specific user interactions.
 
 
-## Attributes and Properties 
-The ` <hint>{:dn}` does not have attributes.
- <PropDisplay name='hint'/>
+<AttrPropDisplay name='hint'/>
 
 
+## Examples
 
----
-
-### Example: ` <hint>{:dn}` that is always visible
+### Example: `<hint>{:dn}` that is always visible
 
 
 ```doenet-example
-<p>What food item below was NOT invented in America?
+<p>
   <answer>
+    <label>What food item below was NOT invented in America?</label>
     <choice>Hot Dogs</choice>
     <choice>Cotton Candy</choice>
     <choice credit="1">Pizza</choice>
@@ -36,18 +34,18 @@ The ` <hint>{:dn}` does not have attributes.
 </hint> 
 ```
 
-The ` <hint>{:dn}` banner is not triggered by any specific conditions and 
-is always accessible to the user. The content of the ` <hint>{:dn}` is made 
+The `<hint>{:dn}` banner is not triggered by any specific conditions and 
+is always accessible to the user. The content of the `<hint>{:dn}` is made 
 available by clicking on the hint banner. 
 
 ---
 
-### Example: ` <hint>{:dn}` only visible for specified interactions
+### Example: `<hint>{:dn}` only visible for specified interactions
 
 
 ```doenet-editor-horiz
-<p>What is the smallest prime number?
-  <answer name="ans1">2</answer>
+<p>
+  <answer name="ans1"><label>What is the smallest prime number?</label>2</answer>
     <hint hide="$ans1 != 1">
       By convention the number 1 is not prime.  Try again!
     </hint>
@@ -56,20 +54,19 @@ available by clicking on the hint banner.
 
 
 
-The conditions under which a ` <hint>{:dn}` is visible can be tailored to 
-specific user interactions using the ` <hide>{:dn}` attribute.
+The conditions under which a `<hint>{:dn}` is visible can be tailored to 
+specific user interactions using the `<hide>{:dn}` attribute.
 
 
 
 ---
 
-### Example: Hide a ` <hint>{:dn}` until user answers twice
+### Example: Hide a `<hint>{:dn}` until user answers twice
 
 
 ```doenet-editor-horiz
-<p>Given the line <math>y = 1/2 x - 4</math>, 
-what is the <m>y</m>-intercept?
-  <answer name="ans">-4</answer>
+<p>
+  <answer name="ans"><label>Given the line <math>y = 1/2 x - 4</math>, what is the <m>y</m>-intercept?</label>-4</answer>
 
   <hint 
     hide="($ans.nSubmissions < 2) or ($ans.creditAchieved = 1)">
@@ -78,12 +75,12 @@ what is the <m>y</m>-intercept?
 </p>
 ```
 
-Properties of the named ` <answer>{:dn}` component are referenced by the 
-boolean condition listed in the `hide` attribute of the ` <hint>{:dn}`. In 
+Properties of the named `<answer>{:dn}` component are referenced by the 
+boolean condition listed in the `hide` attribute of the `<hint>{:dn}`. In 
 this case, if the user answers incorrectly 2 or more times, the `hide` attribute 
-of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
+of the `<hint>{:dn}` will become `false`, and the `<hint>{:dn}` will appear.
 
----
+## Property Examples
 
 ### Property Example: open
 
@@ -99,7 +96,7 @@ of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
 
 
 The `open` property renders the boolean value corresponding to whether 
-the ` <hint>{:dn}` is currently open.
+the `<hint>{:dn}` is currently open.
 
 
 
@@ -117,6 +114,6 @@ the ` <hint>{:dn}` is currently open.
 
 
 
-The `title` property renders the title associated with the ` <hint>{:dn}`.
+The `title` property renders the title associated with the `<hint>{:dn}`.
 
 

@@ -1,20 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <endpoint>{:dn}`
+# `<endpoint>{:dn}`
 
+<ComponentDisplay name='endpoint'/>
 
-` <endpoint>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+`<endpoint>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) 
 component that renders a point that can be switched from open to closed (or unfilled to filled).
 
-## Attributes and Properties 
- <AttrDisplay name='endpoint'/> 
- <PropDisplay name='endpoint'/>
+<AttrPropDisplay name='endpoint'/>
 
 
----
+## Examples
 
 ### Example: Default endpoint
 
@@ -22,6 +21,7 @@ component that renders a point that can be switched from open to closed (or unfi
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>three endpoints: default, switchable, and open</shortDescription>
   <endpoint name="default" labelIsName/>  
   <endpoint name="switchable" switchable
     coords="(0,5)"  labelIsName/>
@@ -32,18 +32,19 @@ component that renders a point that can be switched from open to closed (or unfi
 
 
 
-The default ` <endpoint>{:dn}` behaves like a ` <point>{:dn}`. 
-An ` <endpoint>{:dn}` also accepts all ` <point>{:dn}` attributes.
+The default `<endpoint>{:dn}` behaves like a `<point>{:dn}`. 
+An `<endpoint>{:dn}` also accepts all `<point>{:dn}` attributes.
 
 
 
 ---
 
-### Example: An ` <endpoint>{:dn}` shares ` <point>{:dn}` attributes
+### Example: An `<endpoint>{:dn}` shares `<point>{:dn}` attributes
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a labeled endpoint</shortDescription>
   <endpoint name="ep" x="-2" y="4"
     open="true" switchable="true"
     styleNumber="2" labelPosition="lowerleft" 
@@ -61,7 +62,7 @@ endpoints. Endpoints can also have the same constraints as points.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: switchable
 
@@ -69,6 +70,7 @@ endpoints. Endpoints can also have the same constraints as points.
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>graph with a switchable endpoint</shortDescription>
   <endpoint switchable="true">
     <label>Click me!</label>
   </endpoint>
@@ -77,7 +79,7 @@ endpoints. Endpoints can also have the same constraints as points.
 
 
 
-The `switchable` attribute allows the user to click the ` <endpoint>{:dn}` to 
+The `switchable` attribute allows the user to click the `<endpoint>{:dn}` to 
 switch between an open and a closed point.
 
 
@@ -90,23 +92,25 @@ switch between an open and a closed point.
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
+  <shortDescription>graph with an open endpoint</shortDescription>
   <endpoint open="true"/>
 </graph>
 ```
 
 
 
-The `open` attribute renders an ` <endpoint>{:dn}` that is open.
+The `open` attribute renders an `<endpoint>{:dn}` that is open.
 
 
 
----
+## Property Examples
 
-### Property Example: ` <point>{:dn}` properties
+### Property Example: `<point>{:dn}` properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with a labeled endpoint</shortDescription>
   <endpoint name="ep" x="-2" y="4"
     open="true" switchable="true"
     styleNumber="2" labelPosition="lowerleft" 
@@ -135,6 +139,7 @@ The properties of points are accessible to endpoints as well. A few selected pro
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>graph with an open, switchable endpoint</shortDescription>
   <endpoint name="ep" open switchable/>
 </graph>
 
@@ -144,6 +149,6 @@ The properties of points are accessible to endpoints as well. A few selected pro
 
 
 
-Both attributes of ` <endpoint>{:dn}` are also accessible as properties.
+Both attributes of `<endpoint>{:dn}` are also accessible as properties.
 
 

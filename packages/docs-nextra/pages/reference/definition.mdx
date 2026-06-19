@@ -1,0 +1,147 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<definition>{:dn}`
+
+<ComponentDisplay name='definition'/>
+
+`<definition>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that renders a block of content presenting a definition of
+a term or concept. It behaves like [`<example>{:dn}`](example) — it
+accepts a custom `<title>{:dn}` or falls back to an auto-generated
+name and number — but carries the semantic meaning "definition".
+
+
+<AttrPropDisplay name='definition'/>
+
+
+## Examples
+
+### Example: `<definition>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<definition>
+  <p>A <term>prime number</term> is a positive integer greater than 
+    <m>1</m> whose only positive integer divisors are <m>1</m> and itself.</p>
+</definition>
+
+<definition>
+  <p>A <term>composite number</term> is a positive integer greater than 
+    <m>1</m> that is not prime.</p>
+</definition>
+```
+
+
+
+When `<definition>{:dn}` has no `<title>{:dn}`, an auto-generated
+title (e.g. `Definition 1`) is rendered. Each `<definition>{:dn}` is
+counted on the same sectional counter as its siblings.
+
+
+
+---
+
+### Example: `<definition>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<definition>
+  <title>Prime number</title>
+  <p>A positive integer greater than <m>1</m> whose only positive integer 
+    divisors are <m>1</m> and itself.</p>
+</definition>
+```
+
+
+
+A custom `<definition>{:dn}` title is provided by nesting a
+`<title>{:dn}` component.
+
+
+
+---
+
+### Example: `<definition>{:dn}` containing a `<statement>{:dn}`
+
+
+```doenet-editor-horiz
+<definition>
+  <statement>
+    <p>A <term>linear function</term> is a function of the 
+      form <m>f(x) = mx + b</m>, where <m>m</m> and <m>b</m> are 
+      real numbers.</p>
+  </statement>
+</definition>
+```
+
+
+
+A nested [`<statement>{:dn}`](statement) is commonly used inside a
+`<definition>{:dn}` to label the declarative content.
+
+
+
+## Attribute Examples
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<definition boxed>
+  <title>Even number</title>
+  <p>An integer divisible by <m>2</m>.</p>
+</definition>
+```
+
+
+
+The `boxed` attribute changes the default formatting to a border with
+a shaded title banner.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+<definition>
+  <title>Even number</title>
+  <p>An integer divisible by <m>2</m>.</p>
+</definition>
+
+<definition includeAutoNumber>
+  <title>Odd number</title>
+  <p>An integer not divisible by <m>2</m>.</p>
+</definition>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default. Set it to
+`true` to render the definition number in addition to a custom title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideDef">
+  <label>Click here to hide the definition</label>
+</booleanInput>
+
+<definition hide="$hideDef"><title>Now you see me...</title>
+  <p>An important definition.</p>
+</definition>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

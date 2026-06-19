@@ -7,7 +7,7 @@ export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
     static componentDocs = {
-        summary: "A list of texts.",
+        summary: "A list of texts",
     };
     static takesIndex = true;
 
@@ -71,7 +71,7 @@ export default class TextList extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

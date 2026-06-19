@@ -1,0 +1,233 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Writing Accessible Activities
+
+This guide is a set of practical recipes for the everyday accessibility of a Doenet activity: describing images and graphs, labelling inputs, writing good links, structuring with headings, and building accessible tables. Each recipe clears a check from the [accessibility report](../guides/check-accessibility) and, more importantly, makes your activity usable by someone who can't see it.
+
+<Callout type="info">
+These recipes supply the information the [accessibility checker](../guides/check-accessibility) looks for. But clearing a check is the floor, not the goal — a description has to actually be *useful*. For why that distinction matters, see **[Accessibility in Doenet](../concepts/accessibility)**.
+</Callout>
+
+Most of these recipes use two children you can add to many components:
+
+- **`<shortDescription>{:dn}`** — a brief description read by **screen readers only**. It is not shown on screen, so it is where you put information a sighted reader already gets from the visuals.
+- **`<description>{:dn}`** — longer information shown to **everyone**, in a disclosure or popup. Use it for detail that helps all readers.
+
+---
+
+## Describe graphs, images, and videos
+
+A screen reader can't see an image, a graph, or a video, so each one needs a `<shortDescription>{:dn}` that conveys what it shows. Without one, the [checker](../guides/check-accessibility) reports a violation.
+
+Put the `<shortDescription>{:dn}` as a child of the visual component. Write it for someone who can't see the image and needs to know what it depicts:
+
+```doenet-editor-horiz
+<figure>
+  <image
+    source="https://upload.wikimedia.org/wikipedia/commons/5/5a/Sciurus_carolinensis_-British_Columbia%2C_Canada-8.jpg"
+    size="small"
+  >
+    <shortDescription>A gray squirrel hangs upside-down from a tree trunk, stretching toward a hanging bird feeder.</shortDescription>
+  </image>
+  <caption>A determined squirrel raids the bird feeder.</caption>
+</figure>
+```
+
+A `<caption>{:dn}` (shown to everyone) is not a substitute for a `<shortDescription>{:dn}` (read to screen readers): the caption above says *that* the squirrel is determined, while the short description says *what is in the picture*. Pair them.
+
+### Add longer detail with `<description>`
+
+When there is more to say than belongs in a short description — background, a source credit, a fuller account of a complex figure — add a `<description>{:dn}`. It is shown to every reader in a disclosure, so both sighted and screen-reader users get it:
+
+```doenet-editor-horiz
+<image
+  source="https://upload.wikimedia.org/wikipedia/commons/0/02/Donut.jpg"
+  size="small"
+>
+  <shortDescription>A single chocolate-frosted ring donut on a white background.</shortDescription>
+  <description>
+    <p>Photograph from
+    <ref to="https://commons.wikimedia.org/wiki/File:Donut.jpg">Wikimedia Commons</ref>,
+    used under a Creative Commons license.</p>
+  </description>
+</image>
+```
+
+### Mark a purely decorative image
+
+If an image carries no information — a border flourish, a background texture — it should be *skipped* by screen readers rather than described. Mark it `decorative{:dn}` and the checker won't ask for a description:
+
+```doenet
+<image source="decorative-divider.png" decorative />
+```
+
+Only mark something decorative if a reader truly loses nothing by not knowing it is there. The same attribute works on a `<graph>{:dn}` used purely for decoration.
+
+<Callout type="warning">
+A screen reader reads a `<shortDescription>{:dn}` as plain text, so don't put math components like `<m>{:dn}` inside one — they are read out as raw notation. Spell the math out in words ("x squared", not `<m>x^2</m>{:dn}`). The checker flags embedded math as an advisory.
+</Callout>
+
+Graphs follow the same rule and have an entire guide of their own — see [Accessible Interactive Graphs](../guides/accessible-interactive-graphs). A `<video>{:dn}` also needs a `<shortDescription>{:dn}` (a video can't be marked decorative).
+
+---
+
+## Label every input
+
+Every input — `<mathInput>{:dn}`, `<textInput>{:dn}`, `<choiceInput>{:dn}`, `<booleanInput>{:dn}`, `<matrixInput>{:dn}` — needs a label a screen reader can announce. **Ordinary text next to an input is not a label:** it looks like one to a sighted reader, but nothing connects the two, so a screen reader announces the input as unlabeled. There are three ways to make the connection, depending on your layout.
+
+### A visible label, with `<label>`
+
+The usual case: put a `<label>{:dn}` inside the input. It renders next to the input and is programmatically tied to it.
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="x0">
+    <label>Initial value <m>x_0</m></label>
+  </mathInput>
+</p>
+```
+
+### A label placed elsewhere, with `<label for="...">`
+
+When your layout needs the label to sit somewhere other than right on the input, write a `<label>{:dn}` with a `for{:dn}` attribute pointing at the input's name. The two are associated even though they're written separately.
+
+```doenet-editor-horiz
+<p><label for="$age">Your age in years</label>: <textInput name="age" /></p>
+```
+
+### A screen-reader-only label, with `<shortDescription>`
+
+When a visible label would just duplicate the surrounding sentence, use a `<shortDescription>{:dn}` instead. It gives the screen reader a label without adding anything to the screen — useful for inputs embedded in prose:
+
+```doenet-editor-horiz
+<p>List two even numbers:
+  <mathInput name="n1"><shortDescription>First even number</shortDescription></mathInput>,
+  <mathInput name="n2"><shortDescription>Second even number</shortDescription></mathInput>.
+</p>
+```
+
+### Labelling answers
+
+An `<answer>{:dn}` needs a label too, but *where* it goes depends on how the answer is written:
+
+- **The answer creates its own input** (there is no explicit `<*Input>{:dn}` inside it). Put the `<label>{:dn}` inside the answer:
+
+  ```doenet-editor-horiz
+  <p>
+    <answer>
+      <label>What is <m>2 + 2</m>?</label>
+      4
+    </answer>
+  </p>
+  ```
+
+- **The answer contains an explicit input.** Put the `<label>{:dn}` on the *input*, not on the answer:
+
+  ```doenet-editor-horiz
+  <p>
+    <answer>
+      <mathInput name="deriv">
+        <label>Derivative of <m>x^2</m></label>
+      </mathInput>
+      <award>2x</award>
+    </answer>
+  </p>
+  ```
+
+An answer that checks a condition with `<award><when>{:dn}` (rather than creating an input) has nothing to label — keep its prompt as ordinary text beside it. That pattern comes up with interactive graphs; see [the check-work pattern](../guides/accessible-interactive-graphs#pair-the-graph-with-a-check-work-answer).
+
+---
+
+## Write descriptive links
+
+A link's text should make sense on its own. Screen-reader users often pull up a list of a page's links to navigate by; a list of identical "here"s or "this link"s tells them nothing. Write the `<ref>{:dn}` so its text describes the destination:
+
+```doenet-editor-horiz
+<p>For a refresher, see
+<ref to="https://mathinsight.org/derivatives_polynomials_refresher">taking derivatives of polynomials</ref>.</p>
+```
+
+Avoid `see <ref to="...">here</ref>{:dn}` — "here" describes nothing. Make the meaningful phrase the link.
+
+---
+
+## Build structure with headings
+
+Screen-reader users navigate long documents by jumping from heading to heading, so a correct heading structure is essential. In Doenet you don't choose heading *levels* — you nest sectioning components, and each `<title>{:dn}` becomes a heading at the right level automatically. A `<section>{:dn}` inside another section is a sub-heading of it.
+
+```doenet-editor-horiz
+<section>
+  <title>Limits</title>
+  <p>A limit describes the value a function approaches.</p>
+  <section>
+    <title>One-sided limits</title>
+    <p>A one-sided limit approaches from a single direction.</p>
+  </section>
+</section>
+```
+
+Here "Limits" is a top-level heading and "One-sided limits" is nested one level below it. Because the levels are computed from the nesting, they stay correct no matter how you rearrange the document — which you could never guarantee by, say, bolding a line to *look* like a heading. Don't fake a heading with styled text; use a sectioning component so it is a real, navigable heading.
+
+---
+
+## Make tables accessible
+
+Use a `<tabular>{:dn}` for data that is genuinely tabular, and mark the header row with `header{:dn}` on its `<row>{:dn}`. A screen reader then announces each data cell together with its column header, so a listener can tell which column a value is in.
+
+```doenet-editor-horiz
+<tabular>
+  <row header>
+    <cell>Function</cell>
+    <cell>Derivative</cell>
+  </row>
+  <row>
+    <cell><m>x^2</m></cell>
+    <cell><m>2x</m></cell>
+  </row>
+  <row>
+    <cell><m>\sin x</m></cell>
+    <cell><m>\cos x</m></cell>
+  </row>
+</tabular>
+```
+
+Two cautions, both standard table-accessibility advice cast in DoenetML:
+
+- **Don't use a table for visual layout.** A table tells a screen reader "this is a grid of related data." To place things side by side without that meaning, use a `<sideBySide>{:dn}` instead.
+- Wrap the `<tabular>{:dn}` in a `<table>{:dn}` when you want a numbered, titled table you can cross-reference; the `<tabular>{:dn}` alone is just the grid.
+
+---
+
+## Choose colors with enough contrast
+
+Color carries meaning only for readers who can see it and tell the colors apart, so two rules apply. First, never let color be the *only* signal of a distinction — Doenet's [style numbers](../concepts/styling) already pair each color with a different marker shape or dash pattern for exactly this reason. Second, keep enough contrast: when you redefine a color with a [`<styleDefinition>{:dn}`](../reference/styleDefinition), Doenet checks its contrast against the canvas and reports a violation if it is too low. You don't have to compute ratios yourself — just watch the [accessibility report](../guides/check-accessibility). The reasoning behind all of this is in [Styling, meaning, and accessibility](../concepts/styling#why-distinctions-live-in-style-numbers-accessibility).
+
+---
+
+## Put extra guidance where everyone can reach it
+
+It is tempting to tuck a formatting hint into a visual aside — "(type `sqrt` for a square root)". A sighted reader sees it; a screen-reader user working through the input may never reach it. Put guidance an input needs into a `<description>{:dn}` on that input, which is shown to everyone *and* announced with the input:
+
+```doenet-editor-horiz
+<p>
+  <answer>
+    <mathInput name="root">
+      <label>Enter the square root of <m>x</m></label>
+      <description>Type <c>sqrt(x)</c> to enter a square root.</description>
+    </mathInput>
+    <award>sqrt(x)</award>
+  </answer>
+</p>
+```
+
+For longer supporting material, the same principle points to components every reader can open: a `<hint>{:dn}` for an on-demand nudge, a `<footnote>{:dn}` for an aside, or an `<aside>{:dn}` for a note set off from the main flow. Each is reachable by keyboard and announced to screen readers — unlike text whose only cue is that it looks different.
+
+---
+
+## Where to go next
+
+- **[Checking Accessibility](../guides/check-accessibility)** — confirm these recipes cleared the report.
+- **[Accessible Interactive Graphs](../guides/accessible-interactive-graphs)** — descriptions that update, keyboard controls, and graph annotations.
+- **[Accessibility in Doenet](../concepts/accessibility)** — the reasoning behind the recipes.

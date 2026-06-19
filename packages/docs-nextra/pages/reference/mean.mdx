@@ -1,20 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <mean>{:dn}`
+# `<mean>{:dn}`
 
-` <mean>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+<ComponentDisplay name='mean'/>
+
+`<mean>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types) 
 component which renders the arithmetic mean of the enclosed values.
 
-## Attributes and Properties 
- <AttrDisplay name='mean'/> 
- <PropDisplay name='mean'/>
+<AttrPropDisplay name='mean'/>
 
----
+## Examples
 
-### Example: ` <mean>{:dn}` of a nested list of numbers
+### Example: `<mean>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
@@ -26,21 +26,21 @@ component which renders the arithmetic mean of the enclosed values.
 ```
 
 
-Numbers are listed directly within opening and closing tags of the ` <mean>{:dn}` 
-component. The ` <m>{:dn}` component is used for mathematical desplay.
+Numbers are listed directly within opening and closing tags of the `<mean>{:dn}` 
+component. The `<m>{:dn}` component is used for mathematical desplay.
 
 
 
 ---
 
-### Example: ` <mean>{:dn}` of named ` <mathInput/>{:dn}` components
+### Example: `<mean>{:dn}` of named `<mathInput/>{:dn}` components
 
 
 ```doenet-editor-horiz
 <p>Choose three numbers: </p>
-<p><m>x = </m> <mathInput name="x"/></p>
-<p><m>y = </m> <mathInput name="y"/></p> 
-<p><m>z = </m> <mathInput name="z"/></p>
+<p><mathInput name="x"><label><m>x = </m></label></mathInput></p>
+<p><mathInput name="y"><label><m>y = </m></label></mathInput></p> 
+<p><mathInput name="z"><label><m>z = </m></label></mathInput></p>
 <p>  
 The mean of your three numbers <m>\{$x, $y, $z\}</m> is:  
   <m>
@@ -53,6 +53,6 @@ The mean of your three numbers <m>\{$x, $y, $z\}</m> is:
 
 
 
-In this example, three ` <mathInput/>{:dn}` components 
-are referenced using the `$name` notation within the ` <mean>{:dn}` component.
+In this example, three `<mathInput/>{:dn}` components 
+are referenced using the `$name` notation within the `<mean>{:dn}` component.
 

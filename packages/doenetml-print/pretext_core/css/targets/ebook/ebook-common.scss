@@ -1,0 +1,199 @@
+// Use this file for anything common to kindle and epub
+@use 'components/pretext';
+
+@use 'components/chunks/codelike';
+@use 'components/chunks/exercises';
+@use 'components/chunks/solutions';
+@use 'components/chunks/sidebyside';
+@use 'components/chunks/discussion-inline';
+
+// TODO... needed???
+// @use 'colors/legacy/all_colors.scss';
+// @use 'colors/legacy/setcolors.css';
+
+// Note: Not sure if .ptx-content.epub selectors need to be different than the
+// .ptx-content selectors below. They were different in source files this
+// was constructed from.
+
+.ptx-content.epub {
+    img {
+        display: block;
+    }
+
+    .solutions {
+        margin-top: 1em;
+
+        .solution .type,
+        .answer .type {
+            font-family: "PT Serif", "Times New Roman", Times, serif;
+            font-weight: bold;
+        }
+
+        .solution .type + .period,
+        .answer .type + .period {
+            margin-right: 0.75em;
+        }
+
+        .solution .type + p,
+        .answer .type + p {
+            display: inline;
+        }
+    }
+
+
+    article.theorem-like,
+    article.definition-like,
+    article.example-like,
+    article.project-like,
+    article.remark-like,
+    article.openproblem-like,
+    article.openproblems-like,  /* delete once markup is fixed */
+    article.computation-like {
+        margin-left: 1px;
+    }
+
+    .proof {
+        margin-right: 1px;
+    }
+} // .ptx-content.epub
+
+.ptx-content {
+    // sage cell code goes in a pre.  What else goes there? 
+    pre {
+        font-size: 95%;
+        padding-top: 0.3em;
+        padding-bottom: 0.5em;
+        padding-left: 0.5em;
+        background: #f0f0f0;
+    }
+
+    pre.code.input {
+        background: #f0f0ff;
+    }
+
+    pre.code.output {
+        background: #f0fff0;
+    }
+
+    // Placeholder template to use for section headings, will be extended
+    //  here and in other files
+    // The "break-(before/after) might not actually do anything
+    %section-heading {
+        display: block;
+        margin-top: 0;
+        break-after: avoid !important;
+    }
+
+    section > .heading {
+        @extend %section-heading;
+    }
+
+    // Placeholder extended here and in other files
+    %section-heading-p {
+        display: block;
+        break-before: avoid !important;
+    }
+
+    section > .heading + p {
+        @extend %section-heading-p;
+    }
+
+    figcaption {
+        break-before: avoid !important;
+    }
+
+    figure {
+        break-inside: avoid !important;
+
+        .image-box,
+        .tabular-box {
+            break-after: avoid !important;
+        }
+    }
+} // .ptx-content
+
+
+/* This CSS is presumably from some page that MathJax created: */
+/* a page of HTML, with LaTeX mixed into it, got hit by a      */
+/* MathJax tool to create a new, derived, HTML page and this   */
+/* CSS was added to control placment of the math bits.  We     */
+/* started using it in June 2020 (commit: d1e899b5d99ce9bf),   */
+/* so it is a bit hazy as to the exact origin.                 */
+
+/* Original code comment:                                      */
+/* MathJax CSS, which is placed on enclosing span elements     */
+/*   mjpage:        for all math, so only class on online math */
+/*   mjpage__block: for display math, so additional on "md"    */
+/* Removed as EPUB 3.0 violation: .mjpage direction: ltr;      */
+
+.mjpage .MJX-monospace {
+font-family: monospace
+}
+
+.mjpage .MJX-sans-serif {
+font-family: sans-serif
+}
+
+.mjpage {
+display: inline;
+font-style: normal;
+font-weight: normal;
+line-height: normal;
+font-size: 100%;
+font-size-adjust: none;
+text-indent: 0;
+text-align: left;
+text-transform: none;
+letter-spacing: normal;
+word-spacing: normal;
+word-wrap: normal;
+white-space: nowrap;
+float: none;
+max-width: none;
+max-height: none;
+min-width: 0;
+min-height: 0;
+border: 0;
+padding: 0;
+margin: 0
+}
+
+.mjpage * {
+transition: none;
+-webkit-transition: none;
+-moz-transition: none;
+-ms-transition: none;
+-o-transition: none
+}
+
+.mjx-svg-href {
+fill: blue;
+stroke: blue
+}
+
+.MathJax_SVG_LineBox {
+display: table!important
+}
+
+.MathJax_SVG_LineBox span {
+display: table-cell!important;
+width: 10000em!important;
+min-width: 0;
+max-width: none;
+padding: 0;
+border: 0;
+margin: 0
+}
+
+.mjpage__block {
+text-align: center;
+margin: 1em 0em;
+position: relative;
+display: block!important;
+text-indent: 0;
+max-width: none;
+max-height: none;
+min-width: 0;
+min-height: 0;
+width: 100%
+}

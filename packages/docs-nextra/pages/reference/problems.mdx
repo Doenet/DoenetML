@@ -1,0 +1,185 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<problems>{:dn}`
+
+<ComponentDisplay name='problems'/>
+
+`<problems>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that groups a collection of [`<problem>{:dn}`](problem)
+components and, by default, renders them as a numbered list.
+`<problems>{:dn}` sets `asList` to `true` by default, which means
+that only the title child, sectional children (such as
+`<problem>{:dn}`s), an [`<introduction>{:dn}`](introduction), and
+a [`<conclusion>{:dn}`](conclusion) are rendered. Any other content
+nested inside `<problems>{:dn}` — including plain text and `<p>{:dn}`
+components — is silently dropped. To frame the list with prose, wrap
+that prose in an [`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion).
+
+
+<AttrPropDisplay name='problems'/>
+
+
+## Examples
+
+### Example: `<problems>{:dn}` rendering its children as a list
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Practice problems</title>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+Each nested `<problem>{:dn}` is rendered as a numbered list item.
+
+
+
+---
+
+### Example: framing the list with `<introduction>{:dn}` and `<conclusion>{:dn}`
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Warm-up arithmetic</title>
+
+  <introduction>
+    <p>Compute each of the following.
+       Enter exact (non-decimal) answers.</p>
+  </introduction>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+
+  <conclusion>
+    <p>Submit your answers when finished.</p>
+  </conclusion>
+</problems>
+```
+
+
+
+Because `asList` is `true`, the only ways to surround the list with
+prose are an [`<introduction>{:dn}`](introduction) (before the list)
+and a [`<conclusion>{:dn}`](conclusion) (after it). Both are passed
+through unchanged; the contained `<problem>{:dn}` items are still
+rendered as numbered list items.
+
+
+
+---
+
+### Example: ignored content when `asList` is `true`
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Three problems</title>
+
+  These instructions will not appear.
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <p>This paragraph is between problems and is dropped.</p>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+Both the bare string and the `<p>{:dn}` are ignored because they are
+neither sectional components nor an
+[`<introduction>{:dn}`](introduction) or
+[`<conclusion>{:dn}`](conclusion). Only the two `<problem>{:dn}`s
+render. Wrap such prose in an `<introduction>{:dn}` or
+`<conclusion>{:dn}` to make it visible.
+
+
+
+## Attribute Examples
+
+### Attribute Example: asList
+
+
+```doenet-example
+<problems asList="false">
+  <title>Problems without list rendering</title>
+
+  <p>With asList disabled, this paragraph also renders.</p>
+
+  <problem><title>Problem 1</title>
+    <p><answer><label>Enter the value <m>1</m></label>1</answer></p>
+  </problem>
+  <problem><title>Problem 2</title>
+    <p><answer><label>Enter the value <m>2</m></label>2</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+Set `asList="false"` to render the contained problems as ordinary
+sectional blocks rather than as list items. With list rendering
+turned off, sibling prose (and any other children) renders normally
+alongside the problems.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideProblems">
+  <label>Hide the problem set</label>
+</booleanInput>
+
+<problems hide="$hideProblems">
+  <title>Problem set</title>
+  <problem>
+    <p>
+      <answer type="text">
+        <label>Type "sassafras"</label>
+        sassafras
+      </answer>
+    </p>
+  </problem>
+</problems>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

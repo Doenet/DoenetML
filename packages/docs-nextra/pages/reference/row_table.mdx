@@ -1,23 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <row>{:dn}` (in a table)
+# `<row>{:dn}` (in a table)
+
+<ComponentDisplay name='row'/>
+
+`<row>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that functions as a container element for the individual [`<cell>{:dn}`](cell.mdx) elements of a [`<tabular>{:dn}`](tabular.mdx) or a [`<spreadsheet>{:dn}`](spreadsheet.mdx).
+
+`<row>{:dn}` is also accepted inside a [`<matrix>{:dn}`](matrix.mdx), where it
+defines a row of math values; see [`<row>{:dn}` (in a matrix)](row_matrix) for
+that flavor.
+
+<AttrPropDisplay name='row'/>
 
 
-` <row>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component that functions as a container element for the individual [` <cell>{:dn}`](cell.mdx) elements of  a [` <tabular>{:dn}`](tabular.mdx). 
+## Examples
 
-## Attributes and Properties 
- <AttrDisplay name='row'/> 
- <PropDisplay name='row'/>
-
-
----
-
-### Example: a ` <row>{:dn}` without attributes
+### Example: a `<row>{:dn}` inside a `<tabular>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -39,12 +42,41 @@ component that functions as a container element for the individual [` <cell>{:dn
 
 
 
-The basic, unformatted structure of a ` <table>{:dn}` is illustrated. Individual rows are contained 
-within a ` <tabular>{:dn}`, and individual cells are contained within a ` <row>{:dn}`.
+The basic, unformatted structure of a `<table>{:dn}` is illustrated. Individual rows are contained
+within a `<tabular>{:dn}`, and individual cells are contained within a `<row>{:dn}`.
 
 
 
 ---
+
+### Example: a `<row>{:dn}` inside a `<spreadsheet>{:dn}`
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <row>
+    <cell>Name</cell>
+    <cell>Score</cell>
+  </row>
+  <row>
+    <cell>Alice</cell>
+    <cell>85</cell>
+  </row>
+  <row>
+    <cell>Bob</cell>
+    <cell>92</cell>
+  </row>
+</spreadsheet>
+```
+
+
+`<row>{:dn}` also populates a [`<spreadsheet>{:dn}`](spreadsheet) row by row.
+Compare with [`<column>{:dn}`](column_table), which populates a spreadsheet
+column by column.
+
+
+
+## Attribute Examples
 
 ### Attribute Example: header
 
@@ -70,7 +102,7 @@ within a ` <tabular>{:dn}`, and individual cells are contained within a ` <row>{
 
 
 
-The `header` attribute defines a ` <row>{:dn}` with header styling.
+The `header` attribute defines a `<row>{:dn}` with header styling.
 
 
 
@@ -105,7 +137,7 @@ The `header` attribute defines a ` <row>{:dn}` with header styling.
 
 
 The `halign` attribute defines the horizontal alignment of content within 
-each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
 are `left` (default), `center`, and `right`.
 
 
@@ -142,7 +174,7 @@ are `left` (default), `center`, and `right`.
 
 
 The `valign` attribute defines the vertical alignment of content within 
-each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
 are `top`, `center` (default), and `bottom`.
 
 
@@ -183,13 +215,13 @@ are `top`, `center` (default), and `bottom`.
 
 
 The `left` attribute defines the weight for the left border element of content 
-within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+within each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
 are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `left` attribute can also be specified in the ` <tabular>{:dn}`, which 
+Note that the `left` attribute can also be specified in the `<tabular>{:dn}`, which 
 then applies to the entire table. If specified in both locations, the specification 
-within the individual ` <row>{:dn}` takes precedence.
+within the individual `<row>{:dn}` takes precedence.
 
 
 
@@ -229,12 +261,12 @@ within the individual ` <row>{:dn}` takes precedence.
 
 
 The `bottom` attribute defines the weight for the bottom border element of 
-content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available 
+content within each `<cell>{:dn}` for the given `<row>{:dn}`. The available 
 options are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `bottom` attribute can also be specified in the ` <tabular>{:dn}`, which 
+Note that the `bottom` attribute can also be specified in the `<tabular>{:dn}`, which 
 then applies to the entire table. If specified in both locations, the 
-specification within the individual ` <row>{:dn}` takes precedence.
+specification within the individual `<row>{:dn}` takes precedence.
 
 

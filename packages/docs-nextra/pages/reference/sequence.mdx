@@ -1,20 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <sequence>{:dn}`
+# `<sequence>{:dn}`
 
-` <sequence>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that defines a sequence of numerical (or alphabetical) values.
+<ComponentDisplay name='sequence'/>
 
-## Attributes and Properties 
- <AttrDisplay name='sequence'/> 
-The `<sequence>{:dn}` component does not have properties.
+`<sequence>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
+component that generates a sequence of numbers, math expressions, or letters.
 
----
+<AttrPropDisplay name='sequence'/>
 
-### Example: Default ` <sequence>{:dn}`
+## Examples
+
+### Example: Default `<sequence>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -25,13 +25,13 @@ The `<sequence>{:dn}` component does not have properties.
 
 
 
-The default ` <sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1$.
+The default `<sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1$.
 
 
 
 ---
 
-### Example: Using a ` <sequence>{:dn}` with a ` <repeat>{:dn}`
+### Example: Using a `<sequence>{:dn}` with a `<repeat>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -47,14 +47,14 @@ The default ` <sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1
 
 
 
-A ` <sequence>{:dn}` can be used to define the iteration for a `<repeat>{:dn}`.
+A `<sequence>{:dn}` can be used to define the iteration for a `<repeat>{:dn}`.
 Another way to accomplish this would be to use the `<repeatForSequence>{:dn}` component.
 
 
 ---
 
 
-### Example: the sum of a ` <sequence>{:dn}`
+### Example: the sum of a `<sequence>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -66,11 +66,11 @@ Another way to accomplish this would be to use the `<repeatForSequence>{:dn}` co
 
 
 
-In the sample code below, the sum of all values in a sequence is obtained by nesting the ` <sequence/>{:dn}` in a [` <sum>{:dn}`](sum.mdx) component. This technique works for multiple sequence as well.
+In the sample code below, the sum of all values in a sequence is obtained by nesting the `<sequence/>{:dn}` in a [`<sum>{:dn}`](sum.mdx) component. This technique works for multiple sequence as well.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: from, to
 
@@ -83,7 +83,7 @@ In the sample code below, the sum of all values in a sequence is obtained by nes
 
 
 
-Use the `from` and `to` attributes to specify the endpoints of the ` <sequence>{:dn}`.
+Use the `from` and `to` attributes to specify the endpoints of the `<sequence>{:dn}`.
 
 
 
@@ -100,7 +100,7 @@ Use the `from` and `to` attributes to specify the endpoints of the ` <sequence>{
 
 
 
-Use the `step` attribute to specify the stepping increment for the ` <sequence>{:dn}`
+Use the `step` attribute to specify the stepping increment for the `<sequence>{:dn}`
 
 
 
@@ -117,7 +117,7 @@ Use the `step` attribute to specify the stepping increment for the ` <sequence>{
 
 
 
-Use the `length` attribute to specify the number of terms in the ` <sequence>{:dn}`.
+Use the `length` attribute to specify the number of terms in the `<sequence>{:dn}`.
 
 
 
@@ -140,7 +140,7 @@ Use the `length` attribute to specify the number of terms in the ` <sequence>{:d
 
 
 
-The `exclude` attribute excludes terms from the ` <sequence>{:dn}`.
+The `exclude` attribute excludes terms from the `<sequence>{:dn}`.
 
 
 

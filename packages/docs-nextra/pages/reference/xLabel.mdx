@@ -1,44 +1,45 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <xLabel>{:dn}`
+# `<xLabel>{:dn}`
+
+<ComponentDisplay name='xLabel'/>
+
+`<xLabel>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that specifies a label for the horizontal axis on a `<graph>{:dn}`.
 
 
-` <xLabel>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
-component that specifies a label for the horizontal axis on a ` <graph>{:dn}`.
+<AttrPropDisplay name='xLabel'/>
 
+## Examples
 
-## Attributes and Properties 
- <AttrDisplay name='xLabel'/> 
- <PropDisplay name='xLabel'/>
-
----
-
-### Example: ` <xLabel>{:dn}` on a ` <graph>{:dn}`
+### Example: `<xLabel>{:dn}` on a `<graph>{:dn}`
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of the line y equals x with an x axis label</shortDescription>
   <xLabel><m>x</m></xLabel>
   <line>y=x</line>
 </graph>
 ```
 
-The ` <xLabel>{:dn}` component is a child of a ` <graph>{:dn}`. An ` <xLabel>{:dn}` 
-can contain text, inline display mathematics (` <m>{:dn}`) or  ` <math>{:dn}` components.
+The `<xLabel>{:dn}` component is a child of a `<graph>{:dn}`. An `<xLabel>{:dn}` 
+can contain text, inline display mathematics (`<m>{:dn}`) or  `<math>{:dn}` components.
 
 ---
 
-### Example: ` <xLabel>{:dn}` on left side
+### Example: `<xLabel>{:dn}` on left side
 
 ```doenet-editor-horiz
 <graph size="small" xLabelPosition="left">
+  <shortDescription>A graph of the line y equals x with a left-positioned x axis label</shortDescription>
   <xLabel>position, <m>m</m></xLabel>
   <line>y=x</line>
 </graph>
 ```
 
 To change the default right-side position of 
-the ` <xLabel>{:dn}` to the left side, apply the `xLabelPosition`
-attribute within the ` <graph>{:dn}` definition.
+the `<xLabel>{:dn}` to the left side, apply the `xLabelPosition`
+attribute within the `<graph>{:dn}` definition.

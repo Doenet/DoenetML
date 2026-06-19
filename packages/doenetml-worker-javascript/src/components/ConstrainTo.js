@@ -6,7 +6,7 @@ export default class ConstrainTo extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Constrains a graphical component's position to match another component.",
+            "Constrains a graphical component's position to be within another component or components",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

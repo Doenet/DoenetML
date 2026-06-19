@@ -1,0 +1,132 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<ionicCompound>{:dn}`
+
+<ComponentDisplay name='ionicCompound'/>
+
+`<ionicCompound>{:dn}` is a [Subject-specific](../concepts/essentialConcepts#component-types)
+component that builds a balanced ionic compound from a cation and an anion and
+renders the resulting chemical formula. It automatically determines the
+smallest integer subscripts that produce a neutral compound.
+
+
+<AttrPropDisplay name='ionicCompound'/>
+
+
+## Examples
+
+### Example: Two `<ion>{:dn}` children
+
+
+```doenet-example
+<ionicCompound name="nacl">
+  <ion symbol="Na" charge="1"/>
+  <ion symbol="Cl" charge="-1"/>
+</ionicCompound>
+
+<ionicCompound name="alOxide">
+  <ion symbol="Al" charge="3"/>
+  <ion symbol="O" charge="-2"/>
+</ionicCompound>
+
+<p>Sodium chloride: $nacl</p>
+<p>Aluminum oxide: $alOxide</p>
+```
+
+
+
+An `<ionicCompound>{:dn}` takes exactly two [`<ion>{:dn}`](ion) children — one
+cation and one anion. The component computes the simplest whole-number ratio
+of the two ions that produces a net charge of zero and renders the resulting
+formula with subscripted counts.
+
+
+
+---
+
+### Example: Default charges from element symbols
+
+
+```doenet-example
+<ionicCompound name="caF">
+  <ion symbol="Ca"/>
+  <ion symbol="F"/>
+</ionicCompound>
+
+<ionicCompound name="mgO">
+  <ion symbol="Mg"/>
+  <ion symbol="O"/>
+</ionicCompound>
+
+<p>Calcium fluoride: $caF</p>
+<p>Magnesium oxide: $mgO</p>
+```
+
+
+
+When the `<ion>{:dn}` children omit a `charge`, each ion uses its element's
+most common charge. This makes it convenient to construct binary ionic
+compounds from main-group elements with predictable oxidation states.
+
+
+
+---
+
+### Example: Use in an answer block
+
+
+```doenet-editor-horiz
+<p>Write the formula for the ionic compound formed by magnesium and chlorine.</p>
+
+<ionicCompound name="correct">
+  <ion symbol="Mg"/>
+  <ion symbol="Cl"/>
+</ionicCompound>
+
+<answer>
+  <mathInput name="userFormula">
+    <label>Chemical formula</label>
+  </mathInput>
+  <award>
+    <when>$userFormula = $correct.math</when>
+  </award>
+</answer>
+
+<solution>
+The balanced formula is $correct.
+</solution>
+```
+
+
+
+The `math` property is the most convenient way to use an `<ionicCompound>{:dn}`
+as the reference answer in an `<answer>{:dn}` block, since the student's
+`<mathInput/>{:dn}` value can be compared directly.
+
+
+
+## Property Examples
+
+### Property Example: math, latex, text
+
+
+```doenet-editor-horiz
+<ionicCompound name="li2o">
+  <ion symbol="Li" charge="1"/>
+  <ion symbol="O" charge="-2"/>
+</ionicCompound>
+
+<p>The compound is $li2o.</p>
+<p><c>math</c> = $li2o.math</p>
+<p><c>latex</c> = $li2o.latex</p>
+<p><c>text</c> = $li2o.text</p>
+```
+
+
+
+`math` is a math expression that can be used in computations, `latex` is a
+LaTeX string suitable for rendering, and `text` is a plain-text fallback.
+Subscripted ion counts appear as `_{n}` in the LaTeX form.

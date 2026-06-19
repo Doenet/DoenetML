@@ -1,0 +1,138 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<solveEquations>{:dn}`
+
+
+<ComponentDisplay name='solveEquations'/>
+
+`<solveEquations>{:dn}` numerically finds solutions of one or more equations
+in one variable. It evaluates the difference between the two sides of each
+equation across `numDiscretizationPoints` sample points, identifies sign
+changes, and refines each candidate to a numerical root.
+
+The result is a list of solutions, exposed through the `solutions` property
+and `numSolutions`. Because the solver is numerical, it can find roots that
+have no closed form, but it has the usual caveats: nearby roots, very flat
+crossings, and roots outside the search range may be missed.
+
+
+<AttrPropDisplay name='solveEquations'/>
+
+
+## Examples
+
+### Example: Roots of a polynomial
+
+
+```doenet-editor-horiz
+<setup>
+  <solveEquations name="solve">x^2 - 1 = 0</solveEquations>
+</setup>
+
+<p>Number of solutions: $solve.numSolutions</p>
+<p>Solutions: <mathList extend="$solve.solutions" displayDigits="5"/></p>
+```
+
+
+The equation is parsed from the children. `numSolutions` counts the
+solutions found; `solutions` is the list of root values.
+
+
+
+---
+
+### Example: User-entered equation
+
+
+```doenet-editor-horiz
+<p>Variable:
+  <mathInput name="var" prefill="x"><label>Variable</label></mathInput>
+</p>
+<p>Equation:
+  <mathInput name="equation" prefill="x^2 - x - 6 = 0">
+    <label>Equation</label>
+  </mathInput>
+</p>
+
+<setup>
+  <solveEquations name="solve" variables="$var">$equation</solveEquations>
+</setup>
+
+<p>Number of solutions: $solve.numSolutions</p>
+<p>Solutions: <mathList extend="$solve.solutions" displayDigits="5"/></p>
+```
+
+
+The equation and the variable are taken from `<mathInput>{:dn}`. The
+`variables` attribute names the variable to solve for, defaulting to `x` when
+omitted.
+
+
+
+## Attribute Examples
+
+### Attribute Example: minVar, maxVar
+
+
+```doenet-editor-horiz
+<setup>
+  <solveEquations name="solveDefault">x (x - 3) (x + 3) = 0</solveEquations>
+  <solveEquations name="solveNarrow" minVar="-1" maxVar="1">
+    x (x - 3) (x + 3) = 0
+  </solveEquations>
+  <solveEquations name="solveWide" minVar="-100" maxVar="100">
+    x (x - 50) (x + 50) = 0
+  </solveEquations>
+</setup>
+
+<p>Default range <m>[-10, 10]</m> — all three roots of
+<m>x(x-3)(x+3)</m> are found:
+  <mathList extend="$solveDefault.solutions" displayDigits="5"/>
+</p>
+
+<p>Restricted to <m>[-1, 1]</m> — only the root at <m>0</m> remains:
+  <mathList extend="$solveNarrow.solutions" displayDigits="5"/>
+</p>
+
+<p>Widened to <m>[-100, 100]</m> — the roots of
+<m>x(x-50)(x+50)</m> are now reachable:
+  <mathList extend="$solveWide.solutions" displayDigits="5"/>
+</p>
+```
+
+
+`minVar` and `maxVar` set the search range. Roots outside that interval are
+not returned. When the attributes are omitted, the solver defaults to
+$[-10, 10]$. (That default is currently a fallback applied inside the
+solver, not a value advertised on the attribute descriptors, so it does not
+appear in the attributes table above.)
+
+
+
+---
+
+### Attribute Example: numDiscretizationPoints
+
+
+```doenet-editor-horiz
+<setup>
+  <solveEquations name="coarse" numDiscretizationPoints="20">
+    sin(10 x) = 0
+  </solveEquations>
+  <solveEquations name="fine" numDiscretizationPoints="500">
+    sin(10 x) = 0
+  </solveEquations>
+</setup>
+
+<p>Coarse sampling finds <m>$coarse.numSolutions</m> solutions.</p>
+<p>Fine sampling finds <m>$fine.numSolutions</m> solutions.</p>
+```
+
+
+`numDiscretizationPoints` controls how densely the search range is sampled
+when looking for sign changes. For oscillatory equations the default may
+under-sample; increasing this value catches more roots at the cost of
+performance.

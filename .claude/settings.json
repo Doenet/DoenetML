@@ -8,6 +8,16 @@
                         "type": "command",
                         "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/pre-commit-prettier.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
                         "timeout": 30
+                    },
+                    {
+                        "type": "command",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/gh-footer-check.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/gh-pr-title-check.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
+                        "timeout": 10
                     }
                 ]
             }

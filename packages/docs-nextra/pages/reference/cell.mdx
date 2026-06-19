@@ -1,23 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <cell>{:dn}`
+# `<cell>{:dn}`
+
+<ComponentDisplay name='cell'/>
+
+`<cell>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component. It is the smallest element of a `<tabular>{:dn}` block of text or 
+data inside a `<table>{:dn}`.
+
+<AttrPropDisplay name='cell'/>
 
 
-` <cell>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component. It is the smallest element of a ` <tabular>{:dn}` block of text or 
-data inside a ` <table>{:dn}`.
+## Examples
 
-## Attributes and Properties 
- <AttrDisplay name='cell'/> 
- <PropDisplay name='cell'/>
-
-
----
-
-### Example: ` <cell>{:dn}` inside a ` <table>{:dn}`
+### Example: `<cell>{:dn}` inside a `<table>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -39,11 +38,11 @@ data inside a ` <table>{:dn}`.
 
 
 
-Each ` <cell>{:dn}` component defines a single entry in the ` <table>{:dn}`.
+Each `<cell>{:dn}` component defines a single entry in the `<table>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: colSpan
 
@@ -70,7 +69,7 @@ Each ` <cell>{:dn}` component defines a single entry in the ` <table>{:dn}`.
 
 
 
-The `colSpan` attribute allows a single ` <cell>{:dn}` to span across 
+The `colSpan` attribute allows a single `<cell>{:dn}` to span across 
 multiple columns. This attribute can also be used across all rows to create 
 visually wider "columns" within a table.
 
@@ -103,7 +102,7 @@ visually wider "columns" within a table.
 
 
 The `hAlign` attribute governs the horizontal alignment of 
-content within the ` <cell>{:dn}`. The default horizontal alignment is `left`.
+content within the `<cell>{:dn}`. The default horizontal alignment is `left`.
 
 
 
@@ -131,7 +130,7 @@ content within the ` <cell>{:dn}`. The default horizontal alignment is `left`.
 
 
 
-The `bottom` attribute specifies a bounding line at the bottom of the ` <cell>{:dn}`.
+The `bottom` attribute specifies a bounding line at the bottom of the `<cell>{:dn}`.
 
 
 
@@ -159,7 +158,7 @@ The `bottom` attribute specifies a bounding line at the bottom of the ` <cell>{:
 
 
 
-The `right` attribute specifies a bounding line at the right edge of the ` <cell>{:dn}`.
+The `right` attribute specifies a bounding line at the right edge of the `<cell>{:dn}`.
 
 
 
@@ -185,7 +184,7 @@ The `right` attribute specifies a bounding line at the right edge of the ` <cell
 The `prefill` attribute provides another way to specify content within the cell.
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 
@@ -208,7 +207,7 @@ The `prefill` attribute provides another way to specify content within the cell.
 
 
 
-All of the attributes available to the ` <cell>{:dn}` component can also be accessed as properties.
+All of the attributes available to the `<cell>{:dn}` component can also be accessed as properties.
 
 
 
@@ -237,7 +236,7 @@ All of the attributes available to the ` <cell>{:dn}` component can also be acce
 
 
 The `inHeader` property returns the boolean value corresponding to 
-whether the ` <cell>{:dn}` occurs within a header ` <row>{:dn}`.
+whether the `<cell>{:dn}` occurs within a header `<row>{:dn}`.
 
 
 
@@ -260,7 +259,7 @@ whether the ` <cell>{:dn}` occurs within a header ` <row>{:dn}`.
 
 
 
-The `text` property returns the text value stored within the ` <cell>{:dn}`.
+The `text` property returns the text value stored within the `<cell>{:dn}`.
 
 
 
@@ -283,7 +282,7 @@ The `text` property returns the text value stored within the ` <cell>{:dn}`.
 
 
 
-The `math` property returns the math value stored within the ` <cell>{:dn}`.
+The `math` property returns the math value stored within the `<cell>{:dn}`.
 
 
 
@@ -306,5 +305,5 @@ The `math` property returns the math value stored within the ` <cell>{:dn}`.
 
 
 
-The `number` property returns the numerical value stored within the ` <cell>{:dn}`.
+The `number` property returns the numerical value stored within the `<cell>{:dn}`.
 

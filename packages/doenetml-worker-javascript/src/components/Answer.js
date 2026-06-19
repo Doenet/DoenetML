@@ -23,7 +23,7 @@ export default class Answer extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "An assessable answer that compares student input against awards.",
+            "Assigns credit to student responses based on matches or logical rules",
         docsSlug: "answer1",
     };
     // Include children that can be added due to sugar
@@ -57,6 +57,7 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether to render the answer's input inline rather than as a block.",
         };
@@ -65,6 +66,7 @@ export default class Answer extends InlineComponent {
             createStateVariable: "symbolicEquality",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };
@@ -314,14 +316,18 @@ export default class Answer extends InlineComponent {
                 "Whether the answer's submitted-response panel is expanded by default.",
         };
 
+        // TODO: deprecate this attribute. It is currently unused — the
+        // renderer reads an accessible description from a `<description>`
+        // child, not from this attribute. Once a deprecation mechanism
+        // exists, emit an authoring warning when it is used.
         attributes.description = {
             createComponentOfType: "text",
             createStateVariable: "description",
             defaultValue: "",
             public: true,
             forRenderer: true,
-            description:
-                "An accessible description of what this answer asks for.",
+            excludeFromSchema: true,
+            description: "Currently unused",
         };
 
         attributes.showPreview = {
@@ -2015,34 +2021,8 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "inputChildren",
                 },
-                sectionAncestor: {
+                ancestorSuppressingAnswerSubmitButtons: {
                     dependencyType: "ancestor",
-                    componentType: "_sectioningComponent",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                pAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "p",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                liAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "li",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                divAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "div",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                spanAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "span",
                     variableNames: ["suppressAnswerSubmitButtons"],
                 },
             }),
@@ -2052,18 +2032,8 @@ export default class Answer extends InlineComponent {
                 let delegateCheckWork = false;
 
                 if (
-                    dependencyValues.documentAncestor.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.sectionAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.pAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.liAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.divAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.spanAncestor?.stateValues
-                        .suppressAnswerSubmitButtons
+                    dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                        ?.stateValues.suppressAnswerSubmitButtons
                 ) {
                     delegateCheckWorkToAncestor = delegateCheckWork = true;
                 } else if (dependencyValues.inputChildren.length === 1) {

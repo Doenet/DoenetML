@@ -12,7 +12,7 @@ export class Paginator extends BlockComponent {
     static componentType = "paginator";
 
     static componentDocs = {
-        summary: "A multi-page container with navigation controls.",
+        summary: "Defines a paginated section of content",
     };
     static rendererType = "containerBlock";
     static renderChildren = true;
@@ -242,7 +242,7 @@ export class PaginatorControls extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "Previous/next page controls referencing a paginator elsewhere in the document.",
+            "Previous/next page controls referencing a paginator elsewhere in the document",
     };
 
     static createAttributesObject() {

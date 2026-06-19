@@ -1,0 +1,102 @@
+import me from "math-expressions";
+import type { CurveFunctionDefinition } from "./types";
+
+/** A parsed formula with its variable and expression in string form. */
+export interface ParsedFormulaDefinition {
+    variableName: string;
+    expression: string;
+}
+
+/**
+ * Convert a math-expressions AST to a string representation.
+ * Safely handles invalid ASTs by catching exceptions.
+ *
+ * @param ast - The abstract syntax tree from math-expressions
+ * @returns String representation of the expression, or null if conversion fails
+ */
+export function astToExpressionString(ast: unknown): string | null {
+    try {
+        return me
+            .fromAst(ast as any)
+            .toString({ explicitMultiplicationSymbols: true });
+    } catch (_e) {
+        return null;
+    }
+}
+
+function escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Rewrite the variable symbol used in an expression string.
+ *
+ * Used when the variable name produced by `astToExpressionString` differs from
+ * the variable name PreFigure expects in the emitted function signature
+ * (for example, parametric x/y components authored with different variables,
+ * or a child function authored in `u` when the surrounding spec requires `x`).
+ */
+export function rewriteExpressionVariable({
+    expression,
+    fromVariable,
+    toVariable,
+}: {
+    expression: string;
+    fromVariable: string;
+    toVariable: string;
+}): string {
+    if (!fromVariable || fromVariable === toVariable) {
+        return expression;
+    }
+
+    const escaped = escapeRegex(fromVariable);
+    const symbolPattern = new RegExp(
+        `(^|[^A-Za-z0-9_])(${escaped})(?=$|[^A-Za-z0-9_])`,
+        "g",
+    );
+
+    return expression.replace(symbolPattern, `$1${toVariable}`);
+}
+
+/**
+ * Parse a simple formula-based curve function definition.
+ * Extracts the expression and variable name; returns null if the value is
+ * not an object, not a formula-typed definition, or its formula AST fails
+ * to convert to a string.
+ *
+ * Accepts `unknown` so callers can pass raw entries from `fDefinitions`
+ * without an intermediate typecast helper.
+ *
+ * @param definition - Candidate definition; non-object inputs return null
+ * @param fallbackVariableName - Variable name to use when the definition has
+ *   no usable variables[0] AST (e.g., "x" for function curves, "t" for parametric)
+ * @returns Parsed definition with variable and expression, or null
+ */
+export function parseFormulaDefinition(
+    definition: unknown,
+    fallbackVariableName: string,
+): ParsedFormulaDefinition | null {
+    if (!definition || typeof definition !== "object") {
+        return null;
+    }
+
+    const def = definition as CurveFunctionDefinition;
+    if (def.functionType !== "formula") {
+        return null;
+    }
+
+    const expression = astToExpressionString(def.formula);
+    if (!expression) {
+        return null;
+    }
+
+    const variables = Array.isArray(def.variables) ? def.variables : [];
+    const variableExpression = variables.length
+        ? astToExpressionString(variables[0])
+        : null;
+
+    return {
+        variableName: variableExpression || fallbackVariableName,
+        expression,
+    };
+}

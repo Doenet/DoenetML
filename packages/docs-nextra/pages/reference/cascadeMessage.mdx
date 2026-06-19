@@ -1,0 +1,113 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<cascadeMessage>{:dn}`
+
+<ComponentDisplay name='cascadeMessage'/>
+
+`<cascadeMessage>{:dn}` is a continuation placeholder shown inside a
+[`<cascade>{:dn}`](cascade) when the next entry is still hidden. It takes the
+place of the not-yet-revealed entry until that entry becomes visible, at which
+point the message disappears.
+
+Use `<cascadeMessage>{:dn}` to give the learner a prompt — "Keep going",
+"Solve the previous step to continue", etc. — without revealing the content
+behind it.
+
+
+<AttrPropDisplay name='cascadeMessage'/>
+
+
+## Examples
+
+### Example: Between siblings of a `<cascade>{:dn}`
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough">
+  <title>Step-by-step</title>
+
+  <section boxed>
+    <title>Step 1</title>
+    <p><answer><label>What is <m>10 \div 2</m>?</label>5</answer></p>
+  </section>
+
+  <cascadeMessage>
+    <em>Solve the previous step to continue.</em>
+  </cascadeMessage>
+
+  <section boxed>
+    <title>Step 2</title>
+    <p><answer><label>What is <m>10 \times 2</m>?</label>20</answer></p>
+  </section>
+</cascade>
+```
+
+
+While the first step is unanswered, the `<cascadeMessage>{:dn}` appears in
+place of the still-hidden second step. Once the first step is answered
+correctly, the message disappears and Step 2 is revealed.
+
+
+
+---
+
+### Example: Inside sections of a `<cascade>{:dn}`
+
+
+```doenet-editor-horiz
+<cascade name="quiz">
+  <title>A quiz with per-section prompts</title>
+
+  <section boxed>
+    <title>Part 1</title>
+    <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
+    <p><answer><label>What is <m>1 - 1</m>?</label>0</answer></p>
+  </section>
+
+  <section boxed>
+    <title>Part 2</title>
+    <p><answer><label>What is <m>3 + 4</m>?</label>7</answer></p>
+    <cascadeMessage>
+      <em>Finish Part 1 before continuing.</em>
+    </cascadeMessage>
+  </section>
+
+  <section boxed>
+    <title>Part 3</title>
+    <cascadeMessage>
+      <em>Finish Part 2 to unlock Part 3.</em>
+    </cascadeMessage>
+    <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
+  </section>
+</cascade>
+```
+
+
+A `<cascadeMessage>{:dn}` placed inside a still-hidden section serves as the
+prompt shown in place of that section's body. The cascade chooses the first
+`<cascadeMessage>{:dn}` that follows the last completed child, so authoring
+one per section lets each section carry its own prompt.
+
+
+
+---
+
+### Example: Single continuation tail
+
+
+```doenet-editor-horiz
+<cascade name="walkthrough">
+  <p><answer><label>What is <m>2 + 3</m>?</label>5</answer></p>
+  <p><answer><label>What is <m>2 \times 3</m>?</label>6</answer></p>
+  <p><answer><label>What is <m>2^3</m>?</label>8</answer></p>
+  <cascadeMessage><em>Continued...</em></cascadeMessage>
+</cascade>
+```
+
+
+A single `<cascadeMessage>{:dn}` placed at the end of the cascade serves as a
+generic "more to come" prompt that appears between any pair of still-hidden
+siblings, and disappears once every preceding child has been completed.

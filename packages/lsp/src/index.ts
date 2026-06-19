@@ -21,6 +21,7 @@ import { addDocumentFormattingSupport } from "./features/formatting";
 import { addValidationSupport } from "./features/validate";
 import { addDocumentCompletionSupport } from "./features/completions";
 import { addDocumentHoverSupport } from "./features/hover";
+import { addContextHelpSupport } from "./features/context-help";
 
 try {
     // @ts-ignore
@@ -55,6 +56,13 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument?.publishDiagnostics?.relatedInformation ||
         false;
 
+    const initOptionsWorkerUrl = (
+        params.initializationOptions as { doenetWorkerUrl?: unknown } | null
+    )?.doenetWorkerUrl;
+    if (typeof initOptionsWorkerUrl === "string" && initOptionsWorkerUrl) {
+        config.doenetWorkerUrl = initOptionsWorkerUrl;
+    }
+
     const result: InitializeResult = {
         capabilities: {
             textDocumentSync: {
@@ -63,7 +71,7 @@ connection.onInitialize((params: InitializeParams) => {
             },
             // Tell the client that this server supports code completion.
             completionProvider: {
-                triggerCharacters: ["<", ".", "$", "/", '"', "'"],
+                triggerCharacters: ["<", ".", "$", "/", '"', "'", "="],
                 resolveProvider: true,
             },
             documentFormattingProvider: true,
@@ -116,6 +124,7 @@ addDocumentSymbolsSupport(connection, documentInfo);
 addDocumentFormattingSupport(connection, documentInfo);
 addDocumentCompletionSupport(connection, documentInfo);
 addDocumentHoverSupport(connection, documentInfo);
+addContextHelpSupport(connection, documentInfo);
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events

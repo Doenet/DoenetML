@@ -17,3 +17,5 @@ extension/build
 generated-assets
 multi-reporter-config.json
 jsxgraph-distrib
+packages/doenetml-print/pretext_core
+packages/doenetml-print/python/pretext_wasm/core

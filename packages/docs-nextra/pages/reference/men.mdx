@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <men>{:dn}`
+# `<men>{:dn}`
 
-The ` <men>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types) 
-component that renders auto-numbered, mathematical display text centered within the page.  The ` <men>{:dn}` 
+<ComponentDisplay name='men'/>
+
+The `<men>{:dn}` is a [Display Math](../concepts/essentialConcepts#component-types) 
+component that renders auto-numbered, mathematical display text centered within the page.  The `<men>{:dn}` 
 component accepts DoenetML mathematical content as well as LaTeX.
 
 
-## Attributes and Properties 
- <AttrDisplay name='men'/> 
- <PropDisplay name='men'/>
+<AttrPropDisplay name='men'/>
 
----
+## Examples
 
-### Example: ` <men>{:dn}` with Latex input
+### Example: `<men>{:dn}` with Latex input
 
 
 ```doenet-editor-horiz
@@ -32,14 +32,14 @@ with constant acceleration are:
 
 
 
-The sample code above illustrates the use of Latex within an ` <men>{:dn}` component 
+The sample code above illustrates the use of Latex within an `<men>{:dn}` component 
 to render centered, numbered mathematical display text.
 
 
 
 ---
 
-### Example: ` <men>{:dn}` with nested ` <math>{:dn}` content
+### Example: `<men>{:dn}` with nested `<math>{:dn}` content
 
 
 ```doenet-editor-horiz
@@ -55,15 +55,15 @@ What is <m>x</m>?
 
 
 
-In the sample code above, the ` <men>{:dn}` component is used to render centered, 
+In the sample code above, the `<men>{:dn}` component is used to render centered, 
 numbered mathematical content within a paragraph. In this case, 
-content inside a ` <math>{:dn}` component is embedded into the Latex expressions.
+content inside a `<math>{:dn}` component is embedded into the Latex expressions.
 
 
 
 ---
 
-### Example: ` <men>{:dn}` with named mathematical content
+### Example: `<men>{:dn}` with named mathematical content
 
 
 ```doenet-editor-horiz
@@ -84,14 +84,14 @@ content inside a ` <math>{:dn}` component is embedded into the Latex expressions
 <men>$f1 = $$f1($angle1)</men>
 <men>$f2 = $$f2($angle1)</men>
 <men>$f3 = $$f3($angle1)</men>
-What is <m>x</m>? <answer>($angle1)</answer>
+<answer><label>What is <m>x</m>?</label>($angle1)</answer>
 </p>
 ```
 
 
 
-In the sample code above, the named mathematical ` <function>{:dn}` components 
-are defined in a ` <setup>{:dn}` block and referenced within the ` <men>{:dn}` 
+In the sample code above, the named mathematical `<function>{:dn}` components 
+are defined in a `<setup>{:dn}` block and referenced within the `<men>{:dn}` 
 component. This function is then evalutated at the 
-angle defined as a ` <number>{:dn}` named `angle1` with `$$f($angle1)`. 
+angle defined as a `<number>{:dn}` named `angle1` with `$$f($angle1)`. 
 

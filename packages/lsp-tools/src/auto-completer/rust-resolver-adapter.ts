@@ -1,5 +1,7 @@
 import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
+import { isRepeatLikeElement } from "./repeat-elements";
+import { hasImplicitSingleIndex } from "./select-family";
 import type {
     RefMemberContainerResolution,
     ResolveRefMemberContainer,
@@ -8,10 +10,56 @@ import type {
 
 /**
  * Wrapper elements whose children should be treated as direct children of
- * the composite for autocomplete purposes.  At runtime, sugar inserts these
- * wrappers and then strips them during replacement expansion.
+ * the composite for ref-resolution purposes.  At runtime, sugar inserts
+ * these wrappers and then strips them during replacement expansion.
+ *
+ * Exported so the help-side descendant walk in `auto-completer/index.ts`
+ * mirrors the resolver's wrapper handling from a single source of truth.
  */
-const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+export const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+
+/**
+ * Return the literal `name` attribute value for an element, if present.
+ *
+ * Exported so callers in other modules (notably the help-side descendant
+ * walk in `auto-completer/index.ts`) reuse the same single-text-child
+ * extraction this file relies on, instead of re-inlining it.
+ */
+export function getElementNameAttributeValue(el: DastElement): string | null {
+    const nameAttr = el.attributes?.name;
+    if (
+        nameAttr &&
+        nameAttr.children?.length === 1 &&
+        nameAttr.children[0].type === "text"
+    ) {
+        return nameAttr.children[0].value;
+    }
+    return null;
+}
+
+/**
+ * Map a thrown `resolvePath` error to a bare-reference classification.
+ *
+ * The Rust core throws the bare variant name as a string (`"NoReferent"` /
+ * `"NonUniqueReferent"`); across a worker boundary it may instead arrive
+ * wrapped in an object, so check the stringified message/value defensively.
+ * Anything unrecognized stays `"indeterminate"` so callers never over-claim
+ * a definite verdict the resolver didn't actually give.
+ */
+export function classifyResolutionError(
+    e: unknown,
+): "notFound" | "multiple" | "indeterminate" {
+    const candidates = [
+        typeof e === "string" ? e : undefined,
+        (e as { message?: unknown } | null | undefined)?.message,
+        (e as { value?: unknown } | null | undefined)?.value,
+        (e as { name?: unknown } | null | undefined)?.name,
+    ].filter((s): s is string => typeof s === "string");
+    const haystack = (candidates.join(" ") || String(e ?? "")).toString();
+    if (haystack.includes("NonUniqueReferent")) return "multiple";
+    if (haystack.includes("NoReferent")) return "notFound";
+    return "indeterminate";
+}
 
 /**
  * Walk all descendants of `root`, returning an array of `{ name, element }`
@@ -23,17 +71,9 @@ function collectAllNamedDescendants(
     const result: Array<{ name: string; element: DastElement }> = [];
     function walk(node: DastNodes) {
         if (node.type === "element") {
-            const nameAttr = node.attributes?.name;
-            if (nameAttr) {
-                // name attribute value is stored in children[0].value
-                const nameVal =
-                    nameAttr.children?.length === 1 &&
-                    nameAttr.children[0].type === "text"
-                        ? nameAttr.children[0].value
-                        : undefined;
-                if (nameVal) {
-                    result.push({ name: nameVal, element: node });
-                }
+            const nameVal = getElementNameAttributeValue(node);
+            if (nameVal) {
+                result.push({ name: nameVal, element: node });
             }
             for (const child of node.children) {
                 walk(child as DastNodes);
@@ -86,13 +126,7 @@ function collectNamesFromCompositeChildren(
         if (child.type !== "element") continue;
         if (COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
 
-        const nameAttr = child.attributes?.name;
-        const nameVal =
-            nameAttr &&
-            nameAttr.children?.length === 1 &&
-            nameAttr.children[0].type === "text"
-                ? nameAttr.children[0].value
-                : undefined;
+        const nameVal = getElementNameAttributeValue(child);
         if (nameVal) {
             directChildNameCounts.set(
                 nameVal,
@@ -114,13 +148,7 @@ function collectNamesFromCompositeChildren(
             // Direct child of composite (not a wrapper): include its own name
             // only when unique among direct siblings, and always collect
             // unique descendant names from within the child subtree.
-            const nameAttr = child.attributes?.name;
-            const nameVal =
-                nameAttr &&
-                nameAttr.children?.length === 1 &&
-                nameAttr.children[0].type === "text"
-                    ? nameAttr.children[0].value
-                    : undefined;
+            const nameVal = getElementNameAttributeValue(child);
             if (nameVal && directChildNameCounts.get(nameVal) === 1) {
                 result.add(nameVal);
             }
@@ -139,7 +167,7 @@ function collectNamesFromCompositeChildren(
  * repeat or repeatForSequence element. Returns an empty array for other elements.
  */
 function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
-    if (el.name !== "repeat" && el.name !== "repeatForSequence") {
+    if (!isRepeatLikeElement(el)) {
         return [];
     }
     const names: string[] = [];
@@ -156,52 +184,69 @@ function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
     return names;
 }
 
-/** Return the literal `name` attribute value for an element, if present. */
-function getElementNameAttributeValue(el: DastElement): string | null {
-    const nameAttr = el.attributes?.name;
-    if (
-        nameAttr &&
-        nameAttr.children?.length === 1 &&
-        nameAttr.children[0].type === "text"
-    ) {
-        return nameAttr.children[0].value;
-    }
-    return null;
-}
-
 /**
- * Minimal interface matching the subset of PublicDoenetMLCore methods needed
- * for path resolution. Consumers provide an initialized WASM-backed instance;
- * lsp-tools does not depend on the WASM package directly.
+ * The subset of the DoenetML core API that {@link RustResolverAdapter} calls
+ * to resolve paths.
+ *
+ * The real core lives in `@doenet/doenetml-worker`; in the language server it
+ * runs in a sub-worker reached over a Comlink proxy.  This interface is the
+ * structural contract that proxy satisfies — declaring it here lets
+ * `@doenet/lsp-tools` call the core's real method names without taking a
+ * build dependency on the (heavy) worker package.  Every method is async
+ * because the Comlink proxy resolves results over `postMessage`.
  */
-export interface RustResolverCore {
-    set_source(dast: unknown, source: string): void;
+export interface ResolverCore {
+    /** Load DoenetML `source` and its parsed `dast` into the core. */
+    setSource(args: { source: string; dast: unknown }): Promise<void>;
     /**
-     * Set runtime flags (as a JSON string). Must be called at least once
-     * before `return_dast()`.  An empty object `"{}"` is sufficient for
-     * pure path-resolution use-cases.
+     * Set runtime flags.  Must be called before `returnDast()`; an empty
+     * flags object is sufficient for pure path-resolution use.
      */
-    set_flags(flags: string): void;
+    setFlags(args: { flags: Record<string, unknown> }): Promise<void>;
     /**
-     * Triggers Rust core initialization and returns the flat DAST.
-     * The adapter uses the returned elements to build position-based index mappings.
+     * Trigger core initialization and return the flat (post-expansion)
+     * DAST.  Used to initialize the rust core.  When `returnNormalizedDastRoot`
+     * is also provided, the adapter prefers the normalized DAST for its
+     * index mappings (it contains every source element with the resolver-
+     * known id, including reference-making composites like
+     * `<module copy="$x">` that may be replaced with error entries in
+     * the expanded flat DAST).
      */
-    return_dast(): {
+    returnDast(): Promise<{
         elements: Array<{
-            data: { id: number };
+            data?: { id?: number };
             position?: { start: { offset?: number } };
         }>;
-    };
-    resolve_path(
-        path: { path: Array<FlatPathPartForResolver> },
-        origin: number,
-        skip_parent_search: boolean,
-    ): {
+    }>;
+    /**
+     * Return the pre-expansion normalized DAST: every source element
+     * with its resolver-known id and source position, plus error nodes.
+     * Optional for backward compatibility with pure-JS test mocks that
+     * only implement `returnDast`; when present, the adapter uses this
+     * as the authoritative source for its `_dastElementToRustIndex`
+     * mapping so that reference-making elements like
+     * `<module copy="$x">` are mapped even when their expansion errors
+     * (which would replace them with id-less error entries in the
+     * post-expansion flat DAST).
+     */
+    returnNormalizedDastRoot?(): Promise<{
+        nodes: Array<{
+            idx: number;
+            name?: string;
+            position?: { start?: { offset?: number } };
+        }>;
+    }>;
+    /** Resolve `path` starting from `origin`, following core scoping rules. */
+    resolvePath(args: {
+        path: { path: Array<FlatPathPartForResolver> };
+        origin: number;
+        skipParentSearch: boolean;
+    }): Promise<{
         nodeIdx: number;
         nodesInResolvedPath: number[];
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
-    };
+    }>;
 }
 
 /** Matches the Rust WASM FlatPathPart shape expected by resolve_path. */
@@ -212,8 +257,8 @@ interface FlatPathPartForResolver {
 }
 
 export interface RustResolverAdapterOptions {
-    /** An initialized PublicDoenetMLCore (or compatible) instance. */
-    core?: RustResolverCore;
+    /** The DoenetML core used for resolution (typically the Comlink-proxied worker core). */
+    core?: ResolverCore;
     /**
      * Optional set of component types that take an index. When provided, the
      * resolver suppresses descendant names for those elements unless the user
@@ -224,16 +269,16 @@ export interface RustResolverAdapterOptions {
 }
 
 /**
- * Adapter that bridges a Rust WASM resolver (PublicDoenetMLCore.resolve_path)
+ * Adapter that bridges the DoenetML core resolver ({@link ResolverCore})
  * with the AutoCompleter's pluggable resolver seam.
  *
  * When constructed without a `core`, the adapter is disabled and its resolver
- * returns `null`. When a core is supplied, source is synced to the Rust side,
+ * returns `null`. When a core is supplied, source is synced to the core,
  * position-based index mappings are built, and the resolver calls
- * resolve_path() for each completion request.
+ * `resolvePath()` for each completion request.
  */
 export class RustResolverAdapter {
-    readonly _core: RustResolverCore | null = null;
+    readonly _core: ResolverCore | null = null;
     _sourceObj: DoenetSourceObject;
     _enabled = false;
     readonly _takesIndexComponentTypes: ReadonlySet<string> | null = null;
@@ -245,6 +290,24 @@ export class RustResolverAdapter {
     _sourceRevision = 0;
     readonly _visibleDescendantNamesCache: Map<string, string[]> = new Map();
 
+    /**
+     * A promise that resolves once the most recently requested source sync
+     * has finished.  `init` and `updateSource` each chain another
+     * `_syncSource` onto it, and the query methods wait on it before reading
+     * resolver state.  This serializes syncs and keeps a completion request
+     * from reading a half-updated rust core or stale index mappings while an
+     * `updateSource` is still running.
+     */
+    _pendingSync: Promise<void> = Promise.resolve();
+
+    /**
+     * The DoenetML source string currently loaded into the rust core (`null`
+     * before the first sync).  `_syncSource` compares the latest source
+     * against this and returns early when they are equal, so a burst of
+     * keystrokes that each queue a sync only pays the worker round-trips once.
+     */
+    _coreSource: string | null = null;
+
     constructor(
         sourceObj: DoenetSourceObject,
         options?: RustResolverAdapterOptions,
@@ -255,8 +318,17 @@ export class RustResolverAdapter {
             : null;
         if (options?.core) {
             this._core = options.core;
-            this._syncSource();
         }
+    }
+
+    /**
+     * Queue an initial sync of the current source to the rust core.  Returns
+     * the tail of the sync chain so callers can await readiness, but awaiting
+     * is no longer required for correctness — query methods await internally.
+     */
+    init(): Promise<void> {
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 
     _componentTakesIndex(componentType: string): boolean {
@@ -265,8 +337,18 @@ export class RustResolverAdapter {
 
     /**
      * Sync the DAST/source to the Rust core and rebuild index mappings.
+     *
+     * Coalesces with the previous sync: if the source string is identical
+     * to the one the last `_syncSource` saw, returns immediately rather than
+     * paying three worker round-trips.  Rapid typing chains many enqueues
+     * but only the first one to dequeue after each real source change pays
+     * the cost.
      */
-    _syncSource(): void {
+    async _syncSource(): Promise<void> {
+        if (this._sourceObj.source === this._coreSource) {
+            return;
+        }
+        this._coreSource = this._sourceObj.source;
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
@@ -289,11 +371,26 @@ export class RustResolverAdapter {
             return;
         }
         try {
-            this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
-            // Set empty flags object for path-resolution-only use case.
-            this._core.set_flags("{}");
-            const flatDast = this._core.return_dast();
-            this._buildMappings(flatDast);
+            await this._core.setSource({
+                source: this._sourceObj.source,
+                dast: this._sourceObj.dast,
+            });
+            // Empty flags are sufficient for path-resolution-only use.
+            await this._core.setFlags({ flags: {} });
+            // `returnDast` triggers core initialization (required before
+            // `resolvePath` can run).  Its post-expansion output is fine
+            // for elements that survive expansion, but replaces composites
+            // whose extension errored with id-less error entries — making
+            // them invisible to position-based mapping.  When the core
+            // exposes the pre-expansion normalized DAST, prefer that: it
+            // includes EVERY source element with its resolver-known id,
+            // so reference-making elements like `<module copy="$x">` are
+            // mapped even when their expansion errors.
+            const flatDast = await this._core.returnDast();
+            const normalizedNodes = this._core.returnNormalizedDastRoot
+                ? (await this._core.returnNormalizedDastRoot()).nodes
+                : null;
+            this._buildMappings(flatDast, normalizedNodes);
             this._enabled = true;
         } catch (e) {
             console.warn("RustResolverAdapter: failed to sync source:", e);
@@ -318,15 +415,29 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Build bidirectional mappings between Rust flat indices and JS DAST
-     * elements by matching on source position (start offset).
+     * Build bidirectional mappings between Rust indices and JS DAST elements
+     * by matching on source position (start offset).
+     *
+     * When `normalizedNodes` is provided (preferred), uses the pre-expansion
+     * source-level DAST so reference-making elements like
+     * `<module copy="$x">` are mapped even when their post-expansion entry
+     * is an id-less error.  Otherwise falls back to the flat (post-expansion)
+     * DAST — sufficient for pure-JS test mocks and for elements that survive
+     * expansion.
      */
-    _buildMappings(flatDast: {
-        elements: Array<{
-            data: { id: number };
-            position?: { start: { offset?: number } };
-        }>;
-    }): void {
+    _buildMappings(
+        flatDast: {
+            elements: Array<{
+                data?: { id?: number };
+                position?: { start: { offset?: number } };
+            }>;
+        },
+        normalizedNodes: Array<{
+            idx: number;
+            name?: string;
+            position?: { start?: { offset?: number } };
+        }> | null,
+    ): void {
         this._rustIndexToDastElement.clear();
         this._dastElementToRustIndex.clear();
 
@@ -347,7 +458,25 @@ export class RustResolverAdapter {
             collectElements(child as DastNodes);
         }
 
-        // Match flat DAST elements to JS DAST elements by start offset.
+        if (normalizedNodes) {
+            // Normalized DAST: every source element has an `idx` and a
+            // position.  Error nodes (no `name`) are skipped — their idx
+            // wouldn't be a useful resolver origin anyway.
+            for (const node of normalizedNodes) {
+                if (node.name == null) continue;
+                const startOffset = node.position?.start?.offset;
+                if (startOffset == null) continue;
+                const dastElm = dastByStartOffset.get(startOffset);
+                if (!dastElm) continue;
+                this._rustIndexToDastElement.set(node.idx, dastElm);
+                this._dastElementToRustIndex.set(dastElm, node.idx);
+            }
+            return;
+        }
+
+        // Fallback: match flat (post-expansion) DAST elements to JS DAST
+        // elements by start offset.  Used by pure-JS test mocks that
+        // don't implement `returnNormalizedDastRoot`.
         for (const flatElm of flatDast.elements) {
             const startOffset = flatElm.position?.start?.offset;
             if (startOffset == null) continue;
@@ -368,11 +497,11 @@ export class RustResolverAdapter {
      * @param pathPartHasIndex — Per-path-part index flags aligned with `pathParts`.
      * @returns The resolved node and visible descendant names, or null if resolution fails.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
         return this._resolveRefMemberContainer({
             offset,
             pathParts,
@@ -390,9 +519,95 @@ export class RustResolverAdapter {
             this._resolveRefMemberContainer(args);
     }
 
-    _resolveRefMemberContainer(
+    /**
+     * Resolve a bare-name path (`pathParts = names`, each segment a bare
+     * name with no bracket index) starting from the Rust index of
+     * `originDastElement`, and return the resolved JS DAST element.
+     * Returns `null` on any resolution failure (adapter disabled, origin
+     * not in the index map, core resolution returned unresolved parts,
+     * resolved index not mapped back to a JS DAST element, empty `names`).
+     *
+     * "Bare path" means every segment is a plain identifier — e.g.
+     * `["s", "m"]` for `$s.m`.  Bracket-bearing segments are the caller's
+     * responsibility to filter out before calling; the shim itself doesn't
+     * thread index values through (the runtime's takesIndex semantics under
+     * a sectioning parent are subtle enough that "exact-match the simple
+     * textual cases" stays the right rule — same posture PR #1185 took for
+     * `numToSelect`).
+     *
+     * Thin specialization of `_core.resolvePath` reusing the same
+     * `_rustIndexToDastElement` mapping used by member-completion resolution
+     * at lines 477-480.  Intentionally does not run any of the
+     * member-completion-specific work (descendant probing, takesIndex gating,
+     * composite-wrapper walk) — this is the minimal "give me the node the
+     * path points at" primitive consumed by per-instance `<module>` attribute
+     * augmentation in `module-attributes.ts` (issue #1154).
+     */
+    async resolveBarePathAtOrigin(
+        originDastElement: DastElement,
+        names: string[],
+    ): Promise<DastElement | null> {
+        // Same sync-await contract as member-container resolution: without
+        // this, the JS index mappings and the rust-side source can diverge
+        // from the origin element the caller passed in (e.g. while
+        // updateSource is still draining a burst of edits).
+        await this._pendingSync;
+        if (!this._enabled || !this._core) return null;
+        if (names.length === 0 || names.some((n) => !n)) return null;
+
+        // Direct map lookup: the resolver expects the reference-making
+        // element itself as origin, so it can search from that element's
+        // scope outward (siblings, then parent's siblings, …).  Thanks
+        // to the normalized-DAST-backed mapping, even composites whose
+        // expansion errors get mapped here.  Root fallback covers edge
+        // cases (malformed source, pure-JS test mocks without a
+        // normalized DAST).
+        const originIndex =
+            this._dastElementToRustIndex.get(originDastElement) ??
+            this._getRootOriginIndex();
+        if (originIndex == null) return null;
+
+        const flatPath: FlatPathPartForResolver[] = names.map((name) => ({
+            type: "flatPathPart" as const,
+            name,
+            index: [],
+        }));
+
+        try {
+            const resolution = await this._core.resolvePath({
+                path: { path: flatPath },
+                origin: originIndex,
+                skipParentSearch: false,
+            });
+            // A bare path has to resolve fully; any leftover parts mean
+            // the path was wrong (e.g. resolved to a takesIndex container
+            // without an index, or named a descendant the parent doesn't
+            // expose).  Caller treats partial resolutions as "no target".
+            if (
+                resolution.unresolvedPath &&
+                resolution.unresolvedPath.length > 0
+            ) {
+                return null;
+            }
+            return this._rustIndexToDastElement.get(resolution.nodeIdx) ?? null;
+        } catch {
+            // The Rust core throws `NoReferent` (and similar) for
+            // unresolvable bare references (e.g. `<module copy="$missing"/>`).
+            // That's the expected "no target" signal for the caller, not an
+            // adapter-level error — null propagates the failure to
+            // `getEffectiveModuleAttributes`, which treats it as "no
+            // per-instance augmentation applies" (canonical schema decides).
+            return null;
+        }
+    }
+
+    async _resolveRefMemberContainer(
         args: ResolveRefMemberContainerArgs,
-    ): RefMemberContainerResolution | null {
+    ): Promise<RefMemberContainerResolution | null> {
+        // Wait for the latest source sync to finish before reading state.
+        // Otherwise the JS-side mappings (_rustIndexToDastElement) and the
+        // rust-side source can diverge from the offset the caller passed in.
+        await this._pendingSync;
         if (!this._enabled || !this._core) return null;
 
         const {
@@ -425,11 +640,11 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = this._core.resolve_path(
-                { path: flatPath },
-                originIndex,
-                false,
-            );
+            const resolution = await this._core.resolvePath({
+                path: { path: flatPath },
+                origin: originIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedNode = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
@@ -440,12 +655,18 @@ export class RustResolverAdapter {
                 (p) => p.name,
             );
 
-            // When there are unresolved parts, the path is invalid —
-            // return null so the caller offers no completions.
+            // When there are unresolved parts, the path is invalid for
+            // descendant/property lookup — return `node: null` so the
+            // caller offers no descendant completions / no property help.
+            // Expose `partiallyResolvedNode` so the help layer can still
+            // run an `indexAliases` chase for coordinate chains like
+            // `$vector.head.x` (resolves to `<vector>` with `head`
+            // unresolved as an array state-variable name).
             if (unresolvedPathParts.length > 0) {
                 return {
                     node: null,
                     unresolvedPathParts,
+                    partiallyResolvedNode: resolvedNode,
                     visibleDescendantNames: [],
                 };
             }
@@ -455,6 +676,11 @@ export class RustResolverAdapter {
             // completions for that path. Indexed traversal must use
             // $rep[n].member.  Separately validate that non-takesIndex segments
             // do not have indices (false positives worse than false negatives).
+            //
+            // Select-family containers with a literal `numToSelect="1"` (or no
+            // attribute) carry an implicit `[1]` per the strict rule in issue
+            // #1181, so they pass the takesIndex-without-index check as if
+            // the bracket were authored.
             if (resolution.nodesInResolvedPath.length > 1) {
                 // Rust includes the origin in nodesInResolvedPath, but when
                 // the origin is also the first resolved segment it may not be
@@ -476,10 +702,13 @@ export class RustResolverAdapter {
                     );
                     const segmentHasIndex =
                         effectivePathPartHasIndex[pathPartIndex] ?? false;
+                    const segmentHasEffectiveIndex =
+                        segmentHasIndex ||
+                        (pathNode != null && hasImplicitSingleIndex(pathNode));
                     if (
                         pathNode &&
                         this._componentTakesIndex(pathNode.name) &&
-                        !segmentHasIndex
+                        !segmentHasEffectiveIndex
                     ) {
                         return {
                             node: null,
@@ -509,13 +738,20 @@ export class RustResolverAdapter {
             const resolvedPathPartIndex = lookupParts.length - 1;
             const resolvedPartHasIndex =
                 effectivePathPartHasIndex[resolvedPathPartIndex] ?? false;
+            // Strict-rule shorthand from issue #1181: a select-family
+            // container whose count attribute is absent or literal "1"
+            // resolves `$s.t` like `$s[1].t`. Both the takesIndex-block
+            // and the composite-children branches treat that as if the
+            // bracket index were authored.
+            const resolvedPartHasEffectiveIndex =
+                resolvedPartHasIndex || hasImplicitSingleIndex(resolvedNode);
 
             // When the resolved element takes an index, descendants
             // are only accessible via $name[n].member — suppress them
             // unless the user has already provided a bracket index.
             if (
                 this._componentTakesIndex(resolvedNode.name) &&
-                !resolvedPartHasIndex
+                !resolvedPartHasEffectiveIndex
             ) {
                 return {
                     node: resolvedNode,
@@ -544,7 +780,7 @@ export class RustResolverAdapter {
             // (case/else/option) transparently.
             if (
                 resolvedNode.name === "conditionalContent" ||
-                (resolvedPartHasIndex &&
+                (resolvedPartHasEffectiveIndex &&
                     this._componentTakesIndex(resolvedNode.name))
             ) {
                 const names = collectNamesFromCompositeChildren(resolvedNode);
@@ -571,44 +807,48 @@ export class RustResolverAdapter {
                     this._sourceObj.getUniqueDescendantNamesForNode(
                         resolvedNode,
                     );
-                visibleDescendantNames = allNames.filter((name) => {
-                    try {
-                        const probe = this._core!.resolve_path(
-                            {
-                                path: [
-                                    {
-                                        type: "flatPathPart" as const,
-                                        name,
-                                        index: [],
-                                    },
-                                ],
-                            },
-                            resolvedIdx,
-                            true,
-                        );
-                        // A fully-resolved path (no unresolved parts whose
-                        // first segment equals the original name) means the
-                        // name matched a visible descendant.
-                        if (
-                            probe.unresolvedPath &&
-                            probe.unresolvedPath.length > 0
-                        ) {
+                const probeResults = await Promise.all(
+                    allNames.map(async (name) => {
+                        try {
+                            const probe = await this._core!.resolvePath({
+                                path: {
+                                    path: [
+                                        {
+                                            type: "flatPathPart" as const,
+                                            name,
+                                            index: [],
+                                        },
+                                    ],
+                                },
+                                origin: resolvedIdx,
+                                skipParentSearch: true,
+                            });
+                            // A fully-resolved path (no unresolved parts whose
+                            // first segment equals the original name) means the
+                            // name matched a visible descendant.
+                            if (
+                                probe.unresolvedPath &&
+                                probe.unresolvedPath.length > 0
+                            ) {
+                                return false;
+                            }
+                            const probeElement =
+                                this._rustIndexToDastElement.get(probe.nodeIdx);
+                            const probeName = probeElement
+                                ? getElementNameAttributeValue(probeElement)
+                                : null;
+                            if (probeName !== name) {
+                                return false;
+                            }
+                            return true;
+                        } catch {
                             return false;
                         }
-                        const probeElement = this._rustIndexToDastElement.get(
-                            probe.nodeIdx,
-                        );
-                        const probeName = probeElement
-                            ? getElementNameAttributeValue(probeElement)
-                            : null;
-                        if (probeName !== name) {
-                            return false;
-                        }
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                });
+                    }),
+                );
+                visibleDescendantNames = allNames.filter(
+                    (_name, i) => probeResults[i],
+                );
                 this._setCachedVisibleDescendantNames(
                     resolvedIdx,
                     visibleDescendantNames,
@@ -711,7 +951,13 @@ export class RustResolverAdapter {
      * `offset` using the Rust resolver (with full parent search).
      * This respects `ChildrenInvisibleToTheirGrandparents` etc.
      */
-    isNameAddressableFromOffset(offset: number, name: string): boolean {
+    async isNameAddressableFromOffset(
+        offset: number,
+        name: string,
+    ): Promise<boolean> {
+        // Wait for the latest source sync to finish before reading state.
+        // See `_resolveRefMemberContainer` for the rationale.
+        await this._pendingSync;
         if (!this._enabled || !this._core) return false;
 
         // Derived repeat names from valueName/indexName are introduced by
@@ -721,46 +967,12 @@ export class RustResolverAdapter {
         const derivedRepeatNames = this.getDerivedRepeatNames(offset);
         if (derivedRepeatNames.includes(name)) return true;
 
-        // A $name reference typed at `offset` will become a child of the
-        // element whose body contains the cursor.  resolve_path with
-        // skip_parent_search=false searches from the origin's PARENT scope
-        // upward, so to correctly probe the containing element's scope we
-        // must resolve from one of its existing children rather than the
-        // container itself.
-        const containingElement = this._sourceObj.elementAtOffset(offset);
-        let resolveFromIndex: number | null = null;
-
-        if (containingElement) {
-            // Find the first child element that has a Rust index.
-            for (const child of containingElement.children) {
-                if (child.type === "element") {
-                    const ci = this._dastElementToRustIndex.get(child);
-                    if (ci != null) {
-                        resolveFromIndex = ci;
-                        break;
-                    }
-                }
-            }
-            // If the container has no mapped child elements, fall back to the
-            // container itself.  There are no named children to be hidden, so
-            // the parent-scope walk is still correct.
-            if (resolveFromIndex == null) {
-                resolveFromIndex =
-                    this._dastElementToRustIndex.get(containingElement) ?? null;
-            }
-        } else {
-            // Root level — use the first top-level element (a child of the
-            // document root).  resolve_path from it with skip_parent_search=
-            // false searches root scope, which is what a reference at root
-            // level would see.
-            resolveFromIndex = this._getRootOriginIndex();
-        }
-
+        const resolveFromIndex = this._referenceOriginIndex(offset);
         if (resolveFromIndex == null) return false;
 
         try {
-            const resolution = this._core.resolve_path(
-                {
+            const resolution = await this._core.resolvePath({
+                path: {
                     path: [
                         {
                             type: "flatPathPart" as const,
@@ -769,9 +981,9 @@ export class RustResolverAdapter {
                         },
                     ],
                 },
-                resolveFromIndex,
-                false,
-            );
+                origin: resolveFromIndex,
+                skipParentSearch: false,
+            });
 
             const resolvedElement = this._rustIndexToDastElement.get(
                 resolution.nodeIdx,
@@ -795,6 +1007,113 @@ export class RustResolverAdapter {
             return true;
         } catch {
             return false;
+        }
+    }
+
+    /**
+     * Rust index to use as the resolve origin for a reference typed at
+     * `offset`. A `$name` reference becomes a child of the element whose body
+     * contains the cursor, and `resolve_path` with `skipParentSearch=false`
+     * searches from the origin's PARENT scope upward — so we resolve from one
+     * of the container's existing children rather than the container itself,
+     * to correctly probe the container's own scope. At root level, use the
+     * first top-level element. Returns null when nothing maps.
+     */
+    _referenceOriginIndex(offset: number): number | null {
+        const containingElement = this._sourceObj.elementAtOffset(offset);
+        if (!containingElement) {
+            return this._getRootOriginIndex();
+        }
+        for (const child of containingElement.children) {
+            if (child.type === "element") {
+                const ci = this._dastElementToRustIndex.get(child);
+                if (ci != null) return ci;
+            }
+        }
+        // No mapped child elements — fall back to the container itself. It has
+        // no named children to be hidden, so the parent-scope walk is still
+        // correct.
+        return this._dastElementToRustIndex.get(containingElement) ?? null;
+    }
+
+    /**
+     * Classify a reference `$pathParts.join(".")` at `offset` using the Rust
+     * resolver — the runtime's own algorithm, so its verdicts are
+     * authoritative:
+     *   - `"found"`        — the whole path resolves.
+     *   - `"notFound"`     — resolver reports `NoReferent`.
+     *   - `"multiple"`     — resolver reports `NonUniqueReferent`.
+     *   - `"indeterminate"`— resolver unavailable, or an inconclusive case
+     *     (partial path left unresolved, single name resolving to a different
+     *     element or hidden by sugar, or an unrecognized error). Callers must
+     *     not present these as definitive.
+     *
+     * Resolves the FULL path (unlike member-container resolution, which chops
+     * the last segment), with empty bracket indices — matching how
+     * `_resolveRefMemberContainer` builds its flat path. Mirrors
+     * `isNameAddressableFromOffset`'s origin selection so the scope probed
+     * matches what a reference typed at `offset` would actually see.
+     */
+    async classifyReferenceFromOffset(
+        offset: number,
+        pathParts: string[],
+    ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
+        await this._pendingSync;
+        if (!this._enabled || !this._core) return "indeterminate";
+        if (pathParts.length === 0 || pathParts.some((p) => !p)) {
+            return "indeterminate";
+        }
+
+        // A single bare name that's a repeat-introduced binding
+        // (valueName/indexName) always resolves from within the repeat body.
+        if (pathParts.length === 1) {
+            const derivedRepeatNames = this.getDerivedRepeatNames(offset);
+            if (derivedRepeatNames.includes(pathParts[0])) return "found";
+        }
+
+        const resolveFromIndex = this._referenceOriginIndex(offset);
+        if (resolveFromIndex == null) return "indeterminate";
+
+        const flatPath: FlatPathPartForResolver[] = pathParts.map((name) => ({
+            type: "flatPathPart" as const,
+            name,
+            index: [],
+        }));
+
+        try {
+            const resolution = await this._core.resolvePath({
+                path: { path: flatPath },
+                origin: resolveFromIndex,
+                skipParentSearch: false,
+            });
+            // A partly-resolved path (e.g. a coordinate alias chain like
+            // `$vector.head.x`, or a genuinely unreachable tail) is not a
+            // clean verdict — stay non-committal.
+            if (
+                resolution.unresolvedPath &&
+                resolution.unresolvedPath.length > 0
+            ) {
+                return "indeterminate";
+            }
+            // For a bare name, confirm the resolved element actually bears the
+            // name and isn't sugar-hidden before claiming "found".
+            if (pathParts.length === 1) {
+                const resolvedElement = this._rustIndexToDastElement.get(
+                    resolution.nodeIdx,
+                );
+                const resolvedName = resolvedElement
+                    ? getElementNameAttributeValue(resolvedElement)
+                    : null;
+                if (
+                    resolvedName !== pathParts[0] ||
+                    this._isHiddenBySugar(resolution.nodeIdx, offset)
+                ) {
+                    return "indeterminate";
+                }
+            }
+            return "found";
+        } catch (e) {
+            return classifyResolutionError(e);
         }
     }
 
@@ -880,9 +1199,15 @@ export class RustResolverAdapter {
 
     /**
      * Update source and rebuild mappings. Call when the document changes.
+     *
+     * The new sync is appended to the `_pendingSync` chain rather than run
+     * concurrently with a sync that is still running.  Callers may
+     * fire-and-forget the returned promise; the query methods `await
+     * _pendingSync` themselves and so always see a consistent state.
      */
-    updateSource(sourceObj: DoenetSourceObject): void {
+    updateSource(sourceObj: DoenetSourceObject): Promise<void> {
         this._sourceObj = sourceObj;
-        this._syncSource();
+        this._pendingSync = this._pendingSync.then(() => this._syncSource());
+        return this._pendingSync;
     }
 }

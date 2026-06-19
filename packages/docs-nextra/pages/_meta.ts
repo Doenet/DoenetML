@@ -7,16 +7,28 @@ export default {
         title: "Reference",
         type: "page",
     },
-    document_structure: {
-        title: "Document Structure",
+    concepts: {
+        title: "Concepts",
         type: "page",
     },
     tutorials: {
         title: "Tutorials",
         type: "page",
     },
+    guides: {
+        title: "Guides",
+        type: "page",
+    },
     sandbox: {
         title: "Sandbox",
+        type: "page",
+    },
+    community: {
+        title: "Community",
+        type: "page",
+    },
+    developer: {
+        title: "Developer Docs",
         type: "page",
     },
     testExDoenetML: {

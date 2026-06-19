@@ -1,5 +1,8 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
-import { extractConstantSortAttribute } from "../utils/variants";
+import {
+    extractConstantSortAttribute,
+    pushVariantInfo,
+} from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -14,7 +17,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
     static componentDocs = {
-        summary: "Randomly selects prime numbers from a range.",
+        summary:
+            "Randomly selects prime numbers from a range to create document variants",
     };
     static takesIndex = true;
 
@@ -102,7 +106,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -339,7 +343,12 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         return { replacementChanges: [], nComponents };
     }
 
-    static determineNumberOfUniqueVariants({ serializedComponent }) {
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        infoDiagnostics,
+    }) {
+        const info = (message) =>
+            pushVariantInfo(infoDiagnostics, message, serializedComponent);
         let numToSelect = 1,
             withReplacement = false;
 
@@ -355,13 +364,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't constant number.`,
                 );
                 return { success: false };
@@ -387,13 +396,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
@@ -411,14 +420,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             ) {
                 let from = Number(fromComponent.children[0]);
                 if (!Number.isFinite(from)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as from isn't a number.`,
                     );
                     return { success: false };
                 }
                 primePars.from = from;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as from isn't a constant.`,
                 );
                 return { success: false };
@@ -434,14 +443,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             ) {
                 let to = Number(toComponent.children[0]);
                 if (!Number.isFinite(to)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as to isn't a number.`,
                     );
                     return { success: false };
                 }
                 primePars.to = to;
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as to isn't a constant.`,
                 );
                 return { success: false };
@@ -449,7 +458,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         }
 
         if (serializedComponent.attributes.excludeCombinations) {
-            console.log(
+            info(
                 "have not implemented unique variants of a selectPrimeNumbers with excludeCombinations",
             );
             return { success: false };
@@ -465,7 +474,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                         typeof x.children[0] === "string",
                 )
             ) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
@@ -475,7 +484,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             );
 
             if (!exclude.every(Number.isFinite)) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
@@ -487,6 +496,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             serializedComponent,
             "selectPrimeNumbers",
             numToSelect,
+            infoDiagnostics,
         );
         if (!sortResult.success) {
             return { success: false };

@@ -7,7 +7,7 @@ export default class AttractToConstraint extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Attracts a graphical component's position to a constraint location.",
+            "Wraps another constraint so it acts as a soft attraction within a threshold",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

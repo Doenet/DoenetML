@@ -1,0 +1,52 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<hr>{:dn}`
+
+<ComponentDisplay name='hr'/>
+
+`<hr>{:dn}` is a block-level component that renders wherever it
+appears in the document flow.
+
+
+<AttrPropDisplay name='hr'/>
+
+
+## Examples
+
+### Example: separating content with `<hr/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Content before the rule.</p>
+<hr/>
+<p>Content after the rule.</p>
+```
+
+
+
+The self-closing `<hr/>{:dn}` tag inserts a horizontal rule wherever it
+appears in the document flow.
+
+
+
+## Attribute Examples
+
+### Attribute Example: hide
+
+
+```doenet-editor-horiz
+<booleanInput name="hideRule">
+  <label>Click here to hide the rule</label>
+</booleanInput>
+
+<p>Above the rule.</p>
+<hr hide="$hideRule"/>
+<p>Below the rule.</p>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

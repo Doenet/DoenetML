@@ -1,27 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <m>{:dn}`
+# `<m>{:dn}`
 
+<ComponentDisplay name='m'/>
 
-` <m>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
-component that renders inline mathematical content.  The ` <m>{:dn}` tag accepts Latex and 
+`<m>{:dn}` is a [Display Math](../concepts/essentialConcepts#component-types)
+component that renders inline mathematical content.  The `<m>{:dn}` tag accepts Latex and 
 DoenetML mathematical content as input.
 
-For displaying mathematics alone on a line by itself, see ` <me>{:dn}`, ` <men>{:dn}` 
-or ` <md>{:dn}`,` <mdn>{:dn}` (for aligned mathematics). See also ` <math>{:dn}`
+For displaying mathematics alone on a line by itself, see `<me>{:dn}`, `<men>{:dn}` 
+or `<md>{:dn}`,`<mdn>{:dn}` (for aligned mathematics). See also `<math>{:dn}`
 for mathematical manipulations using a computer algebra system.
 
-## Attributes and Properties 
- <AttrDisplay name='m'/> 
- <PropDisplay name='m'/>
+<AttrPropDisplay name='m'/>
 
----
+## Examples
 
-### Example: ` <m>{:dn}` inside a paragraph
+### Example: `<m>{:dn}` inside a paragraph
 
 
 ```doenet-editor-horiz
@@ -30,14 +29,14 @@ for mathematical manipulations using a computer algebra system.
 
 
 
-The ` <m>{:dn}` component is used to format isolated content within a section of 
-text that has been enclosed within a ` <p>{:dn}`, or paragraph component. 
+The `<m>{:dn}` component is used to format isolated content within a section of 
+text that has been enclosed within a `<p>{:dn}`, or paragraph component. 
 
 
 
 ---
 
-### Example: ` <m>{:dn}` in combination with ` <math>{:dn}`
+### Example: `<m>{:dn}` in combination with `<math>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -47,44 +46,42 @@ text that has been enclosed within a ` <p>{:dn}`, or paragraph component.
 
 
 
-An ` <m>{:dn}` tag encloses an inline math expression that also contains a 
-reference to a named ` <math>{:dn}`.
+An `<m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named `<math>{:dn}`.
 
 
 
 ---
 
-### Example: ` <m>{:dn}` in combination with <tage>mathInput</tage>
+### Example: `<m>{:dn}` in combination with <tage>mathInput</tage>
 
 
 ```doenet-editor-horiz
-<p>Enter a function in <m>x</m>: 
-  <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Enter a function in <m>x</m></label></mathInput></p>
 <p><m>f(x) = $mi</m></p>
 ```
 
 
 
-An ` <m>{:dn}` tag encloses an inline math expression that also contains a 
-reference to a named ` <mathInput/>{:dn}`. Note that a ` <mathInput/>{:dn}` cannot 
-be *defined* within an ` <m>{:dn}` component.
+An `<m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named `<mathInput/>{:dn}`. Note that a `<mathInput/>{:dn}` cannot 
+be *defined* within an `<m>{:dn}` component.
 
 
 
 ---
 
-### Example: ` <m>{:dn}` in combination with ` <answer>{:dn}`
+### Example: `<m>{:dn}` in combination with `<answer>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Simplify <m>x \cdot x = </m> 
-  <answer symbolicEquality>x^2</answer></p>    
+<p><answer symbolicEquality><label>Simplify <m>x \cdot x = </m></label>x^2</answer></p>    
 ```
 
 
 
-An ` <m>{:dn}` tag encloses an inline math expression that precedes 
-an ` <answer>{:dn}`. Note that an ` <answer>{:dn}` cannot be *defined* within 
-an ` <m>{:dn}` component.
+An `<m>{:dn}` tag encloses an inline math expression that precedes 
+an `<answer>{:dn}`. Note that an `<answer>{:dn}` cannot be *defined* within 
+an `<m>{:dn}` component.
 
 

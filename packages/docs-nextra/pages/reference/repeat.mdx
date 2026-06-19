@@ -1,25 +1,25 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <repeat>{:dn}`
+# `<repeat>{:dn}`
 
-` <repeat>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='repeat'/>
+
+`<repeat>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that performs the requested operations in an iterative manner over the component specified (typically,
 this is a list or an array). If the specified component is a `<sequence>{:dn}`, a shorter method is to
-use the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+use the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
 
-The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other programming languages. 
+The behavior of the `<repeat>{:dn}` component is similar to a for loop in other programming languages. 
 
 
-## Attributes and Properties 
- <AttrDisplay name='repeat'/> 
-` <repeat>{:dn}` does not have any properties.
+<AttrPropDisplay name='repeat'/>
 
----
+## Examples
 
-### Example: ` <repeat>{:dn}` a series of rectangles within a ` <graph>{:dn}`
+### Example: `<repeat>{:dn}` a series of rectangles within a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -49,24 +49,24 @@ The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other
 
 
 
-A ` <repeat>{:dn}` can be used to generate multiple graphical elements at once when placed within a ` <graph>{:dn}`.
+A `<repeat>{:dn}` can be used to generate multiple graphical elements at once when placed within a `<graph>{:dn}`.
 
 
 
 ---
 
-### Example: ` <repeat>{:dn}` a user-specified number of inputs
+### Example: `<repeat>{:dn}` a user-specified number of inputs
 
 
 ```doenet-editor-horiz
-<p>How many answers do you have? 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many answers do you have?</label></mathInput></p>
 
 <sequence name="s" from="1" to="$n" hide/>
 
 <p><m>x = </m>
 <repeat name="inputs" for="$s">
-  <mathInput/>
+  <mathInput><shortDescription>one of the answers</shortDescription></mathInput>
 </repeat>
 </p>
 
@@ -78,12 +78,12 @@ A ` <repeat>{:dn}` can be used to generate multiple graphical elements at once w
 
 
 
-A ` <repeat>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` components.
-For an alternative way to do this, see the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+A `<repeat>{:dn}` can be used to generate a user-specified number of `<mathInput>{:dn}` components.
+For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
 
 ---
 
-### Example: ` <repeat>{:dn}` a list of ` <text>{:dn}` elements
+### Example: `<repeat>{:dn}` a list of `<text>{:dn}` elements
 
 
 ```doenet-editor-horiz
@@ -104,7 +104,7 @@ For an alternative way to do this, see the [` <repeatForSequence>{:dn}`](repeatF
 
 
 
-A ` <repeat>{:dn}` can be used with non-mathematical components as well. Individual
+A `<repeat>{:dn}` can be used with non-mathematical components as well. Individual
 entries can be accessed using array notation.
 
 
@@ -191,8 +191,8 @@ attributes can be used.
 ### Example: Generate a user-specified number of random `<point>{:dn}` components
 
 ```doenet-editor-horiz
-<p>How many points do you want to generate?
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many points do you want to generate?</label></mathInput></p>
 <em>(Note, more than 10 takes some processing time...)</em>
 
 <sequence name="s" from="1" to="$n" hide/>
@@ -218,5 +218,5 @@ attributes can be used.
 ```
 
 
-A ` <repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
+A `<repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
 For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.

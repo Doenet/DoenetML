@@ -1,0 +1,421 @@
+/*! Theme: print-worksheet */
+
+// Used for print versions of worksheets (including their previews) for all themes
+
+// File is only included in standalone printable worksheet pages (the print preview pages).
+// Most rules apply to both screen and print; rules at the bottom of the file split into these two cases.
+
+// Also see:
+// components/_printing.scss : base rules for printing a standard PreTeXt page - removes UI
+// components/_worksheet.scss : rules that apply to worksheets in context and in print/preview.
+
+// Current maintainer: Oscar Levin
+
+// ---------------------------------------------
+// Grouping containers - based off of those in default-modern
+@use 'chunks-worksheet' with ($border-radius: 0);
+
+// Bring in the standard PreTeXt styles for components
+@use 'components/pretext';
+
+// Use underline style headings
+//@use 'components/elements/extras/heading-underlines';
+
+// Make sure fonts are available
+@use 'fonts/fonts-google';
+
+// For the print button
+@use 'components/helpers/buttons-default' as buttons;
+
+
+// Make sure we are including the root colors using simple black-and-white palette
+// Always use colors from the light mode palette, since the print preview and printed version will be light mode.
+@use "sass:map";
+@use "colors/color-helpers" as colorHelpers;
+@use 'colors/palette-single' as palette with (
+  $primary-color: black,
+);
+
+$light-colors: map.merge(
+  palette.$colors,
+  (
+    "block-head-color": black,
+  )
+);
+
+// Print worksheets should always render with the light palette, even if the page
+// root still carries the site's dark-mode class.
+:root,
+:root.dark-mode {
+  color-scheme: light;
+  @include colorHelpers.scss-to-css($light-colors);
+}
+
+// ---------------------------------------------
+// concrete rules / includes that generate CSS
+
+// Set variables for default width and margins
+:root {
+  --ws-width: 8.5in; // Default width for worksheets
+  --ws-height: 11in; // Default height for worksheets
+  --ws-top-margin: 40px; // Default top margin for worksheets
+  --ws-right-margin: 55px; // Default right margin for worksheets
+  --ws-bottom-margin: 45px; // Default bottom margin for worksheets
+  --ws-left-margin: 45px; // Default left margin for worksheets
+
+  --ws-content-width: calc(var(--ws-width) - var(--ws-right-margin) - var(--ws-left-margin));
+  --ws-content-height: calc(var(--ws-height) - var(--ws-top-margin) - var(--ws-bottom-margin));
+}
+
+
+
+
+// Remove surrounding UI elements
+  .pretext .ptx-masthead,
+  .pretext .ptx-navbar,
+  body.pretext > a.assistive,
+  .pretext .ptx-page > .ptx-sidebar,
+  .pretext  .ptx-page-footer,
+  .pretext .ptx-main > div.ptx-content-footer {
+    display:none;
+  }
+
+  // Remove the print preview link
+.heading .print-links {
+  display: none;
+}
+
+ .autopermalink {
+  display: none;
+}
+
+// Some elements don't make sense to print:
+//   image descriptions
+//   webwork "activate" buttons
+//   buttons in general (to remove Runestone "Check Me" button)
+// We remove these here.
+.image-description,
+.ptx-content .webwork-button,
+.ptx-runestone-container button.btn {
+  display: none;
+}
+
+
+// Set font appropriate for printing
+section.worksheet, section.handout {
+  font-size: 11pt;
+  font-family: var(--font-print);
+}
+
+// .onepage is the common class that wraps all content in a single worksheet page (often modified by the javascript)
+ .onepage > .heading {
+  margin-top: 0;
+  font-size: 1.3em;
+}
+
+// Headings made out of paragraphs titles
+.onepage h4.heading {
+  font-size: 1.2em;
+  margin-top: 1em;
+}
+
+.onepage .instructions {
+  display: none;
+}
+
+// Headers and footers
+.onepage .first-page-header,
+.onepage .running-header,
+.onepage .first-page-footer,
+.onepage .running-footer {
+  display: flex;
+  justify-content: space-between;
+  align-content: flex-start;
+
+  // Make divs have minimum width to make it easier to select them for editing
+  div {
+    min-width: 10em;
+  }
+
+  .header-center, .footer-center {
+    text-align: center;
+  }
+
+  .header-right, .footer-right {
+    text-align: right;
+  }
+}
+
+.onepage .first-page-header, .onepage .running-header {
+  margin-bottom: 1em;
+  border-bottom: 1px dashed lightgray;
+}
+
+.onepage .first-page-footer, .onepage .running-footer {
+  margin-top: 1em;
+  border-top: 1px dashed lightgray;
+}
+
+
+// Style solutions divs, which the javascript transforms from knowls to divs with titles
+
+.solutions {
+  margin-top: 1em;
+
+  .solution-like.born-hidden-knowl {
+    margin-top: 1em;
+    padding: unset;
+
+    h5 {
+      font-weight: bolder;
+      display: inline;
+      font-size: 1em;
+    }
+
+    > div {
+      display: inline;
+    }
+
+    .knowl__content {
+      display: inline;
+      border: none;
+      background-color: unset;
+      padding: 0;
+
+      >:first-child {
+        display: inline;
+      }
+
+      .para {
+        margin-top: 0.5em;
+      }
+    }
+  }
+}
+
+// Additional styling tweaks for print
+
+.code-inline {
+  border: unset;
+  background: unset;
+}
+
+.onepage article {
+  padding-left: 0;
+  border: none;
+}
+
+.onepage article::after {
+  all: unset;
+}
+
+.onepage > .para:first-child,
+.onepage > article:first-child {
+  margin-top: 0;
+}
+
+
+// Some headings have larger top-margins than their parent section, so we fix that here.
+.onepage > section > .heading {
+  margin-top: 0;
+}
+
+// tasks might be "free-floating" articles, in which case they should get the same indenting as tasks inside exercises.
+section article.task, .conclusion.subtask {
+  margin-left: 20px;
+}
+section article.subtask, .conclusion.subsubtask {
+  margin-left: 40px;
+}
+section article.subsubtask {
+  margin-left: 60px;
+}
+
+section.worksheet > .heading, section.handout > .heading {
+  display: inline;
+  font-size: 1.1em;
+}
+
+section.worksheet > .heading + .para, section.handout > .heading + .para {
+  display: inline;
+}
+
+.introduction, .conclusion {
+  > .heading {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 0;
+    border-bottom: none;
+    + .para {
+      margin-top: 0.5em;
+    }
+  }
+}
+
+form.papersize-select {
+  padding-bottom: 8px;
+}
+
+
+
+
+// Screen specific styles (mostly for showing the border around a worksheet with it's "margins" and for the print controls)
+@media screen {
+  .ptx-main {
+    max-width: var(--ws-width);
+    margin: 50px auto;
+  }
+
+  .worksheet, .handout {
+    max-width: var(--ws-width);
+    margin: 0 auto;
+  }
+
+  .onepage {
+    width: 100%;
+    height: var(--ws-height);
+    padding: var(--ws-top-margin) var(--ws-right-margin) var(--ws-bottom-margin) var(--ws-left-margin);
+    box-shadow: 5px 10px 40px -10px;
+  }
+
+  // Set space between pages
+  .onepage + .onepage {
+    margin-top: 2.5em;
+  }
+
+
+  .workspace-container {
+    display: flex;
+    overflow: visible;
+  }
+
+  .workspace {
+    width: 100%;
+  }
+
+  .highlight-workspace .onepage .workspace {
+    border: 1px dashed gray;
+    background: hsl(224, 100%, 95%);
+  }
+
+  // Normally, the .workspace.original is hidden in the print preview, but if the highlight-workspace checkbox is checked, it will be shown.
+  .onepage .original-workspace {
+    display: none;
+  }
+
+  .highlight-workspace .onepage .original-workspace {
+    display:block;
+    width: 10px;
+    background: hsl(152, 29%, 65%);
+  }
+
+  .highlight-workspace .onepage .warning {
+    background: hsl(36, 65%, 67%);
+  }
+
+  .print-button {
+  @include buttons.ptx-button;
+  }
+
+  .papersize-select {
+    z-index: 1;
+    .name::after {
+      content: ": ";
+    }
+  }
+
+  .print-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1em;
+  }
+
+  // Make labels and inputs for print options have pointer cursor
+  label, input {
+    cursor: pointer;
+  }
+
+  // Add spacing for header/footer options
+  .header-option, .footer-option {
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+
+    .title::after {
+      content: ":";
+    }
+  }
+
+// Style the additional printing options the same as we do for knowls
+  .print-options {
+    summary {
+      cursor: pointer;
+      display: list-item inline;
+    }
+
+    .hide-option {
+      display: inline-block;
+      padding-right: 1em;
+    }
+  }
+}
+
+
+// Print specific styles
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    width: var(--ws-content-width);
+  }
+
+  .print-preview-header {
+    display: none;
+  }
+
+  section.worksheet, section.handout {
+    border: none;
+    width: 100%;
+
+    .onepage {
+      margin-top: 0;
+      width: 100%;
+      height: var(--ws-content-height);
+      overflow: hidden;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+
+    // Avoid a blank page at the end if the last page fits on the previous page
+    .onepage:last-of-type {
+      page-break-after: avoid;
+    }
+
+    .first-page-header, .running-header {
+      border-bottom: none;
+    }
+
+    .first-page-footer, .running-footer {
+      border-top: none;
+    }
+
+    // Never show the workspace preview in print
+    div.workspace,
+    div.workspace.squashed.tight {
+      border: none;
+      padding: 0;
+      background: none !important;
+    }
+  }
+
+  a {
+    color: black;
+  }
+
+  @page {
+    // Note: when we allow custom margins, the javascript will need to change these defaults.
+    // Default margins appear to be necessary for Firefox and Safari (Chrome already works with the variable values).
+    margin: var(--ws-top-margin, 40px) var(--ws-right-margin, 55px) var(--ws-bottom-margin, 45px) var(--ws-left-margin, 45px);
+  }
+}

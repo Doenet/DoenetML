@@ -12,7 +12,7 @@ export default class IntervalList extends CompositeComponent {
     static componentType = "intervalList";
 
     static componentDocs = {
-        summary: "A list of intervals.",
+        summary: "A list of intervals",
     };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -73,7 +73,7 @@ export default class IntervalList extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         const numberDisplayAttrs = returnNumberDisplayAttributes();

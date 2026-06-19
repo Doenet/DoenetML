@@ -1,28 +1,28 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <isNumber>{:dn}`
+# `<isNumber>{:dn}`
 
-` <isNumber>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='isNumber'/>
+
+`<isNumber>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types)
 component that returns the boolean value of `true` or `false` depending on whether the value enclosed is a real number.
 
-## Attributes and Properties 
- <AttrDisplay name='isNumber'/> 
- <PropDisplay name='isNumber'/>
+<AttrPropDisplay name='isNumber'/>
 
----
+## Examples
 
 ### Example: Basic use
 
 
 ```doenet-editor-horiz
-<p>Enter a number (or not): <mathInput name="mi" prefill="0"/></p>
+<p><mathInput name="mi" prefill="0"><label>Enter a number (or not)</label></mathInput></p>
 <p>This value is a real number: </p>
 <isNumber>$mi</isNumber>
 
-<p>Enter a complex number: <mathInput name="ci" prefill="sqrt(-1) + 1" displaySmallAsZero/></p>
+<p><mathInput name="ci" prefill="sqrt(-1) + 1" displaySmallAsZero><label>Enter a complex number</label></mathInput></p>
 <p>You have entered the complex number: 
 <number name="n2">$ci</number></p>
 
@@ -32,5 +32,5 @@ component that returns the boolean value of `true` or `false` depending on wheth
 
 
 
-Tne ` <isNumber>{:dn}` component checks to see whether the enclosed value is a real number.
+The `<isNumber>{:dn}` component checks to see whether the enclosed value is a real number.
 

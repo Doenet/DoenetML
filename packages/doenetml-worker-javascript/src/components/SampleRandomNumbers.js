@@ -14,7 +14,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static componentType = "sampleRandomNumbers";
 
     static componentDocs = {
-        summary: "Samples random numbers from a distribution.",
+        summary: "Samples random numbers from a distribution",
     };
     static takesIndex = true;
 
@@ -142,7 +142,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -822,6 +822,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let variantDeterminesSeed =
             serializedComponent.attributes.variantDeterminesSeed.primitive
@@ -833,6 +834,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
     }

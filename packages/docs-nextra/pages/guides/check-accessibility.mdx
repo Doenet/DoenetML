@@ -1,0 +1,107 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Checking Your Activity's Accessibility
+
+As you edit, Doenet checks your document against the **WCAG AA** accessibility guidelines and reports what it finds in three connected places: a status indicator above the viewer, an accessibility report you can open, and inline marks in the code editor. This guide shows how to read all three and what the checks do — and do not — cover.
+
+<Callout type="info">
+The checker tells you when your document *violates* a guideline. It cannot tell you whether your document is *genuinely* usable by someone who can't see it — that part is up to you. For why that distinction matters, see **[Accessibility in Doenet](../concepts/accessibility)**. For the recipes that fix the issues below, see **[Writing Accessible Activities](../guides/accessible-activities)**.
+</Callout>
+
+## Read the status indicator above the viewer
+
+Every Doenet editor shows an accessibility status indicator just above the rendered document. It has two states:
+
+- **Green** — no WCAG AA violations were found.
+- **Purple, labelled "WCAG"** — at least one WCAG AA violation was found.
+
+The color tracks **violations only**. The example below is deliberately incomplete — a graph with no description and an input whose prompt is only ordinary text — so its indicator is purple. Run it and look above the viewer:
+
+```doenet-editor-horiz
+<graph size="small">
+  <point name="P" fixed>(3,4)</point>
+</graph>
+<p>What is the x-coordinate of P? <mathInput name="x" /></p>
+```
+
+The sentence "What is the x-coordinate of P?" looks like a label, but it is just text sitting next to the input — nothing connects the two, so a screen reader announces the input as unlabeled. That, plus the undescribed graph, is two violations.
+
+## Open the accessibility report
+
+Click the status indicator — or the **Accessibility** tab (marked with an accessibility icon <svg viewBox="0 0 512 512" width="1em" height="1em" fill="#5b21b6" style={{ display: "inline-block", verticalAlign: "-0.125em" }} role="img" aria-label="accessibility"><path d="M256 112a56 56 0 1 1 56-56 56.06 56.06 0 0 1-56 56z"/><path d="m432 112.8-.45.12-.42.13c-1 .28-2 .58-3 .89-18.61 5.46-108.93 30.92-172.56 30.92-59.13 0-141.28-22-167.56-29.47a73.79 73.79 0 0 0-8-2.58c-19-5-32 14.3-32 31.94 0 17.47 15.7 25.79 31.55 31.76v.28l95.22 29.74c9.73 3.73 12.33 7.54 13.6 10.84 4.13 10.59.83 31.56-.34 38.88l-5.8 45-32.19 176.19q-.15.72-.27 1.47l-.23 1.27c-2.32 16.15 9.54 31.82 32 31.82 19.6 0 28.25-13.53 32-31.94s28-157.57 42-157.57 42.84 157.57 42.84 157.57c3.75 18.41 12.4 31.94 32 31.94 22.52 0 34.38-15.74 32-31.94a57.17 57.17 0 0 0-.76-4.06L329 301.27l-5.79-45c-4.19-26.21-.82-34.87.32-36.9a1.09 1.09 0 0 0 .08-.15c1.08-2 6-6.48 17.48-10.79l89.28-31.21a16.9 16.9 0 0 0 1.62-.52c16-6 32-14.3 32-31.93S451 107.81 432 112.8z"/></svg> and a count) in the editor's footer — to open the **accessibility report**. The report has two lists:
+
+- **Accessibility violations (WCAG AA)** — the problems that turn the indicator purple. Each entry names the line it is on and describes the fix. The heading links out to the official WCAG guidelines.
+- **Other accessibility issues** — advisory recommendations that are *not* WCAG violations (more on these below).
+
+For the example above, the first list reports two violations — one telling you the `<graph>{:dn}` must have a short description (or be marked decorative), and one telling you the `<mathInput>{:dn}` must have a short description or a label. When a list has nothing in it, it reads **None found**.
+
+## Fix the violations
+
+Both violations are fixed by supplying the information only you can provide: a [short description](../guides/accessible-activities#describe-graphs-images-and-videos) for the graph, and a [label](../guides/accessible-activities#label-every-input) on the input. With those in place, the indicator turns green:
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A single point, labeled P, at coordinates (3, 4)</shortDescription>
+  <point name="P" fixed>(3,4)</point>
+</graph>
+<p>
+  <mathInput name="x">
+    <label>What is the x-coordinate of P?</label>
+  </mathInput>
+</p>
+```
+
+The `<label>{:dn}` is now part of the input: it renders in the same place the sentence did, so the page looks the same, but it is programmatically tied to the input and a screen reader announces them together.
+
+## Green isn't the whole story: advisories
+
+The second list — **Other accessibility issues** — holds recommendations that don't rise to a WCAG violation, so they leave the indicator green. A green indicator means "no violations," not "nothing to improve." It is worth opening the report even when the indicator is green.
+
+A common advisory is a short description that contains mathematics. A screen reader reads a short description as plain text, so a `<m>{:dn}` inside it is read out as raw notation. The graph below has a perfectly valid description as far as the violation check is concerned — the indicator stays green — but the report's second list flags the embedded math:
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>The graph of <m>y = x^2</m></shortDescription>
+  <function>x^2</function>
+</graph>
+```
+
+Spelling the math out in words clears the advisory:
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>The parabola y equals x squared, opening upward</shortDescription>
+  <function>x^2</function>
+</graph>
+```
+
+## See the problems inline in the editor
+
+The report lists issues by line, but you can also have Doenet mark them directly in the code. At the top of the accessibility report is a checkbox, **Show accessibility diagnostics in editor**. When it is on (the default), each flagged component gets a colored underline in the code editor; hover over the underline to read the same message the report shows. Turn the checkbox off to hide the marks while you work on something else.
+
+## What the checks cover
+
+These are the accessibility checks Doenet runs today. The list is expected to grow over time.
+
+| What you wrote | Result |
+| --- | --- |
+| A `<graph>{:dn}` or `<image>{:dn}` with no short description and not marked `decorative{:dn}` | **Violation** |
+| A `<video>{:dn}` with no short description | **Violation** |
+| An input (`<mathInput>{:dn}`, `<textInput>{:dn}`, `<choiceInput>{:dn}`, `<booleanInput>{:dn}`, `<matrixInput>{:dn}`, …) with no `<label>{:dn}` and no short description | **Violation** |
+| An `<answer>{:dn}` that creates its own input but has no `<label>{:dn}` or short description | **Violation** |
+| A `<styleDefinition>{:dn}` whose colors don't have enough contrast against the canvas | **Violation** |
+| A short description that contains math components | Advisory |
+
+The violation checks are about whether the *required information is present*; the [recipes guide](../guides/accessible-activities) shows how to supply it well. Color contrast is checked automatically for every style definition — see [Styling, meaning, and accessibility](../concepts/styling#why-distinctions-live-in-style-numbers-accessibility).
+
+## What passing does and doesn't mean
+
+A green indicator means your document has none of the omissions above. It does **not** mean a screen-reader or keyboard user can actually complete your activity — a description can be present but useless, a label can be accurate but uninformative. Reaching zero violations is the right first step; the real work of writing descriptions someone can learn from begins there. See [Accessibility in Doenet](../concepts/accessibility#passing-the-checker-is-a-floor-not-a-ceiling).
+
+## Where to go next
+
+- **[Writing Accessible Activities](../guides/accessible-activities)** — the recipes that clear these checks: descriptions, labels, links, headings, and tables.
+- **[Accessible Interactive Graphs](../guides/accessible-interactive-graphs)** — making draggable graphs usable by keyboard and screen reader.
+- **[Accessibility in Doenet](../concepts/accessibility)** — why the checker is a floor, not a ceiling.

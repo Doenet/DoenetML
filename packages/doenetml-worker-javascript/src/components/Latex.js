@@ -4,7 +4,7 @@ export default class Latex extends TextComponent {
     static componentType = "latex";
 
     static componentDocs = {
-        summary: "A snippet of LaTeX rendered as math.",
+        summary: "A snippet of LaTeX that can be rendered as math",
     };
     static rendererType = "text";
 
@@ -32,6 +32,7 @@ export default class Latex extends TextComponent {
                 dependencyType: "child",
                 childGroups: ["textLike"],
                 variableNames: ["text", "latex"],
+                variablesOptional: true,
             },
         });
 

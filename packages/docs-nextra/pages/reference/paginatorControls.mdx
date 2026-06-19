@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <paginatorControls>{:dn}`
+# `<paginatorControls>{:dn}`
 
-` <paginatorControls>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='paginatorControls'/>
+
+`<paginatorControls>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
 component that works alongside the `<paginator>{:dn}` component to provide navigation buttons.
 
 
-## Attributes and Properties 
- <AttrDisplay name='paginatorControls'/> 
- <PropDisplay name='paginatorControls'/>
+<AttrPropDisplay name='paginatorControls'/>
 
----
+## Examples
 
-### Example: ` <paginatorControls>{:dn}` with a basic ` <paginator>{:dn}`
+### Example: `<paginatorControls>{:dn}` with a basic `<paginator>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -42,20 +42,20 @@ positioned either above or below the paginator content. The `paginator` attribut
 
 ---
 
-### Example: ` <paginatorControls>{:dn}` with custom labels
+### Example: `<paginatorControls>{:dn}` with custom labels
 
 
 ```doenet-editor-horiz
 <paginator name="questions">
   <question boxed>
-    <p><m><math>sqrt(16)/4</math> = </m>
-      <answer>1</answer></p>
+    <p>
+      <answer><label><m><math>sqrt(16)/4</math> = </m></label>1</answer></p>
   </question>
   <question boxed>
-    <p><m><math>ln(e)</math> = </m><answer>1</answer></p>
+    <p><answer><label><m><math>ln(e)</math> = </m></label>1</answer></p>
   </question>
   <question boxed>
-    <p><m><math>sin(pi/2)</math> = </m><answer>1</answer></p>
+    <p><answer><label><m><math>sin(pi/2)</math> = </m></label>1</answer></p>
   </question>
 </paginator>
 

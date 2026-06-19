@@ -3,6 +3,13 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 
+function returnScoredContainerAncestorDependency(...variableNames) {
+    return {
+        dependencyType: "ancestor",
+        variableNames,
+    };
+}
+
 export function returnStandardAnswerAttributes() {
     return {
         weight: {
@@ -10,6 +17,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Relative weight of this answer when aggregating credit across multiple answers.",
         },
@@ -18,6 +26,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "handGraded",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Whether this answer is graded by hand rather than automatically.",
         },
@@ -26,6 +35,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "matchPartial",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Whether to award partial credit when the response is partially correct.",
         },
@@ -34,6 +44,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "maxNumAttempts",
             defaultValue: Infinity,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Maximum number of times the response can be submitted.",
         },
@@ -41,6 +52,7 @@ export function returnStandardAnswerAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: true,
+            groupName: "answer-grading",
             description:
                 "Whether to display whether the submitted response is correct.",
         },
@@ -49,6 +61,14 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
             public: true,
+            groupName: "answer-grading",
+            // The runtime stores the raw attribute value under
+            // `colorCorrectnessPreliminary` so a derived `colorCorrectness`
+            // state def can combine it with the ancestor's setting. Authors
+            // should see only the derived `colorCorrectness` property, so
+            // hide the plumbing-named state var from the schema while
+            // keeping the attribute itself author-facing. See #1089.
+            stateVarExcludeFromSchema: true,
             description:
                 "Whether to color-code the response based on its correctness.",
         },
@@ -58,6 +78,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "disableAfterCorrect",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Whether to disable the answer after a fully correct response has been submitted.",
         },
@@ -68,6 +89,7 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            groupName: "answer-grading",
             description:
                 "Label for the submit button when correctness is shown.",
         },
@@ -78,6 +100,7 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            groupName: "answer-grading",
             description:
                 "Label for the submit button when correctness is not shown.",
         },
@@ -87,6 +110,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForResponses",
             defaultValue: 10,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Number of significant digits to display when rendering numeric responses.",
         },
@@ -96,6 +120,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            groupName: "answer-grading",
             description:
                 "Number of significant digits to display for the credit achieved value.",
         },
@@ -497,14 +522,52 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            ancestorSuppressingAnswerSubmitButtons:
+                returnScoredContainerAncestorDependency(
+                    "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
+                ),
+            // Used to target the ignored-`maxNumAttempts` warning at the
+            // attribute itself rather than the whole `<answer>`.
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+            },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
+
+            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
+                    position: dependencyValues.maxNumAttemptsAttr?.position,
+                });
+            }
+
+            // Inside a section-wide check work, the answer's own
+            // `maxNumAttempts` is ignored: the enclosing container controls the
+            // number of attempts. Report that container's remaining attempts so
+            // the public `numAttemptsLeft` is accurate. This matches how a
+            // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
+            // ignored.
+            const numAttemptsLeft = insideSectionWideCheckWork
+                ? dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                      .stateValues.numAttemptsLeft
+                : Math.max(
+                      0,
+                      dependencyValues.maxNumAttempts -
+                          dependencyValues.numSubmissions,
+                  );
+
             return {
-                setValue: {
-                    numAttemptsLeft:
-                        dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
-                },
+                setValue: { numAttemptsLeft },
+                sendDiagnostics,
             };
         },
     };

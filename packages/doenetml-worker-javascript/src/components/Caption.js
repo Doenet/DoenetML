@@ -14,7 +14,7 @@ export default class Caption extends BlockComponent {
     static canDisplayChildErrors = true;
 
     static componentDocs = {
-        summary: "A caption attached to a figure or table.",
+        summary: "A caption attached to a figure or table",
     };
 
     static renderChildren = true;

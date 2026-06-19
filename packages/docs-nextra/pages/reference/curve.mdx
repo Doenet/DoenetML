@@ -1,38 +1,39 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <curve>{:dn}`
+# `<curve>{:dn}`
 
-` <curve>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a spline within a ` <graph>{:dn}`.
+<ComponentDisplay name='curve'/>
 
-## Attributes and Properties 
- <AttrDisplay name='curve'/> 
- <PropDisplay name='curve'/>
+`<curve>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that renders a spline within a `<graph>{:dn}`.
 
----
+<AttrPropDisplay name='curve'/>
 
-### Example: ` <curve>{:dn}` through 4 points
+## Examples
+
+### Example: `<curve>{:dn}` through 4 points
 
 
 ```doenet-example
 <p>Click the curve to adjust the through points</p>
 <graph>
+  <shortDescription>A graph of a curve through four points</shortDescription>
   <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
 </graph>
 ```
 
 
 
-A ` <curve>{:dn}` is constructed through four points specified in the `through` attribute.
+A `<curve>{:dn}` is constructed through four points specified in the `through` attribute.
 
 
 
 ---
 
-### Example: ` <curve>{:dn}` through 4 points with bezier controls
+### Example: `<curve>{:dn}` through 4 points with bezier controls
 
 
 ```doenet-example
@@ -41,6 +42,7 @@ Click the points to adjust the curve's shape.
 </p>
 
 <graph>
+  <shortDescription>A graph of a curve through four points with bezier controls</shortDescription>
   <curve through="(1,5) (-3,-6) (1,0) (-6,3)" name="myCurve">
     <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
   </curve>
@@ -49,10 +51,10 @@ Click the points to adjust the curve's shape.
 
 
 
-A ` <curve>{:dn}` is constructed through four points specified in 
+A `<curve>{:dn}` is constructed through four points specified in 
 the `through` attribute. The shape of the curve at its through points 
-is specified with ` <bezierControls>{:dn}`. When ` <bezierControls>{:dn}` are 
-specified, draggable handles appear on the ` <graph>{:dn}` when the 
+is specified with `<bezierControls>{:dn}`. When `<bezierControls>{:dn}` are 
+specified, draggable handles appear on the `<graph>{:dn}` when the 
 through points are clicked.
 
 
@@ -71,6 +73,7 @@ through points are clicked.
 <slider name="b" initialValue="2" labelIsName/>
 
 <graph size="small">
+<shortDescription>A graph of a parameterized ellipse</shortDescription>
 <curve 
   name="parameterizedEllipse" 
   variable="t">
@@ -81,9 +84,9 @@ through points are clicked.
 
 
 
-Parametric equations can be constructed with the ` <curve>{:dn}` component 
+Parametric equations can be constructed with the `<curve>{:dn}` component 
 by assigning a parameter with the  `variable` attribute and 
 providing function children for the $x$-coordinates and $y$-coordinates 
-defining the ` <curve>{:dn}`.
+defining the `<curve>{:dn}`.
 
 

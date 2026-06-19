@@ -1,0 +1,100 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<pegboard/>{:dn}`
+
+<ComponentDisplay name='pegboard'/>
+
+`<pegboard/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
+that renders a grid of small dots ("pegs") covering the visible region of an enclosing `<graph>{:dn}`.
+The peg spacing and offset are controlled by `dx`, `dy`, `xoffset`, and `yoffset`. The pegboard
+re-tiles automatically as the user pans or zooms the graph.
+
+A `<pegboard/>{:dn}` does not, on its own, cause other graphical objects to snap. To make a
+`<point>{:dn}` snap to peg locations, pair the pegboard with an
+[`<attractToGrid/>`](attractToGrid) or [`<constrainToGrid/>`](constrainToGrid) constraint using the
+same `dx`, `dy`, `xOffset`, and `yOffset` values.
+
+<AttrPropDisplay name='pegboard'/>
+
+
+## Examples
+
+### Example: A default pegboard
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A graph showing a pegboard with the default unit spacing</shortDescription>
+  <pegboard />
+</graph>
+```
+
+With the default attributes, pegs appear at every integer coordinate of the graph.
+
+
+---
+
+### Example: Pegboard paired with `<attractToGrid/>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A draggable point that attracts to the dots of a pegboard</shortDescription>
+  <pegboard />
+  <point name="P" styleNumber="2">
+    (2.3, 1.7)
+    <attractToGrid />
+  </point>
+</graph>
+```
+
+The visible pegs and the attraction grid use the same default $1 \times 1$ spacing, so the point
+softly snaps to each peg as it is dragged near.
+
+
+## Attribute Examples
+
+### Attribute Example: dx, dy
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>A pegboard with horizontal spacing 2 and vertical spacing 0.5</shortDescription>
+  <pegboard dx="2" dy="0.5" />
+</graph>
+```
+
+The `dx` and `dy` attributes set the horizontal and vertical spacing between pegs. Use uneven
+spacings when modeling a domain whose axes carry different units.
+
+
+---
+
+### Attribute Example: xoffset, yoffset
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>A pegboard whose grid is shifted by half a unit in each direction</shortDescription>
+  <pegboard dx="1" dy="1" xoffset="0.5" yoffset="0.5" />
+</graph>
+```
+
+`xoffset` and `yoffset` shift the peg lattice so that a peg appears at
+`(xoffset, yoffset)` rather than at the origin.
+
+
+## Property Examples
+
+### Property Example: dx, dy, xoffset, yoffset
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A pegboard whose lattice spacing is reported as text</shortDescription>
+  <pegboard name="pg" dx="2" dy="2" xoffset="0.5" yoffset="0.5" />
+</graph>
+
+<p><c>dx, dy</c> = $pg.dx, $pg.dy</p>
+<p><c>xoffset, yoffset</c> = $pg.xoffset, $pg.yoffset</p>
+```
+
+Each attribute of `<pegboard/>{:dn}` is also available as a property of a named pegboard.

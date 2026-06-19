@@ -6,8 +6,7 @@ export default class When extends BooleanComponent {
     static componentType = "when";
 
     static componentDocs = {
-        summary:
-            "A condition that triggers an action when its expression becomes true.",
+        summary: "Defines logical conditions within an `<award>`",
     };
     static rendererType = undefined;
 

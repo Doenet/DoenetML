@@ -8,6 +8,7 @@ import { _dastReducerActions } from "./slice";
 import { coreThunks, getWorker } from "../core/thunks";
 import { DoenetMLFlags } from "../../../DoenetML";
 import { _coreReducerActions } from "../core";
+import type { CoreType } from "../core/slice";
 
 export const dastThunks = {
     setSource: createLoggingAsyncThunk(
@@ -41,9 +42,16 @@ export const dastThunks = {
     setSourceAndStartWorker: createLoggingAsyncThunk(
         "dast/setSourceAndStartWorker",
         async (
-            { source, flags }: { source: string; flags: DoenetMLFlags },
-            { dispatch, getState },
+            {
+                source,
+                flags,
+                coreType = "rust",
+            }: { source: string; flags: DoenetMLFlags; coreType?: CoreType },
+            { dispatch },
         ) => {
+            // Set the core type before `setSource` starts the worker, since
+            // `_loadWorker` reads it from the store to call `setCoreType`.
+            dispatch(_coreReducerActions._setCoreType(coreType));
             await dispatch(dastThunks.setSource(source));
             await dispatch(coreThunks.setFlags(flags));
             await dispatch(coreThunks.retrieveDast());

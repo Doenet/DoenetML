@@ -11,7 +11,7 @@ export default class Table extends BlockComponent {
     static componentType = "table";
 
     static componentDocs = {
-        summary: "A table-like container of rows, columns, and cells.",
+        summary: "A container element for a `<tabular>`",
     };
     static renderChildren = true;
 

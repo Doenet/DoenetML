@@ -1,6 +1,7 @@
 import nextraConfig from "nextra";
 import {
     autoInsertAttrPropDescriptions,
+    expandComponentListings,
     wrapDoenetExample,
     wrapDoenetEditor,
     wrapDoenetEditorHorizontal,
@@ -8,6 +9,20 @@ import {
 } from "./dist/index.js";
 import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Returns the directory that contains a package. The `resolve.alias` entries below
+ * alias each package to its directory (rather than a specific file), which is what
+ * lets subpath imports such as `react/jsx-runtime` and `react-dom/client` keep
+ * resolving against the aliased copy.
+ */
+function packageDir(pkg) {
+    return path.dirname(require.resolve(`${pkg}/package.json`));
+}
 
 const withNextra = nextraConfig({
     theme: "nextra-theme-docs",
@@ -65,6 +80,11 @@ const withNextra = nextraConfig({
             },
         },
         remarkPlugins: [
+            // `expandComponentListings` runs first so `<ComponentIndex/>` and
+            // `<ComponentTable .../>` are turned into real markdown headings
+            // and tables before `autoInsertAttrPropDescriptions` walks the
+            // tree looking for other MDX flow elements.
+            expandComponentListings,
             autoInsertAttrPropDescriptions,
             wrapDoenetExample,
             wrapDoenetEditor,
@@ -154,7 +174,22 @@ fullConfig.webpack = (config, options) => {
     const newConfig = nextraWebpackConfig(config, options);
     newConfig.optimization.minimizer = [];
     newConfig.optimization.minimize = false;
-    return config;
+
+    // Force a single copy of React (and better-react-mathjax) so the
+    // `@doenet/doenetml-iframe` component shares the host page's React
+    // dispatcher. Without this, a duplicate React instance triggers
+    // `dispatcher.getOwner is not a function` when MathJaxContext renders.
+    // Alias to each package's directory so subpath imports
+    // (react/jsx-runtime, react-dom/client, ...) keep resolving.
+    newConfig.resolve = newConfig.resolve || {};
+    newConfig.resolve.alias = {
+        ...(newConfig.resolve.alias || {}),
+        react: packageDir("react"),
+        "react-dom": packageDir("react-dom"),
+        "better-react-mathjax": packageDir("better-react-mathjax"),
+    };
+
+    return newConfig;
 };
 
 export default fullConfig;

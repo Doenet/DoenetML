@@ -21,7 +21,6 @@ export const globalThunks = {
     setDarkMode: createLoggingAsyncThunk(
         "global/setDarkMode",
         async (darkMode: boolean, { dispatch }) => {
-            console.log("setDarkMode", darkMode);
             document.querySelector("html")?.classList.toggle("dark", darkMode);
             dispatch(_globalReducerActions._setDarkMode(darkMode));
         },

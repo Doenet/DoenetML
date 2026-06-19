@@ -32,7 +32,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -75,7 +79,11 @@ jobs:
         needs: build
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         steps:
             - uses: actions/checkout@v6
@@ -112,7 +120,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group: [group1, group2, group3, group4]
         steps:
@@ -150,7 +162,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group:
                     [
@@ -161,6 +177,7 @@ jobs:
                         e2e-group5,
                         codemirror-cypress,
                         doenetml-cypress,
+                        doenetml-iframe-cypress,
                     ]
         steps:
             - uses: actions/checkout@v6
@@ -184,6 +201,18 @@ jobs:
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build --workspace packages/test-cypress
+              env:
+                  WIREIT_CACHE: "local"
+
+            # doenetml-iframe-cypress reads @doenet/standalone's dist via a
+            # `?raw` import in its harness, and uses the iframe-iife bundles
+            # built by the iframe package itself. Wireit cache restores both
+            # quickly here since the upstream Build job already produced them.
+            - name: Build doenetml-iframe deps (cached)
+              if: matrix.test-group == 'doenetml-iframe-cypress'
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build --workspace packages/standalone --workspace packages/doenetml-iframe
               env:
                   WIREIT_CACHE: "local"
 
@@ -216,7 +245,14 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: cypress-screenshots-${{ matrix.test-group }}
-                  path: ./packages/test-cypress/cypress/screenshots
+                  # e2e screenshots land under test-cypress; component-test
+                  # screenshots land under the package whose harness ran them.
+                  path: |
+                      ./packages/test-cypress/cypress/screenshots
+                      ./packages/codemirror/cypress/screenshots
+                      ./packages/doenetml/cypress/screenshots
+                      ./packages/doenetml-iframe/cypress/screenshots
+                  if-no-files-found: ignore
 
     test-prefigure-browser-runtime:
         name: Prefigure Browser Runtime Check
@@ -225,7 +261,11 @@ jobs:
         if: needs.changes.outputs.prefigure == 'true'
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
         steps:
             - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
@@ -249,6 +289,53 @@ jobs:
 
             - name: Run browser runtime check
               run: npm run test:browser-runtime -w @doenet/prefigure
+
+    test-doenetml-to-pretext-devcontainer:
+        name: Devcontainer Runs Tests
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Build and test in devcontainer
+              uses: devcontainers/ci@v0.3
+              with:
+                  runCmd: |
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
+                      # This package runs tests in a headless browser. If it can run, the other tests should too.
+                      npm run build -w packages/doenetml-to-pretext
+                      npm run test -w packages/doenetml-to-pretext
+
+    test-doenetml-to-pretext-full-devcontainer:
+        name: DoenetML to PreTeXt Tests
+        runs-on: ubuntu-latest
+        needs: build
+        timeout-minutes: 25
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Build and test in devcontainer
+              uses: devcontainers/ci@v0.3
+              with:
+                  runCmd: |
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
+                      npm run build -w packages/doenetml-to-pretext
+                      npm run test -w packages/doenetml-to-pretext
+                      npm run build -w packages/doenetml-to-pretext-python
+                      npm run test -w packages/doenetml-to-pretext-python
 
     lint:
         name: Lint Rust Code
@@ -279,7 +366,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -324,7 +415,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - name: Checkout sources
@@ -339,6 +434,36 @@ jobs:
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
 
+            # Two TypeScript/JavaScript source paths that differ only by letter
+            # case and/or extension are ambiguous on case-insensitive file
+            # systems (macOS, Windows) and to the module resolver: an import
+            # like "./utils/Description" can resolve to "description.ts" instead
+            # of "Description.tsx". Detect tracked source files whose paths are
+            # equal after lowercasing and stripping the extension, so such pairs
+            # are caught before they break checkouts or imports on those
+            # platforms. Relies on GNU sed (the `s///i` flag is non-POSIX),
+            # which the ubuntu runner provides.
+            - name: Check for case-insensitive filename collisions
+              run: |
+                  COLLISIONS=$(git ls-files | grep -Ei '\.(ts|tsx|js|jsx)$' | sed -E 's/\.(ts|tsx|js|jsx)$//i' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+
+                  if [ -n "$COLLISIONS" ]; then
+                    echo "❌ Error: Found source files whose paths differ only by case and/or extension."
+                    echo "   These are ambiguous on case-insensitive file systems (macOS, Windows) and to the module resolver:"
+                    echo ""
+                    while IFS= read -r collision; do
+                      echo "Ambiguous base path: $collision"
+                      # Escape regex metacharacters so the base path matches literally.
+                      # Backslashes are doubled first so the second pass doesn't re-escape them.
+                      escaped=$(printf '%s' "$collision" | sed -e 's/\\/\\\\/g' -e 's/[].^$*+?(){}|[]/\\&/g')
+                      # Print the actual files that are conflicting.
+                      git ls-files | grep -iE "^${escaped}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
+                    done <<< "$COLLISIONS"
+                    exit 1
+                  else
+                    echo "✅ No case-insensitive collisions found."
+                  fi
+
     schema-freshness:
         name: Verify schema regenerated
         runs-on: ubuntu-latest
@@ -346,7 +471,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - uses: actions/checkout@v6
@@ -402,7 +531,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
 
         steps:
             - uses: actions/checkout@v6

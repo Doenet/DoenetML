@@ -13,7 +13,7 @@ export default class Angle extends GraphicalComponent {
     static componentType = "angle";
 
     static componentDocs = {
-        summary: "An angle defined by three points or a measure.",
+        summary: "An angle defined by three points or a measure",
     };
     static canBeInList = true;
 

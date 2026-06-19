@@ -7,7 +7,7 @@ export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
     static componentDocs = {
-        summary: "Sorts a list according to a comparison function.",
+        summary: "Sorts a list according to a comparison function",
     };
     static takesIndex = true;
 
@@ -66,7 +66,7 @@ export default class Sort extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

@@ -1,25 +1,24 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <intersection>{:dn}`
+# `<intersection>{:dn}`
+
+<ComponentDisplay name='intersection'/>
+
+`<intersection>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that determines the intersection point of a pair of graphical objects. These can be `<line>{:dn}`, `<circle>{:dn}`, or `<polygon>{:dn}` components.
+
+The `<intersection>{:dn}` component renders a point (or points in the case of multiple intersections) 
+when nested inside a `<graph>{:dn}` component, and renders a coordinate pair (or a list of coordinate pairs) otherwise.
+
+<AttrPropDisplay name='intersection'/>
 
 
-` <intersection>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that determines the intersection point of a pair of graphical objects. These can be ` <line>{:dn}`, ` <circle>{:dn}`, or ` <polygon>{:dn}` components.
+## Examples
 
-The ` <intersection>{:dn}` component renders a point (or points in the case of multiple intersections) 
-when nested inside a ` <graph>{:dn}` component, and renders a coordinate pair (or a list of coordinate pairs) otherwise.
-
-## Attributes and Properties 
- <AttrDisplay name='intersection'/> 
- The ` <intersection>{:dn}` component shares properties with the `<point>{:dn}` component
-
-
----
-
-### Example: ` <intersection>{:dn}` of two lines
+### Example: `<intersection>{:dn}` of two lines
 
 
 ```doenet-editor-horiz
@@ -28,6 +27,7 @@ changes in the intersection.</p>
 <p>The intersection point is: $IP</p>
 
 <graph size="small">
+  <shortDescription>graph showing the intersection of two lines</shortDescription>
   <line name="line1">y = x</line>
   <line name="line2" styleNumber="2">
     2y + 3x = 4
@@ -42,14 +42,14 @@ changes in the intersection.</p>
 
 
 
-When inside a ` <graph>{:dn}`, the ` <intersection>{:dn}` component renders a point. 
+When inside a `<graph>{:dn}`, the `<intersection>{:dn}` component renders a point. 
 Outside the graph, the coordinates of the intersection are rendered.
 
 
 
 ---
 
-### Example: ` <intersection>{:dn}` of line and polygon
+### Example: `<intersection>{:dn}` of line and polygon
 
 
 ```doenet-editor-horiz
@@ -58,6 +58,7 @@ in the intersection points.</p>
 <p>The intersection points are: $intPoints</p>
 
 <graph size="small">
+  <shortDescription>graph showing the intersections of a line and a pentagon</shortDescription>
   <line name="line1">y = x</line>
   <regularPolygon 
     name="pentagon" 
@@ -78,14 +79,14 @@ in the intersection points.</p>
 
 
 
-When more than one ` <intersection>{:dn}` occurs between the specified components, 
+When more than one `<intersection>{:dn}` occurs between the specified components, 
 the intersection points are stored in an array. Individual points can be accessed with array notation.
 
 
 
 ---
 
-### Example: ` <intersection>{:dn}` of circle and polyline
+### Example: `<intersection>{:dn}` of circle and polyline
 
 
 ```doenet-editor-horiz
@@ -93,6 +94,7 @@ the intersection points are stored in an array. Individual points can be accesse
 create different numbers of intersection points.</p>
 
 <graph size="small">
+  <shortDescription>graph showing the intersections of a polyline and a circle</shortDescription>
   <point name="p1">(-5,-4)</point>
   <point name="p2">(-1,6)</point>
   <point name="p3">(2,-7)</point>
@@ -113,13 +115,13 @@ create different numbers of intersection points.</p>
 <p>The second intersection point is: $intPoints[2]</p>
 ```
 
-When more than one ` <intersection>{:dn}` occurs between the specified components, 
+When more than one `<intersection>{:dn}` occurs between the specified components, 
 the intersection points are stored in an array. Individual 
 points can be accessed with array notation.
 
 ---
 
-### Example: No ` <intersection>{:dn}` exists
+### Example: No `<intersection>{:dn}` exists
 
 
 ```doenet-editor-horiz
@@ -128,6 +130,7 @@ Drag the circle and line to create conditions where
 intersections do and do not exist.</p>
 
 <graph size="small">
+  <shortDescription>graph showing a line and a circle that may or may not intersect</shortDescription>
   <line name="line1">y = x - 5</line>
   <circle name="circ1" styleNumber="2" radius="3"/>
   <intersection 
@@ -140,7 +143,7 @@ intersections do and do not exist.</p>
 <p>The second intersection point is: $intPoints[2]</p>
 ```
 
-Doenet does not return anything when no ` <intersection>{:dn}` exists.
+Doenet does not return anything when no `<intersection>{:dn}` exists.
 
 ---
 
@@ -156,6 +159,7 @@ create conditions where intersections do and do not exist.</p>
 </slider>
 
 <graph size="small">
+  <shortDescription>graph showing two lines whose slopes can be made equal</shortDescription>
   <line name="line1">y = x</line>
   <line name="line2" styleNumber="2">y = $m x</line>
   <intersection 
@@ -184,6 +188,7 @@ to observe the intersection behavior.</p>
 </slider>
 
 <graph size="small">
+  <shortDescription>graph showing intersections of a vertical line with a rectangle</shortDescription>
   <line name="line1">x = $a</line>
   <rectangle 
     name="rect1" 
@@ -204,7 +209,7 @@ to observe the intersection behavior.</p>
 When a line and the edge of a polygon overlap, only the 
 endpoints of the overlapped region are counted as intersection points. 
 
----
+## Attribute Examples
 
 ### Attribute Example: styleNumber
 
@@ -217,6 +222,7 @@ endpoints of the overlapped region are counted as intersection points.
 </slider>
 
 <graph size="small">
+  <shortDescription>graph showing intersections of a line and a rectangle with a styled point</shortDescription>
   <line name="line1">y = x</line>
   <rectangle name="rect1" width="4" height="4"/>
   <intersection 
@@ -227,6 +233,6 @@ endpoints of the overlapped region are counted as intersection points.
 </graph>
 ```
 
-The style of an ` <intersection>{:dn}` component can be adjusted 
-with the `styleNumber` attribute in the same manner as a ` <point>{:dn}`.
+The style of an `<intersection>{:dn}` component can be adjusted 
+with the `styleNumber` attribute in the same manner as a `<point>{:dn}`.
 

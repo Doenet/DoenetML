@@ -19,7 +19,7 @@ export default class P extends BlockComponent {
     static componentType = "p";
 
     static componentDocs = {
-        summary: "A paragraph of inline content.",
+        summary: "A paragraph of inline content",
     };
     static renderChildren = true;
 

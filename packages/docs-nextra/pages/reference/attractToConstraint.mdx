@@ -1,0 +1,111 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<attractToConstraint>{:dn}`
+
+<ComponentDisplay name='attractToConstraint'/>
+
+`<attractToConstraint>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
+that wraps another constraint (such as [`<constrainToInterior>`](constrainToInterior),
+[`<constrainToGraph>`](constrainToGraph), or a [`<constraintUnion>`](constraintUnion))
+and applies it only when the constrained location is within `threshold` of the unconstrained location.
+The wrapped constraint therefore behaves like a soft attraction rather than a hard snap.
+
+> **Use the dedicated components first.** For wrapping a single
+> [`<constrainTo>`](constrainTo), use [`<attractTo>`](attractTo); for wrapping a single
+> [`<constrainToGrid>`](constrainToGrid), use [`<attractToGrid>`](attractToGrid). `<attractToConstraint>{:dn}`
+> is the right choice for constraints that have no dedicated "attract" form (such as
+> `<constrainToInterior>{:dn}`) or for combining several constraint types under a single threshold via
+> `<constraintUnion>{:dn}`.
+
+<AttrPropDisplay name='attractToConstraint'/>
+
+
+## Examples
+
+### Example: Soft-snap a `<point>{:dn}` into the interior of a region
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A polygon and a point that snaps inside it when dragged near</shortDescription>
+  <polygon name="tri" vertices="(0, 0) (4, 0) (2, 3)" filled />
+  <point name="P" styleNumber="2" coords="(6, -1)">
+    <attractToConstraint>
+      <constrainToInterior>$tri</constrainToInterior>
+    </attractToConstraint>
+  </point>
+</graph>
+```
+
+`<constrainToInterior>{:dn}` has no dedicated "attract" form. Wrapping it in
+`<attractToConstraint>{:dn}` lets the point move freely outside the triangle and snap into the
+interior once it is dragged within the default threshold of the polygon.
+
+
+---
+
+### Example: Combine several constraint types under one threshold
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A point that softly attracts to either a line or a 2 by 2 grid</shortDescription>
+  <line name="ell">y = x</line>
+  <point name="P" styleNumber="2" coords="(3, -2)">
+    <attractToConstraint threshold="0.4">
+      <constraintUnion>
+        <constrainTo>$ell</constrainTo>
+        <constrainToGrid dx="2" dy="2" />
+      </constraintUnion>
+    </attractToConstraint>
+  </point>
+</graph>
+```
+
+A `<constraintUnion>{:dn}` lets the point switch freely among its constituent constraints, and the
+single `<attractToConstraint>{:dn}` wrapper applies one threshold to the entire union. Writing this
+with separate `<attractTo>{:dn}` and `<attractToGrid>{:dn}` siblings would attract the point
+independently to each, with no shared threshold.
+
+
+## Attribute Examples
+
+### Attribute Example: threshold
+
+```doenet-editor-horiz
+<p><mathInput name="t" prefill="0.5"><label>Attraction threshold</label></mathInput></p>
+<graph size="small">
+  <shortDescription>A polygon and a point with an adjustable threshold for snapping into its interior</shortDescription>
+  <polygon name="tri" vertices="(0, 0) (4, 0) (2, 3)" filled />
+  <point name="P" styleNumber="2" coords="(6, -1)">
+    <attractToConstraint threshold="$t">
+      <constrainToInterior>$tri</constrainToInterior>
+    </attractToConstraint>
+  </point>
+</graph>
+```
+
+The `threshold` attribute sets how close the point must be (in graph units) to the constrained
+location before the wrapped constraint takes effect. The default value is $0.5$.
+
+
+## Property Examples
+
+### Property Example: threshold
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A polygon and a point whose attract-to-interior threshold is reported as text</shortDescription>
+  <polygon name="tri" vertices="(0, 0) (4, 0) (2, 3)" filled />
+  <point name="P" styleNumber="2" coords="(6, -1)">
+    <attractToConstraint name="snap" threshold="0.4">
+      <constrainToInterior>$tri</constrainToInterior>
+    </attractToConstraint>
+  </point>
+</graph>
+
+<p><c>threshold</c> = $snap.threshold</p>
+```
+
+The `threshold` attribute is also available as a property of a named `<attractToConstraint>{:dn}`.

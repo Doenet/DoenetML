@@ -4,7 +4,7 @@ export default class Legend extends GraphicalComponent {
     static componentType = "legend";
 
     static componentDocs = {
-        summary: "A legend describing the contents of a figure or graph.",
+        summary: "A legend describing the contents of a graph",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

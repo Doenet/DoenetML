@@ -25,10 +25,11 @@ export default class Curve extends GraphicalComponent {
         });
     }
     static componentType = "curve";
+    static styleOverrideCategories = ["line", "fill"];
 
     static componentDocs = {
         summary:
-            "A curve defined by a function, parametric formulas, or control points.",
+            "A curve defined by a function, parametric formulas, or control points",
     };
     static rendererType = "curve";
 

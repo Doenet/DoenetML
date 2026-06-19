@@ -6,7 +6,7 @@ export default class AttractTo extends ConstraintComponent {
 
     static componentDocs = {
         summary:
-            "Attracts a graphical component's position to another component when nearby.",
+            "Attracts a graphical component's position to another component when nearby",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

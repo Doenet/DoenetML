@@ -1,4 +1,5 @@
 import React, {
+    useMemo,
     useRef,
     useState,
     FocusEventHandler,
@@ -12,6 +13,7 @@ import useDoenetRenderer, {
 import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
+import { DEFAULT_MATH_INPUT_FUNCTION_NAMES } from "@doenet/utils";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
@@ -25,11 +27,29 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
+
+/**
+ * MathQuill rejects an empty `autoOperatorNames` string (its validator
+ * requires at least one entry of >=2 letters/pipes/dashes), so when the
+ * effective list is empty \u2014 e.g., the author wrote
+ * `<mathInput resetFunctionNames="" />` to disable auto-formatting
+ * entirely \u2014 we hand MathQuill a single sentinel that satisfies the
+ * validator but can never match user input.
+ *
+ * `Letter.autoUnItalicize` (mathquill.js around line 7859) builds
+ * candidate match strings from runs of contiguous `Letter` nodes only,
+ * so a token containing a dash cannot match anything the author types.
+ * We use `"a-"` (length 2, the minimum) instead of a long descriptive
+ * string so MathQuill's computed `autoOperatorNames._maxLength` stays
+ * small \u2014 that value drives the inner loop in `autoUnItalicize`, and a
+ * smaller `_maxLength` means less work on every keystroke.
+ */
+const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
 
 /**
  * Encapsulates math input preview popover state and interaction behavior.
@@ -360,6 +380,10 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
+    // Optional because `_matrixComponentInput` reuses this renderer
+    // (`rendererType = "mathInput"`) without defining the SV; the
+    // `??` fallback below handles the absent case.
+    effectiveFunctionNames?: string[];
 }
 
 export default function MathInput(props: UseDoenetRendererProps) {
@@ -407,6 +431,28 @@ export default function MathInput(props: UseDoenetRendererProps) {
     if (!ignoreUpdate) {
         rendererValue.current = SVs.rawRendererValue;
     }
+
+    // The worker resolves the effective list (defaults +/- deltas, or
+    // `resetFunctionNames` verbatim) and emits a `warning` diagnostic if
+    // any tokens were dropped for failing MathQuill's validator. All
+    // the renderer has to do here is join the deduped/validated list
+    // and substitute a sentinel for the empty case (MathQuill rejects
+    // an empty `autoOperatorNames` string outright; see the sentinel's
+    // doc comment).
+    //
+    // `_matrixComponentInput` also mounts this renderer (it sets
+    // `rendererType = "mathInput"`) but does not author the three
+    // function-name attributes, so its SVs map omits
+    // `effectiveFunctionNames`. Fall back to the shared default list
+    // in that case so matrix cells still auto-format the same names a
+    // bare `<mathInput/>` would.
+    const autoOperatorNames = useMemo(() => {
+        const names =
+            SVs.effectiveFunctionNames ?? DEFAULT_MATH_INPUT_FUNCTION_NAMES;
+        return names.length > 0
+            ? names.join(" ")
+            : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL;
+    }, [SVs.effectiveFunctionNames]);
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
@@ -712,6 +758,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
             style={{
                 display: "inline-flex",
                 alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line, keeping a single tall-math label
+                // aligned with the input (#945).
+                verticalAlign: "baseline",
             }}
         >
             {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
@@ -748,16 +799,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     config={{
                         autoCommands:
                             "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
-                        autoOperatorNames:
-                            "arg deg det dim exp gcd hom ker lg lim ln log max min" +
-                            " Pr" +
-                            " cos cosh acos acosh arccos arccosh" +
-                            " cot coth acot acoth arccot arccoth" +
-                            " csc csch acsc acsch arccsc arccsch" +
-                            " sec sech asec asech arcsec arcsech" +
-                            " sin sinh asin asinh arcsin arcsinh" +
-                            " tan tanh atan atanh arctan arctanh" +
-                            " nPr nCr",
+                        autoOperatorNames,
                         handlers: {
                             enter: handlePressEnter,
                         },
@@ -806,10 +848,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
         <React.Fragment>
             <span
                 id={id}
+                // `display: inline` keeps the label and input row as ordinary
+                // inline content so the whole input flows with its paragraph:
+                // text before and after the input wraps together with the label
+                // and input box, and a long label wraps across lines with the
+                // input following its end rather than baseline-aligning to the
+                // label's *first* line, where it looked embedded in the label
+                // text (#1245). (inline-block would instead make the label and
+                // input an atomic box that surrounding paragraph text cannot
+                // wrap together with.) A single tall label (e.g. tall math)
+                // still aligns with the input via the input row's
+                // `vertical-align: baseline` (preserving #945).
                 style={{
-                    display: "inline-flex",
-                    maxWidth: "100%",
-                    alignItems: "baseline",
+                    display: "inline",
                 }}
             >
                 {SVs.labelPosition === "right" ? (

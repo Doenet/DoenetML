@@ -1,27 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <constrainToGraph>{:dn}`
+# `<constrainToGraph>{:dn}`
 
+<ComponentDisplay name='constrainToGraph'/>
 
-` <constrainToGraph>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component to keep constrained ` <point>{:dn}` 
+`<constrainToGraph>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component to keep constrained `<point>{:dn}` 
 components within the confines of the graphing window.
 
-## Attributes and Properties 
- <AttrDisplay name='constrainToGraph'/> 
- <PropDisplay name='constrainToGraph'/>
+<AttrPropDisplay name='constrainToGraph'/>
 
----
+## Examples
 
-### Example: Constrain a ` <point>{:dn}` to a ` <graph>{:dn}`
+### Example: Constrain a `<point>{:dn}` to a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>Try dragging the point off the graph</p>
 <graph size="small">
+  <shortDescription>A graph with a point constrained to the viewing window</shortDescription>
   <point name="p">
     <constrainToGraph/>
     <label>$p.coords</label>
@@ -31,11 +31,11 @@ components within the confines of the graphing window.
 
 
 
-The ` <point>{:dn}` is constrained to the current viewing window of the ` <graph>{:dn}`.
+The `<point>{:dn}` is constrained to the current viewing window of the `<graph>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: buffer
 
@@ -43,6 +43,7 @@ The ` <point>{:dn}` is constrained to the current viewing window of the ` <graph
 ```doenet-editor-horiz
 <p>Try dragging the point off the graph</p>
 <graph size="small">
+  <shortDescription>A graph with a point constrained to the viewing window with a buffer</shortDescription>
   <point name="p">
     <constrainToGraph buffer="0.2"/>
     <label>$p.coords</label>
@@ -52,7 +53,7 @@ The ` <point>{:dn}` is constrained to the current viewing window of the ` <graph
 
 
 
-The ` <point>{:dn}` is constrained to the current viewing window of 
-the ` <graph>{:dn}` with a specified `buffer` of $20 \%$ of the graph.
+The `<point>{:dn}` is constrained to the current viewing window of 
+the `<graph>{:dn}` with a specified `buffer` of $20 \%$ of the graph.
 
 

@@ -42,9 +42,22 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
     }
 
     function openHelpTab() {
-        // Clicking the Help tab also opens the (collapsed) info panel,
-        // since TabList's onClick calls setIsOpen(true).
-        cy.get('[title="Context-sensitive help"]').click();
+        // The footer redesign mounts the panel open on the help tab by
+        // default and made tabs self-toggling — clicking the active tab now
+        // closes the panel. Only click when help isn't already selected with
+        // the panel open, otherwise this helper would close it.
+        cy.get("body").then(($body) => {
+            const helpSelected =
+                $body
+                    .find('[title="Context-sensitive help"]')
+                    .attr("aria-selected") === "true";
+            const panelOpen =
+                $body.find(".diagnostics-response-tabs-container.is-open")
+                    .length > 0;
+            if (!(helpSelected && panelOpen)) {
+                cy.get('[title="Context-sensitive help"]').click();
+            }
+        });
     }
 
     it("shows component help with reference link for cursor on tag name", () => {
@@ -66,7 +79,11 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
 
         cy.get(".help-panel", { timeout: 5000 }).within(() => {
             cy.get(".help-element-name").should("contain.text", "math");
-            cy.get(".help-description").should("not.be.empty");
+            // Element summary now rides on the title line after the linked
+            // name (em-dash separated), not in a separate description row.
+            cy.get(".help-element-title")
+                .invoke("text")
+                .should("match", /<math>\s+\S/);
             cy.get(".help-docs-link")
                 .should("have.attr", "href")
                 .and("include", "/reference/math");
@@ -120,8 +137,9 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.get(".help-panel", { timeout: 5000 }).within(() => {
             // Display name stays as the user-authored "row".
             cy.get(".help-element-name").should("contain.text", "row");
-            // Summary should mention matrix (matrixRow's docs string).
-            cy.get(".help-description")
+            // Summary should mention matrix (matrixRow's docs string) — now
+            // on the title line after the linked name.
+            cy.get(".help-element-title")
                 .invoke("text")
                 .should("match", /matrix/i);
             // Link points to row_matrix, NOT to row (which would 404) or
@@ -155,7 +173,7 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         });
     });
 
-    it("shows refName sentence and reference link for cursor on a bare $name", () => {
+    it("shows refName sentence and references link for cursor on a bare $name", () => {
         const doenetML = `<math name="m">x</math>\n$m`;
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
@@ -169,11 +187,16 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.get(".help-panel", { timeout: 5000 }).within(() => {
             cy.get(".help-ref-sentence")
                 .invoke("text")
-                .should("match", /\$m\s+references\s+<math>\s+on\s+line\s+1/);
-            cy.get(".help-description").should("not.be.empty");
+                .should(
+                    "match",
+                    /\$m\s+is a reference to\s+<math>\s+\(line 1\)/,
+                );
+            // Reference help links to the references concept page, not the
+            // referenced component's reference page.
             cy.get(".help-docs-link")
-                .should("have.attr", "href")
-                .and("include", "/reference/math");
+                .should("contain.text", "references")
+                .and("have.attr", "href")
+                .and("include", "/concepts/references");
         });
     });
 
@@ -199,35 +222,68 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 .invoke("text")
                 .should(
                     "match",
-                    /\$sec\.bi\s+references\s+<booleanInput>\s+on\s+line\s+1/,
+                    /\$sec\.bi\s+is a reference to\s+<booleanInput>\s+\(line 1\)/,
                 );
-            cy.get(".help-description").should("not.be.empty");
             cy.get(".help-docs-link")
                 .should("have.attr", "href")
-                .and("include", "/reference/booleanInput");
+                .and("include", "/concepts/references");
         });
     });
 
-    it("omits the reference link for an allow-listed undocumented component", () => {
-        // <codeEditor> is on the undocumented allow-list, so its schema
-        // docsSlug is clamped to null and the help panel must not render
-        // a "Reference page" link (which would otherwise 404).
-        const doenetML = `<codeEditor/>`;
+    it("suggests components to try when the cursor is in an element body", () => {
+        const doenetML = `<section>\n\n</section>`;
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
         cy.get(".cm-content", { timeout: 10000 }).should(
             "contain.text",
-            "codeEditor",
+            "section",
         );
 
         openHelpTab();
-        // Cursor mid-tag-name of "codeEditor" (offset 5 = between 'd' and 'E').
-        moveCursorToOffset(5);
+        // Cursor on the blank line inside the <section> body.
+        moveCursorToOffset(doenetML.indexOf("\n\n") + 1);
 
         cy.get(".help-panel", { timeout: 5000 }).within(() => {
-            cy.get(".help-element-name").should("contain.text", "codeEditor");
-            cy.get(".help-docs-link").should("not.exist");
+            cy.get(".help-suggestions-header").should(
+                "contain.text",
+                "section",
+            );
+            cy.get(".help-suggestion-item").should(
+                "have.length.greaterThan",
+                0,
+            );
+            cy.get(".help-suggestions-footer").should(
+                "contain.text",
+                "Ctrl+Space",
+            );
+        });
+    });
+
+    it("explains an invalid reference instead of showing the default text", () => {
+        const doenetML = `<math name="m">x</math>\n$bad`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "$bad",
+        );
+
+        openHelpTab();
+        // Cursor at the end, on the `$bad` reference.
+        moveCursorToOffset(doenetML.length);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            // The resolver (booted) reports `$bad` as having no referent, so
+            // the panel states that rather than rendering the placeholder.
+            cy.get(".help-ref-sentence")
+                .invoke("text")
+                .should("match", /referent/i)
+                .and("match", /\$bad/);
+            cy.get(".help-docs-link")
+                .should("have.attr", "href")
+                .and("include", "/concepts/references");
         });
     });
 });

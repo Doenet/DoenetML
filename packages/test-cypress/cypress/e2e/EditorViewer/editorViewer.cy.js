@@ -145,31 +145,76 @@ describe("EditorViewer Tests", { tags: ["@group5"] }, function () {
             "<math expand>x < y</math>",
         );
 
-        cy.log("Format as XML");
-
-        cy.get("[data-test='Format As Select']").click();
-        cy.contains(".select-item", "XML").click();
-
-        cy.contains("[data-test='Format DoenetML Button']", "Format").click();
+        cy.log("Format as XML via the footer menu");
+        cy.get("[data-test='footer-menu-button']").click();
+        cy.get("[data-test='footer-menu-format-xml']").click();
 
         cy.get(".cm-content").should(
             "contain.text",
             '<math expand="true">x &lt; y</math>',
         );
 
-        cy.log("Format as DoenetML");
-        cy.get("[data-test='Format As Select']").click();
-        cy.contains(
-            "[data-test='Format As Select Popover'] .select-item",
-            "DoenetML",
-        ).click();
-
-        cy.contains("[data-test='Format DoenetML Button']", "Format").click();
+        cy.log("Format as DoenetML via the footer menu");
+        cy.get("[data-test='footer-menu-button']").click();
+        cy.get("[data-test='footer-menu-format-doenetml']").click();
 
         cy.get(".cm-content").should(
             "contain.text",
             '<math expand="true">x < y</math>',
         );
+    });
+
+    it("footer tabs open/close the diagnostics panel", () => {
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_showEditor").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `<p>hello</p>`,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".cm-content").should("contain.text", "<p>hello</p>");
+
+        cy.log("Panel mounts open on the help tab by default");
+        cy.get(".diagnostics-response-tabs-panels").should("exist");
+        cy.get("[data-test='footer-tab-help']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log(
+            "All footer tabs and the three-dot menu render in the default config",
+        );
+        cy.get("[data-test='footer-tab-errors']").should("exist");
+        cy.get("[data-test='footer-tab-warnings']").should("exist");
+        cy.get("[data-test='footer-tab-info']").should("exist");
+        cy.get("[data-test='footer-tab-accessibility']").should("exist");
+        cy.get("[data-test='footer-tab-responses']").should("exist");
+        cy.get("[data-test='footer-menu-button']").should("exist");
+
+        cy.log("Click the active help tab to close the panel");
+        cy.get("[data-test='footer-tab-help']").click();
+        cy.get(".diagnostics-response-tabs-panels").should("not.exist");
+
+        cy.log("Click the errors tab to reopen the panel on errors");
+        cy.get("[data-test='footer-tab-errors']").click();
+        cy.get(".diagnostics-response-tabs-panels").should("exist");
+        cy.get("[data-test='footer-tab-errors']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log("Click the active errors tab again to close");
+        cy.get("[data-test='footer-tab-errors']").click();
+        cy.get(".diagnostics-response-tabs-panels").should("not.exist");
     });
 
     it("toggles info diagnostics annotations in editor", () => {

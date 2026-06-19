@@ -1,0 +1,31 @@
+{
+    "name": "doenetml-to-pretext-python",
+    "description": "Python package to convert DoenetML to PreTeXt",
+    "private": true,
+    "scripts": {
+        "test": "pytest",
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "python3 -m build --wheel",
+            "files": [
+                "doenetml_to_pretext/**/*.py",
+                "doenetml_to_pretext/import_map.json",
+                "doenetml_to_pretext/py.typed",
+                "README.md",
+                "MANIFEST.in",
+                "setup.py",
+                "pyproject.toml",
+                "../doenetml/package.json"
+            ],
+            "output": [
+                "build/**",
+                "dist/*.whl"
+            ],
+            "dependencies": [
+                "../doenetml-to-pretext:build"
+            ]
+        }
+    }
+}

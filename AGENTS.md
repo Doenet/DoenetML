@@ -121,6 +121,14 @@ npm run test-cypress-fast-fail -w @doenet/test-cypress -- --config specPattern=c
 
 If you edit these during development they will show as modified, but should not be staged.
 
+### Agent attribution on commits
+
+When an agent composes a commit, credit it with a `Co-authored-by:` trailer (a blank line before the trailer block) rather than a marketing-style "Generated with …" footer in the commit body. Use the actual model/agent name and its no-reply email — do not hardcode one specific model. For example:
+
+    Co-authored-by: Claude Opus 4.8 <noreply@anthropic.com>
+
+The goal is simply to record that an agent helped author the change; substitute whatever model or agent is actually composing the commit.
+
 ## PR Creation
 
 This checkout may use a personal fork as `origin` and the canonical `Doenet/DoenetML` as `upstream`.
@@ -132,24 +140,26 @@ This checkout may use a personal fork as `origin` and the canonical `Doenet/Doen
 - Before pushing, run `npm run prettier:format` on modified files.
 - Before creating the PR, confirm only intended files are staged — this repository often has unrelated local work in the tree.
 - After creating the PR, verify the branch has been pushed to `origin` and the PR links to the correct target branch (`Doenet/DoenetML:main`).
+- Do not put the issue number in the PR title or in commit subjects on the branch. Squash-merge appends ` (#<PR-number>)` automatically; a title like `fix: ... (#1179)` becomes `fix: ... (#1179) (#1182)` after merge. Reference issues from the PR body instead (e.g. `Closes #1179.`).
+
+## Agent-Authored GitHub Activity
+
+When an agent posts a PR comment, opens an issue, or comments on an issue, end the body with a footer noting that an agent helped compose the text, so reviewers can see at a glance that it was machine-generated. Use the footer appropriate to whatever agent system is actually in use — the point is to flag agent involvement, not to advertise a particular product. For example:
+
+```
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+```
+🤖 Generated with [GitHub Copilot](https://github.com/features/copilot)
+```
+
+Match the footer to the agent that authored the content (and update the link/label accordingly for any other agent system).
+
+This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
 
 ## Changesets
 
-The repo uses Changesets for version management. Configuration is in `.changeset/config.json`.
-
-### Fixed Group (synchronized versioning)
-Six packages version together:
-- `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`
-- `@doenet/v06-to-v07`, `@doenet/vscode-extension`, `doenet-vscode-extension`
-
-### Independent Versioning
-- `@doenet/prefigure` versions independently
-
-**Rule**: When creating a changeset for a user-facing change, include **all packages** where the change is visible to end users, not just where the implementation lives.
-
-Example: A change to `packages/doenetml/src/Viewer` affects `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, and downstream variants. Include all in the changeset.
-
-User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
+The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes (notably adding `@doenet/lsp-tools` or `@doenet/static-assets`) have crept in that way.
 
 ## Key State & Data Flow
 
@@ -170,7 +180,7 @@ The worker receives serialized updates and returns rendered component states. Re
 2. Implement the **UI renderer** in `packages/doenetml/src/Viewer/renderers` or similar
 3. Register the component in `componentInfoObjects` so the worker knows about it; if the component appears in the DAST/normalized-DAST schema, update the relevant schema definitions too
 4. Add **tests** in both Vitest and Cypress
-5. Add a **changeset** if user-facing
+5. Add a **changeset** if user-facing (see the [`changesets`](.github/skills/changesets/SKILL.md) skill for which packages to list)
 
 ### Debug a rendering issue
 1. Start `npm run dev` and inspect the browser console

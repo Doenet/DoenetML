@@ -5,14 +5,14 @@ import {
 } from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
+const { eigs, square, abs, divide } = me.math;
 
 export default class EigenDecomposition extends BaseComponent {
     static componentType = "eigenDecomposition";
     static rendererType = undefined;
 
     static componentDocs = {
-        summary:
-            "Computes the eigenvalues and eigenvectors of a square matrix child.",
+        summary: "Computes the eigenvalues and eigenvectors of a square matrix",
     };
 
     static createAttributesObject() {
@@ -130,7 +130,7 @@ export default class EigenDecomposition extends BaseComponent {
 
                 let result;
                 try {
-                    result = me.math.eigs(matrixArray);
+                    result = eigs(matrixArray);
                 } catch (e) {
                     console.error(
                         "Could nt calculate eigenvalues of matrix",
@@ -356,10 +356,10 @@ export default class EigenDecomposition extends BaseComponent {
                             globalDependencyValues.decomposition.eigenvectors[i]
                                 .vector[j];
                         vector.push(val);
-                        vectorMag += me.math.square(me.math.abs(val));
+                        vectorMag += square(abs(val));
                     }
                     vectorMag = Math.sqrt(vectorMag);
-                    vector = vector.map((x) => me.math.divide(x, vectorMag));
+                    vector = vector.map((x) => divide(x, vectorMag));
 
                     for (let j = 0; j < arraySize[1]; j++) {
                         eigenvectors[`${i},${j}`] = vector[j];

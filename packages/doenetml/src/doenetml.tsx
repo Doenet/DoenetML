@@ -20,14 +20,10 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
-export type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./EditorViewer/DiagnosticsResponseTabs";
+import type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+import type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
+export type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
@@ -90,6 +86,7 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
+    doenetMediaUrl,
     darkMode = "light",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -119,7 +116,10 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    setDiagnosticsCallback?: (
+        diagnostics: DiagnosticRecord[],
+        source: string,
+    ) => void;
     /**
      * @deprecated Use `setDiagnosticsCallback` instead.
      */
@@ -134,6 +134,7 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -147,19 +148,6 @@ export function DoenetViewer({
      */
     onInit?: (elm: HTMLElement) => void;
 }) {
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
-
     const [variants, setVariants] = useState({
         index: 1,
         numVariants: 1,
@@ -194,8 +182,8 @@ export function DoenetViewer({
     }, []);
 
     const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
-        ? (diagnostics: DiagnosticRecord[]) => {
-              setDiagnosticsCallback?.(diagnostics);
+        ? (diagnostics: DiagnosticRecord[], source: string) => {
+              setDiagnosticsCallback?.(diagnostics, source);
               setErrorsAndWarningsCallback({
                   errors: diagnostics.filter(isErrorRecord),
                   warnings: diagnostics.filter(isWarningRecord),
@@ -290,6 +278,7 @@ export function DoenetViewer({
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
+            doenetMediaUrl={doenetMediaUrl}
             darkMode={darkMode}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -332,6 +321,7 @@ type DoenetEditorProps = {
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -345,6 +335,7 @@ type DoenetEditorProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;
@@ -352,6 +343,7 @@ type DoenetEditorProps = {
     showDiagnostics?: boolean;
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     initialErrors?: ErrorRecord[];
@@ -359,11 +351,17 @@ type DoenetEditorProps = {
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
-     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Controls which tab the diagnostics/responses/help panel opens to at
+     * mount. Three forms:
+     *  - prop omitted (`undefined`): default — panel opens on the help tab
+     *    (or the first available tab if `showHelp` is false).
+     *  - a specific tab id: panel opens on that tab. If the tab is disabled,
+     *    falls back to the default with a `console.warn`.
+     *  - `null`: panel mounts closed.
      * Reactive changes after mount are ignored — use the imperative ref handle
      * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
      */
-    initialOpenTab?: DiagnosticsTabId;
+    initialOpenTab?: DiagnosticsTabId | null;
 };
 
 export const DoenetEditor = React.forwardRef<
@@ -377,6 +375,7 @@ export const DoenetEditor = React.forwardRef<
         addVirtualKeyboard = true,
         externalVirtualKeyboardProvided = false,
         doenetViewerUrl,
+        doenetMediaUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -395,6 +394,7 @@ export const DoenetEditor = React.forwardRef<
         showDiagnostics,
         showErrorsWarnings,
         showResponses = true,
+        showHelp = true,
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         initialErrors,
@@ -442,19 +442,6 @@ export const DoenetEditor = React.forwardRef<
         [initialDiagnostics, initialErrors, initialWarnings],
     );
 
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
-
     const editor = (
         <EditorViewer
             ref={ref}
@@ -462,6 +449,7 @@ export const DoenetEditor = React.forwardRef<
             activityId={activityId}
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
+            doenetMediaUrl={doenetMediaUrl}
             darkMode={darkMode}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -478,6 +466,8 @@ export const DoenetEditor = React.forwardRef<
             showFormatter={showFormatter}
             showDiagnostics={normalizedShowDiagnostics}
             showResponses={showResponses}
+            showHelp={showHelp}
+            addVirtualKeyboard={addVirtualKeyboard}
             border={border}
             initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}

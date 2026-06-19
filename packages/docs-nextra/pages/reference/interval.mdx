@@ -1,26 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <interval>{:dn}`
+# `<interval>{:dn}`
 
-` <interval>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
-component that renders an interval.
+<ComponentDisplay name='interval'/>
 
-## Attributes and Properties 
- <AttrDisplay name='interval'/> 
- <PropDisplay name='interval'/>
+`<interval>{:dn}` is a [Math](../concepts/essentialConcepts#component-types) 
+component that treats its math expression as an interval of real numbers.
 
----
+<AttrPropDisplay name='interval'/>
 
-### Example: Check if a value is contained in an ` <interval>{:dn}`
+## Examples
+
+### Example: Check if a value is contained in an `<interval>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>Check to see if <m>x</m> is in the first interval:</p> 
-<p><m>x = </m><mathInput name="x"/></p>
+<p><mathInput name="x"><label><m>x = </m></label></mathInput></p>
 
 <p>Interval: 
   <interval name="int1">
@@ -33,7 +33,7 @@ component that renders an interval.
 </p>
 
 <p>Check to see if <m>y</m> is in the second interval:</p>
-<p><m>y = </m><mathInput name="y"/></p>
+<p><mathInput name="y"><label><m>y = </m></label></mathInput></p>
 
 <p>Interval: 
   <interval name="int2" simplify>
@@ -48,7 +48,7 @@ component that renders an interval.
 
 
 
-The ` <interval>{:dn}` component recognizes the following terms:
+The `<interval>{:dn}` component recognizes the following terms:
   * union
   * intersect
   * \cup (must use `format="latex"`) 
@@ -60,7 +60,7 @@ Defined intervals can be referenced in `<boolean>{:dn}` comparisons.
 
 ---
 
-### Example: ` <interval>{:dn}` as a `<function>{:dn}` domain
+### Example: `<interval>{:dn}` as a `<function>{:dn}` domain
 
 
 ```doenet-editor-horiz
@@ -71,7 +71,7 @@ Defined intervals can be referenced in `<boolean>{:dn}` comparisons.
 </graph>
 ```
 
-A named ` <interval>{:dn}` component is referenced in the `domain`
+A named `<interval>{:dn}` component is referenced in the `domain`
 attribute of a graphed `<function>{:dn}`.
 
 

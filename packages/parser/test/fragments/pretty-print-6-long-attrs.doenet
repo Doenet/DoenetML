@@ -1,0 +1,3 @@
+<mathinput name="mn1" prefill="2" minValue="0" maxValue="100" displayDigits="6" />
+<mathinput name="mn2" prefill="3" minValue="-10" maxValue="10" displayDigits="6" labelIsName />
+<p>Inline element with many attributes: <text name="t" hide="false" fixed="true" disabled="false" prefill="some default text here">overridden</text></p>

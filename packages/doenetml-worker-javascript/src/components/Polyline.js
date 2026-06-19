@@ -22,9 +22,10 @@ export default class Polyline extends GraphicalComponent {
         });
     }
     static componentType = "polyline";
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
-        summary: "A polyline (open polygon) defined by a list of vertices.",
+        summary: "A polyline (open polygon) defined by a list of vertices",
     };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

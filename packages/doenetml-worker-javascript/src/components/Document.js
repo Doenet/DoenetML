@@ -6,6 +6,7 @@ import {
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
+    returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
@@ -22,7 +23,8 @@ export default class Document extends BaseComponent {
     static componentType = "document";
 
     static componentDocs = {
-        summary: "The top-level container for a DoenetML document.",
+        summary:
+            "The top-level container for a DoenetML document (added implicitly if not present)",
     };
     static rendererType = "section";
     static renderChildren = true;
@@ -44,62 +46,14 @@ export default class Document extends BaseComponent {
         delete attributes.isResponse;
         delete attributes.isPotentialResponse;
 
-        attributes.documentWideCheckWork = {
-            description:
-                "Whether to show a single check-work button for the entire document.",
-            createComponentOfType: "boolean",
-            createStateVariable: "documentWideCheckWork",
-            defaultValue: false,
-            public: true,
-        };
-        attributes.showCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: true,
-            description:
-                "Whether to display correctness indicators next to answers.",
-        };
-        attributes.colorCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "colorCorrectnessPreliminary",
-            defaultValue: true,
-            description:
-                "Whether to color answer regions based on correctness.",
-        };
-        attributes.forceIndividualAnswerColoring = {
-            createComponentOfType: "boolean",
-            createStateVariable: "forceIndividualAnswerColoring",
-            defaultValue: false,
-            description:
-                "Whether to color individual answer regions even when document-wide check work is enabled.",
-        };
-        attributes.submitLabel = {
-            description:
-                "Label for the submit button when correctness is shown.",
-            createComponentOfType: "text",
-            createStateVariable: "submitLabel",
-            defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
-        };
-        attributes.submitLabelNoCorrectness = {
-            description:
-                "Label for the submit button when correctness is not shown.",
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
-            defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
-        };
-
-        attributes.displayDigitsForCreditAchieved = {
-            description:
-                "Number of significant digits to display for credit achieved.",
-            createComponentOfType: "integer",
-            createStateVariable: "displayDigitsForCreditAchieved",
-            defaultValue: 3,
-            public: true,
-        };
+        // The document shares the scored-section attributes (score aggregation
+        // plus section-wide check work), but always aggregates the scores of
+        // its children and has no enclosing section to weight it, so it drops
+        // the `aggregateScores`/`weight` attributes.
+        let scoredAttributes = returnScoredSectionAttributes();
+        delete scoredAttributes.aggregateScores;
+        delete scoredAttributes.weight;
+        Object.assign(attributes, scoredAttributes);
 
         // at this point, we are creating these attributes
         // so that having them in the doenetML is valid
@@ -126,10 +80,6 @@ export default class Document extends BaseComponent {
             {
                 group: "title",
                 componentTypes: ["title"],
-            },
-            {
-                group: "description",
-                componentTypes: ["description"],
             },
             {
                 group: "setups",
@@ -171,6 +121,9 @@ export default class Document extends BaseComponent {
             returnScoredSectionStateVariableDefinition(),
         );
 
+        // The document is the top-level scored container and always aggregates
+        // the scores of its children, so it drops the opt-in `aggregateScores`
+        // state variable.
         delete stateVariableDefinitions.aggregateScores;
 
         stateVariableDefinitions.titleChildName = {
@@ -215,34 +168,6 @@ export default class Document extends BaseComponent {
                         setValue: {
                             title: dependencyValues.titleChild[0].stateValues
                                 .text,
-                        },
-                    };
-                }
-            },
-        };
-
-        stateVariableDefinitions.description = {
-            description: "The document's accessible description.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                descriptionChild: {
-                    dependencyType: "child",
-                    childGroups: ["description"],
-                    variableNames: ["text"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.descriptionChild.length === 0) {
-                    return { setValue: { description: "" } };
-                } else {
-                    return {
-                        setValue: {
-                            description:
-                                dependencyValues.descriptionChild[0].stateValues
-                                    .text,
                         },
                     };
                 }
@@ -463,6 +388,11 @@ export default class Document extends BaseComponent {
             },
         };
 
+        // Overrides the shared `creditAchieved` for two reasons: that version
+        // returns 0 unless `aggregateScores` is enabled (the document always
+        // aggregates), and this version aggregates from the document-specific
+        // `componentCreditAchieved` array (which the core also reads to report
+        // per-item scores to the host) instead of re-resolving each descendant.
         stateVariableDefinitions.creditAchieved = {
             description:
                 "Aggregate credit achieved (0 to 1) for scored content in the document.",
@@ -540,6 +470,9 @@ export default class Document extends BaseComponent {
             },
         };
 
+        // Overrides the shared `creditAchievedIfSubmit` for the same reason as
+        // `creditAchieved` above: the document always aggregates, rather than
+        // only when `aggregateScores` is enabled.
         stateVariableDefinitions.creditAchievedIfSubmit = {
             defaultValue: 0,
             stateVariablesDeterminingDependencies: ["scoredDescendants"],
@@ -659,45 +592,6 @@ export default class Document extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.createSubmitAllButton = {
-            forRenderer: true,
-            additionalStateVariablesDefined: [
-                "suppressAnswerSubmitButtons",
-                "descendantColorCorrectnessBasedOnIdx",
-            ],
-            returnDependencies: () => ({
-                documentWideCheckWork: {
-                    dependencyType: "stateVariable",
-                    variableName: "documentWideCheckWork",
-                },
-                forceIndividualAnswerColoring: {
-                    dependencyType: "stateVariable",
-                    variableName: "forceIndividualAnswerColoring",
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                let createSubmitAllButton = false;
-                let suppressAnswerSubmitButtons = false;
-                let descendantColorCorrectnessBasedOnIdx = null;
-
-                if (dependencyValues.documentWideCheckWork) {
-                    createSubmitAllButton = true;
-                    suppressAnswerSubmitButtons = true;
-                    if (!dependencyValues.forceIndividualAnswerColoring) {
-                        descendantColorCorrectnessBasedOnIdx = componentIdx;
-                    }
-                }
-
-                return {
-                    setValue: {
-                        createSubmitAllButton,
-                        suppressAnswerSubmitButtons,
-                        descendantColorCorrectnessBasedOnIdx,
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.containerTag = {
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -735,6 +629,7 @@ export default class Document extends BaseComponent {
         serializedComponent,
         sharedParameters,
         descendantVariantComponents,
+        core,
     }) {
         // console.log("****Variant for document*****")
 
@@ -747,19 +642,27 @@ export default class Document extends BaseComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    console.warn(
-                        "Variant index " +
+                    core.addDiagnostic({
+                        type: "info",
+                        message:
+                            "Variant index " +
                             desiredVariant.index +
                             " must be a number",
-                    );
+                        position: serializedComponent.position,
+                        sourceDoc: serializedComponent.sourceDoc,
+                    });
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        console.warn(
-                            "Variant index " +
+                        core.addDiagnostic({
+                            type: "info",
+                            message:
+                                "Variant index " +
                                 desiredVariant.index +
                                 " must be an integer",
-                        );
+                            position: serializedComponent.position,
+                            sourceDoc: serializedComponent.sourceDoc,
+                        });
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
                     let indexFrom0 = (desiredVariantIndex - 1) % numVariants;
@@ -821,11 +724,13 @@ export default class Document extends BaseComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         return determineVariantsForSection({
             serializedComponent,
             componentInfoObjects,
             isDocument: true,
+            infoDiagnostics,
         });
     }
 
@@ -850,8 +755,6 @@ export default class Document extends BaseComponent {
         });
 
         if (!result.success) {
-            console.log("Failed to get unique variant for document.");
-
             return { success: false };
         }
 

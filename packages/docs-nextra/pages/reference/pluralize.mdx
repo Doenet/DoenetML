@@ -1,0 +1,103 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<pluralize>{:dn}`
+
+<ComponentDisplay name='pluralize'/>
+
+`<pluralize>{:dn}` is a [Text](../concepts/essentialConcepts#component-types)
+component that renders its content in singular or plural form. By default it
+pluralizes a single noun; when the content is a count-and-noun pair (`"3 dog"`,
+`"one mouse"`) it inspects the count and pluralizes only if the count is not
+$1$.
+
+`<pluralize>{:dn}` extends [`<text>{:dn}`](text), so it can be referenced and
+displayed anywhere a text value is accepted. Pluralization uses the
+[`compromise`](https://compromise.cool/) NLP library and handles common
+English irregulars (`mouse → mice`, `goose → geese`, `pony → ponies`).
+
+
+<AttrPropDisplay name='pluralize'/>
+
+
+## Examples
+
+### Example: Default behaviour
+
+
+```doenet-editor-horiz
+<p><pluralize>dog</pluralize></p>
+<p><pluralize>mouse</pluralize></p>
+<p><pluralize>bus</pluralize></p>
+<p><pluralize>goose</pluralize></p>
+<p><pluralize>pony</pluralize></p>
+```
+
+
+A bare noun is converted to its plural form using standard English
+pluralization rules, including common irregulars.
+
+
+
+---
+
+### Example: Pluralize based on a leading count
+
+
+```doenet-editor-horiz
+<p><pluralize>1 dog</pluralize></p>
+<p><pluralize>2 dog</pluralize></p>
+<p><pluralize>0 dog</pluralize></p>
+<p><pluralize>one mouse</pluralize></p>
+<p><pluralize>two mouse</pluralize></p>
+```
+
+
+When the content begins with a count (numeric or written), the noun is
+pluralized only when the count is not $1$. So `1 dog` stays as `1 dog`,
+`2 dog` becomes `2 dogs`, and `0 dog` becomes `0 dogs`.
+
+
+
+## Attribute Examples
+
+### Attribute Example: basedOnNumber
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="n" prefill="1">
+    <label>How many</label>
+  </mathInput>
+</p>
+<p>$n <pluralize basedOnNumber="$n">cat</pluralize></p>
+```
+
+
+`basedOnNumber` takes a number reference and pluralizes the content based on
+*its* value rather than on any count parsed out of the content text. Useful
+when the count lives in a separate component (a `<mathInput>{:dn}`, a property
+of another component, etc.).
+
+
+
+---
+
+### Attribute Example: pluralForm
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="n" prefill="2">
+    <label>Number of mice</label>
+  </mathInput>
+</p>
+<p>$n <pluralize basedOnNumber="$n" pluralForm="rodents">mouse</pluralize></p>
+```
+
+
+`pluralForm` overrides the auto-detected plural. The content's noun is
+replaced verbatim with the `pluralForm` string when the count designates a
+plural; the singular form is used otherwise.

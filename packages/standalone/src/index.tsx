@@ -22,10 +22,36 @@ export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
 export const version: string = STANDALONE_VERSION;
 
+// Cache React roots per container so repeat calls to
+// renderDoenet{Viewer,Editor}ToContainer re-render in place instead of
+// creating a fresh root each time (which would mount competing trees on the
+// same DOM node and destroy editor/viewer state).
+const viewerRootsByContainer = new WeakMap<Element, ReactDOM.Root>();
+const editorRootsByContainer = new WeakMap<Element, ReactDOM.Root>();
+
+type EditorHandleEntry = {
+    mountedHandle: DoenetEditorHandle | null;
+    pendingHandleActions: ((h: DoenetEditorHandle) => void)[];
+    handle: {
+        openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+        closeDiagnosticsPanel: () => void;
+        updateRenderedView: () => void;
+    };
+};
+const editorHandlesByContainer = new WeakMap<Element, EditorHandleEntry>();
+
 /**
  * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
+ *
+ * Repeat calls with the same `container` element re-render in place against a
+ * cached React root rather than mounting a competing root. The cache lives in
+ * a `WeakMap`, so it releases automatically once the container is GC'd, but it
+ * is *not* keyed on `doenetMLSource` or `config` — passing different values
+ * across calls is treated as an update of the same logical instance, not as a
+ * remount. Callers that need a fresh root should detach and re-create the
+ * container element.
  */
 export function renderDoenetViewerToContainer(
     container: Element,
@@ -66,7 +92,12 @@ export function renderDoenetViewerToContainer(
         delete config.flags;
     }
 
-    ReactDOM.createRoot(container).render(
+    let root = viewerRootsByContainer.get(container);
+    if (!root) {
+        root = ReactDOM.createRoot(container);
+        viewerRootsByContainer.set(container, root);
+    }
+    root.render(
         <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
@@ -82,9 +113,17 @@ export function renderDoenetViewerToContainer(
 }
 
 /**
- * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
+ * Render DoenetEditor to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
+ *
+ * Repeat calls with the same `container` element re-render in place against a
+ * cached React root, and return the *same* handle object across calls — the
+ * handle's methods are stable for the lifetime of the container so callers can
+ * cache it. The cache lives in a `WeakMap` keyed by container, so it releases
+ * automatically once the container is GC'd. Two consumers rendering different
+ * logical editor instances into the same container will therefore share state;
+ * detach and re-create the container element if a fresh instance is needed.
  */
 export function renderDoenetEditorToContainer(
     container: Element,
@@ -127,24 +166,65 @@ export function renderDoenetEditorToContainer(
     // (callback ref fires). React commits asynchronously after `createRoot.render`,
     // so a synchronous caller cannot rely on the ref being populated immediately
     // — queue and replay on mount.
-    let mountedHandle: DoenetEditorHandle | null = null;
-    const pendingHandleActions: ((h: DoenetEditorHandle) => void)[] = [];
+    let entry = editorHandlesByContainer.get(container);
+    if (!entry) {
+        const newEntry: EditorHandleEntry = {
+            mountedHandle: null,
+            pendingHandleActions: [],
+            // Filled in below — the handle methods need to close over `newEntry`.
+            handle: null as unknown as EditorHandleEntry["handle"],
+        };
+        newEntry.handle = {
+            openDiagnosticsTab(tabId: DiagnosticsTabId) {
+                if (newEntry.mountedHandle) {
+                    newEntry.mountedHandle.openDiagnosticsTab(tabId);
+                } else {
+                    newEntry.pendingHandleActions.push((h) =>
+                        h.openDiagnosticsTab(tabId),
+                    );
+                }
+            },
+            closeDiagnosticsPanel() {
+                if (newEntry.mountedHandle) {
+                    newEntry.mountedHandle.closeDiagnosticsPanel();
+                } else {
+                    newEntry.pendingHandleActions.push((h) =>
+                        h.closeDiagnosticsPanel(),
+                    );
+                }
+            },
+            updateRenderedView() {
+                if (newEntry.mountedHandle) {
+                    newEntry.mountedHandle.updateRenderedView();
+                } else {
+                    newEntry.pendingHandleActions.push((h) =>
+                        h.updateRenderedView(),
+                    );
+                }
+            },
+        };
+        editorHandlesByContainer.set(container, newEntry);
+        entry = newEntry;
+    }
+    const handleEntry = entry;
     function refCallback(h: DoenetEditorHandle | null) {
-        mountedHandle = h;
+        handleEntry.mountedHandle = h;
         if (h) {
-            const queued = pendingHandleActions.splice(0);
+            const queued = handleEntry.pendingHandleActions.splice(0);
             for (const action of queued) {
                 action(h);
             }
         } else {
-            // On unmount, drop any actions that were queued after the editor
-            // detached so we don't replay them against a stale handle if the
-            // editor is ever re-mounted into the same container.
-            pendingHandleActions.length = 0;
+            handleEntry.pendingHandleActions.length = 0;
         }
     }
 
-    ReactDOM.createRoot(container).render(
+    let root = editorRootsByContainer.get(container);
+    if (!root) {
+        root = ReactDOM.createRoot(container);
+        editorRootsByContainer.set(container, root);
+    }
+    root.render(
         <DoenetEditor
             ref={refCallback}
             doenetML={doenetMLSource}
@@ -153,22 +233,7 @@ export function renderDoenetEditorToContainer(
         />,
     );
 
-    return {
-        openDiagnosticsTab(tabId: DiagnosticsTabId) {
-            if (mountedHandle) {
-                mountedHandle.openDiagnosticsTab(tabId);
-            } else {
-                pendingHandleActions.push((h) => h.openDiagnosticsTab(tabId));
-            }
-        },
-        closeDiagnosticsPanel() {
-            if (mountedHandle) {
-                mountedHandle.closeDiagnosticsPanel();
-            } else {
-                pendingHandleActions.push((h) => h.closeDiagnosticsPanel());
-            }
-        },
-    };
+    return handleEntry.handle;
 }
 
 function normalizeBooleanAttr(attr: string | undefined | null) {

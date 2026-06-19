@@ -1,28 +1,37 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <mathList>{:dn}`
+# `<mathList>{:dn}`
 
+<ComponentDisplay name='mathList'/>
 
+`<mathList>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
+component that defines a collection, or list, of [`<math>{:dn}`](math.mdx) components. 
+Some components that accept a `<mathList>{:dn}` as an input include functions, repeats, and awards.
 
-` <mathList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that defines a collection, or list, of [` <math>{:dn}`](math.mdx) components. 
-Some components that accept a ` <mathList>{:dn}` as an input include functions, repeats, and awards.
+When creating a `<mathList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas.
 
-## Attributes and Properties 
- <AttrDisplay name='mathList'/> 
- <PropDisplay name='mathList'/>
+A comma between entries inside a `<mathList>{:dn}` creates a tuple — a single
+math — so `<mathList>x, y, z</mathList>{:dn}` is a list with the single entry
+`(x,y,z)`, while `<mathList>x y z</mathList>{:dn}` is a list of three entries.
+To split a math that already contains commas into separate entries, use the
+[`mergeMathLists`](#attribute-example-mergemathlists) attribute.
 
----
+<AttrPropDisplay name='mathList'/>
 
-### Example: Defining a ` <mathList>{:dn}` and retrieving a value
+## Examples
+
+### Example: Defining a `<mathList>{:dn}` and retrieving a value
 
 
 ```doenet-editor-horiz
-<p>Here is a list of maths, with one missing piece. What do you want it to be? 
-  <mathInput name="userMath"/>
+<p>
+  <mathInput name="userMath">
+    <label>Here is a list of maths, with one missing piece. What do you want it to be?</label>
+  </mathInput>
 </p>
 
 <mathList name="mList">
@@ -34,20 +43,32 @@ Some components that accept a ` <mathList>{:dn}` as an input include functions, 
 
 
 
-The ` <mathList>{:dn}` component stores a list of "maths", or ` <math>{:dn}` components. 
-To access an individual element in the list, use array notation with the named ` <mathList>{:dn}`.
+The `<mathList>{:dn}` component stores a list of "maths", or `<math>{:dn}` components. 
+To access an individual element in the list, use array notation with the named `<mathList>{:dn}`.
 
 
 ---
 
-### Example: A ` <mathList>{:dn}` from multiple ` <mathInput/>{:dn}` tags
+### Example: A `<mathList>{:dn}` from multiple `<mathInput/>{:dn}` tags
 
 
 ```doenet-editor-horiz
 <p>Let's build a list:</p>
-<p>Type <m>x</m>: <mathInput name="mi1"/></p>
-<p>Type <m>y</m>: <mathInput name="mi2"/></p>
-<p>Type <m>z</m>: <mathInput name="mi3"/></p>
+<p>
+  <mathInput name="mi1">
+    <label>Type <m>x</m></label>
+  </mathInput>
+</p>
+<p>
+  <mathInput name="mi2">
+    <label>Type <m>y</m></label>
+  </mathInput>
+</p>
+<p>
+  <mathInput name="mi3">
+    <label>Type <m>z</m></label>
+  </mathInput>
+</p>
 <mathList name="asList">$mi1 $mi2 $mi3</mathList>
 
 <p>The second element in the user's list is: 
@@ -57,14 +78,14 @@ To access an individual element in the list, use array notation with the named `
 
 
 
-Combining a number of user-inputs into a ` <mathList>{:dn}` is a simple matter of 
+Combining a number of user-inputs into a `<mathList>{:dn}` is a simple matter of 
 listing the named input references between the opening and closing tags.
 
 
 
 ---
 
-### Example: A ` <mathList>{:dn}` for function evaluation
+### Example: A `<mathList>{:dn}` for function evaluation
 
 
 ```doenet-editor-horiz
@@ -88,13 +109,13 @@ listing the named input references between the opening and closing tags.
 
 
 
-Here, a ` <mathList>{:dn}` stores multiple input values to be used in the subsequent code for function evaluation.
+Here, a `<mathList>{:dn}` stores multiple input values to be used in the subsequent code for function evaluation.
 
 
 
 ---
 
-### Example: A ` <mathList>{:dn}` in a ` <repeat>{:dn}`
+### Example: A `<mathList>{:dn}` in a `<repeat>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -120,17 +141,19 @@ element in the list:</p>
 
 
 
-Here, a ` <mathList>{:dn}` is referenced within the `for` attribute of 
-a ` <repeat>{:dn}`. 
+Here, a `<mathList>{:dn}` is referenced within the `for` attribute of 
+a `<repeat>{:dn}`. 
 
 ---
 
-### Example: A ` <mathList>{:dn}` in an ` <award>{:dn}`
+### Example: A `<mathList>{:dn}` in an `<award>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Type <m>x, y, z</m> 
-  <mathInput name="mi1"/>
+<p>
+  <mathInput name="mi1">
+    <label>Type <m>x, y, z</m></label>
+  </mathInput>
 </p>
 
 <p>Check your answer:
@@ -149,30 +172,40 @@ a ` <repeat>{:dn}`.
 
 
 
-A ` <mathList>{:dn}` is frequently used in an ` <award>{:dn}` to compare two groups of values. 
+A `<mathList>{:dn}` is frequently used in an `<award>{:dn}` to compare two groups of values. 
 Comparisons can be ordered or unordered. (Also, specifying whether comparisons are to be ordered 
-can occur in the ` <award>{:dn}`, the ` <answer>{:dn}`, or the ` <mathList>{:dn}` itself.)
+can occur in the `<award>{:dn}`, the `<answer>{:dn}`, or the `<mathList>{:dn}` itself.)
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: unordered
 
 
 ```doenet-example
-<p>Type <m>x, y, z</m> <mathInput name="mi1"/></p>
+<p>Type <m>x</m>, <m>y</m>, <m>z</m>:
+  <mathInput name="mi1">
+    <shortDescription>first value</shortDescription>
+  </mathInput>
+  <mathInput name="mi2">
+    <shortDescription>second value</shortDescription>
+  </mathInput>
+  <mathInput name="mi3">
+    <shortDescription>third value</shortDescription>
+  </mathInput>
+</p>
 
-<p>Check if equal to <m>{y,z,x}</m>:
+<p>Check if equal to <m>\{y,z,x\}</m>:
   <boolean>
-    $mi1 = <mathList unordered>y,z,x</mathList>
+    <mathList unordered>$mi1 $mi2 $mi3</mathList> = <mathList>y z x</mathList>
   </boolean></p>
 ```
 
 
 
-If a ` <mathList>{:dn}` is defined with the `unordered` attribute, 
-comparisons (for validation in an ` <award>{:dn}` or a ` <boolean>{:dn}` for example) are 
+If a `<mathList>{:dn}` is defined with the `unordered` attribute, 
+comparisons (for validation in an `<award>{:dn}` or a `<boolean>{:dn}` for example) are 
 unordered automatically.
 
 
@@ -183,8 +216,11 @@ unordered automatically.
 
 
 ```doenet-example
-<p>Enter a list of 3 or more variables: 
-  <mathInput name="mi1"/></p>
+<p>
+  <mathInput name="mi1">
+    <label>Enter a list of 3 or more variables</label>
+  </mathInput>
+</p>
 
 <p><mathList name="mL1" maxNumber="2">$mi1</mathList></p>
 <p>$mL1</p>    
@@ -209,13 +245,17 @@ The `maxNumber` attribute imposes a limit on the number of maths that can be sto
   <math>g</math>
 </mathList>
 
-<p>Merge math lists: <booleanInput name="isMerged" /></p>
+<p>
+  <booleanInput name="isMerged">
+    <label>Merge math lists</label>
+  </booleanInput>
+</p>
 <p>The third math in the list is: $mL1[3]</p>
 ```
 
 
 
-If individual maths contained within a ` <mathList>{:dn}` contain multiple values, those 
+If individual maths contained within a `<mathList>{:dn}` contain multiple values, those 
 groupings will be preserved by default. To turn off this default behavior, 
 use the `mergeMathLists` attribute.
 
@@ -227,9 +267,16 @@ use the `mergeMathLists` attribute.
 
 
 ```doenet-editor-horiz
-<p>How many maths should we keep?
-  <mathInput name="n"/></p>
-<p>Merge? <booleanInput name="merge"/></p>
+<p>
+  <mathInput name="n">
+    <label>How many maths should we keep?</label>
+  </mathInput>
+</p>
+<p>
+  <booleanInput name="merge">
+    <label>Merge?</label>
+  </booleanInput>
+</p>
 
   <mathList name="mL1" mergeMathLists="$merge" maxNumber="$n">
     <math>(e^t, cos(t))</math>
@@ -246,17 +293,21 @@ use the `mergeMathLists` attribute.
 
 
 
-All of the attributes of the ` <mathList>{:dn}` component are also available as properties.
+All of the attributes of the `<mathList>{:dn}` component are also available as properties.
 
 
 
----
+## Property Examples
 
 ### Property Example: numComponents
 
 
 ```doenet-editor-horiz
-<p>Merge? <booleanInput name="merge"/></p>
+<p>
+  <booleanInput name="merge">
+    <label>Merge?</label>
+  </booleanInput>
+</p>
 
   <mathList name="mL1" mergeMathLists="$merge">
     <math>(a, b)</math>
@@ -271,7 +322,7 @@ All of the attributes of the ` <mathList>{:dn}` component are also available as 
 
 
 The `numComponents` property returns the number of components stored 
-in a ` <mathList>{:dn}`. Note that the first math  listed in the definition 
+in a `<mathList>{:dn}`. Note that the first math  listed in the definition 
 in the example above counts as one component, even when lists are merged, 
 because it is specified as a <em>tuple</em> (enclosed by parentheses). The second 
 math in the definition counts as 1 component when lists are not merged, and 3 components if they are merged.

@@ -1,27 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <case>{:dn}`
+# `<case>{:dn}`
 
+<ComponentDisplay name='case'/>
 
-` <case>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+`<case>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types)
 component that defines an individual block of content triggered when 
-the its condition is met within a ` <conditionalContent>{:dn}`.
+its condition is met within a `<conditionalContent>{:dn}`.
 
-## Attributes and Properties 
- <AttrDisplay name='case'/> 
- <PropDisplay name='case'/>
+<AttrPropDisplay name='case'/>
 
----
+## Examples
 
-### Example: ` <case>{:dn}` inside of ` <conditionalContent>{:dn}`
+### Example: `<case>{:dn}` inside of `<conditionalContent>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Choose a letter: 
+<p>
   <choiceInput inline name="letter">
+    <label>Choose a letter</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice>C</choice>
@@ -42,20 +42,20 @@ the its condition is met within a ` <conditionalContent>{:dn}`.
 
 
 
-Each ` <case>{:dn}` component defines content that is only rendered 
+Each `<case>{:dn}` component defines content that is only rendered 
 when the specified `condition` attribute is `true`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: condition
 
 
 ```doenet-editor-horiz
- <p>Enter an integer 
+ <p>
     <answer name="intAns" weight="0" showCorrectness="false">
-      <mathInput name="int"/>
+      <mathInput name="int"><label>Enter an integer</label></mathInput>
     </answer></p>
 
     <boolean name="even"><mod>$int 2</mod> = 0</boolean>
@@ -76,18 +76,18 @@ when the specified `condition` attribute is `true`.
 
 
 
-Each ` <case>{:dn}` component defines content that is 
+Each `<case>{:dn}` component defines content that is 
 only rendered when the specified `condition` attribute is `true`.
 
 
 
----
+## Property Examples
 
 ### Property Example: conditionSatisfied
 
 
 ```doenet-example
-<p>Type 1 or 2: <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Type 1 or 2</label></mathInput></p>
 <conditionalContent>
   <case name="case1" condition="$mi = 1">
     <p>You've entered a 1.</p>
@@ -102,5 +102,5 @@ only rendered when the specified `condition` attribute is `true`.
 
 
 
-The `conditionSatisfied` property returns `true` if the specified ` <case>{:dn}` evaluates to `true`, and `false` otherwise.
+The `conditionSatisfied` property returns `true` if the specified `<case>{:dn}` evaluates to `true`, and `false` otherwise.
 

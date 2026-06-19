@@ -1,0 +1,130 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<introduction>{:dn}`
+
+<ComponentDisplay name='introduction'/>
+
+`<introduction>{:dn}` is a block container for the introductory
+content of a section. It groups content without adding a heading,
+numbering, or any other visible chrome. Its primary use is inside a
+sectional component whose `asList` attribute is `true` — most
+commonly [`<problems>{:dn}`](problems) or
+[`<exercises>{:dn}`](exercises) — because in that case ordinary
+prose children are silently dropped, and an
+`<introduction>{:dn}` is one of the few non-sectional children that
+still renders.
+
+
+<AttrPropDisplay name='introduction'/>
+
+
+## Examples
+
+### Example: `<introduction>{:dn}` at the start of a `<problems>{:dn}` list
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Warm-up arithmetic</title>
+
+  <introduction>
+    <p>Compute each of the following.
+       Enter exact (non-decimal) answers.</p>
+  </introduction>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>12 - 7</m>?</label>5</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+The `<introduction>{:dn}` renders before the numbered list of
+`<problem>{:dn}`s. The same pattern works inside
+[`<exercises>{:dn}`](exercises) and any other sectional component
+with `asList="true"`.
+
+
+
+---
+
+### Example: prose that needs to be wrapped
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Two problems</title>
+
+  These instructions will not appear.
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+The bare-string instructions above are dropped because
+`<problems>{:dn}` has `asList="true"` by default. Wrap them in an
+`<introduction>{:dn}` to make them visible:
+
+
+```doenet-editor-horiz
+<problems>
+  <title>Two problems</title>
+
+  <introduction>
+    <p>These instructions now appear.</p>
+  </introduction>
+
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+
+  <problem>
+    <p><answer><label>What is <m>3 \times 5</m>?</label>15</answer></p>
+  </problem>
+</problems>
+```
+
+
+
+---
+
+### Example: `<introduction>{:dn}` as a named, referenceable container
+
+
+```doenet-editor-horiz
+<problems>
+  <introduction name="instr">
+    <p>Compute each of the following.</p>
+  </introduction>
+  <problem>
+    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+  </problem>
+</problems>
+
+Restated instructions: $instr
+```
+
+
+
+Like any block container, an `<introduction>{:dn}` can be named and
+referenced elsewhere in the document.

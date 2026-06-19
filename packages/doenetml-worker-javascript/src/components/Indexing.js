@@ -5,8 +5,10 @@ export class H extends TextComponent {
     static componentType = "h";
 
     static componentDocs = {
-        summary: "A heading element.",
+        summary:
+            "A heading for an index entry (available only for PreTeXt compatibility).",
     };
+    static excludeFromSchema = true;
     static rendererType = "text";
 
     static createAttributesObject() {
@@ -24,10 +26,9 @@ export class Idx extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Indexes into the children of a referenced indexable component.",
+            "A back-of-the-book index entry (available only for PreTeXt compatibility).",
     };
-
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static excludeFromSchema = true;
 
     static returnChildGroups() {
         return [

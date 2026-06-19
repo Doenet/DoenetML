@@ -1,0 +1,7 @@
+<graph>
+    <point name="A" coords="(1,2)" />
+    <point name="B" coords="(3,4)" />
+    <line through="$A $B" />
+</graph>
+<p>Reference to <ref to="$s.title">the section</ref> via macro.</p>
+<p>Function macro: $$f($x, $y) and chained: $a.b.c[0].d</p>

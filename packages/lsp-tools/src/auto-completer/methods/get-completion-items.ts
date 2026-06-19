@@ -1,4 +1,8 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
+import {
+    ATTR_VALUE_CHAR,
+    scanBareValueRun,
+} from "../../doenet-source-object/methods/attribute-helpers";
 import type { CompletionContext } from "./get-completion-context";
 import type {
     CompletionItem,
@@ -10,10 +14,23 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import { toXml } from "@doenet/parser";
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
+import { walkIndexAliases } from "../index-aliases";
+import { hasImplicitSingleIndex } from "../select-family";
+import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
+import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
+import {
+    rankedChildSuggestions,
+    sortTextLookup,
+} from "../../child-suggestions";
+
+// LSP's CompletionItem has no `displayLabel` field, but @codemirror/autocomplete
+// supports one for "show this, filter on label". Our in-process LSP transport
+// preserves unknown fields, so we attach it as an optional extension and the
+// CodeMirror plugin forwards it through.
+type DoenetCompletionItem = CompletionItem & { displayLabel?: string };
 
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
@@ -28,16 +45,18 @@ function asMarkdown(text: string): MarkupContent {
     return { kind: MarkupKind.Markdown, value: text };
 }
 
+/** Global match for individual `[...]` groups; used to count brackets per raw segment. */
+const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
+
 /**
- * Get the name of the parent of `node`, or `undefined` when the parent is the
- * document root (no `name` field).
+ * Count the bracket-index groups on a raw path segment — `foo` → 0,
+ * `foo[1]` → 1, `controlVectors[0][2]` → 2. Mirrors
+ * `computeContextHelp.countBracketIndices` so the autocomplete chase
+ * consumes the same number of dimensions the help chase does.
  */
-function getParentName(
-    autoCompleter: AutoCompleter,
-    node: DastElement,
-): string | undefined {
-    const parent = autoCompleter.sourceObj.getParent(node);
-    return parent && "name" in parent ? parent.name : undefined;
+function countBracketIndices(rawSegment: string | undefined): number {
+    if (!rawSegment) return 0;
+    return rawSegment.match(BRACKET_INDEX_ALL_REGEX)?.length ?? 0;
 }
 
 /**
@@ -221,19 +240,6 @@ function createSnippetCompletionItems(
     });
 }
 
-function getElementAttributeValue(
-    element: DastElement,
-    attributeName: string,
-): string | undefined {
-    const attr = element.attributes[attributeName];
-    if (!attr) {
-        return undefined;
-    }
-
-    const value = toXml(attr.children).trim();
-    return value.length > 0 ? value : undefined;
-}
-
 function isPrefigureGraphElement(
     autoCompleter: AutoCompleter,
     element: DastElement,
@@ -301,18 +307,59 @@ function createElementAndSnippetCompletionItems(
     endOffset: number,
     typedPrefix = "",
     contextElement: DastElement | null = null,
-): CompletionItem[] {
+    insertLeadingBracket = false,
+): DoenetCompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const parentName = contextElement?.name;
-    const schemaItems: CompletionItem[] = allowedElementNames
+    // Compute the shared ranking once for this container — the same ordering
+    // drives the context-help suggestions panel — and use it to assign
+    // `sortText` per item below so the editor's lexicographic sort reproduces
+    // the rank (handpicked → bucket → cluster-alphabetical, snippets clustered
+    // with their element). `contextElement` is null at the document top, where
+    // `<document>` is the implicit parent. Pass the grandparent so the ranker's
+    // `_getAllowedChildren`/`_getChildRanks` calls see the same alias-resolved
+    // child set as `allowedElementNames` (e.g. `<row>` inside `<matrix>` reads
+    // children from `matrixRow`, not the tabular `<row>`).
+    const grandparentName = contextElement
+        ? autoCompleter.sourceObj.getParentElementName(contextElement)
+        : undefined;
+    const ranked = rankedChildSuggestions(
+        autoCompleter,
+        parentName ?? "document",
+        grandparentName,
+    );
+    const sortTextByKey = sortTextLookup(ranked);
+
+    const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
         )
         .map((name) => {
-            const item: CompletionItem = {
+            const item: DoenetCompletionItem = {
                 label: name,
                 kind: CompletionItemKind.Property,
             };
+            // When the menu was opened without a preceding `<` (an explicit
+            // Ctrl+Space in an element body or at the top level), the item
+            // must insert the `<` itself — the default apply (the bare name)
+            // would omit it. With a `<` already typed, the existing
+            // default-apply path inserts the name right after it as before.
+            if (insertLeadingBracket) {
+                item.textEdit = {
+                    range: createTextEditRange(
+                        autoCompleter.sourceObj,
+                        startOffset,
+                        endOffset,
+                    ),
+                    newText: `<${name}`,
+                };
+                // With no `<` typed, a bare name gives no hint these are
+                // elements. Show the tag form (`<math>`) in the dropdown while
+                // still matching/inserting on the bare name (CodeMirror filters
+                // on `label`, renders `displayLabel`). Not set in the
+                // `<`-typed path, where the visible `<` already signals a tag.
+                item.displayLabel = `<${name}>`;
+            }
             const ownEntry = autoCompleter.schemaElementsByName[name];
             const effectiveEntry = autoCompleter.resolveEffectiveSchemaElement(
                 ownEntry,
@@ -320,6 +367,10 @@ function createElementAndSnippetCompletionItems(
             );
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
+            }
+            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
+            if (sortText !== undefined) {
+                item.sortText = sortText;
             }
             return item;
         });
@@ -334,6 +385,16 @@ function createElementAndSnippetCompletionItems(
         startOffset,
         endOffset,
     );
+    for (const item of snippetItems) {
+        // Snippet labels are unique snippet keys; look up sortText by the
+        // same key the ranker emits.
+        const sortText = sortTextByKey.get(
+            `snippet:${(item.label as string).toLowerCase()}`,
+        );
+        if (sortText !== undefined) {
+            item.sortText = sortText;
+        }
+    }
 
     const dynamicSnippetItems = createDynamicSnippetCompletionItems(
         autoCompleter,
@@ -411,10 +472,16 @@ function toRefSegmentInsertText(label: string) {
  * Determine which descendant and property names should be visible for a resolved
  * element, respecting takesIndex and per-segment index semantics.
  *
- * - For `takesIndex` composites without a bracket index: descendants are hidden,
- *   only properties are shown.
- * - For `takesIndex` composites with a bracket index: descendants are shown
- *   (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites without a bracket index AND without the
+ *   implicit-single-index shorthand: descendants are hidden, only properties
+ *   are shown.
+ * - For `takesIndex` composites with an authored bracket index: descendants
+ *   are shown (replacement child names), properties are hidden (unknown type).
+ * - For `takesIndex` composites whose count attribute carries the implicit
+ *   shorthand (`numToSelect="1"`, or absent — issue #1181): descendants AND
+ *   properties are both shown.  The shorthand only commits to descendant
+ *   resolution; the author can still type `$s.numToSelect` to read a state
+ *   variable on the composite itself.
  * - For regular elements: both descendants and properties are shown.
  *
  * Note: Invalid access (non-takesIndex element with an index) is handled upstream
@@ -423,21 +490,20 @@ function toRefSegmentInsertText(label: string) {
 function determineVisibleNames(
     takesIndex: boolean,
     resolvedPartHasIndex: boolean,
+    implicitSingleIndex: boolean,
     visibleDescendantNames: string[],
     schema: { properties?: { name: string }[] } | undefined,
 ): { descendantNames: Set<string>; propertyNames: string[] } {
-    // For a takesIndex composite:
-    //   - Without an index ($rep.): descendants are inaccessible via bare dot
-    //     access, so hide them and show only schema properties.
-    //   - With an index ($rep[1]. or $sec.rep[1].): the cursor is after a
-    //     replacement child of unknown component type, so show descendant
-    //     names but hide schema properties (they describe the composite, not
-    //     the replacement).
+    // Descendants gate: hidden only when takesIndex AND neither an authored
+    // bracket nor the implicit-single-index shorthand applies.
     const descendantNames =
-        takesIndex && !resolvedPartHasIndex
+        takesIndex && !resolvedPartHasIndex && !implicitSingleIndex
             ? new Set<string>()
             : new Set(visibleDescendantNames);
 
+    // Properties gate: hidden only when an authored bracket explicitly
+    // dereferences a replacement (the schema would describe the composite,
+    // not the replacement).  The implicit shorthand does NOT hide them.
     const propertyNames =
         takesIndex && resolvedPartHasIndex
             ? []
@@ -483,6 +549,120 @@ function createPropertyCompletionItems(
 }
 
 /**
+ * Build alias-name completions for a `$container.arrayProp[…].` chain that
+ * the resolver couldn't walk but the schema's `indexAliases` table covers.
+ * Returns `null` (not `[]`) when this branch doesn't apply, so the caller
+ * can fall through to its existing "no completions" path; returns `[]`
+ * when the chain matches an array prop but every dimension is already
+ * consumed (e.g. `$vector.head.x.`), so we stop offering anything rather
+ * than fall through to descendant/property lookup that doesn't apply
+ * here. Issue #1180.
+ */
+function indexAliasCompletionItems(
+    autoCompleter: AutoCompleter,
+    containerNode: DastElement | null,
+    unresolvedPathParts: string[],
+    completionContext: CompletionContext & {
+        cursorPos: "refMember";
+        pathParts: string[];
+        pathPartHasIndex: boolean[];
+        rawPathParts: string[];
+        typedPrefix: string;
+        replaceFromOffset: number;
+    },
+    offset: number,
+    toRefMemberInsertText: (name: string) => string,
+): CompletionItem[] | null {
+    if (!containerNode || unresolvedPathParts.length === 0) return null;
+
+    const componentType = autoCompleter.normalizeElementName(
+        containerNode.name,
+    );
+    const schema = autoCompleter.schemaElementsByName[componentType];
+    if (!schema) return null;
+
+    // Mirror the alias-aware property lookup used elsewhere — a child
+    // addressed via its alias-redirected parent (e.g. `<row>` inside
+    // `<matrix>`) should still see the right schema.
+    const helpSchema = autoCompleter.resolveEffectiveSchemaElement(
+        schema,
+        autoCompleter.sourceObj.getParentElementName(containerNode),
+    );
+    const arrayName = unresolvedPathParts[0];
+    const arrayProp = helpSchema?.properties?.find(
+        (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
+    );
+    if (!arrayProp) return null;
+
+    // Locate the array-prop segment in the caller's path. `pathParts` is
+    //   [...resolvedSegments, ...unresolvedPathParts, typedPrefix]
+    // so the array-prop segment lives at
+    //   pathParts.length - 1 - unresolvedPathParts.length
+    // (the last entry is the in-progress typed prefix at the cursor —
+    // empty right after a `.`, or a partial alias name like `x` mid-type).
+    // We count bracket groups on the raw segment so multi-index segments
+    // like `controlVectors[0][2]` consume the right number of dims
+    // (a single boolean would under-consume on 3D arrays).
+    const arrayPropPathIndex =
+        completionContext.pathParts.length - 1 - unresolvedPathParts.length;
+    if (arrayPropPathIndex < 0) return null;
+
+    const segments: Array<{ name: string; numIndices: number }> = [
+        {
+            name: arrayName,
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex],
+            ),
+        },
+    ];
+    for (let i = 1; i < unresolvedPathParts.length; i++) {
+        segments.push({
+            name: unresolvedPathParts[i],
+            numIndices: countBracketIndices(
+                completionContext.rawPathParts[arrayPropPathIndex + i],
+            ),
+        });
+    }
+
+    const walked = walkIndexAliases(arrayProp, segments);
+    // `null` here means the chain so far is invalid (e.g. an unindexed
+    // segment whose name isn't a known alias). Returning `[]` rather than
+    // falling through suppresses noisy guesses — the resolver already
+    // declared the path unresolvable, and the alias chase is the only
+    // remaining well-defined source of completions in this branch.
+    if (!walked) return [];
+    if (walked.dim >= walked.numDims) {
+        // Every dimension already consumed — nothing further to offer.
+        return [];
+    }
+
+    const aliasesForDim =
+        arrayProp.indexAliases?.[walked.dim] ?? ([] as readonly string[]);
+    if (aliasesForDim.length === 0) return [];
+
+    const prefix = completionContext.typedPrefix.toLowerCase();
+    const filtered = aliasesForDim.filter((name) =>
+        prefix ? name.toLowerCase().startsWith(prefix) : true,
+    );
+    if (filtered.length === 0) return [];
+
+    const detail = `Alias for ${arrayProp.name} (dim ${walked.dim + 1} of ${walked.numDims})`;
+    return filtered.map((label) => ({
+        label,
+        kind: CompletionItemKind.Reference,
+        detail,
+        textEdit: {
+            range: createTextEditRange(
+                autoCompleter.sourceObj,
+                completionContext.replaceFromOffset,
+                offset,
+            ),
+            newText: toRefMemberInsertText(label),
+        },
+    }));
+}
+
+/**
  * Get a list of completion items at the given offset in the source document.
  *
  * This function analyzes the cursor context to determine what type of completions
@@ -518,17 +698,36 @@ function createPropertyCompletionItems(
  * @param cachedContext - Optional pre-computed CompletionContext to avoid redundant parsing
  * @returns Array of LSP CompletionItem objects suitable for the current context
  */
-export function getCompletionItems(
+export async function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
     cachedContext?: CompletionContext,
-): CompletionItem[] {
+    explicit = false,
+): Promise<DoenetCompletionItem[]> {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
     }
 
+    // Ensure the per-instance `<module>` attribute allowlist is up to date
+    // for the current source revision before the attribute-name branch
+    // consults it.  Coalesces with the matching call in `getSchemaViolations`
+    // (validation typically runs first), so back-to-back validation +
+    // completion between edits costs at most one resolver round-trip per
+    // `<module copy=…>` site total.
+    await this._refreshModuleInstanceAttributes();
+
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
+
+    // Element-menu trigger policy. With a `<` already typed, the menu opens
+    // and items insert right after the `<` (start one char back to replace
+    // it on snippet expansion) — the long-standing behavior. An explicit
+    // Ctrl+Space without a `<` also opens the menu, but items must then
+    // insert the `<` themselves and the replace range starts at the cursor.
+    const hasLeadingLt = prevChar === "<";
+    const showElementMenu = hasLeadingLt || explicit;
+    const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
+    const insertLeadingBracket = !hasLeadingLt;
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -581,10 +780,13 @@ export function getCompletionItems(
         const uniqueNames = [
             ...new Set([...addressableNames, ...additionalNames]),
         ];
+        const isAddressableFlags = await Promise.all(
+            uniqueNames.map((name) => this.isNameAddressable(offset, name)),
+        );
         const filteredNames = uniqueNames.filter(
-            (name) =>
+            (name, i) =>
                 (!prefix || name.toLowerCase().startsWith(prefix)) &&
-                this.isNameAddressable(offset, name),
+                isAddressableFlags[i],
         );
 
         // Resolve each candidate's referent once and reuse the resulting
@@ -679,7 +881,7 @@ export function getCompletionItems(
         const toRefMemberInsertText = (name: string) =>
             isParenthesizedMemberContext ? name : toRefSegmentInsertText(name);
 
-        const resolved = this.resolveRefMemberContainerAtOffset(
+        const resolved = await this.resolveRefMemberContainerAtOffset(
             offset,
             completionContext.pathParts,
             completionContext.pathPartHasIndex,
@@ -687,6 +889,23 @@ export function getCompletionItems(
         const resolvedNode = resolved.node;
 
         if (!resolvedNode) {
+            // Before giving up, see whether the chain is a coordinate-style
+            // walk through an array property's `indexAliases` table — e.g.
+            // the user typed `$vector.head.` and we should offer `x/y/z`
+            // even though the resolver couldn't walk through `head`. The
+            // helper mirrors the help-side chase: the first unresolved
+            // segment names an array prop on the partially-resolved
+            // container, and bracket indices / alias names on the way
+            // each consume one dimension. Issue #1180.
+            const aliasItems = indexAliasCompletionItems(
+                this,
+                resolved.partiallyResolvedNode ?? null,
+                resolved.unresolvedPathParts,
+                completionContext,
+                offset,
+                toRefMemberInsertText,
+            );
+            if (aliasItems) return aliasItems;
             return [];
         }
 
@@ -698,7 +917,7 @@ export function getCompletionItems(
         // since aliased entries don't carry those.
         const helpSchema = this.resolveEffectiveSchemaElement(
             schema,
-            getParentName(this, resolvedNode),
+            this.sourceObj.getParentElementName(resolvedNode),
         );
         const takesIndex = schema?.takesIndex ?? false;
         // Read the index flag for the resolved segment — always the
@@ -711,6 +930,13 @@ export function getCompletionItems(
             completionContext.pathPartHasIndex?.[
                 completionContext.pathParts.length - 2
             ] ?? false;
+        // Strict-rule shorthand from issue #1181: a select-family container
+        // whose count attribute is absent or literal "1" lets `$s.t` resolve
+        // descendants like `$s[1].t`.  We surface the predicate to
+        // `determineVisibleNames` rather than collapsing it into
+        // `resolvedPartHasIndex` so the shorthand offers descendants AND keeps
+        // the composite's own properties (e.g. `$s.numToSelect`) accessible.
+        const implicitSingleIndex = hasImplicitSingleIndex(resolvedNode);
 
         // When the resolved element does NOT take an index but the user
         // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
@@ -721,6 +947,7 @@ export function getCompletionItems(
         const { descendantNames, propertyNames } = determineVisibleNames(
             takesIndex,
             resolvedPartHasIndex,
+            implicitSingleIndex,
             resolved.visibleDescendantNames,
             schema,
         );
@@ -763,12 +990,15 @@ export function getCompletionItems(
         ];
     }
 
-    if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
+    if (!containingNode && cursorPosition === "unknown" && showElementMenu) {
         return createElementAndSnippetCompletionItems(
             this,
             this.schemaTopAllowedElements,
-            offset - 1,
+            elementMenuStart,
             offset,
+            "",
+            null,
+            insertLeadingBracket,
         );
     }
 
@@ -776,13 +1006,17 @@ export function getCompletionItems(
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
 
-        // If the previous char is a `<`, we suggest all top-level elements.
-        if (prevChar === "<") {
+        // Suggest all top-level elements when a `<` was typed or the user
+        // explicitly invoked completion (Ctrl+Space).
+        if (showElementMenu) {
             return createElementAndSnippetCompletionItems(
                 this,
                 this.schemaTopAllowedElements,
-                offset - 1,
+                elementMenuStart,
                 offset,
+                "",
+                null,
+                insertLeadingBracket,
             );
         }
 
@@ -808,18 +1042,24 @@ export function getCompletionItems(
     if (
         cursorPosition === "body" &&
         containingElement.node &&
-        prevChar === "<"
+        showElementMenu
     ) {
+        // Pass the parent name so the alias-aware lookup uses the right
+        // child set when the containing element is itself a `childContextHelp`
+        // target (e.g. `<row>` inside `<matrix>` should offer `<math>` from
+        // `matrixRow`, not `<cell>` from the tabular `<row>`) — #1174.
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
+            this.sourceObj.getParentElementName(containingElement.node),
         );
         const completionItems = createElementAndSnippetCompletionItems(
             this,
             allowedChildrenNames,
-            offset - 1,
+            elementMenuStart,
             offset,
             "",
             containingElement.node,
+            insertLeadingBracket,
         );
 
         if (closed) {
@@ -863,7 +1103,13 @@ export function getCompletionItems(
         if (!parent || parent.type === "root") {
             allowedElements = this.schemaTopAllowedElements;
         } else {
-            allowedElements = this._getAllowedChildren(parent.name);
+            // Same alias-aware handoff as the `body`/`<` branch above:
+            // a `<row>` inside `<matrix>` is the `matrixRow` alias, so
+            // its in-tag completions must come from MathList's children.
+            allowedElements = this._getAllowedChildren(
+                parent.name,
+                this.sourceObj.getParentElementName(parent),
+            );
         }
 
         // For openTagName context, we need to replace from the opening '<' to the cursor.
@@ -882,47 +1128,133 @@ export function getCompletionItems(
         );
     }
 
-    if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
+    // Detect "typing a bare value after =" (no opening quote), e.g.
+    // `<math simplify=ful`. Walk back over identifier chars and see if the
+    // char immediately before that run is `=` (with optional whitespace).
+    // We compute this before the openTag/attributeName branch because lezer
+    // often parses `=ful` as a new attribute name, which would otherwise
+    // route the request to attribute-name completions.
+    const source = this.sourceObj.source;
+    const { valueStartOffset: typedValueStart, equalsOffset } =
+        scanBareValueRun(source, offset);
+    const isBareValueAfterEquals =
+        equalsOffset != null && typedValueStart < offset;
+    // Retained for downstream code that uses the `=` offset (e.g. for
+    // `createTextEditRange(equalsScan + 1, ...)`). When `=` isn't present,
+    // `isBareValueAfterEquals` is false and `equalsScan` is never read.
+    const equalsScan = equalsOffset ?? -1;
+    const typedValuePrefix = source.slice(typedValueStart, offset);
+
+    // The `!isBareValueAfterEquals && prevNonWhitespaceChar !== "="` guards
+    // cede those cases to the attribute-value branch below — otherwise an
+    // unquoted `name=ful` would route here as an attribute-name completion.
+    // The `prevNonWhitespaceChar !== "="` clause additionally covers the
+    // "cursor sits immediately after `=` with no bare value typed yet" case
+    // (`isBareValueAfterEquals` is false there since the prefix is empty);
+    // we want that case in the attribute-value branch too so `=` alone pops
+    // the value menu.
+    if (
+        (cursorPosition === "openTag" || cursorPosition === "attributeName") &&
+        !isBareValueAfterEquals &&
+        prevNonWhitespaceChar !== "="
+    ) {
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            getParentName(this, element),
+            this.sourceObj.getParentElementName(element),
         );
-        // Build a description lookup from the alias-aware help entry so
-        // attributes on `<row>` inside `<matrix>` show `matrixRow`'s docs.
-        const descriptionByAttrName = new Map<string, string>();
-        for (const attr of helpEntry?.attributes ?? []) {
-            if (attr.description) {
-                descriptionByAttrName.set(attr.name, attr.description);
-            }
-        }
-        const allowedAttributes = ownEntry?.attributes || [];
+        // List the alias's attributes (not the canonical entry's) when the
+        // parent declares a `childContextHelp` redirect — `<row>` inside
+        // `<matrix>` is the `matrixRow` alias, whose attribute set is the
+        // MathList one (`unordered`, `maxNumber`, …), not the tabular
+        // `<row>`'s (#1174).  The `helpEntry` already does the alias
+        // resolution and is the same source the description lookup uses,
+        // so the dropdown's set and the per-row docs can't drift apart.
+        const canonicalAttributes = helpEntry?.attributes ?? [];
+        // Per-instance augmentation for `<module copy="$x" .../>` sites
+        // (issue #1154): when the precompute pass resolved `$x` to a
+        // `<module>` definition with declared `<moduleAttributes>`,
+        // synthesize completion entries for each declared name so the
+        // dropdown lists `center` / `color` / `radius` alongside the
+        // canonical `<module>` attributes.  Falls through to canonical-only
+        // when no entry exists in the map.
+        const perInstanceAllowlist =
+            elmName === "module"
+                ? this._moduleInstanceAttributeAllowlist.get(element)
+                : undefined;
+        const allowedAttributes = perInstanceAllowlist
+            ? mergeDeclaredIntoSchemaAttributes(
+                  canonicalAttributes,
+                  perInstanceAllowlist,
+              )
+            : canonicalAttributes;
         return allowedAttributes.map((attr) => {
             const item: CompletionItem = {
                 label: attr.name,
                 kind: CompletionItemKind.Enum,
             };
-            const description =
-                descriptionByAttrName.get(attr.name) ?? attr.description;
-            if (description) {
-                item.documentation = asMarkdown(description);
+            if (attr.description) {
+                item.documentation = asMarkdown(attr.description);
             }
             return item;
         });
     }
 
+    // Only fire the attribute-value branch when we are clearly inside an
+    // open tag (or already in an attribute value). Crucially we exclude
+    // cursorPosition === "body" so a literal `=` in body text doesn't get
+    // misread as an attribute-value anchor.
+    const isInOpenTagContext =
+        cursorPosition === "openTag" ||
+        cursorPosition === "attributeName" ||
+        cursorPosition === "attributeValue" ||
+        cursorPosition === "unknown";
     if (
         cursorPosition === "attributeValue" ||
-        (cursorPosition === "unknown" && prevNonWhitespaceChar === "=")
+        (isInOpenTagContext &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals))
     ) {
         const elmName = this.normalizeElementName(element.name);
-        const allowedAttributes =
-            this.schemaElementsByName[elmName]?.attributes || [];
+        // Alias-aware: when the parent declares a `childContextHelp`
+        // redirect (e.g. `<row>` inside `<matrix>` → `matrixRow`), values
+        // and `autocompleteValues` come from the alias entry — closes
+        // #1092 (the attribute-value branch was the one surface still
+        // reading from the canonical entry only).  Falls back to the
+        // canonical entry when no parent context applies.
+        const elmEntry =
+            this._resolveEffectiveByName(
+                elmName,
+                this.sourceObj.getParentElementName(element),
+            ) ?? this.schemaElementsByName[elmName];
+        const allowedAttributes = elmEntry?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);
-        const allowedAttribute = allowedAttributes.find(
+        let allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
+        // Fallback: when the user is typing a bare value after `=` the parser
+        // may not include the typed chars in any attribute's position range,
+        // so resolve the attribute name by walking back to the `=` and reading
+        // the identifier that precedes it.
+        if (!allowedAttribute && isBareValueAfterEquals) {
+            let nameEnd = equalsScan;
+            while (nameEnd > 0 && /\s/.test(source.charAt(nameEnd - 1))) {
+                nameEnd--;
+            }
+            let nameStart = nameEnd;
+            while (
+                nameStart > 0 &&
+                ATTR_VALUE_CHAR.test(source.charAt(nameStart - 1))
+            ) {
+                nameStart--;
+            }
+            const attrName = source.slice(nameStart, nameEnd);
+            if (attrName) {
+                allowedAttribute = allowedAttributes.find(
+                    (a) => a.name === attrName,
+                );
+            }
+        }
         // Prefer the `autocompleteValues` shape (per-value descriptions) so
         // completions carry tooltips. Fall back to the plain validation
         // `values` list for any attribute that exposes `values` without
@@ -931,23 +1263,117 @@ export function getCompletionItems(
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
         if (!optionsWithDescriptions && !plainValues) {
-            return [{ label: '""', kind: CompletionItemKind.Value }];
+            // Free-text attribute: no enum to suggest. We still offer a single
+            // "wrap in quotes" hint *iff* the author has typed a bare value
+            // after `=` (e.g. `name=foo`). The hint's displayLabel previews
+            // the corrected form `"foo"`, and accepting the suggestion
+            // replaces the bare run with the quoted version. We deliberately
+            // skip the hint when:
+            //   * the cursor is right at `=` with no typed value yet
+            //     (`isBareValueAfterEquals` is false), and
+            //   * the cursor is already inside `"..."`
+            //     (`cursorPosition === "attributeValue"`),
+            // so an expert who reflexively types `"` after `=` never sees a
+            // flicker, and a bare `=` doesn't pop a useless menu.
+            if (
+                cursorPosition !== "attributeValue" &&
+                isBareValueAfterEquals &&
+                typedValuePrefix.length > 0
+            ) {
+                const range = createTextEditRange(
+                    this.sourceObj,
+                    equalsScan + 1,
+                    offset,
+                );
+                return [
+                    {
+                        label: typedValuePrefix,
+                        displayLabel: `"${typedValuePrefix}"`,
+                        kind: CompletionItemKind.Value,
+                        filterText: typedValuePrefix,
+                        textEdit: {
+                            range,
+                            newText: `"${typedValuePrefix}"`,
+                        },
+                        // Marker telling the CodeMirror plugin to treat this
+                        // option as a live preview: it must set `filter: false`
+                        // on the result, anchor `from` at `bareValueStartOffset`,
+                        // and refresh the option's text from the live document
+                        // on every keystroke. Without this, the cached
+                        // `label`/`displayLabel` go stale (CodeMirror filters
+                        // the option out the moment the typed prefix exceeds
+                        // the cached label length) and the plugin's default
+                        // `prefixMatch` anchors `from` past the first typed
+                        // character (because the apply text starts with `"`,
+                        // which the user has not actually typed).
+                        data: {
+                            livePreviewQuoteWrap: {
+                                bareValueStartOffset: typedValueStart,
+                            },
+                        } satisfies CompletionSnippetCompletionItemData,
+                    },
+                ];
+            }
+            return [];
         }
-        // If we are right after the =, we should include quotes in the completion,
-        // otherwise, assume the user has already supplied the quote marks.
-        const includeQuotes = prevNonWhitespaceChar === "=";
-        const quote = includeQuotes ? '"' : "";
+        // Quotes get added via `textEdit.newText` when the cursor is anchored
+        // to an `=` rather than already inside `"..."`. The display label and
+        // filter text always use the bare value. The replacement range starts
+        // right after `=` (rather than at the typed-value start) so any
+        // whitespace between `=` and the bare value is swallowed by the
+        // edit — `simplify=   ful` becomes `simplify="full"`, not
+        // `simplify=   "full"`.
+        const needsQuotes =
+            cursorPosition !== "attributeValue" &&
+            (prevNonWhitespaceChar === "=" || isBareValueAfterEquals);
+        const quotedRange = needsQuotes
+            ? createTextEditRange(this.sourceObj, equalsScan + 1, offset)
+            : undefined;
+        const filterPrefix = typedValuePrefix.toLowerCase();
+        const matchesPrefix = (value: string) =>
+            !needsQuotes ||
+            !filterPrefix ||
+            value.toLowerCase().startsWith(filterPrefix);
+        // When we add quotes via textEdit, advertise the quoted form in
+        // `displayLabel` so the dropdown reads `"full"` instead of `full`.
+        // The bare `label` is still used by CodeMirror's fuzzy matcher, so
+        // typing `fu` still ranks `full` correctly. Inside `"..."` we omit
+        // `displayLabel` so the dropdown matches what actually gets inserted.
         if (optionsWithDescriptions) {
-            return optionsWithDescriptions.map(({ value, description }) => ({
-                label: `${quote}${value}${quote}`,
-                kind: CompletionItemKind.Value,
-                documentation: asMarkdown(description),
-            }));
+            return optionsWithDescriptions
+                .filter(({ value }) => matchesPrefix(value))
+                .map(({ value, description }) => ({
+                    label: value,
+                    kind: CompletionItemKind.Value,
+                    filterText: value,
+                    documentation: asMarkdown(description),
+                    ...(quotedRange
+                        ? {
+                              displayLabel: `"${value}"`,
+                              textEdit: {
+                                  range: quotedRange,
+                                  newText: `"${value}"`,
+                              },
+                          }
+                        : {}),
+                }));
         }
-        return (plainValues ?? []).map((value) => ({
-            label: `${quote}${value}${quote}`,
-            kind: CompletionItemKind.Value,
-        }));
+        return (plainValues ?? [])
+            .filter((value) => matchesPrefix(value))
+            .map((value) => ({
+                label: value,
+                kind: CompletionItemKind.Value,
+                filterText: value,
+                ...(quotedRange
+                    ? {
+                          displayLabel: `"${value}"`,
+                          textEdit: {
+                              range: quotedRange,
+                              newText: `"${value}"`,
+                          },
+                      }
+                    : {}),
+            }));
     }
     return [];
 }

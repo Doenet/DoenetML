@@ -1,0 +1,210 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<eigenDecomposition>{:dn}`
+
+<ComponentDisplay name='eigenDecomposition'/>
+
+`<eigenDecomposition>{:dn}` takes a square matrix supplied as a single
+`<math>{:dn}` child (or a reference to one). It produces no visible output of its own; instead it exposes the
+results as the properties `eigenvalues`, `eigenvectors`, and `numEigenvectors` so they can be rendered, used in
+computations, or referenced from other components. The returned eigenvectors are normalized to unit length, and
+complex eigenvalues/eigenvectors are supported.
+
+<AttrPropDisplay name='eigenDecomposition'/>
+
+## Examples
+
+### Example: Eigenvalues and eigenvectors of a 2×2 matrix
+
+
+```doenet-editor-horiz
+<p><m>A = </m> <math name="A" format="latex">
+  \begin{pmatrix}
+  1 &amp; 2\\
+  2 &amp; 1
+  \end{pmatrix}
+</math></p>
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<p>Eigenvalues: $eig.eigenvalues</p>
+<p>Eigenvectors: $eig.eigenvectors</p>
+```
+
+
+
+The matrix is provided as a `<math>{:dn}` child of `<eigenDecomposition>{:dn}`. The `eigenvalues` and
+`eigenvectors` properties are lists.
+
+
+
+---
+
+### Example: Individual eigenvalues and eigenvectors
+
+
+```doenet-editor-horiz
+<math name="A" format="latex">
+  \begin{pmatrix}
+  3 &amp; 1\\
+  0 &amp; 2
+  \end{pmatrix}
+</math>
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<p>1st eigenvalue: $eig.eigenvalues[1]</p>
+<p>2nd eigenvalue: $eig.eigenvalues[2]</p>
+<p>1st eigenvector: $eig.eigenvectors[1]</p>
+<p>2nd eigenvector: $eig.eigenvectors[2]</p>
+<p>x-component of the 1st eigenvector: $eig.eigenvectors[1].x</p>
+```
+
+
+
+The list properties can also be indexed: `eigenvalues[1]`, `eigenvalues[2]`, ... select individual eigenvalues, and
+`eigenvectors[1]`, `eigenvectors[2]`, ... select individual eigenvectors. Each indexed eigenvector is itself a
+vector whose components can be accessed via `.x`, `.y`, (and `.z` for 3×3 matrices).
+
+
+
+---
+
+### Example: Complex eigenvalues
+
+
+```doenet-editor-horiz
+<math name="B" format="latex">
+  \begin{pmatrix}
+  1 &amp; 2\\
+  -2 &amp; 1
+  \end{pmatrix}
+</math>
+
+<eigenDecomposition name="eig">$B</eigenDecomposition>
+
+<p>Eigenvalues: $eig.eigenvalues</p>
+<p>Eigenvectors: $eig.eigenvectors</p>
+```
+
+
+
+The eigendecomposition handles complex eigenvalues/eigenvectors natively. The matrix above is a rotation-scaling
+matrix with eigenvalues $1 \pm 2i$ and complex eigenvectors.
+
+
+
+---
+
+### Example: Visualizing real eigenvectors in a phase plane
+
+
+```doenet-editor-horiz
+<math name="A" format="latex">
+  \begin{pmatrix}
+  3 &amp; 1\\
+  1 &amp; 3
+  \end{pmatrix}
+</math>
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<graph xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>Two eigenvectors in a phase plane</shortDescription>
+  <vector tail="(0,0)" head="$eig.eigenvectors[1]" styleNumber="2">
+    <label><m>v_1</m></label>
+  </vector>
+  <vector tail="(0,0)" head="$eig.eigenvectors[2]" styleNumber="3">
+    <label><m>v_2</m></label>
+  </vector>
+</graph>
+<p>Eigenvalues: $eig.eigenvalues</p>
+```
+
+
+
+Because each eigenvector is exposed as a coordinate, it can be passed directly to a graphical component such as
+[`<vector>{:dn}`](vector). This makes `<eigenDecomposition>{:dn}` useful for illustrating the eigenstructure of
+a 2×2 system matrix in a phase plane.
+
+
+
+---
+
+### Example: Using the decomposition with a user-input matrix
+
+
+```doenet-editor-horiz
+<p><label for="$A">Enter a 2×2 matrix:</label></p>
+<matrixInput name="A" numRows="2" numColumns="2" showSizeControls="false" format="latex" prefill="\begin{matrix}2 & 1\\ 1 & 2\end{matrix}" />
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<p><c>numEigenvectors</c> = $eig.numEigenvectors</p>
+<p>Eigenvalues: $eig.eigenvalues</p>
+<p>Eigenvectors: $eig.eigenvectors</p>
+```
+
+
+
+The matrix child can be a literal `<math>{:dn}`, a reference, or any expression that evaluates to a square
+matrix — including the value of a [`<matrixInput>{:dn}`](matrixInput). The `numEigenvectors` property reports
+the number of eigenvectors found; it is `0` when the child cannot be interpreted as a square numeric matrix.
+
+
+
+## Property Examples
+
+### Property Example: eigenvalues
+
+
+```doenet-editor-horiz
+<math name="A" format="latex">
+  \begin{pmatrix}
+  4 &amp; 0 &amp; 0\\
+  0 &amp; 2 &amp; -1\\
+  0 &amp; -1 &amp; 2
+  \end{pmatrix}
+</math>
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<p><c>eigenvalues</c> = $eig.eigenvalues</p>
+<p><c>eigenvalues[1]</c> = $eig.eigenvalues[1]</p>
+```
+
+
+
+`eigenvalues` is the list of eigenvalues. It can be rendered as a list or accessed by index with
+`eigenvalues[i]`.
+
+
+
+---
+
+### Property Example: eigenvectors
+
+
+```doenet-editor-horiz
+<math name="A" format="latex">
+  \begin{pmatrix}
+  2 &amp; 0\\
+  0 &amp; 5
+  \end{pmatrix}
+</math>
+
+<eigenDecomposition name="eig">$A</eigenDecomposition>
+
+<p><c>eigenvectors</c> = $eig.eigenvectors</p>
+<p><c>eigenvector1</c> = $eig.eigenvectors[1]</p>
+<p><c>eigenvector1.x</c> = $eig.eigenvectors[1].x</p>
+```
+
+
+
+`eigenvectors` is a 2-D array (one row per eigenvector). Each eigenvector is normalized to unit length; access
+an individual eigenvector with `eigenvectors[1]`, `eigenvectors[2]`, ... and its components with `.x`, `.y`, `.z`.
+

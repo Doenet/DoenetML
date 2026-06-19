@@ -20,7 +20,20 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
+export {
+    mediaLicenses,
+    getMediaLicenseInfo,
+    getMediaLicenseDisplay,
+    creativeCommonsVersions,
+    defaultCreativeCommonsVersion,
+} from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
+export type {
+    MediaLicenseInfo,
+    MediaLicenseKind,
+    MediaLicenseDisplay,
+    CreativeCommonsVersion,
+} from "@doenet/utils";
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 export type { DiagnosticsTabId, DoenetEditorHandle };
 import { detectVersionFromDoenetML } from "@doenet/parser";
@@ -309,8 +322,11 @@ export function DoenetViewer({
  */
 type EditorIframeRemote = Comlink.Remote<{
     renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
+    updateEditorProps: (props: Record<string, any>) => void;
+    updateEditorFunctionProps: (...args: (string | Function)[]) => void;
     openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     closeDiagnosticsPanel: () => void;
+    updateRenderedView: () => void;
 }>;
 
 // ComLink RPC calls return Promises, but the imperative handle methods are
@@ -345,6 +361,22 @@ export const DoenetEditor = React.forwardRef<
     const pendingActions = React.useRef<
         ((remote: EditorIframeRemote) => void)[]
     >([]);
+    // Snapshot of the props last pushed to the iframe via Comlink. Cleared
+    // when `srcDoc` rebuilds (autodetect-version fallback) so the live-update
+    // effect re-sends current values against the freshly-loaded iframe, which
+    // is otherwise stuck with the mount-time snapshot baked into `srcDoc`.
+    const lastSentPropsSnapshotRef = React.useRef<string | null>(null);
+    // Snapshot of the function-typed props registered with the iframe via
+    // Comlink.proxy. Used to detect when the parent passes a new callback
+    // identity so the iframe can be re-pointed at the fresh closure.
+    const lastSentFunctionPropsRef = React.useRef<Record<
+        string,
+        Function
+    > | null>(null);
+    // Latest doenetEditorProps so the (deps-empty) iframeReady listener and
+    // re-entrant effects can read current values rather than the closure's.
+    const doenetEditorPropsRef = React.useRef(doenetEditorProps);
+    doenetEditorPropsRef.current = doenetEditorProps;
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
@@ -379,19 +411,40 @@ export const DoenetEditor = React.forwardRef<
                     pendingActions.current.push(action);
                 }
             },
+            updateRenderedView() {
+                const action = (remote: EditorIframeRemote) => {
+                    remote
+                        .updateRenderedView()
+                        .catch(logComlinkError("updateRenderedView"));
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
         }),
         [],
     );
 
-    // Augment the DoenetEditor props by adding any initial diagnostics found
-    const augmentedDoenetEditorProps = { ...doenetEditorProps };
-    if (augmentedDoenetEditorProps.initialDiagnostics) {
-        augmentedDoenetEditorProps.initialDiagnostics = [
-            ...augmentedDoenetEditorProps.initialDiagnostics,
-            ...initialDiagnostics,
-        ];
-    } else {
-        augmentedDoenetEditorProps.initialDiagnostics = initialDiagnostics;
+    // Capture the initial doenetML, width, and props bag once per mount.
+    // Subsequent changes to these are not baked into a fresh srcDoc — instead
+    // serializable prop changes are pushed through Comlink (see effect below).
+    // `doenetML` here is effectively the *initial* DoenetML: changes to the
+    // prop after mount are ignored on purpose so the user's in-progress edits
+    // aren't blown away. Consumers wanting to seed a new document should
+    // remount via a parent `key=`.
+    const initialIframePropsRef = React.useRef<{
+        doenetML: string;
+        width: string;
+        doenetEditorProps: typeof doenetEditorProps;
+    } | null>(null);
+    if (initialIframePropsRef.current === null) {
+        initialIframePropsRef.current = {
+            doenetML,
+            width,
+            doenetEditorProps,
+        };
     }
 
     let standaloneUrl: string, cssUrl: string;
@@ -450,11 +503,15 @@ export const DoenetEditor = React.forwardRef<
                     // but must be direct arguments of the function.
                     // To indicate the functions names, the arguments are a series of string key names
                     // followed by the proxied function with that name.
+                    // Read from the ref so that if the parent passed a new
+                    // callback identity between mount and iframeReady, the
+                    // freshest closure is what gets registered.
+                    const latestProps = doenetEditorPropsRef.current;
                     const proxiedFunctions: (string | Function)[] = [];
-                    for (const [key, prop] of Object.entries(
-                        doenetEditorProps,
-                    )) {
+                    const registeredFunctions: Record<string, Function> = {};
+                    for (const [key, prop] of Object.entries(latestProps)) {
                         if (typeof prop === "function") {
+                            registeredFunctions[key] = prop;
                             proxiedFunctions.push(key);
                             proxiedFunctions.push(Comlink.proxy(prop));
                         }
@@ -464,6 +521,9 @@ export const DoenetEditor = React.forwardRef<
                         .catch(
                             logComlinkError("renderEditorWithFunctionProps"),
                         );
+                    // Record what we registered so the function-prop change
+                    // effect below can detect later identity changes.
+                    lastSentFunctionPropsRef.current = registeredFunctions;
 
                     // Make the remote available to the imperative handle and
                     // replay any actions queued before the iframe was ready.
@@ -484,24 +544,169 @@ export const DoenetEditor = React.forwardRef<
         };
     }, []);
 
-    const srcDoc = createHtmlForDoenetEditor(
-        id,
-        doenetML,
-        width,
-        augmentedDoenetEditorProps,
-        standaloneUrl,
-        cssUrl,
-    );
+    // Only recompute `srcDoc` when something that genuinely requires a reload
+    // changes: a new standalone bundle (e.g. autodetect-version fallback) or
+    // freshly-accumulated initial diagnostics from that fallback path. Other
+    // prop changes flow live through `updateEditorProps` below.
+    const srcDoc = React.useMemo(() => {
+        const baseProps = {
+            ...initialIframePropsRef.current!.doenetEditorProps,
+        };
+        if (baseProps.initialDiagnostics) {
+            baseProps.initialDiagnostics = [
+                ...baseProps.initialDiagnostics,
+                ...initialDiagnostics,
+            ];
+        } else {
+            baseProps.initialDiagnostics = initialDiagnostics;
+        }
+        return createHtmlForDoenetEditor(
+            id,
+            initialIframePropsRef.current!.doenetML,
+            initialIframePropsRef.current!.width,
+            baseProps,
+            standaloneUrl,
+            cssUrl,
+        );
+    }, [id, standaloneUrl, cssUrl, initialDiagnostics]);
 
-    // When `srcDoc` changes, React updates the iframe attribute and the browser
-    // reloads the iframe document. The previous Comlink remote becomes bound to
-    // a torn-down `contentWindow` until the new iframe sends `iframeReady`.
-    // Clear the remote synchronously at commit (via `useLayoutEffect`) so any
-    // imperative-handle calls between commit and the next paint queue and
-    // replay against the new remote instead of dispatching into a dead one.
+    // Build the serializable prop snapshot used both for change detection
+    // (vs. last sent) and as the baseline of "what the iframe currently
+    // believes." Drop function-typed entries (sent separately via
+    // updateEditorFunctionProps) and drop `doenetML` (initial-only — see
+    // initialIframePropsRef above).
+    //
+    // Change detection uses `JSON.stringify`, which assumes supported props
+    // are JSON-safe (scalars, plain arrays/objects). `undefined` values are
+    // dropped, `Date`/`Map`/`Set` are normalized to strings/empty objects,
+    // and key reordering produces spurious diffs. If a new prop with an
+    // exotic value type is added later, prefer a structural comparator over
+    // expanding what this serializer handles.
+    const propsForUpdate: Record<string, any> = { width };
+    for (const [key, val] of Object.entries(doenetEditorProps)) {
+        if (typeof val !== "function") {
+            propsForUpdate[key] = val;
+        }
+    }
+    const propsSnapshotStr = JSON.stringify(propsForUpdate);
+
+    // When `srcDoc` changes (autodetect-version fallback path), React updates
+    // the iframe attribute and the browser reloads the iframe document. The
+    // previous Comlink remote becomes bound to a torn-down `contentWindow`
+    // until the new iframe sends `iframeReady`. Clear the remote synchronously
+    // at commit so any imperative-handle calls between commit and the next
+    // paint queue and replay against the new remote instead of dispatching
+    // into a dead one. Also re-anchor the live-update snapshot refs to the
+    // mount-time baseline that's about to be baked into the new srcDoc, so
+    // the live-update effect can detect (and replay) any prop drift since
+    // mount against the freshly-booted iframe. In the steady state `srcDoc`
+    // is stable, so this effect is a no-op after the first commit.
     React.useLayoutEffect(() => {
         editorIframeRef.current = null;
+        const baselineProps: Record<string, any> = {
+            width: initialIframePropsRef.current!.width,
+        };
+        for (const [key, val] of Object.entries(
+            initialIframePropsRef.current!.doenetEditorProps,
+        )) {
+            if (typeof val !== "function") {
+                baselineProps[key] = val;
+            }
+        }
+        lastSentPropsSnapshotRef.current = JSON.stringify(baselineProps);
+        // Function props re-register when the new iframe emits iframeReady
+        // (the listener calls renderEditorWithFunctionProps with the latest
+        // identities and re-populates this ref), so just clear it here.
+        lastSentFunctionPropsRef.current = null;
     }, [srcDoc]);
+
+    // Push serializable prop changes into the iframe without reloading.
+    // Compares against the ref populated by the layoutEffect above (initial
+    // mount: baseline equal to current → no push; later renders: ref reflects
+    // last-sent state). `srcDoc` is in the dep list so a rebuild fires this
+    // effect even when no prop changed, replaying any drift.
+    React.useEffect(() => {
+        if (lastSentPropsSnapshotRef.current === propsSnapshotStr) {
+            return;
+        }
+        lastSentPropsSnapshotRef.current = propsSnapshotStr;
+        const snapshot = JSON.parse(propsSnapshotStr);
+        const action = (remote: EditorIframeRemote) => {
+            remote
+                .updateEditorProps(snapshot)
+                .catch(logComlinkError("updateEditorProps"));
+        };
+        if (editorIframeRef.current) {
+            action(editorIframeRef.current);
+        } else {
+            pendingActions.current.push(action);
+        }
+    }, [propsSnapshotStr, srcDoc]);
+
+    // Push function-prop identity changes into the iframe. We have no live
+    // use case for this yet, but supporting it keeps callback semantics
+    // matching the in-process `<DoenetEditor>` (where parents routinely pass
+    // a fresh closure each render).
+    //
+    // Strategy: on each render, compare the current set of function-typed
+    // props to the last set we registered. If keys or references differ,
+    // re-proxy and resend *all* function props via `updateEditorFunctionProps`
+    // — sending only the changed entries would be more efficient but adds
+    // bookkeeping the iframe also has to mirror (e.g. handling removed
+    // keys). Each `Comlink.proxy(fn)` allocates a MessagePort that isn't
+    // explicitly released; relying on this for high-frequency callback
+    // identity churn would leak ports over time.
+    //
+    // The initial set is registered at iframeReady (above) and recorded in
+    // `lastSentFunctionPropsRef`; this effect only fires once that ref is
+    // populated, so the first render is a no-op here.
+    //
+    // No deps array on purpose: change detection is by-hand identity
+    // comparison against `lastSentFunctionPropsRef`, not React's shallow
+    // dep diff. The effect fires every render and short-circuits when the
+    // function set is unchanged.
+    React.useEffect(() => {
+        const prev = lastSentFunctionPropsRef.current;
+        if (prev === null) {
+            return;
+        }
+        const current: Record<string, Function> = {};
+        for (const [key, val] of Object.entries(doenetEditorPropsRef.current)) {
+            if (typeof val === "function") {
+                current[key] = val;
+            }
+        }
+        const prevKeys = Object.keys(prev);
+        const currKeys = Object.keys(current);
+        let changed = prevKeys.length !== currKeys.length;
+        if (!changed) {
+            for (const k of currKeys) {
+                if (prev[k] !== current[k]) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (!changed) {
+            return;
+        }
+        lastSentFunctionPropsRef.current = current;
+        const proxiedFunctions: (string | Function)[] = [];
+        for (const [key, val] of Object.entries(current)) {
+            proxiedFunctions.push(key);
+            proxiedFunctions.push(Comlink.proxy(val));
+        }
+        const action = (remote: EditorIframeRemote) => {
+            remote
+                .updateEditorFunctionProps(...proxiedFunctions)
+                .catch(logComlinkError("updateEditorFunctionProps"));
+        };
+        if (editorIframeRef.current) {
+            action(editorIframeRef.current);
+        } else {
+            pendingActions.current.push(action);
+        }
+    });
 
     if (inErrorState) {
         if (foundAutoVersion) {

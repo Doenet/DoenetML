@@ -1,0 +1,24 @@
+{
+    "simple_conversion": {
+        "input": "<p>Hello World</p>",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<p>Hello World</p>\n</article>\n</pretext>"
+    },
+    "conversion_with_math": {
+        "input": "<p>Math: <m>\\\\frac{1}{2}</m></p>",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<p>Math: <m>\\\\frac{1}{2}</m></p>\n</article>\n</pretext>"
+    },
+    "conversion_wraps_in_article": {
+        "input": "<textInput />",
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<fillin characters=\"8\"></fillin>\n</article>\n</pretext>"
+    },
+    "convert_multiple_with_refs": {
+        "input": [
+            "<section name=\"foo\"><title>First</title></section><p>Jump to <ref to=\"$foo\" /></p>",
+            "<section name=\"foo\"><title>Second</title></section><p>Jump to <ref to=\"$foo\" /></p>"
+        ],
+        "expected": [
+            "<section xml:id=\"fragment0-doenet-id-1\">\n    <title>First</title></section><p>Jump to <xref ref=\"fragment0-doenet-id-1\"></xref></p>",
+            "<section xml:id=\"fragment1-doenet-id-1\">\n    <title>Second</title></section><p>Jump to <xref ref=\"fragment1-doenet-id-1\"></xref></p>"
+        ]
+    }
+}

@@ -1,0 +1,77 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<equilibriumCurve>{:dn}`
+
+<ComponentDisplay name='equilibriumCurve'/>
+
+`<equilibriumCurve>{:dn}` extends [`<curve>{:dn}`](curve) to mark a curve of equilibria of a dynamical system.
+Use it to display a
+nullcline that consists of equilibrium points along a curve (for example in a bifurcation diagram or in a phase
+plane) while making the stability visually apparent. The component accepts the full set of `<curve>{:dn}`
+attributes, including spline `through` points and `flipFunction` for swapping the role of the variables.
+
+<AttrPropDisplay name='equilibriumCurve'/>
+
+## Examples
+
+### Example: Stable and unstable equilibrium curves
+
+
+```doenet-editor-horiz
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A solid spline of stable equilibria on the right and a dashed spline of unstable equilibria on the left</shortDescription>
+  <equilibriumCurve through="(1, 2) (3, 4) (2, 6)"><label>stable</label></equilibriumCurve>
+  <equilibriumCurve stable="false" through="(-1, 2) (-3, 4) (-2, 6)"><label>unstable</label></equilibriumCurve>
+</graph>
+```
+
+
+
+Two spline curves of equilibria; the right curve is drawn solid (stable) and the left is dashed (unstable).
+The `stable` attribute defaults to `true`; setting it to `false` switches the rendering to dashed.
+
+
+
+---
+
+### Example: Sketching a saddle-node bifurcation diagram
+
+
+```doenet-editor-horiz
+<graph xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A saddle-node bifurcation diagram with a stable upper branch and an unstable lower branch</shortDescription>
+  <xLabel>r</xLabel>
+  <yLabel>x</yLabel>
+  <equilibriumCurve through="(0, 0) (1, 1) (2, 1.4)" />
+  <equilibriumCurve stable="false" through="(0, 0) (1, -1) (2, -1.4)" />
+</graph>
+```
+
+
+
+A pair of `<equilibriumCurve>{:dn}` components sketches the upper (stable) and lower (unstable) branches of a
+saddle-node bifurcation diagram for $\dot x = r - x^2$.
+
+
+
+## Attribute Examples
+
+### Attribute Example: switchable
+
+
+```doenet-editor-horiz
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A clickable equilibrium curve whose stability the learner can toggle</shortDescription>
+  <equilibriumCurve name="C" switchable through="(-4, -3) (0, 0) (4, 3)" />
+</graph>
+<p>Click the curve to toggle. <c>C.stable</c> = $C.stable</p>
+```
+
+
+
+When `switchable` is set, clicking the curve toggles its `stable` state and the solid/dashed rendering. This
+supports interactive classification of nullclines in phase-plane exercises.
+

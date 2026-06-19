@@ -7,7 +7,7 @@ export default class Collect extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Collects descendants matching a component type from another component.",
+            "Collects descendants of a component matching a specified component type",
     };
     static takesIndex = true;
 
@@ -54,7 +54,7 @@ export default class Collect extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

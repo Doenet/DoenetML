@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <vector>{:dn}`
+# `<vector>{:dn}`
 
-` <vector>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
-component that renders a vector when nested within a [` <graph>{:dn}`](graph.mdx). Outside a graph, it can be used in vector computations.
+<ComponentDisplay name='vector'/>
 
-## Attributes and Properties 
- <AttrDisplay name='vector'/> 
- <PropDisplay name='vector'/>
+`<vector>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that renders a vector when nested within a [`<graph>{:dn}`](graph.mdx). Outside a graph, it can be used in vector computations.
+
+<AttrPropDisplay name='vector'/>
 
 
----
+## Examples
 
-### Example: Default ` <vector>{:dn}`
+### Example: Default `<vector>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -25,6 +25,7 @@ component that renders a vector when nested within a [` <graph>{:dn}`](graph.mdx
   xmax="2" 
   ymin="-2" 
   ymax="2">
+    <shortDescription>A graph of a default vector</shortDescription>
     <vector name="v"/>
 </graph>
 
@@ -33,13 +34,13 @@ component that renders a vector when nested within a [` <graph>{:dn}`](graph.mdx
 
 
 
-A default ` <vector>{:dn}` without any additional attributes has `tail` at the origin and `head` at $(1,0)$.
+A default `<vector>{:dn}` without any additional attributes has `tail` at the origin and `head` at $(1,0)$.
 
 
 
 ---
 
-### Example: ` <vector>{:dn}` math
+### Example: `<vector>{:dn}` math
 
 
 ```doenet-editor-horiz
@@ -61,11 +62,11 @@ A default ` <vector>{:dn}` without any additional attributes has `tail` at the o
 
 
 
-A ` <vector>{:dn}` within a ` <math>{:dn}` follows vector operations.
+A `<vector>{:dn}` within a `<math>{:dn}` follows vector operations.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: x,y
 
@@ -74,6 +75,7 @@ A ` <vector>{:dn}` within a ` <math>{:dn}` follows vector operations.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector</shortDescription>
   <vector name="v1" x="3" y="4"/>
 </graph>
 
@@ -97,6 +99,7 @@ elements for a vector given by $\bf{v} = (x, y)$.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector</shortDescription>
   <vector name="v" xs="3 4" tail="(1,1)"/>
 </graph>
 
@@ -120,6 +123,7 @@ access or render the list information, use index notation.
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector with specified displacement</shortDescription>
   <vector 
     name="v" 
     displacement="(3,4)" 
@@ -145,6 +149,7 @@ Use the `displacement` property to specify the displacement of the vector in eac
 ```doenet-editor-horiz
 <p>Drag the head and the tail of the vector, or the vector itself.</p>
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a draggable vector with specified head and tail</shortDescription>
   <vector name="v" head="(4,5)" tail="(1,1)"/>
 </graph>
 
@@ -183,6 +188,7 @@ If this is the desired rendering format, use the attribute `displayWithAngleBrac
 ```doenet-example
 <p>Try to drag the head and the tail of each vector, or the vectors themselves.</p>
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of two vectors, one draggable and one fixed</shortDescription>
   <vector name="v1" tail="(-2,0)">(3,4)
     <label>Draggable</label>
   </vector>
@@ -197,7 +203,7 @@ If this is the desired rendering format, use the attribute `displayWithAngleBrac
 
 
 
-The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<vector>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -215,6 +221,7 @@ The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged 
 </booleanInput>
 
 <graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of a vector with toggleable head and tail draggability</shortDescription>
   <vector name="v1" headDraggable="$hD" tailDraggable="$tD">(3,4)</vector>
 </graph>
 
@@ -224,7 +231,7 @@ The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged 
 
 
 
-The head and tail of a ` <vector>{:dn}` are draggable by default. Use the `headDraggable` or `tailDraggable` attribute set to false to disable users from changing the direction and length of the ` <vector>{:dn}`. The vector as a whole can still be repositioned on the ` <graph>{:dn}`.
+The head and tail of a `<vector>{:dn}` are draggable by default. Use the `headDraggable` or `tailDraggable` attribute set to false to disable users from changing the direction and length of the `<vector>{:dn}`. The vector as a whole can still be repositioned on the `<graph>{:dn}`.
 
 
 
@@ -235,6 +242,7 @@ The head and tail of a ` <vector>{:dn}` are draggable by default. Use the `headD
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of two vectors with a background circle</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <vector 
     name="vectorA" 
@@ -255,7 +263,7 @@ The head and tail of a ` <vector>{:dn}` are draggable by default. Use the `headD
   />
 </graph>
 
-<booleanInput name="hideVectorA" labelIsName/>
+<booleanInput name="hideVectorA"><label>Hide vectorA</label></booleanInput>
 <p>Standard graphical attributes:</p>
     <ul>
       <li><attr>hide</attr></li>
@@ -273,7 +281,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
----
+## Property Examples
 
 ### Property Example: numDimensions
 
@@ -285,7 +293,7 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
-The `numDimensions` property returns the number of dimesions of the ` <vector>{:dn}`.
+The `numDimensions` property returns the number of dimesions of the `<vector>{:dn}`.
 
 
 
@@ -301,7 +309,7 @@ The `numDimensions` property returns the number of dimesions of the ` <vector>{:
 
 
 
-The `magnitude` property renders the magnitude of the named ` <vector>{:dn}`.
+The `magnitude` property renders the magnitude of the named `<vector>{:dn}`.
 
 
 
@@ -317,7 +325,4 @@ The `magnitude` property renders the magnitude of the named ` <vector>{:dn}`.
 
 
 
-The `latex` property renders the latex code for rendering the named ` <vector>{:dn}`.
-
-
----
+The `latex` property renders the latex code for rendering the named `<vector>{:dn}`.

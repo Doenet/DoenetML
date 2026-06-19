@@ -14,7 +14,7 @@ export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
     static componentDocs = {
-        summary: "Repeats template content for each item in a source.",
+        summary: "Repeats template content for each item in a source",
     };
     static takesIndex = true;
 
@@ -88,7 +88,7 @@ export default class Repeat extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -670,6 +670,7 @@ export default class Repeat extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -691,6 +692,7 @@ export default class Repeat extends CompositeComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };

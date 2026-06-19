@@ -36,7 +36,7 @@ export default class BooleanInput extends Input {
     static componentType = "booleanInput";
 
     static componentDocs = {
-        summary: "An interactive boolean (toggle/checkbox) input.",
+        summary: "An interactive boolean (toggle/checkbox) input",
     };
     static variableForImplicitProp = "value";
 

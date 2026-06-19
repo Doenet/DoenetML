@@ -31,9 +31,10 @@ export default class Vector extends GraphicalComponent {
         });
     }
     static componentType = "vector";
+    static styleOverrideCategories = ["line"];
 
     static componentDocs = {
-        summary: "A geometric vector with tail and head.",
+        summary: "A geometric vector with tail and head",
     };
     static canBeInList = true;
 

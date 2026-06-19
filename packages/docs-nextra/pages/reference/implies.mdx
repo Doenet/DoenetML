@@ -1,0 +1,69 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<implies>{:dn}`
+
+<ComponentDisplay name='implies'/>
+
+`<implies>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) component
+This is a binary logical implication operator, e.g. it checks to see whether enclosed `<boolean>{:dn}` references meet the 'modus ponens' constraints, e.g. where the first argument is 'false' or the second argument is 'true'.
+
+<AttrPropDisplay name='implies'/>
+
+
+## Examples
+
+<a id="boolean-ex"></a>
+
+### Example: `<implies>{:dn}` in a `<boolean>{:dn}`
+```doenet-editor-horiz
+<p><mathInput name="n"><label>Enter a number ≤ 10, or equal to 15</label></mathInput></p>
+      
+<boolean name="check1">$n > 10</boolean>
+<boolean name="check2">$n = 15</boolean>
+      
+<p>You have entered a number ≤ 10 or = 15:
+  <boolean>
+    <implies>$check1 $check2</implies>
+  </boolean></p>
+```
+
+The `<implies>{:dn}` component functions as the boolean binary logical operator `imp` or `→`, and checks to see 
+whether enclosed `<boolean>{:dn}` are true when P implies Q. This is true when either the first argument is 'false' OR the second argument is 'true'.
+
+---
+
+<a id="award-ex"></a>
+### Example: `<implies>{:dn}` in an `<award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the point to either be 1) not on the circle or 2) near/on the line a.</p>
+      
+<graph size="small"><shortDescription>A graph of a point, line and circle</shortDescription>
+  <point name="p1"> 
+    <attractTo>$line1</attractTo>
+    <attractTo>$circ1</attractTo>
+  </point>
+  <circle name="circ1" center="(0,0)" radius="4" fixed/>
+  <line name="line1" fixed>y = 3/2 x - 2</line>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <implies>$onCircle $onLine</implies>
+    </when>
+  </award>
+</answer>
+
+<boolean name="onCircle" allowedErrorInNumbers="0.01">
+  ($p1.y)^2 + ($p1.x)^2 = 16</boolean>
+<boolean name="onLine" allowedErrorInNumbers="0.01">
+  $p1.y = 3/2 $p1.x - 2</boolean>
+```
+
+An `<implies>{:dn}` component is used to construct an ordered binary boolean from two referenced `<boolean>{:dn}` components 
+within an `<award>{:dn}` (e.g., first argument is 'false' or second is 'true').

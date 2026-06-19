@@ -13,7 +13,7 @@ export default class VectorListComponent extends CompositeComponent {
     static componentType = "vectorList";
 
     static componentDocs = {
-        summary: "A list of vectors.",
+        summary: "A list of vectors",
     };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -74,7 +74,7 @@ export default class VectorListComponent extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         const numberDisplayAttrs = returnNumberDisplayAttributes();

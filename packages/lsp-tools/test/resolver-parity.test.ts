@@ -94,24 +94,24 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     }
 
     describe("Single-level member access", () => {
-        it("Resolves direct child reference by name", () => {
+        it("Resolves direct child reference by name", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
             // At the dot, should suggest properties and children
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Should include direct child name "p1"
             expect(items.some((item) => item.label === "p1")).toBe(true);
         });
 
-        it("Resolves section properties when section reference is used", () => {
+        it("Resolves section properties when section reference is used", async () => {
             const source = `<section name="mySection" />\n$mySection.`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Should include section properties
             expect(items.some((item) => item.label === "sectionNum")).toBe(
@@ -120,12 +120,12 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             expect(items.some((item) => item.label === "title")).toBe(true);
         });
 
-        it("Returns empty completions for unresolvable reference", () => {
+        it("Returns empty completions for unresolvable reference", async () => {
             const source = `<section name="s" />\n$unknown.`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Unknown reference—no properties available
             expect(items.length).toBe(0);
@@ -133,12 +133,12 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     });
 
     describe("Multi-level member access", () => {
-        it("Resolves nested property access through chain", () => {
+        it("Resolves nested property access through chain", async () => {
             const source = `<section name="s"><subsection name="sub"><p name="p1" /></subsection></section>\n$s.sub.`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Should resolve to subsection's child p1
             expect(items.some((item) => item.label === "p1")).toBe(true);
@@ -147,35 +147,35 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             // The current behavior focuses on children, not ancestor properties
         });
 
-        it("Resolves nested member access when a non-first segment has a hyphen", () => {
+        it("Resolves nested member access when a non-first segment has a hyphen", async () => {
             const source = `<section name="s"><subsection name="sub-sec"><p name="p1" /></subsection></section>\n$s.sub-sec.`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // The child name should still resolve even with a hyphenated member segment.
             expect(items.some((item) => item.label === "p1")).toBe(true);
         });
 
-        it("Stops resolution at unresolved path segment", () => {
+        it("Stops resolution at unresolved path segment", async () => {
             const source = `<section name="s" />\n$s.nonexistent.`;
             const completer = createCompleter(source);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Cannot resolve through nonexistent member
             expect(items.length).toBe(0);
         });
 
-        it("Reports unresolved path for partial resolution", () => {
+        it("Reports unresolved path for partial resolution", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.p1.textProp`;
             const sourceObj = new DoenetSourceObject(source);
             const completer = createCompleter(source);
 
             // Request at 'textProp' position
             const offset = source.lastIndexOf("textProp") + "textProp".length;
-            const items = completer.getCompletionItems(offset);
+            const items = await completer.getCompletionItems(offset);
 
             // p1.textProp path is unresolved (text is a property name, not a child)
             // and completion resolution should stop.
@@ -184,7 +184,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     });
 
     describe("Resolver interface contract", () => {
-        it("Resolver callback receives offset/path/pathPartHasIndex", () => {
+        it("Resolver callback receives offset/path/pathPartHasIndex", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const capturedArgs: any[] = [];
             const completer = new AutoCompleter(source, testSchema, {
@@ -205,7 +205,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                 } as any,
             });
 
-            completer.getCompletionItems(source.length);
+            await completer.getCompletionItems(source.length);
 
             // Resolver should have been called
             expect(capturedArgs.length).toBeGreaterThan(0);
@@ -217,7 +217,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             expect(lastCall).toHaveProperty("pathPartHasIndex");
         });
 
-        it("Resolver can provide resolution for member completions", () => {
+        it("Resolver can provide resolution for member completions", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$custom.`;
             const completer = new AutoCompleter(source, testSchema, {
                 rustResolverAdapter: {
@@ -235,7 +235,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                 } as any,
             });
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
 
             // Should have section properties from custom resolver
             expect(items.some((item) => item.label === "sectionNum")).toBe(
@@ -245,7 +245,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     });
 
     describe("Resolver disabled behavior", () => {
-        it("No member completions when resolver returns null", () => {
+        it("No member completions when resolver returns null", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const completer = new AutoCompleter(source, testSchema, {
                 rustResolverAdapter: {
@@ -254,21 +254,21 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                 } as any,
             });
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
             expect(items).toEqual([]);
         });
 
-        it("No member completions when no resolver is provided", () => {
+        it("No member completions when no resolver is provided", async () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const completer = new AutoCompleter(source, testSchema);
 
-            const items = completer.getCompletionItems(source.length);
+            const items = await completer.getCompletionItems(source.length);
             expect(items).toEqual([]);
         });
     });
 
     describe("Path part parsing", () => {
-        it("Correctly identifies path segments in member chains", () => {
+        it("Correctly identifies path segments in member chains", async () => {
             const source = `<section name="s"><subsection name="sub"><p name="p1" /></subsection></section>\n$s.sub.p1.`;
             const sourceObj = new DoenetSourceObject(source);
 
@@ -285,7 +285,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                 } as any,
             });
 
-            completer.getCompletionItems(source.length);
+            await completer.getCompletionItems(source.length);
 
             // Find the call with full path
             const fullPath = capturedPaths.find((p) =>

@@ -4,7 +4,7 @@ export default class Split extends CompositeComponent {
     static componentType = "split";
 
     static componentDocs = {
-        summary: "Splits a string or list into pieces.",
+        summary: "Splits a string or list into pieces",
     };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
@@ -56,7 +56,7 @@ export default class Split extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

@@ -3,23 +3,21 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <function>{:dn}`
+# `<function>{:dn}`
 
-## Attribute Examples Part 2
-
-
-The following examples illustrate use of the ` <function>{:dn}` tag attributes.  
+The following examples illustrate use of the `<function>{:dn}` tag attributes (Part 2).
 
 ## Attributes
  <AttrDisplay name='function'/> 
 
----
+## Attribute Examples
 
 ### Attribute Example: maxima
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>three interpolated functions with specified maxima</shortDescription>
   <function 
     name="f" 
     maxima="(4,5) (7,-3)" 
@@ -60,6 +58,7 @@ the function may have additional maxima that were not given by the `maxima` attr
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>three interpolated functions with specified extrema</shortDescription>
   <function 
     name="f"
     extrema="(4,5) (7,-3)" 
@@ -100,6 +99,7 @@ the function may have additional extrema that were not given by the `extrema` at
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>two interpolated functions through specified points</shortDescription>
   <function 
     name="f" 
     through="(4,5) (7,-3)" 
@@ -128,6 +128,7 @@ To specify the slope of the function at the through points, use the `throughSlop
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>two interpolated functions with specified through points and slopes</shortDescription>
   <function 
     name="f" 
     through="(4,5) (7,-3)" 
@@ -168,6 +169,7 @@ through, the `throughPoints` can specify the slope of the function at those poin
 
   <li>Influence on location of underspecified extrema
     <graph size="small">
+      <shortDescription>three interpolated functions with varying xscale</shortDescription>
       <function name="g1" maxima="(-8,6)" minima="(,3) (,3)"/>
       <function name="g2" maxima="(-8,6)" minima="(,3) (,3)" xscale="4" styleNumber="2"/>
       <function name="g3" maxima="(-8,6)" minima="(,3) (,3)" xscale="0.1" styleNumber="3"/>
@@ -194,6 +196,7 @@ The `xscale` attribute also influences the position of extrema when they are spe
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>three interpolated functions with varying yscale</shortDescription>
   <function name="f1" minima="(4,5)" maxima="(6,)" />
   <function name="f2" minima="(4,5)" maxima="(6,)" yscale="4" styleNumber="2" />
   <function name="f3" minima="(4,5)" maxima="(6,)" yscale="0.1" styleNumber="3" />
@@ -214,6 +217,7 @@ The `yscale` attribute influences the position of extrema when they are specifie
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>two labeled functions</shortDescription>
   <function name="f" labelIsName>
     6 - x
   </function>
@@ -230,7 +234,7 @@ The `yscale` attribute influences the position of extrema when they are specifie
 
 The `labelIsName` attribute will label the graph of function by its name.
 
-To add a custom name instead, add a ` <label>{:dn}` child to the ` <function>{:dn}`.
+To add a custom name instead, add a `<label>{:dn}` child to the `<function>{:dn}`.
 
 Disclaimer: Sometimes the auto-generated location of labels is inconvenient with 
 the `<function>{:dn}` component.  If this happens, one alternative is to
@@ -246,6 +250,7 @@ component for some examples of this.)
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>two labeled functions with style applied to labels</shortDescription>
   <function 
     name="f" 
     labelIsName 
@@ -279,6 +284,7 @@ selected style is applied to the label text.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>two functions with labels positioned in the lower right</shortDescription>
   <function 
     name="f" 
     labelIsName 
@@ -333,6 +339,7 @@ component for some examples of this.)
 </setup>
 
 <graph size="small">
+  <shortDescription>filled circle behind two layered functions</shortDescription>
   <circle 
     radius="4" 
     filled 

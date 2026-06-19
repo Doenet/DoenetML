@@ -4,7 +4,7 @@ export default class Annotation extends BaseComponent {
     static componentType = "annotation";
 
     static componentDocs = {
-        summary: "An annotation for screen reader navigation of a graph.",
+        summary: "An annotation for screen reader navigation of a graph",
     };
     static rendererType = undefined;
 
@@ -31,7 +31,7 @@ export default class Annotation extends BaseComponent {
             defaultValue: "",
             public: true,
             description:
-                "Alternate spoken text used by screen readers (overrides text when set).",
+                "More detailed spoken text used by screen readers; used if expert mode is activated or extra details are requested.",
         };
 
         attributes.sonify = {
@@ -40,7 +40,7 @@ export default class Annotation extends BaseComponent {
             defaultValue: false,
             public: true,
             description:
-                "Whether to play a tone when this annotation is focused.",
+                "Whether to play a tone when this annotation is focused and it references a function.",
         };
 
         attributes.circular = {

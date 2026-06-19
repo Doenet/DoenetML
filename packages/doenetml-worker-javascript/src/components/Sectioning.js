@@ -8,7 +8,8 @@ export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
 
     static componentDocs = {
-        summary: "A numbered section of a document, with title and content.",
+        summary:
+            "A section of a document, with a title (auto-generated or custom) and content",
     };
     static rendererType = "section";
 
@@ -29,7 +30,8 @@ export class Subsection extends Section {
     static componentType = "subsection";
 
     static componentDocs = {
-        summary: "A numbered subsection, nested within a section.",
+        summary:
+            "A sectional component nested one heading level deeper than `<section>`",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -45,7 +47,8 @@ export class Subsubsection extends Section {
     static componentType = "subsubsection";
 
     static componentDocs = {
-        summary: "A numbered subsubsection, nested within a subsection.",
+        summary:
+            "A sectional component nested one heading level deeper than `<subsection>`",
     };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -62,8 +65,7 @@ export class Paragraphs extends SectioningComponentNumberWithSiblings {
     static componentType = "paragraphs";
 
     static componentDocs = {
-        summary:
-            "A numbered subsection of paragraphs (rendered at heading level 4).",
+        summary: "A subsection of paragraphs (rendered at heading level 4)",
     };
     static rendererType = "section";
 
@@ -82,7 +84,7 @@ export class Aside extends SectioningComponentNumberWithSiblings {
     static componentType = "aside";
 
     static componentDocs = {
-        summary: "An aside note set off from the main flow of the document.",
+        summary: "A note set off from the main flow of the document",
     };
     static rendererType = "section";
 
@@ -167,7 +169,7 @@ export class Objectives extends SectioningComponentNumberWithSiblings {
     static componentType = "objectives";
 
     static componentDocs = {
-        summary: "A section listing learning objectives.",
+        summary: "A section listing learning objectives",
     };
     static rendererType = "section";
 
@@ -198,7 +200,7 @@ export class Problem extends SectioningComponentNumberWithSiblings {
     static componentType = "problem";
 
     static componentDocs = {
-        summary: "A scored problem section.",
+        summary: "A sectional component that defines a scored problem",
     };
     static rendererType = "section";
 
@@ -230,7 +232,7 @@ export class Exercise extends Problem {
     static componentType = "exercise";
 
     static componentDocs = {
-        summary: "A scored exercise section.",
+        summary: "A sectional component that defines a scored exercise",
     };
 }
 
@@ -238,7 +240,8 @@ export class Question extends Problem {
     static componentType = "question";
 
     static componentDocs = {
-        summary: "A scored question section.",
+        summary:
+            "A sectional component that defines a scored question; similar to a `<problem>`",
     };
 }
 
@@ -246,7 +249,8 @@ export class Activity extends Problem {
     static componentType = "activity";
 
     static componentDocs = {
-        summary: "A scored activity section.",
+        summary:
+            "A sectional component with score aggregation, similar to `<problem>`",
     };
 }
 
@@ -254,7 +258,7 @@ export class Example extends SectioningComponentNumberWithSiblings {
     static componentType = "example";
 
     static componentDocs = {
-        summary: "An example section.",
+        summary: "A sectional component that defines an example",
     };
     static rendererType = "section";
 
@@ -273,7 +277,7 @@ export class Definition extends Example {
     static componentType = "definition";
 
     static componentDocs = {
-        summary: "A definition.",
+        summary: "A sectional component for defining a term or concept",
     };
 }
 
@@ -281,7 +285,7 @@ export class Note extends Example {
     static componentType = "note";
 
     static componentDocs = {
-        summary: "A note section, set off from the main flow of the document.",
+        summary: "A note section, set off from the main flow of the document",
     };
 }
 
@@ -289,7 +293,8 @@ export class Theorem extends Example {
     static componentType = "theorem";
 
     static componentDocs = {
-        summary: "A theorem statement.",
+        summary:
+            "A sectional component for the statement of a theorem (or similar formal statement)",
     };
 }
 
@@ -299,7 +304,7 @@ export class Part extends SectioningComponentNumberWithSiblings {
 
     static componentDocs = {
         summary:
-            "A numbered subsection-style block (a part of an exercise or problem).",
+            "A subsection-style block rendered as a list item (a part of an exercise or problem)",
     };
 
     static returnStateVariableDefinitions() {
@@ -321,7 +326,8 @@ export class Task extends Part {
     static componentType = "task";
 
     static componentDocs = {
-        summary: "A numbered task (alias for `<part>`).",
+        summary:
+            "A task of a multi-task activity or problem (alias for `<part>`)",
     };
 }
 
@@ -329,7 +335,7 @@ export class Proof extends UnnumberedSectioningComponent {
     static componentType = "proof";
 
     static componentDocs = {
-        summary: "A proof section.",
+        summary: "A proof section",
     };
     static rendererType = "section";
 
@@ -415,7 +421,8 @@ export class Problems extends SectioningComponent {
     static rendererType = "section";
 
     static componentDocs = {
-        summary: "A section grouping problems, displayed as a list by default.",
+        summary:
+            "A container element grouping `<problem>` components, which are rendered as a list by default",
     };
 
     static createAttributesObject() {
@@ -429,7 +436,8 @@ export class Exercises extends Problems {
     static componentType = "exercises";
 
     static componentDocs = {
-        summary: "A section grouping exercises (alias for `<problems>`).",
+        summary:
+            "A container element grouping `<exercise>` components, which are rendered as a list by default",
     };
 }
 

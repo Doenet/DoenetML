@@ -1,22 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <select>{:dn}`
+# `<select>{:dn}`
 
 
-` <select>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='select'/>
+
+`<select>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that selects values from a list or from a group of 
-nested [` <option>{:dn}`](option.mdx) components at random. Selections generate variants of the document.
+nested [`<option>{:dn}`](option.mdx) components at random. Selections generate variants of the document.
 
-## Attributes and Properties 
- <AttrDisplay name='select'/> 
- <PropDisplay name='select'/>
- 
----
+For fine-grained control over which option appears in which named variant
+of the document, see the `selectForVariants` attribute on
+[`<option>{:dn}`](option) — it lets you pin specific options to specific
+variants instead of relying on random selection.
 
-### Example: Default ` <select>{:dn}`
+<AttrPropDisplay name='select'/>
+
+## Examples
+
+### Example: Default `<select>{:dn}`
 
 
 ```doenet-editor-horiz 
@@ -28,7 +33,7 @@ nested [` <option>{:dn}`](option.mdx) components at random. Selections generate 
 ```
 
 The default selection type is `math`. If options are simple math expressions these can be 
-placed in a space-selected list between the opening and closing ` <select>{:dn}` tags.
+placed in a space-selected list between the opening and closing `<select>{:dn}` tags.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -36,7 +41,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: ` <select>{:dn}` from a set of texts
+### Example: `<select>{:dn}` from a set of texts
 
 
 ```doenet-editor-horiz
@@ -59,7 +64,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: ` <select>{:dn}` components of multiple types
+### Example: `<select>{:dn}` components of multiple types
 
 
 ```doenet-editor-horiz
@@ -109,7 +114,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: ` <select>{:dn}` paired values
+### Example: `<select>{:dn}` paired values
 
 
 ```doenet-editor-horiz
@@ -139,8 +144,8 @@ editor to see different variants of the document.
 
 
 In this example, two pairs of values are assigned to each `<option>{:dn}` within 
-the ` <select>{:dn}` component. In the references shown in this example, the first index
-refers to the selection made from the ` <select>{:dn}` component, and the second index
+the `<select>{:dn}` component. In the references shown in this example, the first index
+refers to the selection made from the `<select>{:dn}` component, and the second index
 refers to the child component within the `<option>{:dn}` that was selected.
 
 Select a new page variant from the pulldown menu at the top of the 
@@ -150,7 +155,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: ` <select>{:dn}` random functions for graphing
+### Example: `<select>{:dn}` random functions for graphing
 
 
 ```doenet-editor-horiz
@@ -202,10 +207,10 @@ editor to see different variants of the document.
 
 
 
-In this example, two [` <function>{:dn}`](function.mdx)s are randomly selected 
-from a list of ` <option>{:dn}` components nested within a ` <select>{:dn}`. The 
+In this example, two [`<function>{:dn}`](function.mdx)s are randomly selected 
+from a list of `<option>{:dn}` components nested within a `<select>{:dn}`. The 
 final functions are further varied by specifying coefficients and constants that 
-have been generated using a ` <selectFromSequence/>{:dn}` component. Note that the
+have been generated using a `<selectFromSequence/>{:dn}` component. Note that the
 selected coefficients have been renamed as numbers for simplicity when writing the
 function formulas.
 
@@ -241,13 +246,36 @@ editor to see different variants of the document.
 
 
 
-The ` <select>{:dn}` component is used to randomly select three [` <math>{:dn}`](math.mdx) values using the `numToSelect` attribute.
+The `<select>{:dn}` component is used to randomly select three [`<math>{:dn}`](math.mdx) values using the `numToSelect` attribute.
 
 As an author, it can sometimes become tedius to refer to indexed values (such as `s[2]`) every time you 
 want to reference a selected value in subsequent code. If this is the case, descriptive names can be assigned to each selection by defining
 unique components which reference individual selected values.
 
-Different page variants (which can be accessed from the left-side menu) will have different selected ` <math>{:dn}` values.
+Different page variants (which can be accessed from the left-side menu) will have different selected `<math>{:dn}` values.
+
+
+
+## Attribute Examples
+
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<select name="s" type="text" numToSelect="3">
+  red orange yellow green blue indigo violet
+</select>
+
+<p>Selected: $s</p>
+<p>First selected: $s[1]</p>
+```
+
+
+
+The `numToSelect` attribute sets how many values are chosen from the options. The default value is `1`. When more than one is selected, the individual selections are accessed by index (for example, `$s[1]`). Without `withReplacement`, each option can be chosen at most once.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 

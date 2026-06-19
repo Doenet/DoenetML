@@ -47,7 +47,7 @@ export default class MathComponent extends InlineComponent {
     static componentType = "math";
 
     static componentDocs = {
-        summary: "A math expression.",
+        summary: "A math expression",
     };
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "unnormalizedValue";
@@ -71,6 +71,7 @@ export default class MathComponent extends InlineComponent {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
+            highlighted: true,
             toLowerCase: true,
             validValues: [
                 {
@@ -90,6 +91,7 @@ export default class MathComponent extends InlineComponent {
             createStateVariable: "simplify",
             defaultValue: "none",
             public: true,
+            highlighted: true,
             toLowerCase: true,
             valueForTrue: "full",
             valueForFalse: "none",
@@ -128,6 +130,10 @@ export default class MathComponent extends InlineComponent {
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
+        // Highlight the most commonly tuned number-display attribute. Because
+        // it keeps its `groupName`, it appears both in the Highlighted section
+        // and in the "Number display" group.
+        attributes.displayDigits.highlighted = true;
 
         attributes.renderMode = {
             description: 'How the math is rendered (e.g. "inline", "display").',

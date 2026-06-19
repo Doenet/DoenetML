@@ -1,0 +1,71 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<column>{:dn}` (in a table)
+
+<ComponentDisplay name='column'/>
+
+`<column>{:dn}` is a container for a column of [`<cell>{:dn}`](cell) children
+inside a [`<spreadsheet>{:dn}`](spreadsheet). It is the column-oriented
+counterpart to [`<row>{:dn}`](row_table): each child `<cell>{:dn}` populates
+the next row of the same column.
+
+Unlike [`<row>{:dn}`](row_table), which is also accepted inside a
+[`<tabular>{:dn}`](tabular), `<column>{:dn}` is only valid as a child of
+[`<spreadsheet>{:dn}`](spreadsheet) in non-matrix contexts. For
+column-by-column construction of a matrix, see
+[`<column>{:dn}` (in a matrix)](column_matrix).
+
+
+<AttrPropDisplay name='column'/>
+
+
+## Examples
+
+### Example: Build a spreadsheet column-by-column
+
+
+```doenet-editor-horiz
+<spreadsheet>
+  <column>
+    <cell>Name</cell>
+    <cell>Alice</cell>
+    <cell>Bob</cell>
+    <cell>Carol</cell>
+  </column>
+  <column>
+    <cell>Score</cell>
+    <cell>85</cell>
+    <cell>92</cell>
+    <cell>78</cell>
+  </column>
+</spreadsheet>
+```
+
+
+Two `<column>{:dn}` children populate the spreadsheet column by column.
+Compare with [`<row>{:dn}`](row_table), which populates row by row.
+
+
+
+## Attribute Examples
+
+### Attribute Example: colNum
+
+
+```doenet-editor-horiz
+<spreadsheet minNumColumns="5">
+  <column colNum="C">
+    <cell>x</cell>
+    <cell>1</cell>
+    <cell>2</cell>
+    <cell>3</cell>
+  </column>
+</spreadsheet>
+```
+
+
+Setting `colNum` anchors the column to a specific column letter (or number).
+Without it, columns fill from the left in the order they appear.

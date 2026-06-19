@@ -1,0 +1,93 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<displayDoenetML>{:dn}`
+
+<ComponentDisplay name='displayDoenetML'/>
+
+`<displayDoenetML>{:dn}` shows a snippet of DoenetML source *as text* rather
+than rendering it. The contents are reproduced verbatim — every tag,
+attribute, and reference is preserved — and rendered with syntax highlighting
+in viewers that support it.
+
+The most common pattern is `<pre>{:dn}` wrapping a `<displayDoenetML>{:dn}` so
+that whitespace and indentation are preserved. Use this when you want to
+*talk about* DoenetML inside a DoenetML document without the document parsing
+and executing the snippet you are explaining.
+
+For an editor in which the viewer can change the source and see the preview,
+use [`<codeEditor>{:dn}`](codeEditor) instead. For short inline tag references,
+use [`<tag>{:dn}`](tag), [`<tage>{:dn}`](tage), or [`<tagc>{:dn}`](tagc).
+
+
+<AttrPropDisplay name='displayDoenetML'/>
+
+
+## Examples
+
+### Example: Show a small DoenetML snippet
+
+
+```doenet-editor-horiz
+<p>The following snippet creates a draggable point on a graph:</p>
+
+<pre>
+<displayDoenetML>
+<graph>
+  <point>(2, 3)</point>
+</graph>
+</displayDoenetML>
+</pre>
+```
+
+
+The children of `<displayDoenetML>{:dn}` are rendered as text without being
+parsed as DoenetML. Wrapping in `<pre>{:dn}` preserves the newlines and
+indentation.
+
+
+
+---
+
+### Example: Show a single inline reference
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x">x^2</function>
+</setup>
+
+<p>To reference a named function in prose, write
+<c><displayDoenetML>$f</displayDoenetML></c>.
+The renderer will substitute the function's value.</p>
+```
+
+
+`<displayDoenetML>{:dn}` is also useful inline (here inside a [`<c>{:dn}`](c))
+when you need a single reference or fragment to appear verbatim instead of
+being expanded.
+
+
+
+---
+
+### Example: Side-by-side source and rendering
+
+
+```doenet-editor-horiz
+<p>Source:</p>
+<pre>
+<displayDoenetML>
+<p>The square of <m>x</m> is <m>x^2</m>.</p>
+</displayDoenetML>
+</pre>
+
+<p>Renders as:</p>
+<p>The square of <m>x</m> is <m>x^2</m>.</p>
+```
+
+
+Showing the source above the rendered output is the standard pattern for
+"here's the code, here's the result" walkthroughs.

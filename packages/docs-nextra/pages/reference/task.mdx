@@ -1,0 +1,115 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<task>{:dn}`
+
+<ComponentDisplay name='task'/>
+
+`<task>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that renders one task within a multi-task activity or
+problem. It is an alias for [`<part>{:dn}`](part) — each `<task>{:dn}`
+inside a parent section is rendered as a numbered list item — and is
+provided for cases where "task" reads more naturally than "part".
+
+
+<AttrPropDisplay name='task'/>
+
+
+## Examples
+
+### Example: list of tasks
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Lab procedure</title>
+  <introduction>
+    <p>Complete the following tasks in order.</p>
+  </introduction>
+
+  <task>Gather the equipment.</task>
+  <task>Calibrate the instrument.</task>
+  <task>Record the measurement.</task>
+
+  <conclusion>
+    <p>Submit your recorded measurements.</p>
+  </conclusion>
+</problem>
+```
+
+
+
+Each `<task>{:dn}` is rendered as a list item with an auto-generated
+number. The surrounding [`<introduction>{:dn}`](introduction) and
+[`<conclusion>{:dn}`](conclusion) bracket the list without
+participating in its numbering.
+
+
+
+---
+
+### Example: `<task>{:dn}` with a title
+
+
+```doenet-editor-horiz
+<activity><title>Field study</title>
+  <task><title>Observation</title>
+    <p>Record what you see at the site.</p>
+  </task>
+  <task><title>Analysis</title>
+    <p>Describe any patterns in your observations.</p>
+  </task>
+</activity>
+```
+
+
+
+A `<task>{:dn}` can carry a `<title>{:dn}` like other sectional
+components.
+
+
+
+## Attribute Examples
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<problem><title>Two-task problem</title>
+  <task boxed>
+    <p>Boxed task.</p>
+  </task>
+  <task boxed><title>Boxed with title</title>
+    <p>Another boxed task.</p>
+  </task>
+</problem>
+```
+
+
+
+The `boxed` attribute changes the default formatting of an individual
+`<task>{:dn}` to a border with a shaded title banner.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideTask">
+  <label>Hide the second task</label>
+</booleanInput>
+
+<problem>
+  <task>First task.</task>
+  <task hide="$hideTask">Second task.</task>
+</problem>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

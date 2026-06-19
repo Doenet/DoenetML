@@ -3,17 +3,14 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <function>{:dn}`
+# `<function>{:dn}`
 
-## Attribute Examples Part 1
-
-
-The following examples illustrate use of the ` <function>{:dn}` tag attributes.  
+The following examples illustrate use of the `<function>{:dn}` tag attributes (Part 1).
 
 ## Attributes
  <AttrDisplay name='function'/> 
 
----
+## Attribute Examples
 
 ### Attribute Example: domain
 
@@ -36,6 +33,7 @@ The following examples illustrate use of the ` <function>{:dn}` tag attributes.
 </p>
 
 <graph size="small">
+  <shortDescription>graph of <m>f</m> on its domain</shortDescription>
   $f
 </graph>
 
@@ -107,7 +105,7 @@ For symbolic functions (the default), evaluating at a symbolic point ignores the
 
 
 
-By default, a ` <function>{:dn}` will be based on the single variable $x$.
+By default, a `<function>{:dn}` will be based on the single variable $x$.
 Use the `variable` or `variables` attribute to create a function based a different variable or multiple variables.
 
 
@@ -180,8 +178,8 @@ as false, then the function will be evaluated numerically.  Numeric evaluation i
 but it can only return a number.
 
 
-If one evaluates using the full syntax of an ` <evaluate>{:dn}` component (as opposed to 
-the shortcut evaluation macro `$$f(x,y)`), then one can use the attributes `forceNumeric` or `forceSymbolic`
+If one evaluates using the full syntax of an `<evaluate>{:dn}` component (as opposed to 
+the shortcut evaluation reference `$$f(x,y)`), then one can use the attributes `forceNumeric` or `forceSymbolic`
 to force numerical or symbolic evaluation independent of the `symbolic` attribute.
 
 
@@ -306,7 +304,7 @@ the number of decimal places.
 
 Note: these display rounding settings do not affect the actual value of the numbers in 
 the expression.  All available digits will be used if the expression is used in another 
-calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
+calculation unless one uses the `<round>{:dn}` component to explicitly round numbers.
 
 
 
@@ -383,6 +381,7 @@ so that all the digits from the combination of `displayDigits` and `displayDecim
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>three interpolated functions with specified minima</shortDescription>
   <function 
     name="f" 
     minima="(4,5) (7,-3)" 

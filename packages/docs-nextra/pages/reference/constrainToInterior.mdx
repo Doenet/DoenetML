@@ -1,0 +1,90 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<constrainToInterior>{:dn}`
+
+<ComponentDisplay name='constrainToInterior'/>
+
+`<constrainToInterior>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that constrains a `<point>{:dn}` to lie inside a referenced graphical region (such as a
+`<polygon>{:dn}`, a `<circle>{:dn}`, or a `<rectangle>{:dn}`). When the point is dragged outside the
+region, it is moved to the nearest point on the region's boundary.
+
+<AttrPropDisplay name='constrainToInterior'/>
+
+
+## Examples
+
+### Example: Constrain a `<point>{:dn}` to the interior of a `<polygon>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A triangle and a point constrained to its interior</shortDescription>
+  <polygon name="tri" vertices="(3, 5) (-4, -1) (5, 2)" filled />
+  <point name="P" styleNumber="2" coords="(7, 8)">
+    <constrainToInterior>$tri</constrainToInterior>
+  </point>
+</graph>
+```
+
+The point starts outside the triangle and is immediately pulled to the nearest boundary point. Drag
+it: it is free to move anywhere inside the triangle, and is held against the boundary when pushed out.
+
+
+---
+
+### Example: Constrain a `<point>{:dn}` to the interior of a `<circle>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A circle and a point constrained to its interior</shortDescription>
+  <circle name="disk" center="(0, 0)" radius="3" filled />
+  <point name="P" styleNumber="2" coords="(5, 2)">
+    <constrainToInterior>$disk</constrainToInterior>
+  </point>
+</graph>
+```
+
+The point cannot leave the disk. Released outside the circle, it snaps to the nearest point on the
+circumference.
+
+
+---
+
+### Example: Constrain a `<point>{:dn}` to the interior of a `<rectangle>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A rectangle and a point constrained to its interior</shortDescription>
+  <rectangle name="box" vertices="(-3, -2) (3, 2)" filled />
+  <point name="P" styleNumber="2" coords="(0, 0)">
+    <constrainToInterior>$box</constrainToInterior>
+  </point>
+</graph>
+
+<p>P is at $P.coords.</p>
+```
+
+Any rectangle works as a "drag boundary" for a point.
+
+
+## Attribute Examples
+
+### Attribute Example: relativeToGraphScales
+
+```doenet-editor-horiz
+<graph size="small" xmin="-10" xmax="10" ymin="-1" ymax="1">
+  <shortDescription>A wide-aspect graph with a circle and a point constrained to its interior using graph scales</shortDescription>
+  <circle name="disk" center="(0, 0)" radius="1" filled />
+  <point name="P" styleNumber="2" coords="(5, 0.2)">
+    <constrainToInterior relativeToGraphScales>$disk</constrainToInterior>
+  </point>
+</graph>
+```
+
+When the graph's $x$ and $y$ axes use very different scales, `relativeToGraphScales` measures distance
+to the boundary in pixel-like units rather than mathematical units, so the "nearest" point matches what
+the user sees. Compare to omitting the attribute, where the nearest-point calculation uses raw
+mathematical distance.

@@ -215,6 +215,36 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Reports `attributeName` for a bare value recovered as an AttributeValue node", () => {
+        // Lezer's error recovery wraps a bare unquoted run after `=` in an
+        // `AttributeValue(⚠,⚠)` node when the partial element is followed by
+        // `</...>` or another `<`. The cursor-position detector must
+        // distinguish that recovered form from a real quoted value: only the
+        // latter starts with `"`/`'`. Without this, the bare-value branch in
+        // `get-completion-items` is masked and the wrap-in-quotes hint
+        // disappears inside a parent element.
+        const source = `<aa><b bar=mo</aa>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("mo") + 2;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeName");
+        expect(node).toMatchObject({ type: "element", name: "b" });
+    });
+
+    it("Still reports `attributeValue` for a real quoted value", () => {
+        // Sanity guard for the above: when the AttributeValue node actually
+        // starts with `"` or `'`, the cursor position must remain
+        // `attributeValue` so the wrap-in-quotes hint stays suppressed.
+        const source = `<aa x="abc=def"></aa>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("def") + 3;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeValue");
+        expect(node).toMatchObject({ type: "element", name: "aa" });
+    });
+
     it("Returns body (not openTag) when < is typed inside an element", () => {
         // When a user types `<` inside an element, the completion should
         // recognize the cursor is in the body (to suggest child elements),
@@ -314,5 +344,123 @@ describe("DoenetSourceObject", () => {
               ]
             `);
         }
+    });
+
+    describe("isCompleteElement (issue #1117 stolen-close-tag heuristic)", () => {
+        // Helper: get the element whose open-tag starts at `tagOpenIdx`
+        // (the offset of the `<`).
+        function elementAt(source: string, tagOpenIdx: number) {
+            const sourceObj = new DoenetSourceObject(source);
+            const { node } = sourceObj.elementAtOffsetWithContext(
+                tagOpenIdx + 1,
+            );
+            return { sourceObj, node: node as DastElement };
+        }
+
+        it("reports closed=false for inner same-name child of unclosed parent", () => {
+            // Parser stack-matches the only </p> to the inner <p>; user intent
+            // is for the inner to still need its own close tag.
+            const source = "<p><p></p>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.indexOf("<p>", 1),
+            );
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: false,
+            });
+        });
+
+        it("reports closed=true when same-name nesting is fully balanced", () => {
+            const source = "<p><p></p></p>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.indexOf("<p>", 1),
+            );
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: true,
+            });
+        });
+
+        it("reports closed=false for innermost in a deeply nested domino case", () => {
+            // <p><p><p></p></p>  — only two </p> for three <p>.
+            // Innermost lezer-closed, middle lezer-closed, outermost unclosed.
+            // Walk past closed same-name middle to find unclosed same-name outermost.
+            const source = "<p><p><p></p></p>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.lastIndexOf("<p>"),
+            );
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: false,
+            });
+        });
+
+        it("does NOT flip when a different-name ancestor breaks the chain", () => {
+            // The inner <p>'s </p> is genuinely its own; the outer <p>'s
+            // unclosed state is unrelated because <div> sits between them.
+            const source = "<p><div><p></p></div>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.indexOf("<p>", 1),
+            );
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: true,
+            });
+        });
+
+        it("reports closed=true when parent has a different tag name", () => {
+            const source = "<a><p></p>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.indexOf("<p>"),
+            );
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: true,
+            });
+        });
+
+        it("is case-sensitive (<P> and <p> are different tags)", () => {
+            const source = "<P><p></p>";
+            const { sourceObj, node } = elementAt(
+                source,
+                source.indexOf("<p>"),
+            );
+            expect(node.name).toEqual("p");
+            // <P> ≠ <p>, so the walk stops at the different-name ancestor.
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: true,
+            });
+        });
+
+        it("reports tagComplete=false for an unfinished open tag (regression)", () => {
+            const source = "<p";
+            const { sourceObj, node } = elementAt(source, 0);
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: false,
+                closed: false,
+            });
+        });
+
+        it("self-closing tag reports tagComplete=true, closed=true (regression)", () => {
+            const source = "<p/>";
+            const { sourceObj, node } = elementAt(source, 0);
+            expect(node.name).toEqual("p");
+            expect(sourceObj.isCompleteElement(node)).toEqual({
+                tagComplete: true,
+                closed: true,
+            });
+        });
     });
 });

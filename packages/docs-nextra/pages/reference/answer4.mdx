@@ -2,25 +2,25 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-# ` <answer>{:dn}`
+# `<answer>{:dn}`
 
 ## Advanced Use Examples
 
 The following examples illustrate some of the advanced answer forms.
 
 ## Designating Responses
-When using the full logic of an ` <award>{:dn}` tag, the expression inside the ` <when>{:dn}`
-can refer to components outside the ` <answer>{:dn}` tag.  However, in this case, Doenet cannot tell what 
+When using the full logic of an `<award>{:dn}` tag, the expression inside the `<when>{:dn}`
+can refer to components outside the `<answer>{:dn}` tag.  However, in this case, Doenet cannot tell what 
 values should be considered the **response** of that answer.  When basing an answer on inputs outside the 
-` <answer>{:dn}` tag, you must indicate what values are to be used for the responses.   There are two ways 
+`<answer>{:dn}` tag, you must indicate what values are to be used for the responses.   There are two ways 
 to tell Doenet that a value is a response: adding a 
-`referencesAreResponses` attribute to the ` <award>{:dn}`, or adding a 
-` <considerAsResponses>{:dn}` child to the ` <award>{:dn}`. 
+`referencesAreResponses` attribute to the `<award>{:dn}`, or adding a 
+`<considerAsResponses>{:dn}` child to the `<award>{:dn}`. 
 
 The **response** of an answer is what the user entered to be evaluated for credit.  For a typical answer, the response is what 
-the user entered in the blank or selected from a lists of choices.  Doenet always uses any input tag (e.g., ` <mathInput/>{:dn}`, 
-` <textInput>{:dn}`, ` <choiceInput/>{:dn}`) inside the ` <answer>{:dn}` tag for the response.  Any other value referenced 
-inside a ` <when>{:dn}` is not considered a response, by default.
+the user entered in the blank or selected from a lists of choices.  Doenet always uses any input tag (e.g., `<mathInput/>{:dn}`, 
+`<textInput>{:dn}`, `<choiceInput/>{:dn}`) inside the `<answer>{:dn}` tag for the response.  Any other value referenced 
+inside a `<when>{:dn}` is not considered a response, by default.
   
 Although answer responses do not affect the credit awarded, they are used for the data analytics and giving feedback to 
 instructors and authors.  They can also be referenced inside the DoenetML document to create dynamic content that depends 
@@ -29,13 +29,14 @@ on the user's response. Every answer should have some values flagged as the resp
 See the examples below for how to use each of these methods to designate a response.
 
 
-### Example: using the `referencesAreResponses` attribute in the ` <award>{:dn}`
+### Example: using the `referencesAreResponses` attribute in the `<award>{:dn}`
 ```doenet-editor
 <p>In the graph below, one curve represents a function <m>f</m>, and one curve
   represents its derivative. Click the derivative of the function to change its color. 
   Then, click the button to check your work.</p>
 
 <graph>
+  <shortDescription>graph showing a function and its derivative</shortDescription>
   <function name="f">x^2</function>
   <derivative name="fPrime">$f</derivative>
   <triggerSet anchor="(-6,-6)">
@@ -70,7 +71,7 @@ to confusion when analyzing the collected data.
 
 
 
-### Example: using ` <considerAsResponses>{:dn}` to designate responses
+### Example: using `<considerAsResponses>{:dn}` to designate responses
 
 ```doenet-editor
 <setup>
@@ -81,7 +82,10 @@ to confusion when analyzing the collected data.
 is greater than <m>$x</m> and the <m>y</m>-coordinate
 is less than <m>$y</m>.</p>
 
-  <graph><point name="P" x="-5" y="3" /></graph>
+  <graph>
+    <shortDescription>graph for moving point P</shortDescription>
+    <point name="P" x="-5" y="3" />
+  </graph>
 
 <p><alert>Without <tag>considerAsResponses</tag>:</alert></p>
 <p>
@@ -109,8 +113,8 @@ is less than <m>$y</m>.</p>
 <p>$ans2.submittedResponses</p>
 ```
 
-In this example, the ` <considerAsResponses>{:dn}` tag is used to indicate that the 
+In this example, the `<considerAsResponses>{:dn}` tag is used to indicate that the 
 coordinates of point `$P` is the **response** for this answer. 
 
-When the ` <considerAsResponses>{:dn}` child is not included, all four values `$P.x`, `$P.y`, `$x`, and `$y` are considered responses, 
+When the `<considerAsResponses>{:dn}` child is not included, all four values `$P.x`, `$P.y`, `$x`, and `$y` are considered responses, 
 which is not desirable in this case.

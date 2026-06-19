@@ -156,7 +156,8 @@ describe(
         });
 
         it("diagnosticsSummaryCallback fires on each diagnostics update, including when counts are unchanged", () => {
-            postDoenetML(`<textInput /><text name="t">hello</text>`);
+            const sourceA = `<textInput /><text name="t">hello</text>`;
+            postDoenetML(sourceA);
 
             cy.get("#t").should("contain.text", "hello");
 
@@ -164,7 +165,8 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(1);
-                expect(calls[0].accessibilityLevel1Count).to.eq(1);
+                expect(calls[0].summary.accessibilityLevel1Count).to.eq(1);
+                expect(calls[0].doenetML).to.eq(sourceA);
             });
 
             // Type at the end of the editor and force a viewer update.
@@ -176,7 +178,8 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(2);
-                expect(calls[1].accessibilityLevel1Count).to.eq(1);
+                expect(calls[1].summary.accessibilityLevel1Count).to.eq(1);
+                expect(calls[1].doenetML).to.eq(sourceA + "abc");
             });
 
             // Add a second unlabeled input and update again.
@@ -189,8 +192,11 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(3);
-                expect(calls[2].accessibilityLevel1Count).to.be.greaterThan(
-                    calls[1].accessibilityLevel1Count,
+                expect(
+                    calls[2].summary.accessibilityLevel1Count,
+                ).to.be.greaterThan(calls[1].summary.accessibilityLevel1Count);
+                expect(calls[2].doenetML).to.eq(
+                    sourceA + "abc" + "<mathInput />",
                 );
             });
 
@@ -206,6 +212,44 @@ describe(
             cy.window().should((win) => {
                 const calls = win.returnDiagnosticsSummaryCallbackCalls();
                 expect(calls).to.have.length(3);
+            });
+        });
+
+        it("diagnosticsSummaryCallback's doenetML pairs with the source the viewer rendered, not the editor buffer", () => {
+            const sourceA = `<textInput /><text name="t">hello</text>`;
+            postDoenetML(sourceA);
+
+            cy.get("#t").should("contain.text", "hello");
+
+            // First call: viewer just rendered sourceA, so doenetML must be sourceA.
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(1);
+                expect(calls[0].doenetML).to.eq(sourceA);
+            });
+
+            // Type into the editor WITHOUT clicking the viewer update button.
+            // The viewer is still rendering sourceA, so any callback that fires
+            // now must report sourceA — not the (newer) editor buffer.
+            const appended = "<mathInput />";
+            cy.get(".cm-content")
+                .click()
+                .type("{ctrl+end}" + appended, { delay: 10 });
+            cy.wait(300);
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                for (const call of calls) {
+                    expect(call.doenetML).to.eq(sourceA);
+                }
+            });
+
+            // Now click the viewer update button: viewer re-renders with the
+            // buffer, and the next callback's doenetML must be the new source.
+            cy.get('[data-test="Viewer Update Button"]').click();
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                const last = calls[calls.length - 1];
+                expect(last.doenetML).to.eq(sourceA + appended);
             });
         });
 
@@ -257,11 +301,11 @@ describe(
 
             cy.get(".cm-tooltip-lint .cm-lint-tooltip .heading")
                 .should("contain.text", "WCAG AA Accessibility Violation")
-                .should("have.css", "color", "rgb(180, 35, 24)");
+                .should("have.css", "color", "rgb(91, 33, 182)");
 
             cy.get(
                 ".cm-tooltip-lint .cm-diagnostic:has(.cm-lint-tooltip .heading.accessibility-level-1)",
-            ).should("have.css", "border-left-color", "rgb(180, 35, 24)");
+            ).should("have.css", "border-left-color", "rgb(91, 33, 182)");
         });
 
         it("exposes accessible tab semantics and labels in diagnostics tab strip", () => {
@@ -269,7 +313,7 @@ describe(
 
             cy.get("#errors").click();
 
-            cy.get(".diagnostics-response-tabs")
+            cy.get(".footer-icons")
                 .should("have.attr", "role", "tablist")
                 .and("have.class", "is-open");
 
@@ -290,9 +334,10 @@ describe(
                 .invoke("attr", "aria-label")
                 .should("match", /^Accessibility: \d+$/);
 
-            cy.get(
-                ".diagnostics-response-tabs [role='tab'][aria-selected='true']",
-            ).should("have.length", 1);
+            cy.get(".footer-icons [role='tab'][aria-selected='true']").should(
+                "have.length",
+                1,
+            );
             cy.get("#errors")
                 .click()
                 .should("have.attr", "aria-selected", "true");
@@ -308,19 +353,22 @@ describe(
             cy.get("#errors").focus();
             cy.focused().should("have.attr", "id", "errors");
 
+            // Ariakit's TabList uses selectOnMove by default: arrow keys move
+            // focus AND select the new tab. With the panel mounted open on
+            // help by default, right-arrowing to "warnings" both selects it
+            // and switches the visible panel content — no Enter required to
+            // open.
             cy.focused().type("{rightarrow}");
             cy.focused().should("have.attr", "id", "warnings");
-            cy.focused().type("{enter}");
             cy.get("#warnings").should("have.attr", "aria-selected", "true");
             cy.contains("Warning").should("exist");
 
-            cy.get(".close-button").should("exist").focus();
+            // Close affordance: pressing Enter on the focused active tab
+            // closes the panel (the close-X button was removed in the footer
+            // redesign).
             cy.focused().type("{enter}");
 
-            cy.get(".diagnostics-response-tabs").should(
-                "not.have.class",
-                "is-open",
-            );
+            cy.get(".footer-icons").should("not.have.class", "is-open");
             cy.get(".diagnostics-response-tabs-panels").should("not.exist");
         });
 
@@ -328,8 +376,8 @@ describe(
             postDiagnosticsFixture();
 
             cy.injectAxe();
-            cy.get(".diagnostics-response-tabs").should("be.visible");
-            cy.checkA11y(".diagnostics-response-tabs", {
+            cy.get(".footer-icons").should("be.visible");
+            cy.checkA11y(".footer-icons", {
                 includedImpacts: ["critical", "serious", "moderate", "minor"],
             });
         });

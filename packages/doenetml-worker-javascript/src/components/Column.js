@@ -4,8 +4,14 @@ import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils
 export default class Column extends BaseComponent {
     static componentType = "column";
 
+    // `<column>` is also accepted inside `<matrix>`, where it sugars into
+    // `<matrixColumn>`. Both entries appear in the docs index disambiguated
+    // by `displayContext`: this one is `<column> (in a table)`; the
+    // matrix-flavored alias (in `Aliases.js`) is `<column> (in a matrix)`.
     static componentDocs = {
-        summary: "A column within a tabular layout.",
+        summary: "A column of cells within a `<spreadsheet>`",
+        docsSlug: "column_table",
+        displayContext: "in a table",
     };
     static rendererType = "containerBlock";
     static renderChildren = true;
@@ -20,11 +26,20 @@ export default class Column extends BaseComponent {
             public: true,
         };
 
-        // Workaround for <column> in matrix, which is sugared into <matrixColumn>.
-        // Since we are currently validating attributes before the sugar changes it,
-        // we need to put these mathList attributes on <column> for now.
-        // TODO: find a better solution (e.g., validating attributes after sugar is applied),
-        // especially necessary when we have an editor that can autocomplete attributes.
+        // Workaround for <column> in matrix, which is sugared into
+        // <matrixColumn>. The runtime validates attributes in
+        // `convertNormalizedDast.ts` before sugar fires, so removing these
+        // here would make `<column functionSymbols="h">` inside `<matrix>`
+        // throw `Invalid attribute` (see matrix.test.ts:513
+        // "functionSymbols"). #1174 resolved the editor-side concern (the
+        // LSP now routes `<column>` inside `<matrix>` through the
+        // `matrixColumn` alias for completion and validation), but the
+        // canonical schema still leaks these four attributes onto the
+        // tabular `<column>` entry. The remaining work — tracked in #1186
+        // — is to move the matrix sugar to the parser's
+        // `pluginComponentSugar` so the rename happens before attribute
+        // validation; then these declarations can be removed here
+        // (they're already on `MatrixColumn` via `MathList` inheritance).
         attributes.functionSymbols = {
             createComponentOfType: "textList",
             description: "Symbols treated as function names when parsing.",

@@ -12,115 +12,6 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Warning Tests @group4", async () => {
-    // TODO: re-enable these test once deprecations are working again. See issue #484.
-    it.skip("Deprecated attributes", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<section suppressAutoName>
-  <graph xLabel="a">
-    <regularPolygon nSides="4" name="rp" />
-    <regularPolygon extend="$rp" nSides="6" />
-    $rp{nSides="8"}
-  </graph>
-  <answer maximumNumberOfAttempts="2">
-    <choiceInput randomizeOrder>
-      <choice>yes</choice>
-      <choice>no</choice>
-    </choiceInput>
-  </answer>
-</section>
-    `,
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(7);
-        expect(diagnosticsByType.infos.length).eq(0);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "Attribute suppressAutoName is deprecated. It is ignored.",
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(14);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(10);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            "Attribute xLabel of component type graph is deprecated. It is ignored.",
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(7);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(10);
-
-        expect(diagnosticsByType.warnings[2].message).contain(
-            "Attribute nSides is deprecated. Use numSides instead.",
-        );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(43);
-
-        expect(diagnosticsByType.warnings[3].message).contain(
-            "Attribute nSides is deprecated. Use numSides instead.",
-        );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(49);
-
-        expect(diagnosticsByType.warnings[6].message).contain(
-            "Attribute nSides is deprecated. Use numSides instead.",
-        );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[6].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(6);
-        expect(diagnosticsByType.warnings[6].position.end.column).eq(19);
-
-        expect(diagnosticsByType.warnings[4].message).contain(
-            "Attribute maximumNumberOfAttempts of component type answer is deprecated. Use maxNumAttempts instead.",
-        );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[4].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(13);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(11);
-
-        expect(diagnosticsByType.warnings[5].message).contain(
-            "Attribute randomizeOrder is deprecated. Use shuffleOrder instead.",
-        );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(9);
-        expect(diagnosticsByType.warnings[5].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(12);
-        expect(diagnosticsByType.warnings[5].position.end.column).eq(18);
-    });
-
-    it.skip("Deprecated properties", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<graph>
-  <regularPolygon numSides="4" name="rp" />
-</graph>
-<number extend="$rp.nSides" name="ns" />
-
-    `,
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.infos.length).eq(0);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "Property nSides is deprecated. Use numSides instead.",
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(43);
-    });
-
     it("Deprecated selectPrimeNumbers attributes", async () => {
         const { core } = await createTestCore({
             doenetML: `
@@ -853,5 +744,87 @@ describe("Warning Tests @group4", async () => {
                 `${expectedError} will have no effect without symbolicEquality set`,
             );
         }
+    });
+
+    // The variant-time diagnostics below cover code paths that previously
+    // emitted raw console.log/console.warn. They are now routed through
+    // `preliminaryDiagnostics` (variant resolution) or `core.addDiagnostic`
+    // (`setUpVariant`), so they surface to the user as info records instead
+    // of polluting test output.
+    it("`selectWeight` on an option produces an info: unique variants disabled", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<select name="s">
+  <option selectWeight="1"><text>a</text></option>
+  <option selectWeight="2"><text>b</text></option>
+</select>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some((info) =>
+                info.message.includes(
+                    "Unique variants for select disabled if have an option with selectWeight or selectForVariants specified",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("non-integer `numToSelect` on selectFromSequence produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<selectFromSequence from="1" to="10" numToSelect="2.5" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some((info) =>
+                info.message.includes(
+                    "cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("non-integer requested variant index produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text>hi</text>`,
+            requestedVariantIndex: 2.5,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some(
+                (info) =>
+                    info.message.includes("Variant index") &&
+                    info.message.includes("must be an integer"),
+            ),
+        ).eq(true);
+    });
+
+    it("non-numeric requested variant index produces an info", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text>hi</text>`,
+            requestedVariantIndex: NaN,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.infos.some(
+                (info) =>
+                    info.message.includes("Variant index") &&
+                    info.message.includes("must be a number"),
+            ),
+        ).eq(true);
     });
 });

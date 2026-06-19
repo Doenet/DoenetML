@@ -1,13 +1,15 @@
 import BaseComponent from "./abstract/BaseComponent";
 
-import { styleAttributes } from "@doenet/utils";
+import {
+    attributeSpecFromStyleAttribute,
+    styleAttributes,
+} from "@doenet/utils";
 
 export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
 
     static componentDocs = {
-        summary:
-            "A reusable style definition referenced by graphical components.",
+        summary: "A reusable style definition referenced by other components",
     };
     static rendererType = undefined;
 
@@ -26,10 +28,9 @@ export class StyleDefinition extends BaseComponent {
         };
 
         for (let styleAttr in styleAttributes) {
-            attributes[styleAttr] = {
-                createComponentOfType: styleAttributes[styleAttr].componentType,
-                description: styleAttributes[styleAttr].description,
-            };
+            attributes[styleAttr] = attributeSpecFromStyleAttribute(
+                styleAttributes[styleAttr],
+            );
         }
 
         return attributes;
@@ -59,6 +60,13 @@ export class StyleDefinition extends BaseComponent {
                         const value =
                             dependencyValues[styleAttr].stateValues.value;
 
+                        // Historical behavior: every string value gets
+                        // lowercased here, which is what makes color names
+                        // (`lineColor="RED"` → `"red"`) case-insensitive. The
+                        // per-component override path in `style.ts` is newer
+                        // and gates on the spec's explicit `toLowerCase` flag
+                        // (only enum-typed attributes opt in); don't tighten
+                        // this path without auditing color-name lookups first.
                         if (typeof value === "string") {
                             styleDefinition[styleAttr] = {
                                 style: value.toLowerCase(),
@@ -87,10 +95,7 @@ export class StyleDefinition extends BaseComponent {
 export class StyleDefinitions extends BaseComponent {
     static componentType = "styleDefinitions";
 
-    static componentDocs = {
-        summary: "A container of reusable style definitions.",
-    };
     static rendererType = undefined;
 
-    static excludeFromSchema = [];
+    static excludeFromSchema = true;
 }

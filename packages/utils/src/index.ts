@@ -7,6 +7,8 @@ export * from "./copy/parseStringify";
 export * from "./components/domain";
 export * from "./components/enumeration";
 export * from "./components/function";
+export * from "./components/mathInputFunctionNames";
+export * from "./components/mediaLicense";
 export * from "./components/sequence";
 export * from "./components/size";
 export * from "./math/array";

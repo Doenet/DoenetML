@@ -4059,6 +4059,51 @@ Enter any letter:
         });
     });
 
+    it("numAttemptsLeft does not go negative when maxNumAttempts is reduced", async () => {
+        const doenetML = `
+    <p>Attempt limit: <mathInput name="limit" prefill="3" /></p>
+    <answer name="answer1" maxNumAttempts="$limit">x</answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+        const limitIdx = await resolvePathToNodeIdx("limit");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(3);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(1);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: limitIdx,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(0);
+    });
+
     it("disable after correct", async () => {
         const doenetML = `<answer name="answer1" disableAfterCorrect>x</answer>`;
 
@@ -4127,6 +4172,46 @@ Enter any letter:
                 { latex: "", credit: 0 },
                 { latex: "x^", credit: 0 },
                 { latex: "x^2", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer-level symbolicEquality propagates to an explicit award", async () => {
+        // symbolicEquality is set on the <answer>, not on the <award>.
+        // The award's symbolicEquality falls back to the answer's value,
+        // so a numerically-equal but syntactically-different response
+        // (commuted terms, or the factored form) is rejected. Without the
+        // fall-back, the default numerical checker would give full credit
+        // to all three responses below.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" symbolicEquality>
+    <award>x^2 + 2x + 1</award>
+</answer>
+  `,
+            answers: [
+                { latex: "x^2+2x+1", credit: 1 },
+                { latex: "1+2x+x^2", credit: 0 },
+                { latex: "(x+1)^2", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer-level allowedErrorInNumbers propagates to an explicit award", async () => {
+        // allowedErrorInNumbers is set on the <answer>, not on the <award>.
+        // The default tolerance is 0 (exact match), so 100.5 earns credit
+        // only because the award inherits the answer's 1% tolerance; 102 is
+        // outside that tolerance and earns nothing.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" allowedErrorInNumbers="0.01">
+    <award>100</award>
+</answer>
+  `,
+            answers: [
+                { latex: "100", credit: 1 },
+                { latex: "100.5", credit: 1 },
+                { latex: "102", credit: 0 },
             ],
         });
     });
@@ -4963,7 +5048,7 @@ Enter any letter:
     it("copy answer with no link", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
-  <answer extend="$ans1" name="ans2" link="false" />
+  <answer copy="$ans1" name="ans2" />
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
@@ -7612,7 +7697,7 @@ What is the derivative of <function name="f">x^2</function>?
             `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[3].position.start.line).eq(5);
-        expect(diagnosticsByType.accessibility[3].position.end.line).eq(9);
+        expect(diagnosticsByType.accessibility[3].position.end.line).eq(5);
 
         expect(diagnosticsByType.accessibility[4].message).contain(
             `an \`<answer>\` creating an input must have a short description or a label`,
@@ -8745,7 +8830,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("answer coloring based on document-wide check work by default", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork>
+    <document name="doc" sectionWideCheckWork>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8814,7 +8899,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("force individual answer coloring  with document-wide check work", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork forceIndividualAnswerColoring>
+    <document name="doc" sectionWideCheckWork forceIndividualAnswerColoring>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x

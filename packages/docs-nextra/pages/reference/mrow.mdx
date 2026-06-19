@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <mrow>{:dn}`
+# `<mrow>{:dn}`
 
-` <mrow>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='mrow'/>
+
+`<mrow>{:dn}` is a [Display Math](../concepts/essentialConcepts#component-types)
 component that renders a single line within a block of aligned display mathematics when 
-nested within the ` <md>{:dn}` or the ` <mdn>{:dn}` component.
+nested within the `<md>{:dn}` or the `<mdn>{:dn}` component.
 
-## Attributes and Properties 
- <AttrDisplay name='mrow'/> 
- <PropDisplay name='mrow'/>
+<AttrPropDisplay name='mrow'/>
 
----
+## Examples
 
-### Example: ` <md>{:dn}` with nested ` <mrow>{:dn}` children
+### Example: `<md>{:dn}` with nested `<mrow>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -30,15 +30,15 @@ nested within the ` <md>{:dn}` or the ` <mdn>{:dn}` component.
 
 
 
-The data contained within an ` <md>{:dn}` block must be contained in 
-an ` <mrow>{:dn}`.  Equations and content will align vertically 
+The data contained within an `<md>{:dn}` block must be contained in 
+an `<mrow>{:dn}`.  Equations and content will align vertically 
 where the `&` symbol is entered in each row. 
 
 
 
 ---
 
-### Example: ` <mdn>{:dn}` with nested ` <mrow>{:dn}` children
+### Example: `<mdn>{:dn}` with nested `<mrow>{:dn}` children
 
 
 ```doenet-editor-horiz
@@ -53,33 +53,33 @@ where the `&` symbol is entered in each row.
 
 
 
-The data contained within an ` <mdn>{:dn}` block must be contained in 
-an ` <mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
+The data contained within an `<mdn>{:dn}` block must be contained in 
+an `<mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
 
 
 
 ---
 
-### Example: ` <mrow>{:dn}` cannot contain ` <answer>{:dn}` or ` <mathInput/>{:dn}`
+### Example: `<mrow>{:dn}` cannot contain `<answer>{:dn}` or `<mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>The following will not render as intended:</p>
 <md>
-  <mrow>x = <answer name="ans1">x</answer></mrow>
-  <mrow>y = <mathInput/></mrow>
+  <mrow>x = <answer name="ans1"><label>What is x?</label>x</answer></mrow>
+  <mrow>y = <mathInput><label>Enter y</label></mathInput></mrow>
 </md>
 ```
 
 
 
-An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
+An `<mrow>{:dn}` component cannot contain an `<answer>{:dn}` or a `<mathInput/>{:dn}`.
 
 
 
 ---
 
-### Example: ` <mrow>{:dn}` with referenced ` <math>{:dn}`
+### Example: `<mrow>{:dn}` with referenced `<math>{:dn}`
 
 
 ```doenet-example
@@ -104,14 +104,14 @@ An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput
 
 
 
-Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or referenced within an ` <mrow>{:dn}` component.
+Computational DoenetML components, such as `<math>{:dn}`, or `<derivative>{:dn}`, can be nested within or referenced within an `<mrow>{:dn}` component.
 
 
-Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` components cannot be nested within an ` <mrow>{:dn}` component.
+Exceptions: The `<answer>{:dn}` component, the `<mathInput/>{:dn}` component, and other `<md>{:dn}` components cannot be nested within an `<mrow>{:dn}` component.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: number
 
@@ -126,11 +126,11 @@ Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, 
 
 
 
-The `number` attribute can be set to `false` to prevent the default numbering of an individual ` <mrow>{:dn}` within an ` <mdn>{:dn}`.
+The `number` attribute can be set to `false` to prevent the default numbering of an individual `<mrow>{:dn}` within an `<mdn>{:dn}`.
 
 
 
----
+## Property Examples
 
 ### Property Example: latex
 
@@ -146,7 +146,7 @@ The `number` attribute can be set to `false` to prevent the default numbering of
 
 
 
-The `latex` property returns the LaTeX code for rendering the ` <mrow>{:dn}`.
+The `latex` property returns the LaTeX code for rendering the `<mrow>{:dn}`.
 
 
 
@@ -166,5 +166,5 @@ The `latex` property returns the LaTeX code for rendering the ` <mrow>{:dn}`.
 
 
 
-The `text` property returns the text value of the ` <mrow>{:dn}`.
+The `text` property returns the text value of the `<mrow>{:dn}`.
 

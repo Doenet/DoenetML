@@ -1,0 +1,120 @@
+// TODO - refactor
+$opacity: 0.0 !default;
+
+/*
+So that we can position things (like .autopermalink) absolutely wrt these items.
+Any element whose permalink should be positioned directly to the left of it
+should be in this list.
+*/
+section,
+article,
+li,
+blockquote,
+figcaption,
+dt,
+.exercisegroup,
+.discussion-like,
+.solution-like,
+.para {
+  position: relative;
+}
+
+.autopermalink {
+  position: absolute;
+  display: inline-block;
+  top: 0.5ex;
+  left: -2em;
+  font-size: 85%;
+  // variable allows theme to set different opacities for dark/light
+  opacity: var(--permalink-opacity, $opacity);
+  transition: opacity 0.2s;
+  margin-top: 0 !important;
+  user-select: none;
+}
+
+li > .autopermalink {
+  left: -3.5em;
+}
+
+.autopermalink > * {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+}
+
+
+// Move permalink for division titles etc a little bit lower
+.appendix > .autopermalink,
+.chapter > .autopermalink,
+.index > .autopermalink,
+.section > .autopermalink,
+.subsection > .autopermalink,
+.references > .autopermalink,
+.exercises > .autopermalink {
+  top: 1.5ex;
+}
+
+// In some styles, the autopermalink for paras land right on the border line.
+// This is an attempt to fix that.  TODO: find a more robust solution, maybe
+// using a variable for the left offset of paras inside blocks.
+.assemblage-like > .para > .autopermalink,
+.example-like > .para > .autopermalink,
+.example-like > .exercise-like > .autopermalink,
+.project-like > .para > .autopermalink,
+.project-like > .exercise-like > .autopermalink,
+.project-like > .exercise-like > .introduction > .para > .autopermalink,
+.project-like > .exercise-like > .conclusion > .para > .autopermalink,
+.remark-like > .para > .autopermalink {
+  left: -2.9em;
+}
+
+
+.axiom-like, .example-like, .exercise-like, .solution-like, .assemblage-like, .definition-like, .remark-like, .project-like, .openproblem-like, .computation-like, .theorem-like, .proof, .case, li, dd {
+  > .para:first-of-type > .autopermalink {
+    display:none;
+  }
+
+  > .introduction > .para:first-of-type > .autopermalink {
+    display:none;
+  }
+}
+
+
+// Hover effects
+
+.ptx-content:has(.autopermalink:hover) .autopermalink {
+  opacity: 0.2;
+}
+
+.ptx-content:has(.autopermalink:hover) .autopermalink:hover {
+  opacity: 1;
+}
+
+.autopermalink:has(a:focus-visible) {
+  opacity: 1;
+}
+
+.permalink-alert {
+  position: absolute;
+  top: -3em;
+  left: 5em;
+  padding: 1.5em 2em;
+  background: var(--content-background);
+  border: 3px solid var(--page-border-color);
+  z-index: 2001;
+}
+
+
+/* when jumping to a permalink, push down so sticky navbar does not cover */
+:target {
+  scroll-margin-top: 45px;
+  // the "pink flash" when navigating to a target
+  animation: target-fade 10s 1;
+}
+
+@keyframes target-fade {
+    0% { background-color: var(--activated-content-bg) }
+    100% {
+      background-color: inherit;
+      opacity: 1;
+    }
+}

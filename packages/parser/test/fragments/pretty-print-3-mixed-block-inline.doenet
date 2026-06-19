@@ -1,0 +1,13 @@
+<section name="s">
+    <title>A title with <m>x^2</m> math</title>
+    <p>First paragraph with <em>some</em> emphasis.</p>
+    <p>Second paragraph.</p>
+    <ol>
+        <li>Item one</li>
+        <li>Item two has <c>code</c> in it.</li>
+    </ol>
+    <graph>
+        <point coords="(1,2)" />
+        <line through="$a $b" />
+    </graph>
+</section>

@@ -1,30 +1,31 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <conditionalContent>{:dn}`
+# `<conditionalContent>{:dn}`
 
+<ComponentDisplay name='conditionalContent'/>
 
-` <conditionalContent>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+`<conditionalContent>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that defines one or more blocks of content that 
 are evaluated only when certain conditions are met. 
-Conditions may be defined directly on the ` <conditionalContent>{:dn}` tag using the `condition` attribute.  
-Alternatively, one can use one or more [` <case>{:dn}`](case.mdx) children with an 
-optional [` <else>{:dn}`](else.mdx) child.
+Conditions may be defined directly on the `<conditionalContent>{:dn}` tag using the `condition` attribute.  
+Alternatively, one can use one or more [`<case>{:dn}`](case.mdx) children with an 
+optional [`<else>{:dn}`](else.mdx) child.
 
-## Attributes and Properties 
-The ` <conditionalContent>{:dn}` component has no attributes or properties.
+<AttrPropDisplay name='conditionalContent'/>
 
 
----
+## Examples
 
-### Example: ` <conditionalContent>{:dn}` with nested ` <case>{:dn}` children
+### Example: `<conditionalContent>{:dn}` with nested `<case>{:dn}` children
 
 
 ```doenet-editor-horiz
-  <p>Choose a letter: 
+  <p>
   <choiceInput inline name="letter">
+    <label>Choose a letter</label>
     <choice>A</choice>
     <choice>B</choice>
     <choice>C</choice>
@@ -46,19 +47,18 @@ The ` <conditionalContent>{:dn}` component has no attributes or properties.
 
 
 
-The ` <conditionalContent>{:dn}` component defines a block of content 
-containing individual ` <case>{:dn}` children. The doenetML within 
-each ` <case>{:dn}` is only rendered when its specified `condition` is `true`.
+The `<conditionalContent>{:dn}` component defines a block of content 
+containing individual `<case>{:dn}` children. The doenetML within 
+each `<case>{:dn}` is only rendered when its specified `condition` is `true`.
 
 
 ---
 
-### Example: ` <conditionalContent>{:dn}` with nested ` <else>{:dn}`
+### Example: `<conditionalContent>{:dn}` with nested `<else>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Type an even integer and press enter:
-  <mathInput name="int"/></p>
+<p><mathInput name="int"><label>Type an even integer and press enter</label></mathInput></p>
 
 <conditionalContent>
   <case condition="mod($int,2) = 0">
@@ -72,19 +72,20 @@ each ` <case>{:dn}` is only rendered when its specified `condition` is `true`.
 
 
 
-The ` <conditionalContent>{:dn}` component defines a block of content 
-containing individual ` <case>{:dn}` children. To catch all remaining
+The `<conditionalContent>{:dn}` component defines a block of content 
+containing individual `<case>{:dn}` children. To catch all remaining
 cases following a given condition or set of conditions, the 
 `<else>{:dn}` component may be used.
 
----
+## Attribute Examples
 
 ### Attribute Example: condition
 
 
 ```doenet-example
-<p>Let's graph a... 
+<p>
     <choiceInput name="shape">
+      <label>Let's graph a...</label>
       <choice>circle</choice>
       <choice>square</choice>
       <choice>pentagon</choice>
@@ -118,8 +119,8 @@ cases following a given condition or set of conditions, the
 
 
 
-A ` <conditionalContent>{:dn}` block with a ` <condition>{:dn}` attribute 
+A `<conditionalContent>{:dn}` block with a `<condition>{:dn}` attribute 
 renders only when the `condition` is satisfied. This allows for use of 
-a ` <conditionalContent>{:dn}` component without nested ` <case>{:dn}` components.
+a `<conditionalContent>{:dn}` component without nested `<case>{:dn}` components.
 
 

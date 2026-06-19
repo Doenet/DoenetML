@@ -91,6 +91,38 @@ return (
 );
 ```
 
+### Programmatically updating the rendered view
+
+The same ref handle exposes `updateRenderedView()`, the programmatic
+equivalent of clicking the editor's "Update" button. Use it to flush any
+pending edits to the viewer so the next `diagnosticsSummaryCallback`
+reflects the current editor buffer rather than stale state. If the source
+hasn't changed and the document hasn't been interacted with, the call is a
+no-op (matching the visually-disabled button). When `showViewer={false}`,
+the call is ignored with a `console.warn`.
+
+```tsx
+function App() {
+    const editorRef = useRef<DoenetEditorHandle>(null);
+    return (
+        <>
+            <button onClick={() => editorRef.current?.updateRenderedView()}>
+                Update viewer
+            </button>
+            <DoenetEditor
+                ref={editorRef}
+                doenetML="..."
+                diagnosticsSummaryCallback={(summary, doenetML) => {
+                    // `doenetML` here is the source the viewer rendered against,
+                    // so you can correlate the summary with what the user typed
+                    // before pressing your "Update" trigger.
+                }}
+            />
+        </>
+    );
+}
+```
+
 ## Quick Start
 
 In the project folder:

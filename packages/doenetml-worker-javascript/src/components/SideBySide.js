@@ -1,6 +1,7 @@
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+const { max } = me.math;
 
 export class SideBySide extends BlockComponent {
     constructor(args) {
@@ -13,7 +14,7 @@ export class SideBySide extends BlockComponent {
     static componentType = "sideBySide";
 
     static componentDocs = {
-        summary: "Lays children out side-by-side.",
+        summary: "Renders children in a side-by-side horizontal layout",
     };
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -37,10 +38,34 @@ export class SideBySide extends BlockComponent {
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
             description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
             description: "Per-panel vertical alignment values.",
         };
 
@@ -1259,7 +1284,7 @@ export class SbsGroup extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "A group of `<sideBySide>` components that share alignment and spacing.",
+            "A group of `<sideBySide>` components that share alignment and spacing",
     };
 
     static createAttributesObject() {
@@ -1281,10 +1306,34 @@ export class SbsGroup extends BlockComponent {
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
             description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
             description: "Per-panel vertical alignment values.",
         };
 
@@ -1327,7 +1376,7 @@ export class SbsGroup extends BlockComponent {
                         maxNPanelsPerRow:
                             dependencyValues.sideBySideChildren.length === 0
                                 ? 0
-                                : me.math.max(
+                                : max(
                                       dependencyValues.sideBySideChildren.map(
                                           (x) => x.stateValues.numPanels,
                                       ),
@@ -2362,7 +2411,8 @@ export class Stack extends BlockComponent {
     static canDisplayChildErrors = true;
 
     static componentDocs = {
-        summary: "A vertical stack layout for arranging children.",
+        summary:
+            "A vertical container element for organizing content within a `<sideBySide>`",
     };
 
     static includeBlankStringChildren = true;

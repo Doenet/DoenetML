@@ -1,33 +1,59 @@
 import { Connection, CompletionItem } from "vscode-languageserver/browser";
 import { DocumentInfo } from "../globals";
+import {
+    awaitRustBootIfInitializing,
+    isRefCompletionContext,
+} from "./_rust-ready";
 
 export function addDocumentCompletionSupport(
     connection: Connection,
     documentInfo: DocumentInfo,
 ) {
     // This handler provides the initial list of the completion items.
-    connection.onCompletion((params): CompletionItem[] => {
+    connection.onCompletion(async (params): Promise<CompletionItem[]> => {
         const info = documentInfo.get(params.textDocument.uri);
         if (!info) {
             return [];
         }
 
-        const completionContext = info.autoCompleter.getCompletionContext(
+        let completionContext = info.autoCompleter.getCompletionContext(
             params.position,
         );
-        const isRustDependentRefContext =
-            completionContext.cursorPos === "refName" ||
-            completionContext.cursorPos === "refMember";
+
+        // A rust-dependent completion can land in the window between the
+        // document opening and the rust-core sub-worker finishing its boot.
+        // Returning `[]` then would close the editor's autocomplete session,
+        // so wait for the boot to settle (bounded by `RUST_BOOT_WAIT_MS`,
+        // see `_rust-ready.ts`) and answer with real results.
+        if (isRefCompletionContext(completionContext)) {
+            await awaitRustBootIfInitializing(info);
+            // The document may have changed while waiting — recompute.
+            completionContext = info.autoCompleter.getCompletionContext(
+                params.position,
+            );
+        }
+
         if (
-            isRustDependentRefContext &&
+            isRefCompletionContext(completionContext) &&
             (info.rustState !== "ready" || !info.rustAdapter)
         ) {
             return [];
         }
 
-        const completions = info.autoCompleter.getCompletionItems(
+        // The client (CodeMirror plugin) sets `explicit` when the user
+        // invoked completion via Ctrl+Space, as opposed to the popup opening
+        // from typing. It rides on the completion context as a non-standard
+        // field; read it defensively. Explicit invocation opens the element
+        // menu even with no preceding `<` (e.g. between tags) — see
+        // `getCompletionItems`.
+        const explicit =
+            (params.context as { explicit?: boolean } | undefined)?.explicit ??
+            false;
+
+        const completions = await info.autoCompleter.getCompletionItems(
             params.position,
             completionContext,
+            explicit,
         );
         return completions;
     });

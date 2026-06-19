@@ -36,8 +36,7 @@ export default class Function extends InlineComponent {
     static componentType = "function";
 
     static componentDocs = {
-        summary:
-            "A mathematical function, defined by formula or interpolation.",
+        summary: "A mathematical function, defined by formula or interpolation",
     };
     static rendererType = "math";
 

@@ -211,11 +211,13 @@ export function convertRefsToCopies({
                     addNodesToResolver(flatFragment, "None");
                 }
 
-                outerAttributes.createComponentName = {
-                    name: "createComponentName",
-                    children: outerAttributes.name.children,
-                };
-                delete outerAttributes.name;
+                if (outerAttributes.name) {
+                    outerAttributes.createComponentName = {
+                        name: "createComponentName",
+                        children: outerAttributes.name.children,
+                    };
+                    delete outerAttributes.name;
+                }
                 outerAttributes.copyInChildren = {
                     name: "copyInChildren",
                     children: ["true"],

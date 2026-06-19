@@ -41,6 +41,7 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
@@ -48,6 +49,7 @@
             "dependencies": [
                 "../parser:build",
                 "../lsp:build",
+                "../lsp-tools:build",
                 "../utils:build"
             ]
         }

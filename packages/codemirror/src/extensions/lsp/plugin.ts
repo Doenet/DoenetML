@@ -50,10 +50,12 @@ import {
     autocompletion,
     CompletionContext,
     Completion,
+    CompletionResult,
     completionStatus,
     startCompletion,
 } from "@codemirror/autocomplete";
 import {
+    getLivePreviewQuoteWrap,
     getSnippetCursorFromCompletionItemData,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
@@ -66,15 +68,29 @@ import {
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import type {
+    CompletionItem as LSPCompletionItem,
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
-import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
+import { deriveCompletionType, COMPLETION_TYPES } from "@doenet/lsp-tools";
+
+// LSP's `CompletionItem` doesn't declare `displayLabel`, but
+// @codemirror/autocomplete supports it as a "show this, filter on label"
+// override. Our in-process LSP transport preserves unknown fields, so
+// `get-completion-items.ts` attaches it as an optional extension and we
+// destructure it here through a single seam-level cast rather than per item.
+type LSPCompletionItemWithDisplayLabel = LSPCompletionItem & {
+    displayLabel?: string;
+};
 import "./tooltip.css";
 
 // Keep identifier policy aligned with macro parsing/completion rules.
 const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
 const MACRO_IDENTIFIER_SEGMENT_REGEX = /[A-Za-z0-9_-]+$/;
+// Matches a non-empty run of bare-value characters only (no whitespace, no
+// `"`, no `>`). Used by the live-preview wrap-in-quotes hint to decide
+// whether the user is still inside an unquoted attribute value.
+const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
 
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
@@ -85,10 +101,6 @@ function escapeHtml(str: string): string {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
 }
-
-const completionItemKindMap = Object.fromEntries(
-    Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
-) as Record<CompletionItemKind, string>;
 
 const lspDiagnosticToName = {
     [LSPDiagnosticSeverity.Error]: "Error",
@@ -160,7 +172,6 @@ export class LSPPlugin implements PluginValue {
     uri: string = "";
     value: string = "";
     diagnostics: LSPDiagnostic[] = [];
-    completionRequestToken = 0;
     docVersion = 0;
     reopenLatch: ReopenLatch | null = null;
     view?: EditorView;
@@ -296,8 +307,6 @@ export class LSPPlugin implements PluginValue {
     }
     async getCompletions(context: CompletionContext) {
         let { state, pos, explicit } = context;
-        const requestToken = ++this.completionRequestToken;
-        const requestDocVersion = this.docVersion;
         const line = state.doc.lineAt(pos);
         let triggerKind: LSPCompletionTriggerKind =
             LSPCompletionTriggerKind.Invoked;
@@ -305,7 +314,37 @@ export class LSPPlugin implements PluginValue {
         const charBeforeCursor = line.text[pos - line.from - 1];
         const charBeforeParen =
             charBeforeCursor === "(" ? line.text[pos - line.from - 2] : "";
+        // A `"` or `'` is a server trigger because typing the *opening*
+        // quote of a value should open a value popup (e.g. `<math name="`).
+        // The *closing* quote of a value (e.g. `<math name="hello"`) is the
+        // same character but shouldn't pop attribute completions — that
+        // would be inconsistent with `<math `, which waits for a letter
+        // before suggesting. In a well-formed open tag, quotes of the same
+        // kind pair up after each `=`, so the parity of prior occurrences
+        // of the typed quote (between the last `<` and the typed quote)
+        // tells us whether we just typed an opener or a closer:
+        //   - even (0, 2, …) → opener → fire the trigger
+        //   - odd  (1, 3, …) → closer → suppress
+        // Counting (rather than scanning to a single matching quote) is
+        // what makes `<math name="hello" simplify="` correctly treat the
+        // second `"` as the opener of `simplify`'s value: two prior `"`
+        // chars from `name="hello"` make the count even. Stopping at `=`
+        // would seem simpler but breaks `<math foo="x=y"`, where the
+        // closing `"` of `foo` has a literal `=` inside its value.
+        let isClosingQuoteTrigger = false;
+        if (charBeforeCursor === '"' || charBeforeCursor === "'") {
+            const quote = charBeforeCursor;
+            const cursorCol = pos - line.from;
+            let quoteCount = 0;
+            for (let k = cursorCol - 2; k >= 0; k--) {
+                const c = line.text[k];
+                if (c === "<") break;
+                if (c === quote) quoteCount++;
+            }
+            isClosingQuoteTrigger = quoteCount % 2 === 1;
+        }
         const precedingServerTriggerCharacter =
+            !isClosingQuoteTrigger &&
             uniqueLanguageServerInstance.completionTriggers.includes(
                 charBeforeCursor,
             );
@@ -314,6 +353,26 @@ export class LSPPlugin implements PluginValue {
             charBeforeCursor === "." ||
             (charBeforeCursor === "(" &&
                 (charBeforeParen === "$" || charBeforeParen === "."));
+
+        // `<math simplify= ` and similar: when the cursor sits on whitespace
+        // that immediately follows `=`, we still want the LSP to suggest
+        // completions. Without this, the popup that opened on `=` flickers
+        // closed the moment the user types a space and only reopens on the
+        // next non-whitespace keystroke. Scoped to `=` only — other server
+        // triggers (`<`, `/`, `"`, `'`, `$`, `.`) shouldn't reopen the popup
+        // across whitespace: e.g. `<math name="hello" ` should not keep the
+        // popup that briefly opened on the closing `"`, matching the
+        // behaviour of `<math ` (where space after the tag name does not
+        // pop completions until a letter is typed).
+        let postWhitespaceTrigger = false;
+        if (charBeforeCursor && /\s/.test(charBeforeCursor)) {
+            const cursorCol = pos - line.from;
+            let i = cursorCol - 1;
+            while (i >= 0 && /\s/.test(line.text[i])) i--;
+            if (i >= 0 && line.text[i] === "=") {
+                postWhitespaceTrigger = true;
+            }
+        }
 
         if (!explicit && precedingServerTriggerCharacter) {
             triggerKind = LSPCompletionTriggerKind.TriggerCharacter;
@@ -324,6 +383,7 @@ export class LSPPlugin implements PluginValue {
             !context.matchBefore(MACRO_IDENTIFIER_SEGMENT_REGEX) &&
             !precedingServerTriggerCharacter &&
             !precedingLocalRefTriggerCharacter &&
+            !postWhitespaceTrigger &&
             !explicit
         ) {
             return null;
@@ -335,15 +395,23 @@ export class LSPPlugin implements PluginValue {
             {
                 triggerKind,
                 triggerCharacter,
+                // Forward the explicit (Ctrl+Space) signal so the server can
+                // open the element menu even with no preceding `<` (e.g.
+                // between tags). `triggerKind` alone can't carry this: typing
+                // an identifier also reports `Invoked`.
+                explicit,
             },
         );
 
-        // Guard against out-of-order async responses from older completion requests.
-        if (
-            !this.view ||
-            requestToken !== this.completionRequestToken ||
-            this.docVersion !== requestDocVersion
-        ) {
+        // Don't bail by returning `null` if the user typed more characters
+        // while we were awaiting — @codemirror/autocomplete reads `null`
+        // as "this source has no completions" and closes the active list,
+        // producing a flicker mid-type. The autocomplete subsystem already
+        // tracks query staleness via `RunningQuery.context.aborted` and
+        // replays subsequent transactions through `ActiveResult.updateFor`
+        // to map result positions forward, so returning the (slightly
+        // older) result is safe and keeps the menu stable.
+        if (!this.view) {
             return null;
         }
 
@@ -351,10 +419,12 @@ export class LSPPlugin implements PluginValue {
             return null;
         }
 
-        const items = "items" in result ? result.items : result;
+        const items = (
+            "items" in result ? result.items : result
+        ) as LSPCompletionItemWithDisplayLabel[];
 
-        let options = items.map(
-            ({
+        let options = items.map((rawItem) => {
+            const {
                 detail,
                 label,
                 kind,
@@ -363,30 +433,32 @@ export class LSPPlugin implements PluginValue {
                 sortText,
                 filterText,
                 data,
-            }) => {
-                const completion: ExtendedCompletion = {
-                    label,
-                    detail,
-                    apply: textEdit?.newText ?? label,
-                    type: kind && completionItemKindMap[kind].toLowerCase(),
-                    sortText: sortText ?? label,
-                    filterText: filterText ?? label,
-                };
-                if (documentation) {
-                    completion.info = renderDocumentation(documentation);
-                }
-                // Store range info if present for custom apply logic later
-                if (textEdit && "range" in textEdit) {
-                    completion._lspTextEditRange = textEdit.range;
-                }
-                const snippetCursor =
-                    getSnippetCursorFromCompletionItemData(data);
-                if (snippetCursor) {
-                    completion._snippetCursor = snippetCursor;
-                }
-                return completion;
-            },
-        );
+                displayLabel,
+            } = rawItem;
+            const completion: ExtendedCompletion = {
+                label,
+                detail,
+                apply: textEdit?.newText ?? label,
+                type: deriveCompletionType(rawItem),
+                sortText: sortText ?? label,
+                filterText: filterText ?? label,
+            };
+            if (displayLabel) {
+                completion.displayLabel = displayLabel;
+            }
+            if (documentation) {
+                completion.info = renderDocumentation(documentation);
+            }
+            // Store range info if present for custom apply logic later
+            if (textEdit && "range" in textEdit) {
+                completion._lspTextEditRange = textEdit.range;
+            }
+            const snippetCursor = getSnippetCursorFromCompletionItemData(data);
+            if (snippetCursor) {
+                completion._snippetCursor = snippetCursor;
+            }
+            return completion;
+        });
 
         const [span, match] = prefixMatch(options);
         const token = context.matchBefore(match);
@@ -483,15 +555,121 @@ export class LSPPlugin implements PluginValue {
             return opt;
         });
 
+        // "Live preview" options (e.g. the free-text wrap-in-quotes hint)
+        // carry a sentinel via `data.livePreviewQuoteWrap`. For those we have
+        // to skip CodeMirror's fuzzy filter (the cached `label` is the typed
+        // prefix at query time and would be rejected the moment the user
+        // types one more character, closing the menu) and instead regenerate
+        // the option synchronously on every transaction via `update`.
+        //
+        // We also override `from` with the bare-value start offset supplied
+        // by the LSP. The plugin's default `pos` comes from `prefixMatch`,
+        // which builds its regex from `option.apply`. Since our apply text
+        // starts with a literal `"` and the user has not typed one, the
+        // regex match fails and `pos` defaults to `context.pos` -- which
+        // sits one past the first typed character. Anchoring `from` there
+        // would shift the result's view of the bare value by one slot, so
+        // subsequent typing reads "ello" instead of "hello".
+        //
+        // The mixed case -- a result that contains both a live-preview
+        // option and ordinary options -- doesn't occur today; the LSP
+        // returns the wrap-in-quotes hint by itself.
+        const livePreviewMarker = items
+            .map((item) => getLivePreviewQuoteWrap(item.data))
+            .find((m) => m !== undefined);
+        if (livePreviewMarker) {
+            return {
+                from: livePreviewMarker.bareValueStartOffset,
+                options: finalOptions,
+                filter: false,
+                update: this._refreshLivePreview,
+            };
+        }
+
         return {
             from: pos,
             options: finalOptions,
             validFor: new RegExp(`^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`),
         };
     }
+
+    // Synchronously regenerates the wrap-in-quotes option from the live
+    // document text. CodeMirror calls this on every transaction when
+    // `result.validFor` is absent, so the option's `displayLabel` (and
+    // `apply` text) tracks what the user has typed without bouncing off
+    // the LSP. We re-attach the same callback on the new result so
+    // subsequent keystrokes keep refreshing -- the autocomplete subsystem
+    // only consults `update` on the active result, not the original one.
+    _refreshLivePreview = (
+        _current: CompletionResult,
+        from: number,
+        to: number,
+        context: CompletionContext,
+    ): CompletionResult | null => {
+        const text = context.state.sliceDoc(from, to);
+        if (
+            text.length === 0 ||
+            !MACRO_IDENTIFIER_BARE_VALUE_REGEX.test(text)
+        ) {
+            // User stepped outside a bare value (typed `"`, whitespace,
+            // `>`, etc.). Returning an empty-options result closes the
+            // menu cleanly without bouncing through Pending state.
+            return { from, to, options: [], filter: false };
+        }
+        const wrapped = `"${text}"`;
+        return {
+            from,
+            to,
+            options: [
+                {
+                    label: text,
+                    displayLabel: wrapped,
+                    apply: (view, _completion, applyFrom, applyTo) => {
+                        // Walk back over whitespace to find the anchoring
+                        // `=` so the apply swallows `   foo` into `="foo"`
+                        // (matching the LSP-side textEdit range used by
+                        // the initial query).
+                        const doc = view.state.doc;
+                        let walk = applyFrom - 1;
+                        while (
+                            walk >= 0 &&
+                            /\s/.test(doc.sliceString(walk, walk + 1))
+                        ) {
+                            walk -= 1;
+                        }
+                        const replaceFrom =
+                            walk >= 0 && doc.sliceString(walk, walk + 1) === "="
+                                ? walk + 1
+                                : applyFrom;
+                        view.dispatch({
+                            changes: {
+                                from: replaceFrom,
+                                to: applyTo,
+                                insert: wrapped,
+                            },
+                            selection: {
+                                anchor: replaceFrom + wrapped.length,
+                            },
+                        });
+                    },
+                    // Attribute-value live-preview row; tag it with the shared
+                    // attribute-value type so its dropdown icon matches the
+                    // LSP-driven value rows instead of hardcoding the string.
+                    type: COMPLETION_TYPES.attributeValue,
+                },
+            ],
+            filter: false,
+            update: this._refreshLivePreview,
+        };
+    };
 }
 
-export const lspPlugin = (documentId: string) => {
+export const lspPlugin = (documentId: string, doenetWorkerUrl?: string) => {
+    // The LSP is a process-wide singleton.  The first plugin instance to fire
+    // the worker locks in `doenetWorkerUrl`; later instances pass theirs but
+    // the singleton ignores subsequent values.  In practice every editor on a
+    // page reads the URL from the same `doenetGlobalConfig`, so this is fine.
+    uniqueLanguageServerInstance.setDoenetWorkerUrl(doenetWorkerUrl);
     const plugin = new LSPPlugin(documentId);
     return [
         ViewPlugin.define((view) => {

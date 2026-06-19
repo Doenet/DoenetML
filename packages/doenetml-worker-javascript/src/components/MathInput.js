@@ -1,6 +1,10 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
+import {
+    buildEffectiveMathInputFunctionNames,
+    deepCompare,
+    convertValueToMathExpression,
+} from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
@@ -46,7 +50,7 @@ export default class MathInput extends Input {
     static componentType = "mathInput";
 
     static componentDocs = {
-        summary: "An interactive math input.",
+        summary: "An interactive math input",
     };
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";
@@ -98,6 +102,36 @@ export default class MathInput extends Input {
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
+            public: true,
+        };
+        attributes.additionalFunctionNames = {
+            description:
+                "Extra identifiers to auto-format as function names in " +
+                "the editor (e.g., 'erf'). Entries that also appear in " +
+                "`removedFunctionNames` are dropped.",
+            createComponentOfType: "textList",
+            createStateVariable: "additionalFunctionNames",
+            defaultValue: [],
+            public: true,
+        };
+        attributes.removedFunctionNames = {
+            description:
+                "Built-in function names to stop auto-formatting in the " +
+                "editor (e.g., 'min' so 'kg/min' can be typed as a unit).",
+            createComponentOfType: "textList",
+            createStateVariable: "removedFunctionNames",
+            defaultValue: [],
+            public: true,
+        };
+        attributes.resetFunctionNames = {
+            description:
+                "When set, replaces the entire auto-formatted function " +
+                "name list (defaults, `additionalFunctionNames`, and " +
+                "`removedFunctionNames` are all ignored). Set to an empty " +
+                "value to disable auto-formatting entirely.",
+            createComponentOfType: "textList",
+            createStateVariable: "resetFunctionNames",
+            defaultValue: null,
             public: true,
         };
         attributes.splitSymbols = {
@@ -213,6 +247,95 @@ export default class MathInput extends Input {
                 displaySmallAsZeroDefault: 0,
             }),
         );
+
+        stateVariableDefinitions.effectiveFunctionNames = {
+            // Resolved MathQuill `autoOperatorNames` list — defaults
+            // merged with `additionalFunctionNames` / `removedFunctionNames`
+            // (or replaced wholesale when `resetFunctionNames` is set).
+            // Computed here in the worker (rather than the renderer) so
+            // we can emit a `warning` diagnostic when authored tokens
+            // are dropped for failing MathQuill's validator — letting
+            // those reach MathQuill would crash the `EditableMathField`
+            // mount instead.
+            forRenderer: true,
+            returnDependencies: () => ({
+                additionalFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "additionalFunctionNames",
+                },
+                removedFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "removedFunctionNames",
+                },
+                resetFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "resetFunctionNames",
+                },
+                // The attribute components carry their own source
+                // positions; we read them so each emitted diagnostic
+                // points at the attribute whose contents actually
+                // contributed an invalid token, rather than the whole
+                // `<mathInput>` element. The `attributeComponent`
+                // dependency returns `null` when the attribute is
+                // absent, so the `?.position` guards below are real.
+                additionalFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "additionalFunctionNames",
+                },
+                resetFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "resetFunctionNames",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { names, droppedFromAdditional, droppedFromReset } =
+                    buildEffectiveMathInputFunctionNames({
+                        additional: dependencyValues.additionalFunctionNames,
+                        removed: dependencyValues.removedFunctionNames,
+                        reset: dependencyValues.resetFunctionNames,
+                    });
+                const result = { setValue: { effectiveFunctionNames: names } };
+                const diagnostics = [];
+                const buildMessage = (attr, list) =>
+                    `<mathInput>: ignored invalid function name(s) in ` +
+                    `${attr}: ${list.map((n) => `'${n}'`).join(", ")}. ` +
+                    `Each name's display segment must be at least 2 ` +
+                    `characters (letters or dashes); an optional ` +
+                    "`|<mathspeak alternative>` suffix may follow.";
+                // One diagnostic per *contributing* attribute. The
+                // helper already enforces precedence (`reset` wins
+                // over `additional`), so when both are authored only
+                // `reset`'s invalid tokens surface — `additional` is
+                // inactive in that case, and warning about its
+                // contents would be misleading.
+                if (droppedFromAdditional.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "additionalFunctionNames",
+                            droppedFromAdditional,
+                        ),
+                        position:
+                            dependencyValues.additionalFunctionNamesAttr
+                                ?.position,
+                    });
+                }
+                if (droppedFromReset.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "resetFunctionNames",
+                            droppedFromReset,
+                        ),
+                        position:
+                            dependencyValues.resetFunctionNamesAttr?.position,
+                    });
+                }
+                if (diagnostics.length > 0)
+                    result.sendDiagnostics = diagnostics;
+                return result;
+            },
+        };
 
         stateVariableDefinitions.showPreview = {
             description: "Whether to display a preview of the parsed math.",

@@ -1,0 +1,100 @@
+@use "sass:map";
+@use "sass:string";
+@use "sass:list";
+
+// Fonts to use
+$body: 'Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif' !default;
+$heading: 'PT Serif, Times New Roman, Times, serif' !default;
+$monospace: 'Inconsolata, Consolas, Monaco, monospace;' !default;
+$print: 'PT Serif, Times New Roman, Times, serif' !default;
+
+@function is-variable-font($font-name) {
+  $static-fonts: ('PT Serif');  // list of known static fonts used by themes
+  @if list.index($font-name, $static-fonts) {
+    @return false;
+  }
+  @return true;
+}
+
+@function generate-import($font-name) {
+  @if is-variable-font($font-name) {
+    @return 'https://fonts.googleapis.com/css2?family=' + $font-name + ':ital,wght@0,400..700;1,400..700&display=swap';
+  }
+  @else {
+    @return 'https://fonts.googleapis.com/css2?family=' + $font-name + ':ital,wght@0,400;0,700;1,400;1,700&display=swap';
+  }
+}
+
+// For now, only try to fetch the first name in the list and assume
+// the rest are system defined fallbacks.
+// lists are 1-indexed
+$body-font: list.nth(string.split($body, ','), 1);
+// @debug "----------------" $body-font;
+@import url( generate-import($body-font) );
+
+$heading-font: list.nth(string.split($heading, ','), 1);
+// generate-import($heading-font);
+@import url( generate-import($heading-font) );
+
+$monospace-font: list.nth(string.split($monospace, ','), 1);
+// generate-import($monospace-font);
+@import url( generate-import($monospace-font) );
+
+:root {
+  --font-body: #{$body};
+}
+:root {
+  --font-headings: #{$heading};
+}
+:root {
+  --font-monospace: #{$monospace};
+}
+:root {
+  --font-print: #{$print};
+}
+
+// 9/5/24 ... TODO controlled list of fonts ... wait and explore later
+// // Available fonts
+// $serif-options: ('Alegreya', 'Merriweather', 'Noto Serif', 'PT Serif', 'Source Serif 4');
+// $sans-options: ('Alegreya Sans', 'Barlow', 'Lato', 'Open Sans', 'Roboto', 'Source Sans 3');
+// $code-options: ('Inconsolata');
+
+// // Backup lists
+// $sans-backups: ', Helvetica Neue, Helvetica, Arial, sans-serif';
+// $serif-backups: ', Times New Roman, Times, serif';
+
+// // ---------------------------------------------------------
+
+
+// @function add-fonts($list, $backups, $fonts: ()) {
+//   @each $font in $list {
+//     $fonts: map.set($fonts, $font, (
+//       url: '"https://fonts.googleapis.com/css2?family=#{$font}:wdth,wght@75..100,300..800&amp;display=swap"',
+//       fontlist: $font + $backups,
+//     ));
+//   }
+//   @return $fonts;
+// }
+
+// $fonts: add-fonts($sans-options, $sans-backups);
+// $fonts: add-fonts($serif-options, $sans-backups, $fonts);
+
+// $bodyfont: map.get($fonts, $body);
+// @if not $bodyfont {
+//   @error "Unknown body font: #{$body}";
+// } @else {
+//   @import url(#{map.get($bodyfont, "url")});
+//   :root {
+//     --font-body: #{map.get($bodyfont, "fontlist")};
+//   }
+// }
+
+// $headingfont: map.get($fonts, $heading);
+// @if not $headingfont {
+//   @error "Unknown heading font: #{$heading}";
+// } @else {
+//   @import url(#{map.get($headingfont, "url")});
+//   :root {
+//     --font-headings: #{map.get($headingfont, "fontlist")};
+//   }
+// }

@@ -13,7 +13,7 @@ export default class CodeEditor extends BlockComponent {
     static componentType = "codeEditor";
 
     static componentDocs = {
-        summary: "An interactive code editor.",
+        summary: "An interactive DoenetML code editor",
     };
     static variableForImplicitProp = "value";
 
@@ -121,6 +121,50 @@ export default class CodeEditor extends BlockComponent {
             defaultValue: false,
             forRenderer: true,
             public: true,
+        };
+
+        attributes.initialOpenTab = {
+            description: "Which diagnostics/responses tab to open initially.",
+            createComponentOfType: "text",
+            createStateVariable: "initialOpenTab",
+            defaultValue: "first",
+            forRenderer: true,
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Panel starts closed.",
+                },
+                {
+                    value: "first",
+                    description: "Open the first available tab.",
+                },
+                {
+                    value: "errors",
+                    description: "Open the errors tab.",
+                },
+                {
+                    value: "warnings",
+                    description: "Open the warnings tab.",
+                },
+                {
+                    value: "info",
+                    description: "Open the info tab.",
+                },
+                {
+                    value: "accessibility",
+                    description: "Open the accessibility tab.",
+                },
+                {
+                    value: "responses",
+                    description: "Open the responses tab.",
+                },
+                {
+                    value: "help",
+                    description: "Open the help tab.",
+                },
+            ],
         };
 
         // TODO: deprecate these attributes

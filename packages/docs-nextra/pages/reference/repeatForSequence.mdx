@@ -1,11 +1,13 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <repeatForSequence>{:dn}`
+# `<repeatForSequence>{:dn}`
 
-` <repeatForSequence>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='repeatForSequence'/>
+
+`<repeatForSequence>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that performs the requested operations in an iterative manner over the sequence specified.
 Its behavior is similar to a for loop in other programming languages.
 
@@ -13,13 +15,11 @@ Its behavior is similar to a for loop in other programming languages.
 ---
 
 
-## Attributes and Properties 
- <AttrDisplay name='repeatForSequence'/> 
-` <repeatForSequence>{:dn}` does not have any properties.
+<AttrPropDisplay name='repeatForSequence'/>
 
----
+## Examples
 
-### Example: ` <repeatForSequence>{:dn}` a set of points within a ` <graph>{:dn}`
+### Example: `<repeatForSequence>{:dn}` a set of points within a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -36,26 +36,26 @@ Its behavior is similar to a for loop in other programming languages.
 
 
 
-A ` <repeatForSequence>{:dn}` can be used to generate multiple graphical elements at 
-once when placed within a ` <graph>{:dn}`.
+A `<repeatForSequence>{:dn}` can be used to generate multiple graphical elements at 
+once when placed within a `<graph>{:dn}`.
 
 
 
 ---
 
-### Example: ` <repeatForSequence>{:dn}` a user-specified number of inputs
+### Example: `<repeatForSequence>{:dn}` a user-specified number of inputs
 
 
 ```doenet-editor-horiz
-<p>How many answers do you have? 
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many answers do you have?</label></mathInput></p>
 
 <p><m>x = </m>
 <repeatForSequence 
   name="inputs" 
   from="1" 
   to="$n">
-    <mathInput/>
+    <mathInput><shortDescription>one of the answers</shortDescription></mathInput>
 </repeatForSequence>
 </p>
 
@@ -67,7 +67,7 @@ once when placed within a ` <graph>{:dn}`.
 
 
 
-A `<repeatForSequence>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` 
+A `<repeatForSequence>{:dn}` can be used to generate a user-specified number of `<mathInput>{:dn}` 
 components.
 
 The `<repeatForSequence>{:dn}` component generates an array. Individual entries can be accessed 
@@ -100,8 +100,8 @@ over a combination of sequences with different ranges and steps.
 ### Example: Generate a user-specified number of random `<point>{:dn}` components
 
 ```doenet-editor-horiz
-<p>How many points do you want to generate?
-  <mathInput name="n"/></p>
+<p>
+  <mathInput name="n"><label>How many points do you want to generate?</label></mathInput></p>
 <em>(Note, more than 10 takes some processing time...)</em>
 
 <graph><shortDescription>A graph of $n random points</shortDescription>
@@ -125,4 +125,4 @@ over a combination of sequences with different ranges and steps.
 ```
 
 
-A ` <repeatForSequence>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
+A `<repeatForSequence>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.

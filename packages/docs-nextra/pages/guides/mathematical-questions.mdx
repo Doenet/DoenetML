@@ -1,0 +1,187 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Writing Mathematical Questions
+
+A math question in DoenetML is just an [`<answer>{:dn}`](../reference/answer1) with the correct expression inside it — type the answer, and Doenet grades whatever the reader enters, accepting *any mathematically equivalent form* by default. This guide starts from that one-line version and then walks through the attributes and children that change how the answer is graded: accepting several answers, awarding partial credit, requiring an exact form, allowing rounding, checking a list of values, and letting Doenet compute the answer key. Each section shows a live example — editable source beside its result — and explains what it actually does.
+
+It assumes you already know the basics of writing DoenetML — tags, attributes, and children. For the complete list of every attribute and property, see the [`<answer>{:dn}`](../reference/answer1) reference pages. See [Advanced Mathematical Questions](advanced-mathematical-questions) for a follow-up guide.
+
+---
+
+## The simplest version
+
+Put the question in a [`<label>{:dn}`](../reference/label) and the correct answer in an [`<award>{:dn}`](../reference/award2a). That is the whole recipe.
+
+```doenet-editor-horiz
+<answer>
+  <label>What is <m>x + x</m>?</label>
+  <award>2x</award>
+</answer>
+```
+
+A few things are worth noticing:
+
+- **The `<label>{:dn}` is the question; the `<award>{:dn}` is a correct answer.** Because the `<answer>{:dn}` has no input of its own, it creates one automatically, and the `<label>{:dn}` both displays the prompt *and* ties it to that input so a screen reader announces the question.
+- **For a single answer, the `<award>{:dn}` is optional.** Writing the value as bare math does the same thing — `<answer><label>…</label>2x</answer>{:dn}` — but spelling it out with `<award>{:dn}` is the form every section below builds on. Either way, keep the `<label>{:dn}`: `<answer>2x</answer>{:dn}` works but leaves the input unlabeled.
+- **Doenet accepts any equivalent form.** By default a math answer uses a numerical checker with a liberal notion of equality, so `2x{:dn}`, `x + x{:dn}`, and `2*x{:dn}` are all marked correct. The sections below show how to tighten that up.
+
+<Callout type="info">
+**Shortcut:** in the Doenet editor, open the autocomplete menu (**Ctrl+Space**) anywhere an `<answer>{:dn}` can go and choose the **`answer-labeled`** template. It drops in an `<answer>{:dn}` with an empty `<label>{:dn}`, ready for your question and answer.
+</Callout>
+
+---
+
+## When the question is part of the sentence
+
+If the surrounding text already asks the question, a visible `<label>{:dn}` would only repeat it. Drop the `<answer>{:dn}` into the sentence and give it a [`<shortDescription>{:dn}`](../reference/shortDescription) instead — invisible on screen, but read aloud so the input is not announced as an unlabeled control.
+
+```doenet-editor-horiz
+<p>The value of <m>2^3</m> is
+  <answer>
+    <shortDescription>two cubed</shortDescription>
+    <award>8</award>
+  </answer>.
+</p>
+```
+
+---
+
+## Accept several correct answers
+
+One `<award>{:dn}` accepts one response. Give the `<answer>{:dn}` several and any of them counts as correct.
+
+```doenet-editor-horiz
+<answer>
+  <label>Enter a prime number between 0 and 10.</label>
+  <award>2</award>
+  <award>3</award>
+  <award>5</award>
+  <award>7</award>
+</answer>
+```
+
+Each `<award>{:dn}` holds one acceptable response. When the reader matches any award, they earn its credit (full credit, here).
+
+---
+
+## Give partial credit
+
+Add a `credit{:dn}` attribute to an `<award>{:dn}` to grant a fraction of the points for an incomplete answer.
+
+```doenet-editor-horiz
+<answer>
+  <label>Find <m>\int x^2 \, dx</m>.</label>
+  <award>x^3/3 + C</award>
+  <award credit="0.5">x^3/3</award>
+</answer>
+```
+
+Here the full antiderivative earns full credit, while forgetting the constant of integration earns half. If several awards match, Doenet credits the highest-scoring one. (Note that `C{:dn}` is a specific symbol — a reader who writes `+ K{:dn}` is *not* equivalent, so add more awards if you want to accept other letters.)
+
+---
+
+## Show targeted feedback
+
+To respond to a specific wrong answer, give that `<award>{:dn}` a `name{:dn}`, then add a [`<feedback>{:dn}`](../reference/feedback) whose `condition{:dn}` references the award. When the award matches, the feedback appears wherever you placed the `<feedback>{:dn}` block.
+
+```doenet-editor-horiz
+<answer name="ans">
+  <label>Solve <m>2x = 10</m> for <m>x</m>.</label>
+  <award>5</award>
+  <award name="commonError" credit="0">20</award>
+</answer>
+
+<feedback condition="$commonError">
+  <p>Careful — divide both sides by 2, don't multiply.</p>
+</feedback>
+```
+
+Submit `20{:dn}` (multiplying instead of dividing) and the feedback appears; submit `5{:dn}` and it doesn't. The `<award credit="0">{:dn}` grants no credit — it exists only to recognize the mistake and trigger the message.
+
+For feedback on several different responses, see [`<feedback>{:dn}` tied to an `<award>{:dn}`](../reference/feedback#example-feedbackdn-tied-to-an-awarddn) in the reference.
+
+---
+
+## Require the exact form
+
+By default `(x+1)^2{:dn}` is accepted as the answer to "expand `(x+1)^2{:dn}`," because it *is* equivalent. To force the reader to actually do the work, add `symbolicEquality{:dn}`, which compares the written form rather than the value.
+
+```doenet-editor-horiz
+<answer symbolicEquality>
+  <label>Expand <m>(x+1)^2</m>.</label>
+  <award>x^2 + 2x + 1</award>
+</answer>
+```
+
+On its own, `symbolicEquality{:dn}` is strict about *order* too: `1 + 2x + x^2{:dn}` would be marked wrong. Add `simplifyOnCompare{:dn}` to permit reordering and basic simplification while still requiring an expanded answer.
+
+```doenet-editor-horiz
+<answer symbolicEquality simplifyOnCompare>
+  <label>Expand <m>(x+1)^2</m>.</label>
+  <award>x^2 + 2x + 1</award>
+</answer>
+```
+
+Even now the factored form `(x+1)^2{:dn}` is rejected, because `simplifyOnCompare{:dn}` does not expand. If you *also* want to accept the factored form, add `expandOnCompare{:dn}`.
+
+`simplifyOnCompare{:dn}` has several levels — from no simplification, through simplifying only numbers or only reordering terms, up to full simplification — that let you tune exactly how much rearranging counts as the same answer. The [`simplifyOnCompare{:dn}` reference example](../reference/answer2a#example-simplifyoncompare) spells out each option and shows its effect.
+
+---
+
+## Allow for rounding
+
+When the answer is a decimal approximation, use `allowedErrorInNumbers{:dn}` to accept responses within a tolerance.
+
+```doenet-editor-horiz
+<answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>
+  <label>Enter <m>\sqrt{2}</m> as a decimal, accurate to within <m>0.01</m>.</label>
+  <award>1.41</award>
+</answer>
+```
+
+By default the tolerance is a *fraction* of the correct value (so `allowedErrorInNumbers="0.01"{:dn}` means 1%). Adding `allowedErrorIsAbsolute{:dn}` makes it an absolute amount instead — here, anything within `0.01{:dn}` of `1.41{:dn}` is accepted.
+
+---
+
+## Ask for a list of values
+
+Write several values separated by commas and Doenet treats the answer as a list. Add `unorderedCompare{:dn}` so the order doesn't matter, and `matchPartial{:dn}` to award credit for getting some of them.
+
+```doenet-editor-horiz
+<answer unorderedCompare matchPartial>
+  <label>Let <m>f(x) = (x-2)(x+5)</m>. Solve <m>f(x) = 0</m>, separating your solutions with commas.</label>
+  <award>2, -5</award>
+</answer>
+```
+
+A reader who enters `-5, 2{:dn}` earns full credit; one who enters just `2{:dn}` earns half.
+
+---
+
+## Let Doenet compute the answer key
+
+The correct answer doesn't have to be a value you type — it can be a component that computes it. Here the answer key is whatever the [`<derivative>{:dn}`](../reference/derivative) evaluates to.
+
+```doenet-editor-horiz
+<setup>
+  <function name="f">x^3</function>
+</setup>
+<answer>
+  <label>Find the derivative of <m>f(x) = x^3</m>.</label>
+  <award><derivative>$f</derivative></award>
+</answer>
+```
+
+The reader is graded against `3x^2{:dn}` without your ever writing it — change `f{:dn}` and the answer key updates itself. (As always, equivalent forms like `3 x^2{:dn}` or `3*x^2{:dn}` are accepted.) The same idea works with any computed math: a [`<math>{:dn}`](../reference/math) built from named values, or a randomly generated quantity.
+
+---
+
+## Where to go next
+
+- [Advanced Mathematical Questions](advanced-mathematical-questions) — the `<award>{:dn}` + `<when>{:dn}` construction: accepting any value that fits a condition, combining several inputs, checking factored form, comparing intervals and sets, and a varying number of blanks.
+- [`<answer>{:dn}`](../reference/answer1) reference — the full list of `<answer>{:dn}` attributes and properties.
+- [`<mathInput>{:dn}`](../reference/mathInput) reference — for explicit control over the input box.
+- [`<feedback>{:dn}`](../reference/feedback) reference — more ways to show messages in response to an answer.
+- [Writing Accessible Activities](accessible-activities) — more on labeling inputs so every reader can use your questions.

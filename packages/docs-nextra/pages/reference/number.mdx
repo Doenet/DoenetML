@@ -1,23 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <number>{:dn}`
+# `<number>{:dn}`
 
+<ComponentDisplay name='number'/>
 
-` <number>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+`<number>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that calculates a numerical (floating point) value from its contents
 and displays the result as text.
 
 The default precision for display is either: (1) rounded to three significant digits or (2) rounded 
 two decimal places, whichever has more digits.
 
-## Attributes and Properties 
- <AttrDisplay name='number'/> 
- <PropDisplay name='number'/>
+<AttrPropDisplay name='number'/>
 
----
+## Examples
 
 ### Example: Display numerical approximation
 
@@ -33,7 +32,7 @@ The default precision for display is either (1)rounded to three significant digi
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: renderAsMath
 
@@ -51,9 +50,9 @@ The default precision for display is either (1)rounded to three significant digi
 
 
 
-The `renderAsMath` attribute adjusts the default font for a ` <number>{:dn}` in order 
-for it to appear the same as that of a ` <math>{:dn}`.
-The same effect can be achieved by placing the ` <number>{:dn}` inside a ` <m>{:dn}` component, 
+The `renderAsMath` attribute adjusts the default font for a `<number>{:dn}` in order 
+for it to appear the same as that of a `<math>{:dn}`.
+The same effect can be achieved by placing the `<number>{:dn}` inside a `<m>{:dn}` component, 
 as shown in the last paragraph of the example above.
 
 
@@ -80,7 +79,7 @@ The `convertBoolean` attribute renders or stores a boolean that evaluates to `tr
 
 
 ```doenet-editor-horiz
-<p>Enter a number other than 0: <mathInput name="userN"/></p>
+<p><mathInput name="userN"><label>Enter a number other than 0</label></mathInput></p>
 <p><number>$userN</number></p>
 
 <p>
@@ -107,6 +106,7 @@ be stored by Doenet until a new number is assigned
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph displaying a number at (5,5)</shortDescription>
   <number name="n1" anchor="(5,5)">5/3</number>
 </graph>    
 
@@ -115,7 +115,7 @@ be stored by Doenet until a new number is assigned
 
 
 
-The `anchor` attribute sets the location of a ` <number>{:dn}` placed within a ` <graph>{:dn}`.
+The `anchor` attribute sets the location of a `<number>{:dn}` placed within a `<graph>{:dn}`.
 
 
 
@@ -127,6 +127,7 @@ The `anchor` attribute sets the location of a ` <number>{:dn}` placed within a `
 ```doenet-editor-horiz
 <p>Try dragging each number.</p>
 <graph size="small">
+  <shortDescription>A graph displaying two numbers, one draggable and one not</shortDescription>
   <number name="n1" anchor="(5,5)">53</number>
   <number name="n2" draggable="false" anchor="(-5,-5)">21</number>
 </graph>     
@@ -137,8 +138,8 @@ The `anchor` attribute sets the location of a ` <number>{:dn}` placed within a `
 
 
 
-The `draggable` attribute determines whether the ` <point>{:dn}` can be 
-dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<number>{:dn}` can be 
+dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -183,7 +184,7 @@ change the number of decimal places.
 
 Note: these display rounding settings do not affect the actual value of the 
 numbers in the expression.  All available digits will be used if the expression 
-is used in another calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
+is used in another calculation unless one uses the `<round>{:dn}` component to explicitly round numbers.
 
 
 
@@ -258,7 +259,7 @@ that all the digits from the combination of `displayDigits` and `displayDecimals
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 
@@ -271,7 +272,7 @@ that all the digits from the combination of `displayDigits` and `displayDecimals
 
 
 
-The `value` property renders the value stored in the ` <number>{:dn}`.
+The `value` property renders the value stored in the `<number>{:dn}`.
 
 
 
@@ -288,7 +289,7 @@ The `value` property renders the value stored in the ` <number>{:dn}`.
 
 
 
-The `text` property renders the text value stored in the ` <number>{:dn}`.
+The `text` property renders the text value stored in the `<number>{:dn}`.
 
 
 
@@ -304,5 +305,5 @@ The `text` property renders the text value stored in the ` <number>{:dn}`.
 
 
 
-The `latex` property renders the latex code for rendering the ` <number>{:dn}`.
+The `latex` property renders the latex code for rendering the `<number>{:dn}`.
 

@@ -72,6 +72,9 @@ export interface PrefigureStateValues extends Record<string, unknown> {
     parMin?: unknown;
     parMax?: unknown;
     flipFunction?: unknown;
+    boundaryValues?: unknown;
+    flipFunctions?: unknown;
+    haveFunctions?: unknown;
     numericalThroughPoints?: unknown;
     periodic?: unknown;
     extrapolateBackward?: unknown;

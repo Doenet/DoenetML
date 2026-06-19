@@ -6,7 +6,7 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
-import type { ValidValueEntry } from "../src/schema";
+import type { MathDefaultValue, ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
@@ -36,18 +36,53 @@ export function getExistingDocSlugs(): Set<string> {
 }
 
 /**
- * Encode a `defaultValue` for inclusion in the schema JSON. JSON has no
- * representation for `Infinity`, `-Infinity`, or `NaN` — `JSON.stringify`
- * silently rewrites them to `null`, which is indistinguishable from an
- * explicit `null` default. To preserve the distinction, encode each
- * non-finite number as a sentinel string before serialization. Help
- * consumers render strings as-is, so `<booleanList maxNumber>` will
- * surface as `"Infinity"` instead of being silently dropped as `null`.
+ * Encode a `defaultValue` for inclusion in the schema JSON.
+ *
+ * - JSON has no representation for `Infinity`, `-Infinity`, or `NaN` —
+ *   `JSON.stringify` silently rewrites them to `null`, which is
+ *   indistinguishable from an explicit `null` default. To preserve the
+ *   distinction, encode each non-finite number as a sentinel string. Help
+ *   consumers render strings as-is, so `<booleanList maxNumber>` surfaces as
+ *   `"Infinity"` instead of being silently dropped as `null`.
+ *
+ * - `math-expressions` `Expression` objects (e.g. the default of the `<math>`
+ *   `assumptions` attribute) round-trip through `JSON.stringify` as
+ *   `{ objectType: "math-expression", tree: ... }`, which is opaque to a
+ *   reader. Replace them with a `{ type: "math", latex }` sentinel so the
+ *   docs UI can render the LaTeX with MathJax.
  */
 function encodeDefaultValueForJson(val: unknown): unknown {
+    if (isMathExpression(val)) {
+        const sentinel: MathDefaultValue = {
+            type: "math",
+            latex: val.toLatex(),
+        };
+        return sentinel;
+    }
     if (typeof val !== "number" || Number.isFinite(val)) return val;
     if (Number.isNaN(val)) return "NaN";
     return val > 0 ? "Infinity" : "-Infinity";
+}
+
+/**
+ * `math-expressions` exports its `Expression` class as the default export
+ * of `math-expressions`. Instances carry a `tree` (own property), a
+ * prototype `toLatex()`, and a `toJSON()` that writes the
+ * `{ objectType: "math-expression", tree }` shape that shows up in the
+ * default schema serialization — but `objectType` is only present on the
+ * `toJSON` output, not on the instance itself. So we probe for the
+ * instance shape (`toLatex` + `tree`) rather than the serialized one, and
+ * stay free of a direct `math-expressions` dependency in this module.
+ */
+function isMathExpression(
+    val: unknown,
+): val is { toLatex: () => string; tree: unknown } {
+    return (
+        typeof val === "object" &&
+        val !== null &&
+        typeof (val as { toLatex?: unknown }).toLatex === "function" &&
+        "tree" in val
+    );
 }
 
 /**
@@ -81,9 +116,23 @@ type AttributeObject = {
     createPrimitiveOfType: string;
     createStateVariable: string;
     createComponentOfType: string;
+    createReferences?: boolean;
+    allowStrings?: boolean;
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
+    /**
+     * Asymmetric companion to `excludeFromSchema`: hide the attribute's
+     * companion state variable (`createStateVariable`) from the schema
+     * while leaving the attribute itself author-facing. Used when an
+     * attribute is public but its `createStateVariable` points at a
+     * plumbing-named state var (e.g. `<answer>`'s `colorCorrectness`
+     * attribute → `colorCorrectnessPreliminary` state var, with a
+     * separate same-named state def computing the author-facing value).
+     * The runtime still creates and reads the state var; only the schema
+     * layer drops it. See #1089.
+     */
+    stateVarExcludeFromSchema?: boolean;
     validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
@@ -158,6 +207,21 @@ type ComponentClass = {
          */
         docsSlug?: string | null;
         /**
+         * Author-facing tag name to show in the docs index instead of the
+         * internal `componentType`. Set on alias targets (e.g. `matrixRow` has
+         * `displayName: "row"`) so the index displays the user-written tag
+         * rather than the implementation-detail componentType. When undefined,
+         * the docs renderer falls back to `componentType`.
+         */
+        displayName?: string;
+        /**
+         * Disambiguation phrase appended in parentheses after the displayed
+         * tag in the docs index — e.g. `<row>` gets `displayContext: "in a
+         * table"` and `matrixRow` gets `displayContext: "in a matrix"` so the
+         * two entries render as `<row> (in a table)` and `<row> (in a matrix)`.
+         */
+        displayContext?: string;
+        /**
          * Map from child component type → alias target component type. When
          * the editor shows help for a child whose component type is in this
          * map, the help is taken from the alias target instead. Used to
@@ -185,8 +249,25 @@ type PropertyDescription = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
+    /**
+     * Per-dimension alias table for array state variables — copied verbatim
+     * from the runtime's `theStateDef.indexAliases` via
+     * `BaseComponent.returnStateVariableInfo`. Each entry indexes a
+     * dimension and lists the alias names that select position 0..N within
+     * it (e.g. `[["x","y","z"]]` for a 1-dim point coordinate).  Used by
+     * the editor's autocomplete and context-help to chase coordinate
+     * chains like `$vector.head.x` or `$line.points[1].x` without ever
+     * resolving through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface this property in the docs "Highlighted" section.
+     * See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type ArrayElementDescription = {
@@ -219,6 +300,22 @@ type StateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
     description: string;
     fromAttribute?: boolean;
+    /**
+     * If `true`, this state variable is excluded from the author-facing
+     * schema even though it remains usable at runtime. Set by the runtime
+     * for plumbing state vars (renamed-aside `Original`/`Preliminary`
+     * forms, internal coordination state) that should not appear in
+     * autocomplete or context help. Companion to
+     * `AttributeObject.excludeFromSchema` (which hides the attribute and
+     * its companion state var, #1090). See #1089.
+     */
+    excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type PublicStateVariableDescription = {
@@ -234,12 +331,45 @@ type PublicStateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
+    /**
+     * Per-dimension alias table populated by the runtime in
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `indexAliases` (e.g. `Vector.head` carries `[["x","y","z"]]`).
+     * Surfaced into the schema by `singlePropFromDescription` so the editor
+     * can resolve `$vector.head.x` and `$line.points[1].x` without chasing
+     * through the array slot's `type`.
+     */
+    indexAliases?: string[][];
     description: string;
     fromAttribute?: boolean;
+    /**
+     * Resting value the runtime uses when nothing else (attribute, child,
+     * parent) sets the state variable. Surfaced here by
+     * `BaseComponent.returnStateVariableInfo` from each state def's
+     * `hasEssential` + `defaultValue` pair. Used by the attribute loop to
+     * fall back when an attribute declaration does not carry its own
+     * `defaultValue` (e.g. number-display attrs like `padZeros`,
+     * `displayDigits`, whose default lives on the state variable).
+     */
+    defaultValue?: unknown;
+    /** See `StateVariableDescription.excludeFromSchema`. */
+    excludeFromSchema?: boolean;
+    /** Docs-only: functional group for the reference docs. See
+     * `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: surface in the docs "Highlighted" section. See
+     * `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaAttribute = {
     name: string;
+    /**
+     * The attribute's own type, derived from its `createComponentOfType` /
+     * `createPrimitiveOfType` declaration (`string` is normalized to `text`).
+     * An attribute with a list of valid values has type `keyword`.
+     */
+    type?: string;
     /** Values accepted by validation/schema checks. */
     values?: string[];
     /**
@@ -249,10 +379,24 @@ type SchemaAttribute = {
      * are intentionally kept out of this list and live only in `values`.
      */
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when the attribute is list-valued (e.g. `createComponentOfType:
+     * "textList"`) and declares `validValues`. In that case `validValues`
+     * constrains *each item* of the list, so the LSP and docs phrase the
+     * constraint per-item and the schema-violation check validates each
+     * whitespace-separated token rather than the whole value.
+     */
+    isList?: boolean;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description: string;
     /** Default value for the attribute (if defined). */
     defaultValue?: unknown;
+    /** Docs-only: functional group this attribute belongs to in the reference
+     * docs (e.g. `"number-display"`). See `AttributeDefinition.groupName`. */
+    groupName?: string;
+    /** Docs-only: when `true`, surface this attribute in the docs "Highlighted"
+     * section. See `AttributeDefinition.highlighted`. */
+    highlighted?: boolean;
 };
 
 type SchemaElement = {
@@ -260,6 +404,32 @@ type SchemaElement = {
     name: string;
     /** The types of children this component can have */
     children: string[];
+    /**
+     * Compact per-child bucket: a digit string aligned position-for-position
+     * with `children`. Each character is the smallest (most direct) rank by
+     * which that child is allowed here:
+     *   `0` — directly listed in one of this component's child groups
+     *         (e.g. `<math>` for `<number>`);
+     *   `1` — inherits from a directly-listed type;
+     *   `2` — reaches the list only via an adapter (e.g. `<point>` adapting
+     *         to `math`), or via `allowInSchemaAnywhere`/`AsComponent`.
+     *
+     * Encoded as a string rather than a `Record<string, number>` so that the
+     * generated JSON doesn't grow one pretty-printed line per (element ×
+     * child); a 90-child element contributes ~90 characters instead of
+     * ~92 lines.
+     */
+    childBuckets: string;
+    /**
+     * Abstract (`_`-prefixed) componentTypes this element inherits from, in
+     * order from nearest to furthest (so `[..., "_block", "_base"]` for a
+     * block component). The editor reads this to let the per-container
+     * suggestion-override map (`CONTAINER_SUGGESTION_OVERRIDES`) be keyed by
+     * an abstract ancestor (e.g. `_sectioningComponent`) and apply to every
+     * concrete element that inherits from it — picked by first match in the
+     * chain, so a more specific ancestor override wins over a broader one.
+     */
+    abstractAncestors: string[];
     /** The attributes that can be specified on this component */
     attributes: SchemaAttribute[];
     /** The properties (public state variables) that this component has */
@@ -282,25 +452,74 @@ type SchemaElement = {
      */
     docsSlug: string | null;
     /**
+     * Author-facing tag name shown in the docs index in place of `name`.
+     * Present only when the class declares `componentDocs.displayName` (e.g.
+     * `matrixRow → "row"`). Undefined means "use `name` as-is".
+     */
+    displayName?: string;
+    /**
+     * Parenthetical disambiguator appended to the displayed tag in the docs
+     * index, e.g. `displayContext: "in a table"` renders as `<row> (in a
+     * table)`. Used alongside `displayName` to distinguish multiple entries
+     * that share an author-facing tag.
+     */
+    displayContext?: string;
+    /**
      * Map from child component type → alias element name in `aliasedElements`.
      * When editor help is computed for a child of this element whose
      * component type is in this map, the help is read from the alias instead.
      */
     childContextHelp?: Record<string, string>;
+    /**
+     * Layout classification derived from the component's inheritance chain:
+     * `"inline"` for descendants of `_inline` (InlineComponent), `"block"`
+     * for descendants of `_block` (BlockComponent), `"other"` for anything
+     * else. The pretty-printer reads this to decide whether to flow children
+     * as prose (`fill`) or break each on its own line.
+     */
+    layoutCategory: "inline" | "block" | "other";
 };
 
 /**
  * Help payload for an alias-only component (e.g. one with
  * `excludeFromSchema = true` but referenced via `childAliases`). Mirrors the
  * help-relevant fields of `SchemaElement`.
+ *
+ * `children` / `acceptsStringChildren` are populated the same way regular
+ * `SchemaElement`s populate them (via `determineChildren`) so the LSP can
+ * validate the alias's children against the alias target's child groups
+ * rather than against the canonical entry's — e.g. `<row>` inside `<matrix>`
+ * is the `matrixRow` alias (a `MathList`), so its allowed children are
+ * `<math>` etc., not the tabular `<row>`'s `<cell>` (issue #1174).
  */
 type AliasedSchemaElement = {
     name: string;
     summary: string;
     docsSlug: string | null;
+    /** See `SchemaElement.displayName`. */
+    displayName?: string;
+    /** See `SchemaElement.displayContext`. */
+    displayContext?: string;
     attributes: SchemaAttribute[];
     properties: PropertyDescription[];
+    /** See `SchemaElement.children`. */
+    children: string[];
+    /** See `SchemaElement.childBuckets`. */
+    childBuckets: string;
+    /** See `SchemaElement.abstractAncestors`. */
+    abstractAncestors: string[];
+    /** See `SchemaElement.acceptsStringChildren`. */
+    acceptsStringChildren: boolean;
 };
+
+/**
+ * Child-relation ranks encoded as digits in `SchemaElement.childBuckets`.
+ * Smaller is more direct. See `SchemaElement.childBuckets` and
+ * `classifyInheritOrAdapt`.
+ */
+const CHILD_RANK_DIRECT = 0;
+const CHILD_RANK_INHERITED = 1;
+const CHILD_RANK_ADAPTER = 2;
 
 /**
  * Generates a comprehensive schema of all DoenetML components and their metadata.
@@ -352,23 +571,31 @@ export function getSchema(
      * inherit from or adapt to that component type.
      */
     const inheritedOrAdaptedTypes: Record<string, string[]> = {};
+    /**
+     * Parallel to `inheritedOrAdaptedTypes`: for each `type1`, a map from each
+     * member type2 to how it reaches `type1` (`CHILD_RANK_*`). Composites
+     * pulled in via `allowInSchemaAsComponent`/`allowInSchemaAnywhere` are
+     * ranked as adapters — they're not natural literal children.
+     */
+    const inheritedOrAdaptedRanks: Record<string, Record<string, number>> = {};
 
     for (const type1 in componentClasses) {
         const inherited: string[] = [];
+        const ranks: Record<string, number> = {};
         for (const type2 in componentClasses) {
             // Skip abstract components
             if (type2[0] === "_") {
                 continue;
             }
 
-            if (
-                checkIfInheritOrAdapt({
-                    startingType: type2,
-                    destinationType: type1,
-                    componentInfoObjects,
-                })
-            ) {
+            const relation = classifyInheritOrAdapt({
+                startingType: type2,
+                destinationType: type1,
+                componentInfoObjects,
+            });
+            if (relation !== "none") {
                 inherited.push(type2);
+                ranks[type2] = relationBucket(relation);
                 continue;
             }
 
@@ -386,13 +613,14 @@ export function getSchema(
             ) {
                 for (let alt_type of cClass.allowInSchemaAsComponent) {
                     if (
-                        checkIfInheritOrAdapt({
+                        classifyInheritOrAdapt({
                             startingType: alt_type,
                             destinationType: type1,
                             componentInfoObjects,
-                        })
+                        }) !== "none"
                     ) {
                         inherited.push(type2);
+                        ranks[type2] = CHILD_RANK_ADAPTER;
                         break;
                     }
                 }
@@ -412,9 +640,11 @@ export function getSchema(
                 type1 !== "_error"
             ) {
                 inherited.push(type2);
+                ranks[type2] = CHILD_RANK_ADAPTER;
             }
         }
         inheritedOrAdaptedTypes[type1] = inherited;
+        inheritedOrAdaptedRanks[type1] = ranks;
     }
 
     // Remove abstract components from the schema
@@ -428,7 +658,28 @@ export function getSchema(
 
     function determineChildren(cClass: ComponentClass) {
         let children: string[] = [];
+        const childRanks: Record<string, number> = {};
         let acceptsStringChildren = false;
+
+        // Record `name` as a child, keeping the smallest (most direct) rank
+        // when it's reachable through more than one declared child group.
+        const addChild = (name: string, rank: number) => {
+            children.push(name);
+            const existing = childRanks[name];
+            if (existing === undefined || rank < existing) {
+                childRanks[name] = rank;
+            }
+        };
+        // Expand a declared child-group type to itself plus everything that
+        // inherits from or adapts to it, carrying each member's relation rank.
+        const addExpanded = (type2: string) => {
+            for (const member of inheritedOrAdaptedTypes[type2]) {
+                addChild(
+                    member,
+                    inheritedOrAdaptedRanks[type2][member] ?? CHILD_RANK_DIRECT,
+                );
+            }
+        };
 
         const childGroups = cClass.returnChildGroups();
 
@@ -438,7 +689,7 @@ export function getSchema(
             if (!groupObj.excludeFromSchema) {
                 for (const type2 of groupObj.componentTypes) {
                     if (type2 in inheritedOrAdaptedTypes) {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
+                        addExpanded(type2);
                     }
                     if (
                         type2 === "string" ||
@@ -462,9 +713,11 @@ export function getSchema(
             for (const type2 of cClass.additionalSchemaChildren) {
                 if (type2 in inheritedOrAdaptedTypes) {
                     if (cClass.additionalSchemaChildrenDoNotInherit) {
-                        children.push(type2);
+                        // Only the declared type itself is added (no
+                        // inheritance), so it's a direct child.
+                        addChild(type2, CHILD_RANK_DIRECT);
                     } else {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
+                        addExpanded(type2);
                     }
                 }
                 if (
@@ -478,7 +731,14 @@ export function getSchema(
         }
 
         children = [...new Set(children)];
-        return { children, acceptsStringChildren };
+        // Encode the per-child bucket as a digit string aligned with
+        // `children`, so the JSON doesn't grow one line per (element ×
+        // child) when pretty-printed. Consumers either index into it
+        // directly or rehydrate a Record on demand.
+        const childBuckets = children
+            .map((name) => String(childRanks[name] ?? CHILD_RANK_DIRECT))
+            .join("");
+        return { children, childBuckets, acceptsStringChildren };
     }
 
     const { children: documentChildren } = determineChildren(
@@ -500,18 +760,62 @@ export function getSchema(
     > {
         const attributes: SchemaAttribute[] = [];
         const attrObj = cClass.createAttributesObject();
-        // Collect state-variable names produced by attributes that are
-        // themselves excluded from the schema. Their companion properties
-        // should be excluded too — otherwise `<booleanInput>`'s already
-        // hidden `collaborateGroups` attribute leaks back into the schema
-        // as a property. Tracked in #1089; the broader proposal is to also
-        // honor an explicit `excludeFromSchema` flag on state-variable
-        // definitions for properties not derived from attributes.
-        const excludedStateVariableNames = new Set<string>();
+        // Collect state-variable names that must be excluded from the
+        // schema. Three sources, all merged into one set so the property /
+        // alias loops can filter through a single check:
+        //
+        //   (a) Attribute is excluded *and* declares a `createStateVariable`
+        //       — hides the companion state var alongside the attribute
+        //       (PR #1090; covers `<booleanInput>`'s `collaborateGroups`).
+        //
+        //   (b) Attribute declares `stateVarExcludeFromSchema` — keeps the
+        //       attribute author-facing but hides its plumbing-named
+        //       companion state var (e.g. `<answer>`'s `colorCorrectness`
+        //       attribute → `colorCorrectnessPreliminary` state var).
+        //
+        //   (c) State variable itself carries `excludeFromSchema: true`,
+        //       propagated by `BaseComponent.returnStateVariableInfo` from
+        //       the state def — covers directly-defined plumbing vars,
+        //       most prominently the renamed-aside entries produced by
+        //       `renameStateVariable` (`disabledOriginal`, `valuePreRound`,
+        //       …). See #1089.
+        // Only sources (a)/(b) — both attribute-derived — can be computed
+        // here. Source (c) lives on the state def and is folded in by
+        // `buildPropertiesForType` below, which has access to the state
+        // variable descriptions. The merged set is then used to gate both
+        // properties and aliases inside that function.
+        const attributeExcludedStateVariableNames = new Set<string>();
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
-            if (attrDef.excludeFromSchema && attrDef.createStateVariable) {
-                excludedStateVariableNames.add(attrDef.createStateVariable);
+            if (
+                (attrDef.excludeFromSchema ||
+                    attrDef.stateVarExcludeFromSchema) &&
+                attrDef.createStateVariable
+            ) {
+                attributeExcludedStateVariableNames.add(
+                    attrDef.createStateVariable,
+                );
+            }
+        }
+        // Map state variable name → its essential `defaultValue`, when the
+        // state def declares one. Used below to surface a default for
+        // attributes (e.g. `padZeros`, `displayDigits`) whose attribute
+        // declaration omits `defaultValue` because the actual resting value
+        // is defined on the state variable, not the attribute. We read from
+        // the *full* (non-public-only) state variable info so non-public
+        // state defs can still donate a default to a public attribute.
+        const stateVarDefaults: Record<string, unknown> = {};
+        const stateVarInfo =
+            componentInfoObjects.stateVariableInfo[type]
+                ?.stateVariableDescriptions;
+        if (stateVarInfo) {
+            for (const varName in stateVarInfo) {
+                const svDesc = stateVarInfo[varName] as {
+                    defaultValue?: unknown;
+                };
+                if (svDesc.defaultValue !== undefined) {
+                    stateVarDefaults[varName] = svDesc.defaultValue;
+                }
             }
         }
         for (const attrName in attrObj) {
@@ -533,10 +837,45 @@ export function getSchema(
                 name: attrName,
                 description: attrDef.description,
             };
-            if (attrDef.defaultValue !== undefined) {
-                attrSpec.defaultValue = encodeDefaultValueForJson(
-                    attrDef.defaultValue,
-                );
+            // Docs-only grouping metadata, surfaced into the reference docs.
+            if (attrDef.groupName !== undefined) {
+                attrSpec.groupName = attrDef.groupName;
+            }
+            if (attrDef.highlighted !== undefined) {
+                attrSpec.highlighted = attrDef.highlighted;
+            }
+            // Prefer the default declared on the attribute itself. When it
+            // doesn't declare one, fall back to the matching state
+            // variable's default — this covers number-display attributes
+            // like `padZeros`, `displayDigits`, `displayDecimals`, etc.
+            // whose actual resting value is defined on the state variable
+            // (so the runtime can also inherit it from a child/parent)
+            // rather than on the attribute. The matching state variable is
+            // the one named by `createStateVariable`, or — when the
+            // attribute doesn't even declare a `createStateVariable` — a
+            // state variable with the same name as the attribute.
+            //
+            // The attribute-name fallback relies on a codebase convention:
+            // when a `returnXxxAttributes()` helper omits both
+            // `defaultValue` and `createStateVariable` from an attribute
+            // declaration, the attribute and its backing state variable
+            // share a name (e.g. `padZeros` → `padZeros`). If that
+            // convention is ever broken — an attribute happens to share a
+            // name with an unrelated state variable — this would silently
+            // pull in the wrong default. We accept that risk because the
+            // alternative (a heavier explicit mapping) would force every
+            // attribute declaration to wire up a state variable name even
+            // when the existing convention already pairs them.
+            const fallbackStateVarName =
+                attrDef.createStateVariable ?? attrName;
+            const fallbackDefault = stateVarDefaults[fallbackStateVarName];
+            const resolvedDefault =
+                attrDef.defaultValue !== undefined
+                    ? attrDef.defaultValue
+                    : fallbackDefault;
+            if (resolvedDefault !== undefined) {
+                attrSpec.defaultValue =
+                    encodeDefaultValueForJson(resolvedDefault);
             }
 
             const booleanAliasValues: string[] = [];
@@ -576,6 +915,21 @@ export function getSchema(
                           ]
                         : validValueStrings;
                 attrSpec.autocompleteValues = attrDef.validValues;
+
+                // List-valued attributes (e.g. `createComponentOfType:
+                // "textList"`, or a `*Array` primitive) interpret `validValues`
+                // per-item. Mark the schema entry so the LSP and docs phrase
+                // the constraint as "each item must be one of …" and the
+                // schema-violation check validates each token, not the whole
+                // value.
+                const isListType =
+                    (typeof attrDef.createComponentOfType === "string" &&
+                        attrDef.createComponentOfType.endsWith("List")) ||
+                    (typeof attrDef.createPrimitiveOfType === "string" &&
+                        attrDef.createPrimitiveOfType.endsWith("Array"));
+                if (isListType) {
+                    attrSpec.isList = true;
+                }
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"
@@ -583,12 +937,34 @@ export function getSchema(
                 attrSpec.values = ["true", "false"];
             }
 
+            // The attribute's type comes from its own declaration, not from a
+            // mapping to a same-named property. A `string` primitive is
+            // surfaced as `text`; an attribute that enumerates valid values is
+            // surfaced as `keyword`; a reference-creating attribute is
+            // surfaced as `reference` — or `referenceOrText` when it also sets
+            // `allowStrings` (e.g. `<ref to>`, which accepts a URL string in
+            // addition to a component reference).
+            if (attrDef.validValues) {
+                attrSpec.type = "keyword";
+            } else if (attrDef.createReferences) {
+                attrSpec.type = attrDef.allowStrings
+                    ? "referenceOrText"
+                    : "reference";
+            } else {
+                const rawType =
+                    attrDef.createComponentOfType ??
+                    attrDef.createPrimitiveOfType;
+                if (rawType) {
+                    attrSpec.type = rawType === "string" ? "text" : rawType;
+                }
+            }
+
             attributes.push(attrSpec);
         }
 
         const properties = buildPropertiesForType(
             type,
-            excludedStateVariableNames,
+            attributeExcludedStateVariableNames,
         );
 
         // Hard-fail on missing summary. Fires for every class that reaches
@@ -604,7 +980,12 @@ export function getSchema(
 
         const out: Pick<
             SchemaElement,
-            "attributes" | "properties" | "summary" | "docsSlug"
+            | "attributes"
+            | "properties"
+            | "summary"
+            | "docsSlug"
+            | "displayName"
+            | "displayContext"
         > = {
             attributes,
             properties,
@@ -616,12 +997,21 @@ export function getSchema(
         if (declaredSlug !== null && getExistingDocSlugs().has(declaredSlug)) {
             out.docsSlug = declaredSlug;
         }
+        // Author-facing label overrides for the docs index. Both are optional
+        // and only emitted when declared on the class — most components leave
+        // `name` as the displayed tag and have no parenthetical disambiguator.
+        if (typeof cClass.componentDocs?.displayName === "string") {
+            out.displayName = cClass.componentDocs.displayName;
+        }
+        if (typeof cClass.componentDocs?.displayContext === "string") {
+            out.displayContext = cClass.componentDocs.displayContext;
+        }
         return out;
     }
 
     function buildPropertiesForType(
         type: string,
-        excludedStateVariableNames: ReadonlySet<string> = new Set(),
+        attributeExcludedStateVariableNames: ReadonlySet<string> = new Set(),
     ): PropertyDescription[] {
         const info = componentInfoObjects.publicStateVariableInfo[type];
         if (!info) return [];
@@ -641,10 +1031,25 @@ export function getSchema(
                 PublicStateVariableDescription
             >;
 
+        // Build the full excluded set by folding the state-def-level
+        // `excludeFromSchema` flags (source (c) in the caller's comment) in
+        // with the attribute-derived names (sources (a)/(b)) the caller
+        // already passed in. Done here rather than in the caller because
+        // the merged set must gate alias resolution below — an alias whose
+        // *target* is excluded should be dropped too, regardless of which
+        // source put the target in the set — and the caller doesn't have
+        // `publicStateVariableDescriptions` in hand to make that decision.
+        const allExcluded = new Set(attributeExcludedStateVariableNames);
+        for (const varName in publicStateVariableDescriptions) {
+            if (publicStateVariableDescriptions[varName].excludeFromSchema) {
+                allExcluded.add(varName);
+            }
+        }
+
         const properties: PropertyDescription[] = [];
 
         for (const varName in publicStateVariableDescriptions) {
-            if (excludedStateVariableNames.has(varName)) continue;
+            if (allExcluded.has(varName)) continue;
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
@@ -666,8 +1071,20 @@ export function getSchema(
             const aliasTargetName = aliasInfo.target;
             // Skip aliases that point at an excluded state variable; they
             // would otherwise act as a backdoor for the same excluded property.
-            if (excludedStateVariableNames.has(aliasTargetName)) continue;
-            if (excludedStateVariableNames.has(aliasName)) continue;
+            if (allExcluded.has(aliasTargetName)) continue;
+            // Defensive: also skip if the alias *name* itself is in the
+            // excluded set. In normal use this cannot fire — the runtime
+            // populates `aliases` and `stateVariableDescriptions` from a
+            // single switch in `BaseComponent.returnStateVariableInfo`, so a
+            // name lives in exactly one of those maps. The check guards
+            // against a future code path where an attribute's
+            // `createStateVariable` (which feeds `allExcluded`) collides
+            // with an alias name; without it, such a collision would
+            // resurrect the excluded property under its aliased form.
+            if (allExcluded.has(aliasName)) continue;
+            // An alias may also be excluded on its own (independent of its
+            // target), e.g. a runtime-convenience alias.
+            if (aliasInfo.excludeFromSchema) continue;
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
@@ -694,6 +1111,14 @@ export function getSchema(
                     ) {
                         const arrayEntry = arrayEntryPrefixes[prefix];
                         const arrayVariableName = arrayEntry.arrayVariableName;
+                        // Honor the underlying array state var's exclusion
+                        // here too — otherwise an alias whose target points
+                        // at an entry of an excluded array (e.g.
+                        // `someExcludedArray1`) would leak the array's
+                        // contents back into the schema. Today's audit
+                        // shows no such case, but future renames may
+                        // introduce one.
+                        if (allExcluded.has(arrayVariableName)) break;
                         const arrayStateVarDescription =
                             publicStateVariableDescriptions[arrayVariableName];
 
@@ -740,11 +1165,28 @@ export function getSchema(
         const cClass = componentClasses[type];
 
         const helpPayload = buildHelpPayloadForClass(type, cClass);
-        const { children, acceptsStringChildren } = determineChildren(cClass);
+        const { children, childBuckets, acceptsStringChildren } =
+            determineChildren(cClass);
+
+        const isInline = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_inline",
+        });
+        const isBlock = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: type,
+            baseComponentType: "_block",
+        });
+        const layoutCategory: "inline" | "block" | "other" = isInline
+            ? "inline"
+            : isBlock
+              ? "block"
+              : "other";
 
         const element: SchemaElement = {
             name: type,
             children,
+            childBuckets,
+            abstractAncestors: abstractAncestorChain(cClass),
             attributes: helpPayload.attributes,
             properties: helpPayload.properties,
             top:
@@ -754,7 +1196,14 @@ export function getSchema(
             takesIndex: cClass.takesIndex ?? false,
             docsSlug: helpPayload.docsSlug,
             summary: helpPayload.summary,
+            layoutCategory,
         };
+        if (helpPayload.displayName !== undefined) {
+            element.displayName = helpPayload.displayName;
+        }
+        if (helpPayload.displayContext !== undefined) {
+            element.displayContext = helpPayload.displayContext;
+        }
 
         elements.push(element);
     }
@@ -780,13 +1229,30 @@ export function getSchema(
             const targetClass = allClassesIncludingExcluded[targetName];
             if (!targetClass) continue;
             const payload = buildHelpPayloadForClass(targetName, targetClass);
-            aliasedElements[targetName] = {
+            // Populate `children` / `acceptsStringChildren` from the alias
+            // target's own child groups so the LSP can validate `<row>` inside
+            // `<matrix>` against `matrixRow`'s `MathList` children (math, …)
+            // rather than against the tabular `<row>`'s `<cell>` (#1174).
+            const { children, childBuckets, acceptsStringChildren } =
+                determineChildren(targetClass);
+            const aliased: AliasedSchemaElement = {
                 name: targetName,
                 attributes: payload.attributes,
                 properties: payload.properties,
                 docsSlug: payload.docsSlug,
                 summary: payload.summary,
+                children,
+                childBuckets,
+                abstractAncestors: abstractAncestorChain(targetClass),
+                acceptsStringChildren,
             };
+            if (payload.displayName !== undefined) {
+                aliased.displayName = payload.displayName;
+            }
+            if (payload.displayContext !== undefined) {
+                aliased.displayContext = payload.displayContext;
+            }
+            aliasedElements[targetName] = aliased;
         }
     }
 
@@ -886,6 +1352,10 @@ function singlePropFromDescription({
     // state vars, aliases, and array-entry-prefix aliases — the existing
     // fallback assembly (`aliasInfo.description ?? arrayStateVarDescription.description`)
     // is preserved upstream, so this only fires when *every* candidate is empty.
+    //
+    // Plumbing state vars marked `excludeFromSchema` short-circuit upstream
+    // in `buildHelpPayloadForClass` (via the `allExcluded` gate) and never
+    // reach this function, so they don't need to invent author-facing copy.
     if (
         typeof description.description !== "string" ||
         description.description.trim() === ""
@@ -913,11 +1383,32 @@ function singlePropFromDescription({
         prop.fromAttribute = true;
     }
 
+    // Docs-only grouping metadata. For attribute-derived properties this is
+    // also derivable from the same-named attribute in the docs pipeline; for
+    // pure-output properties it is the only source.
+    if (description.groupName !== undefined) {
+        prop.groupName = description.groupName;
+    }
+    if (description.highlighted !== undefined) {
+        prop.highlighted = description.highlighted;
+    }
+
     if (description.isArray) {
         const numDimensions = description.numDimensions || 1;
 
         prop.numDimensions = numDimensions;
         prop.indexedArrayDescription = [];
+
+        // Carry the runtime-side per-dimension alias table onto the schema
+        // so editor autocomplete / context-help can chase coordinate chains
+        // like `$vector.head.x` and `$line.points[1].x` purely through the
+        // alias table — never through the array slot's `type`, which is the
+        // entry's representation, not a license to expose the inner
+        // component's properties.  Only emitted when the runtime declared
+        // it on the state var.
+        if (description.indexAliases) {
+            prop.indexAliases = description.indexAliases;
+        }
 
         const wrappingComponents = description.wrappingComponents || [];
 
@@ -1020,15 +1511,55 @@ function createArrayElementDescription(
 }
 
 /**
- * Determine if `startingType` either inherits from or adapts to `destinationType`.
+ * Walk a component class's prototype chain and collect the `static
+ * componentType` of every abstract (`_`-prefixed) ancestor, in order from
+ * nearest to furthest. Used to emit `SchemaElement.abstractAncestors`.
  *
- * For the purposes of building the schema, inheritance can be overridden by the static variable `inSchemaOnlyInheritAs`
- * on the component class object. (See `checkIfInherit` for details.)
- *
- * Return true if `startingType` inherits from `destinationType` or adapts into a component type that inherits from `destinationType`.
- * Otherwise return false.
+ * JS `class … extends Parent` sets `Object.getPrototypeOf(child)` to
+ * `Parent`, so walking the constructor prototype chain visits each ancestor
+ * class in turn. The walk stops at the first prototype that isn't a class
+ * with a `componentType` (i.e. `Function.prototype` / `Object`).
  */
-function checkIfInheritOrAdapt({
+function abstractAncestorChain(cClass: ComponentClass): string[] {
+    const chain: string[] = [];
+    let current: unknown = Object.getPrototypeOf(cClass);
+    while (typeof current === "function") {
+        const ct = (current as { componentType?: unknown }).componentType;
+        if (typeof ct === "string" && ct.startsWith("_")) {
+            chain.push(ct);
+        }
+        current = Object.getPrototypeOf(current);
+    }
+    return chain;
+}
+
+type ChildRelation = "direct" | "inherit" | "adapt" | "none";
+
+/** Map a `classifyInheritOrAdapt` result to its emitted `CHILD_RANK_*`. */
+function relationBucket(relation: Exclude<ChildRelation, "none">): number {
+    switch (relation) {
+        case "direct":
+            return CHILD_RANK_DIRECT;
+        case "inherit":
+            return CHILD_RANK_INHERITED;
+        case "adapt":
+            return CHILD_RANK_ADAPTER;
+    }
+}
+
+/**
+ * Classify how `startingType` reaches `destinationType` for schema-children
+ * purposes — the ranked counterpart of the old `checkIfInheritOrAdapt`
+ * boolean:
+ *   - `"direct"`  — same component type;
+ *   - `"inherit"` — inherits from it (honoring `inSchemaOnlyInheritAs`);
+ *   - `"adapt"`   — only reachable by adapting into a type that inherits from it;
+ *   - `"none"`    — unrelated.
+ *
+ * As before, inheritance can be overridden by the static variable
+ * `inSchemaOnlyInheritAs` on the component class (see `checkIfInherit`).
+ */
+function classifyInheritOrAdapt({
     startingType,
     destinationType,
     componentInfoObjects,
@@ -1036,7 +1567,11 @@ function checkIfInheritOrAdapt({
     startingType: string;
     destinationType: string;
     componentInfoObjects: ComponentInfoObjects;
-}) {
+}): ChildRelation {
+    if (startingType === destinationType) {
+        return "direct";
+    }
+
     if (
         checkIfInherit({
             startingType,
@@ -1044,7 +1579,7 @@ function checkIfInheritOrAdapt({
             componentInfoObjects,
         })
     ) {
-        return true;
+        return "inherit";
     }
 
     const startingClass =
@@ -1064,11 +1599,11 @@ function checkIfInheritOrAdapt({
                 componentInfoObjects,
             })
         ) {
-            return true;
+            return "adapt";
         }
     }
 
-    return false;
+    return "none";
 }
 
 /**

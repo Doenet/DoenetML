@@ -1,0 +1,130 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<stickyGroup>{:dn}`
+
+<ComponentDisplay name='stickyGroup'/>
+
+`<stickyGroup>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that groups other graphical objects (typically `<polygon>{:dn}`s, `<polyline>{:dn}`s, and
+`<point>{:dn}`s) so they snap to each other when their vertices or edges are nearby. Vertices snap
+together within `threshold` distance, and edges of `rigid` polygons can rotate to align with
+neighboring edges within `angleThreshold` radians.
+
+Children of a `<stickyGroup>{:dn}` are rendered exactly as they would be outside it; only the dragging
+behavior is changed.
+
+<AttrPropDisplay name='stickyGroup'/>
+
+
+## Examples
+
+### Example: Two polygons that snap together
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Two polygons inside a sticky group; dragging one near the other causes them to snap</shortDescription>
+  <stickyGroup>
+    <polygon name="tri" vertices="(1, 2) (4, 5) (-2, 5)" rigid filled />
+    <polygon name="quad" vertices="(7, 8) (5, 4) (9, 1) (7, 3)" styleNumber="2" filled />
+  </stickyGroup>
+</graph>
+```
+
+Drag either polygon close to the other. When a vertex or edge comes within the default snap
+threshold, the polygon snaps so the matching vertices coincide or the edges align.
+
+
+---
+
+### Example: Snapping a point to a polygon
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A point inside a sticky group that snaps to a nearby polygon vertex or edge</shortDescription>
+  <stickyGroup>
+    <polygon name="tri" vertices="(0, 0) (4, 0) (2, 3)" filled />
+    <point name="P" styleNumber="5">(-3, 1)</point>
+  </stickyGroup>
+</graph>
+```
+
+When dragged close enough, the point first attracts to a triangle vertex, and otherwise to the
+nearest point on a triangle edge.
+
+
+## Attribute Examples
+
+### Attribute Example: threshold
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Two squares whose snap distance is set to 1.5 graph units</shortDescription>
+  <stickyGroup threshold="1.5">
+    <polygon name="sq1" vertices="(0, 0) (2, 0) (2, 2) (0, 2)" rigid filled />
+    <polygon name="sq2" vertices="(5, 5) (7, 5) (7, 7) (5, 7)" styleNumber="2" rigid filled />
+  </stickyGroup>
+</graph>
+```
+
+`threshold` controls how close vertices or edges must be (in graph units) before they snap. The
+default is $0.5$, or $0.02$ when `relativeToGraphScales` is set.
+
+
+---
+
+### Attribute Example: angleThreshold
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Two rigid triangles with a generous angular snap tolerance</shortDescription>
+  <stickyGroup angleThreshold="0.3">
+    <polygon name="tri1" vertices="(0, 0) (3, 0) (1.5, 2)" rigid filled />
+    <polygon name="tri2" vertices="(5, 5) (8, 5.2) (6.5, 7)" styleNumber="2" rigid filled />
+  </stickyGroup>
+</graph>
+```
+
+`angleThreshold` (in radians) sets how close two `rigid` polygon edges must already be in orientation
+before they rotate to align. The default is roughly $0.094$ rad (about $5.4°$); increasing it makes
+edges snap together over a wider range of angles.
+
+
+---
+
+### Attribute Example: relativeToGraphScales
+
+```doenet-editor-horiz
+<graph size="small" xmin="-10" xmax="10" ymin="-1" ymax="1">
+  <shortDescription>A sticky group whose threshold is measured relative to graph scales for a wide-aspect graph</shortDescription>
+  <stickyGroup relativeToGraphScales>
+    <polygon name="band1" vertices="(-8, -0.4) (-4, -0.4) (-4, 0.4) (-8, 0.4)" rigid filled />
+    <polygon name="band2" vertices="(2, -0.4) (6, -0.4) (6, 0.4) (2, 0.4)" styleNumber="2" rigid filled />
+  </stickyGroup>
+</graph>
+```
+
+When the $x$ and $y$ axes use very different scales, `relativeToGraphScales` measures snap distances
+relative to the axis scales rather than as raw mathematical distances. This keeps the snap behavior
+matching what the user sees on screen.
+
+
+## Property Examples
+
+### Property Example: threshold
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A sticky group whose snap threshold is reported as text</shortDescription>
+  <stickyGroup name="sg" threshold="0.8">
+    <polygon name="tri" vertices="(0, 0) (3, 0) (1.5, 2)" filled />
+    <point name="P" styleNumber="5">(4, 4)</point>
+  </stickyGroup>
+</graph>
+
+<p><c>threshold</c> = $sg.threshold</p>
+```
+
+The `threshold` attribute is also available as a property of a named `<stickyGroup>{:dn}`.

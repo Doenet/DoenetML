@@ -17,19 +17,33 @@ import { AutoCompleter } from "..";
 
 /**
  * Get a list of places where the schema is violated.
+ *
+ * Async because `_refreshModuleInstanceAttributes` issues resolver
+ * round-trips per `<module copy=…>` (or `extend=`) site to populate the
+ * per-instance allowlist used below.  See `AutoCompleter._refreshModuleInstanceAttributes`
+ * for the coalescing strategy — back-to-back violation runs between edits
+ * pay one round-trip per site total.
  */
-export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
+export async function getSchemaViolations(
+    this: AutoCompleter,
+): Promise<Diagnostic[]> {
+    await this._refreshModuleInstanceAttributes();
     /**
      * Get all pairs of elements and their parent.
      */
     function getElementPairs(
         node: DastElement | DastRoot,
-    ): { node: DastElement; parent: DastElement | DastRoot }[] {
+        grandparent: DastElement | DastRoot | null = null,
+    ): {
+        node: DastElement;
+        parent: DastElement | DastRoot;
+        grandparent: DastElement | DastRoot | null;
+    }[] {
         return node.children.flatMap((child) => {
             if (child.type === "element") {
                 return [
-                    { node: child, parent: node },
-                    ...getElementPairs(child),
+                    { node: child, parent: node, grandparent },
+                    ...getElementPairs(child, node),
                 ];
             }
             return [];
@@ -38,74 +52,140 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
 
     const allPairs = getElementPairs(this.sourceObj.dast);
 
-    const ret: Diagnostic[] = allPairs.flatMap(({ node, parent }) => {
-        const ret: Diagnostic[] = [];
-        const name = this.normalizeElementName(node.name);
+    const ret: Diagnostic[] = allPairs.flatMap(
+        ({ node, parent, grandparent }) => {
+            const ret: Diagnostic[] = [];
+            const name = this.normalizeElementName(node.name);
 
-        if (name === "UNKNOWN_NAME") {
-            // No further checking for unknown elements.
-            const range = this.sourceObj.getElementTagRanges(node);
-            return {
-                range: {
-                    start: this.sourceObj.offsetToLSPPosition(range[0].start),
-                    end: this.sourceObj.offsetToLSPPosition(range[0].end),
-                },
-                message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
-                severity: DiagnosticSeverity.Warning,
-            };
-        }
-
-        const schema = this.schemaElementsByName[name];
-        //
-        // Check parent-child relationship
-        //
-        if (parent.type === "root") {
-            if (!schema) {
-                return [];
-            }
-            if (!schema.top) {
+            if (name === "UNKNOWN_NAME") {
+                // No further checking for unknown elements.
                 const range = this.sourceObj.getElementTagRanges(node);
-                ret.push({
+                return {
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
                             range[0].start,
                         ),
                         end: this.sourceObj.offsetToLSPPosition(range[0].end),
                     },
-                    message: `Element \`<${name}>\` is not allowed at the root of the document.`,
+                    message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
                     severity: DiagnosticSeverity.Warning,
-                });
+                };
             }
-        } else {
-            const parentName = this.normalizeElementName(parent.name);
-            if (
-                parentName !== "UNKNOWN_NAME" &&
-                !this.isAllowedChild(parentName, name)
-            ) {
-                const range = this.sourceObj.getElementTagRanges(node);
-                ret.push({
-                    range: {
-                        start: this.sourceObj.offsetToLSPPosition(
-                            range[0].start,
-                        ),
-                        end: this.sourceObj.offsetToLSPPosition(range[0].end),
-                    },
-                    message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
-                    severity: DiagnosticSeverity.Warning,
-                });
+
+            const schema = this.schemaElementsByName[name];
+            //
+            // Check parent-child relationship
+            //
+            if (parent.type === "root") {
+                if (!schema) {
+                    return [];
+                }
+                if (!schema.top) {
+                    const range = this.sourceObj.getElementTagRanges(node);
+                    ret.push({
+                        range: {
+                            start: this.sourceObj.offsetToLSPPosition(
+                                range[0].start,
+                            ),
+                            end: this.sourceObj.offsetToLSPPosition(
+                                range[0].end,
+                            ),
+                        },
+                        message: `Element \`<${name}>\` is not allowed at the root of the document.`,
+                        severity: DiagnosticSeverity.Warning,
+                    });
+                }
+            } else {
+                const parentName = this.normalizeElementName(parent.name);
+                // Pass grandparent name through so the alias-aware path
+                // resolves `<row>` inside `<matrix>` against the
+                // `matrixRow` alias's children (`<math>` is fine) rather
+                // than the tabular `<row>`'s (`<cell>` only) — #1174.
+                const grandparentName =
+                    grandparent && grandparent.type === "element"
+                        ? grandparent.name
+                        : undefined;
+                if (
+                    parentName !== "UNKNOWN_NAME" &&
+                    !this.isAllowedChild(parentName, name, grandparentName)
+                ) {
+                    const range = this.sourceObj.getElementTagRanges(node);
+                    ret.push({
+                        range: {
+                            start: this.sourceObj.offsetToLSPPosition(
+                                range[0].start,
+                            ),
+                            end: this.sourceObj.offsetToLSPPosition(
+                                range[0].end,
+                            ),
+                        },
+                        message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
+                        severity: DiagnosticSeverity.Warning,
+                    });
+                }
             }
-        }
 
-        //
-        // Check attributes
-        //
-        for (const attr of Object.values(node.attributes)) {
-            const attrName = this.normalizeAttributeName(attr.name);
+            // Direct-parent name for the attribute checks below. For the
+            // attribute-validation path, the "alias-relevant parent" is
+            // `node`'s own parent (one level shallower than for the child
+            // check above), since the alias redirects `<row>`'s schema
+            // when `<row>` is a child of `<matrix>`.
+            const directParentName =
+                parent.type === "element" ? parent.name : undefined;
 
-            // Make sure that `name` attributes start with a letter.
-            if (attrName === "name") {
-                const value = toXml(attr.children);
-                if (!value.charAt(0).match(/[a-zA-Z]/)) {
+            //
+            // Check attributes
+            //
+            // For `<module copy="$x" .../>` (or `extend=`) sites, pick up the
+            // per-instance allowlist of names declared by `$x`'s
+            // `<moduleAttributes>` block (issue #1154).  The allowlist is keyed
+            // lowercased; `null` here means "no augmentation applies", in
+            // which case the canonical schema decides as today and unknown
+            // attributes remain a (correct) warning.
+            const perInstanceAllowlist =
+                this._moduleInstanceAttributeAllowlist.get(node) ?? null;
+
+            // Unquoted attribute values (`<math name=foo>`) are detected
+            // and emitted as a single DAST error by the parser layer
+            // (#1197); both pair halves are filtered out of
+            // `node.attributes` there, so the loop below never sees them
+            // and no further suppression is needed here.
+            for (const attr of Object.values(node.attributes)) {
+                const attrName = this.normalizeAttributeName(attr.name);
+
+                // Make sure that `name` attributes start with a letter.
+                if (attrName === "name") {
+                    const value = toXml(attr.children);
+                    if (!value.charAt(0).match(/[a-zA-Z]/)) {
+                        ret.push({
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.start.offset || 0,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.end.offset || 0,
+                                ),
+                            },
+                            message: `Invalid attribute name='${value}'. Names must start with a letter.`,
+                            severity: DiagnosticSeverity.Error,
+                        });
+                    }
+                }
+
+                // Author-declared module attribute (e.g. `color` on a
+                // `<module copy="$drawBalloon" color="1" />` where the target
+                // declared `<number name="color"/>`).  Bypass both the
+                // UNKNOWN_NAME branch (the name may not exist in the global
+                // schema at all — `color` doesn't) and the canonical
+                // attribute check.  Names-only scope: no value validation.
+                if (
+                    perInstanceAllowlist &&
+                    perInstanceAllowlist.has(attr.name.toLowerCase())
+                ) {
+                    continue;
+                }
+
+                if (attrName === "UNKNOWN_NAME") {
                     ret.push({
                         range: {
                             start: this.sourceObj.offsetToLSPPosition(
@@ -115,75 +195,87 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                                 attr.position?.end.offset || 0,
                             ),
                         },
-                        message: `Invalid attribute name='${value}'. Names must start with a letter.`,
-                        severity: DiagnosticSeverity.Error,
+                        message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
+                        severity: DiagnosticSeverity.Warning,
                     });
-                }
-            }
-
-            if (attrName === "UNKNOWN_NAME") {
-                ret.push({
-                    range: {
-                        start: this.sourceObj.offsetToLSPPosition(
-                            attr.position?.start.offset || 0,
-                        ),
-                        end: this.sourceObj.offsetToLSPPosition(
-                            attr.position?.end.offset || 0,
-                        ),
-                    },
-                    message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
-                    severity: DiagnosticSeverity.Warning,
-                });
-            } else if (!this.isAllowedAttribute(name, attrName)) {
-                ret.push({
-                    range: {
-                        start: this.sourceObj.offsetToLSPPosition(
-                            attr.position?.start.offset || 0,
-                        ),
-                        end: this.sourceObj.offsetToLSPPosition(
-                            attr.position?.end.offset || 0,
-                        ),
-                    },
-                    message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
-                    severity: DiagnosticSeverity.Warning,
-                });
-            } else {
-                // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
-                // check that the value is in the list of allowed values.
-                const allowedValues = this.getAttributeAllowedValues(
-                    name,
-                    attrName,
-                );
-                if (!hasMacroOrFunctionChild(attr.children) && allowedValues) {
-                    // Attributes specified without a value are considered to have a value of "true".
-                    const attrValue =
-                        attr.children.length === 0
-                            ? "true"
-                            : toXml(attr.children);
-                    const range = getAttributeValueRange(attr);
-                    if (!allowedValues.lowerCase.has(attrValue.toLowerCase())) {
-                        ret.push({
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    range.start,
+                } else if (
+                    !this.isAllowedAttribute(
+                        name,
+                        attrName,
+                        directParentName,
+                        perInstanceAllowlist ?? undefined,
+                    )
+                ) {
+                    ret.push({
+                        range: {
+                            start: this.sourceObj.offsetToLSPPosition(
+                                attr.position?.start.offset || 0,
+                            ),
+                            end: this.sourceObj.offsetToLSPPosition(
+                                attr.position?.end.offset || 0,
+                            ),
+                        },
+                        message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
+                        severity: DiagnosticSeverity.Warning,
+                    });
+                } else {
+                    // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
+                    // check that the value is in the list of allowed values.
+                    // Pass the direct parent so the alias-aware path picks
+                    // up alias-specific enumerations (#1092).
+                    const allowedValues = this.getAttributeAllowedValues(
+                        name,
+                        attrName,
+                        directParentName,
+                    );
+                    if (
+                        !hasMacroOrFunctionChild(attr.children) &&
+                        allowedValues
+                    ) {
+                        // Attributes specified without a value are considered to have a value of "true".
+                        const attrValue =
+                            attr.children.length === 0
+                                ? "true"
+                                : toXml(attr.children);
+                        const range = getAttributeValueRange(attr);
+                        // List-valued attributes constrain each item, so split
+                        // the authored value on whitespace and flag any token
+                        // that isn't allowed. Scalar attributes validate the
+                        // whole value as before.
+                        const tokensToCheck = allowedValues.isList
+                            ? attrValue.split(/\s+/).filter((t) => t.length > 0)
+                            : [attrValue];
+                        const invalidTokens = tokensToCheck.filter(
+                            (token) =>
+                                !allowedValues.lowerCase.has(
+                                    token.toLowerCase(),
                                 ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    range.end,
-                                ),
-                            },
-                            message: `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${[
-                                ...allowedValues.correctCase,
-                            ]
+                        );
+                        if (invalidTokens.length > 0) {
+                            const allowedList = [...allowedValues.correctCase]
                                 .map((v) => `"${v}"`)
-                                .join(", ")}`,
-                            severity: DiagnosticSeverity.Warning,
-                        });
+                                .join(", ");
+                            ret.push({
+                                range: {
+                                    start: this.sourceObj.offsetToLSPPosition(
+                                        range.start,
+                                    ),
+                                    end: this.sourceObj.offsetToLSPPosition(
+                                        range.end,
+                                    ),
+                                },
+                                message: allowedValues.isList
+                                    ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
+                                    : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
+                                severity: DiagnosticSeverity.Warning,
+                            });
+                        }
                     }
                 }
             }
-        }
-        return ret;
-    });
+            return ret;
+        },
+    );
 
     return ret;
 }

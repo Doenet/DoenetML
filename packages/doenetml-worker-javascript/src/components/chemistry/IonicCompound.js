@@ -1,5 +1,6 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
+const { gcd } = me.math;
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
@@ -11,7 +12,7 @@ export default class IonicCompound extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "Forms a balanced ionic compound from constituent ions and renders its chemical formula.",
+            "Forms a balanced ionic compound from constituent ions and renders its chemical formula",
     };
 
     static createAttributesObject() {
@@ -99,9 +100,9 @@ export default class IonicCompound extends InlineComponent {
                 let n1 = Math.abs(charges[1]);
                 let n2 = Math.abs(charges[0]);
 
-                let gcd = me.math.gcd(n1, n2);
-                n1 /= gcd;
-                n2 /= gcd;
+                let computedGcd = gcd(n1, n2);
+                n1 /= computedGcd;
+                n2 /= computedGcd;
 
                 let ionicCompound = [
                     {

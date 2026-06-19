@@ -1,0 +1,11 @@
+<problem>
+    <title>Nested problem</title>
+    <p>Solve for <m>x</m>:</p>
+    <solution>
+        <hint>
+            <p>Think about <em>multiplication</em> first.</p>
+            <p>Then <m>x = \frac{1}{2}</m>.</p>
+        </hint>
+        <p>The answer is <m>x = \frac{1}{2}</m>.</p>
+    </solution>
+</problem>

@@ -1,43 +1,43 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <triangle>{:dn}`
+# `<triangle>{:dn}`
 
+<ComponentDisplay name='triangle'/>
 
+`<triangle>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that renders a triangle when nested inside a [`<graph>{:dn}`](graph.mdx) component.
 
-` <triangle>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
-component that renders a triangle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+<AttrPropDisplay name='triangle'/>
 
-## Attributes and Properties 
- <AttrDisplay name='triangle'/> 
- <PropDisplay name='triangle'/>
+## Examples
 
----
-
-### Example: Default ` <triangle>{:dn}`
+### Example: Default `<triangle>{:dn}`
 
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <shortDescription>A graph of a default triangle</shortDescription>
   <triangle/>
 </graph>
 ```
 
 
 
-The default ` <triangle>{:dn}` has vertices at $(0,0), (1,0)$ and $(0,1)$
+The default `<triangle>{:dn}` has vertices at $(0,0), (1,0)$ and $(0,1)$
 
 
 
 ---
 
-### Example: ` <triangle>{:dn}` constrained to a grid
+### Example: `<triangle>{:dn}` constrained to a grid
 
 
 ```doenet-editor-horiz
 <graph size="small" grid="1 1">
+  <shortDescription>A graph of a triangle with vertices constrained to a grid</shortDescription>
   <point name="A" styleNumber="5">(-5,-3)
     <constrainToGrid/>
   </point>
@@ -53,17 +53,18 @@ The default ` <triangle>{:dn}` has vertices at $(0,0), (1,0)$ and $(0,1)$
 
 
 
-The vertices of a ` <triangle>{:dn}` are predefined as constrained points, thereby constraining the triangle to a grid as well.
+The vertices of a `<triangle>{:dn}` are predefined as constrained points, thereby constraining the triangle to a grid as well.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: vertices
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a triangle</shortDescription>
   <triangle 
     name="tri1" 
     vertices="(0,0) (2,3) (-1,5)" 
@@ -71,7 +72,10 @@ The vertices of a ` <triangle>{:dn}` are predefined as constrained points, there
 </graph>
 
 <p>Graph just the vertices:</p>
-<graph size="small">$tri1.vertices</graph>
+<graph size="small">
+  <shortDescription>A graph of the triangle's vertices</shortDescription>
+  $tri1.vertices
+</graph>
 
 <p><c>vertices</c> = $tri1.vertices</p>
 <p><c>vertices[2]</c> = $tri1.vertices[2]</p>
@@ -92,6 +96,7 @@ The `vertices` attribute takes a list of points as its input.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of six filled triangles in different styles</shortDescription>
   <triangle name="p1" vertices="(-8,-4) (-8,5) (-6,2)" filled/>
   <triangle name="p2" vertices="(-5,-4) (-5,5) (-3,2)" filled styleNumber="2"/>
   <triangle name="p3" vertices="(-2,-4) (-2,5) (0,2)" filled styleNumber="3"/>
@@ -116,6 +121,7 @@ The `filled` attribute renders the triangle with default shading to match the st
 ```doenet-editor-horiz
 <p>Try dragging each of the triangles.</p>
 <graph size="small">
+  <shortDescription>A graph of two triangles, one draggable and one fixed</shortDescription>
   <triangle name="tri1" vertices="(-6,2) (-3,-2) (3,5)"/>
   <triangle name="tri2" vertices="(6,-5) (4,7) (2,2)" styleNumber="2" draggable="false"/>
 </graph>
@@ -125,7 +131,7 @@ The `filled` attribute renders the triangle with default shading to match the st
 
 
 
-The `draggable` attribute determines whether the ` <triangle>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<triangle>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
@@ -137,6 +143,7 @@ The `draggable` attribute determines whether the ` <triangle>{:dn}` can be dragg
 ```doenet-editor-horiz
 <p>Try dragging each of the triangles and their vertices.</p>
 <graph size="small">
+  <shortDescription>A graph of two triangles, one with draggable vertices and one without</shortDescription>
   <triangle name="tri1" vertices="(-6,2) (-3,-2) (3,5)"/>
   <triangle name="tri2" vertices="(6,-5) (4,7) (2,2)" styleNumber="2" verticesDraggable="false"/>
 </graph>
@@ -146,7 +153,7 @@ The `draggable` attribute determines whether the ` <triangle>{:dn}` can be dragg
 
 
 
-Vertices are draggable by default. Use the `verticesDraggable` attribute set to false to disable users from changing the proportions of the ` <triangle>{:dn}`. The triangle as a whole can still be repositioned on the ` <graph>{:dn}`.
+Vertices are draggable by default. Use the `verticesDraggable` attribute set to false to disable users from changing the proportions of the `<triangle>{:dn}`. The triangle as a whole can still be repositioned on the `<graph>{:dn}`.
 
 
 
@@ -157,6 +164,7 @@ Vertices are draggable by default. Use the `verticesDraggable` attribute set to 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of two triangles with a background circle</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <triangle 
     name="tri1" 
@@ -177,7 +185,7 @@ Vertices are draggable by default. Use the `verticesDraggable` attribute set to 
   />
 </graph>
 
-<booleanInput name="hideTriangle1" labelIsName/>
+<booleanInput name="hideTriangle1"><label>Hide triangle1</label></booleanInput>
 
 <p>Standard graphical attributes:</p>
     <ul>
@@ -196,13 +204,14 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
----
+## Property Examples
 
-### Properthy Example: Style properties
+### Property Example: Style properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a filled triangle</shortDescription>
   <triangle 
     name="tri1" 
     vertices="(-6,2) (-3,-2) (3,5)" 

@@ -1,23 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <p>{:dn}`
+# `<p>{:dn}`
 
+<ComponentDisplay name='p'/>
 
-
-
-` <p>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+`<p>{:dn}` is a [Paragraph Markup](../concepts/essentialConcepts#component-types)
 component that renders a paragraph of text.
 
 
-## Attributes and Properties 
- The ` <p>{:dn}` component has no attributes.
- <PropDisplay name='p'/>
+<AttrPropDisplay name='p'/>
 
----
+## Examples
 
 ### Example: Two paragraphs
 
@@ -29,13 +26,13 @@ component that renders a paragraph of text.
 
 
 
-All text enclosed within an opening and closing ` <p>{:dn}` forms a paragraph.
+All text enclosed within an opening and closing `<p>{:dn}` forms a paragraph.
 
 
 
 ---
 
-### Example: ` <p>{:dn}` within sectional components
+### Example: `<p>{:dn}` within sectional components
 
 
 ```doenet-editor-horiz
@@ -58,13 +55,13 @@ All text enclosed within an opening and closing ` <p>{:dn}` forms a paragraph.
 
 
 
-Paragraphs can be nested within sectional components such as a ` <section>{:dn}`, ` <example>{:dn}`, ` <exercise>{:dn}`, or ` <problem>{:dn}`.
+Paragraphs can be nested within sectional components such as a `<section>{:dn}`, `<example>{:dn}`, `<exercise>{:dn}`, or `<problem>{:dn}`.
 
 
 
 ---
 
-### Example: ` <p>{:dn}` within an ` <li>{:dn}`
+### Example: `<p>{:dn}` within an `<li>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -78,7 +75,7 @@ Paragraphs can be nested within sectional components such as a ` <section>{:dn}`
 
 
 
-The ` <p>{:dn}` component can be nested inside list items to provide additional line spacing.
+The `<p>{:dn}` component can be nested inside list items to provide additional line spacing.
 
 
 
@@ -95,20 +92,22 @@ The ` <p>{:dn}` component can be nested inside list items to provide additional 
 </setup>
 
 <p>Write the equation for a line in slope-intercept form:</p> 
-<p><m>y = </m> <mathInput name="userFunction"/></p>
+<p><mathInput name="userFunction"><label><m>y = </m></label></mathInput></p>
 <graph grid="1 1" size="small">
     <shortDescription>A graph of a function and its y-intercept</shortDescription>
     $intercept
     $f
 </graph>
-<p>What is the <m>y</m>-intercept of your line?</p>
-  <answer>$$f(0)</answer>
-<p>The slope of your line is:</p> 
-  <answer>$userLine.slope</answer>
+<p>
+  <answer><label>What is the <m>y</m>-intercept of your line?</label>$$f(0)</answer>
+</p>
+<p>
+  <answer><label>The slope of your line is</label>$userLine.slope</answer>
+</p>
 ```
 
 
 
-Frequently a ` <p>{:dn}` tag is used to separate lines of text and sections of math content, such as a ` <graph>{:dn}`, a ` <mathInput/>{:dn}`, or an ` <answer>{:dn}`. Try deleting all of the ` <p>{:dn}` tags from the example above to observe the effect.
+Frequently a `<p>{:dn}` tag is used to separate lines of text and sections of math content, such as a `<graph>{:dn}`, a `<mathInput/>{:dn}`, or an `<answer>{:dn}`. Try deleting all of the `<p>{:dn}` tags from the example above to observe the effect.
 
 

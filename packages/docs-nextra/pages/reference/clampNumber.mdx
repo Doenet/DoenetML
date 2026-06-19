@@ -1,28 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <clampNumber>{:dn}`
+# `<clampNumber>{:dn}`
 
+<ComponentDisplay name='clampNumber'/>
 
-` <clampNumber>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+`<clampNumber>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
 component that rounds a number down or up to the 
 endpoints of a specified interval if the number is outside 
 the range of that interval. The default interval is $[0,1]$.
 
 
-## Attributes and Properties 
- <AttrDisplay name='clampNumber'/> 
- <PropDisplay name='clampNumber'/>
+<AttrPropDisplay name='clampNumber'/>
 
----
+## Examples
 
-### Example: ` <clampNumber>{:dn}` with default limits
+### Example: `<clampNumber>{:dn}` with default limits
 
 
 ```doenet-example
-<p>Enter any number: <mathInput name="n"/></p>   
+<p><mathInput name="n"><label>Enter any number</label></mathInput></p>   
 <p>Your number, within the default clamped limits is: 
   <clampNumber>$n</clampNumber>
 </p>   
@@ -30,19 +29,19 @@ the range of that interval. The default interval is $[0,1]$.
 
 
 
-The default `lowerValue` for the ` <clampNumber>{:dn}` component is $0$, 
+The default `lowerValue` for the `<clampNumber>{:dn}` component is $0$, 
 and the default `upperValue` is $1$.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: lowerValue
 
 
 ```doenet-example
-<p>Enter a number that is <m> < -10</m>: 
-  <mathInput name="n"/>
+<p>
+  <mathInput name="n"><label>Enter a number that is <m> < -10</m></label></mathInput>
 </p>   
 
 <p>Your number, within the clamped limits is: 
@@ -55,7 +54,7 @@ and the default `upperValue` is $1$.
 
 
 Use the `lowerValue` attribute to adjust the low interval endpoint 
-for the ` <clampNumber>{:dn}` component. The default value is $0$.
+for the `<clampNumber>{:dn}` component. The default value is $0$.
 
 
 
@@ -65,8 +64,8 @@ for the ` <clampNumber>{:dn}` component. The default value is $0$.
 
 
 ```doenet-example
-<p>Enter a number that is <m> > 10</m>: 
-  <mathInput name="n"/>
+<p>
+  <mathInput name="n"><label>Enter a number that is <m> > 10</m></label></mathInput>
 </p>   
 
 <p>Your number, within the clamped limits is: 
@@ -79,6 +78,6 @@ for the ` <clampNumber>{:dn}` component. The default value is $0$.
 
 
 Use the `upperValue` attribute to adjust the high interval 
-endpoint for the ` <clampNumber>{:dn}` component. The default value is $1$.
+endpoint for the `<clampNumber>{:dn}` component. The default value is $1$.
 
 

@@ -34,13 +34,14 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ],
             "dependencies": [
                 "../lsp-tools:build",
                 "../parser:build",
-                "../doenetml-worker-rust:build"
+                "../doenetml-worker:build"
             ]
         }
     }

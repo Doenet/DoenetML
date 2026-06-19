@@ -7,24 +7,19 @@ import React, {
     useRef,
     useState,
 } from "react";
+import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
-import {
-    DiagnosticsResponseTabContents,
-    DiagnosticsResponseTabstrip,
-} from "./DiagnosticsResponseTabs";
-import type {
-    DiagnosticsTabId,
-    DoenetEditorHandle,
-} from "./DiagnosticsResponseTabs";
+import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
+import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
-import { FormatterVersionBar } from "./FormatterVersionBar";
+import { EditorFooter } from "./EditorFooter";
 import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
@@ -34,10 +29,10 @@ import {
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
-import { AutoCompleter } from "@doenet/lsp-tools";
-import { computeContextHelp } from "./contextHelp/computeContextHelp";
-import type { HelpContent } from "./contextHelp/types";
+import type { HelpContent } from "@doenet/lsp-tools";
 import { EditorSelection } from "@codemirror/state";
+import type { Completion } from "@codemirror/autocomplete";
+import { doenetGlobalConfig } from "../global-config";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -46,11 +41,48 @@ const HELP_NONE: HelpContent = { kind: "none" };
 // each render, refiring every effect/memo that depends on `initialDiagnostics`.
 const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 
+/**
+ * Imperative handle exposed on the ref of `<DoenetEditor>`. Provides
+ * programmatic access to editor actions that would otherwise require user
+ * interaction with the UI — switching the diagnostics/responses panel, and
+ * flushing pending edits to the rendered view.
+ */
+export type DoenetEditorHandle = {
+    /**
+     * Switch the diagnostics/responses panel to `tabId` and open it.
+     * If `tabId` references a tab disabled by `showDiagnostics={false}` or
+     * `showResponses={false}`, the call is ignored with a `console.warn`.
+     */
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    /** Close the diagnostics/responses panel. */
+    closeDiagnosticsPanel: () => void;
+    /**
+     * Programmatic equivalent of clicking the editor's "Update" button: flush
+     * any pending edits to the viewer so the next `diagnosticsSummaryCallback`
+     * reflects the current editor buffer rather than stale state.
+     *
+     * Behavior mirrors the button:
+     * - If the editor has unsaved edits, the viewer is re-rendered with the
+     *   current source and the pending `doenetmlChangeCallback` debounce
+     *   timer is cancelled. (The callback still fires indirectly via the
+     *   viewer's normal change-reporting path once it parses the new
+     *   source.)
+     * - If the source is unchanged but the document has been interacted with,
+     *   the viewer is remounted (clearing answer/work state).
+     * - If neither condition holds, the call is a no-op.
+     *
+     * Ignored with a `console.warn` when `showViewer={false}` (no viewer to
+     * update).
+     */
+    updateRenderedView: () => void;
+};
+
 type EditorViewerProps = {
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -63,22 +95,39 @@ type EditorViewerProps = {
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
     ) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
     showDiagnostics?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
+    /**
+     * Used by the footer to decide whether to reserve space on its right edge
+     * for the virtual keyboard's open-keyboard tab. Mirrors the same prop on
+     * `DoenetEditor`. Has no effect when the footer doesn't touch the
+     * container's right edge (default `viewerLocation="right"` with the
+     * viewer shown).
+     */
+    addVirtualKeyboard?: boolean;
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
-     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Controls which tab the diagnostics/responses/help panel opens to at
+     * mount. Three forms:
+     *  - prop omitted (`undefined`): default — panel opens on the help tab
+     *    (or the first available tab if `showHelp` is false).
+     *  - a specific tab id: panel opens on that tab. If the tab is disabled
+     *    by `showDiagnostics`/`showResponses`/`showHelp`, falls back to the
+     *    default with a `console.warn`.
+     *  - `null`: panel mounts closed.
      * Reactive changes after mount are ignored — use the imperative ref handle
      * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
      */
-    initialOpenTab?: DiagnosticsTabId;
+    initialOpenTab?: DiagnosticsTabId | null;
 };
 
 /**
@@ -93,6 +142,7 @@ export const EditorViewer = React.forwardRef<
         activityId: specifiedActivityId,
         prefixForIds = "",
         doenetViewerUrl,
+        doenetMediaUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -109,6 +159,8 @@ export const EditorViewer = React.forwardRef<
         showFormatter = true,
         showDiagnostics = true,
         showResponses = true,
+        showHelp = true,
+        addVirtualKeyboard = false,
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         fetchExternalDoenetML,
@@ -150,8 +202,6 @@ export const EditorViewer = React.forwardRef<
     const editorDoenetMLRef = useRef(initialDoenetML);
     const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
 
-    const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
-
     const updateValueTimer = useRef<number | null>(null);
 
     const viewerContainer = useRef<HTMLDivElement>(null);
@@ -164,28 +214,49 @@ export const EditorViewer = React.forwardRef<
         allPossibleVariants: ["a"],
     });
 
-    // Resolve `initialOpenTab` once at mount: if the requested tab is disabled
-    // by `showDiagnostics={false}` / `showResponses={false}` (with
-    // `showResponses` forced to `false` by `showViewer={false}` above), capture
-    // a warning message and fall back to default. The warning is emitted from
-    // an effect below so the initializer stays pure (StrictMode double-invokes
-    // useState initializers in dev).
+    // First enabled tab in the canonical order (help → errors → responses), or
+    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
+    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
+    function firstEnabledTab(): DiagnosticsTabId | null {
+        if (showHelp) return "help";
+        if (showDiagnostics) return "errors";
+        if (showResponses) return "responses";
+        return null;
+    }
+
+    // Resolve `initialOpenTab` once at mount:
+    //  - `null`               → panel closed at mount
+    //  - a specific tab id    → open on that tab (or fall back to default with
+    //                            a warning if the tab is disabled)
+    //  - `undefined` (omitted) → default: help (or first available tab)
+    // The warning is emitted from an effect below so the initializer stays pure
+    // (StrictMode double-invokes useState initializers in dev).
     const [{ resolvedInitialOpenTab, initialOpenTabWarning }] = useState<{
-        resolvedInitialOpenTab: DiagnosticsTabId | undefined;
+        resolvedInitialOpenTab: DiagnosticsTabId | null;
         initialOpenTabWarning: string | null;
     }>(() => {
+        if (initialOpenTab === null) {
+            return {
+                resolvedInitialOpenTab: null,
+                initialOpenTabWarning: null,
+            };
+        }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: undefined,
+                resolvedInitialOpenTab: firstEnabledTab(),
                 initialOpenTabWarning: null,
             };
         }
         const tabEnabled =
-            initialOpenTab === "responses" ? showResponses : showDiagnostics;
+            initialOpenTab === "responses"
+                ? showResponses
+                : initialOpenTab === "help"
+                  ? showHelp
+                  : showDiagnostics;
         if (!tabEnabled) {
             return {
-                resolvedInitialOpenTab: undefined,
-                initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}); falling back to default.`,
+                resolvedInitialOpenTab: firstEnabledTab(),
+                initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
         return {
@@ -201,10 +272,14 @@ export const EditorViewer = React.forwardRef<
     }, [initialOpenTabWarning]);
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(
-        resolvedInitialOpenTab !== undefined,
+        resolvedInitialOpenTab !== null,
     );
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
+    // Snapshot of the DoenetML the viewer was rendering when it last reported
+    // diagnostics, captured at callback time so a later edit/save can't make
+    // the source disagree with the diagnostics it produced.
+    const [diagnosticsSource, setDiagnosticsSource] = useState(initialDoenetML);
     // Track whether we've received diagnostics from the viewer at least once.
     // This is used to gate when we call the diagnosticsSummaryCallback to avoid sending
     // just the initial diagnostics on load, which would be misleading since that
@@ -212,8 +287,9 @@ export const EditorViewer = React.forwardRef<
     const [receivedDiagnosticsFromViewer, setReceivedDiagnosticsFromViewer] =
         useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
+    const [showAccessibilityAnnotations, setShowAccessibilityAnnotations] =
+        useState(true);
 
-    const completerRef = useRef(new AutoCompleter(initialDoenetML));
     const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
     const cursorDebounceTimer = useRef<number | undefined>(undefined);
     // Tracks the last cursor offset reported by CodeMirror, so the help
@@ -224,36 +300,114 @@ export const EditorViewer = React.forwardRef<
     // the stable `onCursorChange` callback without re-binding it on every
     // visibility change.
     const helpIsVisibleRef = useRef(false);
+    // The currently-highlighted autocomplete row, mirrored from CodeMirror's
+    // `selectedCompletion(state)`. When non-null, the help panel reflects this
+    // row instead of the cursor position. Tracked as a ref (not state) so the
+    // stable cursor handler can early-return without re-binding.
+    const selectedCompletionRef = useRef<Completion | null>(null);
+    // Monotonic counter for help RPCs.  Every cursor/completion change bumps
+    // it; only responses whose captured ID still matches `current` commit
+    // their `HelpContent` to state.  Drops stale responses without needing
+    // JSON-RPC cancellation (issue #1086 / Option 4).
+    const helpRequestIdRef = useRef(0);
 
+    // Wall-clock time of the most recent source-change reset.  Used by
+    // `runHelpRequest` to retry on a brief delay if a help RPC arrives
+    // before the LSP server has finished processing the source update.
+    // The `textDocument/didChange` notification is fire-and-forget, so
+    // `lspPlugin.updateDocument` can return before `documentInfo.get(uri)`
+    // is populated server-side — under CI load that race is wide enough to
+    // surface as a flaky `{kind: "none"}` response.  Outside the post-update
+    // window (3s) we don't retry: a non-stale NONE is a real "no help here"
+    // answer, not a sync race.
+    const lastSourceResetAtRef = useRef(0);
+    const helpRetryTimerRef = useRef<number | undefined>(undefined);
+
+    // When all tabs are disabled, the panel pair isn't rendered, so the
+    // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ??
-            (showDiagnostics ? "errors" : "responses"),
+            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
         infoPanelIsOpen && selectedTabId === "accessibility";
 
-    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
-    function toggleAccessibilityReport() {
-        if (infoPanelIsOpen && selectedTabId === "accessibility") {
-            setInfoPanelIsOpen(false);
+    /**
+     * Toggle behavior shared by the footer icons and the viewer-controls
+     * accessibility status button: clicking the currently-selected tab while
+     * the panel is open closes it; any other click selects the tab and opens.
+     *
+     * `tabStore.setSelectedId(tabId)` is redundant when this fires from an
+     * ariakit `<Tab>` click (the Tab's internal handler has already updated
+     * the store), but it covers the "panel was closed, reopen on this tab"
+     * branch and the call from ViewerControlsBar's accessibility button, both
+     * of which need to select the tab explicitly.
+     */
+    const activateTab = useCallback(
+        (tabId: DiagnosticsTabId) => {
+            if (infoPanelIsOpen && selectedTabId === tabId) {
+                setInfoPanelIsOpen(false);
+                return;
+            }
+            tabStore.setSelectedId(tabId);
+            setInfoPanelIsOpen(true);
+        },
+        [infoPanelIsOpen, selectedTabId, tabStore],
+    );
+
+    const toggleAccessibilityReport = useCallback(
+        () => activateTab("accessibility"),
+        [activateTab],
+    );
+
+    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
+    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
+    // via refs and early-returns when nothing has changed so the programmatic
+    // call is a true no-op (no spurious `setResponses([])` re-render). For
+    // the button this guard is invisible (the button is disabled when both
+    // `codeChanged` and `documentInteracted` are false).
+    const updateViewer = useCallback(() => {
+        if (!codeChangedRef.current && !documentInteractedRef.current) {
             return;
         }
 
-        tabStore.setSelectedId("accessibility");
-        setInfoPanelIsOpen(true);
-    }
+        setDocumentInteracted(false);
+        setResponses([]);
+
+        if (codeChangedRef.current) {
+            setViewerDoenetML(editorDoenetMLRef.current);
+            window.clearTimeout(updateValueTimer.current ?? undefined);
+            if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
+                lastReportedDoenetML.current = editorDoenetMLRef.current;
+                if (!showViewer) {
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
+                }
+            }
+            setCodeChanged(false);
+            updateValueTimer.current = null;
+        } else {
+            // documentInteractedRef.current is true here (the early-return
+            // above excludes the both-false case).
+            setViewerResetNum((n) => n + 1);
+        }
+    }, [showViewer]);
 
     useImperativeHandle(
         ref,
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
                 const tabEnabled =
-                    tabId === "responses" ? showResponses : showDiagnostics;
+                    tabId === "responses"
+                        ? showResponses
+                        : tabId === "help"
+                          ? showHelp
+                          : showDiagnostics;
                 if (!tabEnabled) {
                     console.warn(
-                        `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}).`,
+                        `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}).`,
                     );
                     return;
                 }
@@ -263,13 +417,33 @@ export const EditorViewer = React.forwardRef<
             closeDiagnosticsPanel() {
                 setInfoPanelIsOpen(false);
             },
+            updateRenderedView() {
+                if (!showViewer) {
+                    console.warn(
+                        "DoenetEditor: updateRenderedView() ignored — showViewer is false; nothing to update.",
+                    );
+                    return;
+                }
+                updateViewer();
+            },
         }),
-        [tabStore, showDiagnostics, showResponses],
+        [
+            tabStore,
+            showDiagnostics,
+            showResponses,
+            showHelp,
+            showViewer,
+            updateViewer,
+        ],
     );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
-    function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
+    function setDiagnosticsCallback(
+        newDiagnostics: DiagnosticRecord[],
+        source: string,
+    ) {
         setDiagnostics(newDiagnostics);
+        setDiagnosticsSource(source);
         setReceivedDiagnosticsFromViewer(true);
     }
 
@@ -277,13 +451,19 @@ export const EditorViewer = React.forwardRef<
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
             showInfoAnnotations,
+            showAccessibilityAnnotations,
         });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
             lspRef.current.documentUri,
             additionalDiagnostics,
         );
-    }, [initialDiagnostics, diagnostics, showInfoAnnotations]);
+    }, [
+        initialDiagnostics,
+        diagnostics,
+        showInfoAnnotations,
+        showAccessibilityAnnotations,
+    ]);
 
     const {
         warnings: warningsObjs,
@@ -304,13 +484,25 @@ export const EditorViewer = React.forwardRef<
         [initialDiagnostics, diagnostics],
     );
 
-    // Hold the latest `diagnosticsSummaryCallback` in a ref so inline callbacks
-    // (whose identity changes every parent render) don't retrigger the effect below
-    // and cause unbounded recursion when the consumer stores the summary in state.
+    // Hold consumer-supplied callbacks in refs so inline-callback identity
+    // churn (the common case) doesn't invalidate the `useCallback`/`useEffect`
+    // deps below — which would otherwise re-identify `useImperativeHandle`'s
+    // output on every parent render. Sync happens at render time (not in a
+    // `useEffect`) so `*Ref.current` always holds the latest prop, even if a
+    // callback fires from a parent `useLayoutEffect` between commit and
+    // effect flush; this also lets the unmount cleanup (empty-dep `useEffect`
+    // below) read the latest value rather than a stale closure.
     const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
-    useEffect(() => {
-        diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
-    }, [diagnosticsSummaryCallback]);
+    diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
+    const doenetmlChangeCallbackRef = useRef(doenetmlChangeCallback);
+    doenetmlChangeCallbackRef.current = doenetmlChangeCallback;
+    const immediateDoenetmlChangeCallbackRef = useRef(
+        immediateDoenetmlChangeCallback,
+    );
+    immediateDoenetmlChangeCallbackRef.current =
+        immediateDoenetmlChangeCallback;
+    const documentStructureCallbackRef = useRef(documentStructureCallback);
+    documentStructureCallbackRef.current = documentStructureCallback;
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
@@ -321,16 +513,24 @@ export const EditorViewer = React.forwardRef<
             return;
         }
 
-        diagnosticsSummaryCallbackRef.current?.({
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        });
-        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
+        diagnosticsSummaryCallbackRef.current?.(
+            {
+                warningsCount,
+                errorsCount,
+                infosCount,
+                accessibilityLevel1Count,
+                accessibilityLevel2Count,
+            },
+            diagnosticsSource,
+        );
+        // Fire once per viewer-generated `diagnostics` change rather than per
         // count change — the consumer should treat this as an event, not a memoized value.
-    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
+        // `initialDiagnostics` is intentionally excluded from the deps: those are
+        // owned by the parent, which already knows the source they were computed
+        // against, so re-firing on their identity change would only emit a
+        // `diagnosticsSource` paired with viewer-generated diagnostics that didn't
+        // actually change.
+    }, [diagnostics, receivedDiagnosticsFromViewer, diagnosticsSource]);
 
     const [responses, setResponses] = useState<
         {
@@ -347,6 +547,10 @@ export const EditorViewer = React.forwardRef<
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
                 const data = event.data.data;
+                if (data.activityId !== activityId) {
+                    return;
+                }
+
                 if (data.verb !== "experienced" && data.verb !== "isVisible") {
                     setDocumentInteracted(true);
                     if (!codeChangedRef.current) {
@@ -399,89 +603,205 @@ export const EditorViewer = React.forwardRef<
         return () => {
             removeEventListener("message", submittedResponseListener);
         };
-    }, [showViewer]);
+    }, [activityId]);
 
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
         setEditorDoenetML(initialDoenetML);
-        completerRef.current.setSource(initialDoenetML);
-        // Cancel any in-flight cursor debounce so a pending callback
-        // can't fire `computeContextHelp` with a stale offset against
-        // the new source.
+        // Cancel any in-flight cursor debounce so a pending callback can't
+        // fire a help RPC with a stale offset against the new source.  The
+        // LSP-side source is kept in sync via the CodeMirror plugin's normal
+        // `updateDocument` path; no local completer to refresh.
         window.clearTimeout(cursorDebounceTimer.current);
+        window.clearTimeout(helpRetryTimerRef.current);
+        // Bump the request ID so any in-flight help RPC's response is
+        // dropped on arrival rather than overwriting the reset state.
+        helpRequestIdRef.current += 1;
         setHelpContent(HELP_NONE);
+        // Record so `runHelpRequest` can retry once on a NONE result that
+        // landed during the LSP-server's post-update sync window.
+        lastSourceResetAtRef.current = Date.now();
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
     // so that one can have access to the document structure before a
     // save in response to doenetmlChangeCallback
-    const documentStructureThenChangeCallback = useCallback(
-        (obj: unknown) => {
-            documentStructureCallback?.(obj);
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-        },
-        [documentStructureCallback, doenetmlChangeCallback],
-    );
+    const documentStructureThenChangeCallback = useCallback((obj: unknown) => {
+        documentStructureCallbackRef.current?.(obj);
+        doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
+    }, []);
 
-    const onEditorChange = useCallback(
-        (value: string) => {
-            if (editorDoenetMLRef.current !== value) {
-                editorDoenetMLRef.current = value;
-                completerRef.current.setSource(value);
+    const onEditorChange = useCallback((value: string) => {
+        if (editorDoenetMLRef.current !== value) {
+            editorDoenetMLRef.current = value;
+            // The LSP-side `AutoCompleter` is kept in sync by the CodeMirror
+            // plugin's `updateDocument` path; no local completer to refresh
+            // here (issue #1086 / Option 4).
 
-                if (!codeChangedRef.current) {
-                    setCodeChanged(true);
-                    setUpdateWord("Update");
-                }
-
-                immediateDoenetmlChangeCallback?.(value);
-
-                // Debounce update value at 3 seconds
-                clearTimeout(updateValueTimer.current ?? undefined);
-
-                //TODO: when you try to leave the page before it saved you will lose work
-                //so prompt the user on page leave
-                updateValueTimer.current = window.setTimeout(function () {
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                    }
-                    updateValueTimer.current = null;
-                }, 3000); //3 seconds
+            if (!codeChangedRef.current) {
+                setCodeChanged(true);
+                setUpdateWord("Update");
             }
-        },
-        [immediateDoenetmlChangeCallback, doenetmlChangeCallback],
-    );
+
+            immediateDoenetmlChangeCallbackRef.current?.(value);
+
+            // Debounce update value at 3 seconds
+            clearTimeout(updateValueTimer.current ?? undefined);
+
+            //TODO: when you try to leave the page before it saved you will lose work
+            //so prompt the user on page leave
+            updateValueTimer.current = window.setTimeout(function () {
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
+                }
+                updateValueTimer.current = null;
+            }, 3000); //3 seconds
+        }
+    }, []);
 
     const onBlur = useCallback(() => {
         window.clearTimeout(updateValueTimer.current ?? undefined);
         if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
             lastReportedDoenetML.current = editorDoenetMLRef.current;
-            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+            doenetmlChangeCallbackRef.current?.(editorDoenetMLRef.current);
         }
         updateValueTimer.current = null;
-    }, [
-        doenetmlChangeCallback,
-        updateValueTimer,
-        lastReportedDoenetML,
-        editorDoenetMLRef,
-    ]);
-
-    const onCursorChange = useCallback((selection: EditorSelection) => {
-        const offset = selection.main.head;
-        lastCursorOffsetRef.current = offset;
-        window.clearTimeout(cursorDebounceTimer.current);
-        // Skip the parse/schema walk when no one's looking — the help-becoming-
-        // visible effect below will compute on demand for the current cursor.
-        if (!helpIsVisibleRef.current) return;
-        cursorDebounceTimer.current = window.setTimeout(() => {
-            setHelpContent(computeContextHelp(completerRef.current, offset));
-        }, 150);
     }, []);
+
+    // Help-RPC plumbing.  Every send bumps `helpRequestIdRef` and captures
+    // its own ID; the response only commits to state if the captured ID is
+    // still current and the help tab is still visible.  Newest-request-wins
+    // ordering, no JSON-RPC cancellation needed (issue #1086 / Option 4).
+    //
+    // The two flavours (cursor-driven and completion-driven) share the
+    // ID/visibility/error guards via `runHelpRequest` — only the underlying
+    // RPC call differs.  Keeping the guards in one place means a fix in
+    // either dimension (e.g. revising stale-drop policy) doesn't have to
+    // be mirrored.
+    const runHelpRequest = useCallback(
+        async (
+            warnLabel: string,
+            rpc: (bundle: {
+                lsp: LSP;
+                documentUri: string;
+            }) => Promise<HelpContent>,
+        ) => {
+            const myId = ++helpRequestIdRef.current;
+            const bundle = lspRef.current;
+            if (!bundle) {
+                // Symmetry with the post-await branches: only commit
+                // state when the help panel is actually visible.  An
+                // invisible panel already shows HELP_NONE, and the
+                // visibility-becomes-visible effect will re-fetch on its
+                // own when the panel opens.
+                if (helpIsVisibleRef.current) setHelpContent(HELP_NONE);
+                return;
+            }
+            try {
+                const result = await rpc(bundle);
+                if (myId !== helpRequestIdRef.current) return;
+                if (!helpIsVisibleRef.current) return;
+                setHelpContent(result);
+                // If we got NONE within the post-source-change window, the
+                // server's `documents.onDidChangeContent` handler may not
+                // have finished registering the new source yet (`didChange`
+                // is fire-and-forget; the editor's `lspPlugin.setValue`
+                // returns before the server's `documentInfo` map is
+                // populated). Schedule a retry. A real cursor change or new
+                // source reset will bump `helpRequestIdRef` and invalidate
+                // this retry chain. The 3-second budget is generous enough
+                // for slow CI runners; in healthy local runs the first
+                // request lands a real answer and we never enter this
+                // branch.
+                if (
+                    result.kind === "none" &&
+                    Date.now() - lastSourceResetAtRef.current < 3000
+                ) {
+                    const retryId = myId;
+                    window.clearTimeout(helpRetryTimerRef.current);
+                    helpRetryTimerRef.current = window.setTimeout(() => {
+                        if (retryId !== helpRequestIdRef.current) return;
+                        if (!helpIsVisibleRef.current) return;
+                        void runHelpRequest(warnLabel, rpc);
+                    }, 400);
+                }
+            } catch (err) {
+                if (myId !== helpRequestIdRef.current) return;
+                console.warn(`${warnLabel} request failed`, err);
+                if (!helpIsVisibleRef.current) return;
+                setHelpContent(HELP_NONE);
+            }
+        },
+        [],
+    );
+
+    const requestHelpForCursor = useCallback(
+        (offset: number) =>
+            runHelpRequest("contextHelp", (bundle) =>
+                bundle.lsp.requestContextHelp(bundle.documentUri, offset),
+            ),
+        [runHelpRequest],
+    );
+
+    const requestHelpForCompletion = useCallback(
+        (offset: number, completion: Completion) =>
+            runHelpRequest("contextHelpForCompletion", (bundle) =>
+                bundle.lsp.requestContextHelpForCompletion(
+                    bundle.documentUri,
+                    offset,
+                    { label: completion.label, type: completion.type },
+                ),
+            ),
+        [runHelpRequest],
+    );
+
+    const onCursorChange = useCallback(
+        (selection: EditorSelection) => {
+            const offset = selection.main.head;
+            lastCursorOffsetRef.current = offset;
+            window.clearTimeout(cursorDebounceTimer.current);
+            // Skip the RPC when no one's looking — the help-becoming-visible
+            // effect below will compute on demand for the current cursor.
+            if (!helpIsVisibleRef.current) return;
+            // Completion-driven help wins while the autocomplete popup is open.
+            // The completion change handler is authoritative; don't overwrite
+            // or schedule a debounced overwrite from the cursor.
+            if (selectedCompletionRef.current) return;
+            cursorDebounceTimer.current = window.setTimeout(() => {
+                void requestHelpForCursor(offset);
+            }, 150);
+        },
+        [requestHelpForCursor],
+    );
+
+    // Fires when the highlighted autocomplete option changes (including
+    // popup open/close).  No debounce — arrow-key navigation in the popup
+    // should surface its docs immediately.
+    const onSelectedCompletionChange = useCallback(
+        (completion: Completion | null) => {
+            selectedCompletionRef.current = completion;
+            if (!helpIsVisibleRef.current) return;
+            // Cancel any pending cursor-debounce so it doesn't fire after
+            // and clobber the completion-driven help.
+            window.clearTimeout(cursorDebounceTimer.current);
+            const offset = lastCursorOffsetRef.current;
+            if (offset == null) return;
+            if (completion) {
+                void requestHelpForCompletion(offset, completion);
+            } else {
+                // Popup closed — revert to cursor-based help for the current
+                // position.  No debounce: this is a discrete transition, not
+                // a stream of cursor moves.
+                void requestHelpForCursor(offset);
+            }
+        },
+        [requestHelpForCursor, requestHelpForCompletion],
+    );
 
     // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
     // (b) compute help immediately when the tab becomes visible so the user
@@ -496,13 +816,27 @@ export const EditorViewer = React.forwardRef<
             // and repopulate state for an invisible panel (flashing on next
             // open).
             window.clearTimeout(cursorDebounceTimer.current);
+            // Bump the request ID so any in-flight RPC's response is dropped
+            // when it resolves (the visibility guard also drops it, but this
+            // makes the intent explicit).
+            helpRequestIdRef.current += 1;
             setHelpContent(HELP_NONE);
             return;
         }
         const offset = lastCursorOffsetRef.current;
         if (offset == null) return;
-        setHelpContent(computeContextHelp(completerRef.current, offset));
-    }, [infoPanelIsOpen, selectedTabId]);
+        const completion = selectedCompletionRef.current;
+        if (completion) {
+            void requestHelpForCompletion(offset, completion);
+        } else {
+            void requestHelpForCursor(offset);
+        }
+    }, [
+        infoPanelIsOpen,
+        selectedTabId,
+        requestHelpForCursor,
+        requestHelpForCompletion,
+    ]);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
@@ -512,29 +846,7 @@ export const EditorViewer = React.forwardRef<
             ) {
                 event.preventDefault();
                 event.stopPropagation();
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                updateValueTimer.current = null;
-
-                setDocumentInteracted(false);
-                setResponses([]);
-
-                if (codeChangedRef.current) {
-                    setViewerDoenetML(editorDoenetMLRef.current);
-                    if (
-                        lastReportedDoenetML.current !==
-                        editorDoenetMLRef.current
-                    ) {
-                        lastReportedDoenetML.current =
-                            editorDoenetMLRef.current;
-                        if (!showViewer) {
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                    }
-
-                    setCodeChanged(false);
-                } else if (documentInteractedRef.current) {
-                    setViewerResetNum((n) => n + 1);
-                }
+                updateViewer();
             }
         };
 
@@ -552,7 +864,7 @@ export const EditorViewer = React.forwardRef<
                 handleEditorKeyDown,
             );
         };
-    }, [showViewer, id]);
+    }, [showViewer, id, updateViewer]);
 
     useEffect(() => {
         return () => {
@@ -562,12 +874,20 @@ export const EditorViewer = React.forwardRef<
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    // Routed through the ref mirror so the *latest* callback
+                    // fires at unmount, not whichever one was passed on
+                    // initial render. (The empty dep array would otherwise
+                    // capture a stale closure.)
+                    doenetmlChangeCallbackRef.current?.(
+                        editorDoenetMLRef.current,
+                    );
                 }
             }
-            // Cancel pending help-debounce so its callback can't fire
-            // setHelpContent on the unmounted component.
+            // Cancel pending help-debounce and post-source-change retry so
+            // their callbacks can't fire setHelpContent on the unmounted
+            // component.
             window.clearTimeout(cursorDebounceTimer.current);
+            window.clearTimeout(helpRetryTimerRef.current);
         };
     }, []);
 
@@ -578,12 +898,14 @@ export const EditorViewer = React.forwardRef<
             onBlur={onBlur}
             onChange={onEditorChange}
             onCursorChange={onCursorChange}
+            onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
+            doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
         />
     );
 
     const editorAndCollapsiblePanel =
-        showDiagnostics || showResponses ? (
+        showDiagnostics || showResponses || showHelp ? (
             <ResizableCollapsiblePanelPair
                 mainPanel={codeMirror}
                 subPanel={
@@ -595,31 +917,25 @@ export const EditorViewer = React.forwardRef<
                         accessibility={accessibilityObjs}
                         submittedResponses={responses}
                         isOpen={infoPanelIsOpen}
-                        setIsOpen={setInfoPanelIsOpen}
                         showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
+                        showHelp={showHelp}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
+                        showAccessibilityAnnotations={
+                            showAccessibilityAnnotations
+                        }
+                        setShowAccessibilityAnnotations={
+                            setShowAccessibilityAnnotations
+                        }
                         helpContent={helpContent}
                         docsURL={docsURL}
                     />
                 }
-                alwaysVisiblePanel={
-                    <DiagnosticsResponseTabstrip
-                        store={tabStore}
-                        warnings={warningsObjs}
-                        errors={errorsObjs}
-                        infos={infoObjs}
-                        accessibility={accessibilityObjs}
-                        submittedResponses={responses}
-                        isOpen={infoPanelIsOpen}
-                        setIsOpen={setInfoPanelIsOpen}
-                        showDiagnostics={showDiagnostics}
-                        showResponses={showResponses}
-                    />
-                }
                 isOpen={infoPanelIsOpen}
                 setIsOpen={setInfoPanelIsOpen}
+                defaultSize={25}
+                collapsedSize={10}
             />
         ) : (
             codeMirror
@@ -630,19 +946,47 @@ export const EditorViewer = React.forwardRef<
             <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
             </div>
-            <FormatterVersionBar
+            <EditorFooter
+                store={tabStore}
+                isOpen={infoPanelIsOpen}
+                activateTab={activateTab}
+                showDiagnostics={showDiagnostics}
+                showResponses={showResponses}
+                showHelp={showHelp}
                 showFormatter={showFormatter}
-                setFormatAsDoenetML={setFormatAsDoenetML}
-                onFormat={async () => {
-                    const printed = await prettyPrint(
-                        editorDoenetMLRef.current,
-                        {
-                            doenetSyntax: formatAsDoenetML,
-                            tabWidth: 2,
-                        },
-                    );
+                reserveKeyboardButtonSpace={
+                    addVirtualKeyboard &&
+                    (!showViewer ||
+                        viewerLocation === "left" ||
+                        viewerLocation === "top")
+                }
+                diagnosticsSummary={{
+                    warningsCount,
+                    errorsCount,
+                    infosCount,
+                    accessibilityLevel1Count,
+                    accessibilityLevel2Count,
+                }}
+                submittedResponsesCount={responses.length}
+                onFormat={async (asDoenetML) => {
+                    const currentBuffer = editorDoenetMLRef.current;
+                    const printed = await prettyPrint(currentBuffer, {
+                        doenetSyntax: asDoenetML,
+                        tabWidth: 2,
+                    });
                     onEditorChange(printed);
-                    // also update editorDoenetML so that CodeMirror updates
+                    // CodeMirror's `value` prop is controlled by
+                    // `editorDoenetML`. If the user undid a previous format
+                    // (e.g. Ctrl+Z), the React state still holds the
+                    // already-formatted string while the buffer holds the
+                    // pre-format text. A naïve `setEditorDoenetML(printed)`
+                    // would then be an `Object.is` no-op and CodeMirror
+                    // would never see a new value. Flushing an intermediate
+                    // sync to `currentBuffer` guarantees the next setter
+                    // dispatches a real value change.
+                    if (printed !== currentBuffer) {
+                        flushSync(() => setEditorDoenetML(currentBuffer));
+                    }
                     setEditorDoenetML(printed);
                 }}
             />
@@ -684,33 +1028,7 @@ export const EditorViewer = React.forwardRef<
                 documentInteracted={documentInteracted}
                 platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
-                onUpdateViewer={() => {
-                    setDocumentInteracted(false);
-                    setResponses([]);
-
-                    if (!codeChanged) {
-                        setViewerResetNum((n) => n + 1);
-                    } else {
-                        setViewerDoenetML(editorDoenetMLRef.current);
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            if (!showViewer) {
-                                doenetmlChangeCallback?.(
-                                    editorDoenetMLRef.current,
-                                );
-                            }
-                        }
-                        setCodeChanged(false);
-                        updateValueTimer.current = null;
-                    }
-                }}
+                onUpdateViewer={updateViewer}
                 variants={variants}
                 setVariants={setVariants}
                 showDiagnostics={showDiagnostics}
@@ -749,6 +1067,7 @@ export const EditorViewer = React.forwardRef<
                         documentStructureThenChangeCallback
                     }
                     doenetViewerUrl={doenetViewerUrl}
+                    doenetMediaUrl={doenetMediaUrl}
                     darkMode={darkMode}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}

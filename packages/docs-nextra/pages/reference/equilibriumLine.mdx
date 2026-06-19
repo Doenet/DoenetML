@@ -1,0 +1,75 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<equilibriumLine>{:dn}`
+
+<ComponentDisplay name='equilibriumLine'/>
+
+`<equilibriumLine>{:dn}` extends [`<line>{:dn}`](line) to mark a line of equilibria of a dynamical system.
+Use it to indicate a continuum
+of equilibrium states (for example a nullcline that consists entirely of equilibrium points) while making the
+stability visually apparent. The component accepts the full set of `<line>{:dn}` attributes.
+
+<AttrPropDisplay name='equilibriumLine'/>
+
+## Examples
+
+### Example: Stable and unstable equilibrium lines
+
+
+```doenet-editor-horiz
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A solid vertical line of stable equilibria and a dashed horizontal line of unstable equilibria</shortDescription>
+  <equilibriumLine through="(0, -5) (0, 5)"><label>stable</label></equilibriumLine>
+  <equilibriumLine stable="false" through="(-5, 2) (5, 2)"><label>unstable</label></equilibriumLine>
+</graph>
+```
+
+
+
+Two lines of equilibria: the vertical line is drawn solid (stable) and the horizontal line is drawn dashed
+(unstable). The `stable` attribute defaults to `true`; setting it to `false` switches the rendering to a
+dashed line.
+
+
+
+## Attribute Examples
+
+### Attribute Example: switchable
+
+
+```doenet-editor-horiz
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A clickable equilibrium line whose stability the learner can toggle</shortDescription>
+  <equilibriumLine name="L" switchable through="(-5, 1) (5, 1)" />
+</graph>
+<p>Click the line to toggle. <c>L.stable</c> = $L.stable</p>
+```
+
+
+
+When `switchable` is set, clicking the line toggles its `stable` state and the solid/dashed rendering. Useful
+for exercises where the learner must classify a nullcline.
+
+
+
+---
+
+### Attribute Example: stable bound to a boolean input
+
+
+```doenet-editor-horiz
+<booleanInput name="s" prefill="true"><label>Stable</label></booleanInput>
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>An equilibrium line whose stability is driven by a boolean input</shortDescription>
+  <equilibriumLine stable="$s" through="(-5, 0) (5, 0)" />
+</graph>
+```
+
+
+
+The `stable` attribute accepts any boolean expression, so the line's stability can be driven from any source
+of state in the document.
+

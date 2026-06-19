@@ -1,0 +1,81 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<lcm>{:dn}`
+
+<ComponentDisplay name='lcm'/>
+
+`<lcm>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+that accepts a list of integers (separated by spaces) and returns their least
+common multiple. Compare with [`<gcd>{:dn}`](gcd), which returns the greatest
+common divisor of the same kind of list.
+
+
+<AttrPropDisplay name='lcm'/>
+
+
+## Examples
+
+### Example: LCM of a fixed list of integers
+
+
+```doenet-editor-horiz
+<p>The least common multiple of <m>4</m>, <m>6</m>, and <m>10</m> is
+<m><lcm>4 6 10</lcm></m>.</p>
+```
+
+
+The integer arguments to `<lcm>{:dn}` are entered between the opening and
+closing tags, separated by spaces.
+
+
+
+---
+
+### Example: LCM of user-input integers
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="n"><label>How many integers?</label></mathInput>
+</p>
+
+<repeatForSequence name="userIntegers" from="1" to="$n">
+  <mathInput><shortDescription>integer in the list</shortDescription></mathInput>
+</repeatForSequence>
+
+<p>The least common multiple of your integers is
+<m><lcm>$userIntegers</lcm></m>.</p>
+```
+
+
+The learner enters the size of the list, and then that many
+`<mathInput>{:dn}` blanks are generated with [`<repeatForSequence>{:dn}`](repeatForSequence).
+The `<lcm>{:dn}` is computed over the referenced repeat.
+
+
+
+---
+
+### Example: LCM used in a multiple-choice question
+
+
+```doenet-editor-horiz
+<problem>
+  <p>What is the least common multiple of <m>6</m>, <m>8</m>, and <m>12</m>?</p>
+  <answer>
+    <label>Choose the least common multiple</label>
+    <choice credit="1"><lcm>6 8 12</lcm></choice>
+    <choice><lcm>2 3 4</lcm></choice>
+    <choice><lcm>3 4 6</lcm></choice>
+    <choice><lcm>6 8 10</lcm></choice>
+  </answer>
+</problem>
+```
+
+
+Each `<choice>{:dn}` uses `<lcm>{:dn}` to compute its displayed value, so the
+authoring is symbolic — there are no hand-computed numbers to keep in sync
+with the question text.

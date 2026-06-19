@@ -14,8 +14,9 @@ import {
 } from "../globals";
 import {
     AutoCompleter,
+    DOENET_LSP_METHODS,
     RustResolverAdapter,
-    type RustResolverCore,
+    dedupeLspDiagnostics,
 } from "@doenet/lsp-tools";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -26,6 +27,22 @@ const TAKES_INDEX_COMPONENT_TYPES: ReadonlySet<string> = new Set(
         .filter((schemaElement) => schemaElement?.takesIndex)
         .map((schemaElement) => schemaElement.name),
 );
+
+/**
+ * Map a DAST node's `error_type` to the LSP severity the editor renders.
+ * Used in `validateTextDocument` so deprecation warnings stay yellow and
+ * info notices stay blue.  The `"error"` key handles both an explicit
+ * `error_type: "error"` and the absent-field default the caller resolves
+ * with `?? "error"`.
+ */
+const DAST_ERROR_TYPE_TO_LSP_SEVERITY: Record<
+    "error" | "warning" | "info",
+    DiagnosticSeverity
+> = {
+    error: DiagnosticSeverity.Error,
+    warning: DiagnosticSeverity.Warning,
+    info: DiagnosticSeverity.Information,
+};
 
 export function addValidationSupport(
     connection: Connection,
@@ -46,7 +63,7 @@ export function addValidationSupport(
     });
 
     connection.onRequest(
-        "doenet/setAdditionalDiagnostics",
+        DOENET_LSP_METHODS.setAdditionalDiagnostics,
         (params: { uri: string; additionalDiagnostics: Diagnostic[] }) => {
             const { uri, additionalDiagnostics } = params;
             const info = documentInfo.get(uri);
@@ -70,7 +87,7 @@ export function addValidationSupport(
 
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
-    documents.onDidChangeContent((change) => {
+    documents.onDidChangeContent(async (change) => {
         const uri = change.document.uri;
         let info = documentInfo.get(uri);
         if (!info) {
@@ -86,47 +103,59 @@ export function addValidationSupport(
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
-        if (info.rustState === "ready" && info.rustAdapter) {
-            // Adapter already wired — just resync source.
-            info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
-        } else if (info.rustState === "uninitialized") {
-            // Fire-and-forget initialization. Diagnostics should not wait
-            // for Rust to load.
+        // Queue the rust-adapter source sync *now*, before this async handler
+        // yields.  `updateSource` synchronously appends to the adapter's sync
+        // chain, so a completion request processed during the yield below
+        // already sees this change in the chain it awaits — without this, a
+        // `$ref.` member completion can resolve against stale rust state.
+        const rustSync = info.rustAdapter?.updateSource(
+            info.autoCompleter.sourceObj,
+        );
+
+        if (info.rustState === "uninitialized") {
+            // Fire-and-forget rust-core sub-worker bootstrap.  Diagnostics
+            // should not wait for the worker to spin up.  The bootstrap is
+            // also exposed as `rustReady` so a completion request that races
+            // the boot can await it instead of being answered too early.
             info.rustState = "initializing";
             const capturedInfo = info;
-            (async () => {
+            capturedInfo.rustReady = (async () => {
+                let spawned: Awaited<ReturnType<typeof getRustCore>> = null;
                 try {
-                    const core = await getRustCore();
+                    spawned = await getRustCore(config.doenetWorkerUrl);
                     const currentInfo = documentInfo.get(uri);
-                    if (!currentInfo || currentInfo !== capturedInfo) return;
-                    const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                    // Intentionally create a dedicated core/adapter for this
-                    // document. This avoids cross-document source switching
-                    // complexity and keeps Rust state aligned with this
-                    // document's AutoCompleter mappings.
-                    const adapter = new RustResolverAdapter(sourceObj, {
-                        core: core as RustResolverCore,
-                        takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
-                    });
-                    capturedInfo.rustAdapter = adapter;
-                    capturedInfo.autoCompleter = new AutoCompleter(
-                        undefined,
-                        undefined,
+                    // Document was closed (or replaced) while we were spawning
+                    // the worker — release it and bail.
+                    if (!currentInfo || currentInfo !== capturedInfo) {
+                        spawned?.terminate();
+                        return;
+                    }
+                    if (!spawned) {
+                        capturedInfo.rustState = "unavailable";
+                        return;
+                    }
+                    // One adapter per document keeps rust-side state aligned
+                    // with this document's AutoCompleter mappings.
+                    const adapter = new RustResolverAdapter(
+                        capturedInfo.autoCompleter.sourceObj,
                         {
-                            sourceObj,
-                            rustResolverAdapter: adapter,
-                            getAdditionalRefNames: (offset: number) =>
-                                adapter.getDerivedRepeatNames(offset),
+                            core: spawned.core,
+                            takesIndexComponentTypes:
+                                TAKES_INDEX_COMPONENT_TYPES,
                         },
                     );
+                    await adapter.init();
+                    capturedInfo.rustCore = spawned.core;
+                    capturedInfo.rustAdapter = adapter;
+                    capturedInfo.rustCoreTerminate = spawned.terminate;
+                    capturedInfo.autoCompleter.setRustResolverAdapter(adapter);
                     capturedInfo.rustState = "ready";
                     const latestDocument = documents.get(uri);
                     if (latestDocument) {
-                        validateTextDocument(latestDocument).catch(
-                            () => undefined,
-                        );
+                        await validateTextDocument(latestDocument);
                     }
                 } catch (error) {
+                    spawned?.terminate();
                     console.warn(
                         "Rust autocomplete unavailable; completions disabled for this document.",
                         error,
@@ -136,14 +165,23 @@ export function addValidationSupport(
                         capturedInfo.rustState = "unavailable";
                     }
                 }
-            })().catch(() => undefined);
+            })();
         }
 
-        validateTextDocument(change.document).catch(() => undefined);
+        // Diagnostics are derived from the JS-side DAST and must not wait on
+        // the rust worker, so compute them before the rust sync settles.
+        await validateTextDocument(change.document);
+
+        // `updateSource` (queued above) resolves without rejecting — the
+        // adapter logs and disables itself on a sync failure — so awaiting it
+        // here just keeps the handler ordered.
+        await rustSync;
     });
 
     // Release per-document validation/autocomplete state when a document closes.
     documents.onDidClose((event) => {
+        const info = documentInfo.get(event.document.uri);
+        info?.rustCoreTerminate?.();
         documentInfo.delete(event.document.uri);
     });
 
@@ -157,9 +195,20 @@ export function addValidationSupport(
         }
         const errors = extractDastErrors(info.autoCompleter.sourceObj.dast);
         const diagnostics: Diagnostic[] = errors.map((error) => {
+            // Honor the DAST node's `error_type`: deprecation notices
+            // from `dast-normalize/deprecations.ts` are the canonical
+            // source of `error_type: "warning"`.  Without this mapping
+            // every DAST error rendered as a red error squiggle even
+            // when the producing layer chose `warning`/`info`.  An
+            // omitted `error_type` defaults to `Error` (matching the
+            // worker's `convertNormalizedDast`, which only takes the
+            // `_error`-component branch when the field isn't
+            // `"warning"`/`"info"`).
+            const severity =
+                DAST_ERROR_TYPE_TO_LSP_SEVERITY[error.error_type ?? "error"];
             const diagnostic: Diagnostic = {
                 message: error.message,
-                severity: DiagnosticSeverity.Error,
+                severity,
                 range: {
                     start: textDocument.positionAt(
                         error.position?.start?.offset || 0,
@@ -175,12 +224,23 @@ export function addValidationSupport(
             return diagnostic;
         });
 
-        const schemaErrors = info.autoCompleter.getSchemaViolations();
+        const schemaErrors = await info.autoCompleter.getSchemaViolations();
         diagnostics.push(...schemaErrors);
 
         diagnostics.push(...info.additionalDiagnostics);
 
+        // Dedupe by severity+range+message before sending: the worker's
+        // `_error`-component pipeline re-surfaces every parser DAST
+        // error as a runtime diagnostic and pushes it back through
+        // `additionalDiagnostics`, so without this pass the editor's
+        // hover renders the same record twice (the Diagnostics tab
+        // already dedupes via Core's `DiagnosticsManager`).
+        const deduped = dedupeLspDiagnostics(diagnostics);
+
         // Send the computed diagnostics to VSCode.
-        connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        connection.sendDiagnostics({
+            uri: textDocument.uri,
+            diagnostics: deduped,
+        });
     }
 }

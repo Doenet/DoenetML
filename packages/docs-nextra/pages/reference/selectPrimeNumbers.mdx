@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <selectPrimeNumbers/>{:dn}`
+# `<selectPrimeNumbers/>{:dn}`
 
 
-` <selectPrimeNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
-component that selects a prime number at random from a specified range. Selections generate variants of the document.
+<ComponentDisplay name='selectPrimeNumbers'/>
 
-## Attributes and Properties 
- <AttrDisplay name='selectPrimeNumbers'/> 
- <PropDisplay name='selectPrimeNumbers'/>
+`<selectPrimeNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types) 
+component that selects prime numbers at random from a specified range. Selections generate variants of the document.
 
----
+<AttrPropDisplay name='selectPrimeNumbers'/>
 
-### Example: Default ` <selectPrimeNumbers/>{:dn}`
+## Examples
+
+### Example: Default `<selectPrimeNumbers/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -26,7 +26,7 @@ component that selects a prime number at random from a specified range. Selectio
 
 
 
-The default ` <selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
+The default `<selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -80,7 +80,7 @@ selections can be accessed using array notation.
 
 
 
-The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectPrimeNumbers/>{:dn}` 
+The `numToSelect` attribute allows for selection of multiple values within the range of a single `<selectPrimeNumbers/>{:dn}` 
 component. Multiple selections are made without replacement. Selections can be assigned more descriptive names by defining individual components
 which reference the selected values.
 
@@ -89,7 +89,7 @@ editor to see different variants of the document.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: sort
 
@@ -124,7 +124,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: from, to
+### Attribute Example: from, to
 
 
 ```doenet-editor-horiz
@@ -198,7 +198,7 @@ editor to see different variants of the document.
 
 ---
 
-### Example: excludeCombinations
+### Attribute Example: excludeCombinations
 
 
 ```doenet-editor-horiz

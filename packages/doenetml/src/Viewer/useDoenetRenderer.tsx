@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { renderersLoadComponent } from "./DocViewer";
+import { renderersLoadComponent } from "./renderersLoadComponent";
 import { ComponentInfo, mainSlice, useAppSelector } from "../state";
 import { DoenetMLFlags } from "../doenetml";
 
@@ -73,7 +73,15 @@ export default function useDoenetRenderer<SVs = Record<string, any>>(
     const effectiveIdx = props.componentInstructions.effectiveIdx;
     const id = props.componentInstructions.id;
     const rendererName = props.coreId + componentIdx;
-    const [renderersToLoad, setRenderersToLoad] = useState({});
+    // Map of rendererType -> factory that returns the dynamic-import promise.
+    // We store a factory rather than an in-flight Promise so that
+    // `renderersLoadComponent` can drive retry-on-transient-failure (see
+    // issue #1190): a bare `import(...)` promise stored here would settle
+    // before any handler attached, turning a rare Vite dev-server hiccup
+    // into an unhandled rejection that fails the Cypress spec.
+    const [renderersToLoad, setRenderersToLoad] = useState<
+        Record<string, () => Promise<any>>
+    >({});
     const componentInfo = useAppSelector(
         (state) => mainSlice.selectors.componentInfo(state)[rendererName],
     );
@@ -105,14 +113,16 @@ export default function useDoenetRenderer<SVs = Record<string, any>>(
     }
 
     useEffect(() => {
-        if (Object.keys(renderersToLoad).length > 0) {
-            renderersLoadComponent(
-                Object.values(renderersToLoad),
-                Object.keys(renderersToLoad),
-            ).then((newRendererClasses) => {
-                Object.assign(props.rendererClasses, newRendererClasses);
-                setRenderersToLoad({});
-            });
+        const entries = Object.entries(renderersToLoad);
+        if (entries.length > 0) {
+            const names = entries.map(([name]) => name);
+            const loaders = entries.map(([, loader]) => loader);
+            renderersLoadComponent(loaders, names).then(
+                ({ rendererClasses: newRendererClasses }) => {
+                    Object.assign(props.rendererClasses, newRendererClasses);
+                    setRenderersToLoad({});
+                },
+            );
         }
     }, [renderersToLoad, props.rendererClasses]);
 
@@ -146,15 +156,15 @@ export default function useDoenetRenderer<SVs = Record<string, any>>(
         if (!rendererClass) {
             //If we don't have the component then attempt to load it
             if (loadMoreRenderers) {
-                setRenderersToLoad((old: Promise<any>[]) => {
-                    let rendererPromises = { ...old };
-                    if (!(childInstructions.rendererType in rendererPromises)) {
-                        rendererPromises[childInstructions.rendererType] =
+                setRenderersToLoad((old) => {
+                    let rendererLoaders = { ...old };
+                    if (!(childInstructions.rendererType in rendererLoaders)) {
+                        rendererLoaders[childInstructions.rendererType] = () =>
                             import(
                                 `./renderers/${childInstructions.rendererType}.tsx`
                             );
                     }
-                    return rendererPromises;
+                    return rendererLoaders;
                 });
             }
 

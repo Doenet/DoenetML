@@ -22,7 +22,7 @@ export default class Slider extends BaseComponent {
     static componentType = "slider";
 
     static componentDocs = {
-        summary: "An interactive slider input.",
+        summary: "An interactive slider input",
     };
     static variableForImplicitProp = "value";
 
@@ -47,6 +47,7 @@ export default class Slider extends BaseComponent {
             ],
             description: "Type of value the slider produces.",
             forRenderer: true,
+            highlighted: true,
         };
         attributes.width = {
             description: "Display width of the slider.",
@@ -112,6 +113,7 @@ export default class Slider extends BaseComponent {
             defaultValue: 0,
             public: true,
             forRenderer: true,
+            highlighted: true,
         };
         attributes.to = {
             description: "Maximum value of the slider's range.",
@@ -120,6 +122,7 @@ export default class Slider extends BaseComponent {
             defaultValue: 10,
             public: true,
             forRenderer: true,
+            highlighted: true,
         };
         attributes.step = {
             description: "Increment between successive slider positions.",
@@ -128,6 +131,7 @@ export default class Slider extends BaseComponent {
             defaultValue: 1,
             public: true,
             forRenderer: true,
+            highlighted: true,
         };
 
         Object.assign(attributes, returnLabelAttributes());

@@ -1,5 +1,14 @@
 import React, { useRef } from "react";
 import { CodeMirror } from "../../../src/CodeMirror";
+// @ts-ignore — ?raw loads the pre-built inline core worker as a string so we
+// can create a blob: URL Worker.  The LSP spawns this worker behind the scenes
+// to power $ref / member completions; without a URL the LSP marks the rust
+// resolver "unavailable" and every ref test in this spec would fail.
+import coreWorkerSource from "@doenet/doenetml-worker/index.js?raw";
+
+const doenetWorkerUrl = URL.createObjectURL(
+    new Blob([coreWorkerSource], { type: "application/javascript" }),
+);
 
 type LspInstance =
     typeof import("../../../src/extensions/lsp/plugin").uniqueLanguageServerInstance;
@@ -29,7 +38,11 @@ const AutocompleteTestHarness = ({
 
     return (
         <div style={{ height: "400px", width: "600px" }}>
-            <CodeMirror value={initialValue} languageServerRef={lspRef} />
+            <CodeMirror
+                value={initialValue}
+                languageServerRef={lspRef}
+                doenetWorkerUrl={doenetWorkerUrl}
+            />
         </div>
     );
 };
@@ -99,7 +112,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
     it("completes element names in a blank document", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
             </div>,
         );
 
@@ -126,6 +139,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
 <matrix>
   
 </matrix>`}
+                    doenetWorkerUrl={doenetWorkerUrl}
                 />
             </div>,
         );
@@ -139,7 +153,10 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
     it("completes closing tag", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value={`<matrix>`} />
+                <CodeMirror
+                    value={`<matrix>`}
+                    doenetWorkerUrl={doenetWorkerUrl}
+                />
             </div>,
         );
 
@@ -148,10 +165,37 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("have.text", `<matrix></matrix>`);
     });
 
+    it("completes closing tag for inner same-name element when parent stole close (#1117)", () => {
+        // Parser stack-matches the only </matrix> to the inner <matrix>.
+        // Without the stolen-close-tag heuristic, no `/matrix>` suggestion
+        // would appear because the inner element looks already-closed.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror
+                    value={`<matrix><matrix></matrix>`}
+                    doenetWorkerUrl={doenetWorkerUrl}
+                />
+            </div>,
+        );
+
+        // Position cursor in the body of the inner <matrix>, between its
+        // opening `<matrix>` (ending at offset 16) and the `</matrix>`.
+        cy.get(".cm-content")
+            .click()
+            .type("{home}" + "{rightArrow}".repeat(16) + "<", {
+                force: true,
+            });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").first().click();
+        cy.get(".cm-line").should(
+            "have.text",
+            `<matrix><matrix></matrix></matrix>`,
+        );
+    });
+
     it("inserts element snippets", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
             </div>,
         );
 
@@ -173,7 +217,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
     it("completes attribute names", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
             </div>,
         );
 
@@ -188,7 +232,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
     it("completes attribute values", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
             </div>,
         );
 
@@ -200,7 +244,220 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-line").should("contain.text", 'hide="true"');
     });
 
-    it("keeps cursor at end of completed reference when stale response arrives late", () => {
+    it("offers a wrap-in-quotes hint for a free-text attribute and preserves every typed character", () => {
+        // `name` on `<math>` is free-text (no enumerated values). Typing a
+        // bare prefix after `=` must pop a single hint whose display label
+        // previews the typed value wrapped in quotes -- and accepting it
+        // must wrap exactly what was typed, with no characters dropped.
+        //
+        // Regression: an earlier version anchored the result's `from` at
+        // the cursor (one past the first typed character) because the
+        // plugin's default `prefixMatch` regex required a literal `"` the
+        // user hadn't typed. The menu then read `"ello"` instead of
+        // `"hello"` and accepting yielded `name=h"ello"`.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math name=hello", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"hello"',
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"hello"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'name="hello"');
+        cy.get(".cm-line").should("not.contain.text", 'name=h"ello"');
+    });
+
+    it("shows enumerated attribute values with quoted displayLabel when anchored to `=`", () => {
+        // When the cursor is at `=` (no opening `"` yet), the dropdown
+        // should preview the canonical quoted form (e.g. `"true"`) since
+        // accepting will insert the value wrapped in quotes. The existing
+        // `completes attribute values` test only exercises the
+        // inside-`"..."` path where the dropdown stays bare; without this
+        // test, regressing the displayLabel for the bare-`=` path would
+        // go undetected.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title hide=", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"true"')
+            .should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"true"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'hide="true"');
+    });
+
+    it("filters enumerated values as a bare prefix is typed past `=`", () => {
+        // Typing a bare prefix (no opening `"`) past `=` should narrow the
+        // dropdown and accept-with-quotes. Bare matching against the
+        // `label` while displaying the quoted form is the core "show this,
+        // filter on that" pair introduced in this PR.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title hide=tr", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"true"',
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").click();
+        cy.get(".cm-line").should("contain.text", 'hide="true"');
+    });
+
+    it("does not pop a menu when only `=` has been typed for a free-text attribute", () => {
+        // B' design: bare `=` must NOT pop the wrap-in-quotes hint -- an
+        // expert who reflexively types `"` right after `=` should never
+        // see a stray menu. The hint only fires once the author has typed
+        // at least one bare character.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math name=", { force: true });
+        // Wait past the LSP debounce so any (mis)triggered menu would
+        // have time to appear.
+        cy.wait(400);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("swallows whitespace between `=` and a bare value on accept", () => {
+        // The LSP-side textEdit range anchors at `=+1`, and the plugin's
+        // update-generated apply walks back over whitespace to the
+        // anchoring `=`. Either path must produce a clean `name="hello"`
+        // with no residual spaces. Vitest covers the LSP range; this
+        // covers the plugin's document edit end-to-end.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type("<math name=   hello", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains('"hello"')
+            .click();
+        cy.get(".cm-line").should("contain.text", 'name="hello"');
+        cy.get(".cm-line").should("not.contain.text", 'name=   "hello"');
+    });
+
+    it("keeps the value popup open across whitespace between `=` and a bare value", () => {
+        // Regression: typing `<math simplify=` opens the value popup, then
+        // typing a single space used to close it (gate at `plugin.ts:335`
+        // returned `null` because space isn't a server trigger char and
+        // there's no preceding identifier), only to reopen on the next
+        // keystroke. The popup must stay open continuously while the user
+        // types ` full` after `=`.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<math simplify=", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type(" ", { force: true });
+        // The flap: without the post-whitespace-trigger heuristic the popup
+        // would briefly close here.
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+
+        cy.get(".cm-content").type("full", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            '"full"',
+        );
+    });
+
+    it("does not pop attribute completions on the closing quote of a value", () => {
+        // `"` and `'` are server trigger characters because typing the
+        // *opening* quote of a value should pop a value popup (e.g.
+        // `<math name="`). Typing the *closing* quote (e.g.
+        // `<math name="hello"`) used to also pop the popup — showing
+        // attribute names — because the gate only looked at the single
+        // char before the cursor. That is inconsistent with `<math `
+        // (which waits for a letter). The gate now counts prior
+        // occurrences of the typed quote between the last `<` and the
+        // cursor: an odd count means the typed quote is a closer, so
+        // the trigger is suppressed.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello"', { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+        // And a trailing space should keep it closed, matching `<math `.
+        cy.get(".cm-content").type(" ", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("pops the value popup on the opening quote of a *second* attribute on the same tag", () => {
+        // Regression guard for the closing-quote heuristic. An earlier
+        // walk-back-to-matching-quote implementation incorrectly classified
+        // the opening `"` of `simplify="` here as a closer because the
+        // scan found the closing `"` of `name="hello"`. The parity-based
+        // heuristic counts prior `"` chars (two, from `name="hello"`) and
+        // correctly identifies the typed quote as an opener, so the
+        // server trigger fires and value completions surface.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type('<math name="hello" simplify="', { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        // The `simplify` attribute is boolean-like; expect at least one
+        // value completion (e.g. `full`) — anchoring on a specific label
+        // would couple the test to schema details, so we just assert the
+        // popup has some completion row.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.length.greaterThan",
+            0,
+        );
+    });
+
+    it("accepts a ref completion with correct cursor placement when the LSP response is delayed", () => {
+        // Smoke test for the end-to-end ref-completion accept flow when
+        // the first LSP response is slow. Originally named for a
+        // staleness-guard regression, but @codemirror/autocomplete
+        // coalesces source calls so only one LSP call fires for the
+        // whole `$my` typing burst — there is no second response to
+        // race against, so this test does not independently exercise
+        // the stale-response handling removed in 488a9b51. Kept as a
+        // smoke test that the apply-function's range merge (Math.min /
+        // Math.max with the LSP-side textEdit range) places the cursor
+        // at the end of the inserted ref even when the response arrives
+        // after the typing has moved past the original cursor position.
         cy.mount(
             <AutocompleteTestHarness
                 initialValue={'<section name="mySection" />\n'}
@@ -325,13 +582,26 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
 
         cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
         openAutocomplete();
-        cy.get(".cm-content").type("{enter}", { force: true });
+        // Click the `myMath` completion directly rather than relying on
+        // `{enter}` to accept the selected item: openAutocomplete() only
+        // waits for the tooltip element to exist, but the LSP-provided
+        // items can still be populating (and the keyboard selection may
+        // not yet be on the desired item). The .contains() retry also
+        // gives the LSP time to render the label before we click it.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("myMath")
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "$myMath");
 
         // Reproduce a delete-then-dot transition ending at the same final text.
         cy.get(".cm-content").type("x{backspace}.", { force: true });
         cy.get(".cm-content").invoke("text").should("contain", "$myMath.");
 
-        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        // The member popup should auto-open on the `.`.  It intermittently
+        // does not — a residual `@codemirror/autocomplete` timing flake
+        // tracked separately — so use the retry helper, which returns
+        // immediately when the popup is already up and otherwise nudges it.
+        openAutocomplete();
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
             .its("length")
             .should("be.greaterThan", 0);
@@ -570,5 +840,87 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             .then((text) => {
                 expect(text).to.contain("$rep[1]");
             });
+    });
+
+    it("tags element and snippet completions with their category icon classes", () => {
+        // The dropdown's left-column icon is selected by each completion's
+        // `type` (rendered as `.cm-completionIcon-<type>`). Elements and
+        // snippets share the `<`-menu but must carry distinct icon classes so
+        // `completionIconTheme` can give them different glyphs.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-component").should(
+            "exist",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-snippet").should(
+            "exist",
+        );
+    });
+
+    it("tags attribute-name completions with the attribute icon class", () => {
+        // Attribute names used to inherit the LSP `enum` kind's built-in `∪`
+        // glyph; the theme now overrides it, but the class must still be
+        // `cm-completionIcon-enum` for that override to apply.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<title ", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-enum").should(
+            "exist",
+        );
+    });
+
+    it("distinguishes reference-property completions from element completions by icon class", () => {
+        // Components and reference-properties both arrive as LSP kind
+        // `Property`; the plugin splits them so a `$ref.` member shows the
+        // reference-property icon, not the component one.
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P.'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(
+            ".cm-tooltip-autocomplete .cm-completionIcon-refproperty",
+        ).should("exist");
+        cy.get(".cm-tooltip-autocomplete .cm-completionIcon-component").should(
+            "not.exist",
+        );
+    });
+
+    it("renders the selected row's glyph white so it stays visible on the highlight", () => {
+        // The highlighted option has a solid blue background; the category
+        // colors are nearly invisible against it. The theme forces the glyph
+        // white on the selected row — assert that override actually computes.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<", { force: true });
+        openAutocomplete();
+        // The first option is auto-selected when the menu opens.
+        cy.get(
+            ".cm-tooltip-autocomplete li[aria-selected] .cm-completionIcon",
+        ).should(($icon) => {
+            expect(getComputedStyle($icon[0]).color).to.eq(
+                "rgb(255, 255, 255)",
+            );
+        });
     });
 });

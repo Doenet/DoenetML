@@ -28,7 +28,15 @@ import type {
     Position as LSPPosition,
     Range as LSPRange,
 } from "vscode-languageserver";
+import type { SyntaxNode } from "@lezer/common";
 import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
+import {
+    findAttributeContainingOffset,
+    findPrecedingEqualsForBareValue,
+    identifierAtOffset,
+    identifierPrecedingOffset,
+    synthesizeStrippedAttribute,
+} from "./methods/attribute-helpers";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -185,6 +193,41 @@ export class DoenetSourceObject extends LazyDataObject {
 
     /**
      * Get the element attribute at `offset`, if it exists.
+     *
+     * Accepts cursors reported as `attributeName` or `attributeValue` as well
+     * as the boundary cases `openTag` (e.g. cursor right after the opening
+     * quote of a value) and `unknown` (e.g. cursor right after `=` on a
+     * partial attribute, before the value is opened). In all cases the result
+     * is restricted to a real attribute range, so cursors that aren't inside
+     * any attribute (between attrs, on the tag name, on body text) return
+     * `null`.
+     *
+     * Also applies an unquoted-value spillover heuristic: when the cursor
+     * lands in a bogus attribute that the parser produced for the unquoted
+     * value of a preceding attribute (e.g. the `full` in `<math simplify=full`
+     * or `<math simplify= full`), returns the preceding attribute so callers
+     * follow the user's intent rather than the parser's tokenization.
+     *
+     * Finally, when no attribute range contains the cursor at all, a
+     * bare-value-after-`=` fallback walks back over value chars and
+     * whitespace; if `=` precedes them, the attribute whose range contains
+     * that `=` is returned. This mirrors the fallback in
+     * `AutoCompleter.getCompletionItems` for parser states where typed
+     * value chars don't yet land inside any attribute's range.
+     *
+     * Caveat — synthesized return values: when `lezer-to-dast` stripped
+     * a bare-value pair from `node.attributes` (`<math simplify=full>` —
+     * #1197), the fallback synthesizes a virtual `DastAttribute` from
+     * the identifier in the source via `synthesizeStrippedAttribute`.
+     * Such returns carry `name` and `position` but always
+     * `children: []` — the value half was stripped along with the
+     * assign half and is not reconstructed.  Callers that need the
+     * typed value (`toXml(attr.children)` on a synthesized return
+     * yields `""`) should slice `this.source` around `attr.position`
+     * themselves.  Today's only consumers (`computeContextHelp`,
+     * autocomplete) read only `attr.name`, so this is transparent;
+     * future consumers reading `attr.children` need to handle the
+     * synthesized case explicitly.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -195,19 +238,106 @@ export class DoenetSourceObject extends LazyDataObject {
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
-                containingElm.cursorPosition !== "attributeValue")
+                containingElm.cursorPosition !== "attributeValue" &&
+                // `openTag` is reported once the cursor sits past an attribute
+                // name on the equals/quote boundary in some cases, and
+                // `unknown` is reported in others (e.g. cursor right after `=`
+                // on a partial attribute, before the value is opened). The
+                // position-containment check below still restricts the result
+                // to a real attribute range, so cursors between attrs
+                // (`<math foo |bar`) or on the tag name return null naturally.
+                containingElm.cursorPosition !== "openTag" &&
+                containingElm.cursorPosition !== "unknown")
         ) {
             return null;
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = Object.values(containingElm.node.attributes).find(
-            (a) =>
-                a.position &&
-                a.position.start.offset! <= _offset &&
-                a.position.end.offset! >= _offset,
-        );
-        return attribute || null;
+        const attributes = Object.values(containingElm.node.attributes);
+        const attribute = findAttributeContainingOffset(attributes, _offset);
+        if (!attribute) {
+            // Bare-value-after-`=` fallback: in some parser states the typed
+            // value chars don't fall inside any attribute's position range
+            // (mirrored in `AutoCompleter.getCompletionItems`). Walk back
+            // over value chars + whitespace; if we land on `=`, return the
+            // attribute whose range contains the `=`.
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                _offset,
+            );
+            if (equalsOffset != null) {
+                const containing = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false },
+                );
+                if (containing) return containing;
+                // Stripped unquoted-pair fallback (#1197): the bare-value
+                // half of `<math simplify=full>` is removed from
+                // `node.attributes` by the parser, so the `=` lookup above
+                // misses on the value side.  Walk back over the assign
+                // half's identifier token (skipping any whitespace between
+                // it and `=`, so `<math simplify = full>` still resolves)
+                // and synthesize a virtual `DastAttribute` so context-help
+                // / autocomplete still resolve the attribute the cursor is
+                // conceptually on.
+                const ident = identifierPrecedingOffset(
+                    this.source,
+                    equalsOffset,
+                );
+                if (ident) {
+                    return synthesizeStrippedAttribute(
+                        this.source,
+                        ident.start,
+                        ident.end,
+                        (o) => this.offsetToRowCol(o),
+                    );
+                }
+                return null;
+            }
+            // Same stripping case, viewed from the assign-half side:
+            // the cursor sits inside the now-removed identifier (e.g.
+            // mid-`bad` in `<math bad=foo`).  If the cursor straddles an
+            // attribute-name token in the source, synthesize from that
+            // token so the panel keeps something useful on screen.
+            const ident = identifierAtOffset(this.source, _offset);
+            if (ident) {
+                return synthesizeStrippedAttribute(
+                    this.source,
+                    ident.start,
+                    ident.end,
+                    (o) => this.offsetToRowCol(o),
+                );
+            }
+            return null;
+        }
+
+        // Unquoted value spillover: `<math simplify=full>` parses as TWO
+        // attributes — `simplify` (with the `=` baked into its range) and
+        // `full` (a bogus attribute with no value). When the cursor lands
+        // in the bogus one and the chars between it and the preceding
+        // attribute are just `=` plus optional whitespace, the user is
+        // mid-typing a value for the preceding attribute. Walk back over
+        // whitespace to also catch `<math simplify= full>` (space after `=`)
+        // — the parser absorbs the whitespace into `simplify`'s range, so
+        // the preceding attribute is the one whose source range *contains*
+        // the `=` position.
+        const startOffset = attribute.position?.start.offset;
+        if (startOffset != null && startOffset > 0) {
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                startOffset,
+            );
+            if (equalsOffset != null) {
+                const preceding = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false, exclude: attribute },
+                );
+                if (preceding) return preceding;
+            }
+        }
+        return attribute;
     }
 
     /**
@@ -248,6 +378,15 @@ export class DoenetSourceObject extends LazyDataObject {
                 }
                 if (!lezerNodeParent?.getChild("CloseTag")) {
                     closed = false;
+                } else if (
+                    this._isCloseTagStolenFromAncestor(lezerNodeParent)
+                ) {
+                    // The parser found a CloseTag for us, but its stack-based
+                    // matching has likely "stolen" what the user intended as
+                    // an ancestor's close tag for this inner element
+                    // (issue #1117). Treat as unclosed so callers (auto-close
+                    // and `</` completion) insert / suggest a fresh close tag.
+                    closed = false;
                 }
                 break;
             }
@@ -266,6 +405,59 @@ export class DoenetSourceObject extends LazyDataObject {
         }
 
         return { tagComplete, closed };
+    }
+
+    /**
+     * Walk up the contiguous chain of same-name ancestor `Element` nodes
+     * starting from `elementNode`'s parent. Returns true if any of those
+     * same-name ancestors is missing its `CloseTag` — meaning the parser's
+     * stack-based matching has shifted close tags down a level and the
+     * close tag the parser attributed to `elementNode` was, from the user's
+     * perspective, "stolen" from an ancestor (issue #1117).
+     *
+     * Stops at the first ancestor with a different tag name (or at the
+     * root): the stealing pattern only happens through a same-name chain,
+     * because that's the only configuration where the parser stack can
+     * shuffle close tags. For example, `<p><div><p></p></div>` does NOT
+     * trigger — `<div>` breaks the chain and the inner `</p>` is
+     * genuinely the inner `<p>`'s own.
+     *
+     * Comparison is case-sensitive to match XML/DoenetML semantics.
+     */
+    _isCloseTagStolenFromAncestor(elementNode: SyntaxNode): boolean {
+        const openTag = elementNode.getChild("OpenTag");
+        const tagNameNode = openTag?.getChild("TagName");
+        if (!tagNameNode) {
+            return false;
+        }
+        const tagName = this.source.slice(tagNameNode.from, tagNameNode.to);
+        if (!tagName) {
+            return false;
+        }
+
+        let ancestor = elementNode.parent;
+        while (ancestor) {
+            if (ancestor.type.name !== "Element") {
+                return false;
+            }
+            const ancestorOpenTag = ancestor.getChild("OpenTag");
+            const ancestorTagNameNode = ancestorOpenTag?.getChild("TagName");
+            if (!ancestorTagNameNode) {
+                return false;
+            }
+            const ancestorName = this.source.slice(
+                ancestorTagNameNode.from,
+                ancestorTagNameNode.to,
+            );
+            if (ancestorName !== tagName) {
+                return false;
+            }
+            if (!ancestor.getChild("CloseTag")) {
+                return true;
+            }
+            ancestor = ancestor.parent;
+        }
+        return false;
     }
 
     /**
@@ -296,6 +488,19 @@ export class DoenetSourceObject extends LazyDataObject {
     getParent(node: DastNodes): DastElement | DastRoot | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
+    }
+
+    /**
+     * Get the tag name of the parent element of `node`, or `undefined` when
+     * the parent is the document root (no `name` field) or `node` has no
+     * parent at all. Convenience over `getParent` that's used wherever the
+     * alias-aware schema lookups need the grandparent/parent name string —
+     * keeping the `parent && "name" in parent ? parent.name : undefined`
+     * dance in one place so callsites don't drift.
+     */
+    getParentElementName(node: DastNodes): string | undefined {
+        const parent = this.getParent(node);
+        return parent && "name" in parent ? parent.name : undefined;
     }
 
     /**

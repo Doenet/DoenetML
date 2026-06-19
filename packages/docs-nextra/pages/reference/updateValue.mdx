@@ -1,26 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <updateValue>{:dn}`
+# `<updateValue>{:dn}`
 
+<ComponentDisplay name='updateValue'/>
 
-` <updateValue>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+`<updateValue>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) 
 component that changes the value or property of a named component based on a button click interaction or a boolean condition.
 
 
-## Attributes and Properties 
- <AttrDisplay name='updateValue'/> 
- <PropDisplay name='updateValue'/>
+<AttrPropDisplay name='updateValue'/>
 
----
+## Examples
 
-### Example: Change the color of a ` <circle>{:dn}`
+### Example: Change the color of a `<circle>{:dn}`
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" radius="6" filled/>
 </graph>
 
@@ -35,13 +35,13 @@ component that changes the value or property of a named component based on a but
 
 
 
-An ` <updateValue>{:dn}` is used to change the `styleNumber` property of a named ` <circle>{:dn}` from the default value ($1$) to $2$. Once this change occurs, the button becomes disabled.
+An `<updateValue>{:dn}` is used to change the `styleNumber` property of a named `<circle>{:dn}` from the default value ($1$) to $2$. Once this change occurs, the button becomes disabled.
 
 
 
 ---
 
-### Example: Change the value of a ` <number>{:dn}`
+### Example: Change the value of a `<number>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -56,11 +56,11 @@ An ` <updateValue>{:dn}` is used to change the `styleNumber` property of a named
 
 
 
-An ` <updateValue>{:dn}` is used to change the value of a ` <number>{:dn}` based on the number's current value.
+An `<updateValue>{:dn}` is used to change the value of a `<number>{:dn}` based on the number's current value.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: target
 
@@ -75,6 +75,7 @@ An ` <updateValue>{:dn}` is used to change the value of a ` <number>{:dn}` based
 </updateValue>
 
 <graph size="small">
+  <shortDescription>A graph of a circle</shortDescription>
   <circle name="circ" radius="8"/>
 </graph>
 ```
@@ -123,6 +124,7 @@ The `type` attribute specifies the type of component that is changing. The defau
 </updateValue>
 
 <graph size="small">
+  <shortDescription>A graph of a line</shortDescription>
   <line name="line1">y = x</line>
 </graph>
 ```
@@ -140,6 +142,7 @@ The `newValue` attribute specifies the new value for the target or target proper
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" radius="6" filled/>
 </graph>
 
@@ -169,10 +172,10 @@ The `disabled` attribute takes a boolean condition. When the condition evaluates
   newValue="1"
 />
 
-<p>What is the radius of the circle? 
-  <answer name="ans1">$circ.radius</answer></p>   
+<p><answer name="ans1"><label>What is the radius of the circle?</label>$circ.radius</answer></p>   
 
 <graph size="small" name="g" grid>
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" styleNumber="2" radius="6" filled fixLocation/>
 </graph>
 ```
@@ -204,13 +207,14 @@ The `triggerWhen` attribute establishes a boolean condition for triggering when 
 />
 
 <graph size="small">
+  <shortDescription>A graph of a movable point</shortDescription>
   <point name="p"/>
 </graph>     
 ```
 
 
 
-The `triggerWith` attribute allows the update to occur based on interaction with another specified component. In this way, the actions of two or more ` <updateValue>{:dn}` components may be chained together.
+The `triggerWith` attribute allows the update to occur based on interaction with another specified component. In this way, the actions of two or more `<updateValue>{:dn}` components may be chained together.
 
 
 
@@ -229,6 +233,7 @@ The `triggerWith` attribute allows the update to occur based on interaction with
 <p>Click the point or the label to change the point's color.</p>
 
 <graph size="small">
+  <shortDescription>A graph of a clickable point with a label</shortDescription>
   <point name="p"/>
   <label anchor="(6,4)" name="message">Or, click here</label>
 </graph> 
@@ -236,10 +241,5 @@ The `triggerWith` attribute allows the update to occur based on interaction with
 
 
 
-Updates can be triggered by click interactions with graphical components defined within a ` <graph>{:dn}` using the `triggerWhenObjectsClicked` attribute.
-
-
-
----
-
+Updates can be triggered by click interactions with graphical components defined within a `<graph>{:dn}` using the `triggerWhenObjectsClicked` attribute.
 

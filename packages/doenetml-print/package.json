@@ -1,0 +1,102 @@
+{
+    "name": "@doenet/doenetml-print",
+    "type": "module",
+    "description": "Printing-related tooling and experiments for DoenetML",
+    "version": "0.0.1",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "wireit",
+        "build:dev": "wireit",
+        "preview": "vite preview"
+    },
+    "wireit": {
+        "build:dev": {
+            "command": "vite build --mode development --outDir dist-dev",
+            "files": [
+                "dev/**/*.ts",
+                "dev/**/*.tsx",
+                "dev/**/*.css",
+                "dev/**/*.doenet",
+                "src/**/*.html",
+                "src/**/*.css"
+            ],
+            "output": [
+                "dist-dev/**/*.js",
+                "dist-dev/**/*.map",
+                "dist-dev/**/*.css",
+                "dist-dev/**/*.d.ts",
+                "dist-dev/**/*.json"
+            ],
+            "dependencies": [
+                "build",
+                "../doenetml-to-pretext:build"
+            ]
+        },
+        "build:python": {
+            "command": "cd python && python3 setup.py sdist bdist_wheel",
+            "files": [
+                "python/**/*.py",
+                "python/MANIFEST.in",
+                "python/setup.py",
+                "python/README.md",
+                "python/pretext_wasm/core/**/*"
+            ],
+            "output": [
+                "python/dist/**/*"
+            ]
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "src/**/*.css",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.css",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "build:python",
+                "../prefigure:build"
+            ]
+        }
+    },
+    "peerDependencies": {
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3"
+    },
+    "prettier": {
+        "tabWidth": 4
+    },
+    "dependencies": {
+        "@doenet/doenetml-to-pretext": "*",
+        "rehype-parse": "^9.0.1",
+        "rehype-stringify": "^10.0.1"
+    },
+    "devDependencies": {
+        "pyodide": "^0.26.4",
+        "vite-plugin-arraybuffer": "^0.1.4"
+    }
+}

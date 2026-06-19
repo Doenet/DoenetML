@@ -1,22 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <styleDefinition>{:dn}`
+# `<styleDefinition>{:dn}`
 
 
-` <styleDefinition>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
-component that allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component.
+<ComponentDisplay name='styleDefinition'/>
+
+`<styleDefinition>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) 
+component that allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a `<styleDefinition>{:dn}` component.
 
 
 These new styles are assigned unique numbers that can be used locally in that document.
 
-## Attributes and Properties 
- <AttrDisplay name='styleDefinition'/> 
- <PropDisplay name='styleDefinition'/>
+<AttrPropDisplay name='styleDefinition'/>
 
----
+## Examples
 
 ### Example: Defining a custom style
 

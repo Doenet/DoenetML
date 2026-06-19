@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.16",
+    "version": "0.7.20",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -26,6 +26,7 @@
     "scripts": {
         "dev": "vite",
         "build": "wireit",
+        "build:dev": "wireit",
         "preview": "vite preview",
         "test": "vitest",
         "test-cypress": "cypress open --component",
@@ -33,6 +34,23 @@
         "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {
+        "build:dev": {
+            "command": "vite build --mode development --outDir dist-dev",
+            "files": [
+                "src/**/*.html",
+                "src/**/*.css"
+            ],
+            "output": [
+                "dist-dev/**/*.js",
+                "dist-dev/**/*.map",
+                "dist-dev/**/*.css",
+                "dist-dev/**/*.d.ts",
+                "dist-dev/**/*.json"
+            ],
+            "dependencies": [
+                "build"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [
@@ -46,6 +64,7 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.css",
                 "dist/**/*.json",

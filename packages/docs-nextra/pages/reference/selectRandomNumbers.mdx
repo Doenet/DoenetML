@@ -1,19 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<selectRandomNumbers/>{:dn}`
 
-` <selectRandomNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='selectRandomNumbers'/>
+
+`<selectRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that generates document variants by selecting random numbers from a specified range of 
 values or within a normal distribution around a specified mean.
 
-## Attributes and Properties 
- <AttrDisplay name='selectRandomNumbers'/> 
- <PropDisplay name='selectRandomNumbers'/>
+<AttrPropDisplay name='selectRandomNumbers'/>
 
----
+## Examples
 
 ### Example: Default `<selectRandomNumbers/>{:dn}`
 
@@ -27,28 +27,6 @@ values or within a normal distribution around a specified mean.
 
 
 Without any attributes specified, the default selection  `type` is `uniform`, and the default interval is $[0, 1)$.
-
-Select a new page variant from the pulldown menu at the top of the 
-editor to see different variants of the document.
-
----
-
-### Attribute Example: numToSelect
-
-
-```doenet-editor-horiz
-<selectRandomNumbers
-  name="s"
-  numToSelect="4"
-/>
-
-<p>The third selection is <c>s[3]</c> = $s[3]</p>
-```
-
-
-
-The ` <selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
-random values in the default interval $[0,1)$. The default `type` is `uniform`. 
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -78,6 +56,28 @@ which reference the selected values.
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
+## Attribute Examples
+
+### Attribute Example: numToSelect
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="s"
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+```
+
+
+
+The `<selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
+random values in the default interval $[0,1)$. The default `type` is `uniform`. 
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
 ---
 
 ### Attribute Example: from, to
@@ -96,7 +96,7 @@ editor to see different variants of the document.
 
 
 
-The ` <selectRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the 
+The `<selectRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the 
 default selection interval. The default `type` is `uniform`.
 
 
@@ -124,7 +124,7 @@ editor to see different variants of the document.
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
 The `discreteUniform` selection generates values from an evenly spaced range defined by the 
 attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
 
@@ -158,7 +158,7 @@ editor to see different variants of the document.
 ```
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
 as `discreteUniform`. Values can be excluded from the specified range used with this type using the `exclude` attribute.
 
 Select a new page variant from the pulldown menu at the top of the 
@@ -185,7 +185,7 @@ editor to see different variants of the document.
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
 The `discreteUniform` selection generates values from an evenly spaced range defined by the 
 attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
 
@@ -212,7 +212,7 @@ editor to see different variants of the document.
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is 
 specified as `gaussian`. The `gaussian` selection generates standard normal 
 variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` 
 or the `standardDeviation` attributes may be defined.
@@ -243,7 +243,7 @@ editor to see different variants of the document.
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
 as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
 this example, the `mean` and the `variance` are defined with attributes.
 
@@ -274,7 +274,7 @@ editor to see different variants of the document.
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+The `type` attribute of the `<selectRandomNumbers/>{:dn}` component is specified 
 as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
 this example, the `mean` and the `standardDeviation` are defined with attributes.
 

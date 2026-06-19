@@ -7,7 +7,7 @@ export default class Integer extends NumberComponent {
     static componentType = "integer";
 
     static componentDocs = {
-        summary: "An integer value.",
+        summary: "An integer value",
     };
     static rendererType = "number";
 

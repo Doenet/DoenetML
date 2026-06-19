@@ -7,7 +7,7 @@ export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
     static componentDocs = {
-        summary: "A list of booleans.",
+        summary: "A list of booleans",
     };
     static takesIndex = true;
 
@@ -70,7 +70,7 @@ export default class BooleanList extends CompositeComponent {
             createStateVariable: "asList",
             defaultValue: true,
             description:
-                "Whether to render the items separated by commas (true) or each on its own line (false).",
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;

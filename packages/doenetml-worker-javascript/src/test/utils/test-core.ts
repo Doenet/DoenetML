@@ -59,12 +59,12 @@ export async function createTestCore({
 }) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
-            __dirname,
+            import.meta.dirname,
             "../../../../doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
         ),
     );
 
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
 
     const rustCore = PublicDoenetMLCoreRust.new();
 

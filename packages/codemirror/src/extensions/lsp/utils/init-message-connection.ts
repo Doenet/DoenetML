@@ -2,10 +2,21 @@ import { createLspConnection } from "@qualified/lsp-connection";
 import { createMessageConnection } from "@qualified/vscode-jsonrpc-ww";
 
 /**
- * Initialize a WebWorker that runs a language server. The worker is initialized with
- * `rootUri` set to `file:///` and `workspaceFolders` set to `null`.
+ * Perform the LSP `initialize` handshake with a language server already
+ * running inside `worker`, and return the connected client.  The server is
+ * initialized with `rootUri` set to `file:///` and `workspaceFolders` `null`.
+ *
+ * `worker` is the *language-server* worker; the caller constructs it.
+ *
+ * `doenetWorkerUrl` is unrelated to that worker — it is the URL of the
+ * separate *DoenetML core* worker bundle.  The language server cannot
+ * discover that URL on its own, so it is handed over here inside the
+ * `initialize` request's `initializationOptions` (the LSP-standard channel
+ * for host-to-server configuration).  With it the server can spawn its own
+ * core sub-worker for rust-backed path resolution; without it, rust-backed
+ * completions are disabled.
  */
-export async function initWorker(worker: Worker) {
+export async function initWorker(worker: Worker, doenetWorkerUrl?: string) {
     const workerConn = await createMessageConnection(worker);
     const lspConn = createLspConnection(workerConn);
     lspConn.listen();
@@ -90,7 +101,7 @@ export async function initWorker(worker: Worker) {
                 },
             },
         },
-        initializationOptions: null,
+        initializationOptions: doenetWorkerUrl ? { doenetWorkerUrl } : null,
         processId: null,
         rootUri: "file:///",
         workspaceFolders: null,

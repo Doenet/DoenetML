@@ -7,7 +7,7 @@ export default class ElectronConfiguration extends MathComponent {
 
     static componentDocs = {
         summary:
-            "Renders an electron configuration math expression with proper subscript and superscript formatting.",
+            "Renders an electron configuration with sublevel labels and superscripted electron counts",
     };
 
     static returnStateVariableDefinitions() {

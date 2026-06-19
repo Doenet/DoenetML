@@ -1,40 +1,39 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <boolean>{:dn}`
+# `<boolean>{:dn}`
 
+<ComponentDisplay name='boolean'/>
 
-` <boolean>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+`<boolean>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) 
 component that renders the boolean value of `true` or `false` of the enclosed expression.
 
-## Attributes and Properties 
- <AttrDisplay name='boolean'/> 
- <PropDisplay name='boolean'/>
+<AttrPropDisplay name='boolean'/>
 
 
----
+## Examples
 
-### Example: ` <boolean>{:dn}` value of an equation
+### Example: `<boolean>{:dn}` value of an equation
 
 
 ```doenet-example
 <p>The following equation is 
   <alert><boolean>1 + 1 = $input</boolean></alert>.</p>
-  <m>1 + 1 = </m> <mathInput name="input" prefill="3"/>
+  <p><mathInput name="input" prefill="3"><label><m>1 + 1 = </m></label></mathInput></p>
 ```
 
 
 
-A ` <boolean>{:dn}` component is used to render whether an 
+A `<boolean>{:dn}` component is used to render whether an 
 equation is `true` or `false` for a user-supplied response
 
 
 
 ---
 
-### Example: ` <boolean>{:dn}` value of a geometric property
+### Example: `<boolean>{:dn}` value of a geometric property
 
 
 ```doenet-editor-horiz
@@ -50,21 +49,19 @@ equation is `true` or `false` for a user-supplied response
 
 
 
-A ` <boolean>{:dn}` component is used to render whether a statement regarding 
-the geometric slope of a named ` <line>{:dn}` is `true` or `false`. Adjust the slope of 
-the line to affect the ` <boolean>{:dn}`.
+A `<boolean>{:dn}` component is used to render whether a statement regarding 
+the geometric slope of a named `<line>{:dn}` is `true` or `false`. Adjust the slope of 
+the line to affect the `<boolean>{:dn}`.
 
 
 
 ---
 
-### Example: Constructing compound ` <boolean>{:dn}` expressions
+### Example: Constructing compound `<boolean>{:dn}` expressions
 
 
 ```doenet-editor-horiz
- <p>I'm thinking of a number that is less than 100, 
- greater than 20, and is divisible by 3. 
- What could my number be? <mathInput name="userNumber"/></p>
+ <p><mathInput name="userNumber"><label>I'm thinking of a number that is less than 100, greater than 20, and is divisible by 3. What could my number be?</label></mathInput></p>
 
 <p>Is it less than 100? 
   <boolean name="lessThan100">
@@ -96,25 +93,24 @@ the line to affect the ` <boolean>{:dn}`.
 
 
 
-Multiple named ` <boolean>{:dn}` components can be combined to create 
+Multiple named `<boolean>{:dn}` components can be combined to create 
 more complex boolean expressions.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: symbolicEquality
 
 
 ```doenet-example
-<p>Enter <m>x^2 + 2x + 1</m> exactly: 
-  <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Enter <m>x^2 + 2x + 1</m> exactly</label></mathInput></p>
   <boolean symbolicEquality>$mi = x^2 + 2x + 1</boolean>
 ```
 
 
 
-Comparing two values with the `symbolicEquality` attribute switches demands exact syntactical equality.
+Comparing two values with the `symbolicEquality` attribute demands exact syntactical equality.
 
 
 
@@ -124,8 +120,7 @@ Comparing two values with the `symbolicEquality` attribute switches demands exac
 
 
 ```doenet-example
-<p>Enter <m>x^2 + 2x + 1</m> in factored form: 
-  <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Enter <m>x^2 + 2x + 1</m> in factored form</label></mathInput></p>
   <boolean expandOnCompare symbolicEquality>$mi = x^2 + 2x + 1</boolean>
 ```
 
@@ -142,8 +137,7 @@ allows expressions that are equivalent after expanding to evaluate to `true`.
 
 
 ```doenet-example
-<p>Enter any expression that simplifies to <m>x^2 + 2x + 1</m>: 
-  <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Enter any expression that simplifies to <m>x^2 + 2x + 1</m></label></mathInput></p>
   <boolean simplifyOnCompare symbolicEquality>$mi = x^2 + 2x + 1</boolean>
 ```
 
@@ -160,15 +154,13 @@ allows expressions that are equivalent after simplifying to evaluate to `true`.
 
 
 ```doenet-editor-horiz
-<p>Enter <m>1,2,3,4,5</m> in that exact order: 
-  <mathInput name="mi"/></p>
+<p><mathInput name="mi"><label>Enter <m>1,2,3,4,5</m> in that exact order</label></mathInput></p>
 
 <p><boolean>
   $mi = <mathList>1 2 3 4 5</mathList>
 </boolean></p>
 
-<p>Enter <m>1,2,3,4,5</m> in mixed-up order: 
-  <mathInput name="mi2"/></p>
+<p><mathInput name="mi2"><label>Enter <m>1,2,3,4,5</m> in mixed-up order</label></mathInput></p>
 
 <p><boolean unorderedCompare>
   $mi2 = <mathList>1 2 3 4 5</mathList>
@@ -177,7 +169,7 @@ allows expressions that are equivalent after simplifying to evaluate to `true`.
 
 
 
-When multiple values are compared within a single ` <boolean>{:dn}` tag, 
+When multiple values are compared within a single `<boolean>{:dn}` tag, 
 the default behavior is to match the order of the sequenced values. 
 If order is irrelevant, use the `unorderedCompare` attribute.
 
@@ -189,10 +181,12 @@ If order is irrelevant, use the `unorderedCompare` attribute.
 
 
 ```doenet-editor-horiz
-<p>Enter <m>1,2,3</m> in that exact order: </p>
-  <mathInput name="mi1"/>, 
-  <mathInput name="mi2"/>, 
-  <mathInput name="mi3"/>
+<p>Enter <m>1,2,3</m> in that exact order:</p>
+  <p>
+    <mathInput name="mi1"><shortDescription>First number</shortDescription></mathInput>,
+    <mathInput name="mi2"><shortDescription>Second number</shortDescription></mathInput>,
+    <mathInput name="mi3"><shortDescription>Third number</shortDescription></mathInput>
+  </p>
 <p><boolean matchByExactPositions>
   ($mi1, $mi2, $mi3) = (1, 2, 3)
 </boolean></p>
@@ -203,9 +197,9 @@ If order is irrelevant, use the `unorderedCompare` attribute.
 
 
 When multiple responses are evaluated by comparison with a 
-vector of correct values inside a ` <boolean>{:dn}`, the `matchByExactPositions` attribute 
+vector of correct values inside a `<boolean>{:dn}`, the `matchByExactPositions` attribute 
 enforces a strict order onto the validation. Only correct values in the correct answer 
-blanks will allow the ` <boolean>{:dn}` to evaluate to `true`.
+blanks will allow the `<boolean>{:dn}` to evaluate to `true`.
 
 
 
@@ -215,12 +209,10 @@ blanks will allow the ` <boolean>{:dn}` to evaluate to `true`.
 
 
 ```doenet-example
-<p>Enter a number within <m>1\%</m> of <m>100</m>: 
-  <mathInput name="mi1"/></p>
+<p><mathInput name="mi1"><label>Enter a number within <m>1\%</m> of <m>100</m></label></mathInput></p>
   <boolean allowedErrorInNumbers="0.01">$mi1 = 100</boolean>
 
-<p>Enter a number within <m>10\%</m> of <m>100</m>: 
-  <mathInput name="mi2"/></p>
+<p><mathInput name="mi2"><label>Enter a number within <m>10\%</m> of <m>100</m></label></mathInput></p>
   <boolean allowedErrorInNumbers="0.1">$mi2 = 100</boolean>
 ```
 
@@ -236,14 +228,12 @@ By default, the error is specified as a fractional value.
 
 
 ```doenet-example
-<p>Enter a number within <m>1</m> of <m>100</m>: 
-  <mathInput name="mi1"/></p>
+<p><mathInput name="mi1"><label>Enter a number within <m>1</m> of <m>100</m></label></mathInput></p>
   <boolean allowedErrorInNumbers="1" allowedErrorIsAbsolute>
     $mi1 = 100
   </boolean>
 
-<p>Enter a number within <m>10</m> of <m>100</m>:  
-  <mathInput name="mi2"/></p>
+<p><mathInput name="mi2"><label>Enter a number within <m>10</m> of <m>100</m></label></mathInput></p>
   <boolean allowedErrorInNumbers="10" allowedErrorIsAbsolute>
     $mi2 = 100
   </boolean>
@@ -260,12 +250,10 @@ with the `allowedErrorInNumbers` attribute.
 
 
 ```doenet-editor-horiz
-<p>Enter tTkLp: 
-  <textInput name="ti1"/></p>
+<p><textInput name="ti1"><label>Enter tTkLp</label></textInput></p>
   <boolean>tTkLp = $ti1</boolean>
 
-<p>Enter tTkLp with any capitalization: 
-  <textInput name="ti2"/></p>
+<p><textInput name="ti2"><label>Enter tTkLp with any capitalization</label></textInput></p>
   <boolean caseInsensitiveMatch>tTkLp = $ti2</boolean>
 ```
 
@@ -282,7 +270,7 @@ Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for c
 
 ```doenet-editor-horiz
 <p>Compare two expressions with blanks</p>
-<mathInput name="mi" prefill="/x"/> = <math>/x</math>
+<p><mathInput name="mi" prefill="/x"><label>Expression with a blank</label></mathInput> = <math>/x</math></p>
 
 <p><boolean matchBlanks>$mi = /x</boolean></p>
 <p><boolean>$mi = /x</boolean></p>
@@ -294,21 +282,20 @@ Use the `matchBlanks` attribute to accurately compare two expressions containing
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 
 
 ```doenet-example
-<p>Enter "1" for true, not "1" for false: </p>
-      <mathInput name="mi"/>
+<p><mathInput name="mi"><label>Enter "1" for true, not "1" for false</label></mathInput></p>
 <p><boolean name="bool">1 = $mi</boolean></p>
 <p><c>value</c> = $bool.value</p>
 ```
 
 
 
-The `value` property of a named ` <boolean>{:dn}` returns its value of `true` or `false`.
+The `value` property of a named `<boolean>{:dn}` returns its value of `true` or `false`.
 
 
 
@@ -318,15 +305,14 @@ The `value` property of a named ` <boolean>{:dn}` returns its value of `true` or
 
 
 ```doenet-example
-<p>Enter "1" for true, not "1" for false: </p>
-      <mathInput name="mi"/>
+<p><mathInput name="mi"><label>Enter "1" for true, not "1" for false</label></mathInput></p>
 <p><boolean name="bool">1 = $mi</boolean></p>
 <p><c>text</c> = $bool.text</p>
 ```
 
 
 
-The `text` property of a named ` <boolean>{:dn}` returns the text value of `true` or `false`.
+The `text` property of a named `<boolean>{:dn}` returns the text value of `true` or `false`.
 
 
 
@@ -350,7 +336,7 @@ The `text` property of a named ` <boolean>{:dn}` returns the text value of `true
 
 
 
-The above listed attributes of a ` <boolean>{:dn}` are also available as properties.
+The above listed attributes of a `<boolean>{:dn}` are also available as properties.
 
 
 
@@ -373,6 +359,6 @@ The above listed attributes of a ` <boolean>{:dn}` are also available as propert
 
 
 
-The above listed attributes of a ` <boolean>{:dn}` are also available as properties.
+The above listed attributes of a `<boolean>{:dn}` are also available as properties.
 
 

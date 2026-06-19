@@ -90,6 +90,18 @@ export default defineConfig({
                         "@lezer/highlight",
                         "@qualified/lsp-connection",
                         "@qualified/vscode-jsonrpc-ww",
+                        // The LSP value imports — runtime constants
+                        // (`CompletionItemKind`, `MarkupKind`) pulled in
+                        // by `@doenet/lsp-tools/auto-completer/methods/*`
+                        // and the client-side `vscode-languageserver-protocol/browser`
+                        // imported directly by `@doenet/codemirror`'s
+                        // `lsp/worker.ts`. Without these, Vite first
+                        // discovers them while the contextHelp spec is
+                        // loading and triggers a "optimized dependencies
+                        // changed. reloading" that aborts the spec's
+                        // dynamic import.
+                        "vscode-languageserver/browser",
+                        "vscode-languageserver-protocol/browser",
                     ],
                 },
             },

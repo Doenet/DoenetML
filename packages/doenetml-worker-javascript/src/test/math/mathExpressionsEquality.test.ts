@@ -1019,6 +1019,30 @@ describe("Math expressions equality tests @group2", async () => {
             symbolicSimplifyEqual: true,
             symbolicSimplifyExpandEqual: true,
         },
+        {
+            expr1: '<math format="latex">\\pm \\sqrt{x}</math>',
+            expr2: "±sqrt(x)",
+            equal: true,
+            symbolicEqual: true,
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
+        },
+        {
+            expr1: "x ± y",
+            expr2: "± y + x",
+            equal: true,
+            symbolicEqual: false,
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
+        },
+        {
+            expr1: "a ± b",
+            expr2: "a + b",
+            equal: false,
+            symbolicEqual: false,
+            symbolicSimplifyEqual: false,
+            symbolicSimplifyExpandEqual: false,
+        },
     ];
 
     for (let [ind, info] of equivalences.entries()) {

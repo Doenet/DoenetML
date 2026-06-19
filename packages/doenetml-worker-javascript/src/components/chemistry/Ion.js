@@ -12,7 +12,7 @@ export default class Ion extends InlineComponent {
 
     static componentDocs = {
         summary:
-            "Represents a charged ion specified by element and charge, rendered with its chemical formula.",
+            "Represents a charged ion specified by element and charge, rendered with its chemical formula",
     };
 
     static primaryStateVariableForDefinition = "atomicNumberShadow";

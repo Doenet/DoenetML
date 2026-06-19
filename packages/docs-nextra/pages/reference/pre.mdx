@@ -1,22 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <pre>{:dn}`
+# `<pre>{:dn}`
 
+<ComponentDisplay name='pre'/>
 
-The ` <pre>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+The `<pre>{:dn}` is a [Paragraph Markup](../concepts/essentialConcepts#component-types)
 component that renders a block of text that preserves the formatting of the text directly as 
 input into the editor, including line spacing, font and indentation.
 
-## Attributes and Properties 
-The ` <pre>{:dn}` component has no attributes.
- <PropDisplay name='pre'/>
+<AttrPropDisplay name='pre'/>
 
----
+## Examples
 
-### Example: Using ` <pre>{:dn}` to modify default spacing
+### Example: Using `<pre>{:dn}` to modify default spacing
 
 
 ```doenet-editor-horiz
@@ -30,6 +29,6 @@ The ` <pre>{:dn}` component has no attributes.
 
 
 
-The ` <pre>{:dn}` component is used to precisely
+The `<pre>{:dn}` component is used to precisely
 space the lines of a Haiku as they are typed in the editor.
 

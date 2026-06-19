@@ -4,7 +4,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
     static componentType = "regionHalfPlane";
 
     static componentDocs = {
-        summary: "A half-plane region bounded by a line.",
+        summary: "A half-plane region bounded by a line",
     };
     static rendererType = undefined;
 
@@ -13,7 +13,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
 
         attributes.horizontal = {
             description:
-                "Whether the half-plane is bounded by a horizontal line.",
+                "Whether the half-plane extends horizontally, bounded by the vertical line x = boundaryValue. If false, the half-plane extends vertically, bounded by the horizontal line y = boundaryValue.",
             createComponentOfType: "boolean",
             createStateVariable: "horizontal",
             defaultValue: true,
@@ -21,7 +21,8 @@ export default class RegionHalfPlane extends GraphicalComponent {
         };
 
         attributes.boundaryValue = {
-            description: "Value of the bounding line (e.g. y = boundaryValue).",
+            description:
+                "Position of the bounding line: x = boundaryValue when horizontal is true, y = boundaryValue when horizontal is false.",
             createComponentOfType: "number",
             createStateVariable: "boundaryValue",
             defaultValue: 0,

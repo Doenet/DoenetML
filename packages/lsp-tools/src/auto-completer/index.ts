@@ -1,4 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
+import { findAttributeContainingOffset } from "../doenet-source-object/methods/attribute-helpers";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import type { ValidValueEntry } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
@@ -10,7 +11,22 @@ import {
     getCompletionContext,
     type CompletionContext,
 } from "./methods/get-completion-context";
-import type { RustResolverAdapter } from "./rust-resolver-adapter";
+import {
+    COMPOSITE_WRAPPER_NAMES,
+    getElementNameAttributeValue,
+    type RustResolverAdapter,
+} from "./rust-resolver-adapter";
+import { isRepeatLikeElement } from "./repeat-elements";
+import {
+    collectModuleInstancesWithCopyOrExtend,
+    getEffectiveModuleAttributes,
+    type DeclaredModuleAttribute,
+} from "./module-attributes";
+
+// Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
+// can type a precomputed completion context they thread into
+// `computeContextHelp` to avoid a redundant schema walk per RPC.
+export { type CompletionContext };
 
 /**
  * Per-attribute fields surfaced in autocomplete and the help panel.
@@ -25,17 +41,43 @@ export type SchemaAttribute = {
     description?: string;
     values?: string[];
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when the attribute is list-valued and its `values` constrain each
+     * item of the list (not the whole value). Schema-violation checks split the
+     * authored value on whitespace and validate each token; the help panel
+     * phrases the constraint per-item.
+     */
+    isList?: boolean;
     defaultValue?: unknown;
 };
 
 /**
+ * Per-dimension entry shape mirrored from the schema generator's
+ * `ArrayElementDescription` (see `static-assets/src/schema.ts`). `type` is
+ * optional because an unwrapped array slot without `createComponentOfType`
+ * has no type.
+ */
+export type ArrayElementDescription = {
+    type?: string;
+    isArray: boolean;
+    numDimensions?: number;
+};
+
+/**
  * Per-property fields. `type`/`isArray` are help-only metadata.
+ * `numDimensions`, `indexedArrayDescription`, and `indexAliases` are
+ * carried only for array properties so the editor can chase coordinate
+ * chains (`$vector.head.x`) through the alias table — see
+ * `auto-completer/index-aliases.ts`.
  */
 export type SchemaProperty = {
     name: string;
     description?: string;
     type?: string;
     isArray?: boolean;
+    numDimensions?: number;
+    indexedArrayDescription?: ArrayElementDescription[];
+    indexAliases?: readonly (readonly string[])[];
 };
 
 export type ElementSchema = {
@@ -47,6 +89,27 @@ export type ElementSchema = {
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
     children: string[];
+    /**
+     * Per-child bucket encoded as a digit string aligned position-for-position
+     * with `children`. `0` = listed in a child group, `1` = inherits from a
+     * listed type, `2` = reaches the list only via an adapter (or
+     * `allowInSchemaAnywhere`/`AsComponent`). The suggestions panel uses this
+     * to prefer natural children and drop adapter-only ones. Optional because
+     * hand-built test schemas and pre-#1229 snapshots omit it.
+     *
+     * Stored as a compact string rather than a `Record<string, number>`
+     * because the pretty-printed JSON would otherwise carry one line per
+     * (element × child) — for 243 elements that's ~24k lines vs ~250.
+     */
+    childBuckets?: string;
+    /**
+     * Abstract (`_`-prefixed) componentTypes this element inherits from,
+     * nearest first. The suggestions ranker uses this to let an override
+     * keyed by an abstract ancestor (e.g. `_sectioningComponent`) apply to
+     * every concrete element inheriting from it. Optional because
+     * hand-built test schemas and pre-#1229 snapshots omit it.
+     */
+    abstractAncestors?: string[];
     acceptsStringChildren: boolean;
     takesIndex?: boolean;
     /** Map from child component type → key in `aliasedElements` providing
@@ -57,8 +120,15 @@ export type ElementSchema = {
 /**
  * Help-only payload carrying alias-specific descriptions (e.g. `matrixRow`).
  * Aliased entries are looked up via a parent element's `childContextHelp` and
- * are never themselves valid top-level/child elements, so they only carry the
- * fields used for help/documentation.
+ * are never themselves valid top-level/child elements, but they still carry
+ * the children/attributes used to validate and complete what the author wrote
+ * (e.g. `<row>` inside `<matrix>` accepts `<math>` children and the `MathList`
+ * attribute set, not the tabular `<row>`'s; issue #1174).
+ *
+ * `children` / `acceptsStringChildren` are optional here for backward
+ * compatibility with consumers that build aliased entries from older schema
+ * snapshots and tests that only need help text. The schema generator
+ * populates them on every emitted alias as of #1174.
  */
 export type AliasedElementSchema = {
     name: string;
@@ -66,9 +136,21 @@ export type AliasedElementSchema = {
     docsSlug?: string | null;
     attributes: SchemaAttribute[];
     properties?: SchemaProperty[];
+    children?: string[];
+    /** See `ElementSchema.childBuckets`. */
+    childBuckets?: string;
+    /** See `ElementSchema.abstractAncestors`. */
+    abstractAncestors?: string[];
+    /**
+     * Populated for parity with `ElementSchema` and consumed by downstream
+     * tools (e.g. doc generators); the LSP's validation/completion paths
+     * don't read this field directly yet — they only consult `children`
+     * and `attributes` when resolving an alias.
+     */
+    acceptsStringChildren?: boolean;
 };
 
-type ProcessedSnippet = {
+export type ProcessedSnippet = {
     key: string;
     element: string;
     normalizedElement: string;
@@ -92,6 +174,17 @@ export type RefMemberContainerResolution = {
     node: DastElement | null;
     unresolvedPathParts: string[];
     /**
+     * When the lookup partially resolved (i.e. `node` is null because of a
+     * trailing unresolved segment), this is the deepest node that DID
+     * resolve. Used by the help layer to perform an `indexAliases`
+     * chase: e.g. for `$vector.head.x` the resolver returns `node: null`
+     * with `unresolvedPathParts: ["head"]` and
+     * `partiallyResolvedNode: <vector>`, and the help layer then checks
+     * whether `head` is an array property of `<vector>` whose alias
+     * table covers `x`. Unset (or `null`) when no node resolved.
+     */
+    partiallyResolvedNode?: DastElement | null;
+    /**
      * Descendant names that are actually visible from the resolved node (respecting
      * visibility rules like `ChildrenInvisibleToTheirGrandparents`).
      * Resolvers must always provide this field.
@@ -101,7 +194,7 @@ export type RefMemberContainerResolution = {
 
 export type ResolveRefMemberContainer = (
     args: ResolveRefMemberContainerArgs,
-) => RefMemberContainerResolution | null;
+) => Promise<RefMemberContainerResolution | null>;
 
 /**
  * Bundle of resolution + schema data the help layer needs to describe a
@@ -115,11 +208,81 @@ export type RefHelpInfo = {
     effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
 };
 
+/**
+ * Repeat-introduced binding visible at a cursor offset: the `<repeat>` /
+ * `<repeatForSequence>` ancestor that declares `valueName` or `indexName`,
+ * plus which role the name plays. Pure-AST — no rust resolver needed.
+ */
+export type DerivedRepeatNameInfo = {
+    owner: DastElement;
+    role: "valueName" | "indexName";
+    /** 1-indexed source line of the introducing repeat. */
+    line: number | undefined;
+};
+
 export type AutoCompleterOptions = {
     sourceObj?: DoenetSourceObject;
     rustResolverAdapter?: RustResolverAdapter;
     getAdditionalRefNames?: (offset: number) => string[];
 };
+
+/**
+ * Walk the subtree rooted at `node` and return the first descendant element
+ * whose `name` attribute equals `target`, or `null` if none exists.
+ */
+function findNamedDescendant(
+    node: DastElement,
+    target: string,
+): DastElement | null {
+    for (const child of node.children) {
+        if (child.type !== "element") continue;
+        if (getElementNameAttributeValue(child) === target) return child;
+        const inner = findNamedDescendant(child, target);
+        if (inner) return inner;
+    }
+    return null;
+}
+
+/**
+ * For composite wrappers (`<select>`, `<conditionalContent>`, …) whose
+ * children are `<case>` / `<else>` / `<option>` branches, return the
+ * first named descendant found by walking the wrapper subtrees — **but
+ * only when every wrapper that contains `target` resolves it to the
+ * same component type**. The help layer has no static way to know which
+ * branch the runtime will pick (`<option>` is index-addressable but the
+ * help call site doesn't carry the index; `<case>` is predicate-gated),
+ * so when branches diverge in component type we'd be guessing at the
+ * schema — return `null` and let the panel go blank instead.
+ *
+ * Returns `null` when `container` has no wrapper children, when no
+ * wrapper contains `target`, or when matches across wrappers disagree
+ * on element name.
+ *
+ * Used as a fallback when `getNamedDescendant` returns `null` because
+ * two sibling branches each declared the same name. Parallels
+ * `collectNamesFromCompositeChildren` in `rust-resolver-adapter.ts`,
+ * which is what put `target` into `visibleDescendantNames` in the first
+ * place (so this only runs when the resolver already affirmed the name
+ * is reachable through a wrapper).
+ */
+function findDescendantViaCompositeWrappers(
+    container: DastElement,
+    target: string,
+): DastElement | null {
+    const matches: DastElement[] = [];
+    for (const child of container.children) {
+        if (child.type !== "element") continue;
+        if (!COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
+        const match = findNamedDescendant(child, target);
+        if (match) matches.push(match);
+    }
+    if (matches.length === 0) return null;
+    const firstName = matches[0].name;
+    for (let i = 1; i < matches.length; i++) {
+        if (matches[i].name !== firstName) return null;
+    }
+    return matches[0];
+}
 
 /**
  * Shift snippet cursor offsets after trimming leading whitespace.
@@ -145,6 +308,17 @@ function adjustCursorForTrimStart(
         ),
     };
 }
+
+/**
+ * The bundled schema elements, retyped as `ElementSchema[]`. The JSON import's
+ * structurally-inferred type doesn't satisfy `ElementSchema` (TS widens absent
+ * optional fields differently across elements), so we assert the shape once
+ * here — the generator guarantees it — and reuse this reference. Keeping it
+ * a single shared constant also preserves the
+ * `schema === BUNDLED_SCHEMA_ELEMENTS` identity check in `setSchema`.
+ */
+const BUNDLED_SCHEMA_ELEMENTS =
+    doenetSchema.elements as unknown as ElementSchema[];
 
 /**
  * A class to make auto-completion queries on DoenetML source.
@@ -183,16 +357,68 @@ export class AutoCompleter {
     parentChildMap: Map<string, Set<string>> = new Map();
     nodeAttributeMap: Map<
         string,
-        Map<string, { correctCase: Set<string>; lowerCase: Set<string> } | null>
+        Map<
+            string,
+            {
+                correctCase: Set<string>;
+                lowerCase: Set<string>;
+                isList: boolean;
+            } | null
+        >
     > = new Map();
     /**
      * Processed snippets indexed by element (normalized to schema capitalization) for quick lookup.
      */
     snippetsByNormalizedElement: Map<string, ProcessedSnippet[]> = new Map();
+    /**
+     * Processed snippets indexed by their key (the snippet's unique identifier,
+     * which is also the completion `label`). Used by the help layer to look up
+     * a snippet's description and template text from a highlighted autocomplete
+     * row.
+     */
+    snippetsByKey: Map<string, ProcessedSnippet> = new Map();
+
+    /**
+     * Per-instance allow-list of attributes declared by the `<module>`
+     * a given `<module copy="$x" .../>` (or `extend=`) site resolves to
+     * (issue #1154 out-of-scope extension).  Keyed by the DAST element of
+     * the copy-site; the inner map is lowercased attribute name →
+     * declared-attribute metadata (currently the child element's
+     * component type, per #1189).
+     *
+     * Populated by `_refreshModuleInstanceAttributes()` once per source
+     * revision; the validation and completion paths consult this map
+     * synchronously to augment their canonical-schema decisions for the
+     * specific instance.  Sites that don't resolve, target a non-`<module>`,
+     * or hit a `<module>` without `<moduleAttributes>` are NOT in the map
+     * (per scope-lock: canonical schema applies as-is in those cases).
+     */
+    _moduleInstanceAttributeAllowlist: Map<
+        DastElement,
+        Map<string, DeclaredModuleAttribute>
+    > = new Map();
+
+    /**
+     * `_sourceRevision` snapshot from the rust adapter that the per-instance
+     * allowlist was last computed against.  Starts at `-1` so the first
+     * refresh always runs.  When the adapter's revision matches, the
+     * refresh returns early — back-to-back validation + completion calls
+     * between edits do at most one resolver round-trip per site total.
+     */
+    _moduleInstanceAllowlistSourceRevision = -1;
+
+    /**
+     * In-flight refresh promise so concurrent callers (e.g. validation and
+     * completion awaited in parallel) join the same `Promise.all` batch
+     * instead of each firing their own.  Cleared in a `finally` so the
+     * next post-edit call starts a fresh round.  Sequential coalescing
+     * still hinges on `_moduleInstanceAllowlistSourceRevision` above.
+     */
+    _moduleInstanceAllowlistRefreshInFlight: Promise<void> | null = null;
 
     constructor(
         source?: string,
-        schema: ElementSchema[] = doenetSchema.elements,
+        schema: ElementSchema[] = BUNDLED_SCHEMA_ELEMENTS,
         options?: AutoCompleterOptions,
     ) {
         this.sourceObj = options?.sourceObj ?? new DoenetSourceObject();
@@ -216,10 +442,23 @@ export class AutoCompleter {
     }
 
     /**
+     * Attach a rust resolver adapter after construction.  The LSP uses this
+     * to plug in the adapter once its worker is ready, without rebuilding
+     * the AutoCompleter (which would otherwise force a swap with a fresh
+     * `sourceObj` / schema setup).  Queries issued before this is called
+     * fall back to the no-rust paths.
+     */
+    setRustResolverAdapter(adapter: RustResolverAdapter) {
+        this._rustResolverAdapter = adapter;
+        this._getAdditionalRefNamesImpl = (offset: number) =>
+            adapter.getDerivedRepeatNames(offset);
+    }
+
+    /**
      * Test whether `name` is addressable from `offset`.
      * Returns `false` when no Rust resolver adapter is set.
      */
-    isNameAddressable(offset: number, name: string): boolean {
+    async isNameAddressable(offset: number, name: string): Promise<boolean> {
         if (this._rustResolverAdapter) {
             return this._rustResolverAdapter.isNameAddressableFromOffset(
                 offset,
@@ -230,20 +469,46 @@ export class AutoCompleter {
     }
 
     /**
+     * Classify an unresolved reference `$pathParts.join(".")` at `offset`.
+     * Delegates to the Rust resolver (the runtime's own algorithm) so
+     * `notFound` / `multiple` verdicts are authoritative — and works for a
+     * whole member chain (e.g. `["s2", "m"]`), not just a bare name, so the
+     * panel can report which whole reference failed. Returns `"indeterminate"`
+     * when no resolver is attached (cold start, JS-only tests) so the help
+     * layer never presents an incomplete-view miss as a definite verdict.
+     */
+    async classifyReference(
+        offset: number,
+        pathParts: string[],
+    ): Promise<"found" | "notFound" | "multiple" | "indeterminate"> {
+        if (
+            this._rustResolverAdapter &&
+            typeof this._rustResolverAdapter.classifyReferenceFromOffset ===
+                "function"
+        ) {
+            return this._rustResolverAdapter.classifyReferenceFromOffset(
+                offset,
+                pathParts,
+            );
+        }
+        return "indeterminate";
+    }
+
+    /**
      * Resolve the ref container for member completion from parsed path parts.
      *
      * `pathParts` includes the currently edited segment as its last item.
      * For example, in `$P.coords` this resolves to `P`, while in `$P.coords.`
      * it resolves to `coords`.
      */
-    resolveRefMemberContainerAtOffset(
+    async resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
         pathPartHasIndex?: boolean[],
-    ): RefMemberContainerResolution {
+    ): Promise<RefMemberContainerResolution> {
         if (this._rustResolverAdapter) {
             const resolved =
-                this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                await this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
                     offset,
                     pathParts,
                     pathPartHasIndex,
@@ -259,6 +524,79 @@ export class AutoCompleter {
             unresolvedPathParts,
             visibleDescendantNames: [],
         };
+    }
+
+    /**
+     * Rebuild `_moduleInstanceAttributeAllowlist` for every `<module copy=…>`
+     * (or `extend=`) site in the current source.  Issued in parallel via
+     * `Promise.all`, so a document with N module-copy sites pays one
+     * resolver round-trip per site total — not per validation/completion
+     * call.
+     *
+     * Coalesces by `_sourceRevision` from the rust adapter: when the source
+     * hasn't changed since the last refresh, this returns immediately.  Two
+     * back-to-back callers (validation then completion) thus do at most one
+     * resolution per site between each edit, and rapid keystroke bursts
+     * drain in one batch when the typing pauses.
+     *
+     * Disabled when the rust adapter is absent (cold start, tests without
+     * WASM) — the allowlist is cleared, and validation/completion fall
+     * through to canonical-only behavior identical to today.
+     */
+    async _refreshModuleInstanceAttributes(): Promise<void> {
+        if (!this._rustResolverAdapter) {
+            this._moduleInstanceAttributeAllowlist.clear();
+            this._moduleInstanceAllowlistSourceRevision = -1;
+            return;
+        }
+        const rev = this._rustResolverAdapter._sourceRevision;
+        if (rev === this._moduleInstanceAllowlistSourceRevision) return;
+
+        // Concurrent callers (validation + completion awaited in parallel)
+        // would otherwise each issue a full `Promise.all` batch since the
+        // revision check passes before either has finished writing.  Stash
+        // the in-flight promise so they share one round-trip per site.
+        if (this._moduleInstanceAllowlistRefreshInFlight) {
+            return this._moduleInstanceAllowlistRefreshInFlight;
+        }
+
+        const adapter = this._rustResolverAdapter;
+        const refresh = (async () => {
+            // `rev` was captured before any await.  If an `updateSource`
+            // lands during the `Promise.all` below, `adapter._sourceRevision`
+            // will advance past `rev` and `this.sourceObj.dast` may be
+            // re-parsed.  The entries we write here then reference the
+            // OLD parse's DAST elements while consumers look up new-parse
+            // refs and miss — falling back to canonical-only validation
+            // for one cycle.  That's self-correcting: the next refresh
+            // sees `_sourceRevision !== _moduleInstanceAllowlistSourceRevision`
+            // (because we stamp the OLD `rev`, not the current one) and
+            // re-runs against the new parse.  No wrong augmentation can
+            // be produced — only briefly-missing augmentation.
+            const instances = collectModuleInstancesWithCopyOrExtend(
+                this.sourceObj.dast,
+            );
+            const entries = await Promise.all(
+                instances.map(async (el) => {
+                    const declared = await getEffectiveModuleAttributes(
+                        el,
+                        adapter,
+                    );
+                    return [el, declared] as const;
+                }),
+            );
+            this._moduleInstanceAttributeAllowlist.clear();
+            for (const [el, declared] of entries) {
+                if (declared) {
+                    this._moduleInstanceAttributeAllowlist.set(el, declared);
+                }
+            }
+            this._moduleInstanceAllowlistSourceRevision = rev;
+        })();
+        this._moduleInstanceAllowlistRefreshInFlight = refresh.finally(() => {
+            this._moduleInstanceAllowlistRefreshInFlight = null;
+        });
+        return this._moduleInstanceAllowlistRefreshInFlight;
     }
 
     /**
@@ -284,7 +622,7 @@ export class AutoCompleter {
         this.schema = schema;
         this.schemaAliasedElementsByName =
             aliasedElements ??
-            (schema === doenetSchema.elements
+            (schema === BUNDLED_SCHEMA_ELEMENTS
                 ? (doenetSchema.aliasedElements as Record<
                       string,
                       AliasedElementSchema
@@ -299,11 +637,25 @@ export class AutoCompleter {
         this.schemaLowerToUpper = Object.fromEntries(
             this.schema.map((e) => [e.name.toLowerCase(), e.name]),
         );
-        this.schemaAttributesLowerToUpper = Object.fromEntries(
-            this.schema.flatMap((e) => {
-                return e.attributes.map((a) => [a.name.toLowerCase(), a.name]);
-            }),
-        );
+        // Seed the attribute-name normalization map from both the canonical
+        // elements and the aliased entries.  Without the alias contribution,
+        // an attribute that exists only on an alias target (e.g. a
+        // hypothetical `<row>` inside `<matrix>` carrying an attribute that
+        // no canonical element declares) would be reported as
+        // `UNKNOWN_NAME` by `normalizeAttributeName`, short-circuiting the
+        // alias-aware checks in `isAllowedAttribute` /
+        // `getAttributeAllowedValues` before they ever ran.  Canonical
+        // entries are seeded last so that on a casing collision the
+        // canonical capitalization wins (`Object.fromEntries` lets the
+        // later entry overwrite the earlier one).
+        this.schemaAttributesLowerToUpper = Object.fromEntries([
+            ...Object.values(this.schemaAliasedElementsByName).flatMap((e) =>
+                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
+            ),
+            ...this.schema.flatMap((e) =>
+                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
+            ),
+        ]);
         this.schemaElementsByName = Object.fromEntries(
             this.schema.map((e) => [e.name, e]),
         );
@@ -325,6 +677,7 @@ export class AutoCompleter {
                                   lowerCase: new Set(
                                       a.values.map((v) => v.toLowerCase()),
                                   ),
+                                  isList: Boolean(a.isList),
                               }
                             : null,
                     ]),
@@ -341,7 +694,8 @@ export class AutoCompleter {
     getCompletionItems = (
         offset: number | RowCol,
         cachedContext?: CompletionContext,
-    ) => getCompletionItems.call(this, offset, cachedContext);
+        explicit = false,
+    ) => getCompletionItems.call(this, offset, cachedContext, explicit);
 
     /**
      * Get a list of LSP `Diagnostic`s for schema violations.
@@ -356,11 +710,108 @@ export class AutoCompleter {
 
     /**
      * Get the children allowed inside an `elementName` named element.
-     * The search is case insensitive.
+     * The search is case insensitive. When `parentName` is provided and
+     * declares a `childContextHelp` alias for `elementName` (e.g. `<row>`
+     * inside `<matrix>` → `matrixRow`), the alias target's children are
+     * returned instead of the canonical entry's — so in-tag completions
+     * for `<row>` inside `<matrix>` offer `<math>`, not `<cell>` (#1174).
+     *
+     * When the resolved alias entry omits `children` (allowed by
+     * `AliasedElementSchema` for backward compatibility with consumers
+     * that build aliases from older schema snapshots), fall back to the
+     * canonical entry's children rather than returning `[]` — matching
+     * the symmetric fallback in `isAllowedChild`.
      */
-    _getAllowedChildren(elementName: string): string[] {
-        elementName = this.normalizeElementName(elementName);
-        return this.schemaElementsByName[elementName]?.children || [];
+    _getAllowedChildren(elementName: string, parentName?: string): string[] {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        if (effective?.children) {
+            return effective.children;
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return this.schemaElementsByName[normalized]?.children || [];
+    }
+
+    /**
+     * Child-relation ranks for the children returned by `_getAllowedChildren`
+     * for the same `(elementName, parentName)` — child component type → bucket
+     * (0 direct, 1 inherited, 2 adapter-only; see `ElementSchema.childBuckets`).
+     * Reads from the same alias-aware entry `_getAllowedChildren` uses so the
+     * names and ranks stay aligned. Returns `{}` when the resolved entry
+     * predates `childBuckets` (hand-built test schemas), so callers treat every
+     * child as a direct (rank 0) child and keep it.
+     */
+    _getChildRanks(
+        elementName: string,
+        parentName?: string,
+    ): Record<string, number> {
+        // Mirror `_getAllowedChildren`'s fallback: prefer the alias-resolved
+        // entry when it carries `children`, otherwise fall back to the
+        // canonical entry — so the rank map keys line up with whatever
+        // `_getAllowedChildren` just returned.
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        const entry = effective?.children
+            ? effective
+            : this.schemaElementsByName[this.normalizeElementName(elementName)];
+        const children = entry?.children;
+        const buckets = entry?.childBuckets;
+        if (!children || !buckets) return {};
+        // Rebuild the per-child Record from the compact digit string on
+        // demand — the schema stores `childBuckets` as a string aligned
+        // with `children` so the JSON stays small (see
+        // `SchemaElement.childBuckets`).
+        const ranks: Record<string, number> = {};
+        for (let i = 0; i < children.length; i++) {
+            const ch = buckets.charCodeAt(i) - 48; // '0' === 48
+            ranks[children[i]] = ch >= 0 && ch <= 9 ? ch : 0;
+        }
+        return ranks;
+    }
+
+    /**
+     * Whether this element accepts string children (text content), with
+     * alias-aware resolution mirroring `_getAllowedChildren`. Used by the
+     * suggestions panel to decide whether to say "type text here" alongside
+     * (or instead of) the component suggestions.
+     */
+    _getAcceptsStringChildren(
+        elementName: string,
+        parentName?: string,
+    ): boolean {
+        const effective = this._resolveEffectiveByName(elementName, parentName);
+        if (
+            effective?.children &&
+            typeof effective.acceptsStringChildren === "boolean"
+        ) {
+            return effective.acceptsStringChildren;
+        }
+        const normalized = this.normalizeElementName(elementName);
+        return (
+            this.schemaElementsByName[normalized]?.acceptsStringChildren ??
+            false
+        );
+    }
+
+    /**
+     * Convenience over `resolveEffectiveSchemaElement` that accepts an
+     * element name (canonical or author-cased) rather than a pre-fetched
+     * own entry. Returns the alias-aware effective entry: the alias when
+     * the (grand)parent declares a `childContextHelp` redirect for this
+     * element, otherwise the element's own canonical entry.
+     *
+     * Callers that need to branch on whether an alias actually applied
+     * can compare `result.name` to the normalized input name: when they
+     * differ, an alias took effect; when they match, this returned the
+     * canonical passthrough. Returns `undefined` only when the element
+     * name itself is unrecognized.
+     */
+    _resolveEffectiveByName(
+        elementName: string,
+        parentName?: string,
+    ): ElementSchema | AliasedElementSchema | undefined {
+        const normalized = this.normalizeElementName(elementName);
+        if (normalized === "UNKNOWN_NAME") return undefined;
+        const ownEntry = this.schemaElementsByName[normalized];
+        return this.resolveEffectiveSchemaElement(ownEntry, parentName);
     }
 
     /**
@@ -413,12 +864,87 @@ export class AutoCompleter {
      *
      * Uses the AST-only parent-chain walk in `getReferentAtOffset`, so it
      * finds elements with a `name` attribute but does not see repeat-introduced
-     * names (`valueName`/`indexName`); those require the Rust resolver.
+     * names (`valueName`/`indexName`). For those, see
+     * `resolveDerivedRepeatNameForHelp`.
      */
     resolveRefNameForHelp(offset: number, name: string): RefHelpInfo | null {
         const referent = this.sourceObj.getReferentAtOffset(offset, name);
         if (!referent) return null;
         return this._buildRefHelpInfo(referent);
+    }
+
+    /**
+     * Look up a bare ref `$name` at `offset` against repeat-introduced
+     * bindings only. Walks the parent chain from `offset` and, for each
+     * ancestor `<repeat>` / `<repeatForSequence>`, checks whether its
+     * `valueName` or `indexName` attribute literal equals `name`.
+     *
+     * Returns `null` when no enclosing repeat binds `name`. Companion to
+     * `resolveRefNameForHelp` — the help layer tries the named-element
+     * path first (richer schema metadata) and falls through here for
+     * repeat-introduced names that the runtime resolver would see but the
+     * DAST-by-name walk misses.
+     *
+     * Pure AST — no rust resolver involved. Available as soon as the
+     * editor has parsed the document, so help for `$i` inside a repeat
+     * works during the cold-start window too.
+     */
+    resolveDerivedRepeatNameForHelp(
+        offset: number,
+        name: string,
+    ): DerivedRepeatNameInfo | null {
+        let current: DastElement | undefined =
+            this.sourceObj.elementAtOffset(offset) ?? undefined;
+        while (current) {
+            const match = this.resolveDerivedRepeatNameOnElement(current, name);
+            if (match) return match;
+            const parent = this.sourceObj.getParent(current);
+            current =
+                parent && parent.type === "element"
+                    ? (parent as DastElement)
+                    : undefined;
+        }
+        return null;
+    }
+
+    /**
+     * Check whether `element` itself introduces `name` as a `valueName` or
+     * `indexName` binding. Returns `null` for non-repeat elements or when
+     * neither attribute matches.
+     *
+     * Companion to `resolveDerivedRepeatNameForHelp` for cases where the
+     * caller already has the candidate element — e.g. the resolver-returned
+     * container for `$r[1].v`, where the runtime resolver augments
+     * `visibleDescendantNames` with the repeat's `valueName`/`indexName`
+     * (see `rust-resolver-adapter._resolveRefMemberContainer`) but the
+     * named-descendant tree-walk in `resolveRefMemberDescendantHelp` misses
+     * them because they're not in the `name=` attribute tree.
+     */
+    resolveDerivedRepeatNameOnElement(
+        element: DastElement,
+        name: string,
+    ): DerivedRepeatNameInfo | null {
+        if (!isRepeatLikeElement(element)) {
+            return null;
+        }
+        for (const role of ["valueName", "indexName"] as const) {
+            const attr = element.attributes[role];
+            if (
+                attr &&
+                attr.children.length === 1 &&
+                attr.children[0].type === "text" &&
+                attr.children[0].value === name
+            ) {
+                const startOffset = element.position?.start.offset;
+                const line =
+                    startOffset != null &&
+                    startOffset < this.sourceObj.source.length
+                        ? this.sourceObj.offsetToRowCol(startOffset).line
+                        : undefined;
+                return { owner: element, role, line };
+            }
+        }
+        return null;
     }
 
     /**
@@ -438,8 +964,25 @@ export class AutoCompleter {
             container,
             memberName,
         );
-        if (!descendant) return null;
-        return this._buildRefHelpInfo(descendant);
+        if (descendant) return this._buildRefHelpInfo(descendant);
+
+        // Composite-wrapper fallback: for `<select>` / `<conditionalContent>`
+        // where multiple `<option>` / `<case>` / `<else>` branches each declare
+        // a descendant with the same `name`, `getNamedDescendant` returns
+        // `null` because the name is not uniquely addressable. The resolver
+        // already included the name in `visibleDescendantNames` (gating this
+        // call) via `collectNamesFromCompositeChildren`. The fallback walks
+        // the wrapper subtrees and returns the first match — but only when
+        // all matching branches resolve the name to the same component type,
+        // since the help layer can't tell which branch the runtime will pick.
+        // Heterogeneous branches yield `null` (panel blank) rather than wrong
+        // help.
+        const compositeMatch = findDescendantViaCompositeWrappers(
+            container,
+            memberName,
+        );
+        if (compositeMatch) return this._buildRefHelpInfo(compositeMatch);
+        return null;
     }
 
     /**
@@ -462,11 +1005,9 @@ export class AutoCompleter {
                 : undefined;
         const normalized = this.normalizeElementName(referent.name);
         const ownEntry = this.schemaElementsByName[normalized];
-        const parent = this.sourceObj.getParent(referent);
-        const parentName = parent && "name" in parent ? parent.name : undefined;
         const effectiveEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            parentName,
+            this.sourceObj.getParentElementName(referent),
         );
         return { referent, line, ownEntry, effectiveEntry };
     }
@@ -478,18 +1019,10 @@ export class AutoCompleter {
         node: DastElement,
         offset: number,
     ): DastAttribute | null {
-        const candidate = Object.values(node.attributes).find((attr) => {
-            const start = attr.position?.start.offset;
-            const end = attr.position?.end.offset;
-            return (
-                start !== undefined &&
-                end !== undefined &&
-                offset >= start &&
-                offset <= end
-            );
-        });
-
-        return candidate || null;
+        return findAttributeContainingOffset(
+            Object.values(node.attributes),
+            offset,
+        );
     }
 
     /**
@@ -522,51 +1055,169 @@ export class AutoCompleter {
     }
 
     /**
-     * Gets whether the child is allowed inside the parent. This function normalizes the
-     * name of the parent and child before checking.
+     * Gets whether the child is allowed inside the parent. This function
+     * normalizes the name of the parent and child before checking. When
+     * `grandparentName` is provided and declares a `childContextHelp` alias
+     * for `parentName` (e.g. `<row>` inside `<matrix>` → `matrixRow`), the
+     * check runs against the alias target's children — so `<math>` inside
+     * `<row>` inside `<matrix>` is allowed (#1174).
      */
-    isAllowedChild(parentName: string, childName: string): boolean {
-        parentName = this.normalizeElementName(parentName);
-        childName = this.normalizeElementName(childName);
-        if (parentName === "UNKNOWN_NAME" || childName === "UNKNOWN_NAME") {
-            return false;
-        }
-        return this.parentChildMap.get(parentName)?.has(childName) || false;
-    }
-
-    /**
-     * Checks whether the given attribute is allowed on the given element. This function
-     * normalizes the name of the element and attribute before checking.
-     */
-    isAllowedAttribute(elementName: string, attributeName: string): boolean {
-        elementName = this.normalizeElementName(elementName);
-        attributeName = this.normalizeAttributeName(attributeName);
+    isAllowedChild(
+        parentName: string,
+        childName: string,
+        grandparentName?: string,
+    ): boolean {
+        const normalizedParent = this.normalizeElementName(parentName);
+        const normalizedChild = this.normalizeElementName(childName);
         if (
-            elementName === "UNKNOWN_NAME" ||
-            attributeName === "UNKNOWN_NAME"
+            normalizedParent === "UNKNOWN_NAME" ||
+            normalizedChild === "UNKNOWN_NAME"
         ) {
             return false;
         }
+        if (grandparentName) {
+            // Alias-aware path: when the grandparent redirects this
+            // parent's child schema (e.g. `<matrix>` → `matrixRow`), use
+            // the alias target's children rather than the canonical
+            // parent's. Fall through to the canonical map when no alias
+            // applies so the hot path stays a single Set lookup.
+            const effective = this._resolveEffectiveByName(
+                normalizedParent,
+                grandparentName,
+            );
+            if (
+                effective &&
+                effective.name !== normalizedParent &&
+                effective.children
+            ) {
+                return effective.children.includes(normalizedChild);
+            }
+        }
         return (
-            this.nodeAttributeMap.get(elementName)?.has(attributeName) || false
+            this.parentChildMap.get(normalizedParent)?.has(normalizedChild) ||
+            false
+        );
+    }
+
+    /**
+     * Checks whether the given attribute is allowed on the given element.
+     * This function normalizes the name of the element and attribute before
+     * checking. When `parentName` is provided and declares a
+     * `childContextHelp` alias for `elementName` (e.g. `<row>` inside
+     * `<matrix>` → `matrixRow`), the check runs against the alias target's
+     * attribute set — so `unordered` on `<row>` inside `<matrix>` is allowed
+     * even though it isn't an attribute of the tabular `<row>` (#1174).
+     *
+     * When `perInstanceAllowlist` is provided (currently only for
+     * `<module copy="$x" .../>` sites whose target's `<moduleAttributes>`
+     * declared `attributeName`), the check returns true if the lowercased
+     * attribute name is in the allowlist OR the canonical/alias check
+     * passes — union semantics, since canonical attributes like `hide` /
+     * `name` remain valid regardless of what the target declared (#1154).
+     */
+    isAllowedAttribute(
+        elementName: string,
+        attributeName: string,
+        parentName?: string,
+        perInstanceAllowlist?: ReadonlyMap<string, DeclaredModuleAttribute>,
+    ): boolean {
+        // Check the per-instance allowlist against the raw (author-typed)
+        // attribute name BEFORE normalizing — an author-declared name need
+        // not exist anywhere else in the schema (e.g. `balloonShape`), in
+        // which case `normalizeAttributeName` would yield `UNKNOWN_NAME`
+        // and the early-return below would block it.  The allowlist is
+        // keyed lowercased to match the runtime's case-insensitive lookup.
+        if (
+            perInstanceAllowlist &&
+            perInstanceAllowlist.has(attributeName.toLowerCase())
+        ) {
+            return true;
+        }
+        const normalizedElement = this.normalizeElementName(elementName);
+        const normalizedAttribute = this.normalizeAttributeName(attributeName);
+        if (
+            normalizedElement === "UNKNOWN_NAME" ||
+            normalizedAttribute === "UNKNOWN_NAME"
+        ) {
+            return false;
+        }
+        if (parentName) {
+            const effective = this._resolveEffectiveByName(
+                normalizedElement,
+                parentName,
+            );
+            if (effective && effective.name !== normalizedElement) {
+                // Match case-insensitively so a canonical-cased attribute
+                // (`unordered`) hits an alias entry that happens to have
+                // declared a differently cased name. The canonical map
+                // built in `setSchema` already normalizes via
+                // `normalizeAttributeName`, so this only adds tolerance
+                // for alias-side names.
+                const lower = normalizedAttribute.toLowerCase();
+                return effective.attributes.some(
+                    (a) => a.name.toLowerCase() === lower,
+                );
+            }
+        }
+        return (
+            this.nodeAttributeMap
+                .get(normalizedElement)
+                ?.has(normalizedAttribute) || false
         );
     }
 
     /**
      * Gets the schema for a given attribute of a given element. This function
      * normalizes the name of the element and attribute before checking.
+     * When `parentName` is provided and declares a `childContextHelp` alias,
+     * the attribute's enumerated-values metadata comes from the alias target
+     * — closing the autocomplete-vs-help divergence noted in #1092 for the
+     * value enumeration the same way #1174 closes it for the attribute set.
      */
-    getAttributeAllowedValues(elementName: string, attributeName: string) {
-        elementName = this.normalizeElementName(elementName);
-        attributeName = this.normalizeAttributeName(attributeName);
+    getAttributeAllowedValues(
+        elementName: string,
+        attributeName: string,
+        parentName?: string,
+    ) {
+        const normalizedElement = this.normalizeElementName(elementName);
+        const normalizedAttribute = this.normalizeAttributeName(attributeName);
         if (
-            elementName === "UNKNOWN_NAME" ||
-            attributeName === "UNKNOWN_NAME"
+            normalizedElement === "UNKNOWN_NAME" ||
+            normalizedAttribute === "UNKNOWN_NAME"
         ) {
             return null;
         }
+        if (parentName) {
+            const effective = this._resolveEffectiveByName(
+                normalizedElement,
+                parentName,
+            );
+            if (effective && effective.name !== normalizedElement) {
+                const lower = normalizedAttribute.toLowerCase();
+                const aliasAttr = effective.attributes.find(
+                    (a) => a.name.toLowerCase() === lower,
+                );
+                if (aliasAttr) {
+                    return aliasAttr.values
+                        ? {
+                              correctCase: new Set(aliasAttr.values),
+                              lowerCase: new Set(
+                                  aliasAttr.values.map((v) => v.toLowerCase()),
+                              ),
+                              isList: Boolean(aliasAttr.isList),
+                          }
+                        : null;
+                }
+                // The alias entry exists but doesn't declare this
+                // attribute — the canonical lookup is meaningless here
+                // (we're shadowing the canonical entry by alias).
+                return null;
+            }
+        }
         return (
-            this.nodeAttributeMap.get(elementName)?.get(attributeName) || null
+            this.nodeAttributeMap
+                .get(normalizedElement)
+                ?.get(normalizedAttribute) || null
         );
     }
 
@@ -576,6 +1227,7 @@ export class AutoCompleter {
      */
     _initializeSnippets() {
         this.snippetsByNormalizedElement.clear();
+        this.snippetsByKey.clear();
 
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {
             const rawSnippet = snippet.snippet ?? "";
@@ -585,10 +1237,9 @@ export class AutoCompleter {
                 snippet.element,
             );
             if (normalizedElement === "UNKNOWN_NAME") {
-                // Skip snippets for unknown elements
-                console.warn(
-                    `Skipping snippet "${key}": invalid element name "${snippet.element}".`,
-                );
+                // Skip snippets whose element isn't in the active schema.
+                // Tests intentionally supply reduced schemas, so unknown
+                // here is normal — not a misconfiguration.
                 return;
             }
 
@@ -612,7 +1263,17 @@ export class AutoCompleter {
             this.snippetsByNormalizedElement
                 .get(normalizedElement)!
                 .push(processed);
+            this.snippetsByKey.set(key, processed);
         });
+    }
+
+    /**
+     * Look up a processed snippet by its key (matches the completion `label`).
+     * Returns `undefined` when the key isn't registered — for example when the
+     * active schema doesn't include the snippet's root element.
+     */
+    findSnippet(key: string): ProcessedSnippet | undefined {
+        return this.snippetsByKey.get(key);
     }
 
     /**
@@ -652,6 +1313,6 @@ export class AutoCompleter {
 // Export resolver adapter for external use
 export { RustResolverAdapter } from "./rust-resolver-adapter";
 export type {
-    RustResolverCore,
+    ResolverCore,
     RustResolverAdapterOptions,
 } from "./rust-resolver-adapter";

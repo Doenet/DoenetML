@@ -33,6 +33,7 @@
         "./packages/*"
     ],
     "scripts": {
+        "prepare": "husky",
         "build": "npm run build --workspace packages/doenetml",
         "build:all-no-docs": "npm run build -w packages/doenetml -w packages/doenetml-prototype -w packages/standalone -w packages/prefigure -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w packages/test-viewer -w packages/test-cypress",
         "build:docs-prereqs": "npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe",
@@ -55,11 +56,15 @@
         "test:e2e-mistagged": "npm run test:mistagged -w packages/test-cypress",
         "test:codemirror-cypress": "npm run test-cypress-all -w packages/codemirror",
         "test:doenetml-cypress": "npm run test-cypress-all -w packages/doenetml",
+        "test:doenetml-iframe-cypress": "npm run test-cypress-all -w packages/doenetml-iframe",
         "version:changesets": "changeset version && npm install --package-lock-only",
         "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w doenet-vscode-extension"
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "lint-staged": {
+        "*.{js,jsx,ts,tsx,css,json}": "prettier --write"
     },
     "overrides": {
         "@qualified/lsp-connection": {
@@ -141,17 +146,20 @@
         "esprima": "^4.0.1",
         "file-saver": "^2.0.5",
         "framer-motion": "^12.23.26",
+        "github-slugger": "^2.0.0",
         "glob": "^11.1.0",
         "handsontable": "^12.4.0",
+        "husky": "^9.0.0",
         "hi-base32": "^0.5.1",
         "hyperformula": "^2.7.1",
         "idb-keyval": "^6.2.2",
         "json-stringify-deterministic": "1.0.12",
         "jsxgraph": "^1.12.2",
         "jszip": "^3.10.1",
+        "lint-staged": "^15.0.0",
         "katex": "^0.16.27",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha91",
+        "math-expressions": "^2.0.0-alpha93",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.6",
         "nextra": "^3.3.1",
