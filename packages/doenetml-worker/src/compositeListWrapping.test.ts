@@ -211,6 +211,43 @@ describe("applyCompositeListWrapping", () => {
         expect(byId[12].children).toEqual([ref(3), ref(4)]);
     });
 
+    it("trims trailing blank strings inside nested synthetic wrappers before enclosing asList commas", () => {
+        // The production renderer's `removeEndingBlankString` can recurse into
+        // the React fragment/span used to group the nested non-list composite.
+        // The FlatDast bridge must do the equivalent before the nested group is
+        // hidden behind an opaque prototype `<Element>` renderer.
+        const contents: ChildContent[] = [ref(1), " ", ref(2)];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 10,
+                firstInd: 0,
+                lastInd: 2,
+                asList: true,
+                potentialListComponents: [true, true, true],
+            },
+            {
+                compositeIdx: 11,
+                firstInd: 0,
+                lastInd: 1,
+                asList: false,
+                potentialListComponents: [true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(10)]);
+        const byId = Object.fromEntries(
+            wrapperElements.map((w) => [w.data.id, w]),
+        );
+        expect(byId[10].children).toEqual([ref(11), ref(2)]);
+        expect(byId[11].name).toBe("_fragment");
+        expect(byId[11].children).toEqual([ref(1)]);
+    });
+
     it("nests an inner asList composite inside an outer asList composite", () => {
         // Outer asList (idx 10) with two replacements: a plain ref and an inner
         // asList composite (idx 11) with two items.

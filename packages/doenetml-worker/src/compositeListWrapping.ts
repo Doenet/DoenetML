@@ -176,6 +176,93 @@ function makeWrapperElement(
     };
 }
 
+function isBlankStringContent(child: FlatDastElementContent) {
+    return typeof child === "string" && child.trim() === "";
+}
+
+/**
+ * Trim trailing blank strings from the FlatDast representation of a list item
+ * before an enclosing `<asList>` inserts a comma after it.
+ *
+ * The prototype renders synthetic wrappers through an opaque `<Element>` React
+ * component, so its `<asList>` renderer cannot recursively inspect and trim
+ * blank strings inside a nested synthetic `<_fragment>`/`<asList>` the way
+ * production `removeEndingBlankString` can inspect nested React fragments. Do
+ * that synthetic-wrapper-only trimming here, while we still have the FlatDast
+ * wrapper elements available.
+ */
+function removeEndingBlankStringContent(
+    child: FlatDastElementContent,
+    wrapperElementsById: Map<number, FlatDastElement>,
+): FlatDastElementContent {
+    if (typeof child === "string") {
+        return child.trimEnd();
+    }
+
+    const wrapper = wrapperElementsById.get(child.id);
+    if (!wrapper) {
+        return child;
+    }
+
+    removeEndingBlankStringsFromWrapper(wrapper, wrapperElementsById);
+    return child;
+}
+
+function removeEndingBlankStringsFromWrapper(
+    wrapper: FlatDastElement,
+    wrapperElementsById: Map<number, FlatDastElement>,
+) {
+    const children = [...wrapper.children];
+    let originalLastChild = children[children.length - 1];
+    let lastChild = originalLastChild;
+
+    while (lastChild !== undefined && isBlankStringContent(lastChild)) {
+        children.pop();
+        if (children.length === 0) {
+            wrapper.children = [];
+            return;
+        }
+        lastChild = children[children.length - 1];
+    }
+
+    if (lastChild === undefined) {
+        return;
+    }
+
+    lastChild = removeEndingBlankStringContent(lastChild, wrapperElementsById);
+
+    if (
+        lastChild !== originalLastChild ||
+        children.length !== wrapper.children.length
+    ) {
+        wrapper.children = [
+            ...children.slice(0, children.length - 1),
+            lastChild,
+        ];
+    }
+}
+
+function trimListItemsBeforeCommas(
+    children: FlatDastElementContent[],
+    wrapperElements: FlatDastElement[],
+) {
+    const wrapperElementsById = new Map(
+        wrapperElements.map((wrapper) => [wrapper.data.id, wrapper]),
+    );
+
+    for (let i = 0; i < children.length - 1; i++) {
+        if (
+            !isBlankStringContent(children[i]) &&
+            children.slice(i + 1).some((child) => !isBlankStringContent(child))
+        ) {
+            children[i] = removeEndingBlankStringContent(
+                children[i],
+                wrapperElementsById,
+            );
+        }
+    }
+}
+
 /**
  * Convert the {@link Item} tree into FlatDast children, emitting the wrapper
  * elements that need to exist in `elements[]`.
@@ -209,6 +296,7 @@ function materializeItems(
                 true,
                 wrapperElements,
             );
+            trimListItemsBeforeCommas(children, wrapperElements);
             wrapperElements.push(
                 makeWrapperElement(item.compositeIdx, "asList", children),
             );
