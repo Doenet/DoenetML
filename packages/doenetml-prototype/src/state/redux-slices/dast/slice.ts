@@ -72,6 +72,16 @@ const dastSlice = createSlice({
             action: PayloadAction<ElementUpdates>,
         ) => {
             for (const [id, update] of Object.entries(action.payload)) {
+                // A JS-bridge synthetic wrapper (`<asList>`/`<_fragment>`) may
+                // not yet exist in `elements`; the bridge ships the whole
+                // element so we can upsert it before any parent references it.
+                if ((update as any).newFlatDastElement) {
+                    state.flatDastRoot.elements[Number(id)] = (
+                        update as any
+                    ).newFlatDastElement;
+                    continue;
+                }
+
                 const elm = state.flatDastRoot.elements[Number(id)];
                 if (elm == null) {
                     console.error(

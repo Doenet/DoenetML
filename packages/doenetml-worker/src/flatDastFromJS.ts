@@ -4,6 +4,11 @@ import type {
     FlatDastElementContent,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
+import {
+    applyCompositeListWrapping,
+    type ChildContent,
+    type CompositeReplacementRange,
+} from "./compositeListWrapping";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust } from "./jsRustConversions/section";
@@ -160,12 +165,18 @@ export function flatDastFromJS(
             element.data.props = rendererState.stateValues;
 
             if (rendererState.childrenInstructions) {
+                // Keep child slots aligned with the child-instruction index
+                // space (null placeholders included) so the
+                // `_compositeReplacementActiveRange` indices line up.
+                const childContents: ChildContent[] = [];
+
                 for (const childInstruction of rendererState.childrenInstructions) {
                     if (childInstruction == null) {
+                        childContents.push(null);
                         continue;
                     }
 
-                    element.children.push(
+                    childContents.push(
                         childInstructionToContent(
                             childInstruction,
                             doenetIdToComponentIdx,
@@ -199,6 +210,23 @@ export function flatDastFromJS(
                             childInstruction.actions,
                         );
                     }
+                }
+
+                // Wrap composite replacement ranges in synthetic `<asList>`
+                // (and, where nesting requires grouping, `<_fragment>`) parents
+                // so the prototype renderers reproduce the commas the doenetml
+                // renderers add via `addCommasForCompositeRanges`.
+                const { children, wrapperElements } =
+                    applyCompositeListWrapping(
+                        childContents,
+                        rendererState.stateValues
+                            ?._compositeReplacementActiveRange as
+                            | CompositeReplacementRange[]
+                            | undefined,
+                    );
+                element.children = children;
+                for (const wrapper of wrapperElements) {
+                    elements[wrapper.data.id] = wrapper;
                 }
             }
         }
