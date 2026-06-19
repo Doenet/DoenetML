@@ -211,11 +211,11 @@ describe("applyCompositeListWrapping", () => {
         expect(byId[12].children).toEqual([ref(3), ref(4)]);
     });
 
-    it("trims trailing blank strings inside nested synthetic wrappers before enclosing asList commas", () => {
-        // The production renderer's `removeEndingBlankString` can recurse into
-        // the React fragment/span used to group the nested non-list composite.
-        // The FlatDast bridge must do the equivalent before the nested group is
-        // hidden behind an opaque prototype `<Element>` renderer.
+    it("leaves trailing blank strings inside nested composite wrappers, matching production", () => {
+        // Production stores a grouped nested composite as an array containing a
+        // React fragment. `removeEndingBlankString` does not recurse into that
+        // array before the enclosing asList comma, so the FlatDast bridge must
+        // not pre-trim nested synthetic wrappers either.
         const contents: ChildContent[] = [ref(1), " ", ref(2)];
         const crar: CompositeReplacementRange[] = [
             {
@@ -245,7 +245,7 @@ describe("applyCompositeListWrapping", () => {
         );
         expect(byId[10].children).toEqual([ref(11), ref(2)]);
         expect(byId[11].name).toBe("_fragment");
-        expect(byId[11].children).toEqual([ref(1)]);
+        expect(byId[11].children).toEqual([ref(1), " "]);
     });
 
     it("nests an inner asList composite inside an outer asList composite", () => {
