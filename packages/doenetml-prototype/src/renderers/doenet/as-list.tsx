@@ -10,6 +10,12 @@ type AsListData = {
 /**
  * Render list items with the comma behavior used for composite replacements in
  * the production doenetml renderers.
+ *
+ * The comma insertion and trailing-blank trimming below intentionally mirror
+ * `addCommasForCompositeRanges` in
+ * `packages/doenetml/src/Viewer/renderers/utils/composites.tsx`. Keep the two
+ * in sync so FlatDast `<asList>` wrappers remain a faithful rendering of the JS
+ * core's `_compositeReplacementActiveRange` metadata.
  */
 export const AsList: BasicComponentWithPassthroughChildren<AsListData> = ({
     node,
