@@ -841,8 +841,14 @@ export const EditorViewer = React.forwardRef<
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
             if (
-                (platform == "Mac" && event.metaKey && event.code === "KeyS") ||
-                (platform != "Mac" && event.ctrlKey && event.code === "KeyS")
+                (platform == "Mac" &&
+                    event.metaKey &&
+                    !event.altKey &&
+                    event.code === "KeyS") ||
+                (platform != "Mac" &&
+                    event.ctrlKey &&
+                    !event.altKey &&
+                    event.code === "KeyS")
             ) {
                 event.preventDefault();
                 event.stopPropagation();

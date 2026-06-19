@@ -60,10 +60,15 @@ export function EditorViewer({
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    // Mirror the latest editor source in a ref so `doRefresh` can stay stable
+    // (empty deps). Otherwise it would change on every keystroke, causing the
+    // keydown effect below to tear down and re-register its listener each time.
+    const sourceInEditorRef = React.useRef(sourceInEditor);
+    sourceInEditorRef.current = sourceInEditor;
     const doRefresh = React.useCallback(() => {
         setErrors([]);
-        setSourceForRender(sourceInEditor);
-    }, [sourceInEditor]);
+        setSourceForRender(sourceInEditorRef.current);
+    }, []);
 
     const editorViewerRef = React.useRef<HTMLDivElement>(null);
     React.useEffect(() => {
@@ -72,7 +77,11 @@ export function EditorViewer({
             return;
         }
         const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.metaKey || event.ctrlKey) && event.code === "KeyS") {
+            if (
+                (event.metaKey || event.ctrlKey) &&
+                !event.altKey &&
+                event.code === "KeyS"
+            ) {
                 event.preventDefault();
                 event.stopPropagation();
                 doRefresh();
