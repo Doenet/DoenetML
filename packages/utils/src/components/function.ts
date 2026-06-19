@@ -1,4 +1,7 @@
 import me from "math-expressions";
+import type { mod as ModType } from "mathjs";
+const { mod } = me.math as { mod: ModType };
+const { dopri } = me.math;
 import {
     convertValueToMathExpression,
     normalizeMathExpression,
@@ -1475,7 +1478,7 @@ export const functionOperatorDefinitions: {
                 [upper, lower] = [lower, upper];
             }
 
-            return lower + me.math.mod(x - lower, upper - lower);
+            return lower + mod(x - lower, upper - lower);
         };
     },
 
@@ -1604,7 +1607,7 @@ function returnODESolutionFunction({
                     x0 = x0s;
                 }
                 let t0shifted = t0 + tind * chunkSize;
-                let result = me.math.dopri(
+                let result = dopri(
                     t0shifted,
                     t0shifted + chunkSize,
                     x0,

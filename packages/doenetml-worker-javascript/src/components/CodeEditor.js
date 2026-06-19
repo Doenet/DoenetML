@@ -123,6 +123,50 @@ export default class CodeEditor extends BlockComponent {
             public: true,
         };
 
+        attributes.initialOpenTab = {
+            description: "Which diagnostics/responses tab to open initially.",
+            createComponentOfType: "text",
+            createStateVariable: "initialOpenTab",
+            defaultValue: "first",
+            forRenderer: true,
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Panel starts closed.",
+                },
+                {
+                    value: "first",
+                    description: "Open the first available tab.",
+                },
+                {
+                    value: "errors",
+                    description: "Open the errors tab.",
+                },
+                {
+                    value: "warnings",
+                    description: "Open the warnings tab.",
+                },
+                {
+                    value: "info",
+                    description: "Open the info tab.",
+                },
+                {
+                    value: "accessibility",
+                    description: "Open the accessibility tab.",
+                },
+                {
+                    value: "responses",
+                    description: "Open the responses tab.",
+                },
+                {
+                    value: "help",
+                    description: "Open the help tab.",
+                },
+            ],
+        };
+
         // TODO: deprecate these attributes
         // Note: these attributes don't accomplish anything
         // until we can find a way to communicate with the
