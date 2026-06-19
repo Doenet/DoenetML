@@ -60,6 +60,30 @@ export function EditorViewer({
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    const doRefresh = React.useCallback(() => {
+        setErrors([]);
+        setSourceForRender(sourceInEditor);
+    }, [sourceInEditor]);
+
+    const editorViewerRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const container = editorViewerRef.current;
+        if (!container) {
+            return;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.metaKey || event.ctrlKey) && event.code === "KeyS") {
+                event.preventDefault();
+                event.stopPropagation();
+                doRefresh();
+            }
+        };
+        container.addEventListener("keydown", handleKeyDown);
+        return () => {
+            container.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [doRefresh]);
+
     const doPrettyPrint = React.useCallback(() => {
         prettyPrint(sourceInEditor, {
             doenetSyntax: formatMode === "doenetml",
@@ -76,7 +100,7 @@ export function EditorViewer({
                 show={showDownloadInspector}
                 setShow={setShowDownloadInspector}
             />
-            <div className="editor-viewer">
+            <div className="editor-viewer" ref={editorViewerRef} tabIndex={-1}>
                 <div className="editor-viewer-header">
                     <Button
                         size="sm"
@@ -84,13 +108,10 @@ export function EditorViewer({
                         disabled={!canRefresh}
                         title={
                             canRefresh
-                                ? "Refresh the rendered code"
+                                ? "Refresh the rendered code (Ctrl/Cmd+S)"
                                 : "The code has not changes since the last render"
                         }
-                        onClick={() => {
-                            setErrors([]);
-                            setSourceForRender(sourceInEditor);
-                        }}
+                        onClick={doRefresh}
                     >
                         <VscRefresh /> Refresh
                     </Button>
