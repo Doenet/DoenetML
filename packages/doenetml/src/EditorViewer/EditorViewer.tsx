@@ -173,14 +173,6 @@ export const EditorViewer = React.forwardRef<
     },
     ref,
 ) {
-    //Win, Mac or Linux
-    let platform = "Linux";
-    if (navigator.platform.indexOf("Win") != -1) {
-        platform = "Win";
-    } else if (navigator.platform.indexOf("Mac") != -1) {
-        platform = "Mac";
-    }
-
     if (readOnly) {
         showFormatter = false;
     }
@@ -1041,7 +1033,6 @@ export const EditorViewer = React.forwardRef<
                 readOnly={readOnly}
                 codeChanged={codeChanged}
                 documentInteracted={documentInteracted}
-                platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
                 onUpdateViewer={updateViewer}
                 variants={variants}

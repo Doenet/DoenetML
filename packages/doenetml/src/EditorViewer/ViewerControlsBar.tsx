@@ -1,5 +1,6 @@
 import React from "react";
 import { UiButton } from "@doenet/ui-components";
+import { isMacPlatform } from "@doenet/utils";
 import { RxUpdate } from "react-icons/rx";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 import { AccessibilityStatusButton } from "./AccessibilityStatusButton";
@@ -20,7 +21,6 @@ export function ViewerControlsBar({
     readOnly,
     codeChanged,
     documentInteracted,
-    platform,
     updateWord,
     onUpdateViewer,
     variants,
@@ -35,7 +35,6 @@ export function ViewerControlsBar({
     readOnly: boolean;
     codeChanged: boolean;
     documentInteracted: boolean;
-    platform: "Mac" | "Win" | "Linux";
     updateWord: string;
     onUpdateViewer: () => void;
     variants: VariantsState;
@@ -53,7 +52,7 @@ export function ViewerControlsBar({
                     data-test="Viewer Update Button"
                     disabled={!codeChanged && !documentInteracted}
                     title={
-                        platform === "Mac"
+                        isMacPlatform()
                             ? `${updateWord} Viewer cmd+s`
                             : `${updateWord} Viewer ctrl+s`
                     }
