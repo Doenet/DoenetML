@@ -1,5 +1,6 @@
 export * from "./ast/logging";
 export * from "./diagnostics/types";
+export * from "./keyboard/keyboardShortcuts";
 export * from "./media/cid";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";

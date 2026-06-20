@@ -14,7 +14,11 @@ import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
-import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
+import {
+    DiagnosticRecord,
+    nanInfinityReviver,
+    isSaveShortcutKeydown,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
@@ -840,16 +844,7 @@ export const EditorViewer = React.forwardRef<
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
-            if (
-                (platform == "Mac" &&
-                    event.metaKey &&
-                    !event.altKey &&
-                    event.code === "KeyS") ||
-                (platform != "Mac" &&
-                    event.ctrlKey &&
-                    !event.altKey &&
-                    event.code === "KeyS")
-            ) {
+            if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
                 updateViewer();
@@ -884,7 +879,7 @@ export const EditorViewer = React.forwardRef<
                 handleEditorKeyDown,
             );
         };
-    }, [showViewer, id, updateViewer, platform]);
+    }, [showViewer, id, updateViewer]);
 
     useEffect(() => {
         return () => {

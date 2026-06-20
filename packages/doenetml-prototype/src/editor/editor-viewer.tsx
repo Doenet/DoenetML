@@ -17,6 +17,7 @@ import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
 import Alert from "react-bootstrap/Alert";
 import type { CoreType } from "../state/redux-slices/core/slice";
+import { isSaveShortcutKeydown } from "@doenet/utils";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -77,11 +78,7 @@ export function EditorViewer({
             return;
         }
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (
-                (event.metaKey || event.ctrlKey) &&
-                !event.altKey &&
-                event.code === "KeyS"
-            ) {
+            if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
                 doRefresh();
