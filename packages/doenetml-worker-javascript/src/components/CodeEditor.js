@@ -1,13 +1,18 @@
 import BlockComponent from "./abstract/BlockComponent";
-import { returnInputValueChangedStateVariableDefinitions } from "../utils/input";
+import {
+    inputUpdateImmediateValue,
+    inputUpdateValue,
+    returnImmediateValueStateVariableDefinition,
+    returnInputValueChangedStateVariableDefinitions,
+} from "../utils/input";
 
 export default class CodeEditor extends BlockComponent {
     constructor(args) {
         super(args);
 
         Object.assign(this.actions, {
-            updateImmediateValue: this.updateImmediateValue.bind(this),
-            updateValue: this.updateValue.bind(this),
+            updateImmediateValue: inputUpdateImmediateValue.bind(this),
+            updateValue: inputUpdateValue.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
         });
     }
@@ -323,92 +328,12 @@ export default class CodeEditor extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.immediateValue = {
-            description:
-                "The code value reflecting the user's in-progress edits.",
-            public: true,
-            shadowingInstructions: {
+        stateVariableDefinitions.immediateValue =
+            returnImmediateValueStateVariableDefinition({
+                description:
+                    "The code value reflecting the user's in-progress edits.",
                 createComponentOfType: "text",
-            },
-            hasEssential: true,
-            shadowVariable: true,
-            forRenderer: true,
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-                immediateValueChanged: {
-                    dependencyType: "stateVariable",
-                    variableName: "immediateValueChanged",
-                    onlyToSetInInverseDefinition: true,
-                },
-            }),
-            definition: function ({
-                dependencyValues,
-                changes,
-                justUpdatedForNewComponent,
-                usedDefault,
-            }) {
-                // console.log(`definition of immediateValue`)
-                // console.log(dependencyValues)
-                // console.log(changes);
-
-                if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
-                ) {
-                    // only update to value when it changes
-                    // (otherwise, let its essential value change)
-                    return {
-                        setValue: { immediateValue: dependencyValues.value },
-                        setEssentialValue: {
-                            immediateValue: dependencyValues.value,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            immediateValue: {
-                                variablesToCheck: "immediateValue",
-                                defaultValue: dependencyValues.value,
-                            },
-                        },
-                    };
-                }
-            },
-            inverseDefinition: function ({
-                desiredStateVariableValues,
-                initialChange,
-                shadowedVariable,
-            }) {
-                // value is essential; give it the desired value
-                let instructions = [
-                    {
-                        setEssentialValue: "immediateValue",
-                        value: desiredStateVariableValues.immediateValue,
-                    },
-                    {
-                        setDependency: "immediateValueChanged",
-                        desiredValue: true,
-                    },
-                ];
-
-                // if from outside sources, also set value
-                if (!(initialChange || shadowedVariable)) {
-                    instructions.push({
-                        setDependency: "value",
-                        desiredValue: desiredStateVariableValues.immediateValue,
-                    });
-                }
-
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
+            }).immediateValue;
 
         stateVariableDefinitions.text = {
             description: "The current code as a plain text string.",
@@ -447,107 +372,6 @@ export default class CodeEditor extends BlockComponent {
         };
 
         return stateVariableDefinitions;
-    }
-
-    async updateImmediateValue({
-        text,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.disabled)) {
-            let updateInstructions = [
-                {
-                    updateType: "updateValue",
-                    componentIdx: this.componentIdx,
-                    stateVariable: "immediateValue",
-                    value: text,
-                },
-                {
-                    updateType: "setComponentNeedingUpdateValue",
-                    componentIdx: this.componentIdx,
-                },
-            ];
-
-            return await this.coreFunctions.performUpdate({
-                updateInstructions,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
-    }
-
-    async updateValue({
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        //Only update when value is out of date
-        if (!(await this.stateValues.disabled)) {
-            let immediateValue = await this.stateValues.immediateValue;
-
-            if ((await this.stateValues.value) !== immediateValue) {
-                let updateInstructions = [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "value",
-                        value: immediateValue,
-                    },
-                    // in case value ended up being a different value than requested
-                    // we set immediate value to whatever was the result
-                    // (hence the need to execute update first)
-                    // Also, this makes sure immediateValue is saved to the database,
-                    // since in updateImmediateValue, immediateValue is note saved to database
-                    {
-                        updateType: "executeUpdate",
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "immediateValue",
-                        valueOfStateVariable: "value",
-                    },
-                    {
-                        updateType: "unsetComponentNeedingUpdateValue",
-                    },
-                ];
-
-                let event = {
-                    verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue,
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
-
-                await this.coreFunctions.performUpdate({
-                    updateInstructions,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate: true,
-                    event,
-                });
-                await this.coreFunctions.triggerChainedActions({
-                    componentIdx: this.componentIdx,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
-            }
-        }
     }
 
     recordVisibilityChange({ isVisible }) {

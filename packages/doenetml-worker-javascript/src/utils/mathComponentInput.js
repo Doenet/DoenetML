@@ -7,6 +7,7 @@ import {
     roundForDisplay,
     stripLatex,
 } from "./math";
+import { buildInputResponseEvent } from "./input";
 
 /**
  * Shared building blocks for the internal math-input "cell" components that
@@ -536,24 +537,12 @@ export async function mathComponentInputUpdateValue({
                 });
             }
 
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "answered",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: immediateValue,
-                    responseText: immediateValue.toString(),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: immediateValue,
+                responseText: immediateValue.toString(),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,

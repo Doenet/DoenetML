@@ -5,7 +5,10 @@ import {
 } from "../utils/graphical";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
-import { defineSubmitAnswerExternalAction } from "../utils/input";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class BooleanInput extends Input {
     constructor(args) {
@@ -275,24 +278,12 @@ export default class BooleanInput extends Input {
                 },
             ];
 
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "selected",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: boolean,
-                    responseText: boolean.toString(),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: boolean,
+                responseText: boolean.toString(),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,
