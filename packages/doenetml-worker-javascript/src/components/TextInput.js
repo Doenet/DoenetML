@@ -304,12 +304,14 @@ export default class Textinput extends Input {
             },
         };
 
-        stateVariableDefinitions.immediateValue =
+        Object.assign(
+            stateVariableDefinitions,
             returnImmediateValueStateVariableDefinition({
                 description:
                     "The text value reflecting the user's in-progress edits.",
                 createComponentOfType: "text",
-            }).immediateValue;
+            }),
+        );
 
         stateVariableDefinitions.text = {
             description: "The current text as a plain text string.",

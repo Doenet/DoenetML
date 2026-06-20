@@ -328,12 +328,14 @@ export default class CodeEditor extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.immediateValue =
+        Object.assign(
+            stateVariableDefinitions,
             returnImmediateValueStateVariableDefinition({
                 description:
                     "The code value reflecting the user's in-progress edits.",
                 createComponentOfType: "text",
-            }).immediateValue;
+            }),
+        );
 
         stateVariableDefinitions.text = {
             description: "The current code as a plain text string.",
