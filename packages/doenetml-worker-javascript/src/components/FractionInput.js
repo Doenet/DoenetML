@@ -277,12 +277,24 @@ export class FractionInput extends Input {
                 },
             }),
             definition({ dependencyValues }) {
+                let numeratorTree = dependencyValues.numerator.tree;
+                let denominatorTree = dependencyValues.denominator.tree;
+
+                // if both parts are blank, the fraction as a whole is blank
+                // rather than a fraction of two blanks
+                if (
+                    numeratorTree === "\uff3f" &&
+                    denominatorTree === "\uff3f"
+                ) {
+                    return { setValue: { value: blankMath() } };
+                }
+
                 return {
                     setValue: {
                         value: me.fromAst([
                             "/",
-                            dependencyValues.numerator.tree,
-                            dependencyValues.denominator.tree,
+                            numeratorTree,
+                            denominatorTree,
                         ]),
                     },
                 };
@@ -300,6 +312,22 @@ export class FractionInput extends Input {
                             {
                                 setDependency: "denominator",
                                 desiredValue: me.fromAst(desiredTree[2]),
+                            },
+                        ],
+                    };
+                }
+                if (desiredTree === "\uff3f") {
+                    // a blank fraction clears both parts
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "numerator",
+                                desiredValue: blankMath(),
+                            },
+                            {
+                                setDependency: "denominator",
+                                desiredValue: blankMath(),
                             },
                         ],
                     };
@@ -331,6 +359,16 @@ export class FractionInput extends Input {
                 let denominator =
                     dependencyValues.fractionChildren[1]?.stateValues
                         .immediateValue ?? blankMath();
+
+                // if both parts are blank, the fraction as a whole is blank
+                // rather than a fraction of two blanks
+                if (
+                    numerator.tree === "\uff3f" &&
+                    denominator.tree === "\uff3f"
+                ) {
+                    return { setValue: { immediateValue: blankMath() } };
+                }
+
                 return {
                     setValue: {
                         immediateValue: me.fromAst([
@@ -357,6 +395,26 @@ export class FractionInput extends Input {
                             {
                                 setDependency: "fractionChildren",
                                 desiredValue: me.fromAst(desiredTree[2]),
+                                childIndex: 1,
+                                variableIndex: 0,
+                            },
+                        ],
+                    };
+                }
+                if (desiredTree === "\uff3f") {
+                    // a blank fraction clears both parts
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "fractionChildren",
+                                desiredValue: blankMath(),
+                                childIndex: 0,
+                                variableIndex: 0,
+                            },
+                            {
+                                setDependency: "fractionChildren",
+                                desiredValue: blankMath(),
                                 childIndex: 1,
                                 variableIndex: 0,
                             },

@@ -35,10 +35,14 @@ describe("FractionInput tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("fi")].stateValues
                     .denominator.tree,
             ).eqls(denominator);
+            const expectedValue =
+                numerator === "＿" && denominator === "＿"
+                    ? "＿"
+                    : ["/", numerator, denominator];
             expect(
                 stateVariables[await resolvePathToNodeIdx("fi")].stateValues
                     .value.tree,
-            ).eqls(["/", numerator, denominator]);
+            ).eqls(expectedValue);
             expect(
                 stateVariables[await resolvePathToNodeIdx("num")].stateValues
                     .value.tree,
@@ -50,7 +54,7 @@ describe("FractionInput tag tests @group3", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("val")].stateValues
                     .value.tree,
-            ).eqls(["/", numerator, denominator]);
+            ).eqls(expectedValue);
         }
 
         await check_items("＿", "＿");
@@ -124,7 +128,7 @@ describe("FractionInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
                 .tree,
-        ).eqls(["/", "＿", "＿"]);
+        ).eqls("＿");
 
         await updateFractionInputValueToImmediateValue({
             part: "numerator",
