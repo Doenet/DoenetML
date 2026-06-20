@@ -1,0 +1,34 @@
+.doenet-viewer .fraction-input {
+    position: relative;
+    margin: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    width: auto;
+
+    & table {
+        border-collapse: collapse;
+    }
+
+    /* Override the default mathInput wrapper margin (0 4px 4px 4px), which
+       would otherwise push the numerator farther from the bar than the
+       denominator and make each box narrower than its cell (so the bar
+       overhangs). A symmetric margin keeps the gaps equal and the bar flush
+       with the boxes. */
+    & div.mathInputWrapper {
+        margin: 0;
+    }
+
+    & .fractionNumerator,
+    & .fractionDenominator {
+        text-align: center;
+        /* A little vertical space so the focus-state double border on the
+           input boxes doesn't touch the bar. */
+        padding: 4px 0;
+    }
+
+    & .fractionVinculum {
+        height: 0;
+        padding: 0;
+        border-bottom: 2px solid currentColor;
+    }
+}

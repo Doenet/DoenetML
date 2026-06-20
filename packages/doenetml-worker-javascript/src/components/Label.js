@@ -872,6 +872,10 @@ export default class Label extends InlineComponent {
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: inputIdentity.componentType,
                         baseComponentType: "matrixInput",
+                    }) ||
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: inputIdentity.componentType,
+                        baseComponentType: "fractionInput",
                     })
                 ) {
                     forTargetIsGroup = true;
