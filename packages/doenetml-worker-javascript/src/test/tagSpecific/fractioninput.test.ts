@@ -259,7 +259,7 @@ describe("FractionInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
                 .tree,
-        ).eqls(5);
+        ).eqls(["/", 5, 1]);
 
         // filling in the denominator turns it into a fraction, flowing back
         await updateFractionInputValue({
@@ -280,7 +280,7 @@ describe("FractionInput tag tests @group3", async () => {
         ).eqls(["/", 5, 2]);
     });
 
-    it("editing the numerator over a denominator of 1 stays a non-fraction", async () => {
+    it("editing the numerator keeps the denominator of 1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="src">5</math>
@@ -288,8 +288,8 @@ describe("FractionInput tag tests @group3", async () => {
     `,
         });
 
-        // denominator seeds to 1; changing only the numerator keeps the bound
-        // value a non-fraction (numerator over 1 collapses to the numerator)
+        // denominator seeds to 1; the value stays a fraction (not collapsed),
+        // so changing the numerator keeps a denominator of 1
         await updateFractionInputValue({
             latex: "6",
             part: "numerator",
@@ -301,11 +301,11 @@ describe("FractionInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
                 .tree,
-        ).eqls(6);
+        ).eqls(["/", 6, 1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("src")].stateValues.value
                 .tree,
-        ).eqls(6);
+        ).eqls(["/", 6, 1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues
                 .denominator.tree,

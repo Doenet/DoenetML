@@ -23,8 +23,8 @@ const blankMath = () => me.fromAst("\uff3f");
 
 // Split a math value into the numerator and denominator that the two input
 // boxes display. A division becomes its two operands; a blank stays blank in
-// both boxes; anything else (a non-fraction, non-blank value) goes in the
-// numerator over a denominator of 1.
+// both boxes. (A non-fraction is treated as value-over-1; in practice `value`
+// is kept as a fraction so this is only a safety net.)
 function decomposeFraction(mathValue) {
     let tree = mathValue?.tree;
     if (Array.isArray(tree) && tree[0] === "/") {
@@ -41,18 +41,28 @@ function decomposeFraction(mathValue) {
 
 // Combine the two boxes back into a single math value (the inverse of
 // decomposeFraction). When both boxes are blank, the fraction as a whole is
-// blank rather than a fraction of two blanks. A denominator of 1 over a
-// non-blank numerator collapses to just the numerator.
+// blank; otherwise it stays a fraction (a denominator of 1 is kept, e.g. a/1).
 function reconstructFraction(numerator, denominator) {
     let numeratorTree = numerator?.tree ?? "\uff3f";
     let denominatorTree = denominator?.tree ?? "\uff3f";
     if (numeratorTree === "\uff3f" && denominatorTree === "\uff3f") {
         return blankMath();
     }
-    if (denominatorTree === 1 && numeratorTree !== "\uff3f") {
-        return me.fromAst(numeratorTree);
-    }
     return me.fromAst(["/", numeratorTree, denominatorTree]);
+}
+
+// A fractionInput's value is always a fraction (or blank). When a non-fraction
+// value comes in from a child, the bindValueTo attribute, or an inverse
+// definition, transform it to a fraction with a denominator of 1.
+function ensureFraction(mathValue) {
+    let tree = mathValue?.tree;
+    if (Array.isArray(tree) && tree[0] === "/") {
+        return mathValue;
+    }
+    if (tree === undefined || tree === "\uff3f") {
+        return blankMath();
+    }
+    return me.fromAst(["/", tree, 1]);
 }
 
 export class FractionInput extends Input {
@@ -250,15 +260,17 @@ export class FractionInput extends Input {
                 if (dependencyValues.mathChild.length > 0) {
                     return {
                         setValue: {
-                            value: dependencyValues.mathChild[0].stateValues
-                                .value,
+                            value: ensureFraction(
+                                dependencyValues.mathChild[0].stateValues.value,
+                            ),
                         },
                     };
                 } else if (dependencyValues.bindValueTo) {
                     return {
                         setValue: {
-                            value: dependencyValues.bindValueTo.stateValues
-                                .value,
+                            value: ensureFraction(
+                                dependencyValues.bindValueTo.stateValues.value,
+                            ),
                         },
                     };
                 } else {
@@ -278,6 +290,9 @@ export class FractionInput extends Input {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                let desiredValue = ensureFraction(
+                    desiredStateVariableValues.value,
+                );
                 let instructions = [
                     { setDependency: "valueChanged", desiredValue: true },
                     {
@@ -289,20 +304,20 @@ export class FractionInput extends Input {
                 if (dependencyValues.mathChild.length > 0) {
                     instructions.push({
                         setDependency: "mathChild",
-                        desiredValue: desiredStateVariableValues.value,
+                        desiredValue,
                         variableIndex: 0,
                         childIndex: 0,
                     });
                 } else if (dependencyValues.bindValueTo) {
                     instructions.push({
                         setDependency: "bindValueTo",
-                        desiredValue: desiredStateVariableValues.value,
+                        desiredValue,
                         variableIndex: 0,
                     });
                 } else {
                     instructions.push({
                         setEssentialValue: "value",
-                        value: desiredStateVariableValues.value,
+                        value: desiredValue,
                     });
                 }
                 return { success: true, instructions };
@@ -395,10 +410,13 @@ export class FractionInput extends Input {
                 initialChange,
                 shadowedVariable,
             }) {
+                let desiredValue = ensureFraction(
+                    desiredStateVariableValues.immediateValue,
+                );
                 let instructions = [
                     {
                         setEssentialValue: "immediateValue",
-                        value: desiredStateVariableValues.immediateValue,
+                        value: desiredValue,
                     },
                     {
                         setDependency: "immediateValueChanged",
@@ -409,7 +427,7 @@ export class FractionInput extends Input {
                 if (!(initialChange || shadowedVariable)) {
                     instructions.push({
                         setDependency: "value",
-                        desiredValue: desiredStateVariableValues.immediateValue,
+                        desiredValue,
                     });
                 }
 
