@@ -26,13 +26,15 @@ separated by a fraction bar. Each box accepts a math value, just like a
 
 <p>numerator = $frac.numerator</p>
 <p>denominator = $frac.denominator</p>
-<p>value = $frac.value</p>
+<p>value = $frac</p>
 ```
 
 
 
 A `<fractionInput/>{:dn}` exposes the `numerator` and `denominator` separately,
 as well as the combined `value` (the numerator divided by the denominator).
+Referencing the input directly with `$frac` gives its `value` — the `.value`
+property is optional.
 
 
 
@@ -43,7 +45,7 @@ as well as the combined `value` (the numerator divided by the denominator).
 
 ```doenet-editor-horiz
 <p>Simplify <m>\frac{2}{10}</m>:
-  <answer name="ans">
+  <answer name="ans" symbolicEquality>
     <fractionInput name="frac">
       <shortDescription>Simplify two tenths</shortDescription>
     </fractionInput>
@@ -55,7 +57,10 @@ as well as the combined `value` (the numerator divided by the denominator).
 
 
 Because its `value` is the math expression numerator divided by denominator, a
-`<fractionInput/>{:dn}` can be checked directly by an `<answer>{:dn}`.
+`<fractionInput/>{:dn}` can be checked directly by an `<answer>{:dn}`. Here
+`symbolicEquality` makes the answer compare expressions symbolically, so only
+the reduced fraction <m>\frac{1}{5}</m> is accepted (an unreduced
+<m>\frac{2}{10}</m> is marked incorrect).
 
 
 

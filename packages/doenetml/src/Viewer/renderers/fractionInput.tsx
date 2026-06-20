@@ -116,9 +116,9 @@ export default React.memo(function FractionInput(
         <span
             style={{
                 display: "inline-flex",
-                alignItems: "flex-start",
-                // The input row flows as inline content so a wrapping line keeps
-                // it aligned with the surrounding text baseline.
+                // Vertically center the check-work button next to the fraction
+                // rather than pinning it to the top.
+                alignItems: "center",
                 verticalAlign: "middle",
             }}
         >
