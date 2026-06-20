@@ -2,7 +2,6 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import {
     deepClone,
-    deepCompare,
     convertValueToMathExpression,
     vectorOperators,
 } from "@doenet/utils";
@@ -14,12 +13,15 @@ import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
+import { roundForDisplay } from "../utils/math";
 import {
-    latexToMathFactory,
-    normalizeLatexString,
-    roundForDisplay,
-    stripLatex,
-} from "../utils/math";
+    defineSubmitAnswerExternalAction,
+    mathComponentInputFocusChanged,
+    mathComponentInputUpdateValue,
+    returnMathComponentInputConfigStateVariableDefinitions,
+    returnMathComponentInputDisplayStateVariableDefinitions,
+    returnMathInputParsingAttributes,
+} from "../utils/mathComponentInput";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
 
@@ -32,23 +34,7 @@ export class MatrixInput extends Input {
             updateNumColumns: this.updateNumColumns.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
 
     static componentType = "matrixInput";
@@ -110,47 +96,7 @@ export class MatrixInput extends Input {
                 "parseScientificNotation",
             ],
         };
-        attributes.format = {
-            description: "Input format for each cell.",
-            createComponentOfType: "text",
-            createStateVariable: "format",
-            defaultValue: "text",
-            public: true,
-            toLowerCase: true,
-            validValues: [
-                {
-                    value: "text",
-                    description: "Plain-text math notation (e.g., `x^2 + 1`).",
-                },
-                {
-                    value: "latex",
-                    description: "LaTeX-formatted math (e.g., `x^{2} + 1`).",
-                },
-            ],
-        };
-        attributes.functionSymbols = {
-            description: "Symbols treated as function names when parsing.",
-            createComponentOfType: "textList",
-            createStateVariable: "functionSymbols",
-            defaultValue: ["f", "g"],
-            public: true,
-        };
-        attributes.splitSymbols = {
-            description:
-                "Whether multi-character symbols are split into a product of variables.",
-            createComponentOfType: "boolean",
-            createStateVariable: "splitSymbols",
-            defaultValue: true,
-            public: true,
-        };
-        attributes.parseScientificNotation = {
-            description:
-                "Whether to parse expressions like 1e3 as scientific notation.",
-            createComponentOfType: "boolean",
-            createStateVariable: "parseScientificNotation",
-            defaultValue: false,
-            public: true,
-        };
+        Object.assign(attributes, returnMathInputParsingAttributes());
 
         Object.assign(attributes, returnNumberDisplayAttributes());
 
@@ -3445,8 +3391,8 @@ export default class MatrixComponentInput extends BaseComponent {
 
         Object.assign(this.actions, {
             updateRawValue: this.updateRawValue.bind(this),
-            updateValue: this.updateValue.bind(this),
-            focusChanged: this.focusChanged.bind(this),
+            updateValue: mathComponentInputUpdateValue.bind(this),
+            focusChanged: mathComponentInputFocusChanged.bind(this),
         });
     }
 
@@ -3458,29 +3404,14 @@ export default class MatrixComponentInput extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.minWidth = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                matrixInputAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "matrixInput",
-                    variableNames: ["minComponentWidth"],
-                },
+        // configuration read from the parent matrixInput (parsing,
+        // number-display, width), plus componentType and focused
+        Object.assign(
+            stateVariableDefinitions,
+            returnMathComponentInputConfigStateVariableDefinitions({
+                parentComponentType: "matrixInput",
             }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.matrixInputAncestor) {
-                    return {
-                        setValue: {
-                            minWidth:
-                                dependencyValues.matrixInputAncestor.stateValues
-                                    .minComponentWidth,
-                        },
-                    };
-                } else {
-                    return { setValue: { minWidth: 0 } };
-                }
-            },
-        };
+        );
 
         // matrixComponentInput should be created as a replacement from matrixInputRow
         // and given rowInd and colInd in the essential state
@@ -3502,191 +3433,6 @@ export default class MatrixComponentInput extends BaseComponent {
             }),
         };
 
-        // don't specify attributes on matrixComponentInput
-        // instead gets these state variables from the parent matrixInput:
-        // format, functionSymbols, splitSymbols, parseScientificNotation
-        // displayDigits, displayDecimals, displaySmallAsZero, unionFromU
-        stateVariableDefinitions.format = {
-            returnDependencies: () => ({
-                parentFormat: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "format",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return { setValue: { format: dependencyValues.parentFormat } };
-            },
-        };
-
-        stateVariableDefinitions.functionSymbols = {
-            returnDependencies: () => ({
-                parentFunctionSymbols: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "functionSymbols",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        functionSymbols: dependencyValues.parentFunctionSymbols,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.splitSymbols = {
-            returnDependencies: () => ({
-                parentSplitSymbols: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "splitSymbols",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        splitSymbols: dependencyValues.parentSplitSymbols,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.parseScientificNotation = {
-            returnDependencies: () => ({
-                parentParseScientificNotation: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "parseScientificNotation",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        parseScientificNotation:
-                            dependencyValues.parentParseScientificNotation,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.displayDigits = {
-            returnDependencies: () => ({
-                parentDisplayDigits: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "displayDigits",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let result = {
-                    setValue: {
-                        displayDigits: dependencyValues.parentDisplayDigits,
-                    },
-                };
-
-                if (usedDefault.parentDisplayDigits) {
-                    result.markAsUsedDefault = { displayDigits: true };
-                }
-
-                return result;
-            },
-        };
-
-        stateVariableDefinitions.displayDecimals = {
-            returnDependencies: () => ({
-                parentDisplayDecimals: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "displayDecimals",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let result = {
-                    setValue: {
-                        displayDecimals: dependencyValues.parentDisplayDecimals,
-                    },
-                };
-
-                if (usedDefault.parentDisplayDecimals) {
-                    result.markAsUsedDefault = { displayDecimals: true };
-                }
-
-                return result;
-            },
-        };
-
-        stateVariableDefinitions.displaySmallAsZero = {
-            returnDependencies: () => ({
-                parentDisplaySmallAsZero: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "displaySmallAsZero",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        displaySmallAsZero:
-                            dependencyValues.parentDisplaySmallAsZero,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.padZeros = {
-            returnDependencies: () => ({
-                parentPadZeros: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "padZeros",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        padZeros: dependencyValues.parentPadZeros,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.avoidScientificNotation = {
-            returnDependencies: () => ({
-                parentAvoidScientificNotation: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "avoidScientificNotation",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        avoidScientificNotation:
-                            dependencyValues.parentAvoidScientificNotation,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.unionFromU = {
-            returnDependencies: () => ({
-                parentUnionFromU: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "matrixInput",
-                    variableName: "unionFromU",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: { unionFromU: dependencyValues.parentUnionFromU },
-                };
-            },
-        };
-
-        // get value from parent matrixInput
-        // using specified rowInd and colInd
         stateVariableDefinitions.value = {
             stateVariablesDeterminingDependencies: ["rowInd", "colInd"],
             returnDependencies: ({ stateValues }) => {
@@ -3786,296 +3532,11 @@ export default class MatrixComponentInput extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.valueForDisplay = {
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-                displayDigits: {
-                    dependencyType: "stateVariable",
-                    variableName: "displayDigits",
-                },
-                displayDecimals: {
-                    dependencyType: "stateVariable",
-                    variableName: "displayDecimals",
-                },
-                displaySmallAsZero: {
-                    dependencyType: "stateVariable",
-                    variableName: "displaySmallAsZero",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                // round any decimal numbers to the significant digits
-                // determined by displaydigits or displaydecimals
-                let rounded = roundForDisplay({
-                    value: dependencyValues.value,
-                    dependencyValues,
-                });
-
-                return {
-                    setValue: { valueForDisplay: rounded },
-                };
-            },
-        };
-
-        stateVariableDefinitions.text = {
-            public: true,
-            description: "The current matrix as a text string.",
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                valueForDisplay: {
-                    dependencyType: "stateVariable",
-                    variableName: "valueForDisplay",
-                },
-                padZeros: {
-                    dependencyType: "stateVariable",
-                    variableName: "padZeros",
-                },
-                displayDigits: {
-                    dependencyType: "stateVariable",
-                    variableName: "displayDigits",
-                },
-                displayDecimals: {
-                    dependencyType: "stateVariable",
-                    variableName: "displayDecimals",
-                },
-                avoidScientificNotation: {
-                    dependencyType: "stateVariable",
-                    variableName: "avoidScientificNotation",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let params = buildNumberDisplayParameters({
-                    padZeros: dependencyValues.padZeros,
-                    displayDigits: dependencyValues.displayDigits,
-                    displayDecimals: dependencyValues.displayDecimals,
-                    avoidScientificNotation:
-                        dependencyValues.avoidScientificNotation,
-                });
-                return {
-                    setValue: {
-                        text: dependencyValues.valueForDisplay.toString(params),
-                    },
-                };
-            },
-        };
-
-        // raw value from renderer
-        stateVariableDefinitions.rawRendererValue = {
-            description: "The raw value used by the renderer.",
-            forRenderer: true,
-            hasEssential: true,
-            shadowVariable: true,
-            defaultValue: "",
-            provideEssentialValuesInDefinition: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "lastValueForDisplay",
-                    hasEssential: true,
-                    shadowVariable: true,
-                    defaultValue: null,
-                    set: convertValueToMathExpression,
-                },
-            ],
-            returnDependencies: () => ({
-                // include immediateValue for inverse definition
-                immediateValue: {
-                    dependencyType: "stateVariable",
-                    variableName: "immediateValue",
-                },
-                valueForDisplay: {
-                    dependencyType: "stateVariable",
-                    variableName: "valueForDisplay",
-                },
-            }),
-            definition({ dependencyValues, essentialValues }) {
-                // console.log(`definition of raw value for ${componentIdx}`)
-                // console.log(dependencyValues, essentialValues)
-
-                // use deepCompare of trees rather than equalsViaSyntax
-                // so even tiny numerical differences that within double precision are detected
-                if (
-                    essentialValues.rawRendererValue === undefined ||
-                    !deepCompare(
-                        essentialValues.lastValueForDisplay.tree,
-                        dependencyValues.valueForDisplay.tree,
-                    )
-                ) {
-                    let rawRendererValue = stripLatex(
-                        dependencyValues.valueForDisplay.toLatex(),
-                    );
-                    if (rawRendererValue === "\uff3f") {
-                        rawRendererValue = "";
-                    }
-                    return {
-                        setValue: {
-                            rawRendererValue,
-                            lastValueForDisplay:
-                                dependencyValues.valueForDisplay,
-                        },
-                        setEssentialValue: {
-                            rawRendererValue,
-                            lastValueForDisplay:
-                                dependencyValues.valueForDisplay,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            rawRendererValue: true,
-                            lastValueForDisplay: true,
-                        },
-                    };
-                }
-            },
-            async inverseDefinition({
-                desiredStateVariableValues,
-                stateValues,
-                essentialValues,
-            }) {
-                // console.log(`inverse definition of rawRenderer value for ${componentIdx}`, desiredStateVariableValues, essentialValues)
-
-                const calculateMathExpressionFromLatex = async (text) => {
-                    let expression;
-
-                    text = normalizeLatexString(text, {
-                        unionFromU: await stateValues.unionFromU,
-                    });
-
-                    // replace ^25 with ^{2}5, since mathQuill uses standard latex conventions
-                    // unlike math-expression's latex parser
-                    text = text.replace(/\^(\w)/g, "^{$1}");
-
-                    let fromLatex = latexToMathFactory({
-                        functionSymbols: await stateValues.functionSymbols,
-                        splitSymbols: await stateValues.splitSymbols,
-                        parseScientificNotation:
-                            await stateValues.parseScientificNotation,
-                    });
-
-                    try {
-                        expression = fromLatex(text);
-                    } catch (e) {
-                        // TODO: error on bad text
-                        expression = me.fromAst("\uFF3F");
-                    }
-                    return expression;
-                };
-
-                let instructions = [];
-
-                if (
-                    typeof desiredStateVariableValues.rawRendererValue ===
-                    "string"
-                ) {
-                    let currentValue = essentialValues.rawRendererValue;
-                    let desiredValue =
-                        desiredStateVariableValues.rawRendererValue;
-
-                    if (currentValue !== desiredValue) {
-                        instructions.push({
-                            setEssentialValue: "rawRendererValue",
-                            value: desiredValue,
-                        });
-                    }
-
-                    let currentMath =
-                        await calculateMathExpressionFromLatex(currentValue);
-                    let desiredMath =
-                        await calculateMathExpressionFromLatex(desiredValue);
-
-                    // use deepCompare of trees rather than equalsViaSyntax
-                    // so even tiny numerical differences that within double precision are detected
-                    if (!deepCompare(desiredMath.tree, currentMath.tree)) {
-                        instructions.push({
-                            setDependency: "immediateValue",
-                            desiredValue: desiredMath,
-                            treatAsInitialChange: true, // so does not change value
-                        });
-                    }
-                } else {
-                    // since desired value was not a string, it must be a math-expression
-                    // always update lastValueForDisplay
-                    // update rawRendererValue
-                    // if desired expression is different from math-expression obtained from current raw value
-                    // do not update immediate value
-
-                    instructions.push({
-                        setEssentialValue: "lastValueForDisplay",
-                        value: desiredStateVariableValues.rawRendererValue,
-                    });
-
-                    let currentMath = await calculateMathExpressionFromLatex(
-                        essentialValues.rawRendererValue,
-                    );
-
-                    // use deepCompare of trees rather than equalsViaSyntax
-                    // so even tiny numerical differences that within double precision are detected
-                    if (
-                        !deepCompare(
-                            desiredStateVariableValues.rawRendererValue.tree,
-                            currentMath.tree,
-                        )
-                    ) {
-                        let desiredValue = stripLatex(
-                            desiredStateVariableValues.rawRendererValue.toLatex(),
-                        );
-                        if (desiredValue === "\uff3f") {
-                            desiredValue = "";
-                        }
-                        instructions.push({
-                            setEssentialValue: "rawRendererValue",
-                            value: desiredValue,
-                        });
-                    }
-                }
-
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
-
-        stateVariableDefinitions.componentType = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { componentType: "math" } }),
-        };
-
-        stateVariableDefinitions.focused = {
-            forRenderer: true,
-            hasEssential: true,
-            defaultValue: false,
-            public: true,
-            description:
-                "Whether the matrix input currently has keyboard focus.",
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            ignoreFixed: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: { focused: true },
-            }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "focused",
-                            value: Boolean(desiredStateVariableValues.focused),
-                        },
-                    ],
-                };
-            },
-        };
+        // valueForDisplay, text, and rawRendererValue
+        Object.assign(
+            stateVariableDefinitions,
+            returnMathComponentInputDisplayStateVariableDefinitions(),
+        );
 
         // Provide an accessible name/description for each cell's textarea.
         // The mathInput renderer now exposes this text via a visually-hidden
@@ -4135,123 +3596,5 @@ export default class MatrixComponentInput extends BaseComponent {
                 skipRendererUpdate,
             });
         }
-    }
-
-    async updateValue({
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.disabled)) {
-            let immediateValue = await this.stateValues.immediateValue;
-
-            if (
-                !deepCompare(
-                    (await this.stateValues.value).tree,
-                    immediateValue.tree,
-                )
-            ) {
-                let updateInstructions = [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "value",
-                        value: immediateValue,
-                    },
-                    // in case value ended up being a different value than requested
-                    // we set immediate value to whatever was the result
-                    // (hence the need to execute update first)
-                    {
-                        updateType: "executeUpdate",
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "immediateValue",
-                        valueOfStateVariable: "value",
-                    },
-                    {
-                        updateType: "unsetComponentNeedingUpdateValue",
-                    },
-                ];
-
-                if (immediateValue.tree !== "\uff3f") {
-                    updateInstructions.push({
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "rawRendererValue",
-                        valueOfStateVariable: "valueForDisplay",
-                    });
-                }
-
-                let event = {
-                    verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue.toString(),
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
-
-                await this.coreFunctions.performUpdate({
-                    updateInstructions,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate: true,
-                    event,
-                });
-
-                return await this.coreFunctions.triggerChainedActions({
-                    componentIdx: this.componentIdx,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
-            } else {
-                // set raw renderer value to save it to the database,
-                // as it might not have been saved
-                // given that updateRawValue is transient
-                await this.coreFunctions.performUpdate({
-                    updateInstructions: [
-                        {
-                            updateType: "updateValue",
-                            componentIdx: this.componentIdx,
-                            stateVariable: "rawRendererValue",
-                            valueOfStateVariable: "rawRendererValue",
-                        },
-                    ],
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
-            }
-        }
-    }
-
-    async focusChanged({ focused, actionId, sourceInformation }) {
-        return await this.coreFunctions.performUpdate({
-            updateInstructions: [
-                {
-                    updateType: "updateValue",
-                    componentIdx: this.componentIdx,
-                    stateVariable: "focused",
-                    value: focused,
-                },
-            ],
-            actionId,
-            sourceInformation,
-            overrideReadOnly: true,
-            doNotSave: true,
-        });
     }
 }
