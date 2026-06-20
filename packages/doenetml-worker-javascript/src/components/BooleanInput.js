@@ -5,6 +5,7 @@ import {
 } from "../utils/graphical";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
+import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
 
 export default class BooleanInput extends Input {
     constructor(args) {
@@ -15,23 +16,7 @@ export default class BooleanInput extends Input {
             moveInput: this.moveInput.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "booleanInput";
 

@@ -6,6 +6,10 @@ import {
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
+import {
+    defineSubmitAnswerExternalAction,
+    returnInputValueChangedStateVariableDefinitions,
+} from "../utils/mathComponentInput";
 
 export default class Textinput extends Input {
     constructor(args) {
@@ -17,23 +21,7 @@ export default class Textinput extends Input {
             moveInput: this.moveInput.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "textInput";
 
@@ -133,6 +121,16 @@ export default class Textinput extends Input {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnInputValueChangedStateVariableDefinitions({
+                valueChangedDescription:
+                    "Whether the value has been changed from its initial state.",
+                immediateValueChangedDescription:
+                    "Whether the value, including in-progress edits, has been changed from its initial state.",
+            }),
+        );
+
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
@@ -204,36 +202,8 @@ export default class Textinput extends Input {
             },
         };
 
-        stateVariableDefinitions.valueChanged = {
-            description:
-                "Whether the saved text has been changed from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return { useEssentialOrDefaultValue: { valueChanged: true } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "valueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.valueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.value = {
-            description: "The most recently saved text value.",
+            description: "The text value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -331,39 +301,9 @@ export default class Textinput extends Input {
             },
         };
 
-        stateVariableDefinitions.immediateValueChanged = {
-            description:
-                "Whether the live text differs from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return {
-                    useEssentialOrDefaultValue: { immediateValueChanged: true },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "immediateValueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current text being entered (live, before saving).",
+                "The text value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

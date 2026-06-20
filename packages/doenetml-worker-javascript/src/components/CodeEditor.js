@@ -1,4 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
+import { returnInputValueChangedStateVariableDefinitions } from "../utils/mathComponentInput";
 
 export default class CodeEditor extends BlockComponent {
     constructor(args) {
@@ -205,6 +206,16 @@ export default class CodeEditor extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnInputValueChangedStateVariableDefinitions({
+                valueChangedDescription:
+                    "Whether the value has been changed from its initial state.",
+                immediateValueChangedDescription:
+                    "Whether the value, including in-progress edits, has been changed from its initial state.",
+            }),
+        );
+
         stateVariableDefinitions.prefillFromChildren = {
             returnDependencies: () => ({
                 childrenDoenetML: {
@@ -223,36 +234,8 @@ export default class CodeEditor extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.valueChanged = {
-            description:
-                "Whether the saved value has been changed from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return { useEssentialOrDefaultValue: { valueChanged: true } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "valueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.valueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.value = {
-            description: "The most recently saved code value.",
+            description: "The code value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -340,39 +323,9 @@ export default class CodeEditor extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.immediateValueChanged = {
-            description:
-                "Whether the live (immediate) value has been changed from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return {
-                    useEssentialOrDefaultValue: { immediateValueChanged: true },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "immediateValueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current code in the editor (live, before saving).",
+                "The code value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

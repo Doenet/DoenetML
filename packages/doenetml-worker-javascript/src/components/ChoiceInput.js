@@ -3,6 +3,7 @@ import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -12,23 +13,7 @@ export default class Choiceinput extends Input {
             updateSelectedIndices: this.updateSelectedIndices.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
 
     static componentType = "choiceInput";
