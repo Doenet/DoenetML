@@ -117,7 +117,7 @@ export function EditorViewer({
                                 ? `Refresh the rendered code ${
                                       isMacPlatform() ? "cmd+s" : "ctrl+s"
                                   }`
-                                : "The code has not changes since the last render"
+                                : "The code has not changed since the last render"
                         }
                         onClick={doRefresh}
                     >
