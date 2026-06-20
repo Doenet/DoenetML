@@ -99,10 +99,14 @@ export function returnMathInputParsingAttributes() {
  * The `valueChanged` / `immediateValueChanged` essential booleans, public so
  * authors can detect whether a user has edited the input.
  */
-export function returnInputValueChangedStateVariableDefinitions() {
+export function returnInputValueChangedStateVariableDefinitions({
+    valueChangedDescription,
+    immediateValueChangedDescription,
+} = {}) {
     const stateVariableDefinitions = {};
 
     stateVariableDefinitions.valueChanged = {
+        description: valueChangedDescription,
         public: true,
         hasEssential: true,
         defaultValue: false,
@@ -127,6 +131,7 @@ export function returnInputValueChangedStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.immediateValueChanged = {
+        description: immediateValueChangedDescription,
         public: true,
         hasEssential: true,
         defaultValue: false,

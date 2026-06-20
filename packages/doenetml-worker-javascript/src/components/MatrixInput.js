@@ -19,6 +19,7 @@ import {
     mathComponentInputFocusChanged,
     mathComponentInputUpdateRawValue,
     mathComponentInputUpdateValue,
+    returnInputValueChangedStateVariableDefinitions,
     returnMathComponentInputConfigStateVariableDefinitions,
     returnMathComponentInputDisplayStateVariableDefinitions,
     returnMathInputParsingAttributes,
@@ -197,33 +198,16 @@ export class MatrixInput extends Input {
             }),
         );
 
-        stateVariableDefinitions.valueChanged = {
-            description:
-                "Whether the saved matrix has been changed from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return { useEssentialOrDefaultValue: { valueChanged: true } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "valueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.valueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
+        const inputValueChangedStateVariableDefinitions =
+            returnInputValueChangedStateVariableDefinitions({
+                valueChangedDescription:
+                    "Whether the saved matrix has been changed from its initial state.",
+                immediateValueChangedDescription:
+                    "Whether the live matrix differs from its initial state.",
+            });
+
+        stateVariableDefinitions.valueChanged =
+            inputValueChangedStateVariableDefinitions.valueChanged;
 
         stateVariableDefinitions.valueOriginal = {
             hasEssential: true,
@@ -330,35 +314,8 @@ export class MatrixInput extends Input {
             },
         };
 
-        stateVariableDefinitions.immediateValueChanged = {
-            description:
-                "Whether the live matrix differs from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return {
-                    useEssentialOrDefaultValue: { immediateValueChanged: true },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "immediateValueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
+        stateVariableDefinitions.immediateValueChanged =
+            inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
         stateVariableDefinitions.immediateValueOriginal = {
             hasEssential: true,

@@ -374,6 +374,44 @@ describe("FractionInput tag tests @group3", async () => {
         ).eqls(["/", "a", "b"]);
     });
 
+    it("reference child links the value two-way", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="src" prefill="2/3" />
+    <fractionInput name="fi">$src</fractionInput>
+    `,
+        });
+
+        async function check(numerator: any, denominator: any) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                    .numerator.tree,
+            ).eqls(numerator);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                    .denominator.tree,
+            ).eqls(denominator);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("src")].stateValues
+                    .value.tree,
+            ).eqls(["/", numerator, denominator]);
+        }
+
+        await check(2, 3);
+
+        await updateFractionInputValue({
+            latex: "5",
+            part: "denominator",
+            componentIdx: await resolvePathToNodeIdx("fi"),
+            core,
+        });
+        await check(2, 5);
+    });
+
     it("math child with a negative fraction keeps the sign in the numerator", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

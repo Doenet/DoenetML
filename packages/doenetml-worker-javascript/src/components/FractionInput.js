@@ -14,6 +14,7 @@ import {
     mathComponentInputFocusChanged,
     mathComponentInputUpdateRawValue,
     mathComponentInputUpdateValue,
+    returnInputValueChangedStateVariableDefinitions,
     returnMathComponentInputConfigStateVariableDefinitions,
     returnMathComponentInputDisplayStateVariableDefinitions,
     returnMathInputParsingAttributes,
@@ -200,33 +201,16 @@ export class FractionInput extends Input {
             }),
         );
 
-        stateVariableDefinitions.valueChanged = {
-            description:
-                "Whether the saved fraction has been changed from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return { useEssentialOrDefaultValue: { valueChanged: true } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "valueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.valueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
+        const inputValueChangedStateVariableDefinitions =
+            returnInputValueChangedStateVariableDefinitions({
+                valueChangedDescription:
+                    "Whether the saved fraction has been changed from its initial state.",
+                immediateValueChangedDescription:
+                    "Whether the live fraction differs from its initial state.",
+            });
+
+        stateVariableDefinitions.valueChanged =
+            inputValueChangedStateVariableDefinitions.valueChanged;
 
         // The fraction's saved value. It is linked to a `<math>` child or the
         // `bindValueTo` attribute when present (two-way), otherwise it is an
@@ -342,35 +326,8 @@ export class FractionInput extends Input {
             },
         };
 
-        stateVariableDefinitions.immediateValueChanged = {
-            description:
-                "Whether the live fraction differs from its initial state.",
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return {
-                    useEssentialOrDefaultValue: { immediateValueChanged: true },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "immediateValueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
+        stateVariableDefinitions.immediateValueChanged =
+            inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
         // The live fraction being entered, before it is saved.
         stateVariableDefinitions.immediateValue = {
