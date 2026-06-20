@@ -738,9 +738,9 @@ export default class Label extends InlineComponent {
 
         // This renderer id is only meaningful for single-control targets where
         // the renderer can expose a concrete DOM control id such as `${id}_input`.
-        // Grouped widgets like non-inline choiceInput and matrixInput still need
-        // the input component identity above, but they are labeled through
-        // `aria-labelledby` rather than `htmlFor`.
+        // Grouped widgets like non-inline choiceInput, matrixInput, and
+        // fractionInput still need the input component identity above, but they
+        // are labeled through `aria-labelledby` rather than `htmlFor`.
         stateVariableDefinitions.forTargetRendererId = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
@@ -829,9 +829,10 @@ export default class Label extends InlineComponent {
 
         // Group targets are widgets that should consume an external label via
         // `aria-labelledby` on the group container instead of `htmlFor` on a
-        // single DOM control. Today that applies to matrixInput and non-inline
-        // choiceInput. Inline choiceInput remains a single control because the
-        // react-select input exposes a concrete input id.
+        // single DOM control. Today that applies to matrixInput,
+        // fractionInput, and non-inline choiceInput. Inline choiceInput remains
+        // a single control because the react-select input exposes a concrete
+        // input id.
         stateVariableDefinitions.forTargetIsGroup = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [

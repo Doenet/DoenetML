@@ -239,6 +239,46 @@ describe("FractionInput tag tests @group3", async () => {
         await check(2, 5);
     });
 
+    it("bindValueTo a negative fraction keeps the sign in the numerator", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="src">-2/3</math>
+    <fractionInput name="fi" bindValueTo="$src" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .numerator.tree,
+        ).eqls(["-", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .denominator.tree,
+        ).eqls(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(["/", ["-", 2], 3]);
+
+        await updateFractionInputValue({
+            latex: "5",
+            part: "denominator",
+            componentIdx: await resolvePathToNodeIdx("fi"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(["/", ["-", 2], 5]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("src")].stateValues.value
+                .tree,
+        ).eqls(["/", ["-", 2], 5]);
+    });
+
     it("bindValueTo a non-fraction puts it over a denominator of 1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -332,5 +372,27 @@ describe("FractionInput tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
                 .tree,
         ).eqls(["/", "a", "b"]);
+    });
+
+    it("math child with a negative fraction keeps the sign in the numerator", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <fractionInput name="fi"><math>-4/5</math></fractionInput>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .numerator.tree,
+        ).eqls(["-", 4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .denominator.tree,
+        ).eqls(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(["/", ["-", 4], 5]);
     });
 });

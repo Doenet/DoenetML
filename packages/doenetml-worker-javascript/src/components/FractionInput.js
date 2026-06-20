@@ -21,16 +21,31 @@ import {
 
 const blankMath = () => me.fromAst("\uff3f");
 
+function isFractionTree(tree) {
+    return Array.isArray(tree) && tree[0] === "/";
+}
+
+function isNegatedFractionTree(tree) {
+    return Array.isArray(tree) && tree[0] === "-" && isFractionTree(tree[1]);
+}
+
 // Split a math value into the numerator and denominator that the two input
-// boxes display. A division becomes its two operands; a blank stays blank in
-// both boxes. (A non-fraction is treated as value-over-1; in practice `value`
-// is kept as a fraction so this is only a safety net.)
+// boxes display. A division becomes its two operands; a negated division puts
+// the sign in the numerator; a blank stays blank in both boxes. (A non-fraction
+// is treated as value-over-1; in practice `value` is kept as a fraction so this
+// is only a safety net.)
 function decomposeFraction(mathValue) {
     let tree = mathValue?.tree;
-    if (Array.isArray(tree) && tree[0] === "/") {
+    if (isFractionTree(tree)) {
         return {
             numerator: me.fromAst(tree[1]),
             denominator: me.fromAst(tree[2]),
+        };
+    }
+    if (isNegatedFractionTree(tree)) {
+        return {
+            numerator: me.fromAst(["-", tree[1][1]]),
+            denominator: me.fromAst(tree[1][2]),
         };
     }
     if (tree === undefined || tree === "\uff3f") {
@@ -56,8 +71,11 @@ function reconstructFraction(numerator, denominator) {
 // definition, transform it to a fraction with a denominator of 1.
 function ensureFraction(mathValue) {
     let tree = mathValue?.tree;
-    if (Array.isArray(tree) && tree[0] === "/") {
+    if (isFractionTree(tree)) {
         return mathValue;
+    }
+    if (isNegatedFractionTree(tree)) {
+        return me.fromAst(["/", ["-", tree[1][1]], tree[1][2]]);
     }
     if (tree === undefined || tree === "\uff3f") {
         return blankMath();
