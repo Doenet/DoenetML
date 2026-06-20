@@ -1,0 +1,213 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<fractionInput/>{:dn}`
+
+<ComponentDisplay name='fractionInput'/>
+
+`<fractionInput/>{:dn}` is an [Input](../concepts/essentialConcepts#component-types)
+component that renders a numerator input box above a denominator input box,
+separated by a fraction bar. Each box accepts a math value, just like a
+[`<mathInput/>{:dn}`](mathInput).
+
+<AttrPropDisplay name='fractionInput'/>
+
+## Examples
+
+### Example: Default `<fractionInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<fractionInput name="frac">
+  <label>Enter a fraction</label>
+</fractionInput>
+
+<p>numerator = $frac.numerator</p>
+<p>denominator = $frac.denominator</p>
+<p>value = $frac</p>
+```
+
+
+
+A `<fractionInput/>{:dn}` exposes the `numerator` and `denominator` separately,
+as well as the combined `value` (the numerator divided by the denominator).
+
+
+
+---
+
+### Example: Using a `<fractionInput/>{:dn}` in an `<answer>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Simplify <m>\frac{2}{10}</m>:
+  <answer name="ans" symbolicEquality>
+    <fractionInput name="frac">
+      <shortDescription>Simplify two tenths</shortDescription>
+    </fractionInput>
+    <award>1/5</award>
+  </answer>
+</p>
+```
+
+
+
+Because its `value` is the math expression numerator divided by denominator, a
+`<fractionInput/>{:dn}` can be checked directly by an `<answer>{:dn}`. Here
+`symbolicEquality` makes the answer compare expressions symbolically, so only
+the reduced fraction $\frac{1}{5}$ is accepted (an unreduced $\frac{2}{10}$ is
+marked incorrect).
+
+
+
+---
+
+### Example: Linking the value to another component
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="mi" prefill="2/3">
+    <label>Type a fraction</label>
+  </mathInput>
+</p>
+
+<fractionInput name="frac">
+  <label>A fraction linked to the math input</label>
+  $mi
+</fractionInput>
+
+<p>value = $frac</p>
+```
+
+
+
+Referencing another component as a child creates a two-way link between the
+fraction's `value` and that component: editing the boxes updates the linked
+value, and changing the linked value updates the boxes. If the linked value is
+not a fraction, it is placed in the numerator over a denominator of 1.
+
+The `bindValueTo` attribute (`<fractionInput bindValueTo="$mi" />{:dn}`) creates
+the same link, but the child form above is usually clearer.
+
+
+
+## Attribute Examples
+
+### Attribute Example: prefillNumerator / prefillDenominator
+
+
+```doenet-editor-horiz
+<fractionInput
+  name="frac"
+  prefillNumerator="x+1"
+  prefillDenominator="2"
+>
+  <label>Edit the fraction</label>
+</fractionInput>
+
+<p>value = $frac</p>
+```
+
+
+
+Use `prefillNumerator` and `prefillDenominator` to set the initial contents of
+each box.
+
+
+
+---
+
+### Attribute Example: format
+
+
+```doenet-editor-horiz
+<fractionInput
+  name="frac"
+  format="latex"
+  prefillNumerator="\frac{a}{b}"
+  prefillDenominator="c"
+>
+  <label>A LaTeX-prefilled fraction</label>
+</fractionInput>
+
+<p>value = $frac</p>
+```
+
+
+
+Set `format="latex"` to provide prefilled values written in LaTeX.
+
+
+
+---
+
+### Attribute Example: minComponentWidth
+
+
+```doenet-editor-horiz
+<p>Adjust the slider to change the width of the input boxes:</p>
+<slider name="w" from="10" to="100" step="10">
+  <label>minComponentWidth</label>
+</slider>
+
+<fractionInput name="frac" minComponentWidth="$w">
+  <label>A fraction with adjustable box width</label>
+</fractionInput>
+```
+
+
+
+The `minComponentWidth` attribute adjusts the width of the numerator and
+denominator input boxes.
+
+
+
+## Property Examples
+
+### Property Example: numerator / denominator / value
+
+
+```doenet-editor-horiz
+<fractionInput
+  name="frac"
+  prefillNumerator="3"
+  prefillDenominator="4"
+>
+  <label>Edit the fraction</label>
+</fractionInput>
+
+<p><c>numerator</c> = $frac.numerator</p>
+<p><c>denominator</c> = $frac.denominator</p>
+<p><c>value</c> = $frac.value</p>
+```
+
+
+
+The `numerator` and `denominator` properties give the contents of each box,
+while `value` gives the numerator divided by the denominator.
+
+
+
+---
+
+### Property Example: valueChanged / immediateValueChanged
+
+
+```doenet-editor-horiz
+<fractionInput name="frac">
+  <label>Edit the fraction</label>
+</fractionInput>
+
+<p><c>valueChanged</c> = $frac.valueChanged</p>
+<p><c>immediateValueChanged</c> = $frac.immediateValueChanged</p>
+```
+
+
+
+The `valueChanged` property is `true` once the user has changed either box and
+the page has updated (when the user clicks elsewhere, hits Enter, or interacts
+with another part of the page). The `immediateValueChanged` property becomes
+`true` immediately as the user types.

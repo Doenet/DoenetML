@@ -22,6 +22,7 @@ import * as Divisions from "./components/Divisions";
 import * as Verbatim from "./components/Verbatim";
 import * as Paginator from "./components/Paginator";
 import * as MatrixInput from "./components/MatrixInput";
+import * as FractionInput from "./components/FractionInput";
 import * as Solution from "./components/Solution";
 
 import Document from "./components/Document";
@@ -228,6 +229,7 @@ const componentTypeArray = [
     ...Object.values(Verbatim),
     ...Object.values(Paginator),
     ...Object.values(MatrixInput),
+    ...Object.values(FractionInput),
     ...Object.values(Solution),
     Document,
     Text,
