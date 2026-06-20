@@ -62,6 +62,38 @@ marked incorrect).
 
 
 
+---
+
+### Example: Linking the value to another component
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="mi" prefill="2/3">
+    <label>Type a fraction</label>
+  </mathInput>
+</p>
+
+<fractionInput name="frac">
+  <label>A fraction linked to the math input</label>
+  $mi
+</fractionInput>
+
+<p>value = $frac</p>
+```
+
+
+
+Referencing another component as a child creates a two-way link between the
+fraction's `value` and that component: editing the boxes updates the linked
+value, and changing the linked value updates the boxes. If the linked value is
+not a fraction, it is placed in the numerator over a denominator of 1.
+
+The `bindValueTo` attribute (`<fractionInput bindValueTo="$mi" />{:dn}`) creates
+the same link, but the child form above is usually clearer.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: prefillNumerator / prefillDenominator
@@ -130,59 +162,6 @@ Set `format="latex"` to provide prefilled values written in LaTeX.
 
 The `minComponentWidth` attribute adjusts the width of the numerator and
 denominator input boxes.
-
-
-
----
-
-### Attribute Example: bindValueTo
-
-
-```doenet-editor-horiz
-<p>
-  <mathInput name="mi" prefill="2/3">
-    <label>Type a fraction</label>
-  </mathInput>
-</p>
-
-<fractionInput name="frac" bindValueTo="$mi">
-  <label>A fraction bound to the math input</label>
-</fractionInput>
-
-<p>value = $frac</p>
-```
-
-
-
-The `bindValueTo` attribute creates a two-way link between the fraction's
-`value` and another component: editing the boxes updates the bound value, and
-changing the bound value updates the boxes. If the bound value is not a
-fraction, it is placed in the numerator over a denominator of 1.
-
-
-
----
-
-### Child Example: a `<math>{:dn}` fraction
-
-
-```doenet-editor-horiz
-<setup>
-  <math name="f">x/(x+1)</math>
-</setup>
-
-<fractionInput name="frac">
-  <label>Edit the fraction</label>
-  $f
-</fractionInput>
-
-<p>value = $frac</p>
-```
-
-
-
-A `<math>{:dn}` child (here referenced from `<setup>{:dn}`) also links the
-fraction's value, just like `bindValueTo`.
 
 
 
