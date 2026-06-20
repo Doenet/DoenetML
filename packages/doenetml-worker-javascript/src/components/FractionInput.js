@@ -32,9 +32,7 @@ function isNegatedFractionTree(tree) {
 
 // Split a math value into the numerator and denominator that the two input
 // boxes display. A division becomes its two operands; a negated division puts
-// the sign in the numerator; a blank stays blank in both boxes. (A non-fraction
-// is treated as value-over-1; in practice `value` is kept as a fraction so this
-// is only a safety net.)
+// the sign in the numerator; a blank stays blank in both boxes.
 function decomposeFraction(mathValue) {
     let tree = mathValue?.tree;
     if (isFractionTree(tree)) {
@@ -160,9 +158,6 @@ export class FractionInput extends Input {
         return attributes;
     }
 
-    // Although it will accept any math, the schema shows just math
-    static additionalSchemaChildren = ["math"];
-
     static returnChildGroups() {
         return [
             {
@@ -185,7 +180,6 @@ export class FractionInput extends Input {
             {
                 group: "maths",
                 componentTypes: ["math"],
-                excludeFromSchema: true,
             },
         ];
     }
@@ -204,20 +198,20 @@ export class FractionInput extends Input {
         const inputValueChangedStateVariableDefinitions =
             returnInputValueChangedStateVariableDefinitions({
                 valueChangedDescription:
-                    "Whether the saved fraction has been changed from its initial state.",
+                    "Whether the value has been changed from its initial state.",
                 immediateValueChangedDescription:
-                    "Whether the live fraction differs from its initial state.",
+                    "Whether the value, including in-progress edits, has been changed from its initial state.",
             });
 
         stateVariableDefinitions.valueChanged =
             inputValueChangedStateVariableDefinitions.valueChanged;
 
-        // The fraction's saved value. It is linked to a `<math>` child or the
+        // The fraction's value. It is linked to a `<math>` child or the
         // `bindValueTo` attribute when present (two-way), otherwise it is an
         // essential value seeded from prefillNumerator/prefillDenominator.
         stateVariableDefinitions.value = {
             description:
-                "The most recently saved fraction value (numerator divided by denominator).",
+                "The fraction value of the input (numerator divided by denominator).",
             public: true,
             hasEssential: true,
             shadowVariable: true,
@@ -329,10 +323,10 @@ export class FractionInput extends Input {
         stateVariableDefinitions.immediateValueChanged =
             inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
-        // The live fraction being entered, before it is saved.
+        // The fraction value reflecting the user's in-progress edits.
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current fraction being entered (live, before saving).",
+                "The fraction value reflecting the user's in-progress edits.",
             public: true,
             hasEssential: true,
             shadowVariable: true,
@@ -411,9 +405,9 @@ export class FractionInput extends Input {
         };
 
         // The numerator and denominator boxes display the decomposition of the
-        // saved value; editing one routes back through `value`.
+        // value; editing one routes back through `value`.
         stateVariableDefinitions.numerator = {
-            description: "The most recently saved numerator value.",
+            description: "The numerator of the fraction.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -455,7 +449,7 @@ export class FractionInput extends Input {
         };
 
         stateVariableDefinitions.denominator = {
-            description: "The most recently saved denominator value.",
+            description: "The denominator of the fraction.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -781,7 +775,7 @@ export default class FractionComponentInput extends BaseComponent {
             }),
         );
 
-        // Each box reads its saved value from the parent fractionInput
+        // Each box reads its value from the parent fractionInput
         // (numerator or denominator) and routes edits back to it.
         stateVariableDefinitions.value = {
             stateVariablesDeterminingDependencies: ["part"],

@@ -201,9 +201,9 @@ export class MatrixInput extends Input {
         const inputValueChangedStateVariableDefinitions =
             returnInputValueChangedStateVariableDefinitions({
                 valueChangedDescription:
-                    "Whether the saved matrix has been changed from its initial state.",
+                    "Whether the value has been changed from its initial state.",
                 immediateValueChangedDescription:
-                    "Whether the live matrix differs from its initial state.",
+                    "Whether the value, including in-progress edits, has been changed from its initial state.",
             });
 
         stateVariableDefinitions.valueChanged =
@@ -2099,7 +2099,7 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.value = {
-            description: "The most recently saved matrix value.",
+            description: "The matrix value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2244,7 +2244,7 @@ export class MatrixInput extends Input {
 
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current matrix being entered (live, before saving).",
+                "The matrix value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

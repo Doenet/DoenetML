@@ -225,7 +225,7 @@ export default class CodeEditor extends BlockComponent {
 
         stateVariableDefinitions.valueChanged = {
             description:
-                "Whether the saved value has been changed from its initial state.",
+                "Whether the value has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -252,7 +252,7 @@ export default class CodeEditor extends BlockComponent {
         };
 
         stateVariableDefinitions.value = {
-            description: "The most recently saved code value.",
+            description: "The code value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -342,7 +342,7 @@ export default class CodeEditor extends BlockComponent {
 
         stateVariableDefinitions.immediateValueChanged = {
             description:
-                "Whether the live (immediate) value has been changed from its initial state.",
+                "Whether the value, including in-progress edits, has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -372,7 +372,7 @@ export default class CodeEditor extends BlockComponent {
 
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current code in the editor (live, before saving).",
+                "The code value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

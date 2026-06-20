@@ -355,7 +355,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.valueChanged = {
             description:
-                "Whether the saved value has been changed from its initial state.",
+                "Whether the value has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -382,7 +382,7 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.value = {
-            description: "The most recently saved math value.",
+            description: "The math value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -528,7 +528,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.immediateValueChanged = {
             description:
-                "Whether the live value differs from its initial state.",
+                "Whether the value, including in-progress edits, has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -558,7 +558,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current math value being entered (live, before saving).",
+                "The math value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
