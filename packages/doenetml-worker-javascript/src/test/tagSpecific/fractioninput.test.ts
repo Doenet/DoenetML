@@ -194,4 +194,111 @@ describe("FractionInput tag tests @group3", async () => {
                 .creditAchieved,
         ).eq(0);
     });
+
+    it("bindValueTo a fraction, two-way", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="src">2/3</math>
+    <fractionInput name="fi" bindValueTo="$src" />
+    `,
+        });
+
+        async function check(numerator: any, denominator: any) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                    .numerator.tree,
+            ).eqls(numerator);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                    .denominator.tree,
+            ).eqls(denominator);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                    .value.tree,
+            ).eqls(["/", numerator, denominator]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("src")].stateValues
+                    .value.tree,
+            ).eqls(["/", numerator, denominator]);
+        }
+
+        // bound value seeds the two boxes
+        await check(2, 3);
+
+        // editing the denominator flows back to the bound math
+        await updateFractionInputValue({
+            latex: "5",
+            part: "denominator",
+            componentIdx: await resolvePathToNodeIdx("fi"),
+            core,
+        });
+        await check(2, 5);
+    });
+
+    it("bindValueTo a non-fraction puts it in the numerator", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="src">5</math>
+    <fractionInput name="fi" bindValueTo="$src" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .numerator.tree,
+        ).eqls(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .denominator.tree,
+        ).eqls("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(5);
+
+        // filling in the denominator turns it into a fraction, flowing back
+        await updateFractionInputValue({
+            latex: "2",
+            part: "denominator",
+            componentIdx: await resolvePathToNodeIdx("fi"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(["/", 5, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("src")].stateValues.value
+                .tree,
+        ).eqls(["/", 5, 2]);
+    });
+
+    it("math child links the value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <fractionInput name="fi"><math>a/b</math></fractionInput>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .numerator.tree,
+        ).eqls("a");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .denominator.tree,
+        ).eqls("b");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(["/", "a", "b"]);
+    });
 });

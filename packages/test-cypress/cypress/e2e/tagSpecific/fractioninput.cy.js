@@ -74,4 +74,33 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#frac_button").should("contain.text", "Check Work").click();
         cy.get("#frac_button").should("contain.text", "Correct");
     });
+
+    it("bindValueTo a math input, two-way", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <mathInput name="mi" prefill="2/3"><label>src</label></mathInput>
+        <fractionInput name="frac" bindValueTo="$mi">
+            <label>bound fraction</label>
+        </fractionInput>
+
+        <p name="pNum">numerator: $frac.numerator</p>
+        <p name="pDen">denominator: $frac.denominator</p>
+        `,
+                },
+                "*",
+            );
+        });
+
+        // bound value seeds the two boxes
+        cy.get("#pNum").should("have.text", "numerator: 2");
+        cy.get("#pDen").should("have.text", "denominator: 3");
+
+        // editing the denominator box flows back to the bound math input
+        cy.get("#frac textarea").eq(1).type("{end}{backspace}5{enter}", {
+            force: true,
+        });
+        cy.get("#pDen").should("have.text", "denominator: 5");
+    });
 });
