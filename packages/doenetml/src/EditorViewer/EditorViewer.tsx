@@ -1040,7 +1040,7 @@ export const EditorViewer = React.forwardRef<
     }
 
     const viewerPanel = (
-        <div className="viewer-panel" id={id + "-viewer"}>
+        <div className="viewer-panel" id={id + "-viewer-panel"}>
             <ViewerControlsBar
                 id={id}
                 readOnly={readOnly}
