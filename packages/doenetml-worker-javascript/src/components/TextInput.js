@@ -9,7 +9,7 @@ import Input from "./abstract/Input";
 import {
     defineSubmitAnswerExternalAction,
     returnInputValueChangedStateVariableDefinitions,
-} from "../utils/mathComponentInput";
+} from "../utils/input";
 
 export default class Textinput extends Input {
     constructor(args) {

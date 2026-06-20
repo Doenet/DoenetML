@@ -19,7 +19,7 @@ import {
     stripLatex,
 } from "../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
-import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
+import { defineSubmitAnswerExternalAction } from "../utils/input";
 
 export default class MathInput extends Input {
     constructor(args) {

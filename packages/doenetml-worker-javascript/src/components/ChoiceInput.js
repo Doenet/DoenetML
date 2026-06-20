@@ -3,7 +3,7 @@ import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
-import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
+import { defineSubmitAnswerExternalAction } from "../utils/input";
 
 export default class Choiceinput extends Input {
     constructor(args) {

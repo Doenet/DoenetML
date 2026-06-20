@@ -1,5 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
-import { returnInputValueChangedStateVariableDefinitions } from "../utils/mathComponentInput";
+import { returnInputValueChangedStateVariableDefinitions } from "../utils/input";
 
 export default class CodeEditor extends BlockComponent {
     constructor(args) {

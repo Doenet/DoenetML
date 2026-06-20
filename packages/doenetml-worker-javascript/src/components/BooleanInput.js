@@ -5,7 +5,7 @@ import {
 } from "../utils/graphical";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
-import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
+import { defineSubmitAnswerExternalAction } from "../utils/input";
 
 export default class BooleanInput extends Input {
     constructor(args) {
