@@ -206,7 +206,7 @@ export default class Textinput extends Input {
 
         stateVariableDefinitions.valueChanged = {
             description:
-                "Whether the value has been changed from its initial state.",
+                "Whether the saved text has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -233,7 +233,7 @@ export default class Textinput extends Input {
         };
 
         stateVariableDefinitions.value = {
-            description: "The text value of the input.",
+            description: "The most recently saved text value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -333,7 +333,7 @@ export default class Textinput extends Input {
 
         stateVariableDefinitions.immediateValueChanged = {
             description:
-                "Whether the value, including in-progress edits, has been changed from its initial state.",
+                "Whether the live text differs from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -363,7 +363,7 @@ export default class Textinput extends Input {
 
         stateVariableDefinitions.immediateValue = {
             description:
-                "The text value reflecting the user's in-progress edits.",
+                "The current text being entered (live, before saving).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
