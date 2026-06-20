@@ -1630,22 +1630,24 @@ describe("Cascade tag tests @group4", async () => {
     });
 
     it("just submitted is not set to false for choice with math inside a repeat inside a cascade", async () => {
-        // Regression test: a `<choice>` containing `<m>` whose `hiddenIgnoreParent`
-        // chain climbs through its source composite (the repeat) up to the
-        // cascade's credit-based visibility. Submitting the answer changed the
-        // recursive credit-achieved dependencies, which incorrectly reset
-        // `justSubmitted` to false, leaving the check-work button stuck.
+        // Regression test: a `<choice>` containing a repeated `<m>` child whose
+        // `hiddenIgnoreParent` chain must not climb to the cascade's
+        // credit-based visibility. Submitting the answer changed the recursive
+        // credit-achieved dependencies, which incorrectly reset `justSubmitted`
+        // to false, leaving the check-work button stuck.
         const doenetML = `
 <cascade>
   <subsection>
     <repeatForSequence from="1" to="1">
-      <choiceInput name="b" inline preselectChoice="1">
-        <choice>Crosses the <m>x</m>-axis almost linearly</choice>
-      </choiceInput>
       <answer name="ans">
-        <award><when>$b.selectedIndex=1</when></award>
+        <choiceInput name="b" inline preselectChoice="1">
+          <choice credit="1">Crosses the <m>x</m>-axis almost linearly</choice>
+        </choiceInput>
       </answer>
     </repeatForSequence>
+  </subsection>
+  <subsection>
+    <p>Next section</p>
   </subsection>
 </cascade>
   `;
@@ -1654,14 +1656,24 @@ describe("Cascade tag tests @group4", async () => {
         });
 
         let stateVariables = await getStateVariables(core);
-        const ansIdx = Object.keys(stateVariables)
+        const answerIndices = Object.keys(stateVariables)
             .filter((k) => stateVariables[k].componentType === "answer")
-            .map(Number)[0];
+            .map(Number);
+        const choiceInputIndices = Object.keys(stateVariables)
+            .filter((k) => stateVariables[k].componentType === "choiceInput")
+            .map(Number);
+        expect(answerIndices.length).eq(1);
+        expect(choiceInputIndices.length).eq(1);
+        const ansIdx = answerIndices[0];
+        const choiceInputIdx = choiceInputIndices[0];
 
         await submitAnswer({ componentIdx: ansIdx, core });
 
         stateVariables = await getStateVariables(core);
         expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[choiceInputIdx].stateValues.justSubmitted).eq(
+            true,
+        );
         expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
     });
 });
