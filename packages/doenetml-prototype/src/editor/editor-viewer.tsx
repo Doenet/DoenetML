@@ -17,7 +17,7 @@ import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
 import Alert from "react-bootstrap/Alert";
 import type { CoreType } from "../state/redux-slices/core/slice";
-import { isSaveShortcutKeydown } from "@doenet/utils";
+import { isSaveShortcutKeydown, isMacPlatform } from "@doenet/utils";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -114,7 +114,9 @@ export function EditorViewer({
                         disabled={!canRefresh}
                         title={
                             canRefresh
-                                ? "Refresh the rendered code (Ctrl/Cmd+S)"
+                                ? `Refresh the rendered code ${
+                                      isMacPlatform() ? "cmd+s" : "ctrl+s"
+                                  }`
                                 : "The code has not changes since the last render"
                         }
                         onClick={doRefresh}
