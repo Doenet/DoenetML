@@ -23,9 +23,8 @@ const blankMath = () => me.fromAst("\uff3f");
 
 // Split a math value into the numerator and denominator that the two input
 // boxes display. A division becomes its two operands; a blank stays blank in
-// both boxes; anything else (not a fraction) goes in the numerator with a
-// blank denominator (mirroring how matrixInput places a non-matrix value in
-// its first cell).
+// both boxes; anything else (a non-fraction, non-blank value) goes in the
+// numerator over a denominator of 1.
 function decomposeFraction(mathValue) {
     let tree = mathValue?.tree;
     if (Array.isArray(tree) && tree[0] === "/") {
@@ -37,16 +36,21 @@ function decomposeFraction(mathValue) {
     if (tree === undefined || tree === "\uff3f") {
         return { numerator: blankMath(), denominator: blankMath() };
     }
-    return { numerator: me.fromAst(tree), denominator: blankMath() };
+    return { numerator: me.fromAst(tree), denominator: me.fromAst(1) };
 }
 
-// Combine the two boxes back into a single math value. When both boxes are
-// blank, the fraction as a whole is blank rather than a fraction of two blanks.
+// Combine the two boxes back into a single math value (the inverse of
+// decomposeFraction). When both boxes are blank, the fraction as a whole is
+// blank rather than a fraction of two blanks. A denominator of 1 over a
+// non-blank numerator collapses to just the numerator.
 function reconstructFraction(numerator, denominator) {
     let numeratorTree = numerator?.tree ?? "\uff3f";
     let denominatorTree = denominator?.tree ?? "\uff3f";
     if (numeratorTree === "\uff3f" && denominatorTree === "\uff3f") {
         return blankMath();
+    }
+    if (denominatorTree === 1 && numeratorTree !== "\uff3f") {
+        return me.fromAst(numeratorTree);
     }
     return me.fromAst(["/", numeratorTree, denominatorTree]);
 }

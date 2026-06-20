@@ -239,7 +239,7 @@ describe("FractionInput tag tests @group3", async () => {
         await check(2, 5);
     });
 
-    it("bindValueTo a non-fraction puts it in the numerator", async () => {
+    it("bindValueTo a non-fraction puts it over a denominator of 1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="src">5</math>
@@ -255,7 +255,7 @@ describe("FractionInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues
                 .denominator.tree,
-        ).eqls("＿");
+        ).eqls(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
                 .tree,
@@ -278,6 +278,38 @@ describe("FractionInput tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("src")].stateValues.value
                 .tree,
         ).eqls(["/", 5, 2]);
+    });
+
+    it("editing the numerator over a denominator of 1 stays a non-fraction", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="src">5</math>
+    <fractionInput name="fi" bindValueTo="$src" />
+    `,
+        });
+
+        // denominator seeds to 1; changing only the numerator keeps the bound
+        // value a non-fraction (numerator over 1 collapses to the numerator)
+        await updateFractionInputValue({
+            latex: "6",
+            part: "numerator",
+            componentIdx: await resolvePathToNodeIdx("fi"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues.value
+                .tree,
+        ).eqls(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("src")].stateValues.value
+                .tree,
+        ).eqls(6);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fi")].stateValues
+                .denominator.tree,
+        ).eqls(1);
     });
 
     it("math child links the value", async () => {
