@@ -17,6 +17,7 @@ import { roundForDisplay } from "../utils/math";
 import {
     defineSubmitAnswerExternalAction,
     mathComponentInputFocusChanged,
+    mathComponentInputUpdateRawValue,
     mathComponentInputUpdateValue,
     returnMathComponentInputConfigStateVariableDefinitions,
     returnMathComponentInputDisplayStateVariableDefinitions,
@@ -3390,7 +3391,7 @@ export default class MatrixComponentInput extends BaseComponent {
         super(args);
 
         Object.assign(this.actions, {
-            updateRawValue: this.updateRawValue.bind(this),
+            updateRawValue: mathComponentInputUpdateRawValue.bind(this),
             updateValue: mathComponentInputUpdateValue.bind(this),
             focusChanged: mathComponentInputFocusChanged.bind(this),
         });
@@ -3569,32 +3570,5 @@ export default class MatrixComponentInput extends BaseComponent {
         };
 
         return stateVariableDefinitions;
-    }
-
-    async updateRawValue({
-        rawRendererValue,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.disabled)) {
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "rawRendererValue",
-                        value: rawRendererValue,
-                    },
-                    {
-                        updateType: "setComponentNeedingUpdateValue",
-                        componentIdx: this.componentIdx,
-                    },
-                ],
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
     }
 }

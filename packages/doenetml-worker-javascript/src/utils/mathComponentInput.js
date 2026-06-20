@@ -536,6 +536,40 @@ export function returnMathComponentInputDisplayStateVariableDefinitions() {
 }
 
 /**
+ * Shared `updateRawValue` action for a math-input cell: stores the latest raw
+ * (LaTeX) value from the renderer and flags the component as needing a value
+ * update. The update is transient so each keystroke does not add a row to the
+ * database. Bind to the component instance in its constructor.
+ */
+export async function mathComponentInputUpdateRawValue({
+    rawRendererValue,
+    actionId,
+    sourceInformation = {},
+    skipRendererUpdate = false,
+}) {
+    if (!(await this.stateValues.disabled)) {
+        return await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "rawRendererValue",
+                    value: rawRendererValue,
+                },
+                {
+                    updateType: "setComponentNeedingUpdateValue",
+                    componentIdx: this.componentIdx,
+                },
+            ],
+            transient: true,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+}
+
+/**
  * Shared `updateValue` action for a math-input cell: when the live
  * `immediateValue` differs from the saved `value`, commit it (and refresh the
  * renderer's raw value), emitting an "answered" event and triggering any
