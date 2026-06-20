@@ -7,6 +7,7 @@ import {
     roundForDisplay,
     stripLatex,
 } from "./math";
+import { buildInputResponseEvent } from "./input";
 
 /**
  * Shared building blocks for the internal math-input "cell" components that
@@ -19,30 +20,6 @@ import {
  * `immediateValue` come from, and the accessible `shortDescription` — stay in
  * the individual component classes.
  */
-
-/**
- * Define a `submitAnswer` external action on an input component that delegates
- * to its `answerAncestor`. Call from the component constructor.
- */
-export function defineSubmitAnswerExternalAction(component) {
-    component.externalActions = {};
-
-    // Complex because the stateValues isn't defined until later
-    Object.defineProperty(component.externalActions, "submitAnswer", {
-        enumerable: true,
-        get: async function () {
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor !== null) {
-                return {
-                    componentIdx: answerAncestor.componentIdx,
-                    actionName: "submitAnswer",
-                };
-            } else {
-                return;
-            }
-        }.bind(component),
-    });
-}
 
 /**
  * The parsing attributes (`format`, `functionSymbols`, `splitSymbols`,
@@ -93,73 +70,6 @@ export function returnMathInputParsingAttributes() {
             public: true,
         },
     };
-}
-
-/**
- * The `valueChanged` / `immediateValueChanged` essential booleans, public so
- * authors can detect whether a user has edited the input.
- */
-export function returnInputValueChangedStateVariableDefinitions({
-    valueChangedDescription,
-    immediateValueChangedDescription,
-} = {}) {
-    const stateVariableDefinitions = {};
-
-    stateVariableDefinitions.valueChanged = {
-        description: valueChangedDescription,
-        public: true,
-        hasEssential: true,
-        defaultValue: false,
-        shadowingInstructions: {
-            createComponentOfType: "boolean",
-        },
-        returnDependencies: () => ({}),
-        definition() {
-            return { useEssentialOrDefaultValue: { valueChanged: true } };
-        },
-        inverseDefinition({ desiredStateVariableValues }) {
-            return {
-                success: true,
-                instructions: [
-                    {
-                        setEssentialValue: "valueChanged",
-                        value: Boolean(desiredStateVariableValues.valueChanged),
-                    },
-                ],
-            };
-        },
-    };
-
-    stateVariableDefinitions.immediateValueChanged = {
-        description: immediateValueChangedDescription,
-        public: true,
-        hasEssential: true,
-        defaultValue: false,
-        shadowingInstructions: {
-            createComponentOfType: "boolean",
-        },
-        returnDependencies: () => ({}),
-        definition() {
-            return {
-                useEssentialOrDefaultValue: { immediateValueChanged: true },
-            };
-        },
-        inverseDefinition({ desiredStateVariableValues }) {
-            return {
-                success: true,
-                instructions: [
-                    {
-                        setEssentialValue: "immediateValueChanged",
-                        value: Boolean(
-                            desiredStateVariableValues.immediateValueChanged,
-                        ),
-                    },
-                ],
-            };
-        },
-    };
-
-    return stateVariableDefinitions;
 }
 
 /**
@@ -627,24 +537,12 @@ export async function mathComponentInputUpdateValue({
                 });
             }
 
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "answered",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: immediateValue,
-                    responseText: immediateValue.toString(),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: immediateValue,
+                responseText: immediateValue.toString(),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,

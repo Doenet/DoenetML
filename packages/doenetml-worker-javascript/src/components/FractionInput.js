@@ -10,15 +10,17 @@ import {
 } from "../utils/numberDisplay";
 import { roundForDisplay } from "../utils/math";
 import {
-    defineSubmitAnswerExternalAction,
     mathComponentInputFocusChanged,
     mathComponentInputUpdateRawValue,
     mathComponentInputUpdateValue,
-    returnInputValueChangedStateVariableDefinitions,
     returnMathComponentInputConfigStateVariableDefinitions,
     returnMathComponentInputDisplayStateVariableDefinitions,
     returnMathInputParsingAttributes,
 } from "../utils/mathComponentInput";
+import {
+    defineSubmitAnswerExternalAction,
+    returnInputValueChangedStateVariableDefinitions,
+} from "../utils/input";
 
 const blankMath = () => me.fromAst("\uff3f");
 

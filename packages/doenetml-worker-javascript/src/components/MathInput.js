@@ -19,7 +19,10 @@ import {
     stripLatex,
 } from "../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
-import { defineSubmitAnswerExternalAction } from "../utils/mathComponentInput";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -1202,24 +1205,12 @@ export default class MathInput extends Input {
                     valueOfStateVariable: "valueForDisplay",
                 });
 
-                let event = {
+                let event = await buildInputResponseEvent({
+                    component: this,
                     verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue.toString(),
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
+                    response: immediateValue,
+                    responseText: immediateValue.toString(),
+                });
 
                 // TODO: we should should skip renderer updates here,
                 // but doing so triggers a bug in the resolveItem logic

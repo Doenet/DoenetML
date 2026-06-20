@@ -3,6 +3,10 @@ import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -12,23 +16,7 @@ export default class Choiceinput extends Input {
             updateSelectedIndices: this.updateSelectedIndices.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
 
     static componentType = "choiceInput";
@@ -1597,26 +1585,14 @@ export default class Choiceinput extends Input {
             ];
 
             let choiceTexts = await this.stateValues.choiceTexts;
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "selected",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: effectiveSelectedIndices,
-                    responseText: effectiveSelectedIndices.map(
-                        (i) => choiceTexts[i - 1],
-                    ),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: effectiveSelectedIndices,
+                responseText: effectiveSelectedIndices.map(
+                    (i) => choiceTexts[i - 1],
+                ),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,
