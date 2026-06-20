@@ -1628,4 +1628,40 @@ describe("Cascade tag tests @group4", async () => {
         });
         await check_items([true, true], [1, 1]);
     });
+
+    it("just submitted is not set to false for choice with math inside a repeat inside a cascade", async () => {
+        // Regression test: a `<choice>` containing `<m>` whose `hiddenIgnoreParent`
+        // chain climbs through its source composite (the repeat) up to the
+        // cascade's credit-based visibility. Submitting the answer changed the
+        // recursive credit-achieved dependencies, which incorrectly reset
+        // `justSubmitted` to false, leaving the check-work button stuck.
+        const doenetML = `
+<cascade>
+  <subsection>
+    <repeatForSequence from="1" to="1">
+      <choiceInput name="b" inline preselectChoice="1">
+        <choice>Crosses the <m>x</m>-axis almost linearly</choice>
+      </choiceInput>
+      <answer name="ans">
+        <award><when>$b.selectedIndex=1</when></award>
+      </answer>
+    </repeatForSequence>
+  </subsection>
+</cascade>
+  `;
+        const { core } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await getStateVariables(core);
+        const ansIdx = Object.keys(stateVariables)
+            .filter((k) => stateVariables[k].componentType === "answer")
+            .map(Number)[0];
+
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+    });
 });
