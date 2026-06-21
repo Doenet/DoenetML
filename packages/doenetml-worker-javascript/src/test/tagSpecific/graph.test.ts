@@ -40,8 +40,8 @@ type GraphLimitsAndScales = {
     xMax: number;
     yMin: number;
     yMax: number;
-    xscale: number;
-    yscale: number;
+    xScale: number;
+    yScale: number;
 };
 
 async function checkGraphLimitsAndScales(
@@ -58,8 +58,8 @@ async function checkGraphLimitsAndScales(
         xMax: graph.stateValues.xMax,
         yMin: graph.stateValues.yMin,
         yMax: graph.stateValues.yMax,
-        xscale: graph.stateValues.xscale,
-        yscale: graph.stateValues.yscale,
+        xScale: graph.stateValues.xScale,
+        yScale: graph.stateValues.yScale,
     }).eqls(expected);
 }
 
@@ -461,30 +461,30 @@ describe("Graph tag tests @group2", async () => {
         await checkLimits(-5, 10, -10, 0);
     });
 
-    it("set xscale and yscale keeps midpoint, changes limits symmetrically", async () => {
+    it("set xScale and yScale keeps midpoint, changes limits symmetrically", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
-        // defaults: xMin=-10, xMax=10 (midpoint 0, xscale 20); same for y
+        // defaults: xMin=-10, xMax=10 (midpoint 0, xScale 20); same for y
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
             xMin: -10,
             xMax: 10,
             yMin: -10,
             yMax: 10,
-            xscale: 20,
-            yscale: 20,
+            xScale: 20,
+            yScale: 20,
         });
 
-        // set xscale to 10: midpoint 0 preserved, limits become [-5, 5]
+        // set xScale to 10: midpoint 0 preserved, limits become [-5, 5]
         await updateMathInputValue({
             latex: "10",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -492,14 +492,14 @@ describe("Graph tag tests @group2", async () => {
             xMax: 5,
             yMin: -10,
             yMax: 10,
-            xscale: 10,
-            yscale: 20,
+            xScale: 10,
+            yScale: 20,
         });
 
-        // set yscale to 40: midpoint 0 preserved, limits become [-20, 20]
+        // set yScale to 40: midpoint 0 preserved, limits become [-20, 20]
         await updateMathInputValue({
             latex: "40",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -507,18 +507,18 @@ describe("Graph tag tests @group2", async () => {
             xMax: 5,
             yMin: -20,
             yMax: 20,
-            xscale: 10,
-            yscale: 40,
+            xScale: 10,
+            yScale: 40,
         });
     });
 
-    it("set xscale and yscale keeps non-zero midpoint", async () => {
+    it("set xScale and yScale keeps non-zero midpoint", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
@@ -528,14 +528,14 @@ describe("Graph tag tests @group2", async () => {
             xMax: 8,
             yMin: -3,
             yMax: 7,
-            xscale: 6,
-            yscale: 10,
+            xScale: 6,
+            yScale: 10,
         });
 
-        // set xscale to 4: midpoint 5 preserved -> [3, 7]
+        // set xScale to 4: midpoint 5 preserved -> [3, 7]
         await updateMathInputValue({
             latex: "4",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -543,14 +543,14 @@ describe("Graph tag tests @group2", async () => {
             xMax: 7,
             yMin: -3,
             yMax: 7,
-            xscale: 4,
-            yscale: 10,
+            xScale: 4,
+            yScale: 10,
         });
 
-        // set yscale to 20: midpoint 2 preserved -> [-8, 12]
+        // set yScale to 20: midpoint 2 preserved -> [-8, 12]
         await updateMathInputValue({
             latex: "20",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -558,18 +558,18 @@ describe("Graph tag tests @group2", async () => {
             xMax: 7,
             yMin: -8,
             yMax: 12,
-            xscale: 4,
-            yscale: 20,
+            xScale: 4,
+            yScale: 20,
         });
     });
 
-    it("set xscale and yscale with identicalAxisScales adjusts limits", async () => {
+    it("set xScale and yScale with identicalAxisScales adjusts limits", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" identicalAxisScales />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
@@ -578,14 +578,14 @@ describe("Graph tag tests @group2", async () => {
             xMax: 10,
             yMin: -10,
             yMax: 10,
-            xscale: 20,
-            yscale: 20,
+            xScale: 20,
+            yScale: 20,
         });
 
-        // set xscale to 10: x midpoint 0 preserved -> [-5, 5]
+        // set xScale to 10: x midpoint 0 preserved -> [-5, 5]
         await updateMathInputValue({
             latex: "10",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -593,14 +593,14 @@ describe("Graph tag tests @group2", async () => {
             xMax: 5,
             yMin: -10,
             yMax: 10,
-            xscale: 10,
-            yscale: 20,
+            xScale: 10,
+            yScale: 20,
         });
 
-        // set yscale to 8: y midpoint 0 preserved -> [-4, 4]
+        // set yScale to 8: y midpoint 0 preserved -> [-4, 4]
         await updateMathInputValue({
             latex: "8",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -608,18 +608,18 @@ describe("Graph tag tests @group2", async () => {
             xMax: 5,
             yMin: -4,
             yMax: 4,
-            xscale: 10,
-            yscale: 8,
+            xScale: 10,
+            yScale: 8,
         });
     });
 
-    it("set xscale and yscale respect fixAxes", async () => {
+    it("set xScale and yScale respect fixAxes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" fixAxes />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
@@ -628,13 +628,13 @@ describe("Graph tag tests @group2", async () => {
             xMax: 10,
             yMin: -10,
             yMax: 10,
-            xscale: 20,
-            yscale: 20,
+            xScale: 20,
+            yScale: 20,
         });
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -642,13 +642,13 @@ describe("Graph tag tests @group2", async () => {
             xMax: 10,
             yMin: -10,
             yMax: 10,
-            xscale: 20,
-            yscale: 20,
+            xScale: 20,
+            yScale: 20,
         });
 
         await updateMathInputValue({
             latex: "30",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -656,18 +656,18 @@ describe("Graph tag tests @group2", async () => {
             xMax: 10,
             yMin: -10,
             yMax: 10,
-            xscale: 20,
-            yscale: 20,
+            xScale: 20,
+            yScale: 20,
         });
     });
 
-    it("set xscale and yscale rejects non-finite values", async () => {
+    it("set xScale and yScale rejects non-finite values", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
@@ -676,13 +676,13 @@ describe("Graph tag tests @group2", async () => {
             xMax: 8,
             yMin: -3,
             yMax: 7,
-            xscale: 6,
-            yscale: 10,
+            xScale: 6,
+            yScale: 10,
         });
 
         await updateMathInputValue({
             latex: "\\infty",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -690,13 +690,13 @@ describe("Graph tag tests @group2", async () => {
             xMax: 8,
             yMin: -3,
             yMax: 7,
-            xscale: 6,
-            yscale: 10,
+            xScale: 6,
+            yScale: 10,
         });
 
         await updateMathInputValue({
             latex: "-\\infty",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
@@ -704,18 +704,18 @@ describe("Graph tag tests @group2", async () => {
             xMax: 8,
             yMin: -3,
             yMax: 7,
-            xscale: 6,
-            yscale: 10,
+            xScale: 6,
+            yScale: 10,
         });
     });
 
-    it("set xscale and yscale rejects non-positive values", async () => {
+    it("set xScale and yScale rejects non-positive values", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
 
-    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
-    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
     `,
         });
 
@@ -724,8 +724,8 @@ describe("Graph tag tests @group2", async () => {
             xMax: 8,
             yMin: -3,
             yMax: 7,
-            xscale: 6,
-            yscale: 10,
+            xScale: 6,
+            yScale: 10,
         };
         await checkGraphLimitsAndScales(
             core,
@@ -736,7 +736,7 @@ describe("Graph tag tests @group2", async () => {
         // zero scale is rejected (would make xMin === xMax)
         await updateMathInputValue({
             latex: "0",
-            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(
@@ -748,7 +748,7 @@ describe("Graph tag tests @group2", async () => {
         // negative scale is rejected (would make yMin > yMax)
         await updateMathInputValue({
             latex: "-4",
-            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
             core,
         });
         await checkGraphLimitsAndScales(
@@ -758,15 +758,15 @@ describe("Graph tag tests @group2", async () => {
         );
     });
 
-    it("set xscale and yscale through graph-parent limits", async () => {
+    it("set xScale and yScale through graph-parent limits", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmin="1" xmax="7" ymin="-5" ymax="3">
         <graph name="child" />
     </graph>
 
-    <p>Change child xscale: <mathInput name="childXscaleInput" bindValueTo="$child.xscale" /></p>
-    <p>Change child yscale: <mathInput name="childYscaleInput" bindValueTo="$child.yscale" /></p>
+    <p>Change child xScale: <mathInput name="childXscaleInput" bindValueTo="$child.xScale" /></p>
+    <p>Change child yScale: <mathInput name="childYscaleInput" bindValueTo="$child.yScale" /></p>
     `,
         });
 
@@ -775,8 +775,8 @@ describe("Graph tag tests @group2", async () => {
             xMax: 7,
             yMin: -5,
             yMax: 3,
-            xscale: 6,
-            yscale: 8,
+            xScale: 6,
+            yScale: 8,
         };
         await checkGraphLimitsAndScales(
             core,
@@ -800,8 +800,8 @@ describe("Graph tag tests @group2", async () => {
             xMax: 9,
             yMin: -5,
             yMax: 3,
-            xscale: 10,
-            yscale: 8,
+            xScale: 10,
+            yScale: 8,
         };
         await checkGraphLimitsAndScales(
             core,
@@ -825,8 +825,8 @@ describe("Graph tag tests @group2", async () => {
             xMax: 9,
             yMin: -2,
             yMax: 0,
-            xscale: 10,
-            yscale: 2,
+            xScale: 10,
+            yScale: 2,
         };
         await checkGraphLimitsAndScales(
             core,
