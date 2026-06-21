@@ -17,7 +17,16 @@
 const inputSelector = ".doenet-document .text-input input";
 // The section header is an h1..h6 depending on division depth (the rust and JS
 // cores currently pick different levels), so match any heading in the section.
-const headerSelector = ".doenet-document .section :is(h1, h2, h3, h4, h5, h6)";
+// Use a selector list instead of :is(...) since Cypress/jQuery selector support
+// can vary by runtime.
+const headerSelector = [
+    ".doenet-document .section h1",
+    ".doenet-document .section h2",
+    ".doenet-document .section h3",
+    ".doenet-document .section h4",
+    ".doenet-document .section h5",
+    ".doenet-document .section h6",
+].join(", ");
 
 function loadPrototype(doenetML, coreType) {
     cy.window().then((win) => {
