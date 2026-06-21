@@ -1828,6 +1828,52 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        function returnScaleInverseDefinition({
+            scaleStateVariable,
+            minDependency,
+            maxDependency,
+        }) {
+            return function inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredScale =
+                    desiredStateVariableValues[scaleStateVariable];
+                let midpoint =
+                    dependencyValues[minDependency] / 2 +
+                    dependencyValues[maxDependency] / 2;
+                let desiredMin = midpoint - desiredScale / 2;
+                let desiredMax = midpoint + desiredScale / 2;
+
+                if (
+                    !Number.isFinite(desiredScale) ||
+                    desiredScale <= 0 ||
+                    !Number.isFinite(midpoint) ||
+                    !Number.isFinite(desiredMin) ||
+                    !Number.isFinite(desiredMax)
+                ) {
+                    // Reject non-positive scales: they would make min ≥ max,
+                    // which breaks consumers that treat the scale as a positive
+                    // magnitude (e.g. aspectRatio = xscale / yscale).
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: minDependency,
+                            desiredValue: desiredMin,
+                        },
+                        {
+                            setDependency: maxDependency,
+                            desiredValue: desiredMax,
+                        },
+                    ],
+                };
+            };
+        }
+
         stateVariableDefinitions.xscale = {
             description: "Scale used along the x axis (xMax − xMin).",
             public: true,
@@ -1853,6 +1899,11 @@ export default class Graph extends BlockComponent {
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "xscale",
+                minDependency: "xMin",
+                maxDependency: "xMax",
+            }),
         };
 
         stateVariableDefinitions.yscale = {
@@ -1880,6 +1931,11 @@ export default class Graph extends BlockComponent {
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "yscale",
+                minDependency: "yMin",
+                maxDependency: "yMax",
+            }),
         };
 
         stateVariableDefinitions.gridAttrCompName = {
