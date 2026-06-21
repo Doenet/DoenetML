@@ -27,8 +27,14 @@
     }
 
     & .fractionVinculum {
-        height: 0;
+        /* Paint the bar as a solid 2px-high block rather than a border on an
+           empty, zero-height cell. A collapsed border on an empty zero-height
+           cell gets snapped to the device-pixel grid and rounds away to
+           nothing on high-DPI (e.g. Retina) displays, so the vinculum would
+           vanish on those screens. A filled background box of explicit height
+           rasterizes reliably at any devicePixelRatio. */
+        height: 2px;
         padding: 0;
-        border-bottom: 2px solid currentColor;
+        background-color: currentColor;
     }
 }
