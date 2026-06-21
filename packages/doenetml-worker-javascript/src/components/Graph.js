@@ -1847,10 +1847,14 @@ export default class Graph extends BlockComponent {
 
                 if (
                     !Number.isFinite(desiredScale) ||
+                    desiredScale <= 0 ||
                     !Number.isFinite(midpoint) ||
                     !Number.isFinite(desiredMin) ||
                     !Number.isFinite(desiredMax)
                 ) {
+                    // Reject non-positive scales: they would make min ≥ max,
+                    // which breaks consumers that treat the scale as a positive
+                    // magnitude (e.g. aspectRatio = xscale / yscale).
                     return { success: false };
                 }
 

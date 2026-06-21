@@ -709,6 +709,55 @@ describe("Graph tag tests @group2", async () => {
         });
     });
 
+    it("set xscale and yscale rejects non-positive values", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
+    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    `,
+        });
+
+        const initialValues = {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xscale: 6,
+            yscale: 10,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+
+        // zero scale is rejected (would make xMin === xMax)
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+
+        // negative scale is rejected (would make yMin > yMax)
+        await updateMathInputValue({
+            latex: "-4",
+            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+    });
+
     it("set xscale and yscale through graph-parent limits", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
