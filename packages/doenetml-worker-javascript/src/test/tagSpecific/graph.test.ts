@@ -48,9 +48,10 @@ async function checkGraphLimitsAndScales(
     core: PublicDoenetMLCore,
     resolvePathToNodeIdx: ResolvePathToNodeIdx,
     expected: GraphLimitsAndScales,
+    graphName = "g",
 ) {
     const stateVariables = await core.returnAllStateVariables(false, true);
-    const graph = stateVariables[await resolvePathToNodeIdx("g")];
+    const graph = stateVariables[await resolvePathToNodeIdx(graphName)];
 
     expect({
         xMin: graph.stateValues.xMin,
@@ -658,6 +659,137 @@ describe("Graph tag tests @group2", async () => {
             xscale: 20,
             yscale: 20,
         });
+    });
+
+    it("set xscale and yscale rejects non-finite values", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
+    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    `,
+        });
+
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xscale: 6,
+            yscale: 10,
+        });
+
+        await updateMathInputValue({
+            latex: "\\infty",
+            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xscale: 6,
+            yscale: 10,
+        });
+
+        await updateMathInputValue({
+            latex: "-\\infty",
+            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xscale: 6,
+            yscale: 10,
+        });
+    });
+
+    it("set xscale and yscale through graph-parent limits", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="1" xmax="7" ymin="-5" ymax="3">
+        <graph name="child" />
+    </graph>
+
+    <p>Change child xscale: <mathInput name="childXscaleInput" bindValueTo="$child.xscale" /></p>
+    <p>Change child yscale: <mathInput name="childYscaleInput" bindValueTo="$child.yscale" /></p>
+    `,
+        });
+
+        const initialValues = {
+            xMin: 1,
+            xMax: 7,
+            yMin: -5,
+            yMax: 3,
+            xscale: 6,
+            yscale: 8,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+            "child",
+        );
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("childXscaleInput"),
+            core,
+        });
+        const afterXscale = {
+            xMin: -1,
+            xMax: 9,
+            yMin: -5,
+            yMax: 3,
+            xscale: 10,
+            yscale: 8,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterXscale,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterXscale,
+            "child",
+        );
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("childYscaleInput"),
+            core,
+        });
+        const afterYscale = {
+            xMin: -1,
+            xMax: 9,
+            yMin: -2,
+            yMax: 0,
+            xscale: 10,
+            yscale: 2,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterYscale,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterYscale,
+            "child",
+        );
     });
 
     it("show grid", async () => {

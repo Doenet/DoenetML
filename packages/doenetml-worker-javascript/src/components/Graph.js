@@ -1828,6 +1828,48 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        function returnScaleInverseDefinition({
+            scaleStateVariable,
+            minDependency,
+            maxDependency,
+        }) {
+            return function inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredScale =
+                    desiredStateVariableValues[scaleStateVariable];
+                let midpoint =
+                    dependencyValues[minDependency] / 2 +
+                    dependencyValues[maxDependency] / 2;
+                let desiredMin = midpoint - desiredScale / 2;
+                let desiredMax = midpoint + desiredScale / 2;
+
+                if (
+                    !Number.isFinite(desiredScale) ||
+                    !Number.isFinite(midpoint) ||
+                    !Number.isFinite(desiredMin) ||
+                    !Number.isFinite(desiredMax)
+                ) {
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: minDependency,
+                            desiredValue: desiredMin,
+                        },
+                        {
+                            setDependency: maxDependency,
+                            desiredValue: desiredMax,
+                        },
+                    ],
+                };
+            };
+        }
+
         stateVariableDefinitions.xscale = {
             description: "Scale used along the x axis (xMax − xMin).",
             public: true,
@@ -1853,30 +1895,11 @@ export default class Graph extends BlockComponent {
                     },
                 };
             },
-            async inverseDefinition({
-                desiredStateVariableValues,
-                dependencyValues,
-            }) {
-                let desiredXscale = desiredStateVariableValues.xscale;
-                if (!Number.isFinite(desiredXscale)) {
-                    return { success: false };
-                }
-                let midpoint =
-                    (dependencyValues.xMin + dependencyValues.xMax) / 2;
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "xMin",
-                            desiredValue: midpoint - desiredXscale / 2,
-                        },
-                        {
-                            setDependency: "xMax",
-                            desiredValue: midpoint + desiredXscale / 2,
-                        },
-                    ],
-                };
-            },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "xscale",
+                minDependency: "xMin",
+                maxDependency: "xMax",
+            }),
         };
 
         stateVariableDefinitions.yscale = {
@@ -1904,30 +1927,11 @@ export default class Graph extends BlockComponent {
                     },
                 };
             },
-            async inverseDefinition({
-                desiredStateVariableValues,
-                dependencyValues,
-            }) {
-                let desiredYscale = desiredStateVariableValues.yscale;
-                if (!Number.isFinite(desiredYscale)) {
-                    return { success: false };
-                }
-                let midpoint =
-                    (dependencyValues.yMin + dependencyValues.yMax) / 2;
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "yMin",
-                            desiredValue: midpoint - desiredYscale / 2,
-                        },
-                        {
-                            setDependency: "yMax",
-                            desiredValue: midpoint + desiredYscale / 2,
-                        },
-                    ],
-                };
-            },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "yscale",
+                minDependency: "yMin",
+                maxDependency: "yMax",
+            }),
         };
 
         stateVariableDefinitions.gridAttrCompName = {
