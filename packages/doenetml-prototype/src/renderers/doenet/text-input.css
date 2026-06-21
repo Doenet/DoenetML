@@ -1,17 +1,13 @@
 .doenet-document {
     .text-input {
         label {
-            @apply max-w-full;
-            .input-label {
-                @apply me-1;
-            }
+            @apply max-w-full gap-1 inline-flex items-baseline;
             &.input-label-right {
-                direction: rtl;
+                flex-direction: row-reverse;
             }
         }
         input,
         textarea {
-            direction: ltr;
             @apply border-black border-2 px-1 py-0.5 w-32;
         }
         textarea {

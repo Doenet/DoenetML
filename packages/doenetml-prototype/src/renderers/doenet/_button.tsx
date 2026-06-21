@@ -64,12 +64,6 @@ export const Button: BasicComponent<ButtonData> = ({ node, htmlId }) => {
         node.data.props.labelHasLatex,
     );
 
-    console.log(
-        "Rendering Button with label:",
-        displayLabel,
-        node.data.props.label,
-    );
-
     return (
         <button
             className="button"

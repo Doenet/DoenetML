@@ -20,6 +20,17 @@ type BooleanInputData = {
     };
 };
 
+/**
+ * BooleanInput component renders a checkbox input for boolean values. 
+ * 
+ * Sample code
+ * -----------
+ * ```
+   Some stuff <booleanInput><label>Hello there!</label></booleanInput> and more
+  <booleanInput asToggleButton><label>Hello there!</label></booleanInput>
+  <booleanInput labelPosition="left"><label>Hello there!</label></booleanInput>
+  ```
+ */
 export const BooleanInput: BasicComponent<BooleanInputData> = ({
     node,
     htmlId,

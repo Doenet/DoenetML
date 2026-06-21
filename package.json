@@ -40,6 +40,7 @@
         "build:docs": "npm run build --workspace packages/docs-nextra",
         "build:all": "npm run build -ws --if-present",
         "clean": "rimraf packages/*/dist",
+        "clean:cache": "rimraf packages/*/.wireit .wireit",
         "changeset": "changeset",
         "dev": "npm run dev --workspace packages/doenetml",
         "docs": "npm run build --workspace packages/docs-nextra & npm run dev --workspace packages/docs-nextra",

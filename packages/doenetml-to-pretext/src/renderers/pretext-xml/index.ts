@@ -4,7 +4,7 @@ export * from "./math";
 export * from "./display-math";
 export * from "./graph";
 export * from "./division";
-export * from "./text-point";
+export * from "./point";
 export * from "./text-input";
 export * from "./math-input";
 export * from "./text";

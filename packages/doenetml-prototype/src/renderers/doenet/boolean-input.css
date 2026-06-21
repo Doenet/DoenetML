@@ -17,15 +17,10 @@
         @apply inline;
 
         label {
-            @apply max-w-full;
-            .input-label {
-                @apply me-1;
-            }
+            @apply max-w-full gap-1 inline-flex items-baseline;
+
             &.input-label-right {
-                direction: rtl;
-                input[type="checkbox"] {
-                    direction: ltr;
-                }
+                flex-direction: row-reverse;
             }
         }
 
@@ -75,7 +70,7 @@
 
         input[type="checkbox"] {
             @apply relative h-5 w-5 cursor-pointer appearance-none rounded border-2;
-            vertical-align: -4px;
+            top: 0.3rem; /* Align with text */
             border-color: var(--border);
             background-color: var(--bg);
             transition:
