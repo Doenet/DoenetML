@@ -1853,6 +1853,30 @@ export default class Graph extends BlockComponent {
                     },
                 };
             },
+            async inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredXscale = desiredStateVariableValues.xscale;
+                if (!Number.isFinite(desiredXscale)) {
+                    return { success: false };
+                }
+                let midpoint =
+                    (dependencyValues.xMin + dependencyValues.xMax) / 2;
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "xMin",
+                            desiredValue: midpoint - desiredXscale / 2,
+                        },
+                        {
+                            setDependency: "xMax",
+                            desiredValue: midpoint + desiredXscale / 2,
+                        },
+                    ],
+                };
+            },
         };
 
         stateVariableDefinitions.yscale = {
@@ -1878,6 +1902,30 @@ export default class Graph extends BlockComponent {
                     setValue: {
                         yscale: dependencyValues.yMax - dependencyValues.yMin,
                     },
+                };
+            },
+            async inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredYscale = desiredStateVariableValues.yscale;
+                if (!Number.isFinite(desiredYscale)) {
+                    return { success: false };
+                }
+                let midpoint =
+                    (dependencyValues.yMin + dependencyValues.yMax) / 2;
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "yMin",
+                            desiredValue: midpoint - desiredYscale / 2,
+                        },
+                        {
+                            setDependency: "yMax",
+                            desiredValue: midpoint + desiredYscale / 2,
+                        },
+                    ],
                 };
             },
         };

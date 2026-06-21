@@ -433,6 +433,141 @@ describe("Graph tag tests @group2", async () => {
         await checkLimits(-5, 10, -10, 0);
     });
 
+    it("set xscale and yscale keeps midpoint, changes limits symmetrically", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" />
+
+    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
+    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    `,
+        });
+
+        async function checkLimitsAndScales(
+            xmin: number,
+            xmax: number,
+            ymin: number,
+            ymax: number,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const g = stateVariables[await resolvePathToNodeIdx("g")];
+            expect(g.stateValues.xMin).eq(xmin);
+            expect(g.stateValues.xMax).eq(xmax);
+            expect(g.stateValues.yMin).eq(ymin);
+            expect(g.stateValues.yMax).eq(ymax);
+            expect(g.stateValues.xscale).eq(xmax - xmin);
+            expect(g.stateValues.yscale).eq(ymax - ymin);
+        }
+
+        // defaults: xMin=-10, xMax=10 (midpoint 0, xscale 20); same for y
+        await checkLimitsAndScales(-10, 10, -10, 10);
+
+        // set xscale to 10: midpoint 0 preserved, limits become [-5, 5]
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            core,
+        });
+        await checkLimitsAndScales(-5, 5, -10, 10);
+
+        // set yscale to 40: midpoint 0 preserved, limits become [-20, 20]
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            core,
+        });
+        await checkLimitsAndScales(-5, 5, -20, 20);
+    });
+
+    it("set xscale and yscale keeps non-zero midpoint", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
+    <p>Change yscale: <mathInput name="yscaleInput" bindValueTo="$g.yscale" /></p>
+    `,
+        });
+
+        async function checkLimitsAndScales(
+            xmin: number,
+            xmax: number,
+            ymin: number,
+            ymax: number,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const g = stateVariables[await resolvePathToNodeIdx("g")];
+            expect(g.stateValues.xMin).eq(xmin);
+            expect(g.stateValues.xMax).eq(xmax);
+            expect(g.stateValues.yMin).eq(ymin);
+            expect(g.stateValues.yMax).eq(ymax);
+            expect(g.stateValues.xscale).eq(xmax - xmin);
+            expect(g.stateValues.yscale).eq(ymax - ymin);
+        }
+
+        // xMidpoint = 5, yMidpoint = 2
+        await checkLimitsAndScales(2, 8, -3, 7);
+
+        // set xscale to 4: midpoint 5 preserved -> [3, 7]
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            core,
+        });
+        await checkLimitsAndScales(3, 7, -3, 7);
+
+        // set yscale to 20: midpoint 2 preserved -> [-8, 12]
+        await updateMathInputValue({
+            latex: "20",
+            componentIdx: await resolvePathToNodeIdx("yscaleInput"),
+            core,
+        });
+        await checkLimitsAndScales(3, 7, -8, 12);
+    });
+
+    it("set xscale with identicalAxisScales adjusts limits", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" identicalAxisScales />
+
+    <p>Change xscale: <mathInput name="xscaleInput" bindValueTo="$g.xscale" /></p>
+    `,
+        });
+
+        async function getLimits() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const g = stateVariables[await resolvePathToNodeIdx("g")];
+            return {
+                xMin: g.stateValues.xMin,
+                xMax: g.stateValues.xMax,
+                yMin: g.stateValues.yMin,
+                yMax: g.stateValues.yMax,
+            };
+        }
+
+        let limits = await getLimits();
+        expect(limits).eqls({ xMin: -10, xMax: 10, yMin: -10, yMax: 10 });
+
+        // set xscale to 10: x midpoint 0 preserved -> [-5, 5]
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("xscaleInput"),
+            core,
+        });
+        limits = await getLimits();
+        expect(limits.xMax - limits.xMin).eq(10);
+        expect((limits.xMin + limits.xMax) / 2).eq(0);
+    });
+
     it("show grid", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
