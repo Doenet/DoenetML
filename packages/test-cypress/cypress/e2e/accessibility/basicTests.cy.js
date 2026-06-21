@@ -630,6 +630,7 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     </p>
     <p><booleanInput><label>yes</label></booleanInput></p>
     <p><matrixInput><label>A:</label></matrixInput></p>
+    <p><fractionInput><label>A fraction:</label></fractionInput></p>
 
   `,
                 },
@@ -685,6 +686,9 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         <p><label for="$mat">A:</label></p>
         <p><matrixInput name="mat"/></p>
 
+        <p><label for="$frac">A fraction:</label></p>
+        <p><fractionInput name="frac"/></p>
+
     `,
                 },
                 "*",
@@ -736,6 +740,7 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     </p>
     <p><booleanInput><shortDescription>yes</shortDescription></booleanInput></p>
     <p><matrixInput><shortDescription>A</shortDescription></matrixInput></p>
+    <p><fractionInput><shortDescription>A fraction</shortDescription></fractionInput></p>
 
   `,
                 },

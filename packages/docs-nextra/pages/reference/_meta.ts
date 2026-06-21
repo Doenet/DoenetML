@@ -94,6 +94,7 @@ export default {
     figure: { title: "figure" },
     floor: { title: "floor" },
     footnote: { title: "footnote" },
+    fractionInput: { title: "fractionInput" },
     function: { title: "function (Basic Use)" },
     function2: { title: "function (Attributes 1)" },
     function3: { title: "function (Attributes 2)" },
