@@ -66,7 +66,7 @@ export const Button: BasicComponent<ButtonData> = ({ node, htmlId }) => {
 
     return (
         <button
-            className="button"
+            className="button action-button"
             id={htmlId}
             disabled={disabled}
             onClick={onClick}

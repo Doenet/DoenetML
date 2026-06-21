@@ -1,5 +1,6 @@
 .doenet-document {
-    .button {
+    .button,
+    .button.action-button {
         --primary: #3b82f6;
         --text-color: white;
 
