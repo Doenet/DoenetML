@@ -61,12 +61,19 @@ export function EditorViewer({
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
-    // Mirror the latest editor source in a ref so `doRefresh` can stay stable
-    // (empty deps). Otherwise it would change on every keystroke, causing the
-    // keydown effect below to tear down and re-register its listener each time.
+    // Mirror the latest editor and rendered source in refs so `doRefresh` can
+    // stay stable (i.e., with empty deps).
     const sourceInEditorRef = React.useRef(sourceInEditor);
     sourceInEditorRef.current = sourceInEditor;
+    const sourceForRenderRef = React.useRef(sourceForRender);
+    sourceForRenderRef.current = sourceForRender;
     const doRefresh = React.useCallback(() => {
+        // No-op unless the editor source differs from the rendered source so
+        // that triggering a refresh (e.g. via Ctrl/Cmd+S) when nothing has
+        // changed does not clear the error list or re-render needlessly.
+        if (sourceInEditorRef.current === sourceForRenderRef.current) {
+            return;
+        }
         setErrors([]);
         setSourceForRender(sourceInEditorRef.current);
     }, []);
