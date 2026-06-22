@@ -65,9 +65,11 @@ type PerformUpdateArgs = {
      */
     doNotSave?: boolean;
     /**
-     * Skip *both* renderer-update paths (the read-only mirror and the
-     * post-update fan-out). Used when the caller will re-issue updates
-     * imminently and renderer churn would be wasted.
+     * Skip renderer work that only mirrors the incoming instructions: the
+     * read-only mirror path and the writable-path bookkeeping that forces
+     * instruction components into the renderer-update set. Pair with
+     * `skipRendererUpdate` when the caller also wants to defer the final
+     * renderer fan-out.
      */
     canSkipUpdatingRenderer?: boolean;
     /**
@@ -232,10 +234,12 @@ export class UpdateExecutor {
      *     downstream answer-submission detection.
      *
      * After the loop, `executeUpdateStateVariables` runs once more on
-     * any leftover `newStateVariableValues`, then
-     * `processStateVariableTriggers` and `updateAllChangedRenderers` run
-     * conditionally based on the `skipRendererUpdate` /
-     * `canSkipUpdatingRenderer` flags. Essential values saved during
+     * any leftover `newStateVariableValues`. Unless
+     * `canSkipUpdatingRenderer` is set, the update instructions' components
+     * are marked for renderer reconciliation before
+     * `processStateVariableTriggers` runs. The final
+     * `updateAllChangedRenderers` fan-out then runs only when
+     * `skipRendererUpdate` is false. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
      *
