@@ -369,9 +369,9 @@ export class UpdateExecutor {
 
         newStateVariableValuesProcessed.push(newStateVariableValues);
 
-        // always update the renderers from the update instructions themselves,
-        // as even if changes were prevented, the renderers need to be given that information
-        // so they can revert if the showed the changes before hearing back from core
+        // Unless explicitly skipped, mark the instruction components for the
+        // next renderer reconciliation. This lets renderers revert optimistic
+        // edits even when inverse definitions reject the requested changes.
         if (!canSkipUpdatingRenderer) {
             updateInstructions.forEach((comp) => {
                 if (comp.componentIdx != undefined) {
