@@ -73,8 +73,11 @@ type PerformUpdateArgs = {
     /**
      * Skip only the late `updateAllChangedRenderers` call at the end of
      * `performUpdate`, while still letting the early read-only path and
-     * the components-to-update bookkeeping run. Submission-recording
-     * updates override this and always fan out.
+     * the components-to-update bookkeeping run. Callers that defer renderer
+     * updates this way are responsible for issuing a later renderer update
+     * (e.g. answer submission flushes via its trailing
+     * `triggerChainedActions`, and `submitAllAnswers` flushes once on its
+     * final `numSubmissions` update).
      */
     skipRendererUpdate?: boolean;
     sourceInformation?: SourceInformation;
@@ -377,7 +380,7 @@ export class UpdateExecutor {
 
         await this.core.processStateVariableTriggers();
 
-        if (!skipRendererUpdate || recordComponentSubmissions.length > 0) {
+        if (!skipRendererUpdate) {
             await this.core.updateAllChangedRenderers(
                 sourceInformation,
                 actionId,
