@@ -606,12 +606,15 @@ export default class Video extends BlockComponent {
             }
         }
 
-        // segmentsWatched (and the secondsWatched/fractionWatched derived
-        // from it) are not rendered, so there is no optimistic edit to
-        // reconcile: don't force this component into the renderer-update set
-        // (canSkipUpdatingRenderer) and defer the fan-out
-        // (skipRendererUpdate). recordVideoWatched fires throughout
-        // playback, so this avoids needless renderer churn.
+        // canSkipUpdatingRenderer is the video-specific part: segmentsWatched
+        // (and the secondsWatched/fractionWatched derived from it) are not
+        // rendered, so there is no optimistic edit to reconcile. Without it,
+        // this component would be forced into the renderer-update set and
+        // needlessly re-rendered on every watched segment as the video plays.
+        // skipRendererUpdate is just the usual action idiom: defer the single
+        // renderer fan-out to the trailing triggerChainedActions, which
+        // performs it (or leaves it deferred if this action was itself
+        // chained).
         await this.coreFunctions.performUpdate({
             updateInstructions: [
                 {
