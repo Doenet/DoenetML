@@ -28,9 +28,10 @@ export function isMacPlatform(): boolean {
         return false;
     }
     const platform = nav.userAgentData?.platform ?? nav.platform ?? "";
-    // iPadOS Safari reports "MacIntel" (caught by /mac/), but older iPads and
-    // iPhones report "iPad"/"iPhone"/"iPod", so match those explicitly.
-    return /mac|iphone|ipad|ipod/i.test(platform);
+    // iPadOS Safari reports "MacIntel" (caught by /mac/). Other Apple mobile
+    // devices report "iPad"/"iPhone"/"iPod" (legacy `navigator.platform`) or
+    // "iOS"/"iPadOS" (UA-CH `userAgentData.platform`), so match those too.
+    return /mac|iphone|ipad|ipod|ios/i.test(platform);
 }
 
 /**
