@@ -606,6 +606,12 @@ export default class Video extends BlockComponent {
             }
         }
 
+        // segmentsWatched (and the secondsWatched/fractionWatched derived
+        // from it) are not rendered, so there is no optimistic edit to
+        // reconcile: don't force this component into the renderer-update set
+        // (canSkipUpdatingRenderer) and defer the fan-out
+        // (skipRendererUpdate). recordVideoWatched fires throughout
+        // playback, so this avoids needless renderer churn.
         await this.coreFunctions.performUpdate({
             updateInstructions: [
                 {

@@ -65,21 +65,32 @@ type PerformUpdateArgs = {
      */
     doNotSave?: boolean;
     /**
-     * Skip renderer work that only mirrors the incoming instructions: the
-     * read-only mirror path and the writable-path bookkeeping that forces
-     * instruction components into the renderer-update set. Pair with
-     * `skipRendererUpdate` when the caller also wants to defer the final
-     * renderer fan-out.
+     * Opt out of *forcing* this update's own target components into the
+     * renderer-update set. Normally those components are queued
+     * unconditionally so the renderer is re-sent their authoritative
+     * `forRenderer` values — even when nothing actually changed — which is
+     * how an optimistic renderer edit (text typed into an input, a dragged
+     * point) gets confirmed or reverted once core processes or rejects the
+     * requested change. Set this only when the targeted state variables are
+     * not rendered, so there is no optimistic edit to reconcile and
+     * re-sending would be wasted work (e.g. the video component recording
+     * watch progress into its non-rendered `segmentsWatched`). It does not
+     * suppress renderer updates for *other* state variables that genuinely
+     * changed as a result of this update: those are still queued by
+     * staleness propagation.
      */
     canSkipUpdatingRenderer?: boolean;
     /**
-     * Skip only the late `updateAllChangedRenderers` call at the end of
-     * `performUpdate`, while still letting the early read-only path and
-     * the components-to-update bookkeeping run. Callers that defer renderer
-     * updates this way are responsible for issuing a later renderer update
-     * (e.g. answer submission flushes via its trailing
-     * `triggerChainedActions`, and `submitAllAnswers` flushes once on its
-     * final `numSubmissions` update).
+     * Postpone this update's final `updateAllChangedRenderers` fan-out so a
+     * batch of updates can finish before the UI changes, avoiding
+     * intermediate states flashing on screen. Components still accumulate in
+     * the pending renderer set; the caller is responsible for a later update
+     * or action *without* this flag that flushes them. For example, each
+     * answer submission defers its fan-out and `submitAllAnswers` flushes
+     * once on its final `numSubmissions` update; a lone answer submission
+     * flushes via its trailing `triggerChainedActions`. Unrelated to
+     * `canSkipUpdatingRenderer`: this only times *when* the fan-out happens,
+     * not *which* components it covers.
      */
     skipRendererUpdate?: boolean;
     sourceInformation?: SourceInformation;
@@ -235,10 +246,11 @@ export class UpdateExecutor {
      *
      * After the loop, `executeUpdateStateVariables` runs once more on
      * any leftover `newStateVariableValues`. Unless
-     * `canSkipUpdatingRenderer` is set, the update instructions' components
-     * are marked for renderer reconciliation before
-     * `processStateVariableTriggers` runs. The final
-     * `updateAllChangedRenderers` fan-out then runs only when
+     * `canSkipUpdatingRenderer` is set, each instruction's target component
+     * is queued into `componentsToUpdateRenderers` so an optimistic
+     * renderer edit can be confirmed or reverted (see that flag). Then
+     * `processStateVariableTriggers` runs, and the final
+     * `updateAllChangedRenderers` fan-out runs only when
      * `skipRendererUpdate` is false. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
@@ -369,9 +381,12 @@ export class UpdateExecutor {
 
         newStateVariableValuesProcessed.push(newStateVariableValues);
 
-        // Unless explicitly skipped, mark the instruction components for the
-        // next renderer reconciliation. This lets renderers revert optimistic
-        // edits even when inverse definitions reject the requested changes.
+        // Queue each instruction's target component so the renderer is
+        // re-sent its authoritative forRenderer values. This send happens
+        // even when the requested change was rejected or left the value
+        // unchanged, letting a renderer that optimistically showed the edit
+        // revert to core's value. canSkipUpdatingRenderer opts out when the
+        // targets are not rendered, so there is nothing to reconcile.
         if (!canSkipUpdatingRenderer) {
             updateInstructions.forEach((comp) => {
                 if (comp.componentIdx != undefined) {
