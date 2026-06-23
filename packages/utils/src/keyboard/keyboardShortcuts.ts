@@ -22,6 +22,20 @@ export function isMacPlatform(): boolean {
 }
 
 /**
+ * The subset of a keyboard event that {@link isSaveShortcutKeydown} inspects.
+ *
+ * Declared structurally (rather than referencing the DOM `KeyboardEvent`) so
+ * that `@doenet/utils` stays usable in non-DOM TypeScript configs that don't
+ * include the `dom` lib. A real DOM `KeyboardEvent` satisfies this type.
+ */
+export type SaveShortcutKeyboardEvent = {
+    metaKey: boolean;
+    ctrlKey: boolean;
+    altKey: boolean;
+    code: string;
+};
+
+/**
  * Whether a keydown event is the platform's "save" shortcut: Cmd+S on macOS,
  * Ctrl+S elsewhere. AltGr/Alt combinations are excluded so that, on layouts
  * where AltGr+S produces a character (and AltGr reports `ctrlKey === true`),
@@ -31,7 +45,9 @@ export function isMacPlatform(): boolean {
  * and is used to trigger a viewer refresh from the editor. `event.code` is used
  * (rather than `event.key`) so the shortcut is keyboard-layout independent.
  */
-export function isSaveShortcutKeydown(event: KeyboardEvent): boolean {
+export function isSaveShortcutKeydown(
+    event: SaveShortcutKeyboardEvent,
+): boolean {
     const modifier = isMacPlatform() ? event.metaKey : event.ctrlKey;
     return modifier && !event.altKey && event.code === "KeyS";
 }
