@@ -1,8 +1,5 @@
-import React, { useRef, useState } from "react";
-import {
-    DoenetEditor,
-    type DoenetEditorHandle,
-} from "../../../src/doenetml-inline-worker";
+import React, { useState } from "react";
+import { DoenetEditor } from "../../../src/doenetml-inline-worker";
 
 const SAMPLE_DOENETML = "<p>hello</p>";
 
@@ -18,7 +15,6 @@ type DiagnosticsCall = {
 };
 
 function Harness() {
-    const editorRef = useRef<DoenetEditorHandle>(null);
     const [calls, setCalls] = useState<DiagnosticsCall[]>([]);
 
     return (
@@ -28,7 +24,6 @@ function Harness() {
                 {calls.length > 0 ? calls[calls.length - 1].doenetML : ""}
             </div>
             <DoenetEditor
-                ref={editorRef}
                 doenetML={SAMPLE_DOENETML}
                 addVirtualKeyboard={false}
                 showViewer={true}

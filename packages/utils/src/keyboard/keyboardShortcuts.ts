@@ -13,13 +13,21 @@
  * environments (e.g. SSR).
  */
 export function isMacPlatform(): boolean {
-    if (typeof navigator === "undefined") {
+    // Access `navigator` structurally via `globalThis` so this file doesn't
+    // reference the DOM `Navigator` type (or the global `navigator` binding),
+    // keeping `@doenet/utils` usable in TS configs that omit the `dom` lib.
+    const nav = (
+        globalThis as {
+            navigator?: {
+                platform?: string;
+                userAgentData?: { platform?: string };
+            };
+        }
+    ).navigator;
+    if (!nav) {
         return false;
     }
-    const uaPlatform = (
-        navigator as Navigator & { userAgentData?: { platform?: string } }
-    ).userAgentData?.platform;
-    const platform = uaPlatform ?? navigator.platform ?? "";
+    const platform = nav.userAgentData?.platform ?? nav.platform ?? "";
     // iPadOS Safari reports "MacIntel" (caught by /mac/), but older iPads and
     // iPhones report "iPad"/"iPhone"/"iPod", so match those explicitly.
     return /mac|iphone|ipad|ipod/i.test(platform);
