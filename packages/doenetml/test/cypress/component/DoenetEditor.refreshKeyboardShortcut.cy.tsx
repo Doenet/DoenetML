@@ -48,7 +48,11 @@ function Harness() {
  */
 function dispatchKeydown(
     el: Element,
-    { code, withModifier }: { code: string; withModifier: boolean },
+    {
+        code,
+        withModifier,
+        withShift = false,
+    }: { code: string; withModifier: boolean; withShift?: boolean },
 ) {
     const event = new KeyboardEvent("keydown", {
         code,
@@ -56,6 +60,7 @@ function dispatchKeydown(
         ctrlKey: withModifier,
         metaKey: withModifier,
         altKey: false,
+        shiftKey: withShift,
         bubbles: true,
         cancelable: true,
     });
@@ -136,6 +141,45 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                         code: "KeyS",
                         withModifier: false,
                     });
+                    expect(prevented).to.equal(false);
+                });
+
+                // No refresh: the diagnostics callback count must not grow.
+                cy.wait(500);
+                cy.get('[data-test="call-count"]')
+                    .invoke("text")
+                    .should((text) => {
+                        expect(Number(text)).to.equal(countAfterInitial);
+                    });
+            });
+    });
+
+    it("does not refresh or prevent default for Ctrl/Cmd+Shift+S (Save As)", () => {
+        cy.mount(<Harness />);
+
+        cy.get('[data-test="last-source"]').should(
+            "have.text",
+            SAMPLE_DOENETML,
+        );
+
+        cy.get('[data-test="call-count"]')
+            .invoke("text")
+            .then((countAfterInitialText) => {
+                const countAfterInitial = Number(countAfterInitialText);
+
+                // Edit the buffer so a refresh would be observable if it fired.
+                cy.get(".cm-content")
+                    .click()
+                    .type("{ctrl}{end}", { force: true })
+                    .type(" EXTRA", { force: true });
+
+                cy.get(".viewer").then(($viewer) => {
+                    const prevented = dispatchKeydown($viewer[0], {
+                        code: "KeyS",
+                        withModifier: true,
+                        withShift: true,
+                    });
+                    // "Save As" must not be hijacked.
                     expect(prevented).to.equal(false);
                 });
 
