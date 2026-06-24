@@ -994,12 +994,11 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
-    it("filters element-name completions by prefix while typing (#1328)", () => {
-        // Typing `<num` should suggest only tag names that *start with* `num`,
-        // matching what a fresh query (Ctrl+Space) at the same position returns.
-        // Previously the menu opened on `<` (caching the full element list) and
-        // CodeMirror fuzzy-filtered it locally, surfacing every tag that merely
-        // *contained* `num`.
+    it("matches element-name completions by substring, ranking prefix matches first (#1328)", () => {
+        // Typing `<num` should surface tags that *contain* `num` (so authors
+        // don't have to remember how a name begins), with the tags that *start*
+        // with `num` ranked first. The suggestions are the same whether reached
+        // by typing or by a fresh Ctrl+Space at the same position.
         cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
 
         cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
@@ -1009,21 +1008,25 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
             ($labels) => {
                 const texts = $labels
-                    .map((_, el) => Cypress.$(el).text())
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
                     .get();
                 expect(texts.length).to.be.greaterThan(0);
-                // Every visible suggestion starts with the typed prefix.
+                // Every suggestion contains the typed text.
                 texts.forEach((text) => {
-                    expect(text.toLowerCase()).to.match(/^num/);
+                    expect(text).to.contain("num");
                 });
+                // Prefix matches are ranked ahead of mid-name matches.
+                expect(texts[0]).to.match(/^num/);
+                // A mid-name (substring) match is offered too, e.g. `isNumber`.
+                expect(texts.some((t) => !t.startsWith("num"))).to.equal(true);
             },
         );
     });
 
     it("re-broadens element-name completions when the typed prefix is deleted (#1328)", () => {
-        // Open the menu at `<num` (only `num*` tags), then backspace to `<`.
-        // The menu must re-query and show the full element list again, rather
-        // than keeping the cached `num*` suggestions.
+        // Open the menu at `<num` (only tags containing `num`), then backspace
+        // to `<`. The menu must re-query and show the full element list again,
+        // rather than keeping the cached `num` matches.
         cy.mount(
             <AutocompleteTestHarness initialValue={`<num<text></text>`} />,
         );
@@ -1035,14 +1038,15 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-content").type("{rightArrow}".repeat(4), { force: true });
         openAutocomplete();
 
-        // Only `num*` tags to start with.
+        // Every suggestion contains `num` to start with.
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
             ($labels) => {
                 const texts = $labels
-                    .map((_, el) => Cypress.$(el).text())
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
                     .get();
+                expect(texts.length).to.be.greaterThan(0);
                 texts.forEach((text) => {
-                    expect(text.toLowerCase()).to.match(/^num/);
+                    expect(text).to.contain("num");
                 });
             },
         );
@@ -1056,8 +1060,8 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
                 const texts = $labels
                     .map((_, el) => Cypress.$(el).text().toLowerCase())
                     .get();
-                // Now includes tags that do not start with `num` (e.g. `p`).
-                expect(texts.some((t) => !t.startsWith("num"))).to.equal(true);
+                // Now includes tags that do not contain `num` (e.g. `p`).
+                expect(texts.some((t) => !t.includes("num"))).to.equal(true);
             },
         );
     });

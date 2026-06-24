@@ -463,6 +463,19 @@ export class LSPPlugin implements PluginValue {
         const [span, match] = prefixMatch(options);
         const token = context.matchBefore(match);
 
+        // Element/tag-name completions match the typed text as a *substring*
+        // (e.g. `<num` offers `isNumber`), while every other completion type
+        // keeps prefix matching. Element menus are identified via the
+        // `deriveCompletionType` classification carried on each option.
+        const isElementNameMenu =
+            options.length > 0 &&
+            options.every(
+                (option) =>
+                    option.type === COMPLETION_TYPES.component ||
+                    option.type === COMPLETION_TYPES.snippet ||
+                    option.type === COMPLETION_TYPES.closeTag,
+            );
+
         if (token) {
             let word = token.text;
             let fromOffset = 0;
@@ -476,9 +489,12 @@ export class LSPPlugin implements PluginValue {
             const wordLower = word.toLowerCase();
             if (wordLower && MACRO_IDENTIFIER_SEGMENT_REGEX.test(wordLower)) {
                 options = options
-                    .filter(({ filterText }) =>
-                        filterText.toLowerCase().startsWith(wordLower),
-                    )
+                    .filter(({ filterText }) => {
+                        const filterLower = filterText.toLowerCase();
+                        return isElementNameMenu
+                            ? filterLower.includes(wordLower)
+                            : filterLower.startsWith(wordLower);
+                    })
                     .sort((optionA, optionB) => {
                         // Use original apply text for comparison (important for snippets with custom apply functions)
                         const aStr =
@@ -586,33 +602,22 @@ export class LSPPlugin implements PluginValue {
             };
         }
 
-        // Element/tag-name completions are filtered against the typed prefix on
-        // the server (and again above): a query at `<num` returns only `num*`,
-        // while a query at `<` returns the full element set. CodeMirror's
-        // `validFor`, however, keeps the *originally returned* option set and
-        // re-filters it locally (with a fuzzy matcher) as the prefix changes
-        // instead of re-querying. That makes the visible suggestions depend on
-        // what was cached when the menu first opened: opening at `<` then
-        // typing `num` fuzzy-matches the full list (every tag *containing*
-        // `num`), while opening at `<num` and backspacing to `<` keeps showing
-        // the cached `num*` list. Omit `validFor` for element-name menus so
-        // CodeMirror re-queries the prefix-filtered source on every edit and the
-        // suggestions are the same however the menu was reached (#1328).
+        // Element/tag-name completions are filtered as the user types: a query
+        // at `<num` returns names containing `num`, while a query at `<` returns
+        // the full element set. CodeMirror's `validFor`, however, keeps the
+        // *originally returned* option set and re-filters it locally as the
+        // typed text changes instead of re-querying. That would make the visible
+        // suggestions depend on what was cached when the menu first opened
+        // (opening at `<` caches the full list; opening at `<num` caches only
+        // the `num` matches and keeps showing them after backspacing to `<`).
+        // Omit `validFor` for element-name menus so CodeMirror re-queries the
+        // source on every edit and the suggestions are the same however the menu
+        // was reached (#1328).
         //
         // Reference, attribute-name, and attribute-value completions keep
         // `validFor`: their stability (e.g. the ref reopen latch) depends on the
-        // result staying open across edits, and they are classified by
-        // `deriveCompletionType` as types other than the element-oriented ones
-        // below.
-        const isElementNameMenu =
-            finalOptions.length > 0 &&
-            finalOptions.every(
-                (option) =>
-                    option.type === COMPLETION_TYPES.component ||
-                    option.type === COMPLETION_TYPES.snippet ||
-                    option.type === COMPLETION_TYPES.closeTag,
-            );
-
+        // result staying open across edits. `isElementNameMenu` (computed above)
+        // distinguishes them via the `deriveCompletionType` classification.
         return {
             from: pos,
             options: finalOptions,

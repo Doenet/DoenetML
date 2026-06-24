@@ -249,6 +249,50 @@ describe("AutoCompleter", () => {
         expect(items.map((i) => i.label)).not.toContain("/b>");
     });
 
+    it("matches element names by substring, not only by prefix (#1328)", async () => {
+        // Typing part of a tag name that appears in the *middle* of other tag
+        // names should still surface those tags (e.g. `num` -> `isNumber`), so
+        // authors don't have to remember how a name begins. Ordering
+        // (prefix-first) is applied by the client / CodeMirror; the server just
+        // needs to include the substring matches.
+        const elements = [
+            {
+                name: "root",
+                children: ["number", "isNumber", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const labels = (await autoCompleter.getCompletionItems(offset)).map(
+            (i) => i.label,
+        );
+        expect(labels).toContain("number");
+        expect(labels).toContain("isNumber");
+        expect(labels).not.toContain("text");
+    });
+
     it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
         // `<aa><<c></c></aa>` — the author types `<` to insert a new element in
         // front of `<c>`. The menu should open with the container's allowed

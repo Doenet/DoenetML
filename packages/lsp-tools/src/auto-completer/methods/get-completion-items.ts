@@ -314,7 +314,7 @@ function createDynamicSnippetCompletionItems(
 
     if (
         typedPrefix &&
-        !dynamicSnippet.key.toLowerCase().startsWith(typedPrefix.toLowerCase())
+        !dynamicSnippet.key.toLowerCase().includes(typedPrefix.toLowerCase())
     ) {
         return [];
     }
@@ -360,9 +360,14 @@ function createElementAndSnippetCompletionItems(
     );
     const sortTextByKey = sortTextLookup(ranked);
 
+    // Match element names that *contain* the typed text (not just a prefix), so
+    // `<num` also surfaces `isNumber`. CodeMirror still ranks prefix matches
+    // first (and the client sorts prefix-first), so `num*` lead the list and
+    // substring matches follow. Keeping this a substring (rather than full
+    // subsequence) match keeps the suggestions predictable for short tag names.
     const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
-            prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
+            prefixLower ? name.toLowerCase().includes(prefixLower) : true,
         )
         .map((name) => {
             const item: DoenetCompletionItem = {

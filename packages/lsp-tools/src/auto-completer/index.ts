@@ -1299,11 +1299,13 @@ export class AutoCompleter {
             results.push(...snippets);
         }
 
-        // Filter by typed prefix on snippet key if prefix is provided
+        // Filter by typed text on snippet key (substring, so the snippet
+        // surfaces when its key contains the typed text — matching element
+        // name matching).
         if (typedPrefix) {
             const prefixLower = typedPrefix.toLowerCase();
             return results.filter((s) =>
-                s.key.toLowerCase().startsWith(prefixLower),
+                s.key.toLowerCase().includes(prefixLower),
             );
         }
         return results;
