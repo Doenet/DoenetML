@@ -91,11 +91,34 @@ function createTextEditRange(
     };
 }
 
-function createCloseTagCompletionItem(elementName: string): CompletionItem {
-    return {
+type CompletionTextEditOffsets = {
+    sourceObj: DoenetSourceObject;
+    startOffset: number;
+    endOffset: number;
+};
+
+function createCloseTagCompletionItem(
+    elementName: string,
+    editOffsets?: CompletionTextEditOffsets,
+): CompletionItem {
+    const item: CompletionItem = {
         label: `/${elementName}>`,
         kind: CompletionItemKind.Property,
     };
+    if (editOffsets) {
+        // Explicit completion can offer a close tag with no leading `<`
+        // already typed. In that case, replace the empty range with the full
+        // close tag rather than relying on the label-only insertion.
+        item.textEdit = {
+            range: createTextEditRange(
+                editOffsets.sourceObj,
+                editOffsets.startOffset,
+                editOffsets.endOffset,
+            ),
+            newText: `</${elementName}>`,
+        };
+    }
+    return item;
 }
 
 /**
@@ -735,6 +758,13 @@ export async function getCompletionItems(
     const showElementMenu = hasLeadingLt || explicit;
     const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
     const insertLeadingBracket = !hasLeadingLt;
+    const closeTagEditOffsets = insertLeadingBracket
+        ? {
+              sourceObj: this.sourceObj,
+              startOffset: elementMenuStart,
+              endOffset: offset,
+          }
+        : undefined;
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -1057,7 +1087,10 @@ export async function getCompletionItems(
             // Match the normal body completion path for unclosed containers:
             // first offer the parent close tag, then child elements.
             return [
-                createCloseTagCompletionItem(containerElement.name),
+                createCloseTagCompletionItem(
+                    containerElement.name,
+                    closeTagEditOffsets,
+                ),
                 ...completionItems,
             ];
         }
@@ -1124,7 +1157,10 @@ export async function getCompletionItems(
             return completionItems;
         }
         // We are the child of a non-closed tag. Suggest the close tag or allowed children
-        return [createCloseTagCompletionItem(element.name), ...completionItems];
+        return [
+            createCloseTagCompletionItem(element.name, closeTagEditOffsets),
+            ...completionItems,
+        ];
     }
 
     // Suggest closing tag after "</"

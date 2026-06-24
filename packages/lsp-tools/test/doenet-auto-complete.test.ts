@@ -175,6 +175,18 @@ describe("AutoCompleter", () => {
         }
     });
 
+    it("inserts a full close tag on explicit Ctrl+Space in an unclosed body", async () => {
+        const source = `<aa>\n  `;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const items = await autoCompleter.getCompletionItems(
+            source.length,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+    });
+
     it("opens the top-level element menu on explicit Ctrl+Space in an empty document", async () => {
         const source = ``;
         const autoCompleter = new AutoCompleter(source, schema.elements);
@@ -239,6 +251,23 @@ describe("AutoCompleter", () => {
         const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
         const items = await autoCompleter.getCompletionItems(offset);
         expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit).toBeUndefined();
+    });
+
+    it("inserts a full close tag when explicit completion is invoked before another tag in an unclosed parent (#1328)", async () => {
+        // Without a typed `<`, the close-tag item needs a textEdit that inserts
+        // the full close tag. Element items already do this via their
+        // insertLeadingBracket path.
+        const source = `<aa><c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<c>");
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
     });
 
     it("opens the top-level element menu when `<` is typed before a top-level tag (#1328)", async () => {
