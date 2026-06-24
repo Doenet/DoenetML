@@ -24,6 +24,8 @@
  *   - After a failed attempt it re-checks the registry: if the version now
  *     exists (the publish succeeded server-side despite a client-side error),
  *     it is treated as success.
+ *   - On every successful path, ensures any requested/configured dist-tag points
+ *     to the published version.
  *
  * Configuration (environment variables):
  *   NPM_PUBLISH_MAX_ATTEMPTS    - total attempts before giving up (default 4)
@@ -271,7 +273,7 @@ function ensureExplicitDistTag() {
     return false;
 }
 
-function treatAlreadyPublishedAsSuccess(message) {
+function finishPublishedVersion(message) {
     if (!ensureExplicitDistTag()) {
         process.exit(1);
     }
@@ -293,9 +295,7 @@ function runPublish() {
 
 async function main() {
     if (alreadyPublished()) {
-        treatAlreadyPublishedAsSuccess(
-            `✔ ${spec} is already published; skipping.`,
-        );
+        finishPublishedVersion(`✔ ${spec} is already published; skipping.`);
         return;
     }
 
@@ -306,12 +306,12 @@ async function main() {
         const { status, output } = runPublish();
 
         if (status === 0) {
-            console.log(`✔ Published ${spec}.`);
+            finishPublishedVersion(`✔ Published ${spec}.`);
             return;
         }
 
         if (matchesAny(output, ALREADY_PUBLISHED_PATTERNS)) {
-            treatAlreadyPublishedAsSuccess(
+            finishPublishedVersion(
                 `✔ ${spec} is already published (publish reported a conflict); treating as success.`,
             );
             return;
@@ -321,7 +321,7 @@ async function main() {
         // reported an error (e.g. the token read failed after upload). Confirm
         // against the registry before deciding to retry.
         if (alreadyPublished()) {
-            treatAlreadyPublishedAsSuccess(
+            finishPublishedVersion(
                 `✔ ${spec} is now present on the registry despite the error; treating as success.`,
             );
             return;
