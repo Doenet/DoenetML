@@ -489,14 +489,13 @@ export class LSPPlugin implements PluginValue {
         if (token) {
             let word = token.text;
             let fromOffset = 0;
-            // Decide where the completion word begins within the matched token.
-            // A new tag name is being typed only when the last `<` comes after
-            // the last `>` (e.g. `</doc>|<` where the user just typed `<`, or a
-            // partial `<nu`). When the last `>` is later, the cursor sits just
-            // past a *complete* tag in body content (e.g. `<math>|</text>`);
-            // anchor after that `>` so the finished tag isn't treated as a
-            // partial token — doing so previously filtered the menu down to just
-            // the close tag and, on accept, replaced the tag's own name.
+            // Find where the completion word starts within the matched token
+            // (the run of text immediately before the cursor). When the token's
+            // last `<` comes after its last `>`, the cursor is inside an
+            // unterminated tag whose name is being typed, so start just after
+            // that `<`: e.g. `<nu|`, or `</doc><|` right after a freshly typed
+            // `<`. Otherwise the cursor sits just past a complete tag's `>`
+            // (e.g. `<math>|`), so start after that `>`.
             const lastLt = word.lastIndexOf("<");
             const lastGt = word.lastIndexOf(">");
             if (lastLt > lastGt) {
@@ -615,16 +614,11 @@ export class LSPPlugin implements PluginValue {
             pos > 0 &&
             state.sliceDoc(pos - 1, pos) === "<";
 
-        // Element/tag-name completions after an actual `<` are filtered as the
-        // user types: a query at `<num` returns names containing `num`, while a
-        // query at `<` returns the full element set. CodeMirror's `validFor`,
-        // however, keeps the *originally returned* option set and re-filters it
-        // locally as the typed text changes instead of re-querying. That would
-        // make the visible suggestions depend on what was cached when the menu
-        // first opened (opening at `<` caches the full list; opening at `<num`
-        // caches only the `num` matches and keeps showing them after
-        // backspacing to `<`). Omit `validFor` for those `<`-anchored element
-        // menus so CodeMirror re-queries the source on every edit and the
+        // Element/tag-name completions anchored after an actual `<` omit
+        // `validFor`. With `validFor`, CodeMirror keeps the originally returned
+        // options and re-filters them locally instead of re-querying, so the
+        // suggestions would depend on what was cached when the menu first
+        // opened. Omitting it makes CodeMirror re-query on every edit, so the
         // suggestions are the same however the menu was reached (#1328).
         //
         // Bare explicit element menus (Ctrl+Space before typing `<`) keep
