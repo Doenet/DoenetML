@@ -17,7 +17,8 @@
  *
  * Behavior:
  *   - Reads name@version from <publish-dir>/package.json.
- *   - If that exact version is already on the registry, skips (success).
+ *   - If that exact version is already on the registry, ensures any explicitly
+ *     requested dist-tag points to it, then skips (success).
  *   - Otherwise runs `npm publish` (forwarding the extra args) in <publish-dir>,
  *     retrying on transient errors with exponential backoff.
  *   - After a failed attempt it re-checks the registry: if the version now
@@ -43,9 +44,9 @@ if (!publishDir) {
     process.exit(1);
 }
 
-const maxAttempts = Number(process.env.NPM_PUBLISH_MAX_ATTEMPTS ?? 4);
-const baseDelayMs = Number(process.env.NPM_PUBLISH_RETRY_DELAY_MS ?? 10_000);
-const maxDelayMs = Number(process.env.NPM_PUBLISH_MAX_DELAY_MS ?? 60_000);
+const maxAttempts = readIntegerEnv("NPM_PUBLISH_MAX_ATTEMPTS", 4, 1);
+const baseDelayMs = readIntegerEnv("NPM_PUBLISH_RETRY_DELAY_MS", 10_000, 0);
+const maxDelayMs = readIntegerEnv("NPM_PUBLISH_MAX_DELAY_MS", 60_000, 0);
 
 const cwd = resolve(process.cwd(), publishDir);
 
@@ -65,6 +66,7 @@ if (!name || !version) {
     process.exit(1);
 }
 const spec = `${name}@${version}`;
+const explicitPublishTag = getExplicitPublishTag();
 
 /**
  * Patterns that indicate the version is already published. Re-publishing the
@@ -113,6 +115,77 @@ function matchesAny(text, patterns) {
     return patterns.some((pattern) => pattern.test(text));
 }
 
+function getExplicitPublishTag() {
+    let tag = process.env.npm_config_tag;
+
+    for (let i = 0; i < publishArgs.length; i++) {
+        const arg = publishArgs[i];
+        if (arg === "--tag") {
+            const nextArg = publishArgs[i + 1];
+            if (!nextArg || nextArg.startsWith("-")) {
+                console.error("Missing value for npm publish argument --tag.");
+                process.exit(1);
+            }
+            tag = nextArg;
+            i++;
+        } else if (arg.startsWith("--tag=")) {
+            tag = arg.slice("--tag=".length);
+            if (!tag) {
+                console.error("Missing value for npm publish argument --tag.");
+                process.exit(1);
+            }
+        }
+    }
+
+    return tag;
+}
+
+/**
+ * Read integer configuration from the environment and fail loudly on typos.
+ */
+function readIntegerEnv(name, defaultValue, minValue) {
+    const rawValue = process.env[name];
+    if (rawValue == null || rawValue.trim() === "") {
+        return defaultValue;
+    }
+
+    const parsed = Number(rawValue);
+    if (!Number.isInteger(parsed) || parsed < minValue) {
+        console.error(
+            `${name} must be an integer greater than or equal to ${minValue}; received ${JSON.stringify(
+                rawValue,
+            )}.`,
+        );
+        process.exit(1);
+    }
+    return parsed;
+}
+
+function combinedOutput(result) {
+    return [
+        result.stdout,
+        result.stderr,
+        result.error?.message,
+        result.signal ? `Process terminated by signal ${result.signal}` : "",
+    ]
+        .filter(Boolean)
+        .join("\n");
+}
+
+function writeCommandOutput(result, commandName) {
+    if (result.stdout) {
+        process.stdout.write(result.stdout);
+    }
+    if (result.stderr) {
+        process.stderr.write(result.stderr);
+    }
+    if (result.error) {
+        console.error(
+            `${commandName} failed to start: ${result.error.message}`,
+        );
+    }
+}
+
 function sleep(ms) {
     return new Promise((res) => setTimeout(res, ms));
 }
@@ -126,6 +199,12 @@ function alreadyPublished() {
         ["view", spec, "version", "--no-workspaces"],
         { encoding: "utf8" },
     );
+    if (result.error) {
+        console.warn(
+            `Could not check whether ${spec} is already published: ${result.error.message}`,
+        );
+        return false;
+    }
     if (result.status === 0) {
         return result.stdout.trim() === version;
     }
@@ -134,27 +213,89 @@ function alreadyPublished() {
     return false;
 }
 
+function publishedVersionForTag(tag) {
+    const result = spawnSync(
+        "npm",
+        ["view", name, "dist-tags", "--json", "--no-workspaces"],
+        { encoding: "utf8" },
+    );
+    if (result.error) {
+        console.warn(
+            `Could not check npm dist-tags for ${name}: ${result.error.message}`,
+        );
+        return undefined;
+    }
+    if (result.status !== 0) {
+        return undefined;
+    }
+
+    try {
+        return JSON.parse(result.stdout)[tag];
+    } catch (error) {
+        console.warn(
+            `Could not parse npm dist-tags for ${name}: ${error.message ?? error}`,
+        );
+        return undefined;
+    }
+}
+
+function ensureExplicitDistTag() {
+    if (!explicitPublishTag) {
+        return true;
+    }
+
+    const taggedVersion = publishedVersionForTag(explicitPublishTag);
+    if (taggedVersion === version) {
+        return true;
+    }
+
+    const previousTagMessage = taggedVersion
+        ? ` (currently ${taggedVersion})`
+        : "";
+    console.log(
+        `Ensuring npm dist-tag ${name}@${explicitPublishTag} points to ${version}${previousTagMessage}.`,
+    );
+    const result = spawnSync(
+        "npm",
+        ["dist-tag", "add", spec, explicitPublishTag, "--no-workspaces"],
+        { encoding: "utf8" },
+    );
+    writeCommandOutput(result, "npm dist-tag add");
+    if (result.status === 0) {
+        return true;
+    }
+
+    console.error(
+        `Could not ensure npm dist-tag ${name}@${explicitPublishTag} points to ${version}.`,
+    );
+    return false;
+}
+
+function treatAlreadyPublishedAsSuccess(message) {
+    if (!ensureExplicitDistTag()) {
+        process.exit(1);
+    }
+    console.log(message);
+}
+
 function runPublish() {
     console.log(`\n$ npm publish ${publishArgs.join(" ")}  (in ${cwd})`);
     const result = spawnSync("npm", ["publish", ...publishArgs], {
         cwd,
         encoding: "utf8",
     });
-    if (result.stdout) {
-        process.stdout.write(result.stdout);
-    }
-    if (result.stderr) {
-        process.stderr.write(result.stderr);
-    }
+    writeCommandOutput(result, "npm publish");
     return {
         status: result.status,
-        output: `${result.stdout ?? ""}\n${result.stderr ?? ""}`,
+        output: combinedOutput(result),
     };
 }
 
 async function main() {
     if (alreadyPublished()) {
-        console.log(`✔ ${spec} is already published; skipping.`);
+        treatAlreadyPublishedAsSuccess(
+            `✔ ${spec} is already published; skipping.`,
+        );
         return;
     }
 
@@ -170,7 +311,7 @@ async function main() {
         }
 
         if (matchesAny(output, ALREADY_PUBLISHED_PATTERNS)) {
-            console.log(
+            treatAlreadyPublishedAsSuccess(
                 `✔ ${spec} is already published (publish reported a conflict); treating as success.`,
             );
             return;
@@ -180,7 +321,7 @@ async function main() {
         // reported an error (e.g. the token read failed after upload). Confirm
         // against the registry before deciding to retry.
         if (alreadyPublished()) {
-            console.log(
+            treatAlreadyPublishedAsSuccess(
                 `✔ ${spec} is now present on the registry despite the error; treating as success.`,
             );
             return;
