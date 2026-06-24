@@ -28,9 +28,11 @@ type Option = { value: number; label: any; isDisabled: boolean };
  * 1. isHidden: indicates that the content is being rendered invisibly to size the select input.
  *    It is used by the math renderer to turn off hideUntilTypeset, which would cause it to
  *    overwrite the invisible rendering and add tab stops to the invisible content.
- * 2. inOption: indicates that the content is being rendered inside a select option.
- *    It is used to turn off color specifications so that the font color of selected options
- *    can be set to white for contrast.
+ * 2. inOption: indicates that the content is being rendered inside the currently
+ *    selected (highlighted) select option. Because that option uses a dark
+ *    background, it is used to turn off color specifications so that the font
+ *    color can be set to white for contrast. Unselected options and the
+ *    displayed value render with their own style colors.
  */
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
@@ -231,7 +233,22 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             // interfering with option selection.
             Option: (props: any) => (
                 <components.Option {...props}>
-                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
+                    {/*
+                     * Render the option content with its style colors, except
+                     * for the currently selected option, which is highlighted
+                     * with a dark background. There, the text color is left to
+                     * react-select (white) for contrast.
+                     */}
+                    <ChoiceInputInlineContext.Provider
+                        value={{
+                            isHidden: false,
+                            inOption: !!props.isSelected,
+                        }}
+                    >
+                        <div style={{ pointerEvents: "none" }}>
+                            {props.label}
+                        </div>
+                    </ChoiceInputInlineContext.Provider>
                 </components.Option>
             ),
             // Add aria-details to the internal input used by react-select.
@@ -398,7 +415,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     }}
                 >
                     <ChoiceInputInlineContext.Provider
-                        value={{ isHidden: false, inOption: true }}
+                        value={{ isHidden: false, inOption: false }}
                     >
                         <Select
                             id={id}
