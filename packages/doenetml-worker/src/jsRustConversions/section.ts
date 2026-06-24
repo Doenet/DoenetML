@@ -20,7 +20,6 @@ export function sectionJsToRust(
 ) {
     props.divisionType = element.name;
     props.divisionDepth = props.level;
-    element.name = "division";
 
     const titleChildIdx =
         props.titleChildName != null ? Number(props.titleChildName) : undefined;

@@ -26,7 +26,7 @@ export interface DastState {
 // Define the initial state using that type
 const initialState: DastState = {
     source: "",
-    dastFromSource: { type: "root", children: [] },
+    dastFromSource: { type: "root", children: [], sources: [] },
     dastErrors: [],
     flatDastRoot: { type: "root", children: [], elements: [], warnings: [] },
 };

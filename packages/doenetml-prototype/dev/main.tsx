@@ -7,6 +7,32 @@ import "./main.css";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 
+const SOURCE_STORAGE_KEY = "doenetml-prototype-source";
+
+function getInitialSource(): string {
+    try {
+        return localStorage.getItem(SOURCE_STORAGE_KEY) ?? doenetMLstring;
+    } catch {
+        return doenetMLstring;
+    }
+}
+
+function saveSource(source: string) {
+    try {
+        localStorage.setItem(SOURCE_STORAGE_KEY, source);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+}
+
+function resetSource() {
+    try {
+        localStorage.removeItem(SOURCE_STORAGE_KEY);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+}
+
 /**
  * Read the selected core from the `?core=` query param so the choice survives
  * the page reload that switching cores triggers (see `selectCore`).
@@ -21,6 +47,8 @@ root.render(<App />);
 
 function App() {
     const coreType = getInitialCoreType();
+    const [initialSource] = React.useState(getInitialSource);
+    const [resetKey, setResetKey] = React.useState(0);
 
     function selectCore(next: CoreType) {
         if (next === coreType) {
@@ -32,6 +60,11 @@ function App() {
         const url = new URL(window.location.href);
         url.searchParams.set("core", next);
         window.location.href = url.href;
+    }
+
+    function handleReset() {
+        resetSource();
+        setResetKey((k) => k + 1);
     }
 
     return (
@@ -53,12 +86,20 @@ function App() {
                 <span className="dev-core-status">
                     Using <strong>{coreType}</strong> core
                 </span>
+                <button
+                    className="dev-reset-button"
+                    title="Clear saved DoenetML source from local storage and reset to default."
+                    onClick={handleReset}
+                >
+                    Reset
+                </button>
             </div>
             <div className="dev-viewer">
                 <EditorViewer
-                    key={coreType}
-                    doenetML={doenetMLstring}
+                    key={resetKey}
+                    doenetML={resetKey === 0 ? initialSource : doenetMLstring}
                     coreType={coreType}
+                    onChange={saveSource}
                 />
             </div>
         </div>

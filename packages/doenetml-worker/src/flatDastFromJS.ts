@@ -4,14 +4,17 @@ import type {
     FlatDastElementContent,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
+import { elementRename, propRename } from "./jsRustConversions/_general-rename";
+import { booleanInputJsToRust } from "./jsRustConversions/booleanInput";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
-import { sectionJsToRust } from "./jsRustConversions/section";
+import { sectionJsToRust as divisionJsToRust } from "./jsRustConversions/section";
+import { tableJsToRust } from "./jsRustConversions/table";
 import { textJsToRust } from "./jsRustConversions/text";
 
 declare module "./CoreWorker" {
     interface ElementData {
-        props?: Record<string, any>;
+        props?: Record<string, unknown>;
     }
 }
 
@@ -42,7 +45,7 @@ export type RendererStateToUpdate = {
     // The JS core pushes `null` placeholders for children that are absent
     // (e.g. an unrendered conditional branch), so entries may be `null`.
     childrenInstructions?: (ComponentInstruction | string | null)[];
-    stateValues: Record<string, any>;
+    stateValues: Record<string, unknown>;
 };
 
 /**
@@ -88,11 +91,32 @@ export function applyElementJsToRustFixups(
     }
 
     switch (element.name) {
+        case "angle":
+            propRename(element.data.props, {
+                latexForRenderer: "latex",
+            });
+            break;
+        case "cell":
+            propRename(element.data.props, {
+                inHeader: "header",
+            });
+            break;
+        case "booleanInput":
+            booleanInputJsToRust(element.data.props);
+            break;
         case "text":
             textJsToRust(element.data.props);
             break;
+        case "aside":
+        case "article":
         case "section":
-            sectionJsToRust(element.data.props, element);
+            divisionJsToRust(element.data.props, element);
+            if (element.name === "section") {
+                elementRename(element, "division");
+            }
+            break;
+        case "table":
+            tableJsToRust(element.data.props, element);
             break;
         case "point":
             pointJsToRust(element.data.props);
@@ -101,7 +125,7 @@ export function applyElementJsToRustFixups(
             refJsToRust(element.data.props, doenetIdToComponentIdx);
             break;
         case "coords":
-            element.name = "math";
+            elementRename(element, "math");
             break;
     }
 }

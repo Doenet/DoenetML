@@ -1,5 +1,5 @@
 import React from "react";
-import DropdownItem from "react-bootstrap/DropdownItem";
+import { DropdownItem } from "./ui/dropdown";
 import { useAppSelector } from "../../state/hooks";
 import { doenetSourceSelector } from "../../state/redux-slices/dast";
 import { doenetToMarkdown } from "@doenet/lsp-tools";

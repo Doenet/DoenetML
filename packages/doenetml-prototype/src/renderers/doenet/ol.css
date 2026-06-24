@@ -1,0 +1,10 @@
+.doenet-document {
+    ol {
+        list-style: decimal;
+        @apply ps-8 my-2 relative;
+
+        & .list-label {
+            @apply text-right;
+        }
+    }
+}

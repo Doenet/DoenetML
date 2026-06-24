@@ -9,6 +9,11 @@
         @apply inline-flex justify-center items-center;
     }
 
+    /* Square variant used for checkboxes */
+    .checkbox {
+        @apply radio rounded;
+    }
+
     .radio::after {
         transition:
             transform 0.3s ease,
