@@ -47,7 +47,7 @@ type ButtonData = {
  */
 export const Button: BasicComponent<ButtonData> = ({ node, htmlId }) => {
     const dispatch = useAppDispatch();
-    const { clickAction, label, disabled } = node.data.props;
+    const { clickAction, label, disabled, labelHasLatex } = node.data.props;
 
     const onClick = React.useCallback(() => {
         const action: Action = {
@@ -59,10 +59,7 @@ export const Button: BasicComponent<ButtonData> = ({ node, htmlId }) => {
         dispatch(coreActions.dispatchAction(action));
     }, [dispatch, node.name, node.data.id, clickAction]);
 
-    const displayLabel = processLabelWithMath(
-        node.data.props.label,
-        node.data.props.labelHasLatex,
-    );
+    const displayLabel = processLabelWithMath(label, labelHasLatex);
 
     return (
         <button

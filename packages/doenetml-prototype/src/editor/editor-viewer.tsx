@@ -16,6 +16,7 @@ import { Button } from "./components/ui/button";
 import { ButtonGroup } from "./components/ui/button-group";
 import { Dropdown } from "./components/ui/dropdown";
 import type { CoreType } from "../state/redux-slices/core/slice";
+import { isSaveShortcutKeydown, isMacPlatform } from "@doenet/utils";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -62,6 +63,42 @@ export function EditorViewer({
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    // Mirror the latest editor and rendered source in refs so `doRefresh` can
+    // stay stable (i.e., with empty deps).
+    const sourceInEditorRef = React.useRef(sourceInEditor);
+    sourceInEditorRef.current = sourceInEditor;
+    const sourceForRenderRef = React.useRef(sourceForRender);
+    sourceForRenderRef.current = sourceForRender;
+    const doRefresh = React.useCallback(() => {
+        // No-op unless the editor source differs from the rendered source so
+        // that triggering a refresh (e.g. via Ctrl/Cmd+S) when nothing has
+        // changed does not clear the error list or re-render needlessly.
+        if (sourceInEditorRef.current === sourceForRenderRef.current) {
+            return;
+        }
+        setErrors([]);
+        setSourceForRender(sourceInEditorRef.current);
+    }, []);
+
+    const editorViewerRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const container = editorViewerRef.current;
+        if (!container) {
+            return;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (isSaveShortcutKeydown(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                doRefresh();
+            }
+        };
+        container.addEventListener("keydown", handleKeyDown);
+        return () => {
+            container.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [doRefresh]);
+
     const doPrettyPrint = React.useCallback(() => {
         prettyPrint(sourceInEditor, {
             doenetSyntax: formatMode === "doenetml",
@@ -78,7 +115,7 @@ export function EditorViewer({
                 show={showDownloadInspector}
                 setShow={setShowDownloadInspector}
             />
-            <div className="editor-viewer">
+            <div className="editor-viewer" ref={editorViewerRef} tabIndex={-1}>
                 <div className="editor-viewer-header">
                     <Button
                         size="sm"
@@ -87,13 +124,12 @@ export function EditorViewer({
                         disabled={!canRefresh}
                         title={
                             canRefresh
-                                ? "Refresh the rendered code"
+                                ? `Refresh the rendered code ${
+                                      isMacPlatform() ? "cmd+s" : "ctrl+s"
+                                  }`
                                 : "The code has not changed since the last render"
                         }
-                        onClick={() => {
-                            setErrors([]);
-                            setSourceForRender(sourceInEditor);
-                        }}
+                        onClick={doRefresh}
                     >
                         <VscRefresh /> Refresh
                     </Button>

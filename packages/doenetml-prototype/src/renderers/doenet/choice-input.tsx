@@ -1,7 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
 import { useAppSelector } from "../../state/hooks";
-import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./choice-input.css";
 import { elementsArraySelector } from "../../state/redux-slices/dast";
 import { Radio, RadioGroup, RadioProvider } from "@ariakit/react";

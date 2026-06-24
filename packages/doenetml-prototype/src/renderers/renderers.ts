@@ -6,7 +6,6 @@ import {
     Graph,
     LineInGraph,
     M,
-    Math,
     P,
     PointInGraph,
     PointInText,
@@ -198,7 +197,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     lq: renderAs("“"),
     lsq: renderAs("‘"),
     m: { component: M, passthroughChildren: true },
-    math: { component: Math },
+    math: { component: M },
     matrix: { component: M },
     max: { component: M },
     md: { component: M },
@@ -244,12 +243,12 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     updateValue: { component: Button },
     variance: { component: M },
     wrapNumberPeriodic: { component: M },
-    xref: { component: Xref, passthroughChildren: true },
 
     // For PreTeXt compatibility
     pretext: { component: _Fragment, passthroughChildren: true },
     article: { component: _Fragment, passthroughChildren: true },
     book: { component: _Fragment, passthroughChildren: true },
+    xref: { component: Xref, passthroughChildren: true },
 };
 
 export const GRAPH_MODE_COMPONENTS: RendererObject = {

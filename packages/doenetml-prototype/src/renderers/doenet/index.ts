@@ -19,7 +19,6 @@ export * from "./graph-line";
 export * from "./graph-point";
 export * from "./li";
 export * from "./m";
-export * from "./math";
 export * from "./number";
 export * from "./ol";
 export * from "./orbital-diagram";
