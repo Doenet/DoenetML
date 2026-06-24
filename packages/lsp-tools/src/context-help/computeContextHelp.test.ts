@@ -151,6 +151,18 @@ describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
             6,
             { elementName: "p" },
         ],
+        [
+            "between a closed child and the parent's close tag",
+            `<p><math>x</math></p>`,
+            `<p><math>x</math></p>`.indexOf("</p>"),
+            { elementName: "p" },
+        ],
+        [
+            "between a self-closed child and the parent's close tag",
+            `<p><math/></p>`,
+            `<p><math/></p>`.indexOf("</p>"),
+            { elementName: "p" },
+        ],
     ])(
         "reports surrounding suggestions %s",
         async (_name, source, offset, context) => {

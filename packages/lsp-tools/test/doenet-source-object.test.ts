@@ -337,6 +337,47 @@ describe("DoenetSourceObject", () => {
         expect(node).toMatchObject({ type: "element", name: "text" });
     });
 
+    it("Reports the parent container when the cursor sits between adjacent closing tags (#1327)", () => {
+        // The cursor is right after an element that is already closed and
+        // right before the parent's close tag. It belongs to the parent's
+        // body, not the just-closed element's body.
+        for (const source of [
+            `<p><math>x</math></p>`,
+            `<p><math></math></p>`,
+            `<p><math/></p>`,
+        ]) {
+            const offset = source.indexOf("</p>");
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "p" });
+        }
+
+        // Nesting deeper than one level still reports the immediate container.
+        {
+            const source = `<section><p>hi</p></section>`;
+            const offset = source.indexOf("</section>");
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "section" });
+        }
+
+        // The autocompleter's `<tag>|</tag>` position must still report the
+        // element's own body (cursor sits after the element's *open* tag).
+        {
+            const source = `<mathInput></mathInput>`;
+            const offset = source.indexOf("</mathInput>");
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "mathInput" });
+        }
+    });
+
     it("Can get element ranges", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
