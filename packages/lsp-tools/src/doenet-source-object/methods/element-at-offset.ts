@@ -39,19 +39,9 @@ export function elementAtOffsetWithContext(
     }
 
     // The cursor sits exactly on an element's opening `<` (`node.start === offset`),
-    // so it is positioned *before* that element — i.e. in the body of whatever
-    // contains it, not inside the element. Reclassify as the container's body.
-    // When the container is another element we report that element; when the
-    // element is top-level (parent is the document root, e.g. `|<text/>` at
-    // offset 0) we report `null` so callers treat it as top-level body rather
-    // than suggesting the element's own children (#1327). The `prevChar` guard
-    // skips whitespace / newline / `<` (handled elsewhere) but allows an empty
-    // `prevChar`, which only occurs at offset 0.
-    if (
-        node?.type === "element" &&
-        node.position?.start?.offset === offset &&
-        (!prevChar || !prevChar.match(/(\s|\n|<)/))
-    ) {
+    // so it is positioned before that element in the containing body rather
+    // than inside the element itself (#1327).
+    if (node?.type === "element" && node.position?.start?.offset === offset) {
         cursorPosition = "body";
         node = parent?.type === "element" ? (parent as DastElement) : null;
     }

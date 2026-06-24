@@ -135,26 +135,32 @@ describe("computeContextHelp — element help", () => {
 });
 
 describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
-    it("reports the top level (not the element's children) when the cursor is just before a top-level tag", async () => {
-        const source = `<text/>`;
-        // Offset 0: cursor sits immediately before the opening `<`, so it is
-        // outside `<text>` and at the document top level.
-        const help = await helpAt(source, 0);
-        expect(help.kind).toBe("suggestions");
-        if (help.kind === "suggestions") {
-            expect(help.context).toEqual({ topLevel: true });
-        }
-    });
-
-    it("reports the parent element (not the element's children) when the cursor is just before a nested tag", async () => {
-        const source = `<p><text/></p>`;
-        // Offset 3: cursor sits immediately before `<text>`, inside `<p>`'s body.
-        const help = await helpAt(source, 3);
-        expect(help.kind).toBe("suggestions");
-        if (help.kind === "suggestions") {
-            expect(help.context).toEqual({ elementName: "p" });
-        }
-    });
+    it.each([
+        ["before top-level tag", `<text/>`, 0, { topLevel: true }],
+        ["before spaced top-level tag", ` <text/>`, 1, { topLevel: true }],
+        ["before nested tag", `<p><text/></p>`, 3, { elementName: "p" }],
+        [
+            "before spaced nested tag",
+            `<p> <text/></p>`,
+            4,
+            { elementName: "p" },
+        ],
+        [
+            "before indented nested tag",
+            `<p>\n  <text/></p>`,
+            6,
+            { elementName: "p" },
+        ],
+    ])(
+        "reports surrounding suggestions %s",
+        async (_name, source, offset, context) => {
+            const help = await helpAt(source, offset);
+            expect(help.kind).toBe("suggestions");
+            if (help.kind === "suggestions") {
+                expect(help.context).toEqual(context);
+            }
+        },
+    );
 
     it("reports element help (not children) when the cursor is inside a self-closing tag's `/>`", async () => {
         const source = `<text/>`;
