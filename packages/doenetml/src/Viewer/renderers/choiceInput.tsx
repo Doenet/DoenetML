@@ -28,11 +28,12 @@ type Option = { value: number; label: any; isDisabled: boolean };
  * 1. isHidden: indicates that the content is being rendered invisibly to size the select input.
  *    It is used by the math renderer to turn off hideUntilTypeset, which would cause it to
  *    overwrite the invisible rendering and add tab stops to the invisible content.
- * 2. inOption: indicates that the content is being rendered inside the currently
- *    selected (highlighted) select option. Because that option uses a dark
+ * 2. inOption: indicates that the content is being rendered inside a selected
+ *    (highlighted) select option. Because a selected option uses a dark
  *    background, it is used to turn off color specifications so that the font
- *    color can be set to white for contrast. Unselected options and the
- *    displayed value render with their own style colors.
+ *    color can be set to white for contrast. (With selectMultiple, more than
+ *    one option can be selected at once.) Unselected options and the displayed
+ *    value render with their own style colors.
  */
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
@@ -235,9 +236,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 <components.Option {...props}>
                     {/*
                      * Render the option content with its style colors, except
-                     * for the currently selected option, which is highlighted
-                     * with a dark background. There, the text color is left to
-                     * react-select (white) for contrast.
+                     * for selected options, which are highlighted with a dark
+                     * background. There, the text color is left to react-select
+                     * (white) for contrast.
                      */}
                     <ChoiceInputInlineContext.Provider
                         value={{
