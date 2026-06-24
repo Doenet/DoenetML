@@ -38,15 +38,22 @@ export function elementAtOffsetWithContext(
         cursorPosition = "body";
     }
 
+    // The cursor sits exactly on an element's opening `<` (`node.start === offset`),
+    // so it is positioned *before* that element — i.e. in the body of whatever
+    // contains it, not inside the element. Reclassify as the container's body.
+    // When the container is another element we report that element; when the
+    // element is top-level (parent is the document root, e.g. `|<text/>` at
+    // offset 0) we report `null` so callers treat it as top-level body rather
+    // than suggesting the element's own children (#1327). The `prevChar` guard
+    // skips whitespace / newline / `<` (handled elsewhere) but allows an empty
+    // `prevChar`, which only occurs at offset 0.
     if (
         node?.type === "element" &&
         node.position?.start?.offset === offset &&
-        parent?.type === "element" &&
-        prevChar &&
-        !prevChar.match(/(\s|\n|<)/)
+        (!prevChar || !prevChar.match(/(\s|\n|<)/))
     ) {
         cursorPosition = "body";
-        node = parent as DastElement;
+        node = parent?.type === "element" ? (parent as DastElement) : null;
     }
 
     if (!node) {
@@ -118,6 +125,14 @@ export function elementAtOffsetWithContext(
                 }
                 case "OpenTag":
                 case "SelfClosingTag":
+                    cursorPosition = "openTag";
+                    break;
+                case "SelfCloseEndTag":
+                    // Cursor is inside a self-closing tag's `/>` token (e.g.
+                    // `<text/|>`, between the `/` and `>`). That's still within
+                    // the open tag, so report `openTag` — element-level help —
+                    // rather than leaving it `unknown`, which falls through to
+                    // suggesting the element's (nonexistent) children (#1327).
                     cursorPosition = "openTag";
                     break;
                 case "EndTag":

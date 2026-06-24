@@ -134,6 +134,43 @@ describe("computeContextHelp — element help", () => {
     });
 });
 
+describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
+    it("reports the top level (not the element's children) when the cursor is just before a top-level tag", async () => {
+        const source = `<text/>`;
+        // Offset 0: cursor sits immediately before the opening `<`, so it is
+        // outside `<text>` and at the document top level.
+        const help = await helpAt(source, 0);
+        expect(help.kind).toBe("suggestions");
+        if (help.kind === "suggestions") {
+            expect(help.context).toEqual({ topLevel: true });
+        }
+    });
+
+    it("reports the parent element (not the element's children) when the cursor is just before a nested tag", async () => {
+        const source = `<p><text/></p>`;
+        // Offset 3: cursor sits immediately before `<text>`, inside `<p>`'s body.
+        const help = await helpAt(source, 3);
+        expect(help.kind).toBe("suggestions");
+        if (help.kind === "suggestions") {
+            expect(help.context).toEqual({ elementName: "p" });
+        }
+    });
+
+    it("reports element help (not children) when the cursor is inside a self-closing tag's `/>`", async () => {
+        const source = `<text/>`;
+        // Offset 6: cursor sits between `/` and `>`, still inside the open tag.
+        const help = await helpAt(source, 6);
+        expect(help).toMatchObject({ kind: "element", elementName: "text" });
+    });
+
+    it("reports element help inside a nested self-closing tag's `/>`", async () => {
+        const source = `<p><text/></p>`;
+        // Offset 9: between `/` and `>` of the nested `<text/>`.
+        const help = await helpAt(source, 9);
+        expect(help).toMatchObject({ kind: "element", elementName: "text" });
+    });
+});
+
 describe("computeContextHelp — attribute help", () => {
     it("returns attribute help with description and defaultValue", async () => {
         const source = `<point draggable="true"/>`;

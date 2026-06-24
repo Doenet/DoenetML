@@ -306,6 +306,40 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Reports the container (not the element) when the cursor is on a tag boundary (#1327)", () => {
+        let source: string;
+        let sourceObj: DoenetSourceObject;
+
+        // Cursor immediately before a top-level `<text/>` is at the document
+        // top level, not inside `<text>`.
+        source = `<text/>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { node } = sourceObj.elementAtOffsetWithContext(0);
+            expect(node).toEqual(null);
+        }
+
+        // Cursor immediately before a nested `<text/>` is in the parent's body.
+        source = `<p><text/></p>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(3);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "p" });
+        }
+
+        // Cursor inside a self-closing tag's `/>` is in the open tag.
+        source = `<text/>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(6);
+            expect(cursorPosition).toEqual("openTag");
+            expect(node).toMatchObject({ type: "element", name: "text" });
+        }
+    });
+
     it("Can get element ranges", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
