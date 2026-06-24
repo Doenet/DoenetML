@@ -128,8 +128,14 @@ describe("DoenetSourceObject", () => {
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<a")),
         ).toEqual([["x"], ["z"], ["x", "z"]]);
+        // A cursor *inside* `<a>`'s opening tag (past the `<`, e.g. in the
+        // tag's whitespace/attributes) is within `<a>`, so it resolves from
+        // `<a>`'s scope, closest first.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([["z"], ["x"], ["x", "z"]]);
         // A cursor inside `<a>`'s body (here on child `<b>`'s boundary, which
-        // resolves to its container `<a>`) sees `<a>`'s scope, closest first.
+        // resolves to its container `<a>`) likewise sees `<a>`'s scope.
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<b")),
         ).toEqual([["z"], ["x"], ["x", "z"]]);
@@ -160,6 +166,20 @@ describe("DoenetSourceObject", () => {
             ["x"],
             ["z"],
             ["w"],
+            ["x", "y"],
+            ["x", "z"],
+            ["x", "w"],
+            ["x", "y", "z"],
+        ]);
+        // Cursor *inside* `<a>`'s opening tag (past the `<`): `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([
+            ["y"],
+            ["z"],
+            ["w"],
+            ["y", "z"],
+            ["x"],
             ["x", "y"],
             ["x", "z"],
             ["x", "w"],
