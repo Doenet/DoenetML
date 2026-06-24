@@ -6,7 +6,6 @@ export * from "./graph";
 export * from "./division";
 export * from "./problem";
 export * from "./answer";
-export * from "./as-list";
 export * from "./text-input";
 export * from "./graph-line";
 export * from "./graph-point";
