@@ -16,18 +16,29 @@ import { store } from "../state/store";
 import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
 import Alert from "react-bootstrap/Alert";
+import type { CoreType } from "../state/redux-slices/core/slice";
+import { isSaveShortcutKeydown, isMacPlatform } from "@doenet/utils";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
 
 export type EditorViewerProps = {
     doenetML: string;
+    /**
+     * Which core backs the rendered viewer panel. The editor-only features
+     * (PreTeXt/Markdown export) operate on the FlatDast in the store and are not
+     * intended to work with the JavaScript core.
+     */
+    coreType?: CoreType;
 };
 
 /**
  * A component that renders A source editor and rendered doenetml side-by-side.
  */
-export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
+export function EditorViewer({
+    doenetML = "",
+    coreType = "rust",
+}: EditorViewerProps) {
     const [sourceForRender, setSourceForRender] = React.useState(doenetML);
     const [sourceInEditor, setSourceInEditor] = React.useState(doenetML);
     const [formatMode, setFormatMode] = React.useState<"doenetml" | "xml">(
@@ -50,6 +61,42 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    // Mirror the latest editor and rendered source in refs so `doRefresh` can
+    // stay stable (i.e., with empty deps).
+    const sourceInEditorRef = React.useRef(sourceInEditor);
+    sourceInEditorRef.current = sourceInEditor;
+    const sourceForRenderRef = React.useRef(sourceForRender);
+    sourceForRenderRef.current = sourceForRender;
+    const doRefresh = React.useCallback(() => {
+        // No-op unless the editor source differs from the rendered source so
+        // that triggering a refresh (e.g. via Ctrl/Cmd+S) when nothing has
+        // changed does not clear the error list or re-render needlessly.
+        if (sourceInEditorRef.current === sourceForRenderRef.current) {
+            return;
+        }
+        setErrors([]);
+        setSourceForRender(sourceInEditorRef.current);
+    }, []);
+
+    const editorViewerRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const container = editorViewerRef.current;
+        if (!container) {
+            return;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (isSaveShortcutKeydown(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                doRefresh();
+            }
+        };
+        container.addEventListener("keydown", handleKeyDown);
+        return () => {
+            container.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [doRefresh]);
+
     const doPrettyPrint = React.useCallback(() => {
         prettyPrint(sourceInEditor, {
             doenetSyntax: formatMode === "doenetml",
@@ -66,7 +113,7 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                 show={showDownloadInspector}
                 setShow={setShowDownloadInspector}
             />
-            <div className="editor-viewer">
+            <div className="editor-viewer" ref={editorViewerRef} tabIndex={-1}>
                 <div className="editor-viewer-header">
                     <Button
                         size="sm"
@@ -74,13 +121,12 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                         disabled={!canRefresh}
                         title={
                             canRefresh
-                                ? "Refresh the rendered code"
-                                : "The code has not changes since the last render"
+                                ? `Refresh the rendered code ${
+                                      isMacPlatform() ? "cmd+s" : "ctrl+s"
+                                  }`
+                                : "The code has not changed since the last render"
                         }
-                        onClick={() => {
-                            setErrors([]);
-                            setSourceForRender(sourceInEditor);
-                        }}
+                        onClick={doRefresh}
                     >
                         <VscRefresh /> Refresh
                     </Button>
@@ -180,7 +226,12 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                                 </div>
                             </div>
                         }
-                        panelB={<DoenetML doenetML={sourceForRender} />}
+                        panelB={
+                            <DoenetML
+                                doenetML={sourceForRender}
+                                coreType={coreType}
+                            />
+                        }
                     />
                 </div>
             </div>

@@ -3,6 +3,7 @@ import { MathJaxContext } from "better-react-mathjax";
 import { PageViewer } from "./viewer/page-viewer";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
+import type { CoreType } from "./state/redux-slices/core/slice";
 
 export type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -42,12 +43,14 @@ export function DoenetML({
     requestedVariantIndex,
     apiURLs,
     darkMode,
+    coreType = "rust",
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
     requestedVariantIndex?: number;
     apiURLs?: {};
     darkMode?: string;
+    coreType?: CoreType;
 }) {
     const variantIndex = useRef(0);
 
@@ -60,6 +63,7 @@ export function DoenetML({
                     source={doenetML}
                     flags={flags}
                     darkMode={darkMode || "auto"}
+                    coreType={coreType}
                 />
             </MathJaxContext>
         </Provider>

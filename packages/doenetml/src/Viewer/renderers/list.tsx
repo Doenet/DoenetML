@@ -94,9 +94,12 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 ];
         }
         return (
-            <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
-                {children}
-            </ol>
+            <>
+                <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
+                    {children}
+                </ol>
+                {checkWorkComponent}
+            </>
         );
     } else {
         let list_style;
@@ -113,9 +116,12 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 ];
         }
         return (
-            <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
-                {children}
-            </ul>
+            <>
+                <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
+                    {children}
+                </ul>
+                {checkWorkComponent}
+            </>
         );
     }
 });

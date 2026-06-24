@@ -31,7 +31,7 @@
         "test": "vitest",
         "test-cypress": "cypress open --component",
         "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless",
-        "publish": "npm run build && cd dist && npm publish"
+        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
     },
     "wireit": {
         "build:dev": {

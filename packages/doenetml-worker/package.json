@@ -26,7 +26,7 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "echo 'tests complete (keep this message at the end of the tests)'",
+        "test": "vitest run && echo 'tests complete (keep this message at the end of the tests)'",
         "build": "wireit"
     },
     "wireit": {

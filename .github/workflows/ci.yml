@@ -301,7 +301,11 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
@@ -323,7 +327,11 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      npm ci
+                      for attempt in 1 2 3; do
+                          npm ci && break
+                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
+                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
+                      done
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
@@ -425,6 +433,36 @@ jobs:
 
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
+
+            # Two TypeScript/JavaScript source paths that differ only by letter
+            # case and/or extension are ambiguous on case-insensitive file
+            # systems (macOS, Windows) and to the module resolver: an import
+            # like "./utils/Description" can resolve to "description.ts" instead
+            # of "Description.tsx". Detect tracked source files whose paths are
+            # equal after lowercasing and stripping the extension, so such pairs
+            # are caught before they break checkouts or imports on those
+            # platforms. Relies on GNU sed (the `s///i` flag is non-POSIX),
+            # which the ubuntu runner provides.
+            - name: Check for case-insensitive filename collisions
+              run: |
+                  COLLISIONS=$(git ls-files | grep -Ei '\.(ts|tsx|js|jsx)$' | sed -E 's/\.(ts|tsx|js|jsx)$//i' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+
+                  if [ -n "$COLLISIONS" ]; then
+                    echo "❌ Error: Found source files whose paths differ only by case and/or extension."
+                    echo "   These are ambiguous on case-insensitive file systems (macOS, Windows) and to the module resolver:"
+                    echo ""
+                    while IFS= read -r collision; do
+                      echo "Ambiguous base path: $collision"
+                      # Escape regex metacharacters so the base path matches literally.
+                      # Backslashes are doubled first so the second pass doesn't re-escape them.
+                      escaped=$(printf '%s' "$collision" | sed -e 's/\\/\\\\/g' -e 's/[].^$*+?(){}|[]/\\&/g')
+                      # Print the actual files that are conflicting.
+                      git ls-files | grep -iE "^${escaped}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
+                    done <<< "$COLLISIONS"
+                    exit 1
+                  else
+                    echo "✅ No case-insensitive collisions found."
+                  fi
 
     schema-freshness:
         name: Verify schema regenerated

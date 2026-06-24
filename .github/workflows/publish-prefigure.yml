@@ -77,8 +77,7 @@ jobs:
               env:
                   NPM_TAG: ${{ inputs.npm_tag }}
               run: |
-                  cd packages/prefigure/dist
-                  npm publish --tag "${NPM_TAG}"
+                  node .github/scripts/npm-publish-with-retry.mjs packages/prefigure/dist --tag "${NPM_TAG}"
 
             - name: Purge jsDelivr cache
               if: ${{ !inputs.dry_run }}

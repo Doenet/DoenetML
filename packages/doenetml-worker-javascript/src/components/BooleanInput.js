@@ -5,6 +5,10 @@ import {
 } from "../utils/graphical";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class BooleanInput extends Input {
     constructor(args) {
@@ -15,23 +19,7 @@ export default class BooleanInput extends Input {
             moveInput: this.moveInput.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "booleanInput";
 
@@ -290,24 +278,12 @@ export default class BooleanInput extends Input {
                 },
             ];
 
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "selected",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: boolean,
-                    responseText: boolean.toString(),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: boolean,
+                responseText: boolean.toString(),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,

@@ -3,6 +3,13 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 
+function returnScoredContainerAncestorDependency(...variableNames) {
+    return {
+        dependencyType: "ancestor",
+        variableNames,
+    };
+}
+
 export function returnStandardAnswerAttributes() {
     return {
         weight: {
@@ -515,14 +522,52 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            ancestorSuppressingAnswerSubmitButtons:
+                returnScoredContainerAncestorDependency(
+                    "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
+                ),
+            // Used to target the ignored-`maxNumAttempts` warning at the
+            // attribute itself rather than the whole `<answer>`.
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+            },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
+
+            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
+                    position: dependencyValues.maxNumAttemptsAttr?.position,
+                });
+            }
+
+            // Inside a section-wide check work, the answer's own
+            // `maxNumAttempts` is ignored: the enclosing container controls the
+            // number of attempts. Report that container's remaining attempts so
+            // the public `numAttemptsLeft` is accurate. This matches how a
+            // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
+            // ignored.
+            const numAttemptsLeft = insideSectionWideCheckWork
+                ? dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                      .stateValues.numAttemptsLeft
+                : Math.max(
+                      0,
+                      dependencyValues.maxNumAttempts -
+                          dependencyValues.numSubmissions,
+                  );
+
             return {
-                setValue: {
-                    numAttemptsLeft:
-                        dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
-                },
+                setValue: { numAttemptsLeft },
+                sendDiagnostics,
             };
         },
     };

@@ -15,6 +15,7 @@ export function descriptionAttributeSugar(node: DastElement) {
             "choiceInput",
             "booleanInput",
             "matrixInput",
+            "fractionInput",
         ].includes(node.name)
     ) {
         // This should be unreachable

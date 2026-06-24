@@ -99,6 +99,13 @@ export type HelpContent =
            * their attribute description already conveys true/false.
            */
           allowedValues?: ValidValueEntry[];
+          /**
+           * `true` when `allowedValues` constrains each item of a list-valued
+           * attribute rather than the whole value. The help panel uses this to
+           * label the row "Allowed values (one per item)" instead of "Allowed
+           * values".
+           */
+          allowedValuesArePerItem?: boolean;
           defaultValue?: unknown;
           /**
            * Resolved active value at the cursor's scope, distinct from the

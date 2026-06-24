@@ -1975,4 +1975,158 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#p3").should("have.text", "<p name='p1'>Cherry</p>\n");
         cy.get(cesc("#editor3::p1")).should("contain.text", "Cherry");
     });
+
+    it("initialOpenTab attribute controls which panel/tab is open at load", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" showResults initialOpenTab="none">
+      <text>Hello</text>
+    </codeEditor>
+    
+    <codeEditor name="editor2" showResults initialOpenTab="first">
+      <text>World</text>
+    </codeEditor>
+    
+    <codeEditor name="editor3" showResults initialOpenTab="errors">
+      <text>Test</text>
+    </codeEditor>
+    
+    <codeEditor name="editor4" showResults initialOpenTab="responses">
+      <text>Responses</text>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log('initialOpenTab="none" leaves the diagnostics panel closed');
+        cy.get("#editor1").should("exist");
+        cy.get("#editor1 .diagnostics-response-tabs-container").should(
+            "not.have.class",
+            "is-open",
+        );
+
+        cy.log(
+            'initialOpenTab="first" opens the panel on the first available tab (help)',
+        );
+        cy.get("#editor2 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor2 [data-test='footer-tab-help']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log('initialOpenTab="errors" opens the panel on the errors tab');
+        cy.get("#editor3 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor3 [data-test='footer-tab-errors']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+
+        cy.log(
+            'initialOpenTab="responses" opens the responses tab when results are shown',
+        );
+        cy.get("#editor4 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor4 [data-test='footer-tab-responses']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+    });
+
+    it('initialOpenTab="responses" falls back to the first tab when results are hidden', () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" initialOpenTab="responses">
+      <text>Hello</text>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Without showResults, the responses tab is not rendered");
+        cy.get("#editor1").should("exist");
+        cy.get("#editor1 [data-test='footer-tab-responses']").should(
+            "not.exist",
+        );
+
+        cy.log(
+            "The panel falls back to the first available tab (help) instead",
+        );
+        cy.get("#editor1 .diagnostics-response-tabs-container").should(
+            "have.class",
+            "is-open",
+        );
+        cy.get("#editor1 [data-test='footer-tab-help']").should(
+            "have.attr",
+            "aria-selected",
+            "true",
+        );
+    });
+
+    it("responses tab only records submissions from its code editor", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <codeEditor name="editor1" showResults initialOpenTab="responses">
+      <p>First: <mathInput name="mi1" />
+        <answer name="ans1">
+          <award>
+            <when><math isResponse extend="$mi1" /> = <math>1</math></when>
+          </award>
+        </answer>
+      </p>
+    </codeEditor>
+
+    <codeEditor name="editor2" showResults initialOpenTab="responses">
+      <p>Second: <mathInput name="mi2" />
+        <answer name="ans2">
+          <award>
+            <when><math isResponse extend="$mi2" /> = <math>2</math></when>
+          </award>
+        </answer>
+      </p>
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#editor1::mi1")} textarea`).type("1", {
+            force: true,
+        });
+        cy.get(cesc("#editor1::ans1_button")).click();
+        cy.get(cesc("#editor1::ans1_button")).should("contain.text", "Correct");
+
+        cy.get("#editor1 .diagnostics-response-tabs-container table tbody tr")
+            .should("have.length", 1)
+            .and("contain.text", "ans1")
+            .and("contain.text", "100%");
+        cy.get("#editor2 .diagnostics-response-tabs-container").should(
+            "contain.text",
+            "No submitted responses yet",
+        );
+        cy.get(
+            "#editor2 .diagnostics-response-tabs-container table tbody tr",
+        ).should("not.exist");
+    });
 });

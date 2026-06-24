@@ -7,6 +7,11 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import type { mean as MeanType, variance as VarianceType } from "mathjs";
+const { mean, variance } = me.math as {
+    mean: MeanType;
+    variance: VarianceType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -100,7 +105,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                     allowedMeanMid !== undefined &&
                     allowedMeanSpread !== undefined
                 ) {
-                    let meanX = me.math.mean(samples);
+                    let meanX = mean(samples);
                     if (Math.abs(meanX - allowedMeanMid) >= allowedMeanSpread) {
                         failedCriteria = true;
                     }
@@ -110,7 +115,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                     allowedVarianceMid !== undefined &&
                     allowedVarianceSpread !== undefined
                 ) {
-                    let varX = me.math.variance(samples, "uncorrected");
+                    let varX = variance(samples, "uncorrected");
                     if (
                         Math.abs(varX - allowedVarianceMid) >=
                         allowedVarianceSpread
@@ -156,7 +161,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
 
         if (allowedMeanMid !== undefined && allowedMeanSpread !== undefined) {
-            let meanX = me.math.mean(samples);
+            let meanX = mean(samples);
             expect(meanX).closeTo(allowedMeanMid, allowedMeanSpread);
         }
 
@@ -164,7 +169,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             allowedVarianceMid !== undefined &&
             allowedVarianceSpread !== undefined
         ) {
-            let varX = me.math.variance(samples, "uncorrected");
+            let varX = variance(samples, "uncorrected");
             expect(varX).closeTo(allowedVarianceMid, allowedVarianceSpread);
         }
     }
@@ -594,8 +599,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ];
 
         let vals = [-3, -1, 1, 2, 3, 4, 5];
-        let mean = me.math.mean(vals);
-        let variance = me.math.variance(vals, "uncorrected");
+        const computedMean = mean(vals);
+        const computedVariance = variance(vals, "uncorrected");
 
         for (let doenetML of doenetMLs) {
             await test_combined_statistics({
@@ -604,12 +609,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 numSamplesPerComponent: 5,
                 numRepetitions: 5,
                 validValues: vals,
-                allowedMeanMid: mean,
+                allowedMeanMid: computedMean,
                 allowedMeanSpread: 0.6,
-                allowedVarianceMid: variance,
+                allowedVarianceMid: computedVariance,
                 allowedVarianceSpread: 1,
-                expectedMean: mean,
-                expectedVariance: variance,
+                expectedMean: computedMean,
+                expectedVariance: computedVariance,
             });
         }
     });
@@ -621,8 +626,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ];
 
         let vals = [-3, -1, 1, 5];
-        let mean = me.math.mean(vals);
-        let variance = me.math.variance(vals, "uncorrected");
+        const computedMean = mean(vals);
+        const computedVariance = variance(vals, "uncorrected");
 
         for (let doenetML of doenetMLs) {
             await test_combined_statistics({
@@ -631,12 +636,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 numSamplesPerComponent: 10,
                 numRepetitions: 5,
                 validValues: vals,
-                allowedMeanMid: mean,
+                allowedMeanMid: computedMean,
                 allowedMeanSpread: 0.5,
-                allowedVarianceMid: variance,
+                allowedVarianceMid: computedVariance,
                 allowedVarianceSpread: 1,
-                expectedMean: mean,
-                expectedVariance: variance,
+                expectedMean: computedMean,
+                expectedVariance: computedVariance,
             });
         }
     });
@@ -835,14 +840,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             expect(num).lt(10);
         }
 
-        expect(me.math.mean(sample1numbers)).closeTo(5, 2);
-        expect(me.math.variance(sample1numbers, "uncorrected")).closeTo(
+        expect(mean(sample1numbers)).closeTo(5, 2);
+        expect(variance(sample1numbers, "uncorrected")).closeTo(
             10 ** 2 / 12,
             4,
         );
 
-        expect(me.math.mean(sample2numbers)).closeTo(0, 1.5);
-        expect(me.math.variance(sample2numbers, "uncorrected")).closeTo(16, 8);
+        expect(mean(sample2numbers)).closeTo(0, 1.5);
+        expect(variance(sample2numbers, "uncorrected")).closeTo(16, 8);
 
         // Get new samples when change number of samples
         await updateMathInputValue({
@@ -881,14 +886,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             expect(num).lt(10);
         }
 
-        expect(me.math.mean(sample1numbersb)).closeTo(5, 2);
-        expect(me.math.variance(sample1numbersb, "uncorrected")).closeTo(
+        expect(mean(sample1numbersb)).closeTo(5, 2);
+        expect(variance(sample1numbersb, "uncorrected")).closeTo(
             10 ** 2 / 12,
             4,
         );
 
-        expect(me.math.mean(sample2numbersb)).closeTo(0, 1.5);
-        expect(me.math.variance(sample2numbersb, "uncorrected")).closeTo(16, 8);
+        expect(mean(sample2numbersb)).closeTo(0, 1.5);
+        expect(variance(sample2numbersb, "uncorrected")).closeTo(16, 8);
 
         for (let ind = 0; ind < 10; ind++) {
             expect(sample1numbersb[ind]).not.eq(sample1numbers[ind]);
@@ -933,17 +938,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             expect(num).gte(0);
             expect(num).lt(4);
         }
-        expect(me.math.mean(sample1numbersc)).closeTo(2, 1);
-        expect(me.math.variance(sample1numbersc, "uncorrected")).closeTo(
+        expect(mean(sample1numbersc)).closeTo(2, 1);
+        expect(variance(sample1numbersc, "uncorrected")).closeTo(
             4 ** 2 / 12,
             1,
         );
 
-        expect(me.math.mean(sample2numbersc)).closeTo(0, 6);
-        expect(me.math.variance(sample2numbersc, "uncorrected")).closeTo(
-            18 ** 2,
-            150,
-        );
+        expect(mean(sample2numbersc)).closeTo(0, 6);
+        expect(variance(sample2numbersc, "uncorrected")).closeTo(18 ** 2, 150);
 
         for (let ind = 0; ind < 10; ind++) {
             expect(sample1numbersc[ind]).not.eq(sample1numbersb[ind]);
@@ -1572,8 +1574,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 ].stateValues.value,
             ).closeTo(expectedStandardDeviation, 1e-12);
 
-            let resultingMean = me.math.mean(samples);
-            let resultingVariance = me.math.variance(samples);
+            let resultingMean = mean(samples);
+            let resultingVariance = variance(samples);
             let resultingStandardDeviation = Math.sqrt(resultingVariance);
 
             expect(

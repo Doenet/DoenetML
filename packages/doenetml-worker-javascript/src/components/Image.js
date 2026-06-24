@@ -6,6 +6,10 @@ import {
     sizePossibilities,
     percentWidthsBySize,
     returnSelectedStyleStateVariableDefinition,
+    mediaLicenses,
+    getMediaLicenseInfo,
+    creativeCommonsVersions,
+    defaultCreativeCommonsVersion,
 } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -117,6 +121,81 @@ export default class Image extends BlockComponent {
             createComponentOfType: "text",
             createStateVariable: "source",
             defaultValue: "",
+            public: true,
+            forRenderer: true,
+        };
+        attributes.authorName = {
+            description: "Name of the author of the image.",
+            createComponentOfType: "text",
+            createStateVariable: "authorName",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.authorUrl = {
+            description:
+                "URL to link the author's name to in the attribution (e.g. the author's profile page).",
+            createComponentOfType: "text",
+            createStateVariable: "authorUrl",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.imageName = {
+            description:
+                "Name of the image, used in place of the generic word \u201CImage\u201D in the attribution.",
+            createComponentOfType: "text",
+            createStateVariable: "imageName",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.originalUrl = {
+            description:
+                "Original URL where the image can be found, used to link the image name in the attribution.",
+            createComponentOfType: "text",
+            createStateVariable: "originalUrl",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.licenseName = {
+            description: "Name of the license for the image.",
+            createComponentOfType: "text",
+            createStateVariable: "licenseNamePreliminary",
+            defaultValue: null,
+        };
+        attributes.licenseUrl = {
+            description: "URL for the license of the image.",
+            createComponentOfType: "text",
+            createStateVariable: "licenseUrlPreliminary",
+            defaultValue: null,
+        };
+        attributes.licenseCodes = {
+            description:
+                "License code(s) for the image. Specify two codes to indicate the image is dual licensed.",
+            createComponentOfType: "textList",
+            createStateVariable: "licenseCodes",
+            defaultValue: null,
+            toLowerCase: true,
+            validValues: mediaLicenses.map((license) => ({
+                value: license.code,
+                description: license.description,
+            })),
+            public: true,
+            forRenderer: true,
+        };
+        attributes.licenseVersion = {
+            description:
+                "Version of the Creative Commons license(s) given in `licenseCodes` (ignored by non-Creative-Commons licenses).",
+            createComponentOfType: "text",
+            createStateVariable: "licenseVersion",
+            defaultValue: defaultCreativeCommonsVersion,
+            toLowerCase: true,
+            validValues: creativeCommonsVersions.map((version) => ({
+                value: version,
+                description: `Creative Commons version ${version}.`,
+            })),
             public: true,
             forRenderer: true,
         };
@@ -284,7 +363,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
@@ -311,7 +390,7 @@ export default class Image extends BlockComponent {
                         if (dependencyValues.graphAncestor) {
                             let xscale =
                                 dependencyValues.graphAncestor.stateValues
-                                    .xscale;
+                                    .xScale;
                             midpoints = orderedPercentWidthMidpoints.map(
                                 (x) => (x / 100) * xscale,
                             );
@@ -387,7 +466,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
@@ -395,7 +474,7 @@ export default class Image extends BlockComponent {
 
                 if (dependencyValues.graphAncestor) {
                     let xscale =
-                        dependencyValues.graphAncestor.stateValues.xscale;
+                        dependencyValues.graphAncestor.stateValues.xScale;
                     if (!usedDefault.specifiedSize) {
                         return {
                             setValue: {
@@ -477,7 +556,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -490,7 +569,7 @@ export default class Image extends BlockComponent {
                         isAbsolute: true,
                         size:
                             (widthForGraph.size / 100) *
-                            dependencyValues.graphAncestor.stateValues.xscale,
+                            dependencyValues.graphAncestor.stateValues.xScale,
                     };
                 }
 
@@ -564,7 +643,117 @@ export default class Image extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.cid = {
+        stateVariableDefinitions.licenseNames = {
+            description:
+                "The license name(s) for the image. Derived from `licenseCodes` when given; otherwise from the `licenseName` attribute.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "textList",
+            },
+            returnDependencies: () => ({
+                licenseCodes: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseCodes",
+                },
+                licenseNamePreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseNamePreliminary",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { licenseCodes, licenseNamePreliminary } =
+                    dependencyValues;
+
+                // Codes take precedence over the preliminary `licenseName`.
+                if (licenseCodes && licenseCodes.length > 0) {
+                    const licenseNames = [];
+                    for (const code of licenseCodes) {
+                        const info = getMediaLicenseInfo(code);
+                        // Unknown codes are skipped here; the attribute's
+                        // `validValues` already flags them with a diagnostic.
+                        if (info) {
+                            licenseNames.push(info.name);
+                        }
+                    }
+                    return { setValue: { licenseNames } };
+                }
+
+                if (licenseNamePreliminary !== null) {
+                    return {
+                        setValue: { licenseNames: [licenseNamePreliminary] },
+                    };
+                }
+
+                return { setValue: { licenseNames: [] } };
+            },
+        };
+
+        stateVariableDefinitions.licenseUrls = {
+            description:
+                "The license URL(s) for the image. Derived from `licenseCodes` (and `licenseVersion`) when given; otherwise from the `licenseUrl` attribute.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "textList",
+            },
+            returnDependencies: () => ({
+                licenseCodes: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseCodes",
+                },
+                licenseVersion: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseVersion",
+                },
+                licenseNamePreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseNamePreliminary",
+                },
+                licenseUrlPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseUrlPreliminary",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const {
+                    licenseCodes,
+                    licenseVersion,
+                    licenseNamePreliminary,
+                    licenseUrlPreliminary,
+                } = dependencyValues;
+
+                // Codes take precedence over the preliminary `licenseUrl`.
+                // The order mirrors `licenseNames`: both skip the same unknown
+                // codes, so the two lists stay index-aligned for the renderer.
+                if (licenseCodes && licenseCodes.length > 0) {
+                    const licenseUrls = [];
+                    for (const code of licenseCodes) {
+                        const info = getMediaLicenseInfo(code);
+                        if (info) {
+                            licenseUrls.push(info.url(licenseVersion));
+                        }
+                    }
+                    return { setValue: { licenseUrls } };
+                }
+
+                // The fallback URL is gated on the preliminary `licenseName`:
+                // `licenseNames` only contains an entry when a name is given, so
+                // the URL list must follow suit to stay index-aligned. When a
+                // name is present but no URL, emit an empty string (no link).
+                if (licenseNamePreliminary !== null) {
+                    return {
+                        setValue: {
+                            licenseUrls: [licenseUrlPreliminary ?? ""],
+                        },
+                    };
+                }
+
+                return { setValue: { licenseUrls: [] } };
+            },
+        };
+
+        stateVariableDefinitions.imageId = {
             forRenderer: true,
 
             returnDependencies: () => ({
@@ -574,24 +763,16 @@ export default class Image extends BlockComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                if (
-                    !dependencyValues.source ||
-                    dependencyValues.source.substring(0, 7).toLowerCase() !==
-                        "doenet:"
-                ) {
-                    return {
-                        setValue: { cid: null },
-                    };
-                }
+                // A `doenet:<id>` source references an image in Doenet's media
+                // library; expose the `<id>` so the renderer can build its URL.
+                // The whole source must be exactly `doenet:<id>` (an
+                // alphanumeric id) — any other source, including unsupported
+                // `doenet:` forms like `doenet:cid=<hash>`, has no id.
+                const result = dependencyValues.source
+                    .trim()
+                    .match(/^doenet:([a-zA-Z0-9]+)$/i);
 
-                let cid = null;
-
-                let result = dependencyValues.source.match(/[:&]cid=([^&]+)/i);
-                if (result) {
-                    cid = result[1];
-                }
-
-                return { setValue: { cid } };
+                return { setValue: { imageId: result ? result[1] : null } };
             },
         };
 

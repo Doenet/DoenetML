@@ -1,5 +1,6 @@
 export * from "./ast/logging";
 export * from "./diagnostics/types";
+export * from "./keyboard/keyboardShortcuts";
 export * from "./media/cid";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";
@@ -8,6 +9,7 @@ export * from "./components/domain";
 export * from "./components/enumeration";
 export * from "./components/function";
 export * from "./components/mathInputFunctionNames";
+export * from "./components/mediaLicense";
 export * from "./components/sequence";
 export * from "./components/size";
 export * from "./math/array";

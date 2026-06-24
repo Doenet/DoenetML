@@ -14,7 +14,11 @@ import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
-import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
+import {
+    DiagnosticRecord,
+    nanInfinityReviver,
+    isSaveShortcutKeydown,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
@@ -82,6 +86,7 @@ type EditorViewerProps = {
     activityId?: string;
     prefixForIds?: string;
     doenetViewerUrl?: string;
+    doenetMediaUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -141,6 +146,7 @@ export const EditorViewer = React.forwardRef<
         activityId: specifiedActivityId,
         prefixForIds = "",
         doenetViewerUrl,
+        doenetMediaUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -167,14 +173,6 @@ export const EditorViewer = React.forwardRef<
     },
     ref,
 ) {
-    //Win, Mac or Linux
-    let platform = "Linux";
-    if (navigator.platform.indexOf("Win") != -1) {
-        platform = "Win";
-    } else if (navigator.platform.indexOf("Mac") != -1) {
-        platform = "Mac";
-    }
-
     if (readOnly) {
         showFormatter = false;
     }
@@ -545,6 +543,10 @@ export const EditorViewer = React.forwardRef<
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
                 const data = event.data.data;
+                if (data.activityId !== activityId) {
+                    return;
+                }
+
                 if (data.verb !== "experienced" && data.verb !== "isVisible") {
                     setDocumentInteracted(true);
                     if (!codeChangedRef.current) {
@@ -597,7 +599,7 @@ export const EditorViewer = React.forwardRef<
         return () => {
             removeEventListener("message", submittedResponseListener);
         };
-    }, [showViewer]);
+    }, [activityId]);
 
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
@@ -834,10 +836,7 @@ export const EditorViewer = React.forwardRef<
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
-            if (
-                (platform == "Mac" && event.metaKey && event.code === "KeyS") ||
-                (platform != "Mac" && event.ctrlKey && event.code === "KeyS")
-            ) {
+            if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
                 updateViewer();
@@ -845,8 +844,18 @@ export const EditorViewer = React.forwardRef<
         };
 
         let codeEditorContainer = document.getElementById(id);
+        let viewerPanelContainer = viewerContainer.current;
         if (showViewer) {
             codeEditorContainer?.addEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
+            // Also listen on the viewer panel so the shortcut works when focus
+            // is in the rendered document. The viewer container has
+            // tabIndex={-1}, so clicking non-focusable content (e.g. plain
+            // text) keeps focus within it rather than falling back to
+            // document.body, which would bypass this listener.
+            viewerPanelContainer?.addEventListener(
                 "keydown",
                 handleEditorKeyDown,
             );
@@ -854,6 +863,10 @@ export const EditorViewer = React.forwardRef<
 
         return () => {
             codeEditorContainer?.removeEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
+            viewerPanelContainer?.removeEventListener(
                 "keydown",
                 handleEditorKeyDown,
             );
@@ -1014,13 +1027,12 @@ export const EditorViewer = React.forwardRef<
     }
 
     const viewerPanel = (
-        <div className="viewer-panel" id={id + "-viewer"}>
+        <div className="viewer-panel" id={id + "-viewer-panel"}>
             <ViewerControlsBar
                 id={id}
                 readOnly={readOnly}
                 codeChanged={codeChanged}
                 documentInteracted={documentInteracted}
-                platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
                 onUpdateViewer={updateViewer}
                 variants={variants}
@@ -1031,7 +1043,12 @@ export const EditorViewer = React.forwardRef<
                 isAccessibilityReportOpen={isAccessibilityReportOpen}
                 onToggleAccessibilityReport={toggleAccessibilityReport}
             />
-            <div className="viewer" id={id + "-viewer"} ref={viewerContainer}>
+            <div
+                className="viewer"
+                id={id + "-viewer"}
+                ref={viewerContainer}
+                tabIndex={-1}
+            >
                 <DocViewer
                     doenetML={viewerDoenetML}
                     flags={{
@@ -1061,6 +1078,7 @@ export const EditorViewer = React.forwardRef<
                         documentStructureThenChangeCallback
                     }
                     doenetViewerUrl={doenetViewerUrl}
+                    doenetMediaUrl={doenetMediaUrl}
                     darkMode={darkMode}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
