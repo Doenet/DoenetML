@@ -88,8 +88,6 @@ export function elementAtOffsetWithContext(
             const leftElement = this.nodeAtOffset(leftNode.from, {
                 type: "element",
             }) as DastElement | null;
-            // XXX Fix this after the CodeMirror update
-            // @ts-ignore
             const leftParentType = leftNode.parent?.type?.name as
                 | LezerSyntaxNodeName
                 | undefined;
