@@ -230,6 +230,25 @@ describe("AutoCompleter", () => {
         expect(items.map((i) => i.label)).not.toContain("/b>");
     });
 
+    it("suggests element names on explicit Ctrl+Space when the cursor is on a tag name immediately before another tag (#1328)", async () => {
+        // Same `<aa><b<c></c></aa>` shape, but invoked explicitly (Ctrl+Space)
+        // on a static cursor rather than reached by typing. Explicit invocation
+        // sets `showElementMenu`, which used to route this position to the
+        // "insert a new element before this tag" branch and surface the
+        // half-typed element's close tag (`/b>`). The `openTagName` position
+        // must win and offer element names filtered by the typed prefix.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
     it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
         // `<aa><<c></c></aa>` — the author types `<` to insert a new element in
         // front of `<c>`. The menu should open with the container's allowed

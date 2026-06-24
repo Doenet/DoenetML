@@ -967,4 +967,30 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             "/nu",
         );
     });
+
+    it("opens element-name completions on explicit Ctrl+Space at a static tag-name cursor before another tag (#1328)", () => {
+        // The document already contains `<nu<text></text>`; the user places the
+        // cursor right after `nu` and presses Ctrl+Space (rather than reaching
+        // the position by typing). The menu must open with element names, not a
+        // `/nu>` close-tag completion.
+        cy.mount(<AutocompleteTestHarness initialValue={`<nu<text></text>`} />);
+
+        // Cursor right after `<nu` (offset 3). Keep `{ctrl}{home}` and the
+        // arrow movement in separate `type()` calls: Cypress holds `{ctrl}` for
+        // the rest of a single string, which would turn the arrows into
+        // word-wise Ctrl+Right and overshoot the intended offset.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}{rightArrow}{rightArrow}", {
+            force: true,
+        });
+        openAutocomplete();
+
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
 });

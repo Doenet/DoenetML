@@ -1053,12 +1053,20 @@ export async function getCompletionItems(
     // error-recovery state (especially at the top level, where the cursor
     // before a tag reports `{ node: null }`), whereas the element starting at
     // the offset is reliable.
+    //
+    // Skip this when the cursor is at `openTagName` (`<nu|<text>`): there the
+    // author is typing the *name* of the element before the tag, so the
+    // openTagName branch below should offer element names filtered by the
+    // typed prefix rather than the surrounding container's full menu. Without
+    // this guard, explicit Ctrl+Space (which sets `showElementMenu`) would
+    // fire this branch and offer the half-typed element's close tag instead.
     const elementStartingAtCursor = this.sourceObj.nodeAtOffset(offset, {
         type: "element",
         side: "right",
     }) as DastElement | null;
     if (
         showElementMenu &&
+        cursorPosition !== "openTagName" &&
         elementStartingAtCursor &&
         elementStartingAtCursor.position?.start?.offset === offset
     ) {
