@@ -1002,6 +1002,48 @@ export async function getCompletionItems(
         );
     }
 
+    // The author typed `<` (or invoked completion explicitly) immediately
+    // before an existing element — the cursor sits exactly on that element's
+    // opening `<`. They are inserting a new element in front of it, so offer
+    // what can go in the surrounding container. Error recovery parses the
+    // half-typed `<` + following tag as a complete element, which otherwise
+    // leaves the cursor classified as that element's body/unknown with no
+    // menu, so the popup never opens when typing a tag name before another
+    // tag (#1328).
+    if (
+        showElementMenu &&
+        element &&
+        element.position?.start?.offset === offset
+    ) {
+        // Error recovery can wrap the cursor's position in a half-typed,
+        // empty-named element (the very `<` the author just typed). Climb past
+        // any such placeholder to the real container so the menu reflects the
+        // right set of allowed children.
+        let containerParent = this.sourceObj.getParent(element);
+        while (
+            containerParent?.type === "element" &&
+            containerParent.name === ""
+        ) {
+            containerParent = this.sourceObj.getParent(containerParent);
+        }
+        const allowedElementNames =
+            !containerParent || containerParent.type === "root"
+                ? this.schemaTopAllowedElements
+                : this._getAllowedChildren(
+                      containerParent.name,
+                      this.sourceObj.getParentElementName(containerParent),
+                  );
+        return createElementAndSnippetCompletionItems(
+            this,
+            allowedElementNames,
+            elementMenuStart,
+            offset,
+            "",
+            containerParent?.type === "element" ? containerParent : null,
+            insertLeadingBracket,
+        );
+    }
+
     if (!element && containingNode && containingNode.type === "text") {
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.

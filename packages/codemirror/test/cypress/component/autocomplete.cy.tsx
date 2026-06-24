@@ -923,4 +923,48 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             );
         });
     });
+
+    it("opens element-name completions when typing a tag immediately before another tag (#1328)", () => {
+        // The author inserts a new element in front of an existing `<text>`.
+        // Error recovery tentatively parses the half-typed `<nu` as a complete
+        // `<nu>` element wrapping `<text>`, which used to make the cursor look
+        // like it was in `<nu>`'s body and offer a `/nu>` close-tag completion.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        // Type the opening tag name in front of the existing `<text>`.
+        cy.get(".cm-content").type("<nu", { force: true });
+
+        // The popup opens from typing alone (no Ctrl+Space) and shows element
+        // names, not the bogus `/nu>` close-tag completion.
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
+
+    it("opens element-name completions when typing a tag just before a closing tag (#1328)", () => {
+        // Cursor inside `<text>...</text>`, typing a new child tag right before
+        // the `</text>`: `<text><nu|</text>`.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        // Move to just after the opening `<text>` (offset 6).
+        cy.get(".cm-content")
+            .click()
+            .type("{ctrl}{home}" + "{rightArrow}".repeat(6), { force: true });
+        cy.get(".cm-content").type("<nu", { force: true });
+
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
 });

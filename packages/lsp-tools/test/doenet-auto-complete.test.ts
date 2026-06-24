@@ -204,6 +204,42 @@ describe("AutoCompleter", () => {
         expect(b?.displayLabel).toBeUndefined();
     });
 
+    it("suggests element names (not a close tag) when typing a tag name immediately before another tag (#1328)", async () => {
+        // `<aa><b<c></c></aa>` — error recovery parses the half-typed `<b` as a
+        // complete element wrapping `<c>`. The cursor right after `<b` used to
+        // look like `<b>`'s body and offer a `/b>` close-tag completion. It
+        // should instead offer element names that can go here, filtered by the
+        // typed prefix.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
+        // `<aa><<c></c></aa>` — the author types `<` to insert a new element in
+        // front of `<c>`. The menu should open with the container's allowed
+        // children rather than staying closed (which left the popup from never
+        // opening as the author kept typing).
+        const source = `<aa><<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
+    });
+
+    it("opens the top-level element menu when `<` is typed before a top-level tag (#1328)", async () => {
+        // `<<aa></aa>` at the document start: the menu should offer top-level
+        // elements, climbing past the half-typed empty-named placeholder.
+        const source = `<<aa></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = 1; // right after the first `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toContain("aa");
+    });
+
     it("Adds quotes via textEdit when completing right after `=`", async () => {
         const source = `<aa><b foo=></b></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
