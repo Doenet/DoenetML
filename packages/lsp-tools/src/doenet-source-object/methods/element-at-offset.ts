@@ -97,10 +97,11 @@ export function elementAtOffsetWithContext(
                 (leftParentType === "CloseTag" ||
                     leftParentType === "SelfClosingTag")
             ) {
-                // The `>`/`/>` to the left *closes* the element on the left, so
-                // that element is finished and the cursor is in the *parent's*
-                // body (i.e. `<p><math>x</math>|</p>` is the body of `<p>`, not
-                // `<math>`, and `<p><math/>|</p>` likewise — #1327).
+                // The token to the left is a close-tag's `>` or a self-closing
+                // `/>`, so it *closes* the element on the left; that element is
+                // finished and the cursor is in the *parent's* body (i.e.
+                // `<p><math>x</math>|</p>` is the body of `<p>`, not `<math>`,
+                // and `<p><math/>|</p>` likewise — #1327).
                 const parentElement = this.getParent(leftElement);
                 node =
                     parentElement?.type === "element"
