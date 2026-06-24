@@ -994,6 +994,33 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
+    it("replaces bare filters around explicit element completions", () => {
+        // Ctrl+Space can open the element menu before the author has typed `<`.
+        // Whether the bare filter is typed before or after Ctrl+Space,
+        // accepting `<number>` must replace that word, not append after it as
+        // `num<number`.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("num", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains(/^<number>$/)
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "<number");
+        cy.get(".cm-content").invoke("text").should("not.contain", "num<");
+
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("num", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains(/^<number>$/)
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "<number");
+        cy.get(".cm-content").invoke("text").should("not.contain", "num<");
+    });
+
     it("matches element-name completions by substring, ranking prefix matches first (#1328)", () => {
         // Typing `<num` should surface tags that *contain* `num` (so authors
         // don't have to remember how a name begins), with the tags that *start*

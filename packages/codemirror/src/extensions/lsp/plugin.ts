@@ -476,6 +476,36 @@ export class LSPPlugin implements PluginValue {
                     option.type === COMPLETION_TYPES.closeTag,
             );
 
+        function filterOptionsForWord(wordLower: string) {
+            options = options
+                .filter(({ filterText }) => {
+                    const filterLower = filterText.toLowerCase();
+                    return isElementNameMenu
+                        ? filterLower.includes(wordLower)
+                        : filterLower.startsWith(wordLower);
+                })
+                .sort((optionA, optionB) => {
+                    // Keep prefix matches ahead of mid-name substring
+                    // matches. Compare against `filterText` (the string
+                    // used for matching) rather than `apply`, since
+                    // snippets and textEdit-backed items may insert a
+                    // different string.
+                    const aStartsWithWord = optionA.filterText
+                        .toLowerCase()
+                        .startsWith(wordLower);
+                    const bStartsWithWord = optionB.filterText
+                        .toLowerCase()
+                        .startsWith(wordLower);
+                    switch (true) {
+                        case aStartsWithWord && !bStartsWithWord:
+                            return -1;
+                        case !aStartsWithWord && bStartsWithWord:
+                            return 1;
+                    }
+                    return 0;
+                });
+        }
+
         if (token) {
             let word = token.text;
             let fromOffset = 0;
@@ -488,33 +518,21 @@ export class LSPPlugin implements PluginValue {
             pos = token.from + fromOffset;
             const wordLower = word.toLowerCase();
             if (wordLower && MACRO_IDENTIFIER_SEGMENT_REGEX.test(wordLower)) {
-                options = options
-                    .filter(({ filterText }) => {
-                        const filterLower = filterText.toLowerCase();
-                        return isElementNameMenu
-                            ? filterLower.includes(wordLower)
-                            : filterLower.startsWith(wordLower);
-                    })
-                    .sort((optionA, optionB) => {
-                        // Keep prefix matches ahead of mid-name substring
-                        // matches. Compare against `filterText` (the string
-                        // used for matching) rather than `apply`, since
-                        // snippets and textEdit-backed items may insert a
-                        // different string.
-                        const aStartsWithWord = optionA.filterText
-                            .toLowerCase()
-                            .startsWith(wordLower);
-                        const bStartsWithWord = optionB.filterText
-                            .toLowerCase()
-                            .startsWith(wordLower);
-                        switch (true) {
-                            case aStartsWithWord && !bStartsWithWord:
-                                return -1;
-                            case !aStartsWithWord && bStartsWithWord:
-                                return 1;
-                        }
-                        return 0;
-                    });
+                filterOptionsForWord(wordLower);
+            }
+        } else if (isElementNameMenu) {
+            const bareElementToken = context.matchBefore(
+                MACRO_IDENTIFIER_SEGMENT_REGEX,
+            );
+            if (bareElementToken) {
+                // Explicit Ctrl+Space can open an element menu before any `<`
+                // has been typed. In that case the completion `apply` strings
+                // start with `<`, so `prefixMatch` cannot anchor `from` to a
+                // bare filter word like `num`. Anchor and filter it here so
+                // accepting `<number>` replaces `num` instead of appending after
+                // it.
+                pos = bareElementToken.from;
+                filterOptionsForWord(bareElementToken.text.toLowerCase());
             }
         }
 
@@ -602,17 +620,27 @@ export class LSPPlugin implements PluginValue {
             };
         }
 
-        // Element/tag-name completions are filtered as the user types: a query
-        // at `<num` returns names containing `num`, while a query at `<` returns
-        // the full element set. CodeMirror's `validFor`, however, keeps the
-        // *originally returned* option set and re-filters it locally as the
-        // typed text changes instead of re-querying. That would make the visible
-        // suggestions depend on what was cached when the menu first opened
-        // (opening at `<` caches the full list; opening at `<num` caches only
-        // the `num` matches and keeps showing them after backspacing to `<`).
-        // Omit `validFor` for element-name menus so CodeMirror re-queries the
-        // source on every edit and the suggestions are the same however the menu
-        // was reached (#1328).
+        const elementMenuHasTypedLt =
+            isElementNameMenu &&
+            pos > 0 &&
+            state.sliceDoc(pos - 1, pos) === "<";
+
+        // Element/tag-name completions after an actual `<` are filtered as the
+        // user types: a query at `<num` returns names containing `num`, while a
+        // query at `<` returns the full element set. CodeMirror's `validFor`,
+        // however, keeps the *originally returned* option set and re-filters it
+        // locally as the typed text changes instead of re-querying. That would
+        // make the visible suggestions depend on what was cached when the menu
+        // first opened (opening at `<` caches the full list; opening at `<num`
+        // caches only the `num` matches and keeps showing them after
+        // backspacing to `<`). Omit `validFor` for those `<`-anchored element
+        // menus so CodeMirror re-queries the source on every edit and the
+        // suggestions are the same however the menu was reached (#1328).
+        //
+        // Bare explicit element menus (Ctrl+Space before typing `<`) keep
+        // `validFor`: the server deliberately returned the broad element set,
+        // and local filtering is what lets a subsequently typed bare word
+        // replace cleanly with `<tag`.
         //
         // Reference, attribute-name, and attribute-value completions keep
         // `validFor`: their stability (e.g. the ref reopen latch) depends on the
@@ -621,7 +649,7 @@ export class LSPPlugin implements PluginValue {
         return {
             from: pos,
             options: finalOptions,
-            ...(isElementNameMenu
+            ...(elementMenuHasTypedLt
                 ? {}
                 : {
                       validFor: new RegExp(
