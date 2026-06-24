@@ -169,6 +169,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     c: passThroughWithRenamedTag("code"),
     callAction: { component: Button },
     ceil: { component: M },
+    choice: PassThroughWithoutTagConverter,
     choiceInput: { component: ChoiceInput },
     clampNumber: { component: M },
     convertSetToList: { component: M },

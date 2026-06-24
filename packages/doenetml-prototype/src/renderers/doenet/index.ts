@@ -33,7 +33,7 @@ export * from "./tag";
 export * from "./tagc";
 export * from "./text";
 export * from "./text-input";
-export * from "./text-point";
+export * from "./point";
 export * from "./title";
 export * from "./ul";
 export * from "./xref";

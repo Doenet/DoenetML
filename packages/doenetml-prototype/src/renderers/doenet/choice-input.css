@@ -1,13 +1,27 @@
 .doenet-document {
     .choice-input {
+        .choice-input-label {
+            @apply font-medium mb-1;
+        }
+
         label {
             @apply max-w-full block cursor-pointer rounded-md relative;
+
+            &.disabled {
+                @apply opacity-50 cursor-not-allowed;
+            }
         }
+
         label:focus-within {
             @apply dn-outline -outline-offset-1;
         }
+
         input[type="radio"] {
             @apply me-2 ms-6 appearance-none radio;
+        }
+
+        input[type="checkbox"] {
+            @apply me-2 ms-6 appearance-none radio rounded;
         }
     }
 }
