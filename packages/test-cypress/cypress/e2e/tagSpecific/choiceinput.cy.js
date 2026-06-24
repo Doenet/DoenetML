@@ -1445,4 +1445,55 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#ci_choice2_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
     });
+
+    it("inline choiceInput options use their style text color", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <setup>
+        <styleDefinition styleNumber="2" textColor="green" />
+        <styleDefinition styleNumber="3" textColor="red" />
+    </setup>
+
+    <choiceInput name="ci" inline placeholder="Choose fruit">
+      <choice><text styleNumber="2">apple</text></choice>
+      <choice><text styleNumber="3">banana</text></choice>
+      <choice><text>cherry</text></choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        const green = "rgb(0, 128, 0)";
+        const red = "rgb(255, 0, 0)";
+        const black = "rgb(0, 0, 0)";
+        const white = "rgb(255, 255, 255)";
+
+        cy.log("Open the menu: unselected options show their style color");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", green);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
+
+        cy.log("Select the green option; the displayed value keeps its color");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").click({ force: true });
+        });
+        cy.get("#ci").contains("apple").should("have.css", "color", green);
+
+        cy.log(
+            "Reopen the menu: the selected option uses white text for contrast",
+        );
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", white);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
+    });
 });

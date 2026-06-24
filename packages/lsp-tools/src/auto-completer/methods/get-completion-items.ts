@@ -1047,16 +1047,26 @@ export async function getCompletionItems(
     // leaves the cursor classified as that element's body/unknown with no
     // menu, so the popup never opens when typing a tag name before another
     // tag (#1328).
+    //
+    // Use the element that *starts* at the cursor as the signal rather than
+    // `containingElement.node`: the latter's classification varies with
+    // error-recovery state (especially at the top level, where the cursor
+    // before a tag reports `{ node: null }`), whereas the element starting at
+    // the offset is reliable.
+    const elementStartingAtCursor = this.sourceObj.nodeAtOffset(offset, {
+        type: "element",
+        side: "right",
+    }) as DastElement | null;
     if (
         showElementMenu &&
-        element &&
-        element.position?.start?.offset === offset
+        elementStartingAtCursor &&
+        elementStartingAtCursor.position?.start?.offset === offset
     ) {
         // Error recovery can wrap the cursor's position in a half-typed,
         // empty-named element (the very `<` the author just typed). Climb past
         // any such placeholder to the real container so the menu reflects the
         // right set of allowed children.
-        let containerParent = this.sourceObj.getParent(element);
+        let containerParent = this.sourceObj.getParent(elementStartingAtCursor);
         while (
             containerParent?.type === "element" &&
             containerParent.name === ""

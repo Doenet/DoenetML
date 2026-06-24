@@ -134,6 +134,61 @@ describe("computeContextHelp — element help", () => {
     });
 });
 
+describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
+    it.each([
+        ["before top-level tag", `<text/>`, 0, { topLevel: true }],
+        ["before spaced top-level tag", ` <text/>`, 1, { topLevel: true }],
+        ["before nested tag", `<p><text/></p>`, 3, { elementName: "p" }],
+        [
+            "before spaced nested tag",
+            `<p> <text/></p>`,
+            4,
+            { elementName: "p" },
+        ],
+        [
+            "before indented nested tag",
+            `<p>\n  <text/></p>`,
+            6,
+            { elementName: "p" },
+        ],
+        [
+            "between a closed child and the parent's close tag",
+            `<p><math>x</math></p>`,
+            `<p><math>x</math></p>`.indexOf("</p>"),
+            { elementName: "p" },
+        ],
+        [
+            "between a self-closed child and the parent's close tag",
+            `<p><math/></p>`,
+            `<p><math/></p>`.indexOf("</p>"),
+            { elementName: "p" },
+        ],
+    ])(
+        "reports surrounding suggestions %s",
+        async (_name, source, offset, context) => {
+            const help = await helpAt(source, offset);
+            expect(help.kind).toBe("suggestions");
+            if (help.kind === "suggestions") {
+                expect(help.context).toEqual(context);
+            }
+        },
+    );
+
+    it("reports element help (not children) when the cursor is inside a self-closing tag's `/>`", async () => {
+        const source = `<text/>`;
+        // Offset 6: cursor sits between `/` and `>`, still inside the open tag.
+        const help = await helpAt(source, 6);
+        expect(help).toMatchObject({ kind: "element", elementName: "text" });
+    });
+
+    it("reports element help inside a nested self-closing tag's `/>`", async () => {
+        const source = `<p><text/></p>`;
+        // Offset 9: between `/` and `>` of the nested `<text/>`.
+        const help = await helpAt(source, 9);
+        expect(help).toMatchObject({ kind: "element", elementName: "text" });
+    });
+});
+
 describe("computeContextHelp — attribute help", () => {
     it("returns attribute help with description and defaultValue", async () => {
         const source = `<point draggable="true"/>`;
