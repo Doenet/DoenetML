@@ -97,6 +97,24 @@ type CompletionTextEditOffsets = {
     endOffset: number;
 };
 
+/**
+ * Preserve the schema/context-help ordering within each bucket, but put items
+ * whose match text starts with the typed text ahead of mid-string matches.
+ */
+function getPrefixAwareSortText(
+    matchText: string,
+    typedTextLower: string,
+    baseSortText?: string,
+): string | undefined {
+    if (!typedTextLower) {
+        return baseSortText;
+    }
+    const prefixBucket = matchText.toLowerCase().startsWith(typedTextLower)
+        ? "0"
+        : "1";
+    return `${prefixBucket}:${baseSortText ?? matchText.toLowerCase()}`;
+}
+
 function createCloseTagCompletionItem(
     elementName: string,
     editOffsets?: CompletionTextEditOffsets,
@@ -361,10 +379,11 @@ function createElementAndSnippetCompletionItems(
     const sortTextByKey = sortTextLookup(ranked);
 
     // Match element names that *contain* the typed text (not just a prefix), so
-    // `<num` also surfaces `isNumber`. CodeMirror still ranks prefix matches
-    // first (and the client sorts prefix-first), so `num*` lead the list and
-    // substring matches follow. Keeping this a substring (rather than full
-    // subsequence) match keeps the suggestions predictable for short tag names.
+    // `<num` also surfaces `isNumber`. Prefix-aware `sortText` keeps prefix
+    // matches before mid-name matches for LSP clients that honor server sort
+    // keys; CodeMirror's matcher also scores prefix matches higher. Keeping
+    // this a substring (rather than full subsequence) match keeps the
+    // suggestions predictable for short tag names.
     const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().includes(prefixLower) : true,
@@ -403,8 +422,12 @@ function createElementAndSnippetCompletionItems(
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
             }
-            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
-            if (sortText !== undefined) {
+            const sortText = getPrefixAwareSortText(
+                name,
+                prefixLower,
+                sortTextByKey.get(`elem:${name.toLowerCase()}`),
+            );
+            if (sortText) {
                 item.sortText = sortText;
             }
             return item;
@@ -423,11 +446,17 @@ function createElementAndSnippetCompletionItems(
     for (const item of snippetItems) {
         // Snippet labels are unique snippet keys; look up sortText by the
         // same key the ranker emits.
+        const snippetKey = item.label as string;
         const sortText = sortTextByKey.get(
-            `snippet:${(item.label as string).toLowerCase()}`,
+            `snippet:${snippetKey.toLowerCase()}`,
         );
-        if (sortText !== undefined) {
-            item.sortText = sortText;
+        const prefixAwareSortText = getPrefixAwareSortText(
+            snippetKey,
+            prefixLower,
+            sortText,
+        );
+        if (prefixAwareSortText) {
+            item.sortText = prefixAwareSortText;
         }
     }
 
@@ -1200,7 +1229,8 @@ export async function getCompletionItems(
     }
 
     if (cursorPosition === "openTagName") {
-        // We're in the open tag name. Suggest everything that starts with the current text.
+        // We're in the open tag name. Suggest element names and snippets whose
+        // keys contain the current text.
         const currentText = element.name.toLowerCase();
         const parent = this.sourceObj.getParent(element);
 

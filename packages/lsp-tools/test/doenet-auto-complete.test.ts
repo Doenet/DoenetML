@@ -221,7 +221,7 @@ describe("AutoCompleter", () => {
         // complete element wrapping `<c>`. The cursor right after `<b` used to
         // look like `<b>`'s body and offer a `/b>` close-tag completion. It
         // should instead offer element names that can go here, filtered by the
-        // typed prefix.
+        // typed text.
         const source = `<aa><b<c></c></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
         const offset = source.indexOf("<b") + 2; // right after `<b`
@@ -236,7 +236,7 @@ describe("AutoCompleter", () => {
         // sets `showElementMenu`, which used to route this position to the
         // "insert a new element before this tag" branch and surface the
         // half-typed element's close tag (`/b>`). The `openTagName` position
-        // must win and offer element names filtered by the typed prefix.
+        // must win and offer element names filtered by the typed text.
         const source = `<aa><b<c></c></aa>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
         const offset = source.indexOf("<b") + 2; // right after `<b`
@@ -252,9 +252,7 @@ describe("AutoCompleter", () => {
     it("matches element names by substring, not only by prefix (#1328)", async () => {
         // Typing part of a tag name that appears in the *middle* of other tag
         // names should still surface those tags (e.g. `num` -> `isNumber`), so
-        // authors don't have to remember how a name begins. Ordering
-        // (prefix-first) is applied by the client / CodeMirror; the server just
-        // needs to include the substring matches.
+        // authors don't have to remember how a name begins.
         const elements = [
             {
                 name: "root",
@@ -291,6 +289,45 @@ describe("AutoCompleter", () => {
         expect(labels).toContain("number");
         expect(labels).toContain("isNumber");
         expect(labels).not.toContain("text");
+    });
+
+    it("assigns sortText that ranks prefix element-name matches before substring matches (#1328)", async () => {
+        const elements = [
+            {
+                name: "root",
+                children: ["isNumber", "number", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const items = await autoCompleter.getCompletionItems(offset);
+        const number = items.find((i) => i.label === "number");
+        const isNumber = items.find((i) => i.label === "isNumber");
+        expect(number?.sortText).toBeDefined();
+        expect(isNumber?.sortText).toBeDefined();
+        expect(number!.sortText! < isNumber!.sortText!).toBe(true);
     });
 
     it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
@@ -763,6 +800,7 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 10,
                   "label": "aa",
+                  "sortText": "0:aa",
                 },
               ]
             `);
@@ -1924,7 +1962,7 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
-        it("Filters snippets by typed prefix", async () => {
+        it("Filters snippets by typed text substring", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -1950,20 +1988,20 @@ describe("AutoCompleter", () => {
             let offset = source.indexOf("<ta") + 3;
             let items = await autoCompleter.getCompletionItems(offset);
 
-            // The prefix "ta" doesn't match any snippet key, so no snippets should appear
+            // The text "ta" doesn't match any snippet key, so no snippets should appear
             // Even though "aa" is an allowed element
             const snippetItems = items.filter((item) => item.kind === 15); // CompletionItemKind.Snippet = 15
-            // Since no snippet key starts with "ta", expect empty results
+            // Since no snippet key contains "ta", expect empty results
             expect(snippetItems.length).toBe(0);
 
-            // Now test with a matching prefix
-            source = `<te`;
+            // Now test with a matching substring in the middle of the key
+            source = `<sni`;
             autoCompleter = new AutoCompleter(source, schema.elements);
             autoCompleter.snippetsByNormalizedElement = new Map(
                 Object.entries(testSnippets) as [string, any[]][],
             );
 
-            offset = source.indexOf("<te") + 3;
+            offset = source.indexOf("<sni") + 4;
             items = await autoCompleter.getCompletionItems(offset);
 
             const matchingSnippets = items.filter((item) => item.kind === 15);

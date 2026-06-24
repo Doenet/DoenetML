@@ -1280,10 +1280,10 @@ export class AutoCompleter {
      * Get snippets allowed for a given set of allowed element names.
      * Filters snippets by:
      * 1. Whether their element is in the allowed elements set
-     * 2. Whether their key starts with the typed prefix
+     * 2. Whether their key contains the typed text
      *
      * @param allowedElements - Set of allowed element names
-     * @param typedPrefix - The text typed after `<` (used for prefix filtering)
+     * @param typedPrefix - The text typed after `<` (used for substring filtering)
      * @returns Array of ProcessedSnippets that match the criteria
      */
     _getSnippetsForElements(

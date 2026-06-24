@@ -496,21 +496,21 @@ export class LSPPlugin implements PluginValue {
                             : filterLower.startsWith(wordLower);
                     })
                     .sort((optionA, optionB) => {
-                        // Use original apply text for comparison (important for snippets with custom apply functions)
-                        const aStr =
-                            typeof optionA.apply === "string"
-                                ? optionA.apply
-                                : "";
-                        const bStr =
-                            typeof optionB.apply === "string"
-                                ? optionB.apply
-                                : "";
+                        // Keep prefix matches ahead of mid-name substring
+                        // matches. Compare against `filterText` (the string
+                        // used for matching) rather than `apply`, since
+                        // snippets and textEdit-backed items may insert a
+                        // different string.
+                        const aStartsWithWord = optionA.filterText
+                            .toLowerCase()
+                            .startsWith(wordLower);
+                        const bStartsWithWord = optionB.filterText
+                            .toLowerCase()
+                            .startsWith(wordLower);
                         switch (true) {
-                            case aStr.startsWith(word) &&
-                                !bStr.startsWith(word):
+                            case aStartsWithWord && !bStartsWithWord:
                                 return -1;
-                            case !aStr.startsWith(word) &&
-                                bStr.startsWith(word):
+                            case !aStartsWithWord && bStartsWithWord:
                                 return 1;
                         }
                         return 0;
