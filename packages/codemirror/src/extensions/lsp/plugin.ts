@@ -586,10 +586,43 @@ export class LSPPlugin implements PluginValue {
             };
         }
 
+        // Element/tag-name completions are filtered against the typed prefix on
+        // the server (and again above): a query at `<num` returns only `num*`,
+        // while a query at `<` returns the full element set. CodeMirror's
+        // `validFor`, however, keeps the *originally returned* option set and
+        // re-filters it locally (with a fuzzy matcher) as the prefix changes
+        // instead of re-querying. That makes the visible suggestions depend on
+        // what was cached when the menu first opened: opening at `<` then
+        // typing `num` fuzzy-matches the full list (every tag *containing*
+        // `num`), while opening at `<num` and backspacing to `<` keeps showing
+        // the cached `num*` list. Omit `validFor` for element-name menus so
+        // CodeMirror re-queries the prefix-filtered source on every edit and the
+        // suggestions are the same however the menu was reached (#1328).
+        //
+        // Reference, attribute-name, and attribute-value completions keep
+        // `validFor`: their stability (e.g. the ref reopen latch) depends on the
+        // result staying open across edits, and they are classified by
+        // `deriveCompletionType` as types other than the element-oriented ones
+        // below.
+        const isElementNameMenu =
+            finalOptions.length > 0 &&
+            finalOptions.every(
+                (option) =>
+                    option.type === COMPLETION_TYPES.component ||
+                    option.type === COMPLETION_TYPES.snippet ||
+                    option.type === COMPLETION_TYPES.closeTag,
+            );
+
         return {
             from: pos,
             options: finalOptions,
-            validFor: new RegExp(`^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`),
+            ...(isElementNameMenu
+                ? {}
+                : {
+                      validFor: new RegExp(
+                          `^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`,
+                      ),
+                  }),
         };
     }
 

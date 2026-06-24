@@ -993,4 +993,72 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             "/nu",
         );
     });
+
+    it("filters element-name completions by prefix while typing (#1328)", () => {
+        // Typing `<num` should suggest only tag names that *start with* `num`,
+        // matching what a fresh query (Ctrl+Space) at the same position returns.
+        // Previously the menu opened on `<` (caching the full element list) and
+        // CodeMirror fuzzy-filtered it locally, surfacing every tag that merely
+        // *contained* `num`.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("<num", { force: true });
+
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text())
+                    .get();
+                expect(texts.length).to.be.greaterThan(0);
+                // Every visible suggestion starts with the typed prefix.
+                texts.forEach((text) => {
+                    expect(text.toLowerCase()).to.match(/^num/);
+                });
+            },
+        );
+    });
+
+    it("re-broadens element-name completions when the typed prefix is deleted (#1328)", () => {
+        // Open the menu at `<num` (only `num*` tags), then backspace to `<`.
+        // The menu must re-query and show the full element list again, rather
+        // than keeping the cached `num*` suggestions.
+        cy.mount(
+            <AutocompleteTestHarness initialValue={`<num<text></text>`} />,
+        );
+
+        // Cursor right after `<num` (offset 4). Separate `type()` calls so the
+        // held `{ctrl}` from `{ctrl}{home}` doesn't turn the arrows into
+        // word-wise Ctrl+Right.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}".repeat(4), { force: true });
+        openAutocomplete();
+
+        // Only `num*` tags to start with.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text())
+                    .get();
+                texts.forEach((text) => {
+                    expect(text.toLowerCase()).to.match(/^num/);
+                });
+            },
+        );
+
+        // Delete the `num` prefix, leaving `<|<text>`. The list re-broadens.
+        cy.get(".cm-content").type("{backspace}{backspace}{backspace}", {
+            force: true,
+        });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
+                    .get();
+                // Now includes tags that do not start with `num` (e.g. `p`).
+                expect(texts.some((t) => !t.startsWith("num"))).to.equal(true);
+            },
+        );
+    });
 });
