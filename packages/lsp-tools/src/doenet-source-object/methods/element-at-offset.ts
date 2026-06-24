@@ -80,9 +80,10 @@ export function elementAtOffsetWithContext(
         const rightNodeType = rightNode.type.name as LezerSyntaxNodeName;
         if (atNodeBoundary && rightNodeType === "StartCloseTag") {
             // Cursor is at the boundary between some element's `>` and the
-            // immediately following close tag's `</`. Either way the cursor is
-            // in a body, so skip the switch below (its `EndTag → openTag` case
-            // would otherwise overwrite this). Which body it is depends on
+            // immediately following close tag's `</`. Whether that `>` opens
+            // or closes an element, the cursor sits in *a* body, so set `body`
+            // and skip the switch below (its `EndTag → openTag` case would
+            // otherwise overwrite this). Which element's body it is depends on
             // whether the `>` to the left *opens* or *closes* an element.
             cursorPosition = "body";
             const leftElement = this.nodeAtOffset(leftNode.from, {
