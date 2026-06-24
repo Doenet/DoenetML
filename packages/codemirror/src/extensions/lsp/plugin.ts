@@ -465,8 +465,9 @@ export class LSPPlugin implements PluginValue {
 
         // Element/tag-name completions match the typed text as a *substring*
         // (e.g. `<num` offers `isNumber`), while every other completion type
-        // keeps prefix matching. Element menus are identified via the
-        // `deriveCompletionType` classification carried on each option.
+        // keeps prefix matching. Prefix-first ordering is left to CodeMirror's
+        // matcher/default `sortText` comparison; the client-side pass only
+        // applies the stricter element-vs-other filtering policy.
         const isElementNameMenu =
             options.length > 0 &&
             options.every(
@@ -477,33 +478,12 @@ export class LSPPlugin implements PluginValue {
             );
 
         function filterOptionsForWord(wordLower: string) {
-            options = options
-                .filter(({ filterText }) => {
-                    const filterLower = filterText.toLowerCase();
-                    return isElementNameMenu
-                        ? filterLower.includes(wordLower)
-                        : filterLower.startsWith(wordLower);
-                })
-                .sort((optionA, optionB) => {
-                    // Keep prefix matches ahead of mid-name substring
-                    // matches. Compare against `filterText` (the string
-                    // used for matching) rather than `apply`, since
-                    // snippets and textEdit-backed items may insert a
-                    // different string.
-                    const aStartsWithWord = optionA.filterText
-                        .toLowerCase()
-                        .startsWith(wordLower);
-                    const bStartsWithWord = optionB.filterText
-                        .toLowerCase()
-                        .startsWith(wordLower);
-                    switch (true) {
-                        case aStartsWithWord && !bStartsWithWord:
-                            return -1;
-                        case !aStartsWithWord && bStartsWithWord:
-                            return 1;
-                    }
-                    return 0;
-                });
+            options = options.filter(({ filterText }) => {
+                const filterLower = filterText.toLowerCase();
+                return isElementNameMenu
+                    ? filterLower.includes(wordLower)
+                    : filterLower.startsWith(wordLower);
+            });
         }
 
         if (token) {
