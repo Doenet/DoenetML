@@ -20,6 +20,7 @@ export function elementAtOffsetWithContext(
     }
 
     let cursorPosition: CursorPosition = "unknown";
+    let cursorIsTopLevelBody = false;
     const prevChar = this.source.charAt(offset - 1);
     const exactNodeAtOffset = this.nodeAtOffset(offset);
     const parent = exactNodeAtOffset ? this.getParent(exactNodeAtOffset) : null;
@@ -43,10 +44,19 @@ export function elementAtOffsetWithContext(
     // than inside the element itself (#1327).
     if (node?.type === "element" && node.position?.start?.offset === offset) {
         cursorPosition = "body";
-        node = parent?.type === "element" ? (parent as DastElement) : null;
+        const isNamedElement = node.name !== "";
+        if (parent?.type === "element") {
+            node = parent as DastElement;
+        } else {
+            node = null;
+            // Represent top-level body context as `{ node: null, cursorPosition: "body" }`,
+            // but keep a lone `<` as `unknown` so partial-tag handling below
+            // preserves its existing behavior.
+            cursorIsTopLevelBody = parent?.type === "root" && isNamedElement;
+        }
     }
 
-    if (!node) {
+    if (!node && !cursorIsTopLevelBody) {
         cursorPosition = "unknown";
     }
     if (node && cursorPosition === "unknown") {
@@ -115,14 +125,8 @@ export function elementAtOffsetWithContext(
                 }
                 case "OpenTag":
                 case "SelfClosingTag":
-                    cursorPosition = "openTag";
-                    break;
                 case "SelfCloseEndTag":
-                    // Cursor is inside a self-closing tag's `/>` token (e.g.
-                    // `<text/|>`, between the `/` and `>`). That's still within
-                    // the open tag, so report `openTag` — element-level help —
-                    // rather than leaving it `unknown`, which falls through to
-                    // suggesting the element's (nonexistent) children (#1327).
+                    // `/>` is still open-tag context for self-closing elements.
                     cursorPosition = "openTag";
                     break;
                 case "EndTag":

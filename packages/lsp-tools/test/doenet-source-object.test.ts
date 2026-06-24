@@ -311,9 +311,10 @@ describe("DoenetSourceObject", () => {
             { source: `<text/>`, offset: 0 },
             { source: ` <text/>`, offset: 1 },
         ]) {
-            const { node } = new DoenetSourceObject(
+            const { cursorPosition, node } = new DoenetSourceObject(
                 source,
             ).elementAtOffsetWithContext(offset);
+            expect(cursorPosition).toEqual("body");
             expect(node).toEqual(null);
         }
 
