@@ -1025,13 +1025,13 @@ export default class Graph extends BlockComponent {
                             dependencyType: "stateVariable",
                             variableName: "aspectRatioFromAxisScales",
                         },
-                        xscale: {
+                        xScale: {
                             dependencyType: "stateVariable",
-                            variableName: "xscale",
+                            variableName: "xScale",
                         },
-                        yscale: {
+                        yScale: {
                             dependencyType: "stateVariable",
-                            variableName: "yscale",
+                            variableName: "yScale",
                         },
                     };
                 } else {
@@ -1055,7 +1055,7 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 if (dependencyValues.aspectRatioFromAxisScales) {
                     let aspectRatio =
-                        dependencyValues.xscale / dependencyValues.yscale;
+                        dependencyValues.xScale / dependencyValues.yScale;
                     return {
                         setValue: { aspectRatio },
                     };
@@ -1828,7 +1828,53 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.xscale = {
+        function returnScaleInverseDefinition({
+            scaleStateVariable,
+            minDependency,
+            maxDependency,
+        }) {
+            return function inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredScale =
+                    desiredStateVariableValues[scaleStateVariable];
+                let midpoint =
+                    dependencyValues[minDependency] / 2 +
+                    dependencyValues[maxDependency] / 2;
+                let desiredMin = midpoint - desiredScale / 2;
+                let desiredMax = midpoint + desiredScale / 2;
+
+                if (
+                    !Number.isFinite(desiredScale) ||
+                    desiredScale <= 0 ||
+                    !Number.isFinite(midpoint) ||
+                    !Number.isFinite(desiredMin) ||
+                    !Number.isFinite(desiredMax)
+                ) {
+                    // Reject non-positive scales: they would make min ≥ max,
+                    // which breaks consumers that treat the scale as a positive
+                    // magnitude (e.g. aspectRatio = xScale / yScale).
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: minDependency,
+                            desiredValue: desiredMin,
+                        },
+                        {
+                            setDependency: maxDependency,
+                            desiredValue: desiredMax,
+                        },
+                    ],
+                };
+            };
+        }
+
+        stateVariableDefinitions.xScale = {
             description: "Scale used along the x axis (xMax − xMin).",
             public: true,
             shadowingInstructions: {
@@ -1849,13 +1895,18 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        xscale: dependencyValues.xMax - dependencyValues.xMin,
+                        xScale: dependencyValues.xMax - dependencyValues.xMin,
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "xScale",
+                minDependency: "xMin",
+                maxDependency: "xMax",
+            }),
         };
 
-        stateVariableDefinitions.yscale = {
+        stateVariableDefinitions.yScale = {
             description: "Scale used along the y axis (yMax − yMin).",
             public: true,
             shadowingInstructions: {
@@ -1876,10 +1927,15 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        yscale: dependencyValues.yMax - dependencyValues.yMin,
+                        yScale: dependencyValues.yMax - dependencyValues.yMin,
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "yScale",
+                minDependency: "yMin",
+                maxDependency: "yMax",
+            }),
         };
 
         stateVariableDefinitions.gridAttrCompName = {

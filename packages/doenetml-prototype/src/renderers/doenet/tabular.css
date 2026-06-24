@@ -1,0 +1,111 @@
+.doenet-document {
+    table {
+        @apply my-3;
+        border-collapse: collapse;
+
+        th,
+        td {
+            @apply px-2 py-1 text-left align-top;
+        }
+
+        th {
+            @apply font-bold;
+        }
+
+        &.border-top-minor,
+        &.border-top-medium,
+        &.border-top-major {
+            border-top-style: solid;
+            border-top-color: currentColor;
+            &.border-top-minor {
+                border-top-width: thin;
+            }
+            &.border-top-medium {
+                border-top-width: medium;
+            }
+            &.border-top-major {
+                border-top-width: thick;
+            }
+        }
+
+        .border-bottom-none {
+            border-bottom: none;
+        }
+        .border-bottom-minor,
+        .border-bottom-medium,
+        .border-bottom-major {
+            border-bottom-style: solid;
+            border-bottom-color: currentColor;
+            &.border-bottom-minor {
+                border-bottom-width: thin;
+            }
+            &.border-bottom-medium {
+                border-bottom-width: medium;
+            }
+            &.border-bottom-major {
+                border-bottom-width: thick;
+            }
+        }
+
+        .border-right-none {
+            border-right: none;
+        }
+        .border-right-minor,
+        .border-right-medium,
+        .border-right-major {
+            border-right-style: solid;
+            border-right-color: currentColor;
+            &.border-right-minor {
+                border-right-width: thin;
+            }
+            &.border-right-medium {
+                border-right-width: medium;
+            }
+            &.border-right-major {
+                border-right-width: thick;
+            }
+        }
+
+        .border-left-none {
+            border-left: none;
+        }
+        .border-left-minor,
+        .border-left-medium,
+        .border-left-major {
+            border-left-style: solid;
+            border-left-color: currentColor;
+            &.border-left-minor {
+                border-left-width: thin;
+            }
+            &.border-left-medium {
+                border-left-width: medium;
+            }
+            &.border-left-major {
+                border-left-width: thick;
+            }
+        }
+
+        .text-align-left {
+            text-align: left;
+        }
+        .text-align-center {
+            text-align: center;
+        }
+        .text-align-right {
+            text-align: right;
+        }
+        .text-align-justify {
+            text-align: justify;
+        }
+
+        .vertical-align-top {
+            vertical-align: top;
+        }
+        .vertical-align-center {
+            vertical-align: middle;
+        }
+        .vertical-align-bottom {
+            vertical-align: bottom;
+        }
+    }
+}

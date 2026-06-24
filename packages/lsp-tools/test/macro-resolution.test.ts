@@ -122,8 +122,22 @@ describe("DoenetSourceObject", () => {
             ["z"],
             ["x", "z"],
         ]);
+        // The cursor on `<a>`'s opening `<` sits *before* `<a>` in the
+        // top-level body (#1327), so it resolves names from the top-level
+        // scope — the same as offset 0 — rather than from inside `<a>`.
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<a")),
+        ).toEqual([["x"], ["z"], ["x", "z"]]);
+        // A cursor *inside* `<a>`'s opening tag (past the `<`, e.g. in the
+        // tag's whitespace/attributes) is within `<a>`, so it resolves from
+        // `<a>`'s scope, closest first.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([["z"], ["x"], ["x", "z"]]);
+        // A cursor inside `<a>`'s body (here on child `<b>`'s boundary, which
+        // resolves to its container `<a>`) likewise sees `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<b")),
         ).toEqual([["z"], ["x"], ["x", "z"]]);
 
         source = ` <a name="x">
@@ -145,8 +159,35 @@ describe("DoenetSourceObject", () => {
             ["x", "w"],
             ["x", "y", "z"],
         ]);
+        // Cursor on `<a>`'s opening `<`: top-level scope (#1327).
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<a")),
+        ).toEqual([
+            ["x"],
+            ["z"],
+            ["w"],
+            ["x", "y"],
+            ["x", "z"],
+            ["x", "w"],
+            ["x", "y", "z"],
+        ]);
+        // Cursor *inside* `<a>`'s opening tag (past the `<`): `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([
+            ["y"],
+            ["z"],
+            ["w"],
+            ["y", "z"],
+            ["x"],
+            ["x", "y"],
+            ["x", "z"],
+            ["x", "w"],
+            ["x", "y", "z"],
+        ]);
+        // Cursor inside `<a>`'s body (on child `<b>`'s boundary): `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<b")),
         ).toEqual([
             ["y"],
             ["z"],

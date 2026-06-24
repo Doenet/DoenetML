@@ -560,6 +560,21 @@ export default class BaseComponent {
             },
         };
 
+        // `hiddenIgnoreParent` is whether the component is hidden by its own
+        // `hide` attribute (or by an explicitly hidden source composite/adapter
+        // source), ignoring the visibility it inherits from its parent.
+        //
+        // It deliberately recurses through `hiddenIgnoreParent` (rather than
+        // `hidden`) of the source composite and adapter source so that it never
+        // depends on the visibility of ancestor sections. If it depended on the
+        // source composite's `hidden`, then for a component created by a
+        // composite (e.g. inside a `<repeat>`), the dependency would still climb
+        // up to ancestor sections through the composite's parent. That matters
+        // because `<choice>`'s `text` uses `hiddenIgnoreParent`, and a choice's
+        // text can be a credit-achieved dependency of an answer: if the choice
+        // is inside a `<cascade>`, ancestor `hidden` changes after submission,
+        // which would otherwise make the answer's `justSubmitted` immediately
+        // become false.
         stateVariableDefinitions.hiddenIgnoreParent = {
             returnDependencies: () => ({
                 hide: {
@@ -569,11 +584,11 @@ export default class BaseComponent {
                 },
                 sourceCompositeHidden: {
                     dependencyType: "sourceCompositeStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
                 adapterSourceHidden: {
                     dependencyType: "adapterSourceStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
             }),
             definition: ({ dependencyValues }) => {

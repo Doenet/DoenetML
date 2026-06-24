@@ -1,15 +1,13 @@
 import React from "react";
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
-import Tab from "react-bootstrap/Tab";
-import Tabs from "react-bootstrap/Tabs";
+import { Button } from "./ui/button";
+import { Modal } from "./ui/modal";
+import { Tabs, Tab } from "./ui/tabs";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 import { VscCopy } from "react-icons/vsc";
 
 /**
  * A popup window that allows the user to inspect or download files in `fileList`.
- * @param param0
  */
 export function DownloadInspector({
     fileList,
@@ -21,14 +19,13 @@ export function DownloadInspector({
     setShow: (show: boolean) => void;
 }) {
     const handleClose = () => setShow(false);
+
     function download() {
         if (Object.keys(fileList).length === 0) {
-            // Nothing to save
             return;
         }
         if (Object.keys(fileList).length === 1) {
             const [filename, content] = Object.entries(fileList)[0];
-            // Download the file directly without zipping it.
             const blob = new Blob([content], {
                 type: "text/plain;charset=utf-8",
             });
@@ -55,7 +52,7 @@ export function DownloadInspector({
                 <Modal.Title>Exported</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Tabs transition={false}>
+                <Tabs>
                     {Object.entries(fileList).map(([filename, content]) => (
                         <Tab
                             eventKey={filename}
@@ -95,7 +92,6 @@ function CopyButton({ source }: { source?: string }) {
         if (!source) {
             return;
         }
-        // Add your copy source code here
         navigator.clipboard
             .writeText(source)
             .catch((err) => console.error("Could not copy text: ", err));

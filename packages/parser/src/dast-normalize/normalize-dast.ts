@@ -17,6 +17,7 @@ import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
+import { fractionInputSugar } from "./component-sugar/fractionInput";
 import { graphSugar } from "./component-sugar/graph";
 import { answerSugar } from "./component-sugar/answer";
 import { pluginApplyDeprecations } from "./deprecations";
@@ -233,6 +234,10 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                 case "choiceInput":
                 case "matrixInput":
                     descriptionAttributeSugar(node);
+                    break;
+                case "fractionInput":
+                    descriptionAttributeSugar(node);
+                    fractionInputSugar(node);
                     break;
             }
         });

@@ -11,13 +11,15 @@
  * update path left `xrefLabel.label` set to the full title text, so after
  * typing the header duplicated as "My cool section hi My cool section hi".
  *
- * The prototype renders the section header in an `h2` inside `.section`.
+ * The prototype renders the section header in an `h2` inside `.division`.
  */
 
 const inputSelector = ".doenet-document .text-input input";
 // The section header is an h1..h6 depending on division depth (the rust and JS
-// cores currently pick different levels), so match any heading in the section.
-const headerSelector = ".doenet-document .section :is(h1, h2, h3, h4, h5, h6)";
+// cores currently pick different levels), so match any heading in the division.
+// Note: the JS→Rust fixup renames the element to "division", so the rendered
+// class is .division, not .section.
+const headerSelector = ".doenet-document .division :is(h1, h2, h3, h4, h5, h6)";
 
 function loadPrototype(doenetML, coreType) {
     cy.window().then((win) => {

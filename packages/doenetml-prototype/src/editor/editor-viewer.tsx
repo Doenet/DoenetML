@@ -2,12 +2,8 @@ import React from "react";
 import { CodeMirror } from "@doenet/codemirror";
 import { ResizablePanelPair } from "./components/resizable-panel-pair";
 import { DoenetML } from "../DoenetML";
-import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
-import Dropdown from "react-bootstrap/Dropdown";
 import { VscRefresh, VscWarning, VscCloudDownload } from "react-icons/vsc";
 
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./editor-viewer.css";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { DownloadMarkdownDropdownItem } from "./components/download-markdown";
@@ -15,8 +11,12 @@ import { Provider } from "react-redux";
 import { store } from "../state/store";
 import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
-import Alert from "react-bootstrap/Alert";
+import { Alert } from "./components/ui/alert";
+import { Button } from "./components/ui/button";
+import { ButtonGroup } from "./components/ui/button-group";
+import { Dropdown } from "./components/ui/dropdown";
 import type { CoreType } from "../state/redux-slices/core/slice";
+import { isSaveShortcutKeydown, isMacPlatform } from "@doenet/utils";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -29,14 +29,17 @@ export type EditorViewerProps = {
      * intended to work with the JavaScript core.
      */
     coreType?: CoreType;
+    /** Called whenever the source in the editor changes. */
+    onChange?: (source: string) => void;
 };
 
 /**
- * A component that renders A source editor and rendered doenetml side-by-side.
+ * A component that renders a source editor and rendered doenetml side-by-side.
  */
 export function EditorViewer({
     doenetML = "",
     coreType = "rust",
+    onChange,
 }: EditorViewerProps) {
     const [sourceForRender, setSourceForRender] = React.useState(doenetML);
     const [sourceInEditor, setSourceInEditor] = React.useState(doenetML);
@@ -60,6 +63,42 @@ export function EditorViewer({
     };
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    // Mirror the latest editor and rendered source in refs so `doRefresh` can
+    // stay stable (i.e., with empty deps).
+    const sourceInEditorRef = React.useRef(sourceInEditor);
+    sourceInEditorRef.current = sourceInEditor;
+    const sourceForRenderRef = React.useRef(sourceForRender);
+    sourceForRenderRef.current = sourceForRender;
+    const doRefresh = React.useCallback(() => {
+        // No-op unless the editor source differs from the rendered source so
+        // that triggering a refresh (e.g. via Ctrl/Cmd+S) when nothing has
+        // changed does not clear the error list or re-render needlessly.
+        if (sourceInEditorRef.current === sourceForRenderRef.current) {
+            return;
+        }
+        setErrors([]);
+        setSourceForRender(sourceInEditorRef.current);
+    }, []);
+
+    const editorViewerRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const container = editorViewerRef.current;
+        if (!container) {
+            return;
+        }
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (isSaveShortcutKeydown(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                doRefresh();
+            }
+        };
+        container.addEventListener("keydown", handleKeyDown);
+        return () => {
+            container.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [doRefresh]);
+
     const doPrettyPrint = React.useCallback(() => {
         prettyPrint(sourceInEditor, {
             doenetSyntax: formatMode === "doenetml",
@@ -76,21 +115,21 @@ export function EditorViewer({
                 show={showDownloadInspector}
                 setShow={setShowDownloadInspector}
             />
-            <div className="editor-viewer">
+            <div className="editor-viewer" ref={editorViewerRef} tabIndex={-1}>
                 <div className="editor-viewer-header">
                     <Button
                         size="sm"
+                        variant="secondary"
                         className="icon-button"
                         disabled={!canRefresh}
                         title={
                             canRefresh
-                                ? "Refresh the rendered code"
-                                : "The code has not changes since the last render"
+                                ? `Refresh the rendered code ${
+                                      isMacPlatform() ? "cmd+s" : "ctrl+s"
+                                  }`
+                                : "The code has not changed since the last render"
                         }
-                        onClick={() => {
-                            setErrors([]);
-                            setSourceForRender(sourceInEditor);
-                        }}
+                        onClick={doRefresh}
                     >
                         <VscRefresh /> Refresh
                     </Button>
@@ -121,43 +160,43 @@ export function EditorViewer({
                                         onChange={(source) => {
                                             if (source !== sourceInEditor) {
                                                 setSourceInEditor(source);
+                                                onChange?.(source);
                                             }
                                         }}
                                     />
                                 </div>
                                 <div className="editor-panel-footer">
-                                    <Dropdown as={ButtonGroup} size="sm">
-                                        <Button onClick={doPrettyPrint}>
-                                            {" "}
-                                            Pretty Print
-                                        </Button>
-                                        <Dropdown.Toggle split>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item
-                                                    active={
-                                                        formatMode ===
-                                                        "doenetml"
-                                                    }
-                                                    onClick={() =>
-                                                        setFormatMode(
-                                                            "doenetml",
-                                                        )
-                                                    }
-                                                >
-                                                    as DoenetML
-                                                </Dropdown.Item>
-                                                <Dropdown.Item
-                                                    active={
-                                                        formatMode === "xml"
-                                                    }
-                                                    onClick={() =>
-                                                        setFormatMode("xml")
-                                                    }
-                                                >
-                                                    as XML
-                                                </Dropdown.Item>{" "}
-                                            </Dropdown.Menu>
-                                        </Dropdown.Toggle>
+                                    <Dropdown>
+                                        <ButtonGroup>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={doPrettyPrint}
+                                            >
+                                                Pretty Print
+                                            </Button>
+                                            <Dropdown.Toggle size="sm" split />
+                                        </ButtonGroup>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item
+                                                active={
+                                                    formatMode === "doenetml"
+                                                }
+                                                onClick={() =>
+                                                    setFormatMode("doenetml")
+                                                }
+                                            >
+                                                as DoenetML
+                                            </Dropdown.Item>
+                                            <Dropdown.Item
+                                                active={formatMode === "xml"}
+                                                onClick={() =>
+                                                    setFormatMode("xml")
+                                                }
+                                            >
+                                                as XML
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
                                     </Dropdown>
                                     <Dropdown>
                                         <Dropdown.Toggle

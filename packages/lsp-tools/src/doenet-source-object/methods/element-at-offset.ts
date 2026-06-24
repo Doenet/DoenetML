@@ -20,6 +20,7 @@ export function elementAtOffsetWithContext(
     }
 
     let cursorPosition: CursorPosition = "unknown";
+    let cursorIsTopLevelBody = false;
     const prevChar = this.source.charAt(offset - 1);
     const exactNodeAtOffset = this.nodeAtOffset(offset);
     const parent = exactNodeAtOffset ? this.getParent(exactNodeAtOffset) : null;
@@ -38,18 +39,24 @@ export function elementAtOffsetWithContext(
         cursorPosition = "body";
     }
 
-    if (
-        node?.type === "element" &&
-        node.position?.start?.offset === offset &&
-        parent?.type === "element" &&
-        prevChar &&
-        !prevChar.match(/(\s|\n|<)/)
-    ) {
+    // The cursor sits exactly on an element's opening `<` (`node.start === offset`),
+    // so it is positioned before that element in the containing body rather
+    // than inside the element itself (#1327).
+    if (node?.type === "element" && node.position?.start?.offset === offset) {
         cursorPosition = "body";
-        node = parent as DastElement;
+        const isNamedElement = node.name !== "";
+        if (parent?.type === "element") {
+            node = parent as DastElement;
+        } else {
+            node = null;
+            // Represent top-level body context as `{ node: null, cursorPosition: "body" }`,
+            // but keep a lone `<` as `unknown` so partial-tag handling below
+            // preserves its existing behavior.
+            cursorIsTopLevelBody = parent?.type === "root" && isNamedElement;
+        }
     }
 
-    if (!node) {
+    if (!node && !cursorIsTopLevelBody) {
         cursorPosition = "unknown";
     }
     if (node && cursorPosition === "unknown") {
@@ -72,17 +79,41 @@ export function elementAtOffsetWithContext(
             : leftNode;
         const rightNodeType = rightNode.type.name as LezerSyntaxNodeName;
         if (atNodeBoundary && rightNodeType === "StartCloseTag") {
-            // Cursor is at the boundary between an OpenTag's `>` and the
-            // immediately following close tag's `</` (i.e.
-            // `<mathInput>|</mathInput>` — the very position the
-            // autocompleter drops the cursor after inserting a tag pair).
-            // That's the body of the element on the left. Skip the switch
-            // below — its `EndTag → openTag` case would overwrite this
-            // classification, since `leftNode` here is the OpenTag's `>` token.
+            // Cursor is at the boundary between some element's `>` and the
+            // immediately following close tag's `</`. Whether that `>` opens
+            // or closes an element, the cursor sits in *a* body, so set `body`
+            // and skip the switch below (its `EndTag → openTag` case would
+            // otherwise overwrite this). Which element's body it is depends on
+            // whether the `>` to the left *opens* or *closes* an element.
             cursorPosition = "body";
-            node = this.nodeAtOffset(leftNode.from, {
+            const leftElement = this.nodeAtOffset(leftNode.from, {
                 type: "element",
             }) as DastElement | null;
+            const leftParentType = leftNode.parent?.type?.name as
+                | LezerSyntaxNodeName
+                | undefined;
+            if (
+                leftElement &&
+                (leftParentType === "CloseTag" ||
+                    leftParentType === "SelfClosingTag")
+            ) {
+                // The token to the left is a close-tag's `>` or a self-closing
+                // `/>`, so it *closes* the element on the left; that element is
+                // finished and the cursor is in the *parent's* body (i.e.
+                // `<p><math>x</math>|</p>` is the body of `<p>`, not `<math>`,
+                // and `<p><math/>|</p>` likewise — #1327).
+                const parentElement = this.getParent(leftElement);
+                node =
+                    parentElement?.type === "element"
+                        ? (parentElement as DastElement)
+                        : null;
+            } else {
+                // The cursor is in the body of the element on the left: either
+                // right after its *open* tag (`<mathInput>|</mathInput>` — the
+                // position the autocompleter drops the cursor after inserting a
+                // tag pair) or within its body content (`<a> |</a>`).
+                node = leftElement;
+            }
         } else {
             const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
             const lezerNodeParentType = lezerNode.parent?.type?.name as
@@ -118,6 +149,8 @@ export function elementAtOffsetWithContext(
                 }
                 case "OpenTag":
                 case "SelfClosingTag":
+                case "SelfCloseEndTag":
+                    // `/>` is still open-tag context for self-closing elements.
                     cursorPosition = "openTag";
                     break;
                 case "EndTag":

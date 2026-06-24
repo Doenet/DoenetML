@@ -1,0 +1,59 @@
+.ui-modal-backdrop {
+    @apply fixed inset-0 bg-black/50 z-40;
+}
+
+.ui-modal {
+    @apply fixed z-50 bg-white rounded shadow-xl flex flex-col;
+    @apply top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+    @apply outline-none;
+    max-height: 90vh;
+    width: 500px;
+}
+
+.ui-modal--sm {
+    width: 300px;
+}
+
+.ui-modal--md {
+    width: 500px;
+}
+
+.ui-modal--lg {
+    width: 800px;
+}
+
+.ui-modal--xl {
+    width: 1140px;
+    max-width: 95vw;
+}
+
+.modal-full {
+    width: 95vw;
+    height: 90vh;
+}
+
+.ui-modal-header {
+    @apply flex items-center justify-between px-4 py-3 border-b border-slate-200 flex-shrink-0;
+}
+
+.ui-modal-header-content {
+    @apply flex-1;
+}
+
+.ui-modal-title {
+    @apply text-lg font-semibold m-0;
+}
+
+.ui-modal-close {
+    @apply bg-transparent border-0 text-2xl leading-none cursor-pointer opacity-50 ml-2;
+    @apply hover:opacity-100;
+    padding: 0;
+}
+
+.ui-modal-body {
+    @apply px-4 py-3 overflow-auto flex-1;
+}
+
+.ui-modal-footer {
+    @apply flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-200 flex-shrink-0;
+}

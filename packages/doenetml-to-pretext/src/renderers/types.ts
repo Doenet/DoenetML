@@ -9,7 +9,9 @@ export type BasicComponentProps<Data = {}> = {
      * If you want to track the visibility of this component. Set it to a ref object which
      * will be forwarded to the actual dom node of the child component (if there is any dom node rendered).
      */
-    visibilityRef?: React.ForwardedRef<HTMLDivElement>;
+    visibilityRef?: React.ForwardedRef<
+        HTMLDivElement & HTMLSpanElement & HTMLDetailsElement
+    >;
     /**
      * Additional information provided to this element. Even if two elements have the same id, they
      * may have different information provided in the annotation.
