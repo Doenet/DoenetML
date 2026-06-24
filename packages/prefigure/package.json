@@ -31,7 +31,7 @@
         "preview": "vite preview",
         "setup": "vite-node scripts/fetch-pyodide-packages.ts && vite-node scripts/fetch-liblouis.ts",
         "verify-wheel-sync": "vite-node --script scripts/verify-wheel-sync.ts",
-        "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
+        "publish": "npm run build && npm run verify-wheel-sync && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
     },
     "wireit": {
         "build": {
