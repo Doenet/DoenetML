@@ -1092,4 +1092,42 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             },
         );
     });
+
+    it("offers children and the close tag in an unclosed element's body, and inserts the close tag without clobbering the open tag (#1328)", () => {
+        // `<text><math>|</text>`: the cursor sits just after `<math>`'s open
+        // tag, in its (unclosed) body. Ctrl+Space must offer the close tag
+        // *and* `<math>`'s children — previously only `/math>` appeared, and
+        // accepting it replaced part of the open tag, yielding
+        // `<text><</math></text>`.
+        cy.mount(
+            <AutocompleteTestHarness initialValue={`<text><math></text>`} />,
+        );
+
+        // Cursor right after `<math>` (offset 12). Separate `type()` calls so
+        // the held `{ctrl}` from `{ctrl}{home}` doesn't turn the arrows into
+        // word-wise Ctrl+Right.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}".repeat(12), { force: true });
+        openAutocomplete();
+
+        // Both the close tag and at least one child element are offered.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "/math>",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text())
+                    .get();
+                expect(texts.some((t) => t !== "/math>")).to.equal(true);
+            },
+        );
+
+        // Accepting the close tag inserts `</math>` at the cursor, leaving the
+        // open tag intact.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("/math>")
+            .click();
+        cy.get(".cm-content").should("have.text", `<text><math></math></text>`);
+    });
 });

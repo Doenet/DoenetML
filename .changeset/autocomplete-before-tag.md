@@ -13,4 +13,6 @@ When typing an element name directly in front of an existing tag (e.g.
 
 Element/tag-name suggestions now match the typed text as a substring and rank prefix matches first, so you don't have to remember how a tag name begins — typing `<num` offers `number` and `numberList` first, then `isNumber` and other tags containing `num`. The suggestions are also consistent however the menu is reached (typing, Ctrl+Space, or deleting back to a shorter prefix), where previously the visible set depended on what was cached when the menu first opened.
 
+Invoking completion in the body of an unclosed element (e.g. `<text><math>|</text>`) now offers that element's child components alongside its closing tag, and accepting the closing tag inserts it at the cursor instead of overwriting the end of the opening tag.
+
 Closes #1328.

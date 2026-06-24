@@ -489,12 +489,22 @@ export class LSPPlugin implements PluginValue {
         if (token) {
             let word = token.text;
             let fromOffset = 0;
-            // Find the last '<' to handle cases where user types after a closing tag (e.g., "></doc>|<")
+            // Decide where the completion word begins within the matched token.
+            // A new tag name is being typed only when the last `<` comes after
+            // the last `>` (e.g. `</doc>|<` where the user just typed `<`, or a
+            // partial `<nu`). When the last `>` is later, the cursor sits just
+            // past a *complete* tag in body content (e.g. `<math>|</text>`);
+            // anchor after that `>` so the finished tag isn't treated as a
+            // partial token — doing so previously filtered the menu down to just
+            // the close tag and, on accept, replaced the tag's own name.
             const lastLt = word.lastIndexOf("<");
-            if (lastLt >= 0) {
+            const lastGt = word.lastIndexOf(">");
+            if (lastLt > lastGt) {
                 fromOffset = lastLt + 1;
-                word = word.slice(fromOffset);
+            } else if (lastGt >= 0) {
+                fromOffset = lastGt + 1;
             }
+            word = word.slice(fromOffset);
             pos = token.from + fromOffset;
             const wordLower = word.toLowerCase();
             if (wordLower && MACRO_IDENTIFIER_SEGMENT_REGEX.test(wordLower)) {
