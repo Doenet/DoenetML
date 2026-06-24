@@ -1,6 +1,7 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import type { OlPropsInText } from "@doenet/doenetml-worker";
+import "./ol.css";
 
 export const Ol: BasicComponentWithPassthroughChildren<{
     props: OlPropsInText;
