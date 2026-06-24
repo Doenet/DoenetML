@@ -91,6 +91,13 @@ function createTextEditRange(
     };
 }
 
+function createCloseTagCompletionItem(elementName: string): CompletionItem {
+    return {
+        label: `/${elementName}>`,
+        kind: CompletionItemKind.Property,
+    };
+}
+
 /**
  * Format a multiline snippet by adding indentation to subsequent lines.
  * The indentation matches the column position where the snippet starts,
@@ -1026,22 +1033,35 @@ export async function getCompletionItems(
         ) {
             containerParent = this.sourceObj.getParent(containerParent);
         }
-        const allowedElementNames =
-            !containerParent || containerParent.type === "root"
-                ? this.schemaTopAllowedElements
-                : this._getAllowedChildren(
-                      containerParent.name,
-                      this.sourceObj.getParentElementName(containerParent),
-                  );
-        return createElementAndSnippetCompletionItems(
+        const containerElement =
+            containerParent?.type === "element" ? containerParent : null;
+        const allowedElementNames = containerElement
+            ? this._getAllowedChildren(
+                  containerElement.name,
+                  this.sourceObj.getParentElementName(containerElement),
+              )
+            : this.schemaTopAllowedElements;
+        const completionItems = createElementAndSnippetCompletionItems(
             this,
             allowedElementNames,
             elementMenuStart,
             offset,
             "",
-            containerParent?.type === "element" ? containerParent : null,
+            containerElement,
             insertLeadingBracket,
         );
+        if (
+            containerElement &&
+            !this.sourceObj.isCompleteElement(containerElement).closed
+        ) {
+            // Match the normal body completion path for unclosed containers:
+            // first offer the parent close tag, then child elements.
+            return [
+                createCloseTagCompletionItem(containerElement.name),
+                ...completionItems,
+            ];
+        }
+        return completionItems;
     }
 
     if (!element && containingNode && containingNode.type === "text") {
@@ -1071,12 +1091,7 @@ export async function getCompletionItems(
 
     if (cursorPosition === "closeTagName") {
         // We're in the close tag name. Suggest the close tag name.
-        return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
-        ];
+        return [createCloseTagCompletionItem(element.name)];
     }
 
     const { tagComplete, closed } = this.sourceObj.isCompleteElement(element);
@@ -1109,13 +1124,7 @@ export async function getCompletionItems(
             return completionItems;
         }
         // We are the child of a non-closed tag. Suggest the close tag or allowed children
-        return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
-            ...completionItems,
-        ];
+        return [createCloseTagCompletionItem(element.name), ...completionItems];
     }
 
     // Suggest closing tag after "</"
@@ -1128,12 +1137,7 @@ export async function getCompletionItems(
             (cursorPosition === "unknown" &&
                 this.sourceObj.source.charAt(offset).match(/(\s|\n)/)))
     ) {
-        return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
-        ];
+        return [createCloseTagCompletionItem(element.name)];
     }
 
     if (cursorPosition === "openTagName") {

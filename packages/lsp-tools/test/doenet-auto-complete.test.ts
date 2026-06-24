@@ -230,6 +230,17 @@ describe("AutoCompleter", () => {
         expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
     });
 
+    it("preserves the parent close-tag option when `<` is typed before another tag in an unclosed parent (#1328)", async () => {
+        // Same recovered empty-placeholder shape as the previous test, but the
+        // surrounding <aa> is still open. Match the normal body completion
+        // behavior by keeping the close-tag option before allowed children.
+        const source = `<aa><<c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+    });
+
     it("opens the top-level element menu when `<` is typed before a top-level tag (#1328)", async () => {
         // `<<aa></aa>` at the document start: the menu should offer top-level
         // elements, climbing past the half-typed empty-named placeholder.
