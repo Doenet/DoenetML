@@ -302,7 +302,12 @@ jobs:
               with:
                   runCmd: |
                       for attempt in 1 2 3; do
-                          npm ci && break
+                          rm -rf node_modules
+                          # `npm ci` can exit 0 while silently skipping platform-specific optional
+                          # dependencies (npm bug npm/cli#4828), which later breaks rollup at build
+                          # time with "Cannot find module '@rollup/rollup-linux-x64-gnu'". Verify the
+                          # native binding actually loads before accepting the install.
+                          if npm ci && node -e "require('@rollup/rollup-linux-x64-gnu')"; then break; fi
                           if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
                           echo "npm ci attempt $attempt failed, retrying..." && sleep 15
                       done
@@ -328,7 +333,12 @@ jobs:
               with:
                   runCmd: |
                       for attempt in 1 2 3; do
-                          npm ci && break
+                          rm -rf node_modules
+                          # `npm ci` can exit 0 while silently skipping platform-specific optional
+                          # dependencies (npm bug npm/cli#4828), which later breaks rollup at build
+                          # time with "Cannot find module '@rollup/rollup-linux-x64-gnu'". Verify the
+                          # native binding actually loads before accepting the install.
+                          if npm ci && node -e "require('@rollup/rollup-linux-x64-gnu')"; then break; fi
                           if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
                           echo "npm ci attempt $attempt failed, retrying..." && sleep 15
                       done
