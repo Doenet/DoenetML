@@ -89,4 +89,4 @@ __pycache__
 .claude/scheduled_tasks.lock
 
 # Ignore testCode which can be overwritten during development
-packages/doenetml/dev/testCode.doenet
+testCode.doenet
