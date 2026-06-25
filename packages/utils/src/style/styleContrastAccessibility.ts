@@ -247,6 +247,85 @@ function contrastDiagnosticsForMode(
 }
 
 /**
+ * Flags a *derived* dark-mode text/background combination that ends up
+ * inaccessible.
+ *
+ * The dark-mode text and background colors are inverted independently, so the
+ * derivation is order-independent — but that means an accessible light-mode
+ * pair can occasionally invert to a sub-AA dark-mode pair (most often for
+ * strongly-colored pairs). When that happens, we surface a diagnostic anchored
+ * to the authored light-mode colors so the author can pin explicit
+ * `textColorDarkMode` / `backgroundColorDarkMode` values.
+ *
+ * Only *derived* dark colors (no source position) are checked here; an
+ * author-supplied `*ColorDarkMode` is handled by the per-channel dark-mode pass.
+ */
+function derivedDarkModeCombinationDiagnostics(
+    styleNumber: string,
+    styleDef: StyleDefinition,
+): AccessibilityRecord[] {
+    const textLight = getStyleValueString(styleDef, "textColor");
+    const backgroundLight = getStyleValueString(styleDef, "backgroundColor");
+    const textDark = getStyleValueString(styleDef, "textColorDarkMode");
+    const backgroundDark = getStyleValueString(
+        styleDef,
+        "backgroundColorDarkMode",
+    );
+
+    if (!textLight || !backgroundLight || !textDark || !backgroundDark) {
+        return [];
+    }
+
+    // Author-supplied dark colors are covered by the per-channel dark-mode pass.
+    if (
+        styleDef.textColorDarkMode?.position ||
+        styleDef.backgroundColorDarkMode?.position
+    ) {
+        return [];
+    }
+
+    const lightRatio = compositedContrastRatio({
+        foreground: textLight,
+        canvas: CANVAS_LIGHT_MODE_COLOR,
+        background: backgroundLight,
+    });
+    const darkRatio = compositedContrastRatio({
+        foreground: textDark,
+        canvas: CANVAS_DARK_MODE_COLOR,
+        background: backgroundDark,
+    });
+
+    // Only a problem when an accessible light pair derives to an inaccessible
+    // dark pair; an intentionally low-contrast light pair (already flagged in
+    // light mode) is allowed to stay low-contrast in dark mode.
+    if (
+        lightRatio === null ||
+        darkRatio === null ||
+        lightRatio < TEXT_CONTRAST_THRESHOLD ||
+        darkRatio >= TEXT_CONTRAST_THRESHOLD
+    ) {
+        return [];
+    }
+
+    const position = latestPosition(
+        styleDef.textColor?.position,
+        styleDef.backgroundColor?.position,
+    );
+    if (!position) {
+        return [];
+    }
+
+    return [
+        {
+            type: "accessibility",
+            level: 1,
+            message: `Style definition ${styleNumber} has insufficient contrast for the derived dark-mode text color against background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1). Set textColorDarkMode and/or backgroundColorDarkMode to override the derived colors.`,
+            position,
+        },
+    ];
+}
+
+/**
  * Generates all light- and dark-mode contrast accessibility diagnostics for one
  * style definition.
  */
@@ -257,6 +336,7 @@ function contrastAccessibilityDiagnosticsForStyleDefinition(
     return [
         ...contrastDiagnosticsForMode(styleNumber, styleDef, "light"),
         ...contrastDiagnosticsForMode(styleNumber, styleDef, "dark"),
+        ...derivedDarkModeCombinationDiagnostics(styleNumber, styleDef),
     ];
 }
 

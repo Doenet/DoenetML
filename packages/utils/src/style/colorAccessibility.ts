@@ -195,84 +195,16 @@ export function invertLightness(color: string): string {
  * The dark-mode background should be the *opposite* of the light-mode one (a
  * black background becomes white, a light background becomes dark) rather than
  * simply forced dark, so the author's intended figure/ground relationship
- * carries over. The paired foreground is adapted by
- * {@link deriveAccessibleDarkModeForeground}.
+ * carries over. Foreground (text) is inverted the same way, independently — see
+ * {@link invertLightness}. Because each color is adapted only from itself, the
+ * result is independent of the order/locality in which the author specified the
+ * foreground and background; the resulting pair's accessibility is checked after
+ * the fact (a derived combination that ends up inaccessible produces a
+ * diagnostic).
  *
  * @param lightColor - Author's light-mode background color.
  * @returns A CSS color string (hex) for the dark-mode surface.
  */
 export function deriveAccessibleDarkModeBackground(lightColor: string): string {
     return invertLightness(lightColor);
-}
-
-/**
- * Derives a dark-mode foreground (text) color for an author's light-mode
- * foreground/background combination.
- *
- * Starts from the lightness-inverted foreground (mirroring the inverted
- * background) and then nudges its lightness the least amount needed so the
- * dark-mode pair's contrast is at least `target`, where:
- *  - if the light-mode pair met WCAG AA, `target` is the AA threshold, so the
- *    dark pair is AA-compliant too; otherwise
- *  - `target` is the light-mode pair's (sub-AA) contrast, so an intentionally
- *    low-contrast pairing is preserved rather than "fixed" to be more accessible
- *    than the author specified.
- *
- * @param foreground - Light-mode foreground (text) color.
- * @param lightBackground - Light-mode background; omit to use the light canvas.
- * @param darkBackground - Dark-mode background; omit to use the dark canvas.
- * @returns A CSS color string (hex) for the dark-mode foreground.
- */
-export function deriveAccessibleDarkModeForeground({
-    foreground,
-    lightBackground,
-    darkBackground,
-}: {
-    foreground: string;
-    lightBackground?: string;
-    darkBackground?: string;
-}): string {
-    const base = colord(foreground);
-    if (!base.isValid()) {
-        return foreground;
-    }
-
-    const lightRatio = compositedContrastRatio({
-        foreground,
-        canvas: CANVAS_LIGHT_MODE_COLOR,
-        background: lightBackground,
-    });
-    const target =
-        lightRatio === null
-            ? TEXT_CONTRAST_THRESHOLD
-            : Math.min(lightRatio, TEXT_CONTRAST_THRESHOLD);
-
-    const { h, s, l } = base.toHsl();
-    const invertedL = 100 - l;
-
-    const ratioAtLightness = (candidateL: number): number | null =>
-        compositedContrastRatio({
-            foreground: colord({ h, s, l: candidateL }).toHex(),
-            canvas: CANVAS_DARK_MODE_COLOR,
-            background: darkBackground,
-        });
-
-    // Return the lightness closest to the inverted value that meets the target,
-    // changing the inverted color as little as possible.
-    for (let delta = 0; delta <= 100; delta++) {
-        for (const candidateL of [invertedL + delta, invertedL - delta]) {
-            if (candidateL < 0 || candidateL > 100) {
-                continue;
-            }
-            const ratio = ratioAtLightness(candidateL);
-            if (ratio !== null && ratio >= target) {
-                return colord({ h, s, l: candidateL }).toHex();
-            }
-            if (delta === 0) {
-                break;
-            }
-        }
-    }
-
-    return colord({ h, s, l: invertedL }).toHex();
 }

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
     contrastAccessibilityDiagnosticsForStyleDefinitions,
     normalizeStyleDefinitionsValues,
+    normalizeStyleDefinitionValues,
+    addMissingChildStyleColorFields,
     type RawStyleDefinitions,
 } from "../src/style";
 
@@ -84,6 +86,50 @@ describe("contrast diagnostics — dark mode", () => {
         });
         expect(
             diags.filter((d) => d.message.includes("(dark mode)")).length,
+        ).toBe(0);
+    });
+});
+
+describe("derived dark-mode combination diagnostics", () => {
+    function deriveAndDiagnose(def: RawStyleDefinitions[string]) {
+        const styleDef = normalizeStyleDefinitionValues(def);
+        addMissingChildStyleColorFields(styleDef);
+        return contrastAccessibilityDiagnosticsForStyleDefinitions({
+            1: styleDef,
+        });
+    }
+
+    it("flags an accessible light pair that derives to an inaccessible dark pair", () => {
+        // navy text on silver is accessible in light mode (~7.6:1), but the
+        // independent lightness inversion (#8080ff on #404040) drops below AA.
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: "#c0c0c0", position: POS },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("derived dark-mode"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/insufficient contrast/);
+    });
+
+    it("does not flag a derived dark pair that stays accessible", () => {
+        const diags = deriveAndDiagnose({
+            textColor: { style: "black", position: POS },
+            backgroundColor: { style: "white", position: POS },
+        });
+        expect(
+            diags.filter((d) => d.message.includes("derived dark-mode")).length,
+        ).toBe(0);
+    });
+
+    it("does not flag an intentionally low-contrast light pair", () => {
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#888888", position: POS },
+            backgroundColor: { style: "#999999", position: POS },
+        });
+        expect(
+            diags.filter((d) => d.message.includes("derived dark-mode")).length,
         ).toBe(0);
     });
 });

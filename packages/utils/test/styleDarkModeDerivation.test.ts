@@ -84,48 +84,34 @@ describe("addMissingChildStyleColorFields dark-mode derivation", () => {
         );
     });
 
-    it("keeps the derived dark text/background pair at least as accessible as the light pair", () => {
-        // When a light-mode text/background combination meets WCAG AA, the
-        // derived dark-mode pair must also meet AA (the text is derived against
-        // the derived dark background, not just the canvas).
-        const pairs: { textColor: string; backgroundColor: string }[] = [
-            { textColor: "black", backgroundColor: "white" },
-            { textColor: "#222222", backgroundColor: "#dddddd" },
-            { textColor: "navy", backgroundColor: "#ffeeee" },
-            { textColor: "#003366", backgroundColor: "#fffbe6" },
-        ];
+    it("derives the dark text and background independently of order/locality", () => {
+        // The dark-mode text and background are each derived only from their own
+        // light-mode value, so specifying them together vs. in separate blocks
+        // (e.g. background in a parent, text in a child) yields the same result,
+        // and changing only one never changes the other.
+        const textColor = "navy";
+        const backgroundColor = "#ffeeee";
 
-        for (const pair of pairs) {
-            const lightRatio = compositedContrastRatio({
-                foreground: pair.textColor,
-                canvas: CANVAS_LIGHT_MODE_COLOR,
-                background: pair.backgroundColor,
-            })!;
-            // Sanity-check the fixtures are accessible in light mode.
-            expect(lightRatio).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+        const combined = normalizeStyleDefinitionValues({
+            textColor,
+            backgroundColor,
+        });
+        addMissingChildStyleColorFields(combined);
 
-            const styleDef = normalizeStyleDefinitionValues(pair);
-            addMissingChildStyleColorFields(styleDef);
+        // Simulate the split case: each color authored in its own block.
+        const textOnly = normalizeStyleDefinitionValues({ textColor });
+        addMissingChildStyleColorFields(textOnly);
+        const backgroundOnly = normalizeStyleDefinitionValues({
+            backgroundColor,
+        });
+        addMissingChildStyleColorFields(backgroundOnly);
 
-            const textDark = getStyleValueString(
-                styleDef,
-                "textColorDarkMode",
-            )!;
-            const backgroundDark = getStyleValueString(
-                styleDef,
-                "backgroundColorDarkMode",
-            )!;
-            const darkRatio = compositedContrastRatio({
-                foreground: textDark,
-                canvas: CANVAS_DARK_MODE_COLOR,
-                background: backgroundDark,
-            })!;
-
-            expect(
-                darkRatio,
-                `${pair.textColor} on ${pair.backgroundColor} -> ${textDark} on ${backgroundDark}`,
-            ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
-        }
+        expect(getStyleValueString(textOnly, "textColorDarkMode")).toBe(
+            getStyleValueString(combined, "textColorDarkMode"),
+        );
+        expect(
+            getStyleValueString(backgroundOnly, "backgroundColorDarkMode"),
+        ).toBe(getStyleValueString(combined, "backgroundColorDarkMode"));
     });
 
     it("inverts an authored text/background combination for dark mode", () => {
