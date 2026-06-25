@@ -151,7 +151,8 @@ export class UpdateExecutor {
         if (actionName === "setTheme" && componentIdx === undefined) {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
-            // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
+            // Theme is presentation-only (not user content), but renderers can
+            // use it to choose dark-mode style colors and descriptions.
             await this.performUpdate({
                 updateInstructions: [
                     {

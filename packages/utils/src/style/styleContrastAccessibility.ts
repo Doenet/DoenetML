@@ -9,9 +9,10 @@
  * Two passes run for every style definition:
  *  - **Light mode**: foreground color channels composited over the white canvas.
  *  - **Dark mode**: the corresponding `*ColorDarkMode` channels composited over
- *    the dark canvas. Derived dark-mode colors are accessible by construction,
- *    so in practice these diagnostics fire only for author-supplied dark-mode
- *    colors that fail WCAG AA.
+ *    the dark canvas. Derived dark-mode foreground colors are adjusted toward
+ *    the threshold where possible; these diagnostics fire when any
+ *    author-supplied contributor to the rendered contrast (color, background, or
+ *    opacity) makes the result fail WCAG AA.
  */
 import type { Position } from "@doenet/parser";
 import type { AccessibilityRecord } from "../diagnostics/types";
@@ -81,11 +82,9 @@ function createContrastAccessibilityDiagnostic({
  * Conditionally appends a contrast accessibility diagnostic when the ratio is
  * insufficient.
  *
- * `gatePosition` is the source position of the *color value itself* and decides
- * whether to emit at all: only author-supplied colors (which carry a position)
- * are flagged, never colors we derived or seeded from a preset (which carry no
- * position). `position` is where the diagnostic is anchored, which may be a
- * later contributor such as an opacity or background attribute.
+ * `position` is the latest authored contributor to the rendered contrast, such
+ * as a foreground color, background color, or opacity attribute. Preset and
+ * derived values carry no position, so default styles remain silent.
  */
 function appendContrastAccessibilityDiagnosticIfNeeded({
     diagnostics,
@@ -93,7 +92,6 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     context,
     ratio,
     threshold,
-    gatePosition,
     position,
 }: {
     diagnostics: AccessibilityRecord[];
@@ -101,10 +99,9 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     context: string;
     ratio: number | null;
     threshold: number;
-    gatePosition?: Position;
     position?: Position;
 }) {
-    if (ratio === null || ratio >= threshold || !gatePosition || !position) {
+    if (ratio === null || ratio >= threshold || !position) {
         return;
     }
 
@@ -166,7 +163,6 @@ function contrastDiagnosticsForMode(
                     : "text color against the canvas") + suffix,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
-            gatePosition: textPosition,
             position: diagnosticPosition,
         });
     }
@@ -189,7 +185,6 @@ function contrastDiagnosticsForMode(
             context: "high-contrast color against the canvas" + suffix,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
-            gatePosition: highContrastPosition,
             position: highContrastPosition,
         });
     }
@@ -214,7 +209,6 @@ function contrastDiagnosticsForMode(
             context: "line color against the canvas" + suffix,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
-            gatePosition: linePosition,
             position: diagnosticPosition,
         });
     }
@@ -240,7 +234,6 @@ function contrastDiagnosticsForMode(
             context: "marker color against the canvas" + suffix,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
-            gatePosition: markerPosition,
             position: diagnosticPosition,
         });
     }

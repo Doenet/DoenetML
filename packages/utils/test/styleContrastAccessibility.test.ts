@@ -31,6 +31,34 @@ describe("contrast diagnostics — light mode (regression)", () => {
         });
         expect(diags.length).toBe(0);
     });
+
+    it("flags an authored background color that fails against a default text color", () => {
+        const diags = diagnose({
+            1: {
+                textColor: "black",
+                backgroundColor: { style: "black", position: POS },
+            },
+        });
+        expect(diags.length).toBe(1);
+        expect(diags[0].position).toBe(POS);
+        expect(diags[0].message).toMatch(/text color against background color/);
+    });
+
+    it("flags authored low line and marker opacity on default colors", () => {
+        const diags = diagnose({
+            1: {
+                lineColor: "#648FFF",
+                lineOpacity: { style: 0.1, position: POS },
+                markerColor: "#648FFF",
+                markerOpacity: { style: 0.1, position: POS },
+            },
+        });
+        expect(diags.length).toBe(2);
+        expect(diags.map((d) => d.message)).toEqual([
+            expect.stringMatching(/line color against the canvas/),
+            expect.stringMatching(/marker color against the canvas/),
+        ]);
+    });
 });
 
 describe("contrast diagnostics — dark mode", () => {
@@ -87,6 +115,25 @@ describe("contrast diagnostics — dark mode", () => {
         expect(
             diags.filter((d) => d.message.includes("(dark mode)")).length,
         ).toBe(0);
+    });
+
+    it("flags an authored dark-mode background color that fails against a default dark-mode text color", () => {
+        const diags = diagnose({
+            1: {
+                textColor: "black",
+                textColorDarkMode: "white",
+                backgroundColor: "white",
+                backgroundColorDarkMode: { style: "#888888", position: POS },
+            },
+        });
+        const darkDiags = diags.filter((d) =>
+            d.message.includes("(dark mode)"),
+        );
+        expect(darkDiags.length).toBe(1);
+        expect(darkDiags[0].position).toBe(POS);
+        expect(darkDiags[0].message).toMatch(
+            /text color against background color.*dark mode/,
+        );
     });
 });
 

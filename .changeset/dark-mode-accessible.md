@@ -16,7 +16,8 @@ Dark mode: make it actually work and meet WCAG AA.
   buttons, and portaled popovers were unified onto `[data-theme]`.
 - Style definitions now derive a dark-mode color (and color word) from an
   author's light-mode color instead of mirroring it. Graphic/marker/line colors
-  are lightened until they clear WCAG AA against the dark canvas. A
+  are lightened until they clear WCAG AA against the dark canvas where possible
+  at their rendered opacity. A
   `textColor`/`backgroundColor` is adapted by inverting each color's lightness
   independently (so e.g. white-on-black becomes black-on-white). Because each
   color is derived from itself alone, the result is independent of the order in
@@ -27,8 +28,9 @@ Dark mode: make it actually work and meet WCAG AA.
   dark-mode pair, an accessibility diagnostic is emitted (with a suggested
   `textColorDarkMode`/`backgroundColorDarkMode` value, targeting the attribute
   the diagnostic is anchored to, that restores sufficient contrast).
-  Author-supplied `*ColorDarkMode` values that fail AA likewise emit a
-  diagnostic, mirroring the existing light-mode check.
+  Author-supplied contributors to the rendered contrast (including backgrounds,
+  opacity, and `*ColorDarkMode` values) that fail AA likewise emit a diagnostic,
+  mirroring the existing light-mode check.
 - The six built-in style presets had their dark-mode colors recomputed to meet
   WCAG AA.
 - Fixed renderer pieces that went invisible (or low-contrast) on the dark
