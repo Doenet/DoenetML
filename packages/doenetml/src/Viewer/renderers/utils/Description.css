@@ -42,7 +42,7 @@
     outline-offset: 2px;
 }
 
-.description-popover:where(.dark, .dark *) {
+.description-popover:where([data-theme="dark"], [data-theme="dark"] *) {
     border-color: hsl(204 4% 24%);
     background-color: hsl(204 4% 16%);
     color: white;
@@ -56,7 +56,9 @@
     stroke: hsl(204 20% 88%);
 }
 
-.description-popover .arrow:where(.dark, .dark *) > svg {
+.description-popover
+    .arrow:where([data-theme="dark"], [data-theme="dark"] *)
+    > svg {
     fill: hsl(204 4% 16%);
     stroke: hsl(204 4% 24%);
 }

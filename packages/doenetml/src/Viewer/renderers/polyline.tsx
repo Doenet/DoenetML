@@ -367,7 +367,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         if (!verticesFixed.current && pointsJXG.current) {
             for (let [i, point] of pointsJXG.current.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    point.setAttribute({ fillcolor: "black" });
+                    point.setAttribute({ fillcolor: "var(--canvasText)" });
                     point.needsUpdate = true;
                     point.update();
                 }

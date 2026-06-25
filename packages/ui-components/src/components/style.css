@@ -1,6 +1,13 @@
 .doenet-button {
     box-sizing: border-box;
     --button-color: var(--mainBlue);
+    /*
+     * `--button-canvas-color` is the brand color used when the button sits
+     * *on the canvas* (unchecked toggle text/border) rather than as a filled
+     * background. On the dark canvas the plain brand color is too low-contrast,
+     * so lighten it there; light mode keeps the brand color unchanged.
+     */
+    --button-canvas-color: var(--button-color);
     --button-hover-color: oklch(
         from var(--button-color) calc(max(l * 1.6, 0.7)) calc(c * 0.75) h
     );
@@ -122,7 +129,7 @@
         outline: none;
     }
     &:has(input) {
-        border: 2px solid var(--button-color);
+        border: 2px solid var(--button-canvas-color);
     }
     &:has(input:not(:checked, :focus)):hover {
         background-color: var(--button-active-color);
@@ -138,16 +145,25 @@
     }
     &:has(input:not(:checked)) {
         background-color: var(--canvas);
-        color: var(--button-color);
+        color: var(--button-canvas-color);
     }
     &:has(input:focus) {
         outline: 2px solid white;
         outline-offset: -4px;
     }
     &:has(input:not(:checked):focus) {
-        outline: 2px solid var(--button-color);
+        outline: 2px solid var(--button-canvas-color);
         outline-offset: -4px;
     }
+}
+
+/*
+ * On the dark canvas, lighten the brand color used for on-canvas (unchecked)
+ * toggle text/border so it clears WCAG AA against the dark canvas. Filled
+ * (checked) buttons keep the darker `--button-color` with white text.
+ */
+[data-theme="dark"] .doenet-button {
+    --button-canvas-color: oklch(from var(--button-color) max(l, 0.78) c h);
 }
 
 /* Resizable Panel */

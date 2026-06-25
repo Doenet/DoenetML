@@ -307,7 +307,7 @@ export const DEFAULT_STYLE_VALUES = {
     textColor: "black",
     textColorDarkMode: "white",
     highContrastColor: "#2963FF",
-    highContrastColorDarkMode: "#2963FF",
+    highContrastColorDarkMode: "#92B4FF",
 } as const satisfies Partial<
     Record<StyleDefinitionKey, StyleDefinitionPrimitive>
 >;

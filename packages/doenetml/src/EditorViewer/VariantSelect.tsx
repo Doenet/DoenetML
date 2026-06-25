@@ -6,12 +6,14 @@ import "./variant-select.css";
 export default function VariantSelect({
     size = "sm",
     menuWidth,
+    darkMode = "light",
     array = [],
     onChange = () => {},
     syncIndex, //Optional attribute to keep several variant selects in sync
 }: {
     size: "sm" | "md" | "lg";
     menuWidth: string;
+    darkMode?: "dark" | "light";
     array: string[];
     onChange: (index: number) => void;
     syncIndex?: number;
@@ -63,6 +65,7 @@ export default function VariantSelect({
                         <Ariakit.SelectPopover
                             gutter={4}
                             sameWidth
+                            data-theme={darkMode}
                             className="popover"
                         >
                             <div className="combobox-wrapper">

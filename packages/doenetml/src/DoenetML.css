@@ -71,6 +71,8 @@ html {
     --mainGreen: #3e844a;
     --canvas: white;
     --canvasText: black;
+    --revealButtonSurface: #e3e3e3;
+    --graphHandle: #404040;
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #6d4445;
@@ -96,6 +98,8 @@ html {
     --mainGreen: #3e844a;
     --canvas: #121212;
     --canvasText: white;
+    --revealButtonSurface: #3a3a3a;
+    --graphHandle: #b0b0b0;
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #a9abe5;
@@ -215,6 +219,18 @@ div.jxgbox input[type="checkbox"] {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+/*
+ * Keyboard-focus outline for graph objects. JSXGraph's own stylesheet sets a
+ * thin dotted outline with no explicit color (so it inherits a non-theme-aware
+ * default that is invisible on the dark canvas). Force a theme-aware outline so
+ * the focused object is visible in both light and dark mode.
+ */
+.jxgbox :focus,
+.jxgbox :focus-visible {
+    outline: 2px solid var(--canvasText);
+    outline-offset: 1px;
 }
 
 .JXGtext {

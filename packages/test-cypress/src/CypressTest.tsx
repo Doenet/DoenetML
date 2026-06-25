@@ -179,6 +179,12 @@ export function CypressTest() {
             newDoenetMLstring = e.data.doenetML;
         }
 
+        if (e.data.darkMode !== undefined) {
+            setDarkMode(e.data.darkMode);
+            testSettings.darkMode = e.data.darkMode;
+            localStorage.setItem("test settings", JSON.stringify(testSettings));
+        }
+
         if (e.data.requestedVariantIndex !== undefined) {
             requestedVariantIndex.current = e.data.requestedVariantIndex;
         }

@@ -109,7 +109,7 @@ export default React.memo(function subsetOfReals(
                 y1="35"
                 x2={x}
                 y2="45"
-                style={{ stroke: "black", strokeWidth: "1" }}
+                style={{ stroke: "var(--canvasText)", strokeWidth: "1" }}
                 shapeRendering="geometricPrecision"
             />,
         );
@@ -138,7 +138,7 @@ export default React.memo(function subsetOfReals(
 
         let currentFillColor = "var(--mainPurple)"; // New CSS variable color
         if (!closed) {
-            currentFillColor = "white";
+            currentFillColor = "var(--canvas)";
         }
 
         let key = `point-${xPosition}`;
@@ -149,7 +149,7 @@ export default React.memo(function subsetOfReals(
                 cx={xPosition}
                 cy="40"
                 r="6"
-                stroke="black"
+                stroke="var(--canvasText)"
                 strokeWidth="1"
                 fill={currentFillColor}
             />,
@@ -343,7 +343,7 @@ export default React.memo(function subsetOfReals(
             <svg
                 width="808"
                 height="80"
-                style={{ backgroundColor: "white" }}
+                style={{ backgroundColor: "var(--canvas)" }}
                 onMouseDown={(e) => {
                     handleInput(e, "down");
                 }}
@@ -360,16 +360,16 @@ export default React.memo(function subsetOfReals(
                 <polygon
                     points="5,40 20,50 20,30"
                     style={{
-                        fill: "black",
-                        stroke: "black",
+                        fill: "var(--canvasText)",
+                        stroke: "var(--canvasText)",
                         strokeWidth: "1",
                     }}
                 />
                 <polygon
                     points="795,40 780,50 780,30"
                     style={{
-                        fill: "black",
-                        stroke: "black",
+                        fill: "var(--canvasText)",
+                        stroke: "var(--canvasText)",
                         strokeWidth: "1",
                     }}
                 />
@@ -380,7 +380,7 @@ export default React.memo(function subsetOfReals(
                     y1="40"
                     x2="780"
                     y2="40"
-                    style={{ stroke: "black", strokeWidth: "2" }}
+                    style={{ stroke: "var(--canvasText)", strokeWidth: "2" }}
                 />
                 {storedPoints}
                 {labels}
