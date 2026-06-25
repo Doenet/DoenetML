@@ -90,7 +90,7 @@ export function DoenetViewer({
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
     doenetMediaUrl,
-    darkMode = "light",
+    darkMode = "system",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
@@ -138,6 +138,11 @@ export function DoenetViewer({
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
     darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -329,6 +334,11 @@ type DoenetEditorProps = {
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
     darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -383,7 +393,7 @@ export const DoenetEditor = React.forwardRef<
         externalVirtualKeyboardProvided = false,
         doenetViewerUrl,
         doenetMediaUrl,
-        darkMode = "light",
+        darkMode = "system",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
         width,
