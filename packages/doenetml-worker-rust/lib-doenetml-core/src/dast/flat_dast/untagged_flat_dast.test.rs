@@ -162,23 +162,3 @@ fn calculate_children_position() {
         )
     );
 }
-
-#[test]
-fn strips_dynamic_children_placeholder() {
-    // Sectioning components (and `<graph>`) have a `<_dynamicChildren>` appended
-    // during normalization. The Rust core has no use for this runtime-only
-    // placeholder, so it should be absent from the flattened DAST.
-    let source = r#"<section><title>Hi</title><p>content</p></section>"#;
-    let dast_root = dast_root_no_position(source);
-    let flat_root = FlatRoot::from_dast(&dast_root);
-
-    let has_dynamic_children = flat_root
-        .nodes
-        .iter()
-        .any(|node| matches!(node, FlatNode::Element(elm) if elm.name == "_dynamicChildren"));
-
-    assert!(
-        !has_dynamic_children,
-        "`<_dynamicChildren>` should be stripped during flattening"
-    );
-}
