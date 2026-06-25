@@ -7,6 +7,9 @@ import "./main.css";
 import doenetMLstring from "./testCode.doenet?raw";
 
 const SOURCE_STORAGE_KEY = "doenetml-dev-source";
+const SAVE_DEBOUNCE_MS = 500;
+
+let saveTimer: number | null = null;
 
 function getInitialSource(): string {
     try {
@@ -16,7 +19,7 @@ function getInitialSource(): string {
     }
 }
 
-function saveSource(source: string) {
+function writeSource(source: string) {
     try {
         localStorage.setItem(SOURCE_STORAGE_KEY, source);
     } catch {
@@ -24,7 +27,26 @@ function saveSource(source: string) {
     }
 }
 
+// Wired to the editor's immediate (per-keystroke) change callback, so debounce
+// the writes: calling localStorage.setItem synchronously on every keystroke can
+// noticeably block the UI for larger documents.
+function saveSource(source: string) {
+    if (saveTimer !== null) {
+        window.clearTimeout(saveTimer);
+    }
+    saveTimer = window.setTimeout(() => {
+        saveTimer = null;
+        writeSource(source);
+    }, SAVE_DEBOUNCE_MS);
+}
+
 function resetSource() {
+    // Cancel any pending debounced save so a queued write can't overwrite the
+    // reset.
+    if (saveTimer !== null) {
+        window.clearTimeout(saveTimer);
+        saveTimer = null;
+    }
     try {
         localStorage.removeItem(SOURCE_STORAGE_KEY);
     } catch {
