@@ -8,6 +8,16 @@ use super::{
     FlatRef, FlatRoot, Index, UntaggedContent,
 };
 
+/// The internal component type appended during normalization to hold children
+/// added at runtime via an `addChildren` action. It has no static content, so the
+/// Rust core (which never performs `addChildren`) strips it during ingestion.
+const DYNAMIC_CHILDREN_NAME: &str = "_dynamicChildren";
+
+/// Whether `content` is a `<_dynamicChildren>` element (see [`DYNAMIC_CHILDREN_NAME`]).
+fn is_dynamic_children_element(content: &DastElementContent) -> bool {
+    matches!(content, DastElementContent::Element(elm) if elm.name == DYNAMIC_CHILDREN_NAME)
+}
+
 impl FlatRoot {
     /// Create a new `FlatRoot` from a `DastRoot`.
     pub fn from_dast(dast: &DastRoot) -> Self {
@@ -45,6 +55,11 @@ impl FlatRoot {
                 let children = elm
                     .children
                     .iter()
+                    // `<_dynamicChildren>` is a runtime-only placeholder added during
+                    // normalization so the JS worker can append children via an
+                    // `addChildren` action. It carries no static content, so the Rust
+                    // core ignores it entirely.
+                    .filter(|child| !is_dynamic_children_element(child))
                     .map(|child| self.merge_content(child, Some(idx)))
                     .collect();
                 let attributes: Vec<FlatAttribute> = elm
