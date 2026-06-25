@@ -4,15 +4,18 @@
 }
 
 .description[open] {
-    background-color: rgb(241, 241, 241);
+    background-color: var(--revealButtonSurface);
+    color: var(--canvasText);
 }
 .description .details-content {
-    background-color: rgb(241, 241, 241);
+    background-color: var(--revealButtonSurface);
+    color: var(--canvasText);
     padding: 10px;
 }
 
 .description-popover-button {
-    background-color: white;
+    background-color: var(--canvas);
+    color: var(--canvasText);
     border: none;
     padding: 0 4px 0 0;
     cursor: pointer;

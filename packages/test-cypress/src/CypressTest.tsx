@@ -647,6 +647,7 @@ export function CypressTest() {
                 answerResponseCounts={answerResponseCounts}
                 doenetMediaUrl={doenetMediaUrl}
                 readOnly={readOnly}
+                darkMode={darkMode}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
                     nextDoenetML: string,

@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { colord, extend } from "colord";
 import a11yPlugin from "colord/plugins/a11y";
-import namesPlugin from "colord/plugins/names";
 
-extend([a11yPlugin, namesPlugin]);
 import {
     CANVAS_DARK_MODE_COLOR,
     GRAPHIC_CONTRAST_THRESHOLD,

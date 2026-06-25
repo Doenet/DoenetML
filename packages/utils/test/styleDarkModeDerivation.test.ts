@@ -1,7 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { colord, extend } from "colord";
-import a11yPlugin from "colord/plugins/a11y";
-import namesPlugin from "colord/plugins/names";
 import {
     addMissingChildStyleColorFields,
     normalizeStyleDefinitionValues,
@@ -11,8 +8,6 @@ import {
     CANVAS_DARK_MODE_COLOR,
     compositedContrastRatio,
 } from "../src/style";
-
-extend([a11yPlugin, namesPlugin]);
 
 describe("addMissingChildStyleColorFields dark-mode derivation", () => {
     it("derives an accessible dark-mode line color when only lineColor is authored", () => {

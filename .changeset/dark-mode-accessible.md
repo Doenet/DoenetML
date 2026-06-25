@@ -12,8 +12,8 @@ Dark mode: make it actually work and meet WCAG AA.
   `"light" | "dark" | "system"` (system tracks `prefers-color-scheme` live) and
   the resolved theme is written to a `data-theme` attribute on the viewer/editor
   root, so the canvas/text/JSXGraph-axis CSS variables actually switch. Stray
-  `.dark` selectors and portaled popovers (variant select, description,
-  hint/solution/feedback reveal buttons) were unified onto `[data-theme]`.
+  `.dark` selectors, description surfaces, hint/solution/feedback reveal
+  buttons, and portaled popovers were unified onto `[data-theme]`.
 - Style definitions now derive an accessible dark-mode color (and color word)
   from an author's light-mode color instead of mirroring it: the derived
   `*ColorDarkMode` preserves hue and is lightened until it clears WCAG AA against
