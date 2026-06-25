@@ -1,9 +1,16 @@
-import React, { createContext, useMemo, useRef, useState } from "react";
+import React, {
+    createContext,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import Select, { components, MultiValue, OnChangeValue } from "react-select";
+import { DocContext } from "../DocViewer";
 import "./choiceInput.css";
 import {
     calculateValidationState,
@@ -67,6 +74,8 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+
+    const { darkMode } = useContext(DocContext) || {};
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -307,14 +316,34 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         const menuPortalTarget =
             typeof document === "undefined" ? undefined : document.body;
 
+        // The dropdown menu is portaled to document.body, which sits outside
+        // the `data-theme` wrapper, so its CSS custom properties don't resolve
+        // to the dark-mode values. Drive the colors from the doc-level dark mode
+        // instead. (These mirror the `--canvas` / `--canvasText` palette.)
+        const isDark = darkMode === "dark";
+        const surfaceColor = isDark ? "#121212" : "#fff";
+        const onSurfaceColor = isDark ? "#fff" : "#000";
+        // The dropdown is a floating surface: in dark mode it must read as
+        // *elevated* above the canvas, so use a lighter surface plus a border
+        // rather than the same color as the canvas (which would be invisible).
+        const menuSurfaceColor = isDark ? "#2a2a2a" : "#fff";
+        const focusedOptionColor = isDark ? "#3d3d3d" : "#e9ecef";
+        const menuBorder = isDark ? "1px solid #555" : undefined;
+
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
-                background: "#fff",
+                background: surfaceColor,
+                color: onSurfaceColor,
                 minHeight: "0.8lh",
                 pointerEvents: disabled ? "auto" : undefined,
                 boxShadow: "none",
                 border: "none",
+            }),
+
+            singleValue: (provided: any) => ({
+                ...provided,
+                color: onSurfaceColor,
             }),
 
             valueContainer: (provided: any) => ({
@@ -325,6 +354,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             input: (provided: any) => ({
                 ...provided,
                 margin: "0px",
+                color: onSurfaceColor,
             }),
             indicatorSeparator: () => ({
                 display: "none",
@@ -337,15 +367,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 ...provided,
                 padding: "2px",
             }),
+            menu: (provided: any) => ({
+                ...provided,
+                backgroundColor: menuSurfaceColor,
+                border: menuBorder,
+            }),
             option: (provided: any, state: any) => ({
                 ...provided,
                 cursor: state.isDisabled ? "not-allowed" : "pointer",
                 backgroundColor: state.isSelected
                     ? "#0056b3" // Darker blue for better contrast
                     : state.isFocused
-                      ? "#e9ecef"
-                      : "#fff",
-                color: state.isSelected ? "#fff" : "#000",
+                      ? focusedOptionColor
+                      : menuSurfaceColor,
+                color: state.isSelected ? "#fff" : onSurfaceColor,
             }),
             menuPortal: (provided: any) => ({
                 ...provided,

@@ -27,9 +27,11 @@ Dark mode: make it actually work and meet WCAG AA.
   keyboard-focus outline (#396), editable `<curve>` through/control-point
   handles, draggable polygon/polyline vertex highlights, the
   `<summaryStatistics>` table border, the `<orbitalDiagram>` and
-  `<subsetOfRealsInput>` number-line graphics, and the on-canvas (unchecked)
-  graph-control toggle buttons — all now track the theme via
-  `--canvasText` / `--canvas` (or a canvas-contrast-safe brand color).
+  `<subsetOfRealsInput>` number-line graphics, the on-canvas (unchecked)
+  graph-control toggle buttons, and the inline `<choiceInput>` dropdown (control
+  and the portaled menu, which is given an elevated dark surface) — all now
+  track the theme via `--canvasText` / `--canvas` (or doc-level dark mode for
+  the portaled menu).
 - Added dark-mode accessibility (cypress-axe) coverage across renderer
   categories, plus computed-style regression tests for the caret, focus outline,
   and fraction bar.

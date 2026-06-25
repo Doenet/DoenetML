@@ -114,5 +114,44 @@ describe(
                     ).to.be.greaterThan(600);
                 });
         });
+
+        it("inline choiceInput control and dropdown menu are dark in dark mode", () => {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<choiceInput inline name="ci"><choice>alpha</choice><choice>beta</choice></choiceInput>`,
+                        darkMode: "dark",
+                    },
+                    "*",
+                );
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+
+            // The react-select control box should have a dark background, not
+            // the hardcoded white it used to use. (#121212 sums to ~54.)
+            cy.get('.doenet-viewer [class*="-control"]')
+                .first()
+                .should("exist")
+                .then(($control) => {
+                    const bg = getComputedStyle($control[0]).backgroundColor;
+                    expect(
+                        channelSum(bg),
+                        `control background ${bg}`,
+                    ).to.be.lessThan(150);
+                })
+                // Open the dropdown; its menu portals to <body>.
+                .click();
+
+            cy.get('[class*="-menu"]')
+                .should("exist")
+                .then(($menu) => {
+                    const bg = getComputedStyle($menu[0]).backgroundColor;
+                    const sum = channelSum(bg);
+                    // The menu must be dark, but *elevated* above the #121212
+                    // canvas (~54) so it doesn't disappear into the background.
+                    expect(sum, `menu background ${bg}`).to.be.lessThan(300);
+                    expect(sum, `menu background ${bg}`).to.be.greaterThan(70);
+                });
+        });
     },
 );
