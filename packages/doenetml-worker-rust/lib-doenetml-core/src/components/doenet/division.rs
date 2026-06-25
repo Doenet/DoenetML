@@ -447,8 +447,14 @@ mod custom_props {
                                 Cond::Eq(PropValue::Boolean(false)),
                             ),
                         ),
-                        // We exclude any `<title>` elements.
-                        OpNot(ContentFilter::IsType(Title::NAME)),
+                        Op::And(
+                            // We exclude any `<title>` elements.
+                            OpNot(ContentFilter::IsType(Title::NAME)),
+                            // We exclude the internal `<_dynamicChildren>` placeholder
+                            // (added during normalization for the `addChildren` action),
+                            // which has no static content to render.
+                            OpNot(ContentFilter::IsType("_dynamicChildren")),
+                        ),
                     )),
                 }
             }

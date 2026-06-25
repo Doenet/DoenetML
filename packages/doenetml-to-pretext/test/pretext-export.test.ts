@@ -393,7 +393,7 @@ describe("Pretext export", async () => {
               "<section xml:id="doenet-id-2">
                                       <p>hi</p>
                                       <problem xml:id="doenet-id-4"><p><m><fillin characters="8"></fillin></m></p></problem>
-                                  </section><section xml:id="doenet-id-7">
+                                  </section><section xml:id="doenet-id-9">
                                       <p>there</p>
                                   </section>"
             `);

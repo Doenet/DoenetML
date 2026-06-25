@@ -4,6 +4,7 @@ import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 import { extractDastErrors } from "../src";
+import type { DastElement } from "../src/types";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -83,8 +84,39 @@ describe("Normalize dast", async () => {
         source = `<section><![CDATA[foo]]><p>hi</p></section>`;
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><division type="section">foo<p>hi</p></division></document>',
+            '<document><division type="section">foo<p>hi</p><_dynamicChildren /></division></document>',
         );
+    });
+    it("marks dynamic children that are postponed with their parent", () => {
+        function getDynamicChildrenAttributes(source: string) {
+            const dast = lezerToDast(source);
+            const normalized = normalizeDocumentDast(dast);
+            const document = normalized.children[0] as DastElement;
+            const section = document.children[0] as DastElement;
+            const dynamicChildren = section.children.find(
+                (child): child is DastElement =>
+                    child.type === "element" &&
+                    child.name === "_dynamicChildren",
+            );
+            expect(dynamicChildren).toBeDefined();
+            return dynamicChildren!.attributes;
+        }
+
+        expect(
+            getDynamicChildrenAttributes(
+                `<aside postponeRendering><title>Hint</title><p>Secret.</p></aside>`,
+            ).deferUntilParentRendered,
+        ).toMatchObject({
+            type: "attribute",
+            name: "deferUntilParentRendered",
+            children: [{ type: "text", value: "true" }],
+        });
+
+        expect(
+            getDynamicChildrenAttributes(
+                `<aside><title>Hint</title><p>Already created.</p></aside>`,
+            ),
+        ).not.toHaveProperty("deferUntilParentRendered");
     });
     it("preserves existing document tag", () => {
         let source: string;

@@ -18,7 +18,10 @@ import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
 import { fractionInputSugar } from "./component-sugar/fractionInput";
-import { graphSugar } from "./component-sugar/graph";
+import {
+    nodeSupportsDynamicChildren,
+    addDynamicChildrenSugar,
+} from "./component-sugar/dynamicChildren";
 import { answerSugar } from "./component-sugar/answer";
 import { pluginApplyDeprecations } from "./deprecations";
 
@@ -219,7 +222,6 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     pretzelSugar(node);
                     break;
                 case "graph":
-                    graphSugar(node);
                     descriptionAttributeSugar(node);
                     break;
                 case "answer":
@@ -239,6 +241,10 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     descriptionAttributeSugar(node);
                     fractionInputSugar(node);
                     break;
+            }
+
+            if (nodeSupportsDynamicChildren(node)) {
+                addDynamicChildrenSugar(node);
             }
         });
     };

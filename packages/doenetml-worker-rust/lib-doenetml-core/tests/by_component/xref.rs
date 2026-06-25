@@ -15,8 +15,8 @@ fn xref_ref_attribute_refs_dont_expand() {
 
     // the document tag will be index 0.
     let section_idx = ComponentIdx::from(1);
-    let xref_idx = ComponentIdx::from(2);
-    let _ref_idx = ComponentIdx::from(3);
+    let xref_idx = ComponentIdx::from(3);
+    let _ref_idx = ComponentIdx::from(4);
 
     // The `$foo` should be expanded into a `<_ref />` component
     assert_eq!(core.get_component(_ref_idx).get_component_type(), "_ref");
@@ -54,7 +54,7 @@ fn xref_ref_can_make_display_text() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let xref_idx = ComponentIdx::from(2);
+    let xref_idx = ComponentIdx::from(3);
 
     let prop = core.get_prop(xref_idx, XrefProps::DisplayText.local_idx());
     let pv: PropView<prop_type::String> = prop.into_prop_view();
@@ -69,7 +69,7 @@ fn xref_ref_can_make_display_text_with_custom_children() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let xref_idx = ComponentIdx::from(2);
+    let xref_idx = ComponentIdx::from(3);
 
     let prop = core.get_prop(xref_idx, XrefProps::DisplayText.local_idx());
     let pv: PropView<prop_type::String> = prop.into_prop_view();

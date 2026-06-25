@@ -17,6 +17,10 @@ import {
     GRAPH_CONTROL_VARIABLE_NAMES,
 } from "../utils/graphControls";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
@@ -2248,19 +2252,11 @@ export default class Graph extends BlockComponent {
     }
 
     async addChildren(args) {
-        const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "_dynamicChildren",
-        );
-
-        return await dynamicChildren.addChildren(args);
+        return await addChildrenToDynamicChild(this, args);
     }
 
     async deleteChildren(args) {
-        const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "_dynamicChildren",
-        );
-
-        return await dynamicChildren.deleteChildren(args);
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {
