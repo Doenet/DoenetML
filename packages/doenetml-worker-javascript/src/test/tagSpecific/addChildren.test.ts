@@ -109,4 +109,49 @@ describe("addChildren for non-graph parents @group4", async () => {
         });
         await check_num_points(1);
     });
+
+    it("add and delete children of a problem", async () => {
+        const doenetML = `
+    <problem name="prob">
+      <title>My problem</title>
+      <p>Intro.</p>
+    </problem>
+
+    <p>graphs: <collect componentType="graph" from="$prob" name="col" /></p>
+
+    <callAction name="addGraph" target="$prob" actionName="addChildren">
+      <graph>
+        <point>(1,1)</point>
+      </graph>
+    </callAction>
+    <callAction name="deleteGraph" target="$prob" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check_num_graphs(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const col = stateVariables[await resolvePathToNodeIdx("col")];
+            expect(col.replacements?.length ?? 0).eq(n);
+        }
+
+        await check_num_graphs(0);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addGraph"),
+            core,
+        });
+        await check_num_graphs(1);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteGraph"),
+            core,
+        });
+        await check_num_graphs(0);
+    });
 });
