@@ -112,11 +112,38 @@ describe("Doenet Language Server", async () => {
             {
               "documentation": {
                 "kind": "markdown",
+                "value": "A subsection of paragraphs (rendered at heading level 4)",
+              },
+              "kind": 10,
+              "label": "paragraphs",
+              "sortText": "1:1-999-1-999-1-paragraphs-0-999-paragraphs",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
+                "value": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes",
+              },
+              "kind": 10,
+              "label": "orbitalDiagram",
+              "sortText": "1:1-999-1-999-1-orbitaldiagram-0-999-orbitaldiagram",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
+                "value": "An interactive widget where students fill in an orbital diagram by adding boxes, rows, and up/down arrows (block-level; does not inherit from Input)",
+              },
+              "kind": 10,
+              "label": "orbitalDiagramInput",
+              "sortText": "1:1-999-1-999-1-orbitaldiagraminput-0-999-orbitaldiagraminput",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
                 "value": "A 2D coordinate-axis graph",
               },
               "kind": 10,
               "label": "graph",
-              "sortText": "1-999-0-002-1-graph-0-999-graph",
+              "sortText": "0:1-999-0-002-1-graph-0-999-graph",
             },
           ]
         `);
@@ -159,11 +186,38 @@ describe("Doenet Language Server", async () => {
             {
               "documentation": {
                 "kind": "markdown",
+                "value": "A subsection of paragraphs (rendered at heading level 4)",
+              },
+              "kind": 10,
+              "label": "paragraphs",
+              "sortText": "1:1-999-1-999-1-paragraphs-0-999-paragraphs",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
+                "value": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes",
+              },
+              "kind": 10,
+              "label": "orbitalDiagram",
+              "sortText": "1:1-999-1-999-1-orbitaldiagram-0-999-orbitaldiagram",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
+                "value": "An interactive widget where students fill in an orbital diagram by adding boxes, rows, and up/down arrows (block-level; does not inherit from Input)",
+              },
+              "kind": 10,
+              "label": "orbitalDiagramInput",
+              "sortText": "1:1-999-1-999-1-orbitaldiagraminput-0-999-orbitaldiagraminput",
+            },
+            {
+              "documentation": {
+                "kind": "markdown",
                 "value": "A 2D coordinate-axis graph",
               },
               "kind": 10,
               "label": "graph",
-              "sortText": "1-999-0-002-1-graph-0-999-graph",
+              "sortText": "0:1-999-0-002-1-graph-0-999-graph",
             },
           ]
         `);

@@ -175,6 +175,18 @@ describe("AutoCompleter", () => {
         }
     });
 
+    it("inserts a full close tag on explicit Ctrl+Space in an unclosed body", async () => {
+        const source = `<aa>\n  `;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const items = await autoCompleter.getCompletionItems(
+            source.length,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+    });
+
     it("opens the top-level element menu on explicit Ctrl+Space in an empty document", async () => {
         const source = ``;
         const autoCompleter = new AutoCompleter(source, schema.elements);
@@ -202,6 +214,170 @@ describe("AutoCompleter", () => {
         expect(b?.textEdit).toBeUndefined();
         // The visible `<` already signals a tag, so no tag-form displayLabel.
         expect(b?.displayLabel).toBeUndefined();
+    });
+
+    it("suggests element names (not a close tag) when typing a tag name immediately before another tag (#1328)", async () => {
+        // `<aa><b<c></c></aa>` — error recovery parses the half-typed `<b` as a
+        // complete element wrapping `<c>`. The cursor right after `<b` used to
+        // look like `<b>`'s body and offer a `/b>` close-tag completion. It
+        // should instead offer element names that can go here, filtered by the
+        // typed text.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("suggests element names on explicit Ctrl+Space when the cursor is on a tag name immediately before another tag (#1328)", async () => {
+        // Same `<aa><b<c></c></aa>` shape, but invoked explicitly (Ctrl+Space)
+        // on a static cursor rather than reached by typing. Explicit invocation
+        // sets `showElementMenu`, which used to route this position to the
+        // "insert a new element before this tag" branch and surface the
+        // half-typed element's close tag (`/b>`). The `openTagName` position
+        // must win and offer element names filtered by the typed text.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("matches element names by substring, not only by prefix (#1328)", async () => {
+        // Typing part of a tag name that appears in the *middle* of other tag
+        // names should still surface those tags (e.g. `num` -> `isNumber`), so
+        // authors don't have to remember how a name begins.
+        const elements = [
+            {
+                name: "root",
+                children: ["number", "isNumber", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const labels = (await autoCompleter.getCompletionItems(offset)).map(
+            (i) => i.label,
+        );
+        expect(labels).toContain("number");
+        expect(labels).toContain("isNumber");
+        expect(labels).not.toContain("text");
+    });
+
+    it("assigns sortText that ranks prefix element-name matches before substring matches (#1328)", async () => {
+        const elements = [
+            {
+                name: "root",
+                children: ["isNumber", "number", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const items = await autoCompleter.getCompletionItems(offset);
+        const number = items.find((i) => i.label === "number");
+        const isNumber = items.find((i) => i.label === "isNumber");
+        expect(number?.sortText).toBeDefined();
+        expect(isNumber?.sortText).toBeDefined();
+        expect(number!.sortText! < isNumber!.sortText!).toBe(true);
+    });
+
+    it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
+        // `<aa><<c></c></aa>` — the author types `<` to insert a new element in
+        // front of `<c>`. The menu should open with the container's allowed
+        // children rather than staying closed (which left the popup from never
+        // opening as the author kept typing).
+        const source = `<aa><<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
+    });
+
+    it("preserves the parent close-tag option when `<` is typed before another tag in an unclosed parent (#1328)", async () => {
+        // Same recovered empty-placeholder shape as the previous test, but the
+        // surrounding <aa> is still open. Match the normal body completion
+        // behavior by keeping the close-tag option before allowed children.
+        const source = `<aa><<c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit).toBeUndefined();
+    });
+
+    it("inserts a full close tag when explicit completion is invoked before another tag in an unclosed parent (#1328)", async () => {
+        // Without a typed `<`, the close-tag item needs a textEdit that inserts
+        // the full close tag. Element items already do this via their
+        // insertLeadingBracket path.
+        const source = `<aa><c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<c>");
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+    });
+
+    it("opens the top-level element menu when `<` is typed before a top-level tag (#1328)", async () => {
+        // `<<aa></aa>` at the document start: the menu should offer top-level
+        // elements, climbing past the half-typed empty-named placeholder.
+        const source = `<<aa></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = 1; // right after the first `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toContain("aa");
     });
 
     it("Adds quotes via textEdit when completing right after `=`", async () => {
@@ -624,6 +800,7 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 10,
                   "label": "aa",
+                  "sortText": "0:aa",
                 },
               ]
             `);
@@ -1785,7 +1962,7 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
-        it("Filters snippets by typed prefix", async () => {
+        it("Filters snippets by typed text substring", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -1811,20 +1988,20 @@ describe("AutoCompleter", () => {
             let offset = source.indexOf("<ta") + 3;
             let items = await autoCompleter.getCompletionItems(offset);
 
-            // The prefix "ta" doesn't match any snippet key, so no snippets should appear
+            // The text "ta" doesn't match any snippet key, so no snippets should appear
             // Even though "aa" is an allowed element
             const snippetItems = items.filter((item) => item.kind === 15); // CompletionItemKind.Snippet = 15
-            // Since no snippet key starts with "ta", expect empty results
+            // Since no snippet key contains "ta", expect empty results
             expect(snippetItems.length).toBe(0);
 
-            // Now test with a matching prefix
-            source = `<te`;
+            // Now test with a matching substring in the middle of the key
+            source = `<sni`;
             autoCompleter = new AutoCompleter(source, schema.elements);
             autoCompleter.snippetsByNormalizedElement = new Map(
                 Object.entries(testSnippets) as [string, any[]][],
             );
 
-            offset = source.indexOf("<te") + 3;
+            offset = source.indexOf("<sni") + 4;
             items = await autoCompleter.getCompletionItems(offset);
 
             const matchingSnippets = items.filter((item) => item.kind === 15);

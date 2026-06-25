@@ -923,4 +923,211 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             );
         });
     });
+
+    it("opens element-name completions when typing a tag immediately before another tag (#1328)", () => {
+        // The author inserts a new element in front of an existing `<text>`.
+        // Error recovery tentatively parses the half-typed `<nu` as a complete
+        // `<nu>` element wrapping `<text>`, which used to make the cursor look
+        // like it was in `<nu>`'s body and offer a `/nu>` close-tag completion.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        // Type the opening tag name in front of the existing `<text>`.
+        cy.get(".cm-content").type("<nu", { force: true });
+
+        // The popup opens from typing alone (no Ctrl+Space) and shows element
+        // names, not the bogus `/nu>` close-tag completion.
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
+
+    it("opens element-name completions when typing a tag just before a closing tag (#1328)", () => {
+        // Cursor inside `<text>...</text>`, typing a new child tag right before
+        // the `</text>`: `<text><nu|</text>`.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        // Move to just after the opening `<text>` (offset 6).
+        cy.get(".cm-content")
+            .click()
+            .type("{ctrl}{home}" + "{rightArrow}".repeat(6), { force: true });
+        cy.get(".cm-content").type("<nu", { force: true });
+
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
+
+    it("opens element-name completions on explicit Ctrl+Space at a static tag-name cursor before another tag (#1328)", () => {
+        // The document already contains `<nu<text></text>`; the user places the
+        // cursor right after `nu` and presses Ctrl+Space (rather than reaching
+        // the position by typing). The menu must open with element names, not a
+        // `/nu>` close-tag completion.
+        cy.mount(<AutocompleteTestHarness initialValue={`<nu<text></text>`} />);
+
+        // Cursor right after `<nu` (offset 3). Keep `{ctrl}{home}` and the
+        // arrow movement in separate `type()` calls: Cypress holds `{ctrl}` for
+        // the rest of a single string, which would turn the arrows into
+        // word-wise Ctrl+Right and overshoot the intended offset.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}{rightArrow}{rightArrow}", {
+            force: true,
+        });
+        openAutocomplete();
+
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "number",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.contain.text",
+            "/nu",
+        );
+    });
+
+    it("replaces bare filters around explicit element completions", () => {
+        // Ctrl+Space can open the element menu before the author has typed `<`.
+        // Whether the bare filter is typed before or after Ctrl+Space,
+        // accepting `<number>` must replace that word, not append after it as
+        // `num<number`.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("num", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains(/^<number>$/)
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "<number");
+        cy.get(".cm-content").invoke("text").should("not.contain", "num<");
+
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("num", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains(/^<number>$/)
+            .click();
+        cy.get(".cm-content").invoke("text").should("contain", "<number");
+        cy.get(".cm-content").invoke("text").should("not.contain", "num<");
+    });
+
+    it("matches element-name completions by substring, ranking prefix matches first (#1328)", () => {
+        // Typing `<num` should surface tags that *contain* `num` (so authors
+        // don't have to remember how a name begins), with the tags that *start*
+        // with `num` ranked first. The suggestions are the same whether reached
+        // by typing or by a fresh Ctrl+Space at the same position.
+        cy.mount(<AutocompleteTestHarness initialValue={`<text></text>`} />);
+
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("<num", { force: true });
+
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
+                    .get();
+                expect(texts.length).to.be.greaterThan(0);
+                // Every suggestion contains the typed text.
+                texts.forEach((text) => {
+                    expect(text).to.contain("num");
+                });
+                // Prefix matches are ranked ahead of mid-name matches.
+                expect(texts[0]).to.match(/^num/);
+                // A mid-name (substring) match is offered too, e.g. `isNumber`.
+                expect(texts.some((t) => !t.startsWith("num"))).to.equal(true);
+            },
+        );
+    });
+
+    it("re-broadens element-name completions when the typed prefix is deleted (#1328)", () => {
+        // Open the menu at `<num` (only tags containing `num`), then backspace
+        // to `<`. The menu must re-query and show the full element list again,
+        // rather than keeping the cached `num` matches.
+        cy.mount(
+            <AutocompleteTestHarness initialValue={`<num<text></text>`} />,
+        );
+
+        // Cursor right after `<num` (offset 4). Separate `type()` calls so the
+        // held `{ctrl}` from `{ctrl}{home}` doesn't turn the arrows into
+        // word-wise Ctrl+Right.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}".repeat(4), { force: true });
+        openAutocomplete();
+
+        // Every suggestion contains `num` to start with.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
+                    .get();
+                expect(texts.length).to.be.greaterThan(0);
+                texts.forEach((text) => {
+                    expect(text).to.contain("num");
+                });
+            },
+        );
+
+        // Delete the `num` prefix, leaving `<|<text>`. The list re-broadens.
+        cy.get(".cm-content").type("{backspace}{backspace}{backspace}", {
+            force: true,
+        });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text().toLowerCase())
+                    .get();
+                // Now includes tags that do not contain `num` (e.g. `p`).
+                expect(texts.some((t) => !t.includes("num"))).to.equal(true);
+            },
+        );
+    });
+
+    it("offers children and the close tag in an unclosed element's body, and inserts the close tag without clobbering the open tag (#1328)", () => {
+        // `<text><math>|</text>`: the cursor sits just after `<math>`'s open
+        // tag, in its (unclosed) body. Ctrl+Space must offer the close tag
+        // *and* `<math>`'s children — previously only `/math>` appeared, and
+        // accepting it replaced part of the open tag, yielding
+        // `<text><</math></text>`.
+        cy.mount(
+            <AutocompleteTestHarness initialValue={`<text><math></text>`} />,
+        );
+
+        // Cursor right after `<math>` (offset 12). Separate `type()` calls so
+        // the held `{ctrl}` from `{ctrl}{home}` doesn't turn the arrows into
+        // word-wise Ctrl+Right.
+        cy.get(".cm-content").click().type("{ctrl}{home}", { force: true });
+        cy.get(".cm-content").type("{rightArrow}".repeat(12), { force: true });
+        openAutocomplete();
+
+        // Both the close tag and at least one child element are offered.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "/math>",
+        );
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            ($labels) => {
+                const texts = $labels
+                    .map((_, el) => Cypress.$(el).text())
+                    .get();
+                expect(texts.some((t) => t !== "/math>")).to.equal(true);
+            },
+        );
+
+        // Accepting the close tag inserts `</math>` at the cursor, leaving the
+        // open tag intact.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("/math>")
+            .click();
+        cy.get(".cm-content").should("have.text", `<text><math></math></text>`);
+    });
 });

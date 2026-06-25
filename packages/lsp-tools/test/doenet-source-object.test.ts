@@ -306,6 +306,45 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Reports openTagName when typing a tag name immediately before another tag (#1328)", () => {
+        let source: string;
+        let sourceObj: DoenetSourceObject;
+
+        // `<nu<text>` — error recovery parses `<nu` as a complete element
+        // wrapping `<text>`. The cursor right after `nu` is still typing the
+        // open tag name, not in the element's body.
+        source = `<nu<text></text>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(3);
+            expect(cursorPosition).toEqual("openTagName");
+            expect(node).toMatchObject({ type: "element", name: "nu" });
+        }
+
+        // `<text><nu</text>` — same, but the new tag is typed just before the
+        // closing tag.
+        source = `<text><nu</text>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(9);
+            expect(cursorPosition).toEqual("openTagName");
+            expect(node).toMatchObject({ type: "element", name: "nu" });
+        }
+
+        // Regression guard: a cursor genuinely between an open tag's `>` and a
+        // following close tag is still the element's body, not openTagName.
+        source = `<text></text>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(6);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "text" });
+        }
+    });
+
     it("Reports the container (not the element) when the cursor is on a tag boundary (#1327)", () => {
         for (const { source, offset } of [
             { source: `<text/>`, offset: 0 },
