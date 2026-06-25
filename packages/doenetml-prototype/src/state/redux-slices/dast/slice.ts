@@ -8,6 +8,9 @@ import type {
 } from "@doenet/doenetml-worker";
 
 type ElementUpdates = ActionResponse["payload"];
+type ElementUpdateWithNewElement = {
+    newFlatDastElement?: FlatDastRootWithErrors["elements"][number];
+};
 
 // Define a type for the slice state
 export interface DastState {
@@ -72,6 +75,17 @@ const dastSlice = createSlice({
             action: PayloadAction<ElementUpdates>,
         ) => {
             for (const [id, update] of Object.entries(action.payload)) {
+                const updateWithNewElement = update as typeof update &
+                    ElementUpdateWithNewElement;
+                // A JS-bridge synthetic wrapper (`<asList>`/`<_fragment>`) may
+                // not yet exist in `elements`; the bridge ships the whole
+                // element so we can upsert it before any parent references it.
+                if (updateWithNewElement.newFlatDastElement) {
+                    state.flatDastRoot.elements[Number(id)] =
+                        updateWithNewElement.newFlatDastElement;
+                    continue;
+                }
+
                 const elm = state.flatDastRoot.elements[Number(id)];
                 if (elm == null) {
                     console.error(

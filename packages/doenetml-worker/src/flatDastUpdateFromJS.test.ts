@@ -4,6 +4,7 @@ import type { ComponentInstruction, UpdateInstruction } from "./flatDastFromJS";
 import {
     collectInstructionMaps,
     flatDastUpdateFromJS,
+    seedInstructionMaps,
 } from "./flatDastUpdateFromJS";
 
 /** Build a minimal `ComponentInstruction` (the JS core's child/document form). */
@@ -308,5 +309,175 @@ describe("flatDastFromJS (shared-helper refactor)", () => {
             // `textJsToRust` adds `value` alongside `text`.
             data: { props: { text: "hello", value: "hello" } },
         });
+    });
+});
+
+describe("composite list (asList) wrapping", () => {
+    const documentToRender = componentInstruction({
+        componentIdx: 0,
+        componentType: "document",
+        id: "/_document1",
+    });
+
+    /**
+     * Build the renderer state for a `<p>` (componentIdx 1) that contains a
+     * leading text plus a 3-item `asList` composite (compositeIdx 2) whose
+     * replacements are booleans 6/7/8 — the shape the JS core emits for
+     * `<p>Values: <booleanList>true false true</booleanList></p>`.
+     */
+    function booleanListInPInstructions(): UpdateInstruction[] {
+        return [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 0,
+                        stateValues: {},
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 1,
+                                componentType: "p",
+                                id: "/p1",
+                            }),
+                        ],
+                    },
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            _compositeReplacementActiveRange: [
+                                {
+                                    compositeIdx: 2,
+                                    compositeName: "bl",
+                                    firstInd: 1,
+                                    lastInd: 3,
+                                    asList: true,
+                                    potentialListComponents: [true, true, true],
+                                },
+                            ],
+                        },
+                        childrenInstructions: [
+                            "Values: ",
+                            componentInstruction({
+                                componentIdx: 6,
+                                componentType: "boolean",
+                                id: "bl:1",
+                            }),
+                            componentInstruction({
+                                componentIdx: 7,
+                                componentType: "boolean",
+                                id: "bl:2",
+                            }),
+                            componentInstruction({
+                                componentIdx: 8,
+                                componentType: "boolean",
+                                id: "bl:3",
+                            }),
+                        ],
+                    },
+                ],
+            },
+        ];
+    }
+
+    it("flatDastFromJS: adds an <asList> parent element for a booleanList in a <p>", () => {
+        const flatRoot = flatDastFromJS(
+            documentToRender,
+            booleanListInPInstructions(),
+        );
+
+        // The <p>'s children reference the synthetic wrapper rather than the
+        // three booleans directly.
+        const p = flatRoot.elements[1];
+        expect(p).toMatchObject({
+            name: "p",
+            children: ["Values: ", { id: 2, annotation: "original" }],
+        });
+
+        // The wrapper lives at the composite's own (otherwise-unused) idx.
+        const wrapper = flatRoot.elements[2];
+        expect(wrapper).toMatchObject({
+            type: "element",
+            name: "asList",
+            children: [
+                { id: 6, annotation: "original" },
+                { id: 7, annotation: "original" },
+                { id: 8, annotation: "original" },
+            ],
+            data: { id: 2 },
+        });
+    });
+
+    it("flatDastUpdateFromJS: emits the <asList> parent and references it from the parent's newChildren", () => {
+        const { componentIdxToName, doenetIdToComponentIdx } =
+            seedInstructionMaps(documentToRender, booleanListInPInstructions());
+
+        const updates = flatDastUpdateFromJS(
+            booleanListInPInstructions(),
+            componentIdxToName,
+            doenetIdToComponentIdx,
+        );
+
+        // The <p> update points at the wrapper.
+        expect(updates[1].newChildren).toEqual([
+            "Values: ",
+            { id: 2, annotation: "original" },
+        ]);
+
+        // The wrapper is shipped as a full element for the reducer to upsert.
+        expect(updates[2].newFlatDastElement).toMatchObject({
+            type: "element",
+            name: "asList",
+            children: [
+                { id: 6, annotation: "original" },
+                { id: 7, annotation: "original" },
+                { id: 8, annotation: "original" },
+            ],
+            data: { id: 2 },
+        });
+    });
+
+    it("flatDastUpdateFromJS: a non-list composite update produces no wrapper", () => {
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            _compositeReplacementActiveRange: [
+                                {
+                                    compositeIdx: 2,
+                                    firstInd: 0,
+                                    lastInd: 1,
+                                    asList: false,
+                                    potentialListComponents: [true, true],
+                                },
+                            ],
+                        },
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 6,
+                                componentType: "text",
+                                id: "g:1",
+                            }),
+                            componentInstruction({
+                                componentIdx: 7,
+                                componentType: "text",
+                                id: "g:2",
+                            }),
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        const updates = flatDastUpdateFromJS(updateInstructions, { 1: "p" });
+
+        expect(updates[1].newChildren).toEqual([
+            { id: 6, annotation: "original" },
+            { id: 7, annotation: "original" },
+        ]);
+        // No synthetic wrapper entry.
+        expect(updates[2]).toBeUndefined();
     });
 });
