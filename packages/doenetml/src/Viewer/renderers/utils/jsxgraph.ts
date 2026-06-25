@@ -102,103 +102,6 @@ export function applyAxisTickHeights({
     }
 }
 
-export function createYAxis({
-    theBoard,
-    SVs,
-    yaxisRef,
-    previousYaxisWithLabelRef,
-}: {
-    theBoard: JXGBoard;
-    SVs: Record<string, any>;
-    yaxisRef: AxisRef;
-    previousYaxisWithLabelRef: RefObject<boolean>;
-}): void {
-    const yaxisOptions: Record<string, any> = { highlight: false, fixed: true };
-    if (SVs.yLabel) {
-        let position = "rt";
-        const offset = [-10, -5];
-        let anchorx = "right";
-        if (SVs.yLabelPosition === "bottom") {
-            position = "lft";
-            offset[1] = 5;
-        }
-        if (SVs.yLabelAlignment === "right") {
-            anchorx = "left";
-            offset[0] = 10;
-        }
-        yaxisOptions.name = SVs.yLabel;
-        yaxisOptions.withLabel = true;
-        yaxisOptions.label = {
-            position,
-            offset,
-            anchorx,
-            strokeColor: "var(--canvasText)",
-            highlight: false,
-        };
-        if (SVs.yLabelHasLatex) {
-            yaxisOptions.label.useMathJax = true;
-        }
-    }
-    previousYaxisWithLabelRef.current = Boolean(SVs.yLabel);
-
-    yaxisOptions.strokeColor = "var(--canvasText)";
-    yaxisOptions.highlight = false;
-
-    yaxisOptions.ticks = {
-        ticksDistance: 2,
-        label: {
-            offset: [12, -2],
-            layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
-            highlightStrokeOpacity: 1,
-        },
-        strokeColor: "var(--canvasText)",
-        strokeOpacity: 0.5,
-        digits: 4,
-        drawLabels: SVs.displayYAxisTickLabels,
-    };
-    if (SVs.yTickScaleFactor !== null) {
-        const yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
-        const scale = yTickScaleFactor.evaluate_to_constant();
-        if (scale !== null && scale > 0) {
-            const scaleSymbol = yTickScaleFactor.toString();
-            yaxisOptions.ticks.scale = scale;
-            yaxisOptions.ticks.scaleSymbol = scaleSymbol;
-        }
-    }
-    // Only control real ticks (height != -1), not grid lines (height = -1)
-    if (SVs.grid === "dense") {
-        yaxisOptions.ticks.majorHeight = -1;
-        yaxisOptions.ticks.minorHeight = -1;
-    } else if (SVs.grid === "medium") {
-        yaxisOptions.ticks.majorHeight = -1;
-        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
-    } else {
-        yaxisOptions.ticks.majorHeight = SVs.displayYAxisTicks ? 12 : 0;
-        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
-    }
-
-    if (!SVs.displayXAxis) {
-        yaxisOptions.ticks.drawZero = true;
-    }
-
-    theBoard.suspendUpdate();
-
-    yaxisRef.current = theBoard.create(
-        "axis",
-        [
-            [0, 0],
-            [0, 1],
-        ],
-        yaxisOptions,
-    ) as AxisJXG;
-
-    setMinorTicks(yaxisRef.current);
-
-    theBoard.unsuspendUpdate();
-}
-
 export function createXAxis({
     theBoard,
     SVs,
@@ -273,8 +176,16 @@ export function createXAxis({
         xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
     }
 
-    if (!SVs.displayYAxis) {
+    if (SVs.displayYAxis === "none") {
         xaxisOptions.ticks.drawZero = true;
+    }
+
+    if (SVs.displayXAxis === "positiveonly") {
+        xaxisOptions.straightFirst = false;
+    } else if (SVs.displayXAxis === "negativeonly") {
+        xaxisOptions.straightLast = false;
+        xaxisOptions.lastArrow = false;
+        xaxisOptions.firstArrow = { type: 1, highlightSize: 8, size: 8 };
     }
 
     theBoard.suspendUpdate();
@@ -289,6 +200,111 @@ export function createXAxis({
     ) as AxisJXG;
 
     setMinorTicks(xaxisRef.current);
+    theBoard.unsuspendUpdate();
+}
+
+export function createYAxis({
+    theBoard,
+    SVs,
+    yaxisRef,
+    previousYaxisWithLabelRef,
+}: {
+    theBoard: JXGBoard;
+    SVs: Record<string, any>;
+    yaxisRef: AxisRef;
+    previousYaxisWithLabelRef: RefObject<boolean>;
+}): void {
+    const yaxisOptions: Record<string, any> = { highlight: false, fixed: true };
+    if (SVs.yLabel) {
+        let position = "rt";
+        const offset = [-10, -5];
+        let anchorx = "right";
+        if (SVs.yLabelPosition === "bottom") {
+            position = "lft";
+            offset[1] = 5;
+        }
+        if (SVs.yLabelAlignment === "right") {
+            anchorx = "left";
+            offset[0] = 10;
+        }
+        yaxisOptions.name = SVs.yLabel;
+        yaxisOptions.withLabel = true;
+        yaxisOptions.label = {
+            position,
+            offset,
+            anchorx,
+            strokeColor: "var(--canvasText)",
+            highlight: false,
+        };
+        if (SVs.yLabelHasLatex) {
+            yaxisOptions.label.useMathJax = true;
+        }
+    }
+    previousYaxisWithLabelRef.current = Boolean(SVs.yLabel);
+
+    yaxisOptions.strokeColor = "var(--canvasText)";
+    yaxisOptions.highlight = false;
+
+    yaxisOptions.ticks = {
+        ticksDistance: 2,
+        label: {
+            offset: [12, -2],
+            layer: 2,
+            strokeColor: "var(--canvasText)",
+            highlightStrokeColor: "var(--canvasText)",
+            highlightStrokeOpacity: 1,
+        },
+        strokeColor: "var(--canvasText)",
+        strokeOpacity: 0.5,
+        digits: 4,
+        drawLabels: SVs.displayYAxisTickLabels,
+    };
+    if (SVs.yTickScaleFactor !== null) {
+        const yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
+        const scale = yTickScaleFactor.evaluate_to_constant();
+        if (scale !== null && scale > 0) {
+            const scaleSymbol = yTickScaleFactor.toString();
+            yaxisOptions.ticks.scale = scale;
+            yaxisOptions.ticks.scaleSymbol = scaleSymbol;
+        }
+    }
+
+    if (SVs.grid === "dense") {
+        yaxisOptions.ticks.majorHeight = -1;
+        yaxisOptions.ticks.minorHeight = -1;
+    } else if (SVs.grid === "medium") {
+        yaxisOptions.ticks.majorHeight = -1;
+        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
+    } else {
+        yaxisOptions.ticks.majorHeight = SVs.displayYAxisTicks ? 12 : 0;
+        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
+    }
+
+    if (SVs.displayXAxis === "none") {
+        yaxisOptions.ticks.drawZero = true;
+    }
+
+    if (SVs.displayYAxis === "positiveonly") {
+        yaxisOptions.straightFirst = false;
+    } else if (SVs.displayYAxis === "negativeonly") {
+        yaxisOptions.straightLast = false;
+        yaxisOptions.lastArrow = false;
+        yaxisOptions.firstArrow = { type: 1, highlightSize: 8, size: 8 };
+    }
+
+    theBoard.suspendUpdate();
+
+    yaxisRef.current = theBoard.create(
+        "axis",
+        [
+            [0, 0],
+            [0, 1],
+        ],
+        yaxisOptions,
+    ) as AxisJXG;
+
+    setMinorTicks(yaxisRef.current);
+
     theBoard.unsuspendUpdate();
 }
 
