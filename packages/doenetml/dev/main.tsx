@@ -1,9 +1,36 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { DoenetViewer, DoenetEditor } from "../src/index";
+import "./main.css";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
+
+const SOURCE_STORAGE_KEY = "doenetml-dev-source";
+
+function getInitialSource(): string {
+    try {
+        return localStorage.getItem(SOURCE_STORAGE_KEY) ?? doenetMLstring;
+    } catch {
+        return doenetMLstring;
+    }
+}
+
+function saveSource(source: string) {
+    try {
+        localStorage.setItem(SOURCE_STORAGE_KEY, source);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+}
+
+function resetSource() {
+    try {
+        localStorage.removeItem(SOURCE_STORAGE_KEY);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+}
 
 // Toggle to switch prefigure source in dev.
 // true  – load from local @doenet/prefigure build (served by this dev server).
@@ -38,12 +65,38 @@ const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
+    const [initialSource] = React.useState(getInitialSource);
+    const [resetKey, setResetKey] = React.useState(0);
+
+    function handleReset() {
+        resetSource();
+        setResetKey((k) => k + 1);
+    }
+
     return (
-        <DoenetEditor
-            doenetML={doenetMLstring}
-            height="100%"
-            fetchExternalDoenetML={fetchExternalDoenetML}
-        />
+        <div className="dev-app">
+            <div className="dev-toolbar">
+                <span className="dev-toolbar-status">
+                    DoenetML source is saved to local storage as you edit.
+                </span>
+                <button
+                    className="dev-reset-button"
+                    title="Clear saved DoenetML source from local storage and reset to default."
+                    onClick={handleReset}
+                >
+                    Reset
+                </button>
+            </div>
+            <div className="dev-viewer">
+                <DoenetEditor
+                    key={resetKey}
+                    doenetML={resetKey === 0 ? initialSource : doenetMLstring}
+                    height="100%"
+                    fetchExternalDoenetML={fetchExternalDoenetML}
+                    immediateDoenetmlChangeCallback={saveSource}
+                />
+            </div>
+        </div>
     );
 }
 
