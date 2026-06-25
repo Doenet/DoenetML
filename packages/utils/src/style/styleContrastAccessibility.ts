@@ -29,6 +29,7 @@ import {
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
     compositedContrastRatio,
+    invertLightness,
     suggestAccessibleDarkModeColorAgainst,
 } from "./colorAccessibility";
 
@@ -329,7 +330,9 @@ function derivedDarkModeCombinationDiagnostics(
             ? ["background", "text"]
             : ["text", "background"];
 
-    let suggestion: { attribute: string; color: string } | undefined;
+    let suggestion:
+        | { lightAttribute: string; darkAttribute: string; darkColor: string }
+        | undefined;
     for (const channel of channelsToTry) {
         const color = suggestAccessibleDarkModeColorAgainst({
             startColor: channel === "text" ? textDark : backgroundDark,
@@ -339,20 +342,31 @@ function derivedDarkModeCombinationDiagnostics(
         });
         if (color) {
             suggestion = {
-                attribute:
+                lightAttribute:
+                    channel === "text" ? "textColor" : "backgroundColor",
+                darkAttribute:
                     channel === "text"
                         ? "textColorDarkMode"
                         : "backgroundColorDarkMode",
-                color,
+                darkColor: color,
             };
             break;
         }
     }
 
-    const baseMessage = `Style definition ${styleNumber} has insufficient contrast for the derived dark-mode text color against background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`;
-    const fixMessage = suggestion
-        ? ` To restore sufficient contrast in dark mode, set ${suggestion.attribute} to a more contrasting color, for example ${suggestion.attribute}="${suggestion.color}".`
-        : ` Set textColorDarkMode and/or backgroundColorDarkMode to override the derived colors.`;
+    const baseMessage = `Although style definition ${styleNumber} has specified colors that provide sufficient contrast for light mode, the dark-mode colors derived from these values have insufficient contrast for the text color against the background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`;
+    let fixMessage: string;
+    if (suggestion) {
+        // The dark color is derived from the light color by inverting its
+        // lightness, and that inversion is its own inverse — so a light value
+        // that derives to the accessible dark color is just the inverted dark
+        // color. Offering both lets the author keep their dark color and fix the
+        // light contrast, or keep their light color and override the dark one.
+        const lightColor = invertLightness(suggestion.darkColor);
+        fixMessage = ` To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set ${suggestion.lightAttribute}="${lightColor}") or override the dark-mode color (e.g., set ${suggestion.darkAttribute}="${suggestion.darkColor}").`;
+    } else {
+        fixMessage = ` To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived colors with textColorDarkMode and/or backgroundColorDarkMode.`;
+    }
 
     return [
         {

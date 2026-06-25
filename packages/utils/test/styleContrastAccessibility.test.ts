@@ -107,29 +107,51 @@ describe("derived dark-mode combination diagnostics", () => {
             backgroundColor: { style: "#c0c0c0", position: POS },
         });
         const derived = diags.filter((d) =>
-            d.message.includes("derived dark-mode"),
+            d.message.includes("dark-mode colors derived from these values"),
         );
         expect(derived.length).toBe(1);
         expect(derived[0].message).toMatch(/insufficient contrast/);
 
         // The two colors share a position, so the squiggle resolves to
-        // backgroundColor and the fix targets backgroundColorDarkMode.
-        const match = derived[0].message.match(
-            /for example (\w+)="(#[0-9a-fA-F]+)"/,
+        // backgroundColor: the dark-mode override targets backgroundColorDarkMode
+        // and the light-mode remedy targets backgroundColor.
+        const darkMatch = derived[0].message.match(
+            /set (backgroundColorDarkMode)="(#[0-9a-fA-F]+)"/,
         );
-        expect(match).not.toBeNull();
-        const [, attribute, suggestedColor] = match!;
-        expect(attribute).toBe("backgroundColorDarkMode");
+        const lightMatch = derived[0].message.match(
+            /set (backgroundColor)="(#[0-9a-fA-F]+)"/,
+        );
+        expect(darkMatch).not.toBeNull();
+        expect(lightMatch).not.toBeNull();
+        const suggestedDark = darkMatch![2];
+        const suggestedLight = lightMatch![2];
 
-        // The suggested value must actually clear AA: pinning it should silence
-        // the derived-combination diagnostic.
-        const fixed = deriveAndDiagnose({
+        // Either remedy must actually clear AA: pinning the dark override, or
+        // adopting the suggested light color (which derives to the same dark
+        // value), should silence the diagnostic.
+        const fixedViaDark = deriveAndDiagnose({
             textColor: { style: "#000080", position: POS },
             backgroundColor: { style: "#c0c0c0", position: POS },
-            backgroundColorDarkMode: { style: suggestedColor, position: POS },
+            backgroundColorDarkMode: { style: suggestedDark, position: POS },
         });
         expect(
-            fixed.filter((d) => d.message.includes("derived dark-mode")).length,
+            fixedViaDark.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
+        ).toBe(0);
+
+        const fixedViaLight = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: suggestedLight, position: POS },
+        });
+        expect(
+            fixedViaLight.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
         ).toBe(0);
     });
 
@@ -141,10 +163,11 @@ describe("derived dark-mode combination diagnostics", () => {
             textColor: { style: "#000080", position: later },
         });
         const derived = diags.filter((d) =>
-            d.message.includes("derived dark-mode"),
+            d.message.includes("dark-mode colors derived from these values"),
         );
         expect(derived.length).toBe(1);
-        expect(derived[0].message).toMatch(/for example textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/set textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/set textColor="#/);
     });
 
     it("does not flag a derived dark pair that stays accessible", () => {
@@ -153,7 +176,11 @@ describe("derived dark-mode combination diagnostics", () => {
             backgroundColor: { style: "white", position: POS },
         });
         expect(
-            diags.filter((d) => d.message.includes("derived dark-mode")).length,
+            diags.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
         ).toBe(0);
     });
 
@@ -163,7 +190,11 @@ describe("derived dark-mode combination diagnostics", () => {
             backgroundColor: { style: "#999999", position: POS },
         });
         expect(
-            diags.filter((d) => d.message.includes("derived dark-mode")).length,
+            diags.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
         ).toBe(0);
     });
 });
