@@ -99,7 +99,7 @@ describe("derived dark-mode combination diagnostics", () => {
         });
     }
 
-    it("flags an accessible light pair that derives to an inaccessible dark pair", () => {
+    it("flags an accessible light pair that derives to an inaccessible dark pair, and suggests a fix under the squiggled attribute", () => {
         // navy text on silver is accessible in light mode (~7.6:1), but the
         // independent lightness inversion (#8080ff on #404040) drops below AA.
         const diags = deriveAndDiagnose({
@@ -111,6 +111,40 @@ describe("derived dark-mode combination diagnostics", () => {
         );
         expect(derived.length).toBe(1);
         expect(derived[0].message).toMatch(/insufficient contrast/);
+
+        // The two colors share a position, so the squiggle resolves to
+        // backgroundColor and the fix targets backgroundColorDarkMode.
+        const match = derived[0].message.match(
+            /Set (\w+)="(#[0-9a-fA-F]+)" to restore/,
+        );
+        expect(match).not.toBeNull();
+        const [, attribute, suggestedColor] = match!;
+        expect(attribute).toBe("backgroundColorDarkMode");
+
+        // The suggested value must actually clear AA: pinning it should silence
+        // the derived-combination diagnostic.
+        const fixed = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: "#c0c0c0", position: POS },
+            backgroundColorDarkMode: { style: suggestedColor, position: POS },
+        });
+        expect(
+            fixed.filter((d) => d.message.includes("derived dark-mode")).length,
+        ).toBe(0);
+    });
+
+    it("targets textColorDarkMode when the squiggle is under textColor", () => {
+        const earlier = { start: { line: 1, column: 1, offset: 0 } };
+        const later = { start: { line: 2, column: 1, offset: 40 } };
+        const diags = deriveAndDiagnose({
+            backgroundColor: { style: "#c0c0c0", position: earlier },
+            textColor: { style: "#000080", position: later },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("derived dark-mode"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/Set textColorDarkMode="#/);
     });
 
     it("does not flag a derived dark pair that stays accessible", () => {

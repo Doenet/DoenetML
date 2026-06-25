@@ -208,3 +208,79 @@ export function invertLightness(color: string): string {
 export function deriveAccessibleDarkModeBackground(lightColor: string): string {
     return invertLightness(lightColor);
 }
+
+/**
+ * Suggests an explicit dark-mode color for one channel of a text/background pair
+ * that restores `threshold` contrast against a fixed partner color on the dark
+ * canvas.
+ *
+ * Used when independently inverting an author's light-mode foreground/background
+ * pair produced an inaccessible dark-mode combination: rather than silently
+ * coupling the two derivations, we keep them independent and recommend a single
+ * `*ColorDarkMode` value the author can pin. The search keeps the channel's hue
+ * and saturation and walks its lightness outward from `startColor` (the derived
+ * value), so the suggestion stays as close as possible to the derived color
+ * while clearing the threshold.
+ *
+ * @param startColor - The channel's derived dark-mode color (search origin).
+ * @param partnerColor - The other channel's dark-mode color, held fixed.
+ * @param channelRole - Whether the channel being adjusted is the foreground
+ * (`"text"`) or the background surface, so compositing layers correctly.
+ * @param threshold - Required contrast ratio on the dark canvas.
+ * @returns A hex color meeting the threshold, or `null` when none exists (e.g.
+ * the partner is mid-gray, unreadable at any lightness of this channel).
+ */
+export function suggestAccessibleDarkModeColorAgainst({
+    startColor,
+    partnerColor,
+    channelRole,
+    threshold,
+}: {
+    startColor: string;
+    partnerColor: string;
+    channelRole: "text" | "background";
+    threshold: number;
+}): string | null {
+    const base = colord(startColor);
+    if (!base.isValid()) {
+        return null;
+    }
+
+    const { h, s, l: startL } = base.toHsl();
+
+    const ratioAtLightness = (candidateL: number): number | null => {
+        const candidate = colord({ h, s, l: candidateL }).toHex();
+        // Contrast is symmetric, but compositing is not: paint the foreground
+        // (text) over the background surface over the canvas.
+        return channelRole === "text"
+            ? compositedContrastRatio({
+                  foreground: candidate,
+                  canvas: CANVAS_DARK_MODE_COLOR,
+                  background: partnerColor,
+              })
+            : compositedContrastRatio({
+                  foreground: partnerColor,
+                  canvas: CANVAS_DARK_MODE_COLOR,
+                  background: candidate,
+              });
+    };
+
+    const roundedStart = Math.round(startL);
+    for (let delta = 0; delta <= 100; delta++) {
+        const candidates =
+            delta === 0
+                ? [roundedStart]
+                : [roundedStart + delta, roundedStart - delta];
+        for (const candidateL of candidates) {
+            if (candidateL < 0 || candidateL > 100) {
+                continue;
+            }
+            const ratio = ratioAtLightness(candidateL);
+            if (ratio !== null && ratio >= threshold) {
+                return colord({ h, s, l: candidateL }).toHex();
+            }
+        }
+    }
+
+    return null;
+}

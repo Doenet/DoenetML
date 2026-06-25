@@ -29,6 +29,7 @@ import {
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
     compositedContrastRatio,
+    suggestAccessibleDarkModeColorAgainst,
 } from "./colorAccessibility";
 
 type Mode = "light" | "dark";
@@ -307,19 +308,57 @@ function derivedDarkModeCombinationDiagnostics(
         return [];
     }
 
-    const position = latestPosition(
-        styleDef.textColor?.position,
-        styleDef.backgroundColor?.position,
-    );
+    const textPosition = styleDef.textColor?.position;
+    const backgroundPosition = styleDef.backgroundColor?.position;
+    const position = latestPosition(textPosition, backgroundPosition);
     if (!position) {
         return [];
     }
+
+    // The diagnostic squiggle sits under whichever color the anchor position
+    // belongs to (the later-authored one; ties resolve to backgroundColor,
+    // matching `latestPosition`'s argument order). Recommend a fix for *that*
+    // attribute's dark-mode override first, falling back to the other channel
+    // when adjusting the squiggled one alone can't reach the threshold.
+    const squiggledChannel: "text" | "background" =
+        backgroundPosition && position === backgroundPosition
+            ? "background"
+            : "text";
+    const channelsToTry: ("text" | "background")[] =
+        squiggledChannel === "background"
+            ? ["background", "text"]
+            : ["text", "background"];
+
+    let suggestion: { attribute: string; color: string } | undefined;
+    for (const channel of channelsToTry) {
+        const color = suggestAccessibleDarkModeColorAgainst({
+            startColor: channel === "text" ? textDark : backgroundDark,
+            partnerColor: channel === "text" ? backgroundDark : textDark,
+            channelRole: channel,
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+        if (color) {
+            suggestion = {
+                attribute:
+                    channel === "text"
+                        ? "textColorDarkMode"
+                        : "backgroundColorDarkMode",
+                color,
+            };
+            break;
+        }
+    }
+
+    const baseMessage = `Style definition ${styleNumber} has insufficient contrast for the derived dark-mode text color against background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`;
+    const fixMessage = suggestion
+        ? ` Set ${suggestion.attribute}="${suggestion.color}" to restore sufficient contrast in dark mode.`
+        : ` Set textColorDarkMode and/or backgroundColorDarkMode to override the derived colors.`;
 
     return [
         {
             type: "accessibility",
             level: 1,
-            message: `Style definition ${styleNumber} has insufficient contrast for the derived dark-mode text color against background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1). Set textColorDarkMode and/or backgroundColorDarkMode to override the derived colors.`,
+            message: baseMessage + fixMessage,
             position,
         },
     ];

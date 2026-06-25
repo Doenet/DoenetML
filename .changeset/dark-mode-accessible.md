@@ -24,9 +24,11 @@ Dark mode: make it actually work and meet WCAG AA.
   parent/child style blocks, and it preserves the author's figure/ground
   relationship without "fixing" an intentionally low-contrast pairing. When an
   otherwise-accessible light-mode pair happens to invert to an inaccessible
-  dark-mode pair, an accessibility diagnostic is emitted. Author-supplied
-  `*ColorDarkMode` values that fail AA likewise emit a diagnostic, mirroring the
-  existing light-mode check.
+  dark-mode pair, an accessibility diagnostic is emitted (with a suggested
+  `textColorDarkMode`/`backgroundColorDarkMode` value, targeting the attribute
+  the diagnostic is anchored to, that restores sufficient contrast).
+  Author-supplied `*ColorDarkMode` values that fail AA likewise emit a
+  diagnostic, mirroring the existing light-mode check.
 - The six built-in style presets had their dark-mode colors recomputed to meet
   WCAG AA.
 - Fixed renderer pieces that went invisible (or low-contrast) on the dark
