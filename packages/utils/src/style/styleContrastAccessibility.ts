@@ -30,6 +30,7 @@ import {
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
     compositedContrastRatio,
+    deriveAccessibleDarkModeColor,
     invertLightness,
     suggestAccessibleDarkModeColorAgainst,
 } from "./colorAccessibility";
@@ -372,6 +373,79 @@ function derivedDarkModeCombinationDiagnostics(
 }
 
 /**
+ * Flags a derived dark-mode text color that is readable on the light canvas but
+ * becomes unreadable on the dark canvas when no authored background participates.
+ *
+ * Text/background pairs are checked by
+ * {@link derivedDarkModeCombinationDiagnostics}; this covers the text-only case
+ * where the canvas itself is the contrast partner. Author-supplied
+ * `textColorDarkMode` values are handled by the per-channel dark-mode pass.
+ */
+function derivedDarkModeTextCanvasDiagnostics(
+    styleNumber: string,
+    styleDef: StyleDefinition,
+): AccessibilityRecord[] {
+    const textLight = getStyleValueString(styleDef, "textColor");
+    const textDark = getStyleValueString(styleDef, "textColorDarkMode");
+
+    if (
+        !textLight ||
+        !textDark ||
+        getStyleValueString(styleDef, "backgroundColor") ||
+        getStyleValueString(styleDef, "backgroundColorDarkMode") ||
+        styleDef.textColorDarkMode?.position
+    ) {
+        return [];
+    }
+
+    const position = styleDef.textColor?.position;
+    if (!position) {
+        return [];
+    }
+
+    const lightRatio = compositedContrastRatio({
+        foreground: textLight,
+        canvas: CANVAS_LIGHT_MODE_COLOR,
+    });
+    const darkRatio = compositedContrastRatio({
+        foreground: textDark,
+        canvas: CANVAS_DARK_MODE_COLOR,
+    });
+
+    if (
+        lightRatio === null ||
+        darkRatio === null ||
+        lightRatio < TEXT_CONTRAST_THRESHOLD ||
+        darkRatio >= TEXT_CONTRAST_THRESHOLD
+    ) {
+        return [];
+    }
+
+    const suggestedDark = deriveAccessibleDarkModeColor({
+        lightColor: textDark,
+        threshold: TEXT_CONTRAST_THRESHOLD,
+    });
+    const suggestedDarkRatio = compositedContrastRatio({
+        foreground: suggestedDark,
+        canvas: CANVAS_DARK_MODE_COLOR,
+    });
+    const fixMessage =
+        suggestedDarkRatio !== null &&
+        suggestedDarkRatio >= TEXT_CONTRAST_THRESHOLD
+            ? ` To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set textColor="${invertLightness(suggestedDark)}") or override the dark-mode color (e.g., set textColorDarkMode="${suggestedDark}").`
+            : ` To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived color with textColorDarkMode.`;
+
+    return [
+        {
+            type: "accessibility",
+            level: 1,
+            message: `Although style definition ${styleNumber} has a specified text color that provides sufficient contrast for light mode, the dark-mode text color derived from this value has insufficient contrast against the canvas (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).${fixMessage}`,
+            position,
+        },
+    ];
+}
+
+/**
  * Generates all light- and dark-mode contrast accessibility diagnostics for one
  * style definition.
  */
@@ -383,6 +457,7 @@ function contrastAccessibilityDiagnosticsForStyleDefinition(
         ...contrastDiagnosticsForMode(styleNumber, styleDef, "light"),
         ...contrastDiagnosticsForMode(styleNumber, styleDef, "dark"),
         ...derivedDarkModeCombinationDiagnostics(styleNumber, styleDef),
+        ...derivedDarkModeTextCanvasDiagnostics(styleNumber, styleDef),
     ];
 }
 

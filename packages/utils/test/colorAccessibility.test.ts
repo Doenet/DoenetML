@@ -9,6 +9,7 @@ import {
     compositedContrastRatio,
     deriveAccessibleDarkModeBackground,
     deriveAccessibleDarkModeColor,
+    suggestAccessibleDarkModeColorAgainst,
 } from "../src/style/colorAccessibility";
 
 extend([a11yPlugin]);
@@ -103,6 +104,28 @@ describe("deriveAccessibleDarkModeColor", () => {
         );
     });
 
+    it("preserves authored alpha while lightening", () => {
+        const derived = deriveAccessibleDarkModeColor({
+            lightColor: "rgba(0, 0, 0, 0.5)",
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+        expect(colord(derived).toRgb().a).toBeCloseTo(0.5);
+        expect(contrastVsDarkCanvas(derived)).toBeGreaterThanOrEqual(
+            TEXT_CONTRAST_THRESHOLD,
+        );
+    });
+
+    it("preserves authored alpha when no lightness can meet the threshold", () => {
+        const derived = deriveAccessibleDarkModeColor({
+            lightColor: "rgba(0, 0, 0, 0.2)",
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+        expect(colord(derived).toRgb().a).toBeCloseTo(0.2);
+        expect(contrastVsDarkCanvas(derived)).toBeLessThan(
+            TEXT_CONTRAST_THRESHOLD,
+        );
+    });
+
     it("returns the input unchanged when it cannot be parsed", () => {
         expect(
             deriveAccessibleDarkModeColor({
@@ -136,5 +159,18 @@ describe("deriveAccessibleDarkModeBackground", () => {
         const result = colord(derived).toHsl();
         expect(Math.abs(result.h - original.h)).toBeLessThan(2);
         expect(result.l).toBeCloseTo(100 - original.l, 0);
+    });
+});
+
+describe("suggestAccessibleDarkModeColorAgainst", () => {
+    it("preserves alpha in suggested text colors", () => {
+        const suggested = suggestAccessibleDarkModeColorAgainst({
+            startColor: "rgba(128, 128, 255, 0.8)",
+            partnerColor: "#404040",
+            channelRole: "text",
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+        expect(suggested).not.toBeNull();
+        expect(colord(suggested!).toRgb().a).toBeCloseTo(0.8);
     });
 });

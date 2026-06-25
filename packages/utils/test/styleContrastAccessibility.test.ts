@@ -244,4 +244,34 @@ describe("derived dark-mode combination diagnostics", () => {
             ).length,
         ).toBe(0);
     });
+
+    it("flags derived text-only dark colors that fail against the dark canvas", () => {
+        // This muted red clears AA against the light canvas, but its independent
+        // lightness inversion does not clear AA against the dark canvas.
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#a14545", position: POS },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("dark-mode text color derived from this value"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/set textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/set textColor="#/);
+
+        const darkMatch = derived[0].message.match(
+            /set textColorDarkMode="(#[0-9a-fA-F]+)"/,
+        );
+        expect(darkMatch).not.toBeNull();
+        const fixedViaDark = deriveAndDiagnose({
+            textColor: { style: "#a14545", position: POS },
+            textColorDarkMode: { style: darkMatch![1], position: POS },
+        });
+        expect(
+            fixedViaDark.filter((d) =>
+                d.message.includes(
+                    "dark-mode text color derived from this value",
+                ),
+            ).length,
+        ).toBe(0);
+    });
 });

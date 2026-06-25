@@ -165,6 +165,24 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         expect(accessibility.length).eq(0);
     });
 
+    it("emits accessibility diagnostic when derived text-only dark color fails against the dark canvas", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="23" textColor="#a14545" />
+`,
+        });
+
+        const { accessibility } = getDiagnosticsByType(core);
+
+        expect(accessibility.length).eq(1);
+        expect(accessibility[0].message).toContain("style definition 23");
+        expect(accessibility[0].message).toContain(
+            "dark-mode text color derived from this value",
+        );
+        expect(accessibility[0].message).toContain("textColorDarkMode");
+        expect(accessibility[0].position.start.line).eq(2);
+    });
+
     it("does not emit accessibility diagnostic for near-threshold line contrast that is above 3:1", async () => {
         const { core } = await createTestCore({
             doenetML: `

@@ -33,6 +33,7 @@ export const GRAPHIC_CONTRAST_THRESHOLD = 3;
 export const TEXT_CONTRAST_THRESHOLD = 4.5;
 
 type Rgb = { r: number; g: number; b: number };
+type HslaColor = { h: number; s: number; a: number };
 
 function clamp01(value: number): number {
     if (!Number.isFinite(value)) {
@@ -55,6 +56,10 @@ function compositeOver(
         g: foreground.g * a + background.g * (1 - a),
         b: foreground.b * a + background.b * (1 - a),
     };
+}
+
+function hexWithLightness(color: HslaColor, lightness: number): string {
+    return colord({ ...color, l: lightness }).toHex();
 }
 
 /**
@@ -127,8 +132,9 @@ export function compositedContrastRatio({
  * @param lightColor - Author's (or preset's) light-mode color.
  * @param threshold - Required contrast ratio against the dark canvas.
  * @param opacityMultiplier - Effective opacity of the channel (e.g. lineOpacity).
- * @returns A CSS color string for dark mode (hex), or the input unchanged when
- * it cannot be parsed or already meets the threshold.
+ * @returns A CSS color string for dark mode (hex, including alpha when
+ * present), or the input unchanged when it cannot be parsed or already meets
+ * the threshold.
  */
 export function deriveAccessibleDarkModeColor({
     lightColor,
@@ -153,9 +159,9 @@ export function deriveAccessibleDarkModeColor({
         return lightColor;
     }
 
-    const { h, s, l: startL } = base.toHsl();
+    const { h, s, l: startL, a } = base.toHsl();
     for (let l = Math.ceil(startL); l <= 100; l++) {
-        const candidate = colord({ h, s, l }).toHex();
+        const candidate = hexWithLightness({ h, s, a }, l);
         const ratio = compositedContrastRatio({
             foreground: candidate,
             canvas: CANVAS_DARK_MODE_COLOR,
@@ -166,7 +172,7 @@ export function deriveAccessibleDarkModeColor({
         }
     }
 
-    return "#ffffff";
+    return hexWithLightness({ h, s, a }, 100);
 }
 
 /**
@@ -176,8 +182,8 @@ export function deriveAccessibleDarkModeColor({
  * combination to dark mode (a black surface becomes white, etc.).
  *
  * @param color - CSS color string.
- * @returns The lightness-inverted color as hex, or the input unchanged when it
- * cannot be parsed.
+ * @returns The lightness-inverted color as hex (including alpha when present),
+ * or the input unchanged when it cannot be parsed.
  */
 export function invertLightness(color: string): string {
     const c = colord(color);
@@ -203,7 +209,8 @@ export function invertLightness(color: string): string {
  * diagnostic).
  *
  * @param lightColor - Author's light-mode background color.
- * @returns A CSS color string (hex) for the dark-mode surface.
+ * @returns A CSS color string (hex, including alpha when present) for the
+ * dark-mode surface.
  */
 export function deriveAccessibleDarkModeBackground(lightColor: string): string {
     return invertLightness(lightColor);
@@ -227,8 +234,9 @@ export function deriveAccessibleDarkModeBackground(lightColor: string): string {
  * @param channelRole - Whether the channel being adjusted is the foreground
  * (`"text"`) or the background surface, so compositing layers correctly.
  * @param threshold - Required contrast ratio on the dark canvas.
- * @returns A hex color meeting the threshold, or `null` when none exists (e.g.
- * the partner is mid-gray, unreadable at any lightness of this channel).
+ * @returns A hex color (including alpha when present) meeting the threshold, or
+ * `null` when none exists (e.g. the partner is mid-gray, unreadable at any
+ * lightness of this channel).
  */
 export function suggestAccessibleDarkModeColorAgainst({
     startColor,
@@ -246,10 +254,10 @@ export function suggestAccessibleDarkModeColorAgainst({
         return null;
     }
 
-    const { h, s, l: startL } = base.toHsl();
+    const { h, s, l: startL, a } = base.toHsl();
 
     const ratioAtLightness = (candidateL: number): number | null => {
-        const candidate = colord({ h, s, l: candidateL }).toHex();
+        const candidate = hexWithLightness({ h, s, a }, candidateL);
         // Contrast is symmetric, but compositing is not: paint the foreground
         // (text) over the background surface over the canvas.
         return channelRole === "text"
@@ -277,7 +285,7 @@ export function suggestAccessibleDarkModeColorAgainst({
             }
             const ratio = ratioAtLightness(candidateL);
             if (ratio !== null && ratio >= threshold) {
-                return colord({ h, s, l: candidateL }).toHex();
+                return hexWithLightness({ h, s, a }, candidateL);
             }
         }
     }

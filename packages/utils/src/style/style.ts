@@ -481,10 +481,12 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
  *  - **Contrasted against an *author-variable* partner** (`text` vs
  *    `background`): the goal is to flip the figure/ground relationship
  *    (white-on-black → black-on-white), so we invert each color's lightness
- *    independently of the other. Independence keeps the result order/locality-
- *    invariant but means the *pair* is not accessible by construction, so its
- *    contrast is checked after the fact by the contrast diagnostics (which also
- *    suggest a concrete `*ColorDarkMode` fix).
+ *    independently of the other. Text uses this same inversion even when no
+ *    background is authored, so its behavior stays stable if a background later
+ *    comes from a parent/child style block. Independence keeps the result
+ *    order/locality-invariant but means the derived dark value is not accessible
+ *    by construction, so contrast is checked after the fact by the diagnostics
+ *    (which also suggest a concrete `*ColorDarkMode` fix).
  *
  * The unifying rule: derive each color to be accessible against its fixed
  * reference when it has one; only fall back to independent inversion + diagnostic
