@@ -19,6 +19,14 @@
     color: #666;
 }
 
+.dev-theme-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85em;
+    color: #333;
+}
+
 .dev-reset-button {
     padding: 2px 10px;
     font-size: 0.85em;

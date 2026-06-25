@@ -7,7 +7,10 @@ import "./main.css";
 import doenetMLstring from "./testCode.doenet?raw";
 
 const SOURCE_STORAGE_KEY = "doenetml-dev-source";
+const THEME_STORAGE_KEY = "doenetml-dev-theme";
 const SAVE_DEBOUNCE_MS = 500;
+
+type DevTheme = "light" | "dark" | "system";
 
 let saveTimer: number | null = null;
 
@@ -16,6 +19,26 @@ function getInitialSource(): string {
         return localStorage.getItem(SOURCE_STORAGE_KEY) ?? doenetMLstring;
     } catch {
         return doenetMLstring;
+    }
+}
+
+function getInitialTheme(): DevTheme {
+    try {
+        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === "light" || stored === "dark" || stored === "system") {
+            return stored;
+        }
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+    return "light";
+}
+
+function writeTheme(theme: DevTheme) {
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
     }
 }
 
@@ -89,15 +112,30 @@ root.render(<App />);
 function App() {
     const [initialSource] = React.useState(getInitialSource);
     const [resetKey, setResetKey] = React.useState(0);
+    const [darkMode, setDarkMode] = React.useState<DevTheme>(getInitialTheme);
 
     function handleReset() {
         resetSource();
         setResetKey((k) => k + 1);
     }
 
+    function handleThemeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        const next = event.target.value as DevTheme;
+        setDarkMode(next);
+        writeTheme(next);
+    }
+
     return (
         <div className="dev-app">
             <div className="dev-toolbar">
+                <label className="dev-theme-control">
+                    Theme:{" "}
+                    <select value={darkMode} onChange={handleThemeChange}>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System</option>
+                    </select>
+                </label>
                 <span className="dev-toolbar-status">
                     DoenetML source is saved to local storage as you edit.
                 </span>
@@ -114,6 +152,7 @@ function App() {
                     key={resetKey}
                     doenetML={resetKey === 0 ? initialSource : doenetMLstring}
                     height="100%"
+                    darkMode={darkMode}
                     fetchExternalDoenetML={fetchExternalDoenetML}
                     immediateDoenetmlChangeCallback={saveSource}
                 />
