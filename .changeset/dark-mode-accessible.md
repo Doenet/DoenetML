@@ -40,6 +40,10 @@ Dark mode: make it actually work and meet WCAG AA.
   and the portaled menu, which is given an elevated dark surface) — all now
   track the theme via `--canvasText` / `--canvas` (or doc-level dark mode for
   the portaled menu).
+- The editor's diagnostic hover tooltip (including the accessibility-contrast
+  warnings) used CodeMirror's light default surface, so its text rendered
+  white-on-white in dark mode; it now uses an elevated dark surface with
+  recolored, AA-legible heading/code accents.
 - Added dark-mode accessibility (cypress-axe) coverage across renderer
   categories, plus computed-style regression tests for the caret, focus outline,
   and fraction bar.

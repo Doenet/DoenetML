@@ -318,4 +318,35 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
 
         expectTooltipForLintRange(".cm-lintRange-warning", "wrong");
     });
+
+    it("renders the diagnostic tooltip legibly in dark mode", () => {
+        // In dark mode the editor text color goes white; without dark-mode
+        // tooltip styling the tooltip would render white-on-white (its default
+        // light surface). The editor root carries `[data-theme="dark"]` in the
+        // real app, so reproduce that here and assert the tooltip uses the
+        // elevated dark surface with a recolored, legible heading.
+        cy.mount(
+            <div data-theme="dark">
+                <DiagnosticsTestHarness initialValue="<graph invalid-attr='x' />" />
+            </div>,
+        );
+        cy.get(".cm-line").should("exist");
+
+        waitForDiagnosticDom();
+        hoverLintRange(".cm-lintRange-warning");
+
+        cy.get(".cm-tooltip-lint").should("be.visible");
+        // Elevated dark surface (#2a2a2a), not CodeMirror's light default.
+        cy.get(".cm-tooltip").should(
+            "have.css",
+            "background-color",
+            "rgb(42, 42, 42)",
+        );
+        // Heading recolored to the bright dark-mode warning variant (#ffb454).
+        cy.get(".cm-lint-tooltip .heading.warning").should(
+            "have.css",
+            "color",
+            "rgb(255, 180, 84)",
+        );
+    });
 });

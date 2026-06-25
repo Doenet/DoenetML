@@ -64,3 +64,59 @@
 .cm-lint-body p:first-child {
     margin-top: 0;
 }
+
+/*
+ * Dark mode. CodeMirror's base theme gives tooltips a light background, while
+ * the editor text color (which the tooltip inherits) becomes white in dark
+ * mode — so an unstyled tooltip renders white-on-white. The editor root carries
+ * `[data-theme="dark"]` and the tooltips render in-tree (no `parent:` override
+ * on the lint/hover tooltips), so these descendant selectors reach them. Give
+ * the tooltip an elevated dark surface and recolor the heading/code accents to
+ * brighter, WCAG-AA-legible variants against that surface.
+ */
+[data-theme="dark"] .cm-tooltip {
+    background-color: #2a2a2a;
+    border-color: #555;
+    color: var(--canvasText);
+}
+[data-theme="dark"] .cm-tooltip.cm-tooltip-above .cm-tooltip-arrow:before {
+    border-top-color: #555;
+}
+[data-theme="dark"] .cm-tooltip.cm-tooltip-above .cm-tooltip-arrow:after {
+    border-top-color: #2a2a2a;
+}
+[data-theme="dark"] .cm-tooltip.cm-tooltip-below .cm-tooltip-arrow:before {
+    border-bottom-color: #555;
+}
+[data-theme="dark"] .cm-tooltip.cm-tooltip-below .cm-tooltip-arrow:after {
+    border-bottom-color: #2a2a2a;
+}
+[data-theme="dark"] .cm-lint-tooltip .heading.warning {
+    color: #ffb454;
+}
+[data-theme="dark"] .cm-lint-tooltip .heading.error {
+    color: #ff6b6b;
+}
+[data-theme="dark"] .cm-lint-tooltip .heading.accessibility-level-1 {
+    color: #c4b5fd;
+}
+[data-theme="dark"] .cm-lint-tooltip .heading.accessibility-level-2 {
+    color: #ddd6fe;
+}
+[data-theme="dark"]
+    .cm-tooltip-lint
+    .cm-diagnostic.cm-diagnostic-warning:has(
+        .cm-lint-tooltip .heading.accessibility-level-1
+    ) {
+    border-left-color: #c4b5fd;
+}
+[data-theme="dark"]
+    .cm-tooltip-lint
+    .cm-diagnostic.cm-diagnostic-warning:has(
+        .cm-lint-tooltip .heading.accessibility-level-2
+    ) {
+    border-left-color: #ddd6fe;
+}
+[data-theme="dark"] .cm-lint-body code {
+    color: #ff7ac6;
+}
