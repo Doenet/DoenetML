@@ -17,6 +17,16 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
         });
     }
 
+    function postDoenetMLDarkMode(doenetML, settleSelector) {
+        cy.window().then((win) => {
+            win.postMessage({ doenetML, darkMode: "dark" }, "*");
+        });
+        cy.get('[data-theme="dark"]').should("exist");
+        if (settleSelector) {
+            cy.get(settleSelector).should("exist");
+        }
+    }
+
     function checkColorContrastViolations(assertionFn) {
         cy.checkA11y(
             [".doenet-viewer"],
@@ -274,6 +284,51 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
         expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 42,
             messagePart: "line color against the canvas",
+        });
+
+        expectColorContrastA11yFail();
+    });
+
+    // --- Dark-mode boundary cross-validation ---------------------------------
+    // Confirm that the dark-mode text-contrast threshold we compute (against the
+    // #121212 dark canvas) agrees with the axe scanner: a `textColorDarkMode`
+    // whose contrast lands just above 4.5:1 must clear both our diagnostic and
+    // axe, while one just below must fail both. (axe's color-contrast rule only
+    // evaluates HTML text, so dark-mode graphic/opacity boundaries can't be
+    // cross-validated with the scanner the way text can.)
+
+    it("dark-mode text near 4.5:1 above threshold passes scanner", () => {
+        // #7d7d7d on #121212 ≈ 4.55:1 (just above AA).
+        postDoenetMLDarkMode(
+            `
+<styleDefinition styleNumber="51" textColorDarkMode="#7d7d7d" />
+<p name="dtpass" styleNumber="51">Dark text should pass near 4.5:1</p>
+`,
+            "#dtpass",
+        );
+
+        cy.get("#dtpass").should("contain.text", "Dark text should pass");
+
+        expectNoLevel1AccessibilityIssues();
+
+        expectColorContrastA11yPass();
+    });
+
+    it("dark-mode text near 4.5:1 below threshold fails scanner", () => {
+        // #7c7c7c on #121212 ≈ 4.48:1 (just below AA).
+        postDoenetMLDarkMode(
+            `
+<styleDefinition styleNumber="52" textColorDarkMode="#7c7c7c" />
+<p name="dtfail" styleNumber="52">Dark text should fail near 4.5:1</p>
+`,
+            "#dtfail",
+        );
+
+        cy.get("#dtfail").should("contain.text", "Dark text should fail");
+
+        expectContrastAccessibilityLevel1ForStyle({
+            styleNumber: 52,
+            messagePart: "text color against the canvas (dark mode)",
         });
 
         expectColorContrastA11yFail();
