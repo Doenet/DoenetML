@@ -11,6 +11,10 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../../utils/scoredSection";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../../utils/dynamicChildren";
 
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
@@ -21,6 +25,8 @@ export class SectioningComponent extends BlockComponent {
             revealSection: this.revealSection.bind(this),
             closeSection: this.closeSection.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
 
@@ -1066,6 +1072,14 @@ export class SectioningComponent extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
         });
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     async revealSection({

@@ -10,11 +10,24 @@ import {
 } from "../utils/constraints";
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 import me from "math-expressions";
 const { mod } = me.math;
 
 export default class StickyGroup extends GraphicalComponent {
     static componentType = "stickyGroup";
+
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
+        });
+    }
 
     static componentDocs = {
         summary:
@@ -1012,6 +1025,14 @@ export default class StickyGroup extends GraphicalComponent {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 }
 
