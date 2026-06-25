@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Use VIM as the command line git editor. Not everyone's preference, but oh well...
 git config core.editor vim
 
 # Initial build required for development
-npm install
+bash .devcontainer/npm-install-with-rollup-check.sh npm install
 npm run build
