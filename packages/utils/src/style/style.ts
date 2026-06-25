@@ -464,14 +464,17 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 /**
  * Derives an accessible dark-mode color for one color item from its light-mode
  * value, choosing the contrast target and opacity appropriate to that item:
- *  - `text` / `highContrast`: text threshold (4.5:1), opaque.
+ *  - `background`: a dark surface (so text derived against it has room to read).
+ *  - `text`: text threshold (4.5:1), contrasted against the dark-mode background
+ *    (authored or already-derived) when one exists, otherwise the dark canvas —
+ *    so the derived text/background *pair* is accessible.
+ *  - `highContrast`: text threshold (4.5:1) against the canvas, opaque.
  *  - `line` / `marker`: graphic threshold (3:1), composited with the item's
  *    stroke/marker opacity so the derived color reads at its rendered opacity.
  *  - `fill`: graphic threshold (3:1) treated as opaque — fills paint at a low
  *    `fillOpacity` and are decorative, so we derive a readable tint and let the
  *    opacity apply at render time rather than forcing the (unreachable) 3:1 on
  *    the translucent fill.
- *  - `background`: a dark surface that keeps white dark-mode text readable.
  */
 function deriveDarkModeColorForItem(
     item: (typeof coloredItemsForWords)[number],
@@ -479,13 +482,25 @@ function deriveDarkModeColorForItem(
     styleDef: StyleDefinition,
 ): string {
     if (item === "background") {
-        return deriveAccessibleDarkModeBackground(
-            lightColor,
-            TEXT_CONTRAST_THRESHOLD,
-        );
+        return deriveAccessibleDarkModeBackground(lightColor);
     }
 
-    if (item === "text" || item === "highContrast") {
+    if (item === "text") {
+        // Derive against the dark-mode background (set earlier in
+        // addMissingChildStyleColorFields) when present, so the pair is
+        // accessible; otherwise fall back to the dark canvas.
+        const backgroundDark = getStyleValueString(
+            styleDef,
+            "backgroundColorDarkMode",
+        );
+        return deriveAccessibleDarkModeColor({
+            lightColor,
+            threshold: TEXT_CONTRAST_THRESHOLD,
+            background: backgroundDark,
+        });
+    }
+
+    if (item === "highContrast") {
         return deriveAccessibleDarkModeColor({
             lightColor,
             threshold: TEXT_CONTRAST_THRESHOLD,
@@ -531,29 +546,46 @@ function deriveDarkModeColorForItem(
 export function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
 ): StyleDefinition {
+    // Derive the dark-mode background first so the text color can be derived to
+    // be accessible against it (not merely against the canvas), keeping the
+    // text/background pair at least as accessible as the light-mode pair.
+    deriveMissingDarkModeColor(styleDef, "background");
     for (const item of coloredItemsForWords) {
-        const colorKey = `${item}Color` as StyleDefinitionKey;
-        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
-
-        if (colorKey in styleDef && !(darkKey in styleDef)) {
-            const colorValue = getStyleValueString(styleDef, colorKey);
-            if (colorValue !== undefined) {
-                const darkColor = deriveDarkModeColorForItem(
-                    item,
-                    colorValue,
-                    styleDef,
-                );
-                // Derived dark-mode colors are accessible by construction, so
-                // they intentionally carry no source position: the contrast
-                // diagnostics only flag values that have a position, which keeps
-                // dark-mode diagnostics scoped to author-supplied `*ColorDarkMode`
-                // values rather than ones we synthesized.
-                setStyleValue(styleDef, darkKey, darkColor);
-            }
+        if (item === "background") {
+            continue;
         }
+        deriveMissingDarkModeColor(styleDef, item);
     }
 
     return addMissingColorWordsToStyleDefinition(styleDef);
+}
+
+/**
+ * Derives the missing `${item}ColorDarkMode` value for one color item from its
+ * light-mode `${item}Color`, if the light color is present and the dark color is
+ * not. The derived value carries no source position: the contrast diagnostics
+ * only flag values that have a position, which keeps dark-mode diagnostics
+ * scoped to author-supplied `*ColorDarkMode` values rather than ones we
+ * synthesized (which are accessible by construction).
+ */
+function deriveMissingDarkModeColor(
+    styleDef: StyleDefinition,
+    item: (typeof coloredItemsForWords)[number],
+): void {
+    const colorKey = `${item}Color` as StyleDefinitionKey;
+    const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+
+    if (!(colorKey in styleDef) || darkKey in styleDef) {
+        return;
+    }
+
+    const colorValue = getStyleValueString(styleDef, colorKey);
+    if (colorValue === undefined) {
+        return;
+    }
+
+    const darkColor = deriveDarkModeColorForItem(item, colorValue, styleDef);
+    setStyleValue(styleDef, darkKey, darkColor);
 }
 
 /**

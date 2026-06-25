@@ -134,10 +134,17 @@ export function deriveAccessibleDarkModeColor({
     lightColor,
     threshold,
     opacityMultiplier = 1,
+    background,
 }: {
     lightColor: string;
     threshold: number;
     opacityMultiplier?: number;
+    /**
+     * Surface the color must contrast against, defaulting to the dark canvas.
+     * Pass the dark-mode background color when deriving text so the derived
+     * text/background *pair* is accessible (not just text-vs-canvas).
+     */
+    background?: string;
 }): string {
     const base = colord(lightColor);
     if (!base.isValid()) {
@@ -147,6 +154,7 @@ export function deriveAccessibleDarkModeColor({
     const currentRatio = compositedContrastRatio({
         foreground: lightColor,
         canvas: CANVAS_DARK_MODE_COLOR,
+        background,
         opacityMultiplier,
     });
     if (currentRatio !== null && currentRatio >= threshold) {
@@ -159,6 +167,7 @@ export function deriveAccessibleDarkModeColor({
         const ratio = compositedContrastRatio({
             foreground: candidate,
             canvas: CANVAS_DARK_MODE_COLOR,
+            background,
             opacityMultiplier,
         });
         if (ratio !== null && ratio >= threshold) {
@@ -169,40 +178,33 @@ export function deriveAccessibleDarkModeColor({
     return "#ffffff";
 }
 
+/** Lightness (in HSL %) at or below which a color counts as a dark surface. */
+const DARK_SURFACE_MAX_LIGHTNESS = 16;
+
 /**
- * Derives an accessible dark-mode *surface* (background) color from a light-mode
- * background color.
+ * Derives a dark-mode *surface* (background) color from a light-mode background
+ * color.
  *
- * Backgrounds are not foregrounds: the meaningful constraint is that the default
- * dark-mode text (white) remains readable on the surface. So this preserves hue
- * and saturation and lowers lightness until white text clears `threshold`
- * against it. A light surface already dark enough is returned unchanged.
+ * A dark-mode background must actually be dark so that foreground text derived
+ * against it (see {@link deriveAccessibleDarkModeColor}'s `background` option)
+ * has room to be readable. This preserves the background's hue and saturation
+ * and lowers its lightness into the dark-surface range; a color that is already
+ * a dark surface is returned unchanged.
  *
  * @param lightColor - Author's light-mode background color.
- * @param threshold - Required contrast of white text against the surface.
  * @returns A CSS color string (hex) for the dark-mode surface, or the input
- * unchanged when it cannot be parsed or already qualifies.
+ * unchanged when it cannot be parsed or is already dark.
  */
-export function deriveAccessibleDarkModeBackground(
-    lightColor: string,
-    threshold: number = TEXT_CONTRAST_THRESHOLD,
-): string {
+export function deriveAccessibleDarkModeBackground(lightColor: string): string {
     const base = colord(lightColor);
     if (!base.isValid()) {
         return lightColor;
     }
 
-    if (colord("#ffffff").contrast(base) >= threshold) {
+    const { h, s, l } = base.toHsl();
+    if (l <= DARK_SURFACE_MAX_LIGHTNESS) {
         return lightColor;
     }
 
-    const { h, s } = base.toHsl();
-    for (let l = 100; l >= 0; l--) {
-        const candidate = colord({ h, s, l });
-        if (colord("#ffffff").contrast(candidate) >= threshold) {
-            return candidate.toHex();
-        }
-    }
-
-    return "#000000";
+    return colord({ h, s, l: DARK_SURFACE_MAX_LIGHTNESS }).toHex();
 }
