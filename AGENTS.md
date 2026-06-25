@@ -116,10 +116,9 @@ npm run test-cypress-fast-fail -w @doenet/test-cypress -- --config specPattern=c
 - Format changed files with Prettier before committing: `npm run prettier:format`
 - Files that should never be staged or committed (local development / planning notes):
   - `packages/doenetml/dev/testCode.doenet`
-  - `packages/doenetml/dev/main.tsx`
   - Untracked `*.md` files in the repository root
 
-If you edit these during development they will show as modified, but should not be staged.
+If you edit these during development they will show as modified, but should not be staged. (`packages/doenetml/dev/main.tsx` is shared dev-harness infrastructure: intentional changes to it may be committed, but avoid committing throwaway local edits such as the `USE_LOCAL_PREFIGURE` toggle.)
 
 ### Agent attribution on commits
 
