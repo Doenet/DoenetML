@@ -463,42 +463,65 @@ export class LSPPlugin implements PluginValue {
         const [span, match] = prefixMatch(options);
         const token = context.matchBefore(match);
 
+        // Element/tag-name completions match the typed text as a *substring*
+        // (e.g. `<num` offers `isNumber`), while every other completion type
+        // keeps prefix matching. Prefix-first ordering is left to CodeMirror's
+        // matcher/default `sortText` comparison; the client-side pass only
+        // applies the stricter element-vs-other filtering policy.
+        const isElementNameMenu =
+            options.length > 0 &&
+            options.every(
+                (option) =>
+                    option.type === COMPLETION_TYPES.component ||
+                    option.type === COMPLETION_TYPES.snippet ||
+                    option.type === COMPLETION_TYPES.closeTag,
+            );
+
+        function filterOptionsForWord(wordLower: string) {
+            options = options.filter(({ filterText }) => {
+                const filterLower = filterText.toLowerCase();
+                return isElementNameMenu
+                    ? filterLower.includes(wordLower)
+                    : filterLower.startsWith(wordLower);
+            });
+        }
+
         if (token) {
             let word = token.text;
             let fromOffset = 0;
-            // Find the last '<' to handle cases where user types after a closing tag (e.g., "></doc>|<")
+            // Find where the completion word starts within the matched token
+            // (the run of text immediately before the cursor). When the token's
+            // last `<` comes after its last `>`, the cursor is inside an
+            // unterminated tag whose name is being typed, so start just after
+            // that `<`: e.g. `<nu|`, or `</doc><|` right after a freshly typed
+            // `<`. Otherwise the cursor sits just past a complete tag's `>`
+            // (e.g. `<math>|`), so start after that `>`.
             const lastLt = word.lastIndexOf("<");
-            if (lastLt >= 0) {
+            const lastGt = word.lastIndexOf(">");
+            if (lastLt > lastGt) {
                 fromOffset = lastLt + 1;
-                word = word.slice(fromOffset);
+            } else if (lastGt >= 0) {
+                fromOffset = lastGt + 1;
             }
+            word = word.slice(fromOffset);
             pos = token.from + fromOffset;
             const wordLower = word.toLowerCase();
             if (wordLower && MACRO_IDENTIFIER_SEGMENT_REGEX.test(wordLower)) {
-                options = options
-                    .filter(({ filterText }) =>
-                        filterText.toLowerCase().startsWith(wordLower),
-                    )
-                    .sort((optionA, optionB) => {
-                        // Use original apply text for comparison (important for snippets with custom apply functions)
-                        const aStr =
-                            typeof optionA.apply === "string"
-                                ? optionA.apply
-                                : "";
-                        const bStr =
-                            typeof optionB.apply === "string"
-                                ? optionB.apply
-                                : "";
-                        switch (true) {
-                            case aStr.startsWith(word) &&
-                                !bStr.startsWith(word):
-                                return -1;
-                            case !aStr.startsWith(word) &&
-                                bStr.startsWith(word):
-                                return 1;
-                        }
-                        return 0;
-                    });
+                filterOptionsForWord(wordLower);
+            }
+        } else if (isElementNameMenu) {
+            const bareElementToken = context.matchBefore(
+                MACRO_IDENTIFIER_SEGMENT_REGEX,
+            );
+            if (bareElementToken) {
+                // Explicit Ctrl+Space can open an element menu before any `<`
+                // has been typed. In that case the completion `apply` strings
+                // start with `<`, so `prefixMatch` cannot anchor `from` to a
+                // bare filter word like `num`. Anchor and filter it here so
+                // accepting `<number>` replaces `num` instead of appending after
+                // it.
+                pos = bareElementToken.from;
+                filterOptionsForWord(bareElementToken.text.toLowerCase());
             }
         }
 
@@ -586,10 +609,37 @@ export class LSPPlugin implements PluginValue {
             };
         }
 
+        const elementMenuHasTypedLt =
+            isElementNameMenu &&
+            pos > 0 &&
+            state.sliceDoc(pos - 1, pos) === "<";
+
+        // Element/tag-name completions anchored after an actual `<` omit
+        // `validFor`. With `validFor`, CodeMirror keeps the originally returned
+        // options and re-filters them locally instead of re-querying, so the
+        // suggestions would depend on what was cached when the menu first
+        // opened. Omitting it makes CodeMirror re-query on every edit, so the
+        // suggestions are the same however the menu was reached (#1328).
+        //
+        // Bare explicit element menus (Ctrl+Space before typing `<`) keep
+        // `validFor`: the server deliberately returned the broad element set,
+        // and local filtering is what lets a subsequently typed bare word
+        // replace cleanly with `<tag`.
+        //
+        // Reference, attribute-name, and attribute-value completions keep
+        // `validFor`: their stability (e.g. the ref reopen latch) depends on the
+        // result staying open across edits. `isElementNameMenu` (computed above)
+        // distinguishes them via the `deriveCompletionType` classification.
         return {
             from: pos,
             options: finalOptions,
-            validFor: new RegExp(`^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`),
+            ...(elementMenuHasTypedLt
+                ? {}
+                : {
+                      validFor: new RegExp(
+                          `^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`,
+                      ),
+                  }),
         };
     }
 

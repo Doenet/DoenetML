@@ -91,6 +91,54 @@ function createTextEditRange(
     };
 }
 
+type CompletionTextEditOffsets = {
+    sourceObj: DoenetSourceObject;
+    startOffset: number;
+    endOffset: number;
+};
+
+/**
+ * Preserve the schema/context-help ordering within each bucket, but put items
+ * whose match text starts with the typed text ahead of mid-string matches.
+ */
+function getPrefixAwareSortText(
+    matchText: string,
+    typedTextLower: string,
+    baseSortText?: string,
+): string | undefined {
+    if (!typedTextLower) {
+        return baseSortText;
+    }
+    const prefixBucket = matchText.toLowerCase().startsWith(typedTextLower)
+        ? "0"
+        : "1";
+    return `${prefixBucket}:${baseSortText ?? matchText.toLowerCase()}`;
+}
+
+function createCloseTagCompletionItem(
+    elementName: string,
+    editOffsets?: CompletionTextEditOffsets,
+): CompletionItem {
+    const item: CompletionItem = {
+        label: `/${elementName}>`,
+        kind: CompletionItemKind.Property,
+    };
+    if (editOffsets) {
+        // Explicit completion can offer a close tag with no leading `<`
+        // already typed. In that case, replace the empty range with the full
+        // close tag rather than relying on the label-only insertion.
+        item.textEdit = {
+            range: createTextEditRange(
+                editOffsets.sourceObj,
+                editOffsets.startOffset,
+                editOffsets.endOffset,
+            ),
+            newText: `</${elementName}>`,
+        };
+    }
+    return item;
+}
+
 /**
  * Format a multiline snippet by adding indentation to subsequent lines.
  * The indentation matches the column position where the snippet starts,
@@ -284,7 +332,7 @@ function createDynamicSnippetCompletionItems(
 
     if (
         typedPrefix &&
-        !dynamicSnippet.key.toLowerCase().startsWith(typedPrefix.toLowerCase())
+        !dynamicSnippet.key.toLowerCase().includes(typedPrefix.toLowerCase())
     ) {
         return [];
     }
@@ -330,9 +378,15 @@ function createElementAndSnippetCompletionItems(
     );
     const sortTextByKey = sortTextLookup(ranked);
 
+    // Match element names that *contain* the typed text (not just a prefix), so
+    // `<num` also surfaces `isNumber`. Prefix-aware `sortText` keeps prefix
+    // matches before mid-name matches for LSP clients that honor server sort
+    // keys; CodeMirror's matcher also scores prefix matches higher. Keeping
+    // this a substring (rather than full subsequence) match keeps the
+    // suggestions predictable for short tag names.
     const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
-            prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
+            prefixLower ? name.toLowerCase().includes(prefixLower) : true,
         )
         .map((name) => {
             const item: DoenetCompletionItem = {
@@ -368,8 +422,12 @@ function createElementAndSnippetCompletionItems(
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
             }
-            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
-            if (sortText !== undefined) {
+            const sortText = getPrefixAwareSortText(
+                name,
+                prefixLower,
+                sortTextByKey.get(`elem:${name.toLowerCase()}`),
+            );
+            if (sortText) {
                 item.sortText = sortText;
             }
             return item;
@@ -388,11 +446,17 @@ function createElementAndSnippetCompletionItems(
     for (const item of snippetItems) {
         // Snippet labels are unique snippet keys; look up sortText by the
         // same key the ranker emits.
+        const snippetKey = item.label as string;
         const sortText = sortTextByKey.get(
-            `snippet:${(item.label as string).toLowerCase()}`,
+            `snippet:${snippetKey.toLowerCase()}`,
         );
-        if (sortText !== undefined) {
-            item.sortText = sortText;
+        const prefixAwareSortText = getPrefixAwareSortText(
+            snippetKey,
+            prefixLower,
+            sortText,
+        );
+        if (prefixAwareSortText) {
+            item.sortText = prefixAwareSortText;
         }
     }
 
@@ -728,6 +792,13 @@ export async function getCompletionItems(
     const showElementMenu = hasLeadingLt || explicit;
     const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
     const insertLeadingBracket = !hasLeadingLt;
+    const closeTagEditOffsets = insertLeadingBracket
+        ? {
+              sourceObj: this.sourceObj,
+              startOffset: elementMenuStart,
+              endOffset: offset,
+          }
+        : undefined;
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -1002,6 +1073,82 @@ export async function getCompletionItems(
         );
     }
 
+    // The author typed `<` (or invoked completion explicitly) immediately
+    // before an existing element — the cursor sits exactly on that element's
+    // opening `<`. They are inserting a new element in front of it, so offer
+    // what can go in the surrounding container. Error recovery parses the
+    // half-typed `<` + following tag as a complete element, which otherwise
+    // leaves the cursor classified as that element's body/unknown with no
+    // menu, so the popup never opens when typing a tag name before another
+    // tag (#1328).
+    //
+    // Use the element that *starts* at the cursor as the signal rather than
+    // `containingElement.node`: the latter's classification varies with
+    // error-recovery state (especially at the top level, where the cursor
+    // before a tag reports `{ node: null }`), whereas the element starting at
+    // the offset is reliable.
+    //
+    // Skip this when the cursor is at `openTagName` (`<nu|<text>`): there the
+    // author is typing the *name* of the element before the tag, so the
+    // openTagName branch below should offer element names filtered by the
+    // typed prefix rather than the surrounding container's full menu. Without
+    // this guard, explicit Ctrl+Space (which sets `showElementMenu`) would
+    // fire this branch and offer the half-typed element's close tag instead.
+    const elementStartingAtCursor = this.sourceObj.nodeAtOffset(offset, {
+        type: "element",
+        side: "right",
+    }) as DastElement | null;
+    if (
+        showElementMenu &&
+        cursorPosition !== "openTagName" &&
+        elementStartingAtCursor &&
+        elementStartingAtCursor.position?.start?.offset === offset
+    ) {
+        // Error recovery can wrap the cursor's position in a half-typed,
+        // empty-named element (the very `<` the author just typed). Climb past
+        // any such placeholder to the real container so the menu reflects the
+        // right set of allowed children.
+        let containerParent = this.sourceObj.getParent(elementStartingAtCursor);
+        while (
+            containerParent?.type === "element" &&
+            containerParent.name === ""
+        ) {
+            containerParent = this.sourceObj.getParent(containerParent);
+        }
+        const containerElement =
+            containerParent?.type === "element" ? containerParent : null;
+        const allowedElementNames = containerElement
+            ? this._getAllowedChildren(
+                  containerElement.name,
+                  this.sourceObj.getParentElementName(containerElement),
+              )
+            : this.schemaTopAllowedElements;
+        const completionItems = createElementAndSnippetCompletionItems(
+            this,
+            allowedElementNames,
+            elementMenuStart,
+            offset,
+            "",
+            containerElement,
+            insertLeadingBracket,
+        );
+        if (
+            containerElement &&
+            !this.sourceObj.isCompleteElement(containerElement).closed
+        ) {
+            // Match the normal body completion path for unclosed containers:
+            // first offer the parent close tag, then child elements.
+            return [
+                createCloseTagCompletionItem(
+                    containerElement.name,
+                    closeTagEditOffsets,
+                ),
+                ...completionItems,
+            ];
+        }
+        return completionItems;
+    }
+
     if (!element && containingNode && containingNode.type === "text") {
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
@@ -1029,12 +1176,7 @@ export async function getCompletionItems(
 
     if (cursorPosition === "closeTagName") {
         // We're in the close tag name. Suggest the close tag name.
-        return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
-        ];
+        return [createCloseTagCompletionItem(element.name)];
     }
 
     const { tagComplete, closed } = this.sourceObj.isCompleteElement(element);
@@ -1068,10 +1210,7 @@ export async function getCompletionItems(
         }
         // We are the child of a non-closed tag. Suggest the close tag or allowed children
         return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
+            createCloseTagCompletionItem(element.name, closeTagEditOffsets),
             ...completionItems,
         ];
     }
@@ -1086,16 +1225,12 @@ export async function getCompletionItems(
             (cursorPosition === "unknown" &&
                 this.sourceObj.source.charAt(offset).match(/(\s|\n)/)))
     ) {
-        return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
-        ];
+        return [createCloseTagCompletionItem(element.name)];
     }
 
     if (cursorPosition === "openTagName") {
-        // We're in the open tag name. Suggest everything that starts with the current text.
+        // We're in the open tag name. Suggest element names and snippets whose
+        // keys contain the current text.
         const currentText = element.name.toLowerCase();
         const parent = this.sourceObj.getParent(element);
 

@@ -30,6 +30,12 @@
     color: #666;
 }
 
+.dev-reset-button {
+    padding: 2px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
 .dev-viewer {
     flex: 1 1 auto;
     overflow: hidden;

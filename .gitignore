@@ -90,3 +90,6 @@ __pycache__
 
 # Ignore testCode which can be overwritten during development
 testCode.doenet
+
+# Ignore temporary directory
+tmp/

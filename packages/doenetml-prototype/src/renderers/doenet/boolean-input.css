@@ -1,0 +1,119 @@
+.doenet-document {
+    .boolean-input {
+        --primary: #3b82f6;
+        --neutral: #374151;
+
+        --bg: color-mix(in srgb, var(--neutral) 30%, white);
+        --bg-button: color-mix(in srgb, var(--neutral) 8%, white);
+        --bg-hover: color-mix(in srgb, var(--primary) 25%, white);
+        --bg-checked: var(--primary);
+        --bg-hover-checked: color-mix(in srgb, var(--primary) 85%, black);
+        --color: black;
+        --color-hover: color-mix(in srgb, var(--primary) 60%, black);
+        --border: var(--neutral);
+        --border-checked: var(--primary);
+        --border-hover: var(--primary);
+
+        @apply inline;
+
+        label {
+            @apply max-w-full gap-1 inline-flex items-baseline;
+
+            &.input-label-right {
+                flex-direction: row-reverse;
+            }
+        }
+
+        &.as-toggle-button {
+            label {
+                @apply inline-flex items-center cursor-pointer select-none;
+                @apply px-3 py-1 rounded border-2 text-sm font-medium;
+                border-color: var(--border);
+                background-color: var(--bg-button);
+                color: var(--color);
+                transition:
+                    background-color 0.15s,
+                    border-color 0.15s,
+                    color 0.15s;
+
+                &:has(input:checked) {
+                    background-color: var(--bg-checked);
+                    border-color: var(--border-checked);
+                    color: white;
+                }
+
+                &:hover:not(:has(input:disabled)) {
+                    background-color: var(--bg-hover);
+                    border-color: var(--border-hover);
+                    color: var(--color-hover);
+
+                    &:has(input:checked) {
+                        background-color: var(--bg-hover-checked);
+                        border-color: var(--bg-hover-checked);
+                        color: white;
+                    }
+                }
+
+                &:has(input:disabled) {
+                    @apply cursor-not-allowed opacity-50;
+                }
+
+                &:focus-within {
+                    @apply outline outline-2 outline-offset-2;
+                    outline-color: var(--border);
+                }
+            }
+            input[type="checkbox"] {
+                @apply sr-only;
+            }
+        }
+
+        input[type="checkbox"] {
+            @apply relative h-5 w-5 cursor-pointer appearance-none rounded border-2;
+            top: 0.3rem; /* Align with text */
+            border-color: var(--border);
+            background-color: var(--bg);
+            transition:
+                background-color 0.15s,
+                border-color 0.15s;
+
+            &::after {
+                @apply absolute hidden;
+                content: "";
+                left: 5px;
+                top: 1px;
+                width: 7px;
+                height: 12px;
+                border: solid white;
+                border-width: 0 3px 3px 0;
+                transform: rotate(45deg);
+            }
+
+            &:checked {
+                background-color: var(--bg-checked);
+                border-color: var(--border-checked);
+                &::after {
+                    @apply block;
+                }
+            }
+
+            &:hover:not(:disabled) {
+                background-color: var(--bg-hover);
+            }
+
+            &:checked:hover:not(:disabled) {
+                background-color: var(--bg-hover-checked);
+                border-color: var(--bg-hover-checked);
+            }
+
+            &:focus-visible {
+                @apply outline outline-2 outline-offset-2;
+                outline-color: var(--border);
+            }
+
+            &:disabled {
+                @apply cursor-not-allowed opacity-50;
+            }
+        }
+    }
+}

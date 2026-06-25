@@ -4,14 +4,22 @@ import type {
     FlatDastElementContent,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
+import {
+    applyCompositeListWrapping,
+    type ChildContent,
+    type CompositeReplacementRange,
+} from "./compositeListWrapping";
+import { elementRename, propRename } from "./jsRustConversions/_general-rename";
+import { booleanInputJsToRust } from "./jsRustConversions/booleanInput";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
-import { sectionJsToRust } from "./jsRustConversions/section";
+import { sectionJsToRust as divisionJsToRust } from "./jsRustConversions/section";
+import { tableJsToRust } from "./jsRustConversions/table";
 import { textJsToRust } from "./jsRustConversions/text";
 
 declare module "./CoreWorker" {
     interface ElementData {
-        props?: Record<string, any>;
+        props?: Record<string, unknown>;
     }
 }
 
@@ -42,7 +50,7 @@ export type RendererStateToUpdate = {
     // The JS core pushes `null` placeholders for children that are absent
     // (e.g. an unrendered conditional branch), so entries may be `null`.
     childrenInstructions?: (ComponentInstruction | string | null)[];
-    stateValues: Record<string, any>;
+    stateValues: Record<string, unknown>;
 };
 
 /**
@@ -88,11 +96,32 @@ export function applyElementJsToRustFixups(
     }
 
     switch (element.name) {
+        case "angle":
+            propRename(element.data.props, {
+                latexForRenderer: "latex",
+            });
+            break;
+        case "cell":
+            propRename(element.data.props, {
+                inHeader: "header",
+            });
+            break;
+        case "booleanInput":
+            booleanInputJsToRust(element.data.props);
+            break;
         case "text":
             textJsToRust(element.data.props);
             break;
+        case "aside":
+        case "article":
         case "section":
-            sectionJsToRust(element.data.props, element);
+            divisionJsToRust(element.data.props, element);
+            if (element.name === "section") {
+                elementRename(element, "division");
+            }
+            break;
+        case "table":
+            tableJsToRust(element.data.props, element);
             break;
         case "point":
             pointJsToRust(element.data.props);
@@ -101,7 +130,7 @@ export function applyElementJsToRustFixups(
             refJsToRust(element.data.props, doenetIdToComponentIdx);
             break;
         case "coords":
-            element.name = "math";
+            elementRename(element, "math");
             break;
     }
 }
@@ -160,12 +189,18 @@ export function flatDastFromJS(
             element.data.props = rendererState.stateValues;
 
             if (rendererState.childrenInstructions) {
+                // Keep child slots aligned with the child-instruction index
+                // space (null placeholders included) so the
+                // `_compositeReplacementActiveRange` indices line up.
+                const childContents: ChildContent[] = [];
+
                 for (const childInstruction of rendererState.childrenInstructions) {
                     if (childInstruction == null) {
+                        childContents.push(null);
                         continue;
                     }
 
-                    element.children.push(
+                    childContents.push(
                         childInstructionToContent(
                             childInstruction,
                             doenetIdToComponentIdx,
@@ -199,6 +234,23 @@ export function flatDastFromJS(
                             childInstruction.actions,
                         );
                     }
+                }
+
+                // Wrap composite replacement ranges in synthetic `<asList>`
+                // (and, where nesting requires grouping, `<_fragment>`) parents
+                // so the prototype renderers reproduce the commas the doenetml
+                // renderers add via `addCommasForCompositeRanges`.
+                const { children, wrapperElements } =
+                    applyCompositeListWrapping(
+                        childContents,
+                        rendererState.stateValues
+                            ?._compositeReplacementActiveRange as
+                            | CompositeReplacementRange[]
+                            | undefined,
+                    );
+                element.children = children;
+                for (const wrapper of wrapperElements) {
+                    elements[wrapper.data.id] = wrapper;
                 }
             }
         }
