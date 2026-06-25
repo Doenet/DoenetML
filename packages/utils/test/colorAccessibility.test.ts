@@ -114,17 +114,27 @@ describe("deriveAccessibleDarkModeColor", () => {
 });
 
 describe("deriveAccessibleDarkModeBackground", () => {
-    it("darkens a white background so white text remains readable", () => {
+    it("inverts a white background to a dark surface", () => {
         const derived = deriveAccessibleDarkModeBackground("white");
-        expect(colord("#ffffff").contrast(derived)).toBeGreaterThanOrEqual(
-            TEXT_CONTRAST_THRESHOLD,
-        );
-        // Result should actually be dark.
         expect(colord(derived).isDark()).toBe(true);
+        // White (lightness 100%) inverts to black (lightness 0%).
+        expect(colord(derived).toHsl().l).toBeLessThan(5);
     });
 
-    it("preserves a background that is already dark enough", () => {
+    it("inverts a dark background to a light surface", () => {
+        // A near-black background should become near-white in dark mode, so the
+        // light-mode figure/ground relationship is preserved (inverted), not the
+        // background forced dark.
         const derived = deriveAccessibleDarkModeBackground("#101015");
-        expect(derived).toBe("#101015");
+        expect(colord(derived).isLight()).toBe(true);
+        expect(colord(derived).toHsl().l).toBeGreaterThan(90);
+    });
+
+    it("preserves hue and saturation while inverting lightness", () => {
+        const derived = deriveAccessibleDarkModeBackground("#cc3333");
+        const original = colord("#cc3333").toHsl();
+        const result = colord(derived).toHsl();
+        expect(Math.abs(result.h - original.h)).toBeLessThan(2);
+        expect(result.l).toBeCloseTo(100 - original.l, 0);
     });
 });

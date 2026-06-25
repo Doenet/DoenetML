@@ -14,11 +14,16 @@ Dark mode: make it actually work and meet WCAG AA.
   root, so the canvas/text/JSXGraph-axis CSS variables actually switch. Stray
   `.dark` selectors, description surfaces, hint/solution/feedback reveal
   buttons, and portaled popovers were unified onto `[data-theme]`.
-- Style definitions now derive an accessible dark-mode color (and color word)
-  from an author's light-mode color instead of mirroring it: the derived
-  `*ColorDarkMode` preserves hue and is lightened until it clears WCAG AA against
-  the dark canvas. Author-supplied dark-mode colors that fail AA now emit an
-  accessibility diagnostic, mirroring the existing light-mode check.
+- Style definitions now derive a dark-mode color (and color word) from an
+  author's light-mode color instead of mirroring it. Graphic/marker/line colors
+  are lightened until they clear WCAG AA against the dark canvas. An authored
+  `textColor`/`backgroundColor` combination is adapted by inverting each color's
+  lightness (so e.g. white-on-black becomes black-on-white) and then nudging the
+  text as needed so the dark-mode pair is at least as accessible as the
+  light-mode pair — preserving the author's figure/ground relationship, and not
+  "fixing" an intentionally low-contrast pairing. Author-supplied
+  `*ColorDarkMode` values that fail AA still emit an accessibility diagnostic,
+  mirroring the existing light-mode check.
 - The six built-in style presets had their dark-mode colors recomputed to meet
   WCAG AA.
 - Fixed renderer pieces that went invisible (or low-contrast) on the dark

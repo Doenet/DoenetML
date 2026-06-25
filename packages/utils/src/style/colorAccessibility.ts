@@ -134,17 +134,10 @@ export function deriveAccessibleDarkModeColor({
     lightColor,
     threshold,
     opacityMultiplier = 1,
-    background,
 }: {
     lightColor: string;
     threshold: number;
     opacityMultiplier?: number;
-    /**
-     * Surface the color must contrast against, defaulting to the dark canvas.
-     * Pass the dark-mode background color when deriving text so the derived
-     * text/background *pair* is accessible (not just text-vs-canvas).
-     */
-    background?: string;
 }): string {
     const base = colord(lightColor);
     if (!base.isValid()) {
@@ -154,7 +147,6 @@ export function deriveAccessibleDarkModeColor({
     const currentRatio = compositedContrastRatio({
         foreground: lightColor,
         canvas: CANVAS_DARK_MODE_COLOR,
-        background,
         opacityMultiplier,
     });
     if (currentRatio !== null && currentRatio >= threshold) {
@@ -167,7 +159,6 @@ export function deriveAccessibleDarkModeColor({
         const ratio = compositedContrastRatio({
             foreground: candidate,
             canvas: CANVAS_DARK_MODE_COLOR,
-            background,
             opacityMultiplier,
         });
         if (ratio !== null && ratio >= threshold) {
@@ -178,33 +169,110 @@ export function deriveAccessibleDarkModeColor({
     return "#ffffff";
 }
 
-/** Lightness (in HSL %) at or below which a color counts as a dark surface. */
-const DARK_SURFACE_MAX_LIGHTNESS = 16;
+/**
+ * Inverts a color's HSL lightness (`l` → `100 - l`), preserving hue, saturation,
+ * and alpha. This flips light colors dark and dark colors light while keeping
+ * their identity — the basis for adapting an author's foreground/background
+ * combination to dark mode (a black surface becomes white, etc.).
+ *
+ * @param color - CSS color string.
+ * @returns The lightness-inverted color as hex, or the input unchanged when it
+ * cannot be parsed.
+ */
+export function invertLightness(color: string): string {
+    const c = colord(color);
+    if (!c.isValid()) {
+        return color;
+    }
+    const { h, s, l, a } = c.toHsl();
+    return colord({ h, s, l: 100 - l, a }).toHex();
+}
 
 /**
  * Derives a dark-mode *surface* (background) color from a light-mode background
- * color.
+ * by inverting its lightness.
  *
- * A dark-mode background must actually be dark so that foreground text derived
- * against it (see {@link deriveAccessibleDarkModeColor}'s `background` option)
- * has room to be readable. This preserves the background's hue and saturation
- * and lowers its lightness into the dark-surface range; a color that is already
- * a dark surface is returned unchanged.
+ * The dark-mode background should be the *opposite* of the light-mode one (a
+ * black background becomes white, a light background becomes dark) rather than
+ * simply forced dark, so the author's intended figure/ground relationship
+ * carries over. The paired foreground is adapted by
+ * {@link deriveAccessibleDarkModeForeground}.
  *
  * @param lightColor - Author's light-mode background color.
- * @returns A CSS color string (hex) for the dark-mode surface, or the input
- * unchanged when it cannot be parsed or is already dark.
+ * @returns A CSS color string (hex) for the dark-mode surface.
  */
 export function deriveAccessibleDarkModeBackground(lightColor: string): string {
-    const base = colord(lightColor);
+    return invertLightness(lightColor);
+}
+
+/**
+ * Derives a dark-mode foreground (text) color for an author's light-mode
+ * foreground/background combination.
+ *
+ * Starts from the lightness-inverted foreground (mirroring the inverted
+ * background) and then nudges its lightness the least amount needed so the
+ * dark-mode pair's contrast is at least `target`, where:
+ *  - if the light-mode pair met WCAG AA, `target` is the AA threshold, so the
+ *    dark pair is AA-compliant too; otherwise
+ *  - `target` is the light-mode pair's (sub-AA) contrast, so an intentionally
+ *    low-contrast pairing is preserved rather than "fixed" to be more accessible
+ *    than the author specified.
+ *
+ * @param foreground - Light-mode foreground (text) color.
+ * @param lightBackground - Light-mode background; omit to use the light canvas.
+ * @param darkBackground - Dark-mode background; omit to use the dark canvas.
+ * @returns A CSS color string (hex) for the dark-mode foreground.
+ */
+export function deriveAccessibleDarkModeForeground({
+    foreground,
+    lightBackground,
+    darkBackground,
+}: {
+    foreground: string;
+    lightBackground?: string;
+    darkBackground?: string;
+}): string {
+    const base = colord(foreground);
     if (!base.isValid()) {
-        return lightColor;
+        return foreground;
     }
+
+    const lightRatio = compositedContrastRatio({
+        foreground,
+        canvas: CANVAS_LIGHT_MODE_COLOR,
+        background: lightBackground,
+    });
+    const target =
+        lightRatio === null
+            ? TEXT_CONTRAST_THRESHOLD
+            : Math.min(lightRatio, TEXT_CONTRAST_THRESHOLD);
 
     const { h, s, l } = base.toHsl();
-    if (l <= DARK_SURFACE_MAX_LIGHTNESS) {
-        return lightColor;
+    const invertedL = 100 - l;
+
+    const ratioAtLightness = (candidateL: number): number | null =>
+        compositedContrastRatio({
+            foreground: colord({ h, s, l: candidateL }).toHex(),
+            canvas: CANVAS_DARK_MODE_COLOR,
+            background: darkBackground,
+        });
+
+    // Return the lightness closest to the inverted value that meets the target,
+    // changing the inverted color as little as possible.
+    for (let delta = 0; delta <= 100; delta++) {
+        for (const candidateL of [invertedL + delta, invertedL - delta]) {
+            if (candidateL < 0 || candidateL > 100) {
+                continue;
+            }
+            const ratio = ratioAtLightness(candidateL);
+            if (ratio !== null && ratio >= target) {
+                return colord({ h, s, l: candidateL }).toHex();
+            }
+            if (delta === 0) {
+                break;
+            }
+        }
     }
 
-    return colord({ h, s, l: DARK_SURFACE_MAX_LIGHTNESS }).toHex();
+    return colord({ h, s, l: invertedL }).toHex();
 }

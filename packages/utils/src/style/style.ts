@@ -18,6 +18,7 @@ import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleCont
 import {
     deriveAccessibleDarkModeColor,
     deriveAccessibleDarkModeBackground,
+    deriveAccessibleDarkModeForeground,
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
 } from "./colorAccessibility";
@@ -486,17 +487,22 @@ function deriveDarkModeColorForItem(
     }
 
     if (item === "text") {
-        // Derive against the dark-mode background (set earlier in
-        // addMissingChildStyleColorFields) when present, so the pair is
-        // accessible; otherwise fall back to the dark canvas.
-        const backgroundDark = getStyleValueString(
+        // Adapt the text against its dark-mode background (the inverted
+        // backgroundColorDarkMode set earlier, or the dark canvas when no
+        // background is authored), so the derived pair keeps the light pair's
+        // figure/ground relationship and accessibility.
+        const lightBackground = getStyleValueString(
+            styleDef,
+            "backgroundColor",
+        );
+        const darkBackground = getStyleValueString(
             styleDef,
             "backgroundColorDarkMode",
         );
-        return deriveAccessibleDarkModeColor({
-            lightColor,
-            threshold: TEXT_CONTRAST_THRESHOLD,
-            background: backgroundDark,
+        return deriveAccessibleDarkModeForeground({
+            foreground: lightColor,
+            lightBackground,
+            darkBackground,
         });
     }
 

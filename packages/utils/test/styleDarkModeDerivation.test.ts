@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { colord } from "colord";
 import {
     addMissingChildStyleColorFields,
     normalizeStyleDefinitionValues,
@@ -125,5 +126,54 @@ describe("addMissingChildStyleColorFields dark-mode derivation", () => {
                 `${pair.textColor} on ${pair.backgroundColor} -> ${textDark} on ${backgroundDark}`,
             ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
         }
+    });
+
+    it("inverts an authored text/background combination for dark mode", () => {
+        // white text on black background should become black text on white
+        // background in dark mode (the lightness is inverted, not merely darkened).
+        const styleDef = normalizeStyleDefinitionValues({
+            backgroundColor: "black",
+            textColor: "white",
+        });
+        addMissingChildStyleColorFields(styleDef);
+
+        expect(
+            colord(
+                getStyleValueString(styleDef, "backgroundColorDarkMode")!,
+            ).isLight(),
+        ).toBe(true);
+        expect(
+            colord(
+                getStyleValueString(styleDef, "textColorDarkMode")!,
+            ).isDark(),
+        ).toBe(true);
+    });
+
+    it("preserves an intentionally low-contrast pair instead of fixing it", () => {
+        // A light pair that is below WCAG AA on purpose should derive to a dark
+        // pair that is similarly low-contrast (at least as high as the light
+        // pair), not forced up to AA.
+        const pair = { textColor: "#888888", backgroundColor: "#999999" };
+        const lightRatio = compositedContrastRatio({
+            foreground: pair.textColor,
+            canvas: CANVAS_LIGHT_MODE_COLOR,
+            background: pair.backgroundColor,
+        })!;
+        expect(lightRatio).toBeLessThan(TEXT_CONTRAST_THRESHOLD);
+
+        const styleDef = normalizeStyleDefinitionValues(pair);
+        addMissingChildStyleColorFields(styleDef);
+        const darkRatio = compositedContrastRatio({
+            foreground: getStyleValueString(styleDef, "textColorDarkMode")!,
+            canvas: CANVAS_DARK_MODE_COLOR,
+            background: getStyleValueString(
+                styleDef,
+                "backgroundColorDarkMode",
+            )!,
+        })!;
+
+        // At least as high as light, but not "fixed" up to AA.
+        expect(darkRatio).toBeGreaterThanOrEqual(lightRatio);
+        expect(darkRatio).toBeLessThan(TEXT_CONTRAST_THRESHOLD);
     });
 });
