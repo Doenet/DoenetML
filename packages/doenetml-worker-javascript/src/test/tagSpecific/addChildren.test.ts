@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { callAction } from "../utils/actions";
-import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("addChildren for non-graph parents @group4", async () => {
+describe("addChildren for non-graph parents @group4", () => {
     it("add and delete children of a stickyGroup inside a graph", async () => {
         const doenetML = `
     <graph name="g">
@@ -154,4 +153,50 @@ describe("addChildren for non-graph parents @group4", async () => {
         });
         await check_num_graphs(0);
     });
+
+    it.each(["aside", "proof"])(
+        "does not create children added to a postponed %s until opened",
+        async (sectionType) => {
+            const doenetML = `
+    <${sectionType} name="section" postponeRendering>
+      <title>My ${sectionType}</title>
+    </${sectionType}>
+
+    <callAction name="addContent" target="$section" actionName="addChildren">
+      <p name="dynamicContent">Content added while closed.</p>
+    </callAction>
+
+    <collect componentType="p" from="$section" name="col" />
+    `;
+
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+
+            async function checkNumParagraphs(n: number) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const col = stateVariables[await resolvePathToNodeIdx("col")];
+                expect(col.replacements?.length ?? 0).eq(n);
+            }
+
+            await checkNumParagraphs(0);
+
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("addContent"),
+                core,
+            });
+            await checkNumParagraphs(0);
+
+            await core.requestAction({
+                actionName: "revealSection",
+                componentIdx: await resolvePathToNodeIdx("section"),
+                args: {},
+            });
+
+            await checkNumParagraphs(1);
+        },
+    );
 });

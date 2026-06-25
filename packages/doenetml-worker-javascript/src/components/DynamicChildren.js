@@ -46,6 +46,28 @@ export default class DynamicChildren extends CompositeComponent {
             },
         };
 
+        // When a section parent postpones rendering, keep dynamically added
+        // children serialized until the parent reveals its content.
+        stateVariableDefinitions.parentRendered = {
+            returnDependencies: () => ({
+                parentRendered: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "rendered",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        parentRendered:
+                            dependencyValues.parentRendered !== false,
+                    },
+                };
+            },
+            markStale() {
+                return { updateReplacements: true };
+            },
+        };
+
         stateVariableDefinitions.nGroups = {
             returnDependencies: () => ({
                 dynamicChildren: {
@@ -67,6 +89,10 @@ export default class DynamicChildren extends CompositeComponent {
                 dynamicChildren: {
                     dependencyType: "stateVariable",
                     variableName: "dynamicChildren",
+                },
+                parentRendered: {
+                    dependencyType: "stateVariable",
+                    variableName: "parentRendered",
                 },
             }),
             definition: function () {
@@ -165,6 +191,15 @@ export default class DynamicChildren extends CompositeComponent {
 
         let replacements = [];
 
+        if (!(await component.stateValues.parentRendered)) {
+            workspace.nGroups = 0;
+            return {
+                replacements,
+                diagnostics,
+                nComponents,
+            };
+        }
+
         const nGroups = await component.stateValues.nGroups;
         for (let groupNum = 0; groupNum < nGroups; groupNum++) {
             let groupReplacementResult = await this.replacementForGroup({
@@ -232,7 +267,10 @@ export default class DynamicChildren extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        const nGroups = await component.stateValues.nGroups;
+        const parentRendered = await component.stateValues.parentRendered;
+        const nGroups = parentRendered
+            ? await component.stateValues.nGroups
+            : 0;
 
         if (nGroups === workspace.nGroups) {
             return {
