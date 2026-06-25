@@ -89,11 +89,26 @@ export function nodeSupportsDynamicChildren(node: DastElement): boolean {
  * via an addChildren action.
  */
 export function addDynamicChildrenSugar(node: DastElement) {
+    const deferUntilParentRendered = node.children.some(
+        (child) =>
+            child.type === "element" &&
+            child.name === "_postponeRenderContainer",
+    );
+
     node.children.push({
         type: "element",
         name: "_dynamicChildren",
         children: [],
-        attributes: {},
+        attributes: deferUntilParentRendered
+            ? {
+                  deferUntilParentRendered: {
+                      type: "attribute",
+                      name: "deferUntilParentRendered",
+                      children: [{ type: "text", value: "true" }],
+                      source_doc: node.source_doc,
+                  },
+              }
+            : {},
         source_doc: node.source_doc,
     });
 }

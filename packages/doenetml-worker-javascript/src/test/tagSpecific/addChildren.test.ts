@@ -199,4 +199,45 @@ describe("addChildren for non-graph parents @group4", () => {
             await checkNumParagraphs(1);
         },
     );
+
+    it.each(["aside", "proof"])(
+        "creates children added to a non-postponed %s before it is opened",
+        async (sectionType) => {
+            const doenetML = `
+    <${sectionType} name="section">
+      <title>My ${sectionType}</title>
+    </${sectionType}>
+
+    <callAction name="addContent" target="$section" actionName="addChildren">
+      <p name="dynamicContent">Content added while closed.</p>
+    </callAction>
+
+    <collect componentType="p" from="$section" name="col" />
+    `;
+
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("col")].replacements
+                    ?.length ?? 0,
+            ).eq(0);
+
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("addContent"),
+                core,
+            });
+
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("col")].replacements
+                    ?.length ?? 0,
+            ).eq(1);
+        },
+    );
 });
