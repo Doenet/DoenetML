@@ -538,13 +538,17 @@ export function addMissingChildStyleColorFields(
         if (colorKey in styleDef && !(darkKey in styleDef)) {
             const colorValue = getStyleValueString(styleDef, colorKey);
             if (colorValue !== undefined) {
-                const colorPosition = styleDef[colorKey]?.position;
                 const darkColor = deriveDarkModeColorForItem(
                     item,
                     colorValue,
                     styleDef,
                 );
-                setStyleValue(styleDef, darkKey, darkColor, colorPosition);
+                // Derived dark-mode colors are accessible by construction, so
+                // they intentionally carry no source position: the contrast
+                // diagnostics only flag values that have a position, which keeps
+                // dark-mode diagnostics scoped to author-supplied `*ColorDarkMode`
+                // values rather than ones we synthesized.
+                setStyleValue(styleDef, darkKey, darkColor);
             }
         }
     }

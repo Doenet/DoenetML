@@ -76,8 +76,14 @@ function createContrastAccessibilityDiagnostic({
 }
 
 /**
- * Conditionally appends a contrast accessibility diagnostic when ratio and
- * position are valid and the threshold is not met.
+ * Conditionally appends a contrast accessibility diagnostic when the ratio is
+ * insufficient.
+ *
+ * `gatePosition` is the source position of the *color value itself* and decides
+ * whether to emit at all: only author-supplied colors (which carry a position)
+ * are flagged, never colors we derived or seeded from a preset (which carry no
+ * position). `position` is where the diagnostic is anchored, which may be a
+ * later contributor such as an opacity or background attribute.
  */
 function appendContrastAccessibilityDiagnosticIfNeeded({
     diagnostics,
@@ -85,6 +91,7 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     context,
     ratio,
     threshold,
+    gatePosition,
     position,
 }: {
     diagnostics: AccessibilityRecord[];
@@ -92,9 +99,10 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     context: string;
     ratio: number | null;
     threshold: number;
+    gatePosition?: Position;
     position?: Position;
 }) {
-    if (ratio === null || ratio >= threshold || !position) {
+    if (ratio === null || ratio >= threshold || !gatePosition || !position) {
         return;
     }
 
@@ -137,8 +145,9 @@ function contrastDiagnosticsForMode(
         colorKey("background", mode),
     );
     if (textColor) {
+        const textPosition = styleDef[colorKey("text", mode)]?.position;
         const diagnosticPosition = latestPosition(
-            styleDef[colorKey("text", mode)]?.position,
+            textPosition,
             styleDef[colorKey("background", mode)]?.position,
         );
         const ratio = compositedContrastRatio({
@@ -155,6 +164,7 @@ function contrastDiagnosticsForMode(
                     : "text color against the canvas") + suffix,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
+            gatePosition: textPosition,
             position: diagnosticPosition,
         });
     }
@@ -165,7 +175,7 @@ function contrastDiagnosticsForMode(
         colorKey("highContrast", mode),
     );
     if (highContrastColor) {
-        const diagnosticPosition =
+        const highContrastPosition =
             styleDef[colorKey("highContrast", mode)]?.position;
         const ratio = compositedContrastRatio({
             foreground: highContrastColor,
@@ -177,15 +187,17 @@ function contrastDiagnosticsForMode(
             context: "high-contrast color against canvas text" + suffix,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
-            position: diagnosticPosition,
+            gatePosition: highContrastPosition,
+            position: highContrastPosition,
         });
     }
 
     // --- Line color against the canvas (composited with line opacity). ---
     const lineColor = getStyleValueString(styleDef, colorKey("line", mode));
     if (lineColor) {
+        const linePosition = styleDef[colorKey("line", mode)]?.position;
         const diagnosticPosition = latestPosition(
-            styleDef[colorKey("line", mode)]?.position,
+            linePosition,
             styleDef.lineOpacity?.position,
         );
         const lineOpacity = getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
@@ -200,6 +212,7 @@ function contrastDiagnosticsForMode(
             context: "line color against the canvas" + suffix,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
+            gatePosition: linePosition,
             position: diagnosticPosition,
         });
     }
@@ -207,8 +220,9 @@ function contrastDiagnosticsForMode(
     // --- Marker color against the canvas (composited with marker opacity). ---
     const markerColor = getStyleValueString(styleDef, colorKey("marker", mode));
     if (markerColor) {
+        const markerPosition = styleDef[colorKey("marker", mode)]?.position;
         const diagnosticPosition = latestPosition(
-            styleDef[colorKey("marker", mode)]?.position,
+            markerPosition,
             styleDef.markerOpacity?.position,
         );
         const markerOpacity =
@@ -224,6 +238,7 @@ function contrastDiagnosticsForMode(
             context: "marker color against the canvas" + suffix,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
+            gatePosition: markerPosition,
             position: diagnosticPosition,
         });
     }

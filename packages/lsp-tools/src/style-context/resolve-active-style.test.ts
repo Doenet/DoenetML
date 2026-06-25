@@ -370,8 +370,10 @@ describe("resolveActiveStyle — runtime per-block derivation", () => {
     });
 
     it("fills missing dark-mode color from same-block light-mode color", () => {
-        // The runtime's `addMissingChildStyleColorFields` mirrors light → dark
-        // when the dark value isn't explicit on the block.
+        // The runtime's `addMissingChildStyleColorFields` derives an accessible
+        // dark-mode color from the light-mode color (lightening it until it
+        // clears WCAG AA on the dark canvas) when the dark value isn't explicit
+        // on the block.
         const source = `
             <setup>
                 <styleDefinition styleNumber="1" markerColor="#FF0000"/>
@@ -381,7 +383,7 @@ describe("resolveActiveStyle — runtime per-block derivation", () => {
         const sourceObj = new DoenetSourceObject(source);
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
-        expect(resolved!.style.markerColorDarkMode).toBe("#ff0000");
+        expect(resolved!.style.markerColorDarkMode).toBe("#ff3333");
         expect(resolved!.style.markerColorWordDarkMode).toBe("red");
     });
 });
