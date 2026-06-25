@@ -39,6 +39,7 @@ import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
+import MyPoint from "./components/MyPoint";
 import Coords from "./components/Coords";
 import Line from "./components/Line";
 import LineSegment from "./components/LineSegment";
@@ -246,6 +247,7 @@ const componentTypeArray = [
     Collect,
     Ref,
     Point,
+    MyPoint,
     Coords,
     Line,
     LineSegment,
