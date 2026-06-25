@@ -115,7 +115,7 @@ describe("derived dark-mode combination diagnostics", () => {
         // The two colors share a position, so the squiggle resolves to
         // backgroundColor and the fix targets backgroundColorDarkMode.
         const match = derived[0].message.match(
-            /Set (\w+)="(#[0-9a-fA-F]+)" to restore/,
+            /for example (\w+)="(#[0-9a-fA-F]+)"/,
         );
         expect(match).not.toBeNull();
         const [, attribute, suggestedColor] = match!;
@@ -144,7 +144,7 @@ describe("derived dark-mode combination diagnostics", () => {
             d.message.includes("derived dark-mode"),
         );
         expect(derived.length).toBe(1);
-        expect(derived[0].message).toMatch(/Set textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/for example textColorDarkMode="#/);
     });
 
     it("does not flag a derived dark pair that stays accessible", () => {

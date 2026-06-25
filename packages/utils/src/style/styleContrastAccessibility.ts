@@ -351,7 +351,7 @@ function derivedDarkModeCombinationDiagnostics(
 
     const baseMessage = `Style definition ${styleNumber} has insufficient contrast for the derived dark-mode text color against background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`;
     const fixMessage = suggestion
-        ? ` Set ${suggestion.attribute}="${suggestion.color}" to restore sufficient contrast in dark mode.`
+        ? ` To restore sufficient contrast in dark mode, set ${suggestion.attribute} to a more contrasting color, for example ${suggestion.attribute}="${suggestion.color}".`
         : ` Set textColorDarkMode and/or backgroundColorDarkMode to override the derived colors.`;
 
     return [
