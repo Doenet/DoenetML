@@ -12,4 +12,6 @@ The `addChildren` (and `deleteChildren`) actions, previously available only on `
 
 The underlying mechanism (a `<_dynamicChildren>` internal child appended during normalization, plus shared worker actions that delegate to it) has been generalized so additional parent components can opt in with minimal changes.
 
+The `<callAction>` schema now accepts arbitrary children, since the children of a `<callAction actionName="addChildren">` are the (serialized) components to be added and can be any component type.
+
 Closes #1361.
