@@ -93,6 +93,80 @@ describe("applyCompositeListWrapping", () => {
         expect(wrapperElements).toEqual([]);
     });
 
+    it("does not treat blank strings between asList replacements as list items", () => {
+        const contents: ChildContent[] = [ref(6), " ", ref(7)];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 2,
+                firstInd: 0,
+                lastInd: 2,
+                asList: true,
+                potentialListComponents: [true, true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(2)]);
+        expect(wrapperElements).toHaveLength(1);
+        expect(wrapperElements[0].name).toBe("asList");
+        expect(wrapperElements[0].children).toEqual([ref(6), ref(7)]);
+    });
+
+    it("preserves whitespace around a single nonblank asList replacement without adding a wrapper", () => {
+        const contents: ChildContent[] = [ref(6), " ", "after"];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 2,
+                firstInd: 0,
+                lastInd: 1,
+                asList: true,
+                potentialListComponents: [true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(6), " ", "after"]);
+        expect(wrapperElements).toEqual([]);
+    });
+
+    it("preserves leading and trailing blank strings around a top-level asList wrapper", () => {
+        const contents: ChildContent[] = [
+            "before",
+            " ",
+            ref(6),
+            ref(7),
+            " ",
+            "after",
+        ];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 2,
+                firstInd: 1,
+                lastInd: 4,
+                asList: true,
+                potentialListComponents: [true, true, true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual(["before", " ", ref(2), " ", "after"]);
+        expect(wrapperElements).toHaveLength(1);
+        expect(wrapperElements[0].name).toBe("asList");
+        expect(wrapperElements[0].children).toEqual([ref(6), ref(7)]);
+    });
+
     it("does not wrap when not all components are list-eligible", () => {
         const contents: ChildContent[] = [ref(4), ref(5)];
         const crar: CompositeReplacementRange[] = [

@@ -104,12 +104,18 @@ function processCompositeRanges(
             const eligibleInRange = rawEligible.filter(
                 (_, i) => !isNullContent(rawItems[i]),
             );
+            const listItemsInRange = itemsInRange.filter(
+                (it) => !isBlankStringContent(it),
+            );
+            const eligibleListItemsInRange = eligibleInRange.filter(
+                (_, i) => !isBlankStringContent(itemsInRange[i]),
+            );
 
-            const allListComponents = eligibleInRange.every((x) => x);
+            const allListComponents = eligibleListItemsInRange.every((x) => x);
             const isAsList =
                 Boolean(range.asList) &&
                 allListComponents &&
-                itemsInRange.length > 1;
+                listItemsInRange.length > 1;
 
             if (itemsInRange.length > 0) {
                 items.push({
@@ -156,6 +162,57 @@ function isNullContent(item: Item | undefined) {
     return item?.kind === "content" && item.value === null;
 }
 
+function isBlankStringContent(item: Item | undefined) {
+    return (
+        item?.kind === "content" &&
+        typeof item.value === "string" &&
+        item.value.trim() === ""
+    );
+}
+
+function isBlankStringChild(child: FlatDastElementContent) {
+    return typeof child === "string" && child.trim() === "";
+}
+
+/**
+ * The prototype's `<asList>` renderer treats each FlatDast child as a list item.
+ * Whitespace-only strings in the JS child-instruction stream are separators
+ * around authored inline replacements, not their own list items, so keep leading
+ * and trailing blanks outside the wrapper when possible and remove inter-item
+ * blanks from the wrapper's child list.
+ */
+function trimAsListBlankChildren(children: FlatDastElementContent[]): {
+    leadingBlankChildren: FlatDastElementContent[];
+    listChildren: FlatDastElementContent[];
+    trailingBlankChildren: FlatDastElementContent[];
+} {
+    const firstNonBlankInd = children.findIndex((c) => !isBlankStringChild(c));
+
+    if (firstNonBlankInd === -1) {
+        return {
+            leadingBlankChildren: children,
+            listChildren: [],
+            trailingBlankChildren: [],
+        };
+    }
+
+    let lastNonBlankInd = children.length - 1;
+    while (
+        lastNonBlankInd > firstNonBlankInd &&
+        isBlankStringChild(children[lastNonBlankInd])
+    ) {
+        lastNonBlankInd--;
+    }
+
+    return {
+        leadingBlankChildren: children.slice(0, firstNonBlankInd),
+        listChildren: children
+            .slice(firstNonBlankInd, lastNonBlankInd + 1)
+            .filter((c) => !isBlankStringChild(c)),
+        trailingBlankChildren: children.slice(lastNonBlankInd + 1),
+    };
+}
+
 /**
  * Build a synthetic wrapper FlatDast element for a composite range. The wrapper
  * borrows the composite's own `componentIdx` as its id: composites are replaced
@@ -180,7 +237,8 @@ function makeWrapperElement(
  * Convert the {@link Item} tree into FlatDast children, emitting the wrapper
  * elements that need to exist in `elements[]`.
  *
- * - An `asList` group always becomes an `<asList>` wrapper (it has > 1 item).
+ * - An `asList` group always becomes an `<asList>` wrapper (it has more than
+ *   one non-blank list item).
  * - A non-list group is materialized as a single unit only when it must be —
  *   i.e. it has more than one child *and* sits inside an enclosing list, where
  *   the list would otherwise treat each of its children as a separate item. It
@@ -204,15 +262,27 @@ function materializeItems(
         }
 
         if (item.isAsList) {
-            const children = materializeItems(
+            const rawChildren = materializeItems(
                 item.items,
                 true,
                 wrapperElements,
             );
+            const {
+                leadingBlankChildren,
+                listChildren,
+                trailingBlankChildren,
+            } = trimAsListBlankChildren(rawChildren);
+
+            if (!contextIsList) {
+                out.push(...leadingBlankChildren);
+            }
             wrapperElements.push(
-                makeWrapperElement(item.compositeIdx, "asList", children),
+                makeWrapperElement(item.compositeIdx, "asList", listChildren),
             );
             out.push({ id: item.compositeIdx, annotation: "original" });
+            if (!contextIsList) {
+                out.push(...trailingBlankChildren);
+            }
             continue;
         }
 
