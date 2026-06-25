@@ -301,7 +301,7 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      set -euo pipefail
+                      set -eu
                       bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
@@ -324,7 +324,7 @@ jobs:
               uses: devcontainers/ci@v0.3
               with:
                   runCmd: |
-                      set -euo pipefail
+                      set -eu
                       bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext

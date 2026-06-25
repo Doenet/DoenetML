@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eu
 
 if [ "$#" -eq 0 ]; then
     echo "usage: $0 <npm install command>"
