@@ -186,7 +186,7 @@ function contrastDiagnosticsForMode(
         appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
-            context: "high-contrast color against canvas text" + suffix,
+            context: "high-contrast color against the canvas" + suffix,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
             gatePosition: highContrastPosition,

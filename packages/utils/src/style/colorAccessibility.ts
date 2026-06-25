@@ -114,10 +114,10 @@ export function compositedContrastRatio({
  * Derives an accessible dark-mode color from a light-mode color.
  *
  * Strategy: preserve the original hue and saturation (so the color keeps its
- * identity) and only raise lightness until the color clears `threshold` against
- * the dark canvas. If the light color already meets the threshold against the
- * dark canvas (e.g. a bright accent), it is returned unchanged so author intent
- * is preserved.
+ * identity) and only raise lightness from the original color until the color
+ * clears `threshold` against the dark canvas. If the light color already meets
+ * the threshold against the dark canvas (e.g. a bright accent), it is returned
+ * unchanged so author intent is preserved.
  *
  * Because a light-mode-accessible color is, by definition, dark enough to read
  * on white, lightening is the correct direction to make it read on the dark
@@ -153,8 +153,8 @@ export function deriveAccessibleDarkModeColor({
         return lightColor;
     }
 
-    const { h, s } = base.toHsl();
-    for (let l = 0; l <= 100; l++) {
+    const { h, s, l: startL } = base.toHsl();
+    for (let l = Math.ceil(startL); l <= 100; l++) {
         const candidate = colord({ h, s, l }).toHex();
         const ratio = compositedContrastRatio({
             foreground: candidate,

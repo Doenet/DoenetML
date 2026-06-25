@@ -18,6 +18,10 @@ export type ResolvedTheme = "dark" | "light";
 
 const DARK_MODE_QUERY = "(prefers-color-scheme: dark)";
 
+function subscribeToPinnedTheme(): () => void {
+    return () => {};
+}
+
 function getSystemTheme(): ResolvedTheme {
     if (
         typeof window === "undefined" ||
@@ -57,8 +61,10 @@ function subscribeToSystemTheme(onChange: () => void): () => void {
  * tear-free and SSR-safe (the server snapshot is always `"light"`).
  */
 export function useResolvedTheme(setting: ThemeSetting): ResolvedTheme {
+    const subscribe =
+        setting === "system" ? subscribeToSystemTheme : subscribeToPinnedTheme;
     const systemTheme = useSyncExternalStore(
-        subscribeToSystemTheme,
+        subscribe,
         getSystemTheme,
         () => "light" as ResolvedTheme,
     );

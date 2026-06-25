@@ -94,7 +94,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         });
     });
 
-    it("emits accessibility diagnostic for high-contrast color that fails against canvas text", async () => {
+    it("emits accessibility diagnostic for high-contrast color that fails against the canvas", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="10" highContrastColor="#f0f0f0" />
@@ -107,7 +107,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         expectStyleContrastAccessibility({
             diagnostic: accessibility[0],
             styleNumber: 10,
-            context: "high-contrast color against canvas text",
+            context: "high-contrast color against the canvas",
             line: 2,
         });
     });
@@ -199,7 +199,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         ).eq(true);
         expect(
             contexts.some((m) =>
-                m.includes("high-contrast color against canvas text"),
+                m.includes("high-contrast color against the canvas"),
             ),
         ).eq(true);
         expect(

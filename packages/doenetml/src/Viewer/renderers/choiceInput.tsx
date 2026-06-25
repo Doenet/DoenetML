@@ -10,6 +10,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import Select, { components, MultiValue, OnChangeValue } from "react-select";
+import { CANVAS_DARK_MODE_COLOR } from "@doenet/utils/style";
 import { DocContext } from "../DocViewer";
 import "./choiceInput.css";
 import {
@@ -321,7 +322,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // to the dark-mode values. Drive the colors from the doc-level dark mode
         // instead. (These mirror the `--canvas` / `--canvasText` palette.)
         const isDark = darkMode === "dark";
-        const surfaceColor = isDark ? "#121212" : "#fff";
+        const surfaceColor = isDark ? CANVAS_DARK_MODE_COLOR : "#fff";
         const onSurfaceColor = isDark ? "#fff" : "#000";
         // The dropdown is a floating surface: in dark mode it must read as
         // *elevated* above the canvas, so use a lighter surface plus a border
