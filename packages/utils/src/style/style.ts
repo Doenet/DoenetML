@@ -463,13 +463,36 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 }
 
 /**
- * Derives a dark-mode color for one color item from its light-mode value,
- * choosing the strategy appropriate to that item:
- *  - `text` / `background`: invert the color's lightness, independently of the
- *    other (a foreground/background combination keeps its figure/ground
- *    relationship, and the result is independent of the order/locality in which
- *    the two were authored). Whether the resulting *pair* stays accessible is
- *    checked after the fact by the contrast diagnostics.
+ * Derives a dark-mode color for one color item from its light-mode value.
+ *
+ * Two strategies are used, and the choice between them is deliberate — it tracks
+ * **what the color is contrasted against**, not the kind of item:
+ *
+ *  - **Contrasted against the *fixed* canvas** (`line`, `marker`, `fill`,
+ *    `highContrast`): visibility on the dark canvas is *monotonic in lightness*
+ *    (lighter = more visible), so we lighten the color just until it clears its
+ *    threshold against the dark canvas. Because the other side of the contrast
+ *    is a known constant, this **guarantees** an accessible result by
+ *    construction (no diagnostic needed) with zero author effort. Note that
+ *    lightness *inversion* would be wrong here: a light-mode-accessible graphic
+ *    color may itself be light (e.g. the default `#648FFF` line), and inverting
+ *    its lightness would push it *darker* and below threshold.
+ *
+ *  - **Contrasted against an *author-variable* partner** (`text` vs
+ *    `background`): the goal is to flip the figure/ground relationship
+ *    (white-on-black → black-on-white), so we invert each color's lightness
+ *    independently of the other. Independence keeps the result order/locality-
+ *    invariant but means the *pair* is not accessible by construction, so its
+ *    contrast is checked after the fact by the contrast diagnostics (which also
+ *    suggest a concrete `*ColorDarkMode` fix).
+ *
+ * The unifying rule: derive each color to be accessible against its fixed
+ * reference when it has one; only fall back to independent inversion + diagnostic
+ * when two author-variable colors form a pair. If graphic items ever gain an
+ * author-specified background, that graphic/background pairing should move to
+ * the second strategy (invert + diagnose), the same way text/background does.
+ *
+ * Per-item thresholds and opacity handling:
  *  - `highContrast`: text threshold (4.5:1) against the canvas, opaque.
  *  - `line` / `marker`: graphic threshold (3:1), composited with the item's
  *    stroke/marker opacity so the derived color reads at its rendered opacity.
@@ -488,8 +511,10 @@ function deriveDarkModeColorForItem(
     }
 
     if (item === "text") {
-        // Invert independently of the background (see deriveDarkModeColorForItem
-        // docs); the pair's accessibility is verified by the diagnostics.
+        // Invert independently of the background (a fixed canvas is not the
+        // reference here — the partner background is author-variable), so the
+        // pair's accessibility is verified by the diagnostics rather than
+        // guaranteed by construction. See deriveDarkModeColorForItem docs.
         return invertLightness(lightColor);
     }
 
