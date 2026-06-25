@@ -677,9 +677,9 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 fillColorDarkMode: "#F1466A",
                 fillOpacity: 0.3,
                 textColor: "#D4042D",
-                textColorDarkMode: "#FF8FA3",
+                textColorDarkMode: "#FF7A7A",
                 highContrastColor: "#D4042D",
-                highContrastColorDarkMode: "#FF8FA3",
+                highContrastColorDarkMode: "#FF7A7A",
             },
             3: {
                 lineColor: "#F19143",
@@ -699,9 +699,9 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 fillColorDarkMode: "#F19143",
                 fillOpacity: 0.3,
                 textColor: "#BE5A0E",
-                textColorDarkMode: "#E68A3D",
+                textColorDarkMode: "#FFA94D",
                 highContrastColor: "#BE5A0E",
-                highContrastColorDarkMode: "#E68A3D",
+                highContrastColorDarkMode: "#FFA94D",
             },
             4: {
                 lineColor: "#644CD6",
