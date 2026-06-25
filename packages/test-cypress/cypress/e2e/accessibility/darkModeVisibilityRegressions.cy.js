@@ -153,5 +153,40 @@ describe(
                     expect(sum, `menu background ${bg}`).to.be.greaterThan(70);
                 });
         });
+
+        it("subsetOfRealsInput open and closed points are distinct in dark mode", () => {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<subsetOfRealsInput name="sri" variable="t" prefill="0 <= t < 3" />`,
+                        darkMode: "dark",
+                    },
+                    "*",
+                );
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+
+            cy.get(".doenet-viewer svg circle")
+                .should("have.length.at.least", 2)
+                .then(($circles) => {
+                    const circles = [...$circles];
+                    const fills = circles.map((c) => getComputedStyle(c).fill);
+                    // Closed (filled, interval color) and open (canvas-filled,
+                    // hollow) endpoints must have different fills.
+                    expect(
+                        new Set(fills).size,
+                        `circle fills ${fills.join(" | ")}`,
+                    ).to.be.greaterThan(1);
+                    // The endpoint ring is the interval color, not the white
+                    // canvasText that made closed points read as hollow.
+                    circles.forEach((c) => {
+                        const stroke = getComputedStyle(c).stroke;
+                        expect(
+                            channelSum(stroke),
+                            `circle stroke ${stroke}`,
+                        ).to.be.lessThan(600);
+                    });
+                });
+        });
     },
 );

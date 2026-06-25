@@ -149,7 +149,7 @@ export default React.memo(function subsetOfReals(
                 cx={xPosition}
                 cy="40"
                 r="6"
-                stroke="var(--canvasText)"
+                stroke="var(--mainPurple)"
                 strokeWidth="1"
                 fill={currentFillColor}
             />,
@@ -178,7 +178,7 @@ export default React.memo(function subsetOfReals(
             storedPoints.push(
                 <polygon
                     key={lowerPointKey}
-                    points="5,40 20,46 20,34"
+                    points="5,40 20,50 20,30"
                     style={{
                         fill: currentFillColor,
                         stroke: currentFillColor,
@@ -193,7 +193,7 @@ export default React.memo(function subsetOfReals(
             storedPoints.push(
                 <polygon
                     key={higherPointKey}
-                    points="795,40 780,46 780,34"
+                    points="795,40 780,50 780,30"
                     style={{
                         fill: currentFillColor,
                         stroke: currentFillColor,
