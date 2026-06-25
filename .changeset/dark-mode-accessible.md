@@ -46,6 +46,12 @@ Dark mode: make it actually work and meet WCAG AA.
   warnings) used CodeMirror's light default surface, so its text rendered
   white-on-white in dark mode; it now uses an elevated dark surface with
   recolored, AA-legible heading/code accents.
+- The PreFigure renderer (`<graph renderer="prefigure">`) is now dark-mode
+  aware: the generated diagram XML depends on the document theme, so line,
+  marker, and fill colors use their derived dark-mode values, and the axes/ticks
+  (which PreFigure draws black by default, invisible on the dark canvas) get a
+  light stroke matching the JSXGraph axes. Tick labels are MathJax
+  `currentColor` and already follow `--canvasText`.
 - Added dark-mode accessibility (cypress-axe) coverage across renderer
   categories, plus computed-style regression tests for the caret, focus outline,
   and fraction bar.

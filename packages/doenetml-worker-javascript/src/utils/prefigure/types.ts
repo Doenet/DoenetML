@@ -157,4 +157,5 @@ export interface GraphDependencyValues extends Record<string, unknown> {
     curveDescendants?: Descendant[];
     curveDescendantComponentIndices?: number[];
     functionToCurveComponentIdx?: Record<number, number>;
+    document?: { stateValues?: { theme?: "dark" | "light" } } | null;
 }
