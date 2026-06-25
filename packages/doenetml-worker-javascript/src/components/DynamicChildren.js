@@ -61,18 +61,27 @@ export default class DynamicChildren extends CompositeComponent {
         };
 
         // When dynamic children were added to postponed content, keep them
-        // serialized until the parent reveals its content.
+        // serialized until the parent reveals its content. Only sectioning
+        // components that postpone rendering set `deferUntilParentRendered`, and
+        // only those have a `rendered` state variable, so we request the parent
+        // dependency only in that case (other parents like `<graph>` lack it).
         stateVariableDefinitions.createReplacements = {
-            returnDependencies: () => ({
-                deferUntilParentRendered: {
-                    dependencyType: "stateVariable",
-                    variableName: "deferUntilParentRendered",
-                },
-                parentRendered: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "rendered",
-                },
-            }),
+            stateVariablesDeterminingDependencies: ["deferUntilParentRendered"],
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {
+                    deferUntilParentRendered: {
+                        dependencyType: "stateVariable",
+                        variableName: "deferUntilParentRendered",
+                    },
+                };
+                if (stateValues.deferUntilParentRendered) {
+                    dependencies.parentRendered = {
+                        dependencyType: "parentStateVariable",
+                        variableName: "rendered",
+                    };
+                }
+                return dependencies;
+            },
             definition({ dependencyValues }) {
                 return {
                     setValue: {
