@@ -1,7 +1,7 @@
 import * as Ariakit from "@ariakit/react";
-import type { ThemeMode } from "@doenet/codemirror";
 import React, { useEffect, useState } from "react";
 import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
+import type { ResolvedTheme } from "../utils/theme";
 import "./variant-select.css";
 
 export default function VariantSelect({
@@ -14,7 +14,7 @@ export default function VariantSelect({
 }: {
     size: "sm" | "md" | "lg";
     menuWidth: string;
-    darkMode?: ThemeMode;
+    darkMode?: ResolvedTheme;
     array: string[];
     onChange: (index: number) => void;
     syncIndex?: number;
@@ -22,9 +22,6 @@ export default function VariantSelect({
     const [index, setIndex] = useState(0);
     const [value, setValue] = useState(array[index]);
     const [inputValue, setInputValue] = useState("");
-
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     function selectIndex(nextIndex: number) {
         setIndex(nextIndex);

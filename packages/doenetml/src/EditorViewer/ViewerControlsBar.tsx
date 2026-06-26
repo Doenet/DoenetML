@@ -1,5 +1,4 @@
 import React from "react";
-import type { ThemeMode } from "@doenet/codemirror";
 import { UiButton } from "@doenet/ui-components";
 import { isMacPlatform } from "@doenet/utils";
 import { RxUpdate } from "react-icons/rx";
@@ -7,12 +6,9 @@ import { BsExclamationTriangleFill } from "react-icons/bs";
 import { AccessibilityStatusButton } from "./AccessibilityStatusButton";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
-
-type VariantsState = {
-    index: number;
-    numVariants: number;
-    allPossibleVariants: string[];
-};
+import type { ResolvedTheme } from "../utils/theme";
+import { setVariantIndex } from "../utils/variants";
+import type { VariantsState } from "../utils/variants";
 
 /**
  * Header controls above the viewer: update/reset, variant selection, and accessibility status.
@@ -46,7 +42,7 @@ export function ViewerControlsBar({
     accessibilityLevel2Count: number;
     isAccessibilityReportOpen: boolean;
     onToggleAccessibilityReport: () => void;
-    darkMode: ThemeMode;
+    darkMode: ResolvedTheme;
 }) {
     return (
         <div className="viewer-controls" id={`${id}-viewer-controls`}>
@@ -78,11 +74,7 @@ export function ViewerControlsBar({
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}
                     onChange={(index: number) =>
-                        setVariants((prev) => {
-                            let next = { ...prev };
-                            next.index = index + 1;
-                            return next;
-                        })
+                        setVariantIndex(setVariants, index)
                     }
                 />
             )}

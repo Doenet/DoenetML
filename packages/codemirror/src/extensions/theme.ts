@@ -31,8 +31,9 @@ function getGutterColors(darkMode: ThemeMode) {
  *  - dark:  gutter bg = #1e1e1e (VS Code-style, barely lighter than canvas)
  *           with muted text #8b949e (5.2:1 on #1e1e1e)
  *
- * The dark gutter values are also emitted in editor-viewer.css under
- * `[data-theme="dark"] .cm-gutters` for belt-and-suspenders coverage.
+ * The dark gutter values are also emitted in `editor-viewer.css` under
+ * `[data-theme="dark"] .editor-panel .cm-gutters` for belt-and-suspenders
+ * coverage inside `EditorViewer`.
  */
 export function colorTheme(darkMode: ThemeMode) {
     const gutterColors = getGutterColors(darkMode);

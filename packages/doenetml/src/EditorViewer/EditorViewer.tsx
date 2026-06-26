@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
-import { CodeMirror, LSP, type ThemeMode } from "@doenet/codemirror";
+import { CodeMirror, LSP } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
@@ -27,7 +27,8 @@ import { EditorFooter } from "./EditorFooter";
 import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
-import { setVariantsFromCallback } from "../utils/variants";
+import type { ResolvedTheme } from "../utils/theme";
+import { setVariantsFromCallback, type VariantsState } from "../utils/variants";
 import type { DiagnosticsSummary } from "./diagnostics";
 import {
     mergeDiagnosticsByType,
@@ -87,7 +88,7 @@ type EditorViewerProps = {
     prefixForIds?: string;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
-    darkMode?: ThemeMode;
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -204,7 +205,7 @@ export const EditorViewer = React.forwardRef<
 
     const [viewerResetNum, setViewerResetNum] = useState(0);
 
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
