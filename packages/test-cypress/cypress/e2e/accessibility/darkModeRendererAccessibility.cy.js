@@ -262,6 +262,26 @@ describe(
             );
         });
 
+        it("tray updates when dark mode changes after mount", () => {
+            loadWithMathInput("light");
+            openKeyboardTray();
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(255, 255, 255)",
+            );
+
+            cy.window().then((win) => {
+                win.postMessage({ darkMode: "dark" }, "*");
+            });
+
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(30, 30, 30)",
+            );
+        });
+
         it("key faces use dark background in dark mode", () => {
             loadWithMathInput("dark");
             openKeyboardTray();
