@@ -3,11 +3,18 @@ import React from "react";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
-import { findAllNewlines, getLineCharRange } from "@doenet/utils";
+import {
+    findAllNewlines,
+    getLineCharRange,
+    getSystemTheme,
+    subscribeToSystemTheme,
+} from "@doenet/utils";
 import type {
     DiagnosticRecord,
     ErrorRecord,
     WarningRecord,
+    ThemeSetting,
+    ResolvedTheme,
 } from "@doenet/utils";
 import {
     DoenetViewerProps,
@@ -41,40 +48,8 @@ import { detectVersionFromDoenetML } from "@doenet/parser";
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 
-type ThemeSetting = "dark" | "light" | "system";
-type ResolvedTheme = "dark" | "light";
-const DARK_MODE_QUERY = "(prefers-color-scheme: dark)";
-
 function subscribeToPinnedTheme() {
     return () => {};
-}
-
-function getSystemTheme(): ResolvedTheme {
-    if (
-        typeof window === "undefined" ||
-        typeof window.matchMedia !== "function"
-    ) {
-        return "light";
-    }
-    return window.matchMedia(DARK_MODE_QUERY).matches ? "dark" : "light";
-}
-
-function subscribeToSystemTheme(onChange: () => void) {
-    if (
-        typeof window === "undefined" ||
-        typeof window.matchMedia !== "function"
-    ) {
-        return () => {};
-    }
-
-    const mediaQuery = window.matchMedia(DARK_MODE_QUERY);
-    if (typeof mediaQuery.addEventListener === "function") {
-        mediaQuery.addEventListener("change", onChange);
-        return () => mediaQuery.removeEventListener("change", onChange);
-    }
-
-    mediaQuery.addListener(onChange);
-    return () => mediaQuery.removeListener(onChange);
 }
 
 function useResolvedTheme(setting: ThemeSetting): ResolvedTheme {

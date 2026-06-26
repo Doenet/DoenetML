@@ -114,12 +114,15 @@ export function UniqueKeyboardTray({
     theme?: "dark" | "light";
     ownerRef?: React.RefObject<HTMLElement | null>;
 }) {
-    const registrationId = React.useRef<number | null>(null);
-    if (registrationId.current === null) {
-        registrationId.current = virtualKeyboardState.nextRegistrationId;
+    // Allocate a stable registration ID for this instance using a lazy useState
+    // initializer. This runs exactly once per mounted instance (at commit time
+    // for the initial render), so it does not mutate global state during render
+    // or in React's StrictMode double-invocation / concurrent-mode retries.
+    const [id] = React.useState<number>(() => {
+        const next = virtualKeyboardState.nextRegistrationId;
         virtualKeyboardState.nextRegistrationId += 1;
-    }
-    const id = registrationId.current;
+        return next;
+    });
 
     React.useEffect(() => {
         // If the count is zero, we need to create the tray.
