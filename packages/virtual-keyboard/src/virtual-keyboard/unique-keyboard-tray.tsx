@@ -91,9 +91,10 @@ function renderTray(theme: "dark" | "light" | undefined) {
             <KeyboardTray
                 theme={theme}
                 onClick={(e) => {
-                    virtualKeyboardState.registrations.forEach((registration) =>
-                        registration.onClick(e),
-                    );
+                    // Route key events only to the active registration so that
+                    // multiple mounted viewers/iframes do not all receive the
+                    // same keyboard commands.
+                    getActiveRegistration()?.onClick(e);
                 }}
             />
         </MathJaxContext>
