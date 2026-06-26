@@ -131,9 +131,10 @@ export function UniqueKeyboardTray({
     ownerRef: React.RefObject<HTMLElement | null>;
 }) {
     // Allocate a stable registration ID for this instance using a lazy useState
-    // initializer. This runs exactly once per mounted instance (at commit time
-    // for the initial render), so it does not mutate global state during render
-    // or in React's StrictMode double-invocation / concurrent-mode retries.
+    // initializer. React may invoke the initializer more than once in
+    // StrictMode development builds, which can leave gaps in
+    // nextRegistrationId, but the first returned value remains this mounted
+    // instance's stable ID.
     const [id] = React.useState<number>(() => {
         const next = virtualKeyboardState.nextRegistrationId;
         virtualKeyboardState.nextRegistrationId += 1;
