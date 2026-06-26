@@ -33,7 +33,7 @@ export function ExternalAwareVirtualKeyboard({
      * Element whose focus should be treated as this keyboard instance being
      * active when a document-wide shared tray is used.
      */
-    ownerRef?: React.RefObject<HTMLElement | null>;
+    ownerRef: React.RefObject<HTMLElement | null>;
 }) {
     React.useEffect(() => {
         if (externalVirtualKeyboardProvided) {

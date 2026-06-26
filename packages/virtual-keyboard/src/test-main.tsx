@@ -19,9 +19,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 function App() {
     const [text, setText] = React.useState("Some Text");
     const [lastCommand, setLastCommand] = React.useState("");
+    const ownerRef = React.useRef<HTMLElement | null>(null);
 
     return (
-        <div>
+        <div ref={ownerRef}>
             <h4>Test the VirtualKeyboard</h4>
             <p>
                 Last command received from the VirtualKeyboard:{" "}
@@ -37,6 +38,7 @@ function App() {
             />
             <MathJaxContext>
                 <VirtualKeyboard
+                    ownerRef={ownerRef}
                     onClick={(e) =>
                         setLastCommand(JSON.stringify(e).replace(/"/g, "'"))
                     }

@@ -122,7 +122,7 @@ export function UniqueKeyboardTray({
 }: {
     onClick: OnClick;
     theme?: "dark" | "light";
-    ownerRef?: React.RefObject<HTMLElement | null>;
+    ownerRef: React.RefObject<HTMLElement | null>;
 }) {
     // Allocate a stable registration ID for this instance using a lazy useState
     // initializer. This runs exactly once per mounted instance (at commit time
