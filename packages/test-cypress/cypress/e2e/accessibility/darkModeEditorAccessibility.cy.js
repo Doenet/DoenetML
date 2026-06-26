@@ -10,7 +10,7 @@
  *  - CodeMirror code area (syntax highlighting, gutters, active line)
  *  - Diagnostics / responses / help panel (footer tabs, diagnostic entries,
  *    accessibility report card, help-panel shell)
- *  - Viewer controls bar (Update button, accessibility status chip)
+ *  - Viewer controls bar (Update button, accessibility status chip, variant popover)
  */
 describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
     beforeEach(() => {
@@ -40,13 +40,13 @@ describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
     }
 
     /**
-     * Assert no color-contrast axe violations inside `selector`.
-     * `selector` defaults to the editor panel; pass `".viewer-panel"` for
-     * the viewer controls bar.
+     * Assert no color-contrast axe violations inside `selectors`.
+     * Defaults to the editor panel; pass viewer-control selectors when a test
+     * opens UI that is portaled outside the panel itself.
      */
-    function expectNoColorContrastViolations(selector = ".editor-panel") {
+    function expectNoColorContrastViolations(selectors = ".editor-panel") {
         cy.checkA11y(
-            [selector],
+            Array.isArray(selectors) ? selectors : [selectors],
             {
                 runOnly: { type: "rule", values: ["color-contrast"] },
                 includedImpacts: ["critical", "serious", "moderate", "minor"],
@@ -113,20 +113,26 @@ describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
             `<graph name="g"><point>(1,2)</point></graph>`,
             "#g",
         );
-        cy.wait(300);
-        expectNoColorContrastViolations(".viewer-panel .viewer-controls");
+        cy.get(".accessibility-status-button").click();
+        cy.get(".accessibility-report").should("exist");
+        expectNoColorContrastViolations([
+            ".viewer-panel .viewer-controls",
+            ".accessibility-report",
+        ]);
     });
 
     it("dark mode: viewer controls bar (Update button, variant select)", () => {
         loadEditorInDarkMode(
-            `<problem name="prob">
-  <p>Choose: <choiceInput name="ci">
-    <choice>alpha</choice><choice>beta</choice>
-  </choiceInput></p>
-</problem>`,
-            "#prob",
+            `<selectFromSequence name="s" from="1" to="3" />`,
+            "#s",
         );
-        expectNoColorContrastViolations(".viewer-panel .viewer-controls");
+        cy.get(".variant-select").should("exist");
+        cy.get(".select-button").click();
+        cy.get(".popover").should("exist");
+        expectNoColorContrastViolations([
+            ".viewer-panel .viewer-controls",
+            ".popover",
+        ]);
     });
 
     it("dark mode: footer tab bar (diagnostics summary counts)", () => {

@@ -64,7 +64,7 @@ export default function VariantSelect({
                         }}
                     >
                         <Ariakit.Select
-                            className="button select-button"
+                            className="doenet-ui-button button select-button"
                             title="Variant"
                         />
                         <Ariakit.SelectPopover
@@ -97,7 +97,7 @@ export default function VariantSelect({
             <Ariakit.Button
                 title="Select next variant"
                 data-test="Next Variant"
-                className="button prev-next-button"
+                className="doenet-ui-button button prev-next-button"
                 disabled={index == array.length - 1}
                 onClick={() => {
                     if (index == array.length - 1) {
@@ -111,7 +111,7 @@ export default function VariantSelect({
             <Ariakit.Button
                 title="Select previous variant"
                 data-test="Previous Variant"
-                className="button prev-next-button"
+                className="doenet-ui-button button prev-next-button"
                 disabled={index < 1}
                 onClick={() => {
                     if (index < 1) {

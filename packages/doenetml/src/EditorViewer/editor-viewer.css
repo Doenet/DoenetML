@@ -539,6 +539,10 @@
     border-color: #444;
 }
 
+[data-theme="dark"] .editor-panel .accessibility-report a {
+    color: #79c0ff;
+}
+
 [data-theme="dark"] .editor-panel .accessibility-report-heading.critical {
     color: #c4b5fd;
 }
