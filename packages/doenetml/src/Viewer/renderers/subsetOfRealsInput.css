@@ -1,4 +1,5 @@
 .doenet-viewer text.text-no-select {
+    fill: var(--canvasText);
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;

@@ -15,6 +15,13 @@ import {
     type StyleDefinitions,
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
+import {
+    deriveAccessibleDarkModeColor,
+    deriveAccessibleDarkModeBackground,
+    invertLightness,
+    GRAPHIC_CONTRAST_THRESHOLD,
+    TEXT_CONTRAST_THRESHOLD,
+} from "./colorAccessibility";
 
 /**
  * Style helpers and state-variable definitions shared by renderable components.
@@ -456,8 +463,98 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 }
 
 /**
- * For selected color items, adds missing dark-mode color values (mirroring light mode)
- * and color-word fields without overwriting authored word overrides.
+ * Derives a dark-mode color for one color item from its light-mode value.
+ *
+ * Two strategies are used, and the choice between them is deliberate — it tracks
+ * **what the color is contrasted against**, not the kind of item:
+ *
+ *  - **Contrasted against the *fixed* canvas** (`line`, `marker`, `fill`,
+ *    `highContrast`): visibility on the dark canvas is *monotonic in lightness*
+ *    (lighter = more visible), so we lighten the color just until it clears its
+ *    threshold against the dark canvas. Because the other side of the contrast
+ *    is a known constant, this **guarantees** an accessible result by
+ *    construction (no diagnostic needed) with zero author effort. Note that
+ *    lightness *inversion* would be wrong here: a light-mode-accessible graphic
+ *    color may itself be light (e.g. the default `#648FFF` line), and inverting
+ *    its lightness would push it *darker* and below threshold.
+ *
+ *  - **Contrasted against an *author-variable* partner** (`text` vs
+ *    `background`): the goal is to flip the figure/ground relationship
+ *    (white-on-black → black-on-white), so we invert each color's lightness
+ *    independently of the other. Text uses this same inversion even when no
+ *    background is authored, so its behavior stays stable if a background later
+ *    comes from a parent/child style block. Independence keeps the result
+ *    order/locality-invariant but means the derived dark value is not accessible
+ *    by construction, so contrast is checked after the fact by the diagnostics
+ *    (which also suggest a concrete `*ColorDarkMode` fix).
+ *
+ * The unifying rule: derive each color to be accessible against its fixed
+ * reference when it has one; only fall back to independent inversion + diagnostic
+ * when two author-variable colors form a pair. If graphic items ever gain an
+ * author-specified background, that graphic/background pairing should move to
+ * the second strategy (invert + diagnose), the same way text/background does.
+ *
+ * Per-item thresholds and opacity handling:
+ *  - `highContrast`: text threshold (4.5:1) against the canvas, opaque.
+ *  - `line` / `marker`: graphic threshold (3:1), composited with the item's
+ *    stroke/marker opacity so the derived color reads at its rendered opacity.
+ *  - `fill`: graphic threshold (3:1) treated as opaque — fills paint at a low
+ *    `fillOpacity` and are decorative, so we derive a readable tint and let the
+ *    opacity apply at render time rather than forcing the (unreachable) 3:1 on
+ *    the translucent fill.
+ */
+function deriveDarkModeColorForItem(
+    item: (typeof coloredItemsForWords)[number],
+    lightColor: string,
+    styleDef: StyleDefinition,
+): string {
+    if (item === "background") {
+        return deriveAccessibleDarkModeBackground(lightColor);
+    }
+
+    if (item === "text") {
+        // Invert independently of the background (a fixed canvas is not the
+        // reference here — the partner background is author-variable), so the
+        // pair's accessibility is verified by the diagnostics rather than
+        // guaranteed by construction. See deriveDarkModeColorForItem docs.
+        return invertLightness(lightColor);
+    }
+
+    if (item === "highContrast") {
+        return deriveAccessibleDarkModeColor({
+            lightColor,
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+    }
+
+    if (item === "line" || item === "marker") {
+        const opacityKey = `${item}Opacity` as StyleDefinitionKey;
+        const opacityDefault = DEFAULT_STYLE_VALUES[
+            opacityKey as keyof typeof DEFAULT_STYLE_VALUES
+        ] as number | undefined;
+        const opacity =
+            getStyleValueNumber(styleDef, opacityKey) ?? opacityDefault ?? 1;
+        return deriveAccessibleDarkModeColor({
+            lightColor,
+            threshold: GRAPHIC_CONTRAST_THRESHOLD,
+            opacityMultiplier: opacity,
+        });
+    }
+
+    // fill (and any future graphic item): readable opaque tint.
+    return deriveAccessibleDarkModeColor({
+        lightColor,
+        threshold: GRAPHIC_CONTRAST_THRESHOLD,
+    });
+}
+
+/**
+ * For each color item where the author supplied a light-mode color but no
+ * dark-mode color, derives an accessible dark-mode color (see
+ * {@link deriveDarkModeColorForItem}). Authored dark-mode colors are left
+ * untouched. Missing `*Word` descriptors (light and dark) are then derived from
+ * the resulting color values, so the dark-mode word reflects the derived
+ * dark-mode color rather than the light-mode one.
  *
  * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
  * apply the same per-block normalization the worker runs before merging an
@@ -469,35 +566,42 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 export function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
 ): StyleDefinition {
+    // Each color item's dark-mode value is derived independently of the others,
+    // so the order here doesn't affect the result.
     for (const item of coloredItemsForWords) {
-        const colorKey = `${item}Color` as StyleDefinitionKey;
-        const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
-        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
-        const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
-
-        if (colorKey in styleDef && !(darkKey in styleDef)) {
-            const colorValue = styleDef[colorKey]?.style;
-            if (colorValue !== undefined) {
-                const colorPosition = styleDef[colorKey]?.position;
-                setStyleValue(styleDef, darkKey, colorValue, colorPosition);
-            }
-
-            if (colorWordKey in styleDef && !(darkWordKey in styleDef)) {
-                const wordValue = styleDef[colorWordKey]?.style;
-                if (typeof wordValue === "string") {
-                    const wordPosition = styleDef[colorWordKey]?.position;
-                    setStyleValue(
-                        styleDef,
-                        darkWordKey,
-                        wordValue,
-                        wordPosition,
-                    );
-                }
-            }
-        }
+        deriveMissingDarkModeColor(styleDef, item);
     }
 
     return addMissingColorWordsToStyleDefinition(styleDef);
+}
+
+/**
+ * Derives the missing `${item}ColorDarkMode` value for one color item from its
+ * light-mode `${item}Color`, if the light color is present and the dark color is
+ * not. The derived value carries no source position: the per-channel contrast
+ * diagnostics only flag values that have a position, which keeps those
+ * diagnostics scoped to author-supplied `*ColorDarkMode` values. (A derived
+ * text/background *combination* that ends up inaccessible is reported separately
+ * by the contrast diagnostics, anchored to the authored light colors.)
+ */
+function deriveMissingDarkModeColor(
+    styleDef: StyleDefinition,
+    item: (typeof coloredItemsForWords)[number],
+): void {
+    const colorKey = `${item}Color` as StyleDefinitionKey;
+    const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+
+    if (!(colorKey in styleDef) || darkKey in styleDef) {
+        return;
+    }
+
+    const colorValue = getStyleValueString(styleDef, colorKey);
+    if (colorValue === undefined) {
+        return;
+    }
+
+    const darkColor = deriveDarkModeColorForItem(item, colorValue, styleDef);
+    setStyleValue(styleDef, darkKey, darkColor);
 }
 
 /**
@@ -609,25 +713,25 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
             1: { ...DEFAULT_STYLE_VALUES },
             2: {
                 lineColor: "#D4042D",
-                lineColorDarkMode: "#D4042D",
+                lineColorDarkMode: "#F1466A",
                 lineOpacity: 0.7,
                 lineWidth: 2,
                 lineWidthWord: "",
                 lineStyle: "solid",
                 lineStyleWord: "",
                 markerColor: "#D4042D",
-                markerColorDarkMode: "#D4042D",
+                markerColorDarkMode: "#F1466A",
                 markerOpacity: 0.7,
                 markerStyle: "square",
                 markerStyleWord: "square",
                 markerSize: 5,
                 fillColor: "#D4042D",
-                fillColorDarkMode: "#D4042D",
+                fillColorDarkMode: "#F1466A",
                 fillOpacity: 0.3,
                 textColor: "#D4042D",
-                textColorDarkMode: "#D4042D",
+                textColorDarkMode: "#FF7A7A",
                 highContrastColor: "#D4042D",
-                highContrastColorDarkMode: "#D4042D",
+                highContrastColorDarkMode: "#FF7A7A",
             },
             3: {
                 lineColor: "#F19143",
@@ -647,31 +751,31 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 fillColorDarkMode: "#F19143",
                 fillOpacity: 0.3,
                 textColor: "#BE5A0E",
-                textColorDarkMode: "#BE5A0E",
+                textColorDarkMode: "#FFA94D",
                 highContrastColor: "#BE5A0E",
-                highContrastColorDarkMode: "#BE5A0E",
+                highContrastColorDarkMode: "#FFA94D",
             },
             4: {
                 lineColor: "#644CD6",
-                lineColorDarkMode: "#644CD6",
+                lineColorDarkMode: "#9F8FE8",
                 lineOpacity: 0.7,
                 lineWidth: 2,
                 lineWidthWord: "",
                 lineStyle: "solid",
                 lineStyleWord: "",
                 markerColor: "#644CD6",
-                markerColorDarkMode: "#644CD6",
+                markerColorDarkMode: "#9F8FE8",
                 markerOpacity: 0.7,
                 markerStyle: "diamond",
                 markerStyleWord: "diamond",
                 markerSize: 5,
                 fillColor: "#644CD6",
-                fillColorDarkMode: "#644CD6",
+                fillColorDarkMode: "#9F8FE8",
                 fillOpacity: 0.3,
                 textColor: "#644CD6",
-                textColorDarkMode: "#644CD6",
+                textColorDarkMode: "#B0A4EE",
                 highContrastColor: "#644CD6",
-                highContrastColorDarkMode: "#644CD6",
+                highContrastColorDarkMode: "#B0A4EE",
             },
             5: {
                 lineColor: "black",
@@ -693,29 +797,29 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 textColor: "black",
                 textColorDarkMode: "white",
                 highContrastColor: "black",
-                highContrastColorDarkMode: "black",
+                highContrastColorDarkMode: "white",
             },
             6: {
                 lineColor: "gray",
-                lineColorDarkMode: "gray",
+                lineColorDarkMode: "#CCCCCC",
                 lineOpacity: 0.7,
                 lineWidth: 1,
                 lineWidthWord: "thin",
                 lineStyle: "dotted",
                 lineStyleWord: "dotted",
                 markerColor: "gray",
-                markerColorDarkMode: "gray",
+                markerColorDarkMode: "#CCCCCC",
                 markerOpacity: 0.7,
                 markerStyle: "circle",
                 markerStyleWord: "point",
                 markerSize: 5,
                 fillColor: "gray",
-                fillColorDarkMode: "gray",
+                fillColorDarkMode: "#CCCCCC",
                 fillOpacity: 0.3,
                 textColor: "#757575",
-                textColorDarkMode: "#757575",
+                textColorDarkMode: "#B0B0B0",
                 highContrastColor: "#757575",
-                highContrastColorDarkMode: "#757575",
+                highContrastColorDarkMode: "#B0B0B0",
             },
         }),
     );

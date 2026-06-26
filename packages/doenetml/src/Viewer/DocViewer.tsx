@@ -1603,7 +1603,7 @@ export function DocViewer({
         maxWidth: "850px",
         paddingLeft: "20px",
         paddingRight: "20px",
-        backgroundColor: "inherit",
+        backgroundColor: "var(--canvas)",
         containerType: "inline-size",
     };
     if (!coreCreated.current) {

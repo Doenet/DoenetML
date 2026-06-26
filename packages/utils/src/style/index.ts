@@ -7,5 +7,7 @@
  * boot time (it's loaded before the editor can respond to cursor events).
  */
 export * from "./colorWords";
+export * from "./colorAccessibility";
+export * from "./styleContrastAccessibility";
 export * from "./style";
 export * from "./styleDefinitionHelpers";

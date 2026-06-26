@@ -35,7 +35,7 @@
         justify-content: space-between;
     }
 
-    .button:where(.dark, .dark *) {
+    .button:where([data-theme="dark"], [data-theme="dark"] *) {
         --border: rgb(255 255 255/10%);
         --highlight: rgb(255 255 255/5%);
         --shadow: rgb(0 0 0/25%);
@@ -51,7 +51,9 @@
         --border: rgb(0 0 0/33%);
     }
 
-    .button:where(.dark, .dark *):not(:active):hover {
+    .button:where([data-theme="dark"], [data-theme="dark"] *):not(
+            :active
+        ):hover {
         --border: rgb(255 255 255/25%);
     }
 
@@ -77,8 +79,8 @@
         }
     }
 
-    .button:active:where(.dark, .dark *),
-    .button[data-active]:where(.dark, .dark *) {
+    .button:active:where([data-theme="dark"], [data-theme="dark"] *),
+    .button[data-active]:where([data-theme="dark"], [data-theme="dark"] *) {
         box-shadow:
             inset 0 0 0 1px var(--border),
             inset 0 1px 1px 1px var(--shadow);
@@ -127,7 +129,7 @@
         padding-top: 0px;
     }
 
-    .popover:where(.dark, .dark *) {
+    .popover:where([data-theme="dark"], [data-theme="dark"] *) {
         border-color: hsl(204 4% 24%);
         background-color: hsl(204 4% 16%);
         color: white;
@@ -193,12 +195,12 @@
         outline-offset: -1px;
     }
 
-    .combobox:where(.dark, .dark *) {
+    .combobox:where([data-theme="dark"], [data-theme="dark"] *) {
         background-color: hsl(204 4% 10%);
         color: white;
     }
 
-    .combobox:hover:where(.dark, .dark *) {
+    .combobox:hover:where([data-theme="dark"], [data-theme="dark"] *) {
         background-color: hsl(204 4% 8%);
     }
 }

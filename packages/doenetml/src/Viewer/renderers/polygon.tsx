@@ -363,7 +363,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         if (!verticesFixed.current && polygonJXG.current) {
             for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    vertex.setAttribute({ fillcolor: "black" });
+                    vertex.setAttribute({ fillcolor: "var(--canvasText)" });
                     vertex.needsUpdate = true;
                     vertex.update();
                 }

@@ -3,7 +3,7 @@ import {
     pushWarning,
     warningMessageForDescendant,
 } from "./common";
-import { styleAttributes } from "./style";
+import { styleAttributes, resolveSelectedStyleForTheme } from "./style";
 import { convertPointToPrefigure } from "./components/point";
 import {
     convertLineToPrefigure,
@@ -73,6 +73,7 @@ interface ConvertGraphicalDescendantArgs {
     diagnostics: DiagnosticRecord[];
     graphBounds: GraphBounds;
     graphDimensions: GraphDimensions;
+    darkMode: boolean;
 }
 
 /**
@@ -91,12 +92,17 @@ export function convertGraphicalDescendantToPrefigure({
     diagnostics,
     graphBounds,
     graphDimensions,
+    darkMode,
 }: ConvertGraphicalDescendantArgs): { xml: string; handle: string } | null {
     const sv: PrefigureStateValues = {
         ...(descendant?.stateValues ?? {}),
         graphBounds,
         graphDimensions,
     };
+
+    // Swap in dark-mode colors once, here, so every downstream converter and the
+    // shared styleAttributes call below emit theme-appropriate colors.
+    sv.selectedStyle = resolveSelectedStyleForTheme(sv.selectedStyle, darkMode);
 
     if (sv.hidden) {
         return null;

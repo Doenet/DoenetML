@@ -20,6 +20,49 @@ const prefigurePointStyleByMarkerStyle: Record<string, string> = {
 };
 
 /**
+ * Returns a `selectedStyle` whose color fields hold the dark-mode values when
+ * `darkMode` is true, so the rest of the PreFigure conversion (which reads the
+ * plain `*Color`/`*ColorWord` fields) emits theme-appropriate colors without
+ * every converter needing to know about dark mode.
+ *
+ * The dark values are derived by the worker to satisfy WCAG AA against the dark
+ * canvas, matching what the JSXGraph renderer picks via `resolveLineColor` etc.
+ * In light mode (or when no style is present) the input is returned unchanged.
+ */
+export function resolveSelectedStyleForTheme(
+    selectedStyle: SelectedStyle | undefined,
+    darkMode: boolean,
+): SelectedStyle | undefined {
+    if (!selectedStyle || !darkMode) {
+        return selectedStyle;
+    }
+
+    const pickDark = (darkKey: string, lightValue: string | undefined) => {
+        const darkValue = selectedStyle[darkKey];
+        return typeof darkValue === "string" ? darkValue : lightValue;
+    };
+
+    return {
+        ...selectedStyle,
+        lineColor: pickDark("lineColorDarkMode", selectedStyle.lineColor),
+        lineColorWord: pickDark(
+            "lineColorWordDarkMode",
+            selectedStyle.lineColorWord,
+        ),
+        fillColor: pickDark("fillColorDarkMode", selectedStyle.fillColor),
+        fillColorWord: pickDark(
+            "fillColorWordDarkMode",
+            selectedStyle.fillColorWord,
+        ),
+        markerColor: pickDark("markerColorDarkMode", selectedStyle.markerColor),
+        markerColorWord: pickDark(
+            "markerColorWordDarkMode",
+            selectedStyle.markerColorWord,
+        ),
+    };
+}
+
+/**
  * Maps common line/fill style fields from Doenet selectedStyle to PreFigure attributes.
  */
 export function styleAttributes({

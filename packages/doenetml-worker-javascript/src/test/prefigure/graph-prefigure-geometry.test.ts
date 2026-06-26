@@ -131,6 +131,29 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
     });
 
+    it("renderer=prefigure dark mode uses dark style colors and a light axis stroke", async () => {
+        const lightXML = await getPrefigureXML(
+            prefigureGraph('<line styleNumber="2" through="(1,2) (3,4)" />'),
+            "g",
+            { theme: "light" },
+        );
+        const darkXML = await getPrefigureXML(
+            prefigureGraph('<line styleNumber="2" through="(1,2) (3,4)" />'),
+            "g",
+            { theme: "dark" },
+        );
+
+        // Light mode: PreFigure-default (black) axes, style 2 light line color.
+        expect(lightXML).toContain('<axes axes="all" />');
+        expect(lightXML).toContain('stroke="#D4042D"');
+
+        // Dark mode: axes carry an explicit light stroke; the line and its fill
+        // switch to style 2's derived dark-mode color.
+        expect(darkXML).toContain('<axes axes="all" stroke="#ffffff" />');
+        expect(darkXML).toContain('stroke="#F1466A"');
+        expect(darkXML).not.toContain('stroke="#D4042D"');
+    });
+
     it("renderer=prefigure line label default is center (no explicit label-location)", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(

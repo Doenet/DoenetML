@@ -59,7 +59,7 @@ describe("resolveStyleDefinition", () => {
         expect(resolved.textColor).eq("black");
         expect(resolved.textColorDarkMode).eq("white");
         expect(resolved.highContrastColor).eq("#2963FF");
-        expect(resolved.highContrastColorDarkMode).eq("#2963FF");
+        expect(resolved.highContrastColorDarkMode).eq("#92B4FF");
         expect(resolved.lineColor).eq("#648FFF");
         expect(resolved.fillOpacity).eq(0.3);
     });

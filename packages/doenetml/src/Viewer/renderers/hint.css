@@ -4,7 +4,7 @@
     border: 2px solid var(--canvasText);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
-    background-color: var(--mainGray);
+    background-color: var(--revealButtonSurface);
     cursor: pointer;
     &:focus {
         outline: 2px solid var(--canvasText);

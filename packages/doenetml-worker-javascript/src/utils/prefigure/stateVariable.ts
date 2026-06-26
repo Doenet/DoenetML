@@ -259,6 +259,11 @@ function prefigureBaseDependencies() {
             dependencyType: "stateVariable",
             variableName: "yLabelPosition",
         },
+        document: {
+            dependencyType: "ancestor",
+            componentType: "document",
+            variableNames: ["theme"],
+        },
     };
 }
 
@@ -576,6 +581,8 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 graphComponentIdx: componentIdx,
                 functionToCurveComponentIdx:
                     dependencyValues.functionToCurveComponentIdx ?? {},
+                darkMode:
+                    dependencyValues.document?.stateValues?.theme === "dark",
             });
 
             if (

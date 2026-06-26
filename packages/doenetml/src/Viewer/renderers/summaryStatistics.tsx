@@ -32,7 +32,7 @@ export default React.memo(function SummaryStatistics(
         width: sizeToCSS(SVs.width),
         height: sizeToCSS(SVs.height),
         borderCollapse: "collapse",
-        borderColor: "black",
+        borderColor: "var(--canvasText)",
         borderRadius: "var(--mainBorderRadius)",
     };
 
