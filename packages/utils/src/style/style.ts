@@ -475,8 +475,8 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
  *    is a known constant, this **guarantees** an accessible result by
  *    construction (no diagnostic needed) with zero author effort. Note that
  *    lightness *inversion* would be wrong here: a light-mode-accessible graphic
- *    color may itself be light (e.g. the default `#1f5dff` line), and inverting
- *    its lightness would push it *darker* and below threshold.
+ *    color may already sit on the lighter half of the scale, and inverting its
+ *    lightness would push it *darker* and below threshold.
  *
  *  - **Contrasted against an *author-variable* partner** (`text` vs
  *    `background`): the goal is to flip the figure/ground relationship
