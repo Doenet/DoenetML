@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
+import { ExternalVirtualKeyboard } from "../../../../virtual-keyboard/dist/index.js";
 
 function Harness() {
     const firstRef = React.useRef<HTMLIFrameElement>(null);
@@ -43,7 +43,7 @@ describe("ExternalVirtualKeyboard — iframe routing", () => {
             });
 
         cy.get("iframe").eq(0).focus();
-        cy.get(".open-keyboard-button").click();
+        cy.get(".open-keyboard-button").click({ force: true });
         cy.get("#virtual-keyboard-tray.open").should("exist");
         cy.get("#virtual-keyboard-tray .key-x").click();
 

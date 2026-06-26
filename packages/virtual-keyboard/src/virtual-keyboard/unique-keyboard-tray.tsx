@@ -137,6 +137,12 @@ function getActiveRegistration() {
     return null;
 }
 
+function getFallbackRegistrations() {
+    return virtualKeyboardState.registrations.filter(
+        (registration) => !registration.ownerRef?.current,
+    );
+}
+
 function rerenderTray() {
     virtualKeyboardState.keyboardReactRoot?.render(
         renderTray(getActiveRegistration()?.theme),
@@ -155,6 +161,14 @@ function renderTray(theme: "dark" | "light" | undefined) {
                         // that multiple mounted viewers/iframes do not all
                         // receive the same keyboard commands.
                         activeRegistration.onClick(e);
+                        return;
+                    }
+
+                    const fallbackRegistrations = getFallbackRegistrations();
+                    if (fallbackRegistrations.length > 0) {
+                        fallbackRegistrations.forEach((registration) =>
+                            registration.onClick(e),
+                        );
                         return;
                     }
 
