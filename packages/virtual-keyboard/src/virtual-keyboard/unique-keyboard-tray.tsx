@@ -161,6 +161,10 @@ export function UniqueKeyboardTray({
 
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
+            // Reset the theme cache so the first rerenderTray() after a
+            // new root is created always renders, even if the theme matches
+            // what was rendered in a previous tray session.
+            lastRenderedTheme = undefined;
             virtualKeyboardState.handleFocusChange = () => {
                 rerenderTray();
             };
