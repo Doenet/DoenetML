@@ -2,7 +2,7 @@ import { EditorView } from "@codemirror/view";
 
 export type ThemeMode = "dark" | "light";
 
-// Shared gutter palette so editable and read-only themes stay aligned per mode.
+// Shared gutter palette used by both the editable and read-only themes to keep colors aligned per mode.
 function getGutterColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
         return {
