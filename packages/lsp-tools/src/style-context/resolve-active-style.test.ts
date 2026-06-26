@@ -101,7 +101,7 @@ describe("resolveActiveStyle — built-in presets", () => {
         // Assert against a field where the preset path and the bare-fallback
         // path differ. styleNumber=1's preset runs through
         // `addMissingColorWordsToStyleDefinition`, so its `lineColorWord`
-        // is the word derived from `#648FFF`. The unknown-styleNumber
+        // is the word derived from `#1f5dff`. The unknown-styleNumber
         // fallback skips that derivation and `resolveStyleDefinition` fills
         // the missing word with `""`. Asserting on `markerStyle="circle"`
         // alone wouldn't distinguish the paths since both seeds share it.
@@ -429,7 +429,7 @@ describe("resolveActiveStyleAttributeValue", () => {
     });
 
     it("attaches colorWord for a hex color attribute (built-in styleNumber=1 default lineColor)", () => {
-        // Built-in styleNumber=1 ships lineColor="#648FFF"; the resolver
+        // Built-in styleNumber=1 ships lineColor="#1f5dff"; the resolver
         // should ride along the styleDefinition's own number (1) and pair
         // the hex with whatever word `colorValueToWord` derives.
         const sourceObj = new DoenetSourceObject(
@@ -442,7 +442,7 @@ describe("resolveActiveStyleAttributeValue", () => {
             "lineColor",
             { excludeAttribute: { node: sd, attributeName: "lineColor" } },
         );
-        expect(result?.value).toBe("#648FFF");
+        expect(result?.value).toBe("#1f5dff");
         // The derived word is whatever the nearest-canonical-color lookup
         // returns; just assert it's present and not the raw hex.
         expect(typeof result?.colorWord).toBe("string");
