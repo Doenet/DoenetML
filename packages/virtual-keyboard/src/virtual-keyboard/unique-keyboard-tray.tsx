@@ -82,7 +82,15 @@ function getActiveRegistration() {
 }
 
 function getTrayTheme() {
-    return getActiveRegistration()?.theme;
+    const activeRegistration = getActiveRegistration();
+    if (activeRegistration) {
+        return activeRegistration.theme;
+    }
+    // No owner is currently focused — use the last registration's theme so
+    // the tray reflects the correct dark/light setting even before any
+    // interaction (e.g. on initial page load).
+    const registrations = virtualKeyboardState.registrations;
+    return registrations[registrations.length - 1]?.theme;
 }
 
 function rerenderTray() {
