@@ -81,20 +81,8 @@ function getActiveRegistration() {
     return null;
 }
 
-function getFallbackRegistrations() {
-    return virtualKeyboardState.registrations.filter(
-        (registration) => !registration.ownerRef?.current,
-    );
-}
-
 function getTrayTheme() {
-    const activeRegistration = getActiveRegistration();
-    if (activeRegistration) {
-        return activeRegistration.theme;
-    }
-
-    const fallbackRegistrations = getFallbackRegistrations();
-    return fallbackRegistrations[fallbackRegistrations.length - 1]?.theme;
+    return getActiveRegistration()?.theme;
 }
 
 function rerenderTray() {
@@ -107,18 +95,8 @@ function renderTray(theme: "dark" | "light" | undefined) {
             <KeyboardTray
                 theme={theme}
                 onClick={(e) => {
-                    const activeRegistration = getActiveRegistration();
-                    if (activeRegistration) {
-                        // Route key events only to the active (focused) owner.
-                        activeRegistration.onClick(e);
-                        return;
-                    }
-
-                    // No owner-aware registration is active, so preserve the
-                    // longstanding ownerless VirtualKeyboard behavior.
-                    getFallbackRegistrations().forEach((registration) =>
-                        registration.onClick(e),
-                    );
+                    // Route key events only to the active (focused) owner.
+                    getActiveRegistration()?.onClick(e);
                 }}
             />
         </MathJaxContext>
