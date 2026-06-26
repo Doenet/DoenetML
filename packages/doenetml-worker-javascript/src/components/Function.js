@@ -10,6 +10,8 @@ import {
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
     returnTextStyleDescriptionDefinitions,
+    STYLE_OVERRIDE_CATEGORIES,
+    attributeSpecFromStyleAttribute,
 } from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
@@ -39,6 +41,12 @@ export default class Function extends InlineComponent {
         summary: "A mathematical function, defined by formula or interpolation",
     };
     static rendererType = "math";
+
+    // Opt into line style overrides (lineStyle, lineWidth) so that they are
+    // forwarded to the curve when this function is adapted into one inside a
+    // <graph>. Fill overrides are intentionally excluded: functions have no
+    // enclosed interior.
+    static styleOverrideCategories = ["line"];
 
     static primaryStateVariableForDefinition = "numericalfShadow";
 
@@ -241,6 +249,16 @@ export default class Function extends InlineComponent {
                 "Whether nearest-point queries should treat the function as a curve in the plane rather than a graph y = f(x).",
         };
 
+        // Per-component line style overrides (lineStyle, lineWidth). These
+        // attributes mirror those on <curve> so that a bare <function> inside a
+        // <graph> behaves identically to <curve lineStyle="..." lineWidth="...">
+        // wrapping it.
+        for (const [name, spec] of Object.entries(
+            STYLE_OVERRIDE_CATEGORIES["line"],
+        )) {
+            attributes[name] = attributeSpecFromStyleAttribute(spec);
+        }
+
         return attributes;
     }
 
@@ -274,8 +292,11 @@ export default class Function extends InlineComponent {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Must use `.call(this)` so that `resolveOverrideGroups` inside
+        // GraphicalComponent reads *this* class's `styleOverrideCategories`
+        // (["line"]) rather than GraphicalComponent's empty default.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions();
+            GraphicalComponent.returnStateVariableDefinitions.call(this);
 
         let styleDescriptionDefinitions =
             returnTextStyleDescriptionDefinitions();
@@ -4543,7 +4564,9 @@ export default class Function extends InlineComponent {
         {
             stateVariable: "numericalfs",
             componentType: "curve",
-            stateVariablesToShadow: ["label", "labelHasLatex"],
+            // Shadow selectedStyle so the adapted curve inherits the
+            // function's per-component lineStyle/lineWidth overrides.
+            stateVariablesToShadow: ["label", "labelHasLatex", "selectedStyle"],
         },
         {
             stateVariable: "formula",

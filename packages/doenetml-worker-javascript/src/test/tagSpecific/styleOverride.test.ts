@@ -477,6 +477,60 @@ describe("Per-component style override tests @group4", async () => {
         ).toBe(true);
     });
 
+    it("function exposes lineStyle and lineWidth (line-only, no fill)", async () => {
+        const Function_ = (await import("../../components/Function.js"))
+            .default;
+        const fnAttrs = Function_.createAttributesObject();
+        expect(fnAttrs.lineStyle).toBeDefined();
+        expect(fnAttrs.lineWidth).toBeDefined();
+        // Functions have no enclosed area, so fill is not exposed.
+        expect(fnAttrs.fillOpacity).toBeUndefined();
+        // markerStyle is for point-like components, not functions.
+        expect(fnAttrs.markerStyle).toBeUndefined();
+    });
+
+    it("lineWidth/lineStyle overrides flow through to selectedStyle on a function", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f" lineWidth="1" lineStyle="dashed">x^2</function>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const f = stateVariables[await resolvePathToNodeIdx("f")];
+        expect(f.stateValues.selectedStyle.lineWidth).eq(1);
+        expect(f.stateValues.selectedStyle.lineWidthWord).eq("thin");
+        expect(f.stateValues.selectedStyle.lineStyle).eq("dashed");
+        expect(f.stateValues.selectedStyle.lineStyleWord).eq("dashed");
+    });
+
+    it("function lineStyle/lineWidth overrides propagate to its adapted curve inside a graph", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <function name="f" lineWidth="1" lineStyle="dashed">x^2</function>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const f = stateVariables[await resolvePathToNodeIdx("f")];
+        // The function itself carries the override.
+        expect(f.stateValues.selectedStyle.lineWidth).eq(1);
+        expect(f.stateValues.selectedStyle.lineStyle).eq("dashed");
+
+        // Find the adapted curve that was created from the function and
+        // verify it carries the same selectedStyle.
+        const allComponents = Object.values(stateVariables);
+        const adaptedCurve = allComponents.find(
+            (c: any) =>
+                c.componentType === "curve" &&
+                c.stateValues.selectedStyle?.lineWidth === 1 &&
+                c.stateValues.selectedStyle?.lineStyle === "dashed",
+        );
+        expect(adaptedCurve).toBeDefined();
+    });
+
     it("contrast-feeding opacities (lineOpacity, markerOpacity) are rejected as invalid attributes", async () => {
         // lineOpacity and markerOpacity feed the WCAG contrast diagnostic as
         // an opacityMultiplier on the foreground alpha (see
