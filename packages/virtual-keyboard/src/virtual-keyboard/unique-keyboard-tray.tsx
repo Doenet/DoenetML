@@ -175,7 +175,12 @@ export function UniqueKeyboardTray({
                     (registration) => registration.id !== id,
                 );
             if (virtualKeyboardState.lastActiveRegistrationId === id) {
-                virtualKeyboardState.lastActiveRegistrationId = null;
+                // Fall back to the last remaining registration so the tray
+                // continues to route events if focus is in the tray or no
+                // owner is focused when the active registration unmounts.
+                const remaining = virtualKeyboardState.registrations;
+                virtualKeyboardState.lastActiveRegistrationId =
+                    remaining[remaining.length - 1]?.id ?? null;
             }
             virtualKeyboardState.count -= 1;
 
