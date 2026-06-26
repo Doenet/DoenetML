@@ -37,8 +37,9 @@ export function ExternalAwareVirtualKeyboard({
 }) {
     React.useEffect(() => {
         if (externalVirtualKeyboardProvided) {
-            // If an external keyboard is provided,
-            // then we expect that the keyboard events will be sent via messages on the parent.
+            // If an external keyboard is provided, then we expect keyboard
+            // events to be posted directly into this iframe window by the
+            // parent wrapper.
             const listener = (
                 event: MessageEvent<IframeMessage | undefined>,
             ) => {
@@ -52,13 +53,13 @@ export function ExternalAwareVirtualKeyboard({
                 onClick(event.data.keyCommands);
             };
 
-            window.parent.addEventListener("message", listener);
+            window.addEventListener("message", listener);
 
             return () => {
-                window.parent.removeEventListener("message", listener);
+                window.removeEventListener("message", listener);
             };
         }
-    }, [externalVirtualKeyboardProvided]);
+    }, [externalVirtualKeyboardProvided, onClick]);
 
     // If an external keyboard is not provided,
     // then we add a reference to the keyboard here

@@ -9,6 +9,7 @@ type VirtualKeyboardState = {
     count: number;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
+    callbacks: OnClick[];
     registrations: {
         id: number;
         onClick: OnClick;
@@ -21,20 +22,75 @@ type VirtualKeyboardState = {
 };
 
 const globalThis = Function("return this")() || {};
-// Keep this singleton versioned so older bundles that still use
-// `globalThis.virtualKeyboardState` do not adopt an incompatible shape.
+const LEGACY_VIRTUAL_KEYBOARD_STATE_KEY = "virtualKeyboardState";
 const VIRTUAL_KEYBOARD_STATE_KEY = "__doenetVirtualKeyboardState_v2";
 
-const virtualKeyboardState: VirtualKeyboardState = globalThis?.[
-    VIRTUAL_KEYBOARD_STATE_KEY
-] || {
-    count: 0,
-    keyboardDomNode: null,
-    keyboardReactRoot: null,
-    registrations: [],
-    lastActiveRegistrationId: null,
-    nextRegistrationId: 0,
-};
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function createVirtualKeyboardState(
+    existingState?: Record<string, unknown>,
+): VirtualKeyboardState {
+    const registrations = Array.isArray(existingState?.registrations)
+        ? (existingState.registrations as VirtualKeyboardState["registrations"])
+        : [];
+    const state = (existingState ?? {}) as VirtualKeyboardState;
+
+    const nextRegistrationIdFromRegistrations = registrations.reduce(
+        (maxId, registration) => Math.max(maxId, registration.id + 1),
+        0,
+    );
+
+    state.count =
+        typeof existingState?.count === "number" ? existingState.count : 0;
+    state.keyboardDomNode =
+        existingState?.keyboardDomNode instanceof HTMLElement
+            ? existingState.keyboardDomNode
+            : null;
+    state.keyboardReactRoot =
+        existingState?.keyboardReactRoot &&
+        typeof existingState.keyboardReactRoot === "object"
+            ? (existingState.keyboardReactRoot as Root)
+            : null;
+    state.callbacks = Array.isArray(existingState?.callbacks)
+        ? (existingState.callbacks as OnClick[])
+        : [];
+    state.registrations = registrations;
+    state.lastActiveRegistrationId =
+        typeof existingState?.lastActiveRegistrationId === "number"
+            ? existingState.lastActiveRegistrationId
+            : null;
+    state.nextRegistrationId =
+        typeof existingState?.nextRegistrationId === "number"
+            ? Math.max(
+                  existingState.nextRegistrationId,
+                  nextRegistrationIdFromRegistrations,
+              )
+            : nextRegistrationIdFromRegistrations;
+    state.handleFocusChange =
+        typeof existingState?.handleFocusChange === "function"
+            ? (existingState.handleFocusChange as () => void)
+            : undefined;
+
+    return state;
+}
+
+const legacyVirtualKeyboardState = isRecord(
+    globalThis?.[LEGACY_VIRTUAL_KEYBOARD_STATE_KEY],
+)
+    ? globalThis[LEGACY_VIRTUAL_KEYBOARD_STATE_KEY]
+    : undefined;
+const versionedVirtualKeyboardState = isRecord(
+    globalThis?.[VIRTUAL_KEYBOARD_STATE_KEY],
+)
+    ? globalThis[VIRTUAL_KEYBOARD_STATE_KEY]
+    : undefined;
+
+const virtualKeyboardState: VirtualKeyboardState = createVirtualKeyboardState(
+    legacyVirtualKeyboardState ?? versionedVirtualKeyboardState,
+);
+globalThis[LEGACY_VIRTUAL_KEYBOARD_STATE_KEY] = virtualKeyboardState;
 globalThis[VIRTUAL_KEYBOARD_STATE_KEY] = virtualKeyboardState;
 
 function getRegistrationById(id: number | null) {
@@ -69,18 +125,16 @@ function getActiveRegistration() {
         }
     }
 
-    const lastActiveRegistration = getRegistrationById(
-        virtualKeyboardState.lastActiveRegistrationId,
-    );
-    if (lastActiveRegistration) {
-        return lastActiveRegistration;
+    if (
+        activeElement instanceof Node &&
+        virtualKeyboardState.keyboardDomNode?.contains(activeElement)
+    ) {
+        return getRegistrationById(
+            virtualKeyboardState.lastActiveRegistrationId,
+        );
     }
 
-    return (
-        virtualKeyboardState.registrations[
-            virtualKeyboardState.registrations.length - 1
-        ] ?? null
-    );
+    return null;
 }
 
 function rerenderTray() {
@@ -95,10 +149,21 @@ function renderTray(theme: "dark" | "light" | undefined) {
             <KeyboardTray
                 theme={theme}
                 onClick={(e) => {
-                    // Route key events only to the active registration so that
-                    // multiple mounted viewers/iframes do not all receive the
-                    // same keyboard commands.
-                    getActiveRegistration()?.onClick(e);
+                    const activeRegistration = getActiveRegistration();
+                    if (activeRegistration) {
+                        // Route key events only to the active registration so
+                        // that multiple mounted viewers/iframes do not all
+                        // receive the same keyboard commands.
+                        activeRegistration.onClick(e);
+                        return;
+                    }
+
+                    // Older bundles still broadcast through `callbacks`. Keep
+                    // honoring them so mixed old/new pages continue to share a
+                    // single tray instead of mounting duplicates.
+                    virtualKeyboardState.callbacks.forEach((callback) =>
+                        callback(e),
+                    );
                 }}
             />
         </MathJaxContext>
