@@ -27,7 +27,8 @@ import { EditorFooter } from "./EditorFooter";
 import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
-import { setVariantsFromCallback } from "../utils/variants";
+import type { ResolvedTheme } from "../utils/theme";
+import { setVariantsFromCallback, type VariantsState } from "../utils/variants";
 import type { DiagnosticsSummary } from "./diagnostics";
 import {
     mergeDiagnosticsByType,
@@ -87,7 +88,7 @@ type EditorViewerProps = {
     prefixForIds?: string;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -133,6 +134,35 @@ type EditorViewerProps = {
      */
     initialOpenTab?: DiagnosticsTabId | null;
 };
+
+type TabVisibilityOptions = Pick<
+    EditorViewerProps,
+    "showDiagnostics" | "showResponses" | "showHelp"
+>;
+
+function firstEnabledTab({
+    showDiagnostics,
+    showResponses,
+    showHelp,
+}: TabVisibilityOptions): DiagnosticsTabId | null {
+    if (showHelp) return "help";
+    if (showDiagnostics) return "errors";
+    if (showResponses) return "responses";
+    return null;
+}
+
+function isTabEnabled(
+    tabId: DiagnosticsTabId,
+    { showDiagnostics, showResponses, showHelp }: TabVisibilityOptions,
+) {
+    if (tabId === "responses") {
+        return showResponses;
+    }
+    if (tabId === "help") {
+        return showHelp;
+    }
+    return showDiagnostics;
+}
 
 /**
  * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
@@ -204,21 +234,12 @@ export const EditorViewer = React.forwardRef<
 
     const [viewerResetNum, setViewerResetNum] = useState(0);
 
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
     });
-
-    // First enabled tab in the canonical order (help → errors → responses), or
-    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
-    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
-    function firstEnabledTab(): DiagnosticsTabId | null {
-        if (showHelp) return "help";
-        if (showDiagnostics) return "errors";
-        if (showResponses) return "responses";
-        return null;
-    }
+    const tabVisibility = { showDiagnostics, showResponses, showHelp };
 
     // Resolve `initialOpenTab` once at mount:
     //  - `null`               → panel closed at mount
@@ -239,19 +260,13 @@ export const EditorViewer = React.forwardRef<
         }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: null,
             };
         }
-        const tabEnabled =
-            initialOpenTab === "responses"
-                ? showResponses
-                : initialOpenTab === "help"
-                  ? showHelp
-                  : showDiagnostics;
-        if (!tabEnabled) {
+        if (!isTabEnabled(initialOpenTab, tabVisibility)) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
@@ -323,7 +338,9 @@ export const EditorViewer = React.forwardRef<
     // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
+            resolvedInitialOpenTab ??
+            firstEnabledTab(tabVisibility) ??
+            undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
@@ -395,13 +412,7 @@ export const EditorViewer = React.forwardRef<
         ref,
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
-                const tabEnabled =
-                    tabId === "responses"
-                        ? showResponses
-                        : tabId === "help"
-                          ? showHelp
-                          : showDiagnostics;
-                if (!tabEnabled) {
+                if (!isTabEnabled(tabId, tabVisibility)) {
                     console.warn(
                         `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}).`,
                     );
@@ -908,6 +919,7 @@ export const EditorViewer = React.forwardRef<
             onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
+            darkMode={darkMode}
         />
     );
 
@@ -1002,16 +1014,18 @@ export const EditorViewer = React.forwardRef<
 
     if (!showViewer) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    width: width,
-                    height: height,
-                    border: border,
-                    boxSizing: "border-box",
-                }}
-            >
-                {editorPanel}
+            <div data-theme={darkMode} style={{ display: "contents" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        width: width,
+                        height: height,
+                        border: border,
+                        boxSizing: "border-box",
+                    }}
+                >
+                    {editorPanel}
+                </div>
             </div>
         );
     }
@@ -1042,6 +1056,7 @@ export const EditorViewer = React.forwardRef<
                 accessibilityLevel2Count={accessibilityLevel2Count}
                 isAccessibilityReportOpen={isAccessibilityReportOpen}
                 onToggleAccessibilityReport={toggleAccessibilityReport}
+                darkMode={darkMode}
             />
             <div
                 className="viewer"
@@ -1092,17 +1107,19 @@ export const EditorViewer = React.forwardRef<
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
 
     return (
-        <ResizablePanelPair
-            panelA={viewerFirst ? viewerPanel : editorPanel}
-            panelB={viewerFirst ? editorPanel : viewerPanel}
-            preferredDirection={
-                viewerLocation === "bottom" || viewerLocation === "top"
-                    ? "vertical"
-                    : "horizontal"
-            }
-            width={width}
-            height={height}
-            border={border}
-        />
+        <div data-theme={darkMode} style={{ display: "contents" }}>
+            <ResizablePanelPair
+                panelA={viewerFirst ? viewerPanel : editorPanel}
+                panelB={viewerFirst ? editorPanel : viewerPanel}
+                preferredDirection={
+                    viewerLocation === "bottom" || viewerLocation === "top"
+                        ? "vertical"
+                        : "horizontal"
+                }
+                width={width}
+                height={height}
+                border={border}
+            />
+        </div>
     );
 });

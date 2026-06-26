@@ -39,6 +39,7 @@ import {
     CORE_BOOT_RETRY_DELAY_MS,
     CORE_START_FAILED_MESSAGE,
 } from "./coreWorkerBoot";
+import type { ResolvedTheme } from "../utils/theme";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -48,7 +49,7 @@ export { renderersLoadComponent } from "./renderersLoadComponent";
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
 }>({});
@@ -115,7 +116,7 @@ export function DocViewer({
     prefixForIds?: string;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;

@@ -29,7 +29,11 @@ import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
-import { setVariantsFromCallback } from "./utils/variants";
+import {
+    setVariantIndex,
+    setVariantsFromCallback,
+    type VariantsState,
+} from "./utils/variants";
 import { useResolvedTheme } from "./utils/theme";
 import type { ThemeSetting } from "./utils/theme";
 export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
@@ -156,7 +160,7 @@ export function DoenetViewer({
      */
     onInit?: (elm: HTMLElement) => void;
 }) {
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
@@ -232,17 +236,11 @@ export function DoenetViewer({
         if (variants.numVariants > 1) {
             variantSelector = (
                 <VariantSelect
-                    size="sm"
-                    menuWidth="140px"
                     darkMode={resolvedTheme}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}
                     onChange={(index: number) =>
-                        setVariants((prev) => {
-                            let next = { ...prev };
-                            next.index = index + 1;
-                            return next;
-                        })
+                        setVariantIndex(setVariants, index)
                     }
                 />
             );

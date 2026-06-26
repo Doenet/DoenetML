@@ -1,5 +1,25 @@
 import React from "react";
 
+export type VariantsState = {
+    index: number;
+    numVariants: number;
+    allPossibleVariants: string[];
+};
+
+/**
+ * Convert the zero-based index emitted by `VariantSelect` back to the 1-based
+ * variant index used by the viewer state.
+ */
+export function setVariantIndex(
+    setVariants: React.Dispatch<React.SetStateAction<VariantsState>>,
+    index: number,
+) {
+    setVariants((prev) => ({
+        ...prev,
+        index: index + 1,
+    }));
+}
+
 /**
  * Set variants state variable from the doenet generatedVariantCallback result.
  *
@@ -9,18 +29,8 @@ import React from "react";
  */
 export function setVariantsFromCallback(
     x: any,
-    variants: {
-        index: number;
-        numVariants: number;
-        allPossibleVariants: string[];
-    },
-    setVariants: React.Dispatch<
-        React.SetStateAction<{
-            index: number;
-            numVariants: number;
-            allPossibleVariants: string[];
-        }>
-    >,
+    variants: VariantsState,
+    setVariants: React.Dispatch<React.SetStateAction<VariantsState>>,
 ) {
     const allPossibleVariants = x.allPossibleVariants;
     if (Array.isArray(allPossibleVariants)) {
