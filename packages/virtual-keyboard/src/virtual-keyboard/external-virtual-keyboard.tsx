@@ -14,9 +14,14 @@ export type IframeMessage = {
 /**
  * Virtual keyboard that is connected via `<mathInput>` elements.
  */
-export function ExternalVirtualKeyboard() {
+export function ExternalVirtualKeyboard({
+    theme,
+}: {
+    theme?: "dark" | "light";
+} = {}) {
     return (
         <UniqueKeyboardTray
+            theme={theme}
             onClick={(events) => {
                 window.postMessage({
                     keyCommands: events,

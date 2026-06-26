@@ -24,12 +24,19 @@ const KeyboardIcon = () => (
 /**
  * An expandable keyboard tray.
  */
-export function KeyboardTray({ onClick }: { onClick: OnClick }) {
+export function KeyboardTray({
+    onClick,
+    theme,
+}: {
+    onClick: OnClick;
+    theme?: "dark" | "light";
+}) {
     const [open, setOpen] = React.useState(false);
 
     return createPortal(
         <div
             id="virtual-keyboard-tray"
+            data-theme={theme}
             className={classNames({ open })}
             onMouseDown={() => {
                 // The mousedown event appears to precede a blur event on a mathInput,

@@ -34,7 +34,7 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     --tw-scale-y: 1;
     --tw-scroll-snap-strictness: proximity;
     --tw-ring-offset-width: 0px;
-    --tw-ring-offset-color: #fff;
+    --tw-ring-offset-color: var(--kb-ring-offset, #fff);
     --tw-ring-color: rgb(59 130 246 / 0.5);
     --tw-ring-offset-shadow: 0 0 #0000;
     --tw-ring-shadow: 0 0 #0000;
@@ -42,15 +42,21 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     --tw-shadow-colored: 0 0 #0000;
     --tw-border-opacity: 1;
 
+    /* Theme tokens — light-mode defaults */
+    --kb-tray-bg: white;
+    --kb-tray-border-top: black;
+    --kb-ring-offset: #fff;
+    --kb-key-bg: #fff;
+
     --keyboard-tray-height: 280px;
 
-    border-top: 1px solid black;
+    border-top: 1px solid var(--kb-tray-border-top);
     @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
     @apply transition-transform ease-in-out duration-300 translate-y-[100%];
     min-height: var(--keyboard-tray-height);
     max-height: calc(100vh - 1.5rem);
     z-index: 10000;
-    background-color: white;
+    background-color: var(--kb-tray-bg);
 
     .close-keyboard-button {
         @apply absolute top-0 right-0 m-2 rounded;
@@ -78,6 +84,75 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     }
     .virtual-keyboard {
         @apply mx-auto;
+    }
+}
+
+/* Dark-mode overrides — applied when data-theme="dark" is written to #virtual-keyboard-tray */
+#virtual-keyboard-tray[data-theme="dark"] {
+    --kb-tray-bg: #1e1e1e;
+    --kb-tray-border-top: #555;
+    --kb-ring-offset: #1e1e1e;
+    --kb-key-bg: #2d2d2d;
+
+    color: white;
+
+    /* Close (×) button */
+    .close-keyboard-button:hover {
+        background-color: #3a3a3a;
+    }
+    .close-keyboard-button:active {
+        background-color: #4a4a4a;
+    }
+
+    /* Open-keyboard tab that peeks above the tray */
+    .open-keyboard-button {
+        background-color: #2d2d2d;
+        border-color: #555;
+        border-bottom-color: transparent;
+    }
+    .open-keyboard-button:hover {
+        background-color: #3a3a3a;
+    }
+    .open-keyboard-button:active {
+        background-color: #4a4a4a;
+    }
+
+    /* Normal key faces */
+    button.keyboard-button {
+        background-color: #2d2d2d;
+        border-color: #4a4a4a;
+    }
+    button.keyboard-button:hover {
+        background-color: #3a3a3a;
+    }
+    button.keyboard-button:active {
+        background-color: #4a4a4a;
+    }
+
+    /* Special keys: backspace, shift, space, arrows, enter */
+    .special-button {
+        background-color: #383838;
+        border-color: #383838;
+    }
+    .special-button:hover {
+        background-color: #454545;
+        border-color: #454545;
+    }
+    /* active:text-slate-50 in light → just keep white in dark */
+    .special-button:active {
+        background-color: #555555;
+        border-color: #555555;
+        color: white;
+    }
+
+    /*
+     * Selected tab indicator.
+     * blue-400 (#60a5fa) on #1e1e1e ≈ 6.9:1 — WCAG AA ✓
+     * blue-300 (#93c5fd) on #1e1e1e ≈ 8.6:1 — WCAG AA ✓
+     */
+    .virtual-keyboard-tab-list button[aria-selected="true"] {
+        border-color: #60a5fa;
+        color: #93c5fd;
     }
 }
 

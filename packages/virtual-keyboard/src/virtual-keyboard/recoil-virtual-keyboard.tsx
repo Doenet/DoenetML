@@ -11,6 +11,7 @@ import { KeyCommand } from "./keys";
 export function ExternalAwareVirtualKeyboard({
     externalVirtualKeyboardProvided = false,
     onClick = () => {},
+    theme,
 }: {
     /**
      * Whether an external virtual keyboard (possibly with a different parent because Doenet is running in an iframe)
@@ -21,6 +22,12 @@ export function ExternalAwareVirtualKeyboard({
      * Callback function to be called when the keyboard is clicked.
      */
     onClick?: (events: KeyCommand[]) => void;
+    /**
+     * Resolved theme to apply to the keyboard tray. `"dark"` and `"light"` are
+     * the only accepted values; `"system"` must be resolved to one of these
+     * before passing here.
+     */
+    theme?: "dark" | "light";
 }) {
     React.useEffect(() => {
         if (externalVirtualKeyboardProvided) {
@@ -51,6 +58,6 @@ export function ExternalAwareVirtualKeyboard({
     // then we add a reference to the keyboard here
     // that will return the events via a callback.
     return externalVirtualKeyboardProvided ? null : (
-        <UniqueKeyboardTray onClick={onClick} />
+        <UniqueKeyboardTray onClick={onClick} theme={theme} />
     );
 }

@@ -23,11 +23,30 @@ const virtualKeyboardState: VirtualKeyboardState =
     };
 globalThis.virtualKeyboardState = virtualKeyboardState;
 
+function renderTray(theme: "dark" | "light" | undefined) {
+    return (
+        <MathJaxContext config={mathjaxConfig} version={4}>
+            <KeyboardTray
+                theme={theme}
+                onClick={(e) => {
+                    virtualKeyboardState.callbacks.forEach((cb) => cb(e));
+                }}
+            />
+        </MathJaxContext>
+    );
+}
+
 /**
  * An expandable keyboard tray that is unique among the document. If multiple instances of `UniqueKeyboardTray` are used,
  * only one will be inserted into the document.
  */
-export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
+export function UniqueKeyboardTray({
+    onClick,
+    theme,
+}: {
+    onClick: OnClick;
+    theme?: "dark" | "light";
+}) {
     React.useEffect(() => {
         // If the count is zero, we need to create the tray.
         if (virtualKeyboardState.count === 0) {
@@ -38,17 +57,7 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
 
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
-            root.render(
-                <MathJaxContext config={mathjaxConfig} version={4}>
-                    <KeyboardTray
-                        onClick={(e) => {
-                            virtualKeyboardState.callbacks.forEach((cb) =>
-                                cb(e),
-                            );
-                        }}
-                    />
-                </MathJaxContext>,
-            );
+            root.render(renderTray(theme));
         }
         // Add ourselves to the keyboard count and the list of callbacks.
         virtualKeyboardState.count += 1;
@@ -80,6 +89,14 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
             }
         };
     }, []);
+
+    // Re-render the shared tray whenever the theme changes so the keyboard
+    // tracks the viewer's resolved theme even after initial mount.
+    React.useEffect(() => {
+        if (virtualKeyboardState.keyboardReactRoot) {
+            virtualKeyboardState.keyboardReactRoot.render(renderTray(theme));
+        }
+    }, [theme]);
 
     // This component doesn't render anything directly. Instead it relies on a common instance of the keyboard tray already existing.
     return null;

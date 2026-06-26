@@ -29,7 +29,7 @@
     }
 
     button {
-        background-color: #fff;
+        background-color: var(--kb-key-bg, #fff);
         @apply keyboard-button;
     }
 
