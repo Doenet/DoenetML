@@ -83,10 +83,18 @@ function getFallbackRegistrations() {
     );
 }
 
+function getTrayTheme() {
+    const activeRegistration = getActiveRegistration();
+    if (activeRegistration) {
+        return activeRegistration.theme;
+    }
+
+    const fallbackRegistrations = getFallbackRegistrations();
+    return fallbackRegistrations[fallbackRegistrations.length - 1]?.theme;
+}
+
 function rerenderTray() {
-    virtualKeyboardState.keyboardReactRoot?.render(
-        renderTray(getActiveRegistration()?.theme),
-    );
+    virtualKeyboardState.keyboardReactRoot?.render(renderTray(getTrayTheme()));
 }
 
 function renderTray(theme: "dark" | "light" | undefined) {
