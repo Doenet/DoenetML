@@ -1,5 +1,26 @@
 import { EditorView } from "@codemirror/view";
 
+type ThemeMode = "dark" | "light";
+
+// Shared gutter palette so editable and read-only themes stay aligned per mode.
+function getGutterColors(darkMode: ThemeMode) {
+    if (darkMode === "dark") {
+        return {
+            backgroundColor: "#1e1e1e",
+            textColor: "#8b949e",
+            borderRight: "1px solid #333",
+            activeLineBackgroundColor: "#363636",
+        };
+    }
+
+    return {
+        backgroundColor: "var(--mainGray)",
+        textColor: "#595959",
+        borderRight: "none",
+        activeLineBackgroundColor: "var(--lightBlue)",
+    };
+}
+
 /**
  * WCAG 2.1 AA compliant color theme for the editable code area.
  *
@@ -13,10 +34,8 @@ import { EditorView } from "@codemirror/view";
  * The dark gutter values are also emitted in editor-viewer.css under
  * `[data-theme="dark"] .cm-gutters` for belt-and-suspenders coverage.
  */
-export function colorTheme(darkMode: "dark" | "light") {
-    const gutterBg = darkMode === "dark" ? "#1e1e1e" : "var(--mainGray)";
-    const gutterTextColor = darkMode === "dark" ? "#8b949e" : "#595959";
-    const gutterBorder = darkMode === "dark" ? "1px solid #333" : "none";
+export function colorTheme(darkMode: ThemeMode) {
+    const gutterColors = getGutterColors(darkMode);
     return EditorView.theme({
         "&": {
             color: "var(--canvasText)",
@@ -41,10 +60,10 @@ export function colorTheme(darkMode: "dark" | "light") {
             backgroundColor: "var(--mainGreen)",
         },
         ".cm-gutters": {
-            backgroundColor: gutterBg,
-            color: gutterTextColor,
+            backgroundColor: gutterColors.backgroundColor,
+            color: gutterColors.textColor,
             border: "none",
-            borderRight: gutterBorder,
+            borderRight: gutterColors.borderRight,
         },
         ".cm-activeLine": {
             backgroundColor: "#50505020",
@@ -55,10 +74,32 @@ export function colorTheme(darkMode: "dark" | "light") {
         // Subtle gutter highlight on the active line — CodeMirror's base
         // theme uses #e2f2ff (light blue) which is glaring on a dark gutter.
         ".cm-activeLineGutter": {
-            backgroundColor:
-                darkMode === "dark" ? "#363636" : "var(--lightBlue)",
+            backgroundColor: gutterColors.activeLineBackgroundColor,
         },
     });
+}
+
+// Shared icon palette so all completion types flip together between modes.
+function getCompletionIconColors(darkMode: ThemeMode) {
+    if (darkMode === "dark") {
+        return {
+            // Verified ≥4.5:1 on #2a2a2a (the dark tooltip surface)
+            component: "#58a6ff", // blue   ~7.6:1
+            enumAttr: "#3fb950", // green  ~7.0:1
+            value: "#4dd0e1", // teal   ~8.8:1
+            reference: "#bc8cff", // purple ~6.5:1
+            snippet: "#f78166", // orange ~6.3:1
+        };
+    }
+
+    return {
+        // Verified ≥4.5:1 on white dropdown
+        component: "#1f6feb", // blue
+        enumAttr: "#1a7f37", // green
+        value: "#0e7c86", // teal
+        reference: "#8250df", // purple
+        snippet: "#bc4c00", // orange
+    };
 }
 
 /**
@@ -76,25 +117,8 @@ export function colorTheme(darkMode: "dark" | "light") {
  *  - light mode: white dropdown → light-tuned palette
  *  - dark mode:  #2a2a2a dropdown (set by tooltip.css in dark mode) → brighter palette
  */
-export function completionIconTheme(darkMode: "dark" | "light") {
-    const colors =
-        darkMode === "dark"
-            ? {
-                  // Verified ≥4.5:1 on #2a2a2a (the dark tooltip surface)
-                  component: "#58a6ff", // blue   ~7.6:1
-                  enumAttr: "#3fb950", // green  ~7.0:1
-                  value: "#4dd0e1", // teal   ~8.8:1
-                  reference: "#bc8cff", // purple ~6.5:1
-                  snippet: "#f78166", // orange ~6.3:1
-              }
-            : {
-                  // Verified ≥4.5:1 on white dropdown
-                  component: "#1f6feb", // blue
-                  enumAttr: "#1a7f37", // green
-                  value: "#0e7c86", // teal
-                  reference: "#8250df", // purple
-                  snippet: "#bc4c00", // orange
-              };
+export function completionIconTheme(darkMode: ThemeMode) {
+    const colors = getCompletionIconColors(darkMode);
 
     return EditorView.theme({
         ".cm-completionIcon-component::after": { content: '"\\25C8"' }, // ◈
@@ -146,10 +170,8 @@ export function completionIconTheme(darkMode: "dark" | "light") {
  *  - light: #595959 (4.54:1 on white)
  *  - dark:  #c8c8c8 (muted but ~11:1 on the dark canvas #121212)
  */
-export function readOnlyColorTheme(darkMode: "dark" | "light") {
-    const gutterBg = darkMode === "dark" ? "#1e1e1e" : "var(--mainGray)";
-    const gutterTextColor = darkMode === "dark" ? "#8b949e" : "#595959";
-    const gutterBorder = darkMode === "dark" ? "1px solid #333" : "none";
+export function readOnlyColorTheme(darkMode: ThemeMode) {
+    const gutterColors = getGutterColors(darkMode);
     const lineTextColor = darkMode === "dark" ? "#c8c8c8" : "#595959";
     return EditorView.theme({
         "&": {
@@ -175,18 +197,17 @@ export function readOnlyColorTheme(darkMode: "dark" | "light") {
             backgroundColor: "var(--mainGreen)",
         },
         ".cm-gutters": {
-            backgroundColor: gutterBg,
-            color: gutterTextColor,
+            backgroundColor: gutterColors.backgroundColor,
+            color: gutterColors.textColor,
             border: "none",
-            borderRight: gutterBorder,
+            borderRight: gutterColors.borderRight,
         },
         ".cm-activeLine": {
             backgroundColor: "var(--mainGray)",
             color: "var(--canvasText)",
         },
         ".cm-activeLineGutter": {
-            backgroundColor:
-                darkMode === "dark" ? "#363636" : "var(--lightBlue)",
+            backgroundColor: gutterColors.activeLineBackgroundColor,
         },
         ".cm-line": {
             color: lineTextColor,

@@ -458,7 +458,7 @@
  * (attribute(0,1,0) + class(0,0,1) = 0,1,1 beats the generated single-class
  * theme rules at 0,0,1) so the editor background is guaranteed dark.
  */
-[data-theme="dark"] .cm-editor {
+[data-theme="dark"] .editor-panel .cm-editor {
     background-color: var(--canvas);
 }
 
@@ -471,13 +471,13 @@
  * Active-line gutter: CodeMirror base theme uses #e2f2ff (light blue), which
  * is garish on a dark gutter. Use a barely-lighter #2a2a2a instead.
  */
-[data-theme="dark"] .cm-gutters {
+[data-theme="dark"] .editor-panel .cm-gutters {
     background-color: #1e1e1e;
     color: #8b949e;
     border-right: 1px solid #333;
 }
 
-[data-theme="dark"] .cm-activeLineGutter {
+[data-theme="dark"] .editor-panel .cm-activeLineGutter {
     background-color: #363636;
 }
 

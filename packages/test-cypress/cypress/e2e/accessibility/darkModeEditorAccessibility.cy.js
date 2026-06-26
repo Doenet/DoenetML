@@ -95,8 +95,8 @@ describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
             "#p",
         );
         // Open the diagnostics/errors tab if not already open.
-        cy.get('[data-test="errors tab"]').click();
-        cy.wait(100);
+        cy.get('[data-test="footer-tab-errors"]').click();
+        cy.get(".diagnostic-list").should("exist");
         expectNoColorContrastViolations(".editor-panel");
     });
 
