@@ -96,6 +96,18 @@ Tailwind base is purposely not included because we want all styles to be prefixe
 
     color: white;
 
+    /*
+     * Browsers have a UA stylesheet rule `button { color: ButtonText }` which
+     * is an explicit UA-level declaration and beats an *inherited* `color:
+     * white` from a parent. We must set color explicitly on button elements
+     * so the author rule overrides UA. This also makes MathJax SVG paths
+     * (which use fill:currentColor) render white rather than the UA button
+     * color.
+     */
+    button {
+        color: white;
+    }
+
     /* Close (×) button */
     .close-keyboard-button:hover {
         background-color: #3a3a3a;
