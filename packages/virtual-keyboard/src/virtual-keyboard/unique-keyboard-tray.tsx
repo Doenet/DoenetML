@@ -13,7 +13,7 @@ type VirtualKeyboardState = {
         id: number;
         onClick: OnClick;
         theme?: "dark" | "light";
-        ownerRef?: React.RefObject<HTMLElement | null>;
+        ownerRef: React.RefObject<HTMLElement | null>;
     }[];
     lastActiveRegistrationId: number | null;
     nextRegistrationId: number;
@@ -85,6 +85,12 @@ function getTrayTheme() {
     const activeRegistration = getActiveRegistration();
     if (activeRegistration) {
         return activeRegistration.theme;
+    }
+    const lastActiveRegistration = getRegistrationById(
+        virtualKeyboardState.lastActiveRegistrationId,
+    );
+    if (lastActiveRegistration) {
+        return lastActiveRegistration.theme;
     }
     // No owner is currently focused — use the last registration's theme so
     // the tray reflects the correct dark/light setting even before any

@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 function App() {
     const [text, setText] = React.useState("Some Text");
     const [lastCommand, setLastCommand] = React.useState("");
-    const ownerRef = React.useRef<HTMLElement | null>(null);
+    const ownerRef = React.useRef<HTMLDivElement | null>(null);
 
     return (
         <div ref={ownerRef}>

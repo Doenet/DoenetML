@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalVirtualKeyboard } from "../../../../virtual-keyboard/dist/index.js";
+import { ExternalVirtualKeyboard } from "../../../../virtual-keyboard/src/virtual-keyboard";
 
 function Harness() {
     const firstRef = React.useRef<HTMLIFrameElement>(null);
@@ -7,14 +7,15 @@ function Harness() {
 
     return (
         <div style={{ display: "grid", gap: "16px" }}>
-            <ExternalVirtualKeyboard ownerRef={firstRef} />
-            <ExternalVirtualKeyboard ownerRef={secondRef} />
+            <ExternalVirtualKeyboard ownerRef={firstRef} theme="dark" />
+            <ExternalVirtualKeyboard ownerRef={secondRef} theme="light" />
             <iframe ref={firstRef} srcDoc="<p>first iframe</p>" title="first" />
             <iframe
                 ref={secondRef}
                 srcDoc="<p>second iframe</p>"
                 title="second"
             />
+            <button type="button">outside</button>
         </div>
     );
 }
@@ -73,5 +74,24 @@ describe("ExternalVirtualKeyboard — iframe routing", () => {
 
         expectWriteCallCount("@firstPostMessage", 1);
         expectWriteCallCount("@secondPostMessage", 1);
+    });
+
+    it("keeps the last active owner's theme when focus leaves all owners", () => {
+        cy.mount(<Harness />);
+
+        cy.get("iframe").eq(0).focus();
+        cy.get(".open-keyboard-button").click({ force: true });
+        cy.get("#virtual-keyboard-tray")
+            .should("have.class", "open")
+            .and("have.attr", "data-theme", "dark")
+            .and("have.css", "background-color", "rgb(30, 30, 30)");
+
+        cy.contains("button", "outside").focus();
+        cy.focused().should("contain.text", "outside");
+        cy.get("#virtual-keyboard-tray").should(
+            "have.attr",
+            "data-theme",
+            "dark",
+        );
     });
 });
