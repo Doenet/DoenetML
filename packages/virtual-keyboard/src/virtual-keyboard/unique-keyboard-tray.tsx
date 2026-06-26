@@ -33,15 +33,6 @@ const virtualKeyboardState: VirtualKeyboardState =
     };
 globalThis.virtualKeyboardState = virtualKeyboardState;
 
-// Cache the last theme we rendered into the tray so focusin events that
-// don't change the active owner/theme don't trigger unnecessary re-renders
-// of the MathJaxContext + tray subtree. Use a distinct symbol as the
-// "never rendered" sentinel so undefined (a valid theme value meaning
-// "use light defaults") doesn't collide with the uninitialized state.
-const UNRENDERED = Symbol("unrendered");
-let lastRenderedTheme: "dark" | "light" | undefined | typeof UNRENDERED =
-    UNRENDERED;
-
 function getRegistrationById(id: number | null) {
     if (id === null) {
         return null;
@@ -109,12 +100,7 @@ function getTrayTheme() {
 }
 
 function rerenderTray() {
-    const theme = getTrayTheme();
-    if (theme === lastRenderedTheme) {
-        return;
-    }
-    lastRenderedTheme = theme;
-    virtualKeyboardState.keyboardReactRoot?.render(renderTray(theme));
+    virtualKeyboardState.keyboardReactRoot?.render(renderTray(getTrayTheme()));
 }
 
 function renderTray(theme: "dark" | "light" | undefined) {
@@ -165,10 +151,6 @@ export function UniqueKeyboardTray({
 
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
-            // Reset the theme cache so the first rerenderTray() after a
-            // new root is created always renders, even if the theme matches
-            // what was rendered in a previous tray session.
-            lastRenderedTheme = UNRENDERED;
             virtualKeyboardState.handleFocusChange = () => {
                 rerenderTray();
             };
