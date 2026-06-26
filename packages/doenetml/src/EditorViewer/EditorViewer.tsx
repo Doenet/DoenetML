@@ -135,6 +135,35 @@ type EditorViewerProps = {
     initialOpenTab?: DiagnosticsTabId | null;
 };
 
+type TabVisibilityOptions = Pick<
+    EditorViewerProps,
+    "showDiagnostics" | "showResponses" | "showHelp"
+>;
+
+function firstEnabledTab({
+    showDiagnostics,
+    showResponses,
+    showHelp,
+}: TabVisibilityOptions): DiagnosticsTabId | null {
+    if (showHelp) return "help";
+    if (showDiagnostics) return "errors";
+    if (showResponses) return "responses";
+    return null;
+}
+
+function isTabEnabled(
+    tabId: DiagnosticsTabId,
+    { showDiagnostics, showResponses, showHelp }: TabVisibilityOptions,
+) {
+    if (tabId === "responses") {
+        return showResponses;
+    }
+    if (tabId === "help") {
+        return showHelp;
+    }
+    return showDiagnostics;
+}
+
 /**
  * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
  */
@@ -210,16 +239,7 @@ export const EditorViewer = React.forwardRef<
         numVariants: 1,
         allPossibleVariants: ["a"],
     });
-
-    // First enabled tab in the canonical order (help → errors → responses), or
-    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
-    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
-    function firstEnabledTab(): DiagnosticsTabId | null {
-        if (showHelp) return "help";
-        if (showDiagnostics) return "errors";
-        if (showResponses) return "responses";
-        return null;
-    }
+    const tabVisibility = { showDiagnostics, showResponses, showHelp };
 
     // Resolve `initialOpenTab` once at mount:
     //  - `null`               → panel closed at mount
@@ -240,19 +260,13 @@ export const EditorViewer = React.forwardRef<
         }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: null,
             };
         }
-        const tabEnabled =
-            initialOpenTab === "responses"
-                ? showResponses
-                : initialOpenTab === "help"
-                  ? showHelp
-                  : showDiagnostics;
-        if (!tabEnabled) {
+        if (!isTabEnabled(initialOpenTab, tabVisibility)) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
@@ -324,7 +338,9 @@ export const EditorViewer = React.forwardRef<
     // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
+            resolvedInitialOpenTab ??
+            firstEnabledTab(tabVisibility) ??
+            undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
@@ -396,13 +412,7 @@ export const EditorViewer = React.forwardRef<
         ref,
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
-                const tabEnabled =
-                    tabId === "responses"
-                        ? showResponses
-                        : tabId === "help"
-                          ? showHelp
-                          : showDiagnostics;
-                if (!tabEnabled) {
+                if (!isTabEnabled(tabId, tabVisibility)) {
                     console.warn(
                         `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}).`,
                     );

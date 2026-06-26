@@ -5,27 +5,22 @@ import type { ResolvedTheme } from "../utils/theme";
 import "./variant-select.css";
 
 export default function VariantSelect({
-    size = "sm",
-    menuWidth,
     darkMode = "light",
     array = [],
     onChange = () => {},
     syncIndex, //Optional attribute to keep several variant selects in sync
 }: {
-    size: "sm" | "md" | "lg";
-    menuWidth: string;
     darkMode?: ResolvedTheme;
     array: string[];
     onChange: (index: number) => void;
     syncIndex?: number;
 }) {
     const [index, setIndex] = useState(0);
-    const [value, setValue] = useState(array[index]);
     const [inputValue, setInputValue] = useState("");
+    const value = array[index] ?? "";
 
     function selectIndex(nextIndex: number) {
         setIndex(nextIndex);
-        setValue(array[nextIndex]);
         setInputValue("");
         onChange(nextIndex);
     }
@@ -33,7 +28,7 @@ export default function VariantSelect({
     useEffect(() => {
         if (syncIndex != undefined && index != syncIndex - 1) {
             setIndex(syncIndex - 1);
-            setValue(array[syncIndex - 1]);
+            setInputValue("");
         }
     }, [index, syncIndex, array]);
 
@@ -54,10 +49,11 @@ export default function VariantSelect({
                 >
                     <Ariakit.SelectProvider
                         value={value}
-                        defaultValue={value}
                         setValue={(val) => {
-                            const index = array.indexOf(val);
-                            selectIndex(index);
+                            const nextIndex = array.indexOf(val);
+                            if (nextIndex !== -1) {
+                                selectIndex(nextIndex);
+                            }
                         }}
                     >
                         <Ariakit.Select

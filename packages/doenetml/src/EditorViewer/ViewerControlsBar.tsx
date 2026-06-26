@@ -4,7 +4,6 @@ import { isMacPlatform } from "@doenet/utils";
 import { RxUpdate } from "react-icons/rx";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 import { AccessibilityStatusButton } from "./AccessibilityStatusButton";
-// @ts-ignore
 import VariantSelect from "./VariantSelect";
 import type { ResolvedTheme } from "../utils/theme";
 import { setVariantIndex } from "../utils/variants";
@@ -68,8 +67,6 @@ export function ViewerControlsBar({
             )}
             {variants.numVariants > 1 && (
                 <VariantSelect
-                    size="sm"
-                    menuWidth="140px"
                     darkMode={darkMode}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}

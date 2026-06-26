@@ -236,8 +236,6 @@ export function DoenetViewer({
         if (variants.numVariants > 1) {
             variantSelector = (
                 <VariantSelect
-                    size="sm"
-                    menuWidth="140px"
                     darkMode={resolvedTheme}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}

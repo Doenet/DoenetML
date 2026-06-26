@@ -13,8 +13,10 @@ import type { ThemeMode } from "./theme";
 const parserWithMetadata = parser.configure({
     props: [
         indentNodeProp.add({
-            //fun (unfixable?) glitch: If you modify the document and then create a newline before enough time has passed for a new parse (which is often < 50ms)
-            //the indent wont have time to update and you're going right back to the left side of the screen.
+            // Indentation depends on the latest parse tree. If the user edits
+            // the document and immediately inserts a newline before the parser
+            // catches up (usually within a few tens of milliseconds), the new
+            // line can momentarily fall back to column 0.
             Element(context) {
                 let closed = /^\s*<\//.test(context.textAfter);
                 return (
