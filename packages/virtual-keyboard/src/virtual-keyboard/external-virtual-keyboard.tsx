@@ -19,14 +19,14 @@ export function ExternalVirtualKeyboard({
     ownerRef,
 }: {
     theme?: "dark" | "light";
-    ownerRef: React.RefObject<HTMLElement | null>;
+    ownerRef: React.RefObject<HTMLIFrameElement | null>;
 }) {
     return (
         <UniqueKeyboardTray
             ownerRef={ownerRef}
             theme={theme}
             onClick={(events) => {
-                if (!(ownerRef.current instanceof HTMLIFrameElement)) {
+                if (!ownerRef.current) {
                     return;
                 }
                 ownerRef.current.contentWindow?.postMessage(
