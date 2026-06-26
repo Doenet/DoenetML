@@ -6,8 +6,8 @@
 "doenet-vscode-extension": patch
 ---
 
-Editor: add `lineStyle` and `lineWidth` attributes to `<function>`.
+Graphing: add `lineStyle` and `lineWidth` attributes to `<function>`.
 
-Functions now accept the same per-component line style overrides as curves when graphed, and the generated schema recognizes those attributes in editor diagnostics.
+When a function is graphed, it now accepts the same per-component line style overrides as the equivalent wrapped `<curve>`. The generated schema also recognizes these attributes in editor diagnostics.
 
 Closes #1356.
