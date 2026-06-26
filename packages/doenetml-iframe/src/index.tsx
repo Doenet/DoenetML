@@ -41,6 +41,54 @@ import { detectVersionFromDoenetML } from "@doenet/parser";
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 
+type ThemeSetting = "dark" | "light" | "system";
+type ResolvedTheme = "dark" | "light";
+const DARK_MODE_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeToPinnedTheme() {
+    return () => {};
+}
+
+function getSystemTheme(): ResolvedTheme {
+    if (
+        typeof window === "undefined" ||
+        typeof window.matchMedia !== "function"
+    ) {
+        return "light";
+    }
+    return window.matchMedia(DARK_MODE_QUERY).matches ? "dark" : "light";
+}
+
+function subscribeToSystemTheme(onChange: () => void) {
+    if (
+        typeof window === "undefined" ||
+        typeof window.matchMedia !== "function"
+    ) {
+        return () => {};
+    }
+
+    const mediaQuery = window.matchMedia(DARK_MODE_QUERY);
+    if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", onChange);
+        return () => mediaQuery.removeEventListener("change", onChange);
+    }
+
+    mediaQuery.addListener(onChange);
+    return () => mediaQuery.removeListener(onChange);
+}
+
+function useResolvedTheme(setting: ThemeSetting): ResolvedTheme {
+    const subscribe =
+        setting === "system" ? subscribeToSystemTheme : subscribeToPinnedTheme;
+    const systemTheme = React.useSyncExternalStore(
+        subscribe,
+        getSystemTheme,
+        () => "light" as ResolvedTheme,
+    );
+
+    return setting === "system" ? systemTheme : setting;
+}
+
 /**
  * A message that is sent from an iframe to the parent window.
  */
@@ -132,6 +180,9 @@ export function DoenetViewer({
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
+    const resolvedTheme = useResolvedTheme(
+        doenetViewerProps.darkMode ?? "system",
+    );
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
@@ -287,7 +338,9 @@ export function DoenetViewer({
 
     return (
         <React.Fragment>
-            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
+            {addVirtualKeyboard ? (
+                <ExternalVirtualKeyboard ownerRef={ref} theme={resolvedTheme} />
+            ) : null}
             <iframe
                 title="Doenet document"
                 ref={ref}
@@ -383,6 +436,9 @@ export const DoenetEditor = React.forwardRef<
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
         DiagnosticRecord[]
     >([]);
+    const resolvedTheme = useResolvedTheme(
+        doenetEditorProps.darkMode ?? "system",
+    );
 
     React.useImperativeHandle(
         forwardedRef,
@@ -752,7 +808,9 @@ export const DoenetEditor = React.forwardRef<
 
     return (
         <React.Fragment>
-            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
+            {addVirtualKeyboard ? (
+                <ExternalVirtualKeyboard ownerRef={ref} theme={resolvedTheme} />
+            ) : null}
             <iframe
                 title="Doenet Editor"
                 ref={ref}

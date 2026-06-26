@@ -12,6 +12,7 @@ export function ExternalAwareVirtualKeyboard({
     externalVirtualKeyboardProvided = false,
     onClick = () => {},
     theme,
+    ownerRef,
 }: {
     /**
      * Whether an external virtual keyboard (possibly with a different parent because Doenet is running in an iframe)
@@ -28,6 +29,11 @@ export function ExternalAwareVirtualKeyboard({
      * before passing here.
      */
     theme?: "dark" | "light";
+    /**
+     * Element whose focus should be treated as this keyboard instance being
+     * active when a document-wide shared tray is used.
+     */
+    ownerRef?: React.RefObject<HTMLElement | null>;
 }) {
     React.useEffect(() => {
         if (externalVirtualKeyboardProvided) {
@@ -58,6 +64,10 @@ export function ExternalAwareVirtualKeyboard({
     // then we add a reference to the keyboard here
     // that will return the events via a callback.
     return externalVirtualKeyboardProvided ? null : (
-        <UniqueKeyboardTray onClick={onClick} theme={theme} />
+        <UniqueKeyboardTray
+            onClick={onClick}
+            ownerRef={ownerRef}
+            theme={theme}
+        />
     );
 }

@@ -533,6 +533,7 @@ function WrapWithKeyboard({
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            ownerRef={focusedMathInput}
             theme={theme}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));

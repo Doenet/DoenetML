@@ -16,11 +16,14 @@ export type IframeMessage = {
  */
 export function ExternalVirtualKeyboard({
     theme,
+    ownerRef,
 }: {
     theme?: "dark" | "light";
+    ownerRef?: React.RefObject<HTMLElement | null>;
 } = {}) {
     return (
         <UniqueKeyboardTray
+            ownerRef={ownerRef}
             theme={theme}
             onClick={(events) => {
                 window.postMessage({
