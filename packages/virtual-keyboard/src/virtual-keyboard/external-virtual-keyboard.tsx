@@ -34,7 +34,12 @@ export function ExternalVirtualKeyboard({
                         keyCommands: events,
                         subject: "keyboard",
                     } satisfies IframeMessage,
-                    window.location.origin,
+                    // Use "*" rather than window.location.origin: targetOrigin
+                    // must match the *iframe document's* origin, not the parent's.
+                    // The iframe may be cross-origin, so "*" is the only safe
+                    // value here. The message is low-sensitivity (key commands
+                    // only) and the recipient already validates event.source.
+                    "*",
                 );
             }}
         />
