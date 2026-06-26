@@ -431,7 +431,7 @@ describe("resolveActiveStyleAttributeValue", () => {
     it("attaches colorWord for a hex color attribute (built-in styleNumber=1 default lineColor)", () => {
         // Built-in styleNumber=1 ships lineColor="#1f5dff"; the resolver
         // should ride along the styleDefinition's own number (1) and pair
-        // the hex with whatever word `colorValueToWord` derives.
+        // the hex with the canonical "blue" color word shown in the help UI.
         const sourceObj = new DoenetSourceObject(
             `<setup><styleDefinition styleNumber="1"/></setup>`,
         );
@@ -443,10 +443,7 @@ describe("resolveActiveStyleAttributeValue", () => {
             { excludeAttribute: { node: sd, attributeName: "lineColor" } },
         );
         expect(result?.value).toBe("#1f5dff");
-        // The derived word is whatever the nearest-canonical-color lookup
-        // returns; just assert it's present and not the raw hex.
-        expect(typeof result?.colorWord).toBe("string");
-        expect(result?.colorWord).not.toBe(result?.value);
+        expect(result?.colorWord).toBe("blue");
     });
 
     it("suppresses colorWord when the value already IS a CSS named color", () => {

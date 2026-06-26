@@ -21,6 +21,10 @@ Dark-mode variants (`*ColorDarkMode`) are unchanged — those were already
 fixed in the dark-mode PR. `fillColor` for each preset is updated to match
 the new line/marker color for visual consistency.
 
+The default light-mode blue (`#1f5dff`) is also registered with the
+style-color-word resolver so editor/LSP help continues to describe preset 1
+as blue rather than purple.
+
 The preset palette accessibility test (`presetPaletteAccessibility.test.ts`)
 is extended to assert WCAG AA compliance in light mode too (mirroring the
 existing dark-mode guard), closing the test gap identified in #1364.

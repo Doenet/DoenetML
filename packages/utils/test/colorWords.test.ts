@@ -54,7 +54,7 @@ describe("color words", () => {
             red: "#D4042D",
             orange: "#F19143",
             green: "#2ca02c",
-            blue: "#648FFF",
+            blue: "#1f5dff",
             purple: "#644CD6",
         };
 
@@ -101,6 +101,7 @@ describe("color words", () => {
     });
 
     it("maps non-named values to nearest canonical word", () => {
+        expect(colorValueToWord("#1f5dff")).eq("blue");
         expect(colorValueToWord("#648FFF")).eq("blue");
         expect(colorValueToWord("rgb(0,0,255)")).eq("blue");
         expect(colorValueToWord("#800080")).eq("purple");
@@ -110,7 +111,7 @@ describe("color words", () => {
     });
 
     it("provides localization hook metadata", () => {
-        const resolved = resolveColorWord("#648FFF", {
+        const resolved = resolveColorWord("#1f5dff", {
             translate: (key, englishWord) =>
                 key === "color.blue" ? "azul" : englishWord,
         });
