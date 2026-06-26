@@ -21,17 +21,21 @@ type VirtualKeyboardState = {
 };
 
 const globalThis = Function("return this")() || {};
+// Keep this singleton versioned so older bundles that still use
+// `globalThis.virtualKeyboardState` do not adopt an incompatible shape.
+const VIRTUAL_KEYBOARD_STATE_KEY = "__doenetVirtualKeyboardState_v2";
 
-const virtualKeyboardState: VirtualKeyboardState =
-    globalThis?.virtualKeyboardState || {
-        count: 0,
-        keyboardDomNode: null,
-        keyboardReactRoot: null,
-        registrations: [],
-        lastActiveRegistrationId: null,
-        nextRegistrationId: 0,
-    };
-globalThis.virtualKeyboardState = virtualKeyboardState;
+const virtualKeyboardState: VirtualKeyboardState = globalThis?.[
+    VIRTUAL_KEYBOARD_STATE_KEY
+] || {
+    count: 0,
+    keyboardDomNode: null,
+    keyboardReactRoot: null,
+    registrations: [],
+    lastActiveRegistrationId: null,
+    nextRegistrationId: 0,
+};
+globalThis[VIRTUAL_KEYBOARD_STATE_KEY] = virtualKeyboardState;
 
 function getRegistrationById(id: number | null) {
     if (id === null) {
