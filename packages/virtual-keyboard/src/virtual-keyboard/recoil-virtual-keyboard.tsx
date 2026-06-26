@@ -43,8 +43,13 @@ export function ExternalAwareVirtualKeyboard({
             const listener = (
                 event: MessageEvent<IframeMessage | undefined>,
             ) => {
+                // Use event.source === window.parent rather than comparing
+                // event.origin to window.parent.location.origin: accessing
+                // window.parent.location throws a DOMException when the
+                // parent is cross-origin, which is the normal deployment
+                // scenario for an embedded DoenetML iframe.
                 if (
-                    event.origin !== window.parent.location.origin ||
+                    event.source !== window.parent ||
                     event.data?.subject !== "keyboard"
                 ) {
                     return;
