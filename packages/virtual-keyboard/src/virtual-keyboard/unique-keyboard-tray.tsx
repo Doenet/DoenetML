@@ -100,7 +100,27 @@ function getTrayTheme() {
 }
 
 function rerenderTray() {
-    virtualKeyboardState.keyboardReactRoot?.render(renderTray(getTrayTheme()));
+    const theme = getTrayTheme();
+    // Bail out early if the tray's current data-theme already matches,
+    // avoiding a full MathJaxContext + tray re-render on every focusin event
+    // when focus moves within the same owner. Reading the DOM attribute is
+    // cheaper than reconciling the whole subtree and has no sentinel issues.
+    // getAttribute returns null when the attribute is absent; theme is
+    // undefined when no owner has a theme — both mean "no data-theme", so
+    // normalize absent→undefined before comparing.
+    const trayEl = getTrayElement();
+    if (trayEl) {
+        const currentTheme =
+            (trayEl.getAttribute("data-theme") as
+                | "dark"
+                | "light"
+                | null
+                | undefined) ?? undefined;
+        if (currentTheme === theme) {
+            return;
+        }
+    }
+    virtualKeyboardState.keyboardReactRoot?.render(renderTray(theme));
 }
 
 function renderTray(theme: "dark" | "light" | undefined) {
