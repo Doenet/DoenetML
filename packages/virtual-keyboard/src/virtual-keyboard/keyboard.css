@@ -82,6 +82,10 @@
     @apply flex flex-nowrap;
     button {
         @apply p-1 sm:p-2 px-1 sm:px-3 pb-1 border-b-2 mb-3;
+        /* Non-selected tabs: transparent so only the selected tab's blue
+           indicator is visible. Without this, border-color falls back to
+           currentColor (black), drawing a black line below every tab. */
+        border-color: transparent;
     }
     button[aria-selected="true"] {
         @apply border-blue-400 text-blue-600;
