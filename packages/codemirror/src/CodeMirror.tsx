@@ -29,6 +29,7 @@ const CodeMirror = React.memo(function CodeMirror({
     languageServerRef,
     ariaLabel = "DoenetML code editor",
     doenetWorkerUrl,
+    darkMode = "light",
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -67,6 +68,12 @@ const CodeMirror = React.memo(function CodeMirror({
      * this is rarely an issue.
      */
     doenetWorkerUrl?: string;
+    /**
+     * Resolved theme mode for the editor.  Defaults to `"light"`.  When set
+     * to `"dark"` the CodeMirror color theme, syntax-highlight palette, and
+     * autocomplete icon colors all switch to dark-mode-verified variants.
+     */
+    darkMode?: "dark" | "light";
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -97,8 +104,8 @@ const CodeMirror = React.memo(function CodeMirror({
 
     const extensions: Extension[] = React.useMemo(() => {
         const extensions: Extension[] = [
-            syntaxHighlightingExtension,
-            readOnly ? readOnlyColorTheme : colorTheme,
+            syntaxHighlightingExtension(darkMode),
+            readOnly ? readOnlyColorTheme(darkMode) : colorTheme(darkMode),
             EditorView.lineWrapping,
             // Add aria-label to the contenteditable element for accessibility
             EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
@@ -107,12 +114,12 @@ const CodeMirror = React.memo(function CodeMirror({
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
             extensions.push(lspPlugin(documentId, doenetWorkerUrl));
-            extensions.push(completionIconTheme);
+            extensions.push(completionIconTheme(darkMode));
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
-    }, [documentId, readOnly, ariaLabel, doenetWorkerUrl]);
+    }, [documentId, readOnly, ariaLabel, doenetWorkerUrl, darkMode]);
 
     return (
         <div className="mathjax_ignore" style={{ height: "100%" }}>

@@ -908,6 +908,7 @@ export const EditorViewer = React.forwardRef<
             onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
+            darkMode={darkMode}
         />
     );
 

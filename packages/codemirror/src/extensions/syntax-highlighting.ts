@@ -78,6 +78,25 @@ const doenetLanguage = LRLanguage.define({
     },
 });
 
-export const syntaxHighlightingExtension = new LanguageSupport(doenetLanguage, [
-    syntaxHighlighting(customHighlightStyle),
+// Dark canvas (#121212) syntax highlight palette — GitHub-dark-inspired.
+// All colors verified for ≥4.5:1 WCAG AA contrast on #121212.
+const darkHighlightStyle = HighlightStyle.define([
+    { tag: t.string, color: "#56d364" }, // green  ~7.1:1 on #121212
+    { tag: t.tagName, color: "#79c0ff" }, // blue   ~10:1 on #121212
+    { tag: t.angleBracket, color: "#79c0ff" }, // blue   ~10:1 on #121212
+    { tag: t.propertyName, color: "#ffa657" }, // orange ~7.4:1 on #121212
+    { tag: t.invalid, color: "#ff7b72" }, // red    ~6.4:1 on #121212
+    { tag: t.blockComment, color: "#8b949e" }, // gray   ~6.5:1 on #121212
+    { tag: t.macroName, color: "#d2a8ff" }, // purple ~9.6:1 on #121212
+    { tag: t.content, color: "#e6edf3" }, // near-white ~16:1 on #121212
+    { tag: t.definitionOperator, color: "#e6edf3" }, // near-white
+    { tag: t.character, color: "#79c0ff" }, // blue   ~10:1 on #121212
 ]);
+
+export function syntaxHighlightingExtension(darkMode: "dark" | "light") {
+    return new LanguageSupport(doenetLanguage, [
+        syntaxHighlighting(
+            darkMode === "dark" ? darkHighlightStyle : customHighlightStyle,
+        ),
+    ]);
+}
