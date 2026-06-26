@@ -47,6 +47,10 @@ export default class GraphicalComponent extends BaseComponent {
      */
     static styleOverrideCategories = [];
 
+    static returnStyleOverrideGroups() {
+        return resolveOverrideGroups(this);
+    }
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -76,7 +80,9 @@ export default class GraphicalComponent extends BaseComponent {
         // subclass opts into via `static styleOverrideCategories`. Colors
         // stay <styleDefinition>-only so per-styleNumber WCAG contrast
         // diagnostics remain authoritative.
-        for (const group of resolveOverrideGroups(this)) {
+        for (const group of GraphicalComponent.returnStyleOverrideGroups.call(
+            this,
+        )) {
             for (const styleAttr in group) {
                 attributes[styleAttr] = attributeSpecFromStyleAttribute(
                     group[styleAttr],
@@ -99,9 +105,10 @@ export default class GraphicalComponent extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        const overrideAttributeNames = resolveOverrideGroups(this).flatMap(
-            (group) => Object.keys(group),
-        );
+        const overrideAttributeNames =
+            GraphicalComponent.returnStyleOverrideGroups
+                .call(this)
+                .flatMap((group) => Object.keys(group));
 
         let selectedStyleDefinition =
             returnSelectedStyleStateVariableDefinition({

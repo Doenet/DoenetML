@@ -531,6 +531,20 @@ describe("Per-component style override tests @group4", async () => {
         expect(adaptedCurve).toBeDefined();
     });
 
+    it("function validates styleOverrideCategories before creating attributes", async () => {
+        const Function_ = (await import("../../components/Function.js"))
+            .default;
+
+        class BadFunction extends Function_ {
+            static componentType = "badFunction";
+            static styleOverrideCategories = ["lin"];
+        }
+
+        expect(() => BadFunction.createAttributesObject()).toThrow(
+            /Component "badFunction" lists unknown style override category "lin"/,
+        );
+    });
+
     it("contrast-feeding opacities (lineOpacity, markerOpacity) are rejected as invalid attributes", async () => {
         // lineOpacity and markerOpacity feed the WCAG contrast diagnostic as
         // an opacityMultiplier on the foreground alpha (see

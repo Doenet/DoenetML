@@ -10,7 +10,6 @@ import {
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
     returnTextStyleDescriptionDefinitions,
-    STYLE_OVERRIDE_CATEGORIES,
     attributeSpecFromStyleAttribute,
 } from "@doenet/utils";
 import {
@@ -253,10 +252,10 @@ export default class Function extends InlineComponent {
         // attributes mirror those on <curve> so that a bare <function> inside a
         // <graph> behaves identically to <curve lineStyle="..." lineWidth="...">
         // wrapping it.
-        for (const category of this.styleOverrideCategories) {
-            for (const [name, spec] of Object.entries(
-                STYLE_OVERRIDE_CATEGORIES[category],
-            )) {
+        for (const group of GraphicalComponent.returnStyleOverrideGroups.call(
+            this,
+        )) {
+            for (const [name, spec] of Object.entries(group)) {
                 attributes[name] = attributeSpecFromStyleAttribute(spec);
             }
         }
