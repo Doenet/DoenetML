@@ -122,7 +122,11 @@ const CodeMirror = React.memo(function CodeMirror({
     }, [documentId, readOnly, ariaLabel, doenetWorkerUrl, darkMode]);
 
     return (
-        <div className="mathjax_ignore" style={{ height: "100%" }}>
+        <div
+            className="mathjax_ignore"
+            data-theme={darkMode}
+            style={{ height: "100%" }}
+        >
             <ReactCodeMirror
                 style={{ height: "100%" }}
                 value={value}
@@ -155,8 +159,8 @@ const CodeMirror = React.memo(function CodeMirror({
                         }
                     }
                 }}
-                onBlur={() => onBlur && onBlur()}
-                onFocus={() => onFocus && onFocus()}
+                onBlur={onBlur}
+                onFocus={onFocus}
                 height="100%"
                 extensions={extensions}
             />

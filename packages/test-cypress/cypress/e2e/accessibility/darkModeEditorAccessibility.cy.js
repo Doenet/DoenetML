@@ -2,15 +2,14 @@
  * Dark-mode accessibility coverage for the editor authoring UI.
  *
  * Each case opens the DoenetML editor, switches the harness into dark mode,
- * and runs axe's `color-contrast` rule against the editor panel. This
- * complements `darkModeRendererAccessibility.cy.js`, which covers the viewer
- * pane. Together they enforce WCAG AA contrast across the full
- * `<DoenetEditor>` surface in dark mode.
+ * and runs axe's `color-contrast` rule against representative editor surfaces.
+ * This complements `darkModeRendererAccessibility.cy.js`, which covers the
+ * viewer pane.
  *
  * Surfaces exercised:
  *  - CodeMirror code area (syntax highlighting, gutters, active line)
  *  - Diagnostics / responses / help panel (footer tabs, diagnostic entries,
- *    accessibility report card, context-help content)
+ *    accessibility report card, help-panel shell)
  *  - Viewer controls bar (Update button, accessibility status chip)
  */
 describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
