@@ -101,13 +101,14 @@ function getTrayTheme() {
 
 function rerenderTray() {
     const theme = getTrayTheme();
-    // Bail out early if the tray's current data-theme already matches,
-    // avoiding a full MathJaxContext + tray re-render on every focusin event
-    // when focus moves within the same owner. Reading the DOM attribute is
-    // cheaper than reconciling the whole subtree and has no sentinel issues.
+    // The focusin listener fires on every focus change anywhere in the
+    // document. Skip the React re-render when the tray's data-theme is
+    // already correct — reconciling the MathJaxContext + tray subtree on
+    // every focus event would be wasteful.
     // getAttribute returns null when the attribute is absent; theme is
-    // undefined when no owner has a theme — both mean "no data-theme", so
-    // normalize absent→undefined before comparing.
+    // undefined when no owner has an explicit theme (renders as light).
+    // Both cases mean "no data-theme attribute", so normalize null→undefined
+    // before comparing so they compare equal.
     const trayEl = getTrayElement();
     if (trayEl) {
         const currentTheme =
