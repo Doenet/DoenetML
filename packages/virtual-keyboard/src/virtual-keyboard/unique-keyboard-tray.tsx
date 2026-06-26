@@ -81,20 +81,8 @@ function getActiveRegistration() {
     return null;
 }
 
-function getFallbackRegistrations() {
-    return virtualKeyboardState.registrations.filter(
-        (registration) => !registration.ownerRef?.current,
-    );
-}
-
 function getTrayTheme() {
-    const activeRegistration = getActiveRegistration();
-    if (activeRegistration) {
-        return activeRegistration.theme;
-    }
-
-    const fallbackRegistrations = getFallbackRegistrations();
-    return fallbackRegistrations[fallbackRegistrations.length - 1]?.theme;
+    return getActiveRegistration()?.theme;
 }
 
 function rerenderTray() {
@@ -107,17 +95,8 @@ function renderTray(theme: "dark" | "light" | undefined) {
             <KeyboardTray
                 theme={theme}
                 onClick={(e) => {
-                    const activeRegistration = getActiveRegistration();
-                    if (activeRegistration) {
-                        activeRegistration.onClick(e);
-                        return;
-                    }
-                    // No owner has focus — deliver to any ownerless registrations
-                    // (registrations without an ownerRef cannot use DOM containment
-                    // to claim focus, so they receive events as a fallback).
-                    getFallbackRegistrations().forEach((registration) =>
-                        registration.onClick(e),
-                    );
+                    // Route key events only to the active (focused) owner.
+                    getActiveRegistration()?.onClick(e);
                 }}
             />
         </MathJaxContext>
