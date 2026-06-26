@@ -55,9 +55,6 @@ export function colorTheme(darkMode: ThemeMode) {
         "&.cm-focused": {
             color: "var(--canvasText)",
         },
-        ".cm-selectionLayer": {
-            backgroundColor: "var(--mainGreen)",
-        },
         ".cm-gutters": {
             backgroundColor: gutterColors.backgroundColor,
             color: gutterColors.textColor,
@@ -191,9 +188,6 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
         },
         "&.cm-focused": {
             color: "var(--canvasText)",
-        },
-        ".cm-selectionLayer": {
-            backgroundColor: "var(--mainGreen)",
         },
         ".cm-gutters": {
             backgroundColor: gutterColors.backgroundColor,
