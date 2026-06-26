@@ -20,6 +20,7 @@ import {
     getStyleValueNumber,
     getStyleValueString,
     latestPosition,
+    DEFAULT_STYLE_VALUES,
     type StyleDefinition,
     type StyleDefinitions,
     type StyleDefinitionKey,
@@ -198,7 +199,12 @@ function contrastDiagnosticsForMode(
             linePosition,
             styleDef.lineOpacity?.position,
         );
-        const lineOpacity = getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
+        // Match the renderer: an unspecified opacity paints at the style
+        // default (0.7), not fully opaque, so check contrast at that opacity or
+        // a real low-opacity failure would be missed.
+        const lineOpacity =
+            getStyleValueNumber(styleDef, "lineOpacity") ??
+            DEFAULT_STYLE_VALUES.lineOpacity;
         const ratio = compositedContrastRatio({
             foreground: lineColor,
             canvas,
@@ -222,8 +228,11 @@ function contrastDiagnosticsForMode(
             markerPosition,
             styleDef.markerOpacity?.position,
         );
+        // Match the renderer: an unspecified opacity paints at the style
+        // default (0.7), not fully opaque (see line-opacity note above).
         const markerOpacity =
-            getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
+            getStyleValueNumber(styleDef, "markerOpacity") ??
+            DEFAULT_STYLE_VALUES.markerOpacity;
         const ratio = compositedContrastRatio({
             foreground: markerColor,
             canvas,

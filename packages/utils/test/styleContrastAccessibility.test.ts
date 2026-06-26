@@ -59,6 +59,22 @@ describe("contrast diagnostics — light mode (regression)", () => {
             expect.stringMatching(/marker color against the canvas/),
         ]);
     });
+
+    it("checks line/marker contrast at the default opacity (0.7) when none is authored", () => {
+        // #808080 clears 3:1 against white at full opacity (~3.94:1) but not at
+        // the renderer's default 0.7 opacity (~2.43:1). With no opacity authored,
+        // the diagnostic must use 0.7 so it matches what is actually painted.
+        const diags = diagnose({
+            1: {
+                lineColor: { style: "#808080", position: POS },
+                markerColor: { style: "#808080", position: POS },
+            },
+        });
+        expect(diags.map((d) => d.message)).toEqual([
+            expect.stringMatching(/line color against the canvas/),
+            expect.stringMatching(/marker color against the canvas/),
+        ]);
+    });
 });
 
 describe("contrast diagnostics — dark mode", () => {
