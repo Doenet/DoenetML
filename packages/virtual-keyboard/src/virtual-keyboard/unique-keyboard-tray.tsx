@@ -33,6 +33,11 @@ const virtualKeyboardState: VirtualKeyboardState =
     };
 globalThis.virtualKeyboardState = virtualKeyboardState;
 
+// Cache the last theme we rendered into the tray so focusin events that
+// don't change the active owner/theme don't trigger unnecessary re-renders
+// of the MathJaxContext + tray subtree.
+let lastRenderedTheme: "dark" | "light" | undefined = undefined;
+
 function getRegistrationById(id: number | null) {
     if (id === null) {
         return null;
@@ -100,7 +105,12 @@ function getTrayTheme() {
 }
 
 function rerenderTray() {
-    virtualKeyboardState.keyboardReactRoot?.render(renderTray(getTrayTheme()));
+    const theme = getTrayTheme();
+    if (theme === lastRenderedTheme) {
+        return;
+    }
+    lastRenderedTheme = theme;
+    virtualKeyboardState.keyboardReactRoot?.render(renderTray(theme));
 }
 
 function renderTray(theme: "dark" | "light" | undefined) {
