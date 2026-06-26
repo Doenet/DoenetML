@@ -253,10 +253,12 @@ export default class Function extends InlineComponent {
         // attributes mirror those on <curve> so that a bare <function> inside a
         // <graph> behaves identically to <curve lineStyle="..." lineWidth="...">
         // wrapping it.
-        for (const [name, spec] of Object.entries(
-            STYLE_OVERRIDE_CATEGORIES["line"],
-        )) {
-            attributes[name] = attributeSpecFromStyleAttribute(spec);
+        for (const category of this.styleOverrideCategories) {
+            for (const [name, spec] of Object.entries(
+                STYLE_OVERRIDE_CATEGORIES[category],
+            )) {
+                attributes[name] = attributeSpecFromStyleAttribute(spec);
+            }
         }
 
         return attributes;
