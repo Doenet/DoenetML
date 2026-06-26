@@ -45,10 +45,8 @@ export function colorTheme(darkMode: ThemeMode) {
         },
         ".cm-content": {
             caretColor: "#0e9",
-            borderDownColor: "var(--canvasText)",
         },
         "&.cm-focused .cm-cursor": {
-            backgroundColor: "var(--lightBlue)",
             borderLeftColor: "var(--canvasText)",
         },
         "&.cm-focused .cm-selectionBackground, ::selection": {
@@ -57,7 +55,7 @@ export function colorTheme(darkMode: ThemeMode) {
         "&.cm-focused": {
             color: "var(--canvasText)",
         },
-        "cm-selectionLayer": {
+        ".cm-selectionLayer": {
             backgroundColor: "var(--mainGreen)",
         },
         ".cm-gutters": {
@@ -183,11 +181,9 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
         },
         ".cm-content": {
             caretColor: "#0e9",
-            borderDownColor: "var(--canvasText)",
             backgroundColor: "#77777720",
         },
         "&.cm-focused .cm-cursor": {
-            backgroundColor: "var(--lightBlue)",
             borderLeftColor: "var(--canvasText)",
         },
         "&.cm-focused .cm-selectionBackground, ::selection": {
@@ -196,7 +192,7 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
         "&.cm-focused": {
             color: "var(--canvasText)",
         },
-        "cm-selectionLayer": {
+        ".cm-selectionLayer": {
             backgroundColor: "var(--mainGreen)",
         },
         ".cm-gutters": {

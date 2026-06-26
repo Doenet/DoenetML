@@ -470,7 +470,7 @@
  * #1e1e1e (VS Code-style) so the gutter is subtle, with muted line-number
  * text at #8b949e (5.2:1 on #1e1e1e — WCAG AA).
  * Active-line gutter: CodeMirror base theme uses #e2f2ff (light blue), which
- * is garish on a dark gutter. Use a barely-lighter #2a2a2a instead.
+ * is garish on a dark gutter. Use a barely-lighter #363636 instead.
  */
 [data-theme="dark"] .editor-panel .cm-gutters {
     background-color: #1e1e1e;
