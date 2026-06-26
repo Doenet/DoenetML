@@ -26,26 +26,16 @@ export function ExternalVirtualKeyboard({
             ownerRef={ownerRef}
             theme={theme}
             onClick={(events) => {
-                const iframeWindow =
-                    ownerRef?.current instanceof HTMLIFrameElement
-                        ? ownerRef.current.contentWindow
-                        : null;
-
-                if (iframeWindow) {
-                    iframeWindow.postMessage(
-                        {
-                            keyCommands: events,
-                            subject: "keyboard",
-                        } satisfies IframeMessage,
-                        window.location.origin,
-                    );
+                if (!(ownerRef?.current instanceof HTMLIFrameElement)) {
                     return;
                 }
-
-                window.postMessage({
-                    keyCommands: events,
-                    subject: "keyboard",
-                } satisfies IframeMessage);
+                ownerRef.current.contentWindow?.postMessage(
+                    {
+                        keyCommands: events,
+                        subject: "keyboard",
+                    } satisfies IframeMessage,
+                    window.location.origin,
+                );
             }}
         />
     );
