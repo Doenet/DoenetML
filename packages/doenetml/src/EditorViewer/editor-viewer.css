@@ -372,34 +372,51 @@
  * Scrollbars. Light-mode OS scrollbars are glaring on a dark canvas.
  * `scrollbar-color` is the standard property (Firefox + Chromium ≥121).
  * `::-webkit-scrollbar` rules cover Chromium for full cross-browser support.
- * Applied broadly to any scrollable surface inside the editor wrapper so
- * the diagnostics panel, viewer, and any future scrollable area all match.
+ *
+ * Note: `scrollbar-color` is NOT inherited, so each scroll container must be
+ * targeted directly. The known scroll containers are:
+ *   - `.diagnostics-response-tabs-panels` — the diagnostics/help/responses panel
+ *   - `.viewer-panel .viewer`              — the viewer content area
+ *   - `.cm-scroller`                       — CodeMirror's own scroll container
  */
-[data-theme="dark"] .editor-panel,
-[data-theme="dark"] .viewer-panel .viewer {
+[data-theme="dark"] .editor-panel .diagnostics-response-tabs-panels,
+[data-theme="dark"] .viewer-panel .viewer,
+[data-theme="dark"] .editor-panel .cm-scroller {
     scrollbar-color: #555 #1e1e1e;
 }
 
-[data-theme="dark"] .editor-panel ::-webkit-scrollbar,
-[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar {
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-[data-theme="dark"] .editor-panel ::-webkit-scrollbar-track,
-[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-track {
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-track,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-track,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-track {
     background: #1e1e1e;
 }
 
-[data-theme="dark"] .editor-panel ::-webkit-scrollbar-thumb,
-[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb {
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-thumb,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-thumb {
     background-color: #555;
     border-radius: 4px;
     border: 2px solid #1e1e1e;
 }
 
-[data-theme="dark"] .editor-panel ::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb:hover {
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-thumb:hover {
     background-color: #777;
 }
 
