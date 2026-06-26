@@ -1,4 +1,5 @@
 import * as Ariakit from "@ariakit/react";
+import type { ThemeMode } from "@doenet/codemirror";
 import React, { useEffect, useState } from "react";
 import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
 import "./variant-select.css";
@@ -13,7 +14,7 @@ export default function VariantSelect({
 }: {
     size: "sm" | "md" | "lg";
     menuWidth: string;
-    darkMode?: "dark" | "light";
+    darkMode?: ThemeMode;
     array: string[];
     onChange: (index: number) => void;
     syncIndex?: number;

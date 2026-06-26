@@ -425,6 +425,7 @@
 
 [data-theme="dark"] .viewer-panel .viewer-controls {
     background-color: #1e1e1e;
+    border-bottom-color: #555;
 }
 
 /*
@@ -544,11 +545,6 @@
 
 [data-theme="dark"] .editor-panel .accessibility-report-heading.advisory {
     color: #ddd6fe;
-}
-
-/* Viewer controls bar — bottom border is nearly invisible on #a9a9a9 (dark mainGray) */
-[data-theme="dark"] .viewer-panel .viewer-controls {
-    border-bottom-color: #555;
 }
 
 /* Accessibility status button chips */

@@ -8,8 +8,7 @@ import {
 } from "@codemirror/language";
 import { parser } from "@doenet/parser";
 import { styleTags, tags as t } from "@lezer/highlight";
-
-type ThemeMode = "dark" | "light";
+import type { ThemeMode } from "./theme";
 
 const parserWithMetadata = parser.configure({
     props: [

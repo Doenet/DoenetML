@@ -1,4 +1,5 @@
 import React from "react";
+import type { ThemeMode } from "@doenet/codemirror";
 import { UiButton } from "@doenet/ui-components";
 import { isMacPlatform } from "@doenet/utils";
 import { RxUpdate } from "react-icons/rx";
@@ -45,7 +46,7 @@ export function ViewerControlsBar({
     accessibilityLevel2Count: number;
     isAccessibilityReportOpen: boolean;
     onToggleAccessibilityReport: () => void;
-    darkMode: "dark" | "light";
+    darkMode: ThemeMode;
 }) {
     return (
         <div className="viewer-controls" id={`${id}-viewer-controls`}>

@@ -13,6 +13,7 @@ import {
     colorTheme,
     readOnlyColorTheme,
     completionIconTheme,
+    type ThemeMode,
 } from "./extensions/theme";
 
 /**
@@ -73,7 +74,7 @@ const CodeMirror = React.memo(function CodeMirror({
      * to `"dark"` the CodeMirror color theme, syntax-highlight palette, and
      * autocomplete icon colors all switch to dark-mode-verified variants.
      */
-    darkMode?: "dark" | "light";
+    darkMode?: ThemeMode;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>

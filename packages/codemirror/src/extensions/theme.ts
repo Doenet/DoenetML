@@ -1,6 +1,6 @@
 import { EditorView } from "@codemirror/view";
 
-type ThemeMode = "dark" | "light";
+export type ThemeMode = "dark" | "light";
 
 // Shared gutter palette so editable and read-only themes stay aligned per mode.
 function getGutterColors(darkMode: ThemeMode) {
@@ -173,6 +173,8 @@ export function completionIconTheme(darkMode: ThemeMode) {
 export function readOnlyColorTheme(darkMode: ThemeMode) {
     const gutterColors = getGutterColors(darkMode);
     const lineTextColor = darkMode === "dark" ? "#c8c8c8" : "#595959";
+    const activeLineBackgroundColor =
+        darkMode === "dark" ? "#50505020" : "var(--mainGray)";
     return EditorView.theme({
         "&": {
             color: "var(--canvasText)",
@@ -203,7 +205,7 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
             borderRight: gutterColors.borderRight,
         },
         ".cm-activeLine": {
-            backgroundColor: "var(--mainGray)",
+            backgroundColor: activeLineBackgroundColor,
             color: "var(--canvasText)",
         },
         ".cm-activeLineGutter": {

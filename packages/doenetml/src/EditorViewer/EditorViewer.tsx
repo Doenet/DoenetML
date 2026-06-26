@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
-import { CodeMirror, LSP } from "@doenet/codemirror";
+import { CodeMirror, LSP, type ThemeMode } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
@@ -87,7 +87,7 @@ type EditorViewerProps = {
     prefixForIds?: string;
     doenetViewerUrl?: string;
     doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    darkMode?: ThemeMode;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
