@@ -120,3 +120,17 @@
 [data-theme="dark"] .cm-lint-body code {
     color: #ff7ac6;
 }
+
+/*
+ * Accessibility-diagnostic underlines under code text. The light-mode colors
+ * (#5b21b6, #9061d1) are too dark against the dark canvas (#121212), making
+ * the underlines invisible. Override to the same bright violets used for the
+ * diagnostic heading/icon accents elsewhere in dark mode.
+ */
+[data-theme="dark"] .cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
+    text-decoration-color: #c4b5fd;
+}
+
+[data-theme="dark"] .cm-lintRange.cm-doenet-accessibility-diagnostic-level-2 {
+    text-decoration-color: #ddd6fe;
+}
