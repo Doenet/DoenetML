@@ -2,10 +2,11 @@
  * Regression coverage for specific dark-mode visibility bugs:
  *  - #397: mathInput insertion point (caret) was rendered black/invisible.
  *  - #396: graph keyboard-focus outline was invisible.
+ *  - Standalone viewer roots did not paint their own dark canvas.
  *
- * Both are now driven by `var(--canvasText)` (the caret via `currentColor`,
- * the focus outline via an explicit rule), which resolves to white once the
- * viewer sets `data-theme="dark"`.
+ * The renderer-specific fixes are driven by `var(--canvasText)` (for example,
+ * the caret via `currentColor` and the focus outline via an explicit rule),
+ * which resolves to white once the viewer sets `data-theme="dark"`.
  */
 describe(
     "Dark-mode visibility regressions (#396, #397)",
@@ -22,6 +23,35 @@ describe(
             const [r, g, b] = m[1].split(",").map((x) => parseFloat(x));
             return r + g + b;
         }
+
+        function alphaChannel(cssColor) {
+            const m = cssColor.match(/rgba?\(([^)]+)\)/);
+            if (!m) return null;
+            const channels = m[1].split(",").map((x) => parseFloat(x));
+            return channels[3] ?? 1;
+        }
+
+        it("standalone viewer paints a dark canvas in dark mode", () => {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<p>Dark viewer canvas</p>`,
+                        darkMode: "dark",
+                    },
+                    "*",
+                );
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+
+            cy.get(".doenet-viewer").then(($viewer) => {
+                const bg = getComputedStyle($viewer[0]).backgroundColor;
+                expect(alphaChannel(bg), `viewer background ${bg}`).to.equal(1);
+                expect(
+                    channelSum(bg),
+                    `viewer background ${bg}`,
+                ).to.be.lessThan(150);
+            });
+        });
 
         it("#397: mathInput caret is light (visible) in dark mode", () => {
             cy.window().then((win) => {
@@ -186,6 +216,16 @@ describe(
                             `circle stroke ${stroke}`,
                         ).to.be.lessThan(600);
                     });
+                });
+
+            cy.get(".doenet-viewer svg text.text-no-select")
+                .first()
+                .then(($label) => {
+                    const fill = getComputedStyle($label[0]).fill;
+                    expect(
+                        channelSum(fill),
+                        `label fill ${fill}`,
+                    ).to.be.greaterThan(600);
                 });
         });
     },

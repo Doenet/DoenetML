@@ -11,12 +11,13 @@ Dark mode: make it actually work and meet WCAG AA.
 - The viewer/editor now own the theme: the `darkMode` prop accepts
   `"light" | "dark" | "system"` (system tracks `prefers-color-scheme` live) and
   the resolved theme is written to a `data-theme` attribute on the viewer/editor
-  root, so the canvas/text/JSXGraph-axis CSS variables actually switch. Stray
-  `.dark` selectors, description surfaces, hint/solution/feedback reveal
-  buttons, and portaled popovers were unified onto `[data-theme]`. The `darkMode`
-  prop now defaults to `"system"` (previously `"light"`), so an embedded
-  `DoenetViewer`/`DoenetEditor` follows the user's OS/browser theme preference
-  unless the host pins a theme.
+  root and the viewer paints its own `--canvas` background, so standalone
+  embeds do not rely on the host page for the dark canvas/text/JSXGraph-axis
+  CSS variables to take effect. Stray `.dark` selectors, description surfaces,
+  hint/solution/feedback reveal buttons, and portaled popovers were unified
+  onto `[data-theme]`. The `darkMode` prop now defaults to `"system"`
+  (previously `"light"`), so an embedded `DoenetViewer`/`DoenetEditor` follows
+  the user's OS/browser theme preference unless the host pins a theme.
 - Style definitions now derive a dark-mode color (and color word) from an
   author's light-mode color instead of mirroring it. Graphic/marker/line colors
   are lightened until they clear WCAG AA against the dark canvas where possible
