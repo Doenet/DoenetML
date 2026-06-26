@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalVirtualKeyboard } from "../../../../virtual-keyboard/dist/index.js";
+import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 
 function Harness() {
     const firstRef = React.useRef<HTMLIFrameElement>(null);
