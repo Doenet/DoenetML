@@ -330,6 +330,7 @@
 
 /* Muted secondary text — #94a3b8 ≈ 7.7:1 on #121212 */
 [data-theme="dark"] .editor-panel .help-panel-empty,
+[data-theme="dark"] .editor-panel .help-placeholder,
 [data-theme="dark"] .editor-panel .help-kind-label,
 [data-theme="dark"] .editor-panel .help-detail-label,
 [data-theme="dark"] .editor-panel .help-detail-annotation,

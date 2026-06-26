@@ -421,6 +421,7 @@
  */
 [data-theme="dark"] .editor-panel .editor-footer {
     background-color: #1e1e1e;
+    color: #cbd5e1;
 }
 
 [data-theme="dark"] .viewer-panel .viewer-controls {
@@ -447,6 +448,18 @@
 [data-theme="dark"] .editor-panel .footer-menu-button:hover,
 [data-theme="dark"] .editor-panel .footer-icons button:hover {
     background-color: rgba(255, 255, 255, 0.12);
+}
+
+/*
+ * Footer copy. Light-mode defaults rely on inherited black text, which falls
+ * below contrast on the dark toolbar. Use the same bright-muted text across
+ * the version stamp, help label, and zero-count badges so the whole footer
+ * reads consistently.
+ */
+[data-theme="dark"] .editor-panel .doenetml-version,
+[data-theme="dark"] .editor-panel .diagnostic-tab-label,
+[data-theme="dark"] .editor-panel .diagnostic-tab-count {
+    color: #cbd5e1;
 }
 
 /*
@@ -539,7 +552,15 @@
     border-color: #444;
 }
 
+[data-theme="dark"] .editor-panel .accessibility-report-intro {
+    color: #cbd5e1;
+}
+
 [data-theme="dark"] .editor-panel .accessibility-report a {
+    color: #79c0ff;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report a:visited {
     color: #79c0ff;
 }
 
