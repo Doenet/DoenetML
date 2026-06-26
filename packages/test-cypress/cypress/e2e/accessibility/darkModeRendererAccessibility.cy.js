@@ -265,7 +265,10 @@ describe(
         it("key faces use dark background in dark mode", () => {
             loadWithMathInput("dark");
             openKeyboardTray();
-            cy.get("#virtual-keyboard-tray button.keyboard-button")
+            // Key buttons don't carry the keyboard-button class in HTML — it
+            // comes from @apply in CSS. Use .keyboard-region button to target
+            // regular (non-special) keys in the grid area.
+            cy.get("#virtual-keyboard-tray .keyboard-region button")
                 .first()
                 .should("have.css", "background-color", "rgb(45, 45, 45)");
         });
@@ -273,7 +276,7 @@ describe(
         it("key text is white in dark mode", () => {
             loadWithMathInput("dark");
             openKeyboardTray();
-            cy.get("#virtual-keyboard-tray button.keyboard-button")
+            cy.get("#virtual-keyboard-tray .keyboard-region button")
                 .first()
                 .should("have.css", "color", "rgb(255, 255, 255)");
         });
