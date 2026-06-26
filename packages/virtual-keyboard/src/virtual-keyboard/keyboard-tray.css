@@ -117,29 +117,54 @@ Tailwind base is purposely not included because we want all styles to be prefixe
         background-color: #4a4a4a;
     }
 
-    /* Normal key faces */
-    button.keyboard-button {
+    /*
+     * Key faces — target via .virtual-keyboard button because @apply in
+     * keyboard.css inlines styles without adding the class to the HTML element.
+     * These override the light-mode .virtual-keyboard button:hover / :active
+     * rules (light grey slate-100/slate-300) that become invisible with white text.
+     */
+    .virtual-keyboard button {
         background-color: #2d2d2d;
         border-color: #4a4a4a;
     }
-    button.keyboard-button:hover {
+    .virtual-keyboard button:hover {
         background-color: #3a3a3a;
     }
-    button.keyboard-button:active {
+    .virtual-keyboard button:active {
         background-color: #4a4a4a;
     }
 
-    /* Special keys: backspace, shift, space, arrows, enter */
-    .special-button {
+    /*
+     * Special keys (backspace, shift, space, arrows, enter).
+     * These use @apply special-button in keyboard.css which compiles to
+     * .virtual-keyboard .key-space, .virtual-keyboard .key-backspace etc.
+     * — the HTML elements have .key-space/.key-backspace class, not .special-button.
+     * Specificity must beat .virtual-keyboard .key-* at (0, 2, 0).
+     */
+    .virtual-keyboard .key-space,
+    .virtual-keyboard .key-backspace,
+    .virtual-keyboard .key-left,
+    .virtual-keyboard .key-right,
+    .virtual-keyboard .key-shift,
+    .virtual-keyboard .key-enter {
         background-color: #383838;
         border-color: #383838;
     }
-    .special-button:hover {
+    .virtual-keyboard .key-space:hover,
+    .virtual-keyboard .key-backspace:hover,
+    .virtual-keyboard .key-left:hover,
+    .virtual-keyboard .key-right:hover,
+    .virtual-keyboard .key-shift:hover,
+    .virtual-keyboard .key-enter:hover {
         background-color: #454545;
         border-color: #454545;
     }
-    /* active:text-slate-50 in light → just keep white in dark */
-    .special-button:active {
+    .virtual-keyboard .key-space:active,
+    .virtual-keyboard .key-backspace:active,
+    .virtual-keyboard .key-left:active,
+    .virtual-keyboard .key-right:active,
+    .virtual-keyboard .key-shift:active,
+    .virtual-keyboard .key-enter:active {
         background-color: #555555;
         border-color: #555555;
         color: white;
