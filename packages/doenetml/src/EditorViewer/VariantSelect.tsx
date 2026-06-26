@@ -25,6 +25,13 @@ export default function VariantSelect({
     const [showTooltip, setShowTooltip] = useState(false);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
+    function selectIndex(nextIndex: number) {
+        setIndex(nextIndex);
+        setValue(array[nextIndex]);
+        setInputValue("");
+        onChange(nextIndex);
+    }
+
     useEffect(() => {
         if (syncIndex != undefined && index != syncIndex - 1) {
             setIndex(syncIndex - 1);
@@ -52,10 +59,7 @@ export default function VariantSelect({
                         defaultValue={value}
                         setValue={(val) => {
                             const index = array.indexOf(val);
-                            setIndex(index);
-                            setValue(val);
-                            setInputValue("");
-                            onChange(index);
+                            selectIndex(index);
                         }}
                     >
                         <Ariakit.Select
@@ -98,11 +102,7 @@ export default function VariantSelect({
                     if (index == array.length - 1) {
                         return;
                     }
-                    const nextIndex = index + 1;
-                    setIndex(nextIndex);
-                    setValue(array[nextIndex]);
-                    setInputValue("");
-                    onChange(nextIndex);
+                    selectIndex(index + 1);
                 }}
             >
                 <BsCaretDownFill />
@@ -116,11 +116,7 @@ export default function VariantSelect({
                     if (index < 1) {
                         return;
                     }
-                    const nextIndex = index - 1;
-                    setIndex(nextIndex);
-                    setValue(array[nextIndex]);
-                    setInputValue("");
-                    onChange(nextIndex);
+                    selectIndex(index - 1);
                 }}
             >
                 <BsCaretUpFill />

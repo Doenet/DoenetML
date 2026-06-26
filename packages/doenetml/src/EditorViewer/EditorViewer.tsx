@@ -1003,16 +1003,18 @@ export const EditorViewer = React.forwardRef<
 
     if (!showViewer) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    width: width,
-                    height: height,
-                    border: border,
-                    boxSizing: "border-box",
-                }}
-            >
-                {editorPanel}
+            <div data-theme={darkMode} style={{ display: "contents" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        width: width,
+                        height: height,
+                        border: border,
+                        boxSizing: "border-box",
+                    }}
+                >
+                    {editorPanel}
+                </div>
             </div>
         );
     }
@@ -1043,6 +1045,7 @@ export const EditorViewer = React.forwardRef<
                 accessibilityLevel2Count={accessibilityLevel2Count}
                 isAccessibilityReportOpen={isAccessibilityReportOpen}
                 onToggleAccessibilityReport={toggleAccessibilityReport}
+                darkMode={darkMode}
             />
             <div
                 className="viewer"
@@ -1093,17 +1096,19 @@ export const EditorViewer = React.forwardRef<
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
 
     return (
-        <ResizablePanelPair
-            panelA={viewerFirst ? viewerPanel : editorPanel}
-            panelB={viewerFirst ? editorPanel : viewerPanel}
-            preferredDirection={
-                viewerLocation === "bottom" || viewerLocation === "top"
-                    ? "vertical"
-                    : "horizontal"
-            }
-            width={width}
-            height={height}
-            border={border}
-        />
+        <div data-theme={darkMode} style={{ display: "contents" }}>
+            <ResizablePanelPair
+                panelA={viewerFirst ? viewerPanel : editorPanel}
+                panelB={viewerFirst ? editorPanel : viewerPanel}
+                preferredDirection={
+                    viewerLocation === "bottom" || viewerLocation === "top"
+                        ? "vertical"
+                        : "horizontal"
+                }
+                width={width}
+                height={height}
+                border={border}
+            />
+        </div>
     );
 });

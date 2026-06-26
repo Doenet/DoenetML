@@ -30,6 +30,7 @@ export function ViewerControlsBar({
     accessibilityLevel2Count,
     isAccessibilityReportOpen,
     onToggleAccessibilityReport,
+    darkMode,
 }: {
     id: string;
     readOnly: boolean;
@@ -44,6 +45,7 @@ export function ViewerControlsBar({
     accessibilityLevel2Count: number;
     isAccessibilityReportOpen: boolean;
     onToggleAccessibilityReport: () => void;
+    darkMode: "dark" | "light";
 }) {
     return (
         <div className="viewer-controls" id={`${id}-viewer-controls`}>
@@ -71,6 +73,7 @@ export function ViewerControlsBar({
                 <VariantSelect
                     size="sm"
                     menuWidth="140px"
+                    darkMode={darkMode}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}
                     onChange={(index: number) =>
