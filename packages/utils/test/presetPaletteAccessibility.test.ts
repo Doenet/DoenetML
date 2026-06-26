@@ -18,98 +18,79 @@ import {
  * assertions (see Doenet/DoenetML#1364). Dark-mode values were fixed in the
  * earlier dark-mode accessibility PR.
  */
-describe("preset palette light-mode accessibility", () => {
-    const presets = returnDefaultStyleDefinitions();
+function describePresetPaletteAccessibility({
+    mode,
+    canvas,
+    graphicColorKeys,
+    textColorKeys,
+}: {
+    mode: "light" | "dark";
+    canvas: string;
+    graphicColorKeys: readonly [
+        "lineColor" | "lineColorDarkMode",
+        "markerColor" | "markerColorDarkMode",
+    ];
+    textColorKeys: readonly [
+        "textColor" | "textColorDarkMode",
+        "highContrastColor" | "highContrastColorDarkMode",
+    ];
+}) {
+    describe(`preset palette ${mode}-mode accessibility`, () => {
+        const presets = returnDefaultStyleDefinitions();
 
-    for (const styleNumber of Object.keys(presets)) {
-        const styleDef = presets[styleNumber];
+        for (const styleNumber of Object.keys(presets)) {
+            const styleDef = presets[styleNumber];
 
-        it(`style ${styleNumber} line/marker meet the graphic threshold in light mode`, () => {
-            const lineOpacity =
-                getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
-            const markerOpacity =
-                getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
+            it(`style ${styleNumber} line/marker meet the graphic threshold in ${mode} mode`, () => {
+                const lineOpacity =
+                    getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
+                const markerOpacity =
+                    getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
 
-            for (const [colorKey, opacity] of [
-                ["lineColor", lineOpacity],
-                ["markerColor", markerOpacity],
-            ] as const) {
-                const light = getStyleValueString(styleDef, colorKey)!;
-                const lightRatio = compositedContrastRatio({
-                    foreground: light,
-                    canvas: CANVAS_LIGHT_MODE_COLOR,
-                    opacityMultiplier: opacity,
-                })!;
-                expect(
-                    lightRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
-            }
-        });
+                for (const [colorKey, opacity] of [
+                    [graphicColorKeys[0], lineOpacity],
+                    [graphicColorKeys[1], markerOpacity],
+                ] as const) {
+                    const color = getStyleValueString(styleDef, colorKey)!;
+                    const contrastRatio = compositedContrastRatio({
+                        foreground: color,
+                        canvas,
+                        opacityMultiplier: opacity,
+                    })!;
+                    expect(
+                        contrastRatio,
+                        `style ${styleNumber} ${colorKey}`,
+                    ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
+                }
+            });
 
-        it(`style ${styleNumber} text/highContrast meet the text threshold in light mode`, () => {
-            for (const colorKey of [
-                "textColor",
-                "highContrastColor",
-            ] as const) {
-                const light = getStyleValueString(styleDef, colorKey)!;
-                const lightRatio = compositedContrastRatio({
-                    foreground: light,
-                    canvas: CANVAS_LIGHT_MODE_COLOR,
-                })!;
-                expect(
-                    lightRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
-            }
-        });
-    }
+            it(`style ${styleNumber} text/highContrast meet the text threshold in ${mode} mode`, () => {
+                for (const colorKey of textColorKeys) {
+                    const color = getStyleValueString(styleDef, colorKey)!;
+                    const contrastRatio = compositedContrastRatio({
+                        foreground: color,
+                        canvas,
+                    })!;
+                    expect(
+                        contrastRatio,
+                        `style ${styleNumber} ${colorKey}`,
+                    ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+                }
+            });
+        }
+    });
+}
+
+describePresetPaletteAccessibility({
+    mode: "light",
+    canvas: CANVAS_LIGHT_MODE_COLOR,
+    graphicColorKeys: ["lineColor", "markerColor"],
+    textColorKeys: ["textColor", "highContrastColor"],
 });
 
-describe("preset palette dark-mode accessibility", () => {
-    const presets = returnDefaultStyleDefinitions();
-
-    for (const styleNumber of Object.keys(presets)) {
-        const styleDef = presets[styleNumber];
-
-        it(`style ${styleNumber} line/marker meet the graphic threshold in dark mode`, () => {
-            const lineOpacity =
-                getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
-            const markerOpacity =
-                getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
-
-            for (const [colorKey, opacity] of [
-                ["lineColorDarkMode", lineOpacity],
-                ["markerColorDarkMode", markerOpacity],
-            ] as const) {
-                const dark = getStyleValueString(styleDef, colorKey)!;
-                const darkRatio = compositedContrastRatio({
-                    foreground: dark,
-                    canvas: CANVAS_DARK_MODE_COLOR,
-                    opacityMultiplier: opacity,
-                })!;
-                expect(
-                    darkRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
-            }
-        });
-
-        it(`style ${styleNumber} text/highContrast meet the text threshold in dark mode`, () => {
-            for (const colorKey of [
-                "textColorDarkMode",
-                "highContrastColorDarkMode",
-            ] as const) {
-                const dark = getStyleValueString(styleDef, colorKey)!;
-                const darkRatio = compositedContrastRatio({
-                    foreground: dark,
-                    canvas: CANVAS_DARK_MODE_COLOR,
-                })!;
-                expect(
-                    darkRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
-            }
-        });
-    }
+describePresetPaletteAccessibility({
+    mode: "dark",
+    canvas: CANVAS_DARK_MODE_COLOR,
+    graphicColorKeys: ["lineColorDarkMode", "markerColorDarkMode"],
+    textColorKeys: ["textColorDarkMode", "highContrastColorDarkMode"],
 });
