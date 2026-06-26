@@ -51,7 +51,7 @@ describe("VirtualKeyboard without ownerRef", () => {
             "data-theme",
             "dark",
         );
-        cy.get("#virtual-keyboard-tray .key-x").click();
+        cy.get("#virtual-keyboard-tray .key-x").click({ force: true });
 
         cy.get('[data-test="first-count"]').should("have.text", "1");
         cy.get('[data-test="second-count"]').should("have.text", "1");

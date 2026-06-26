@@ -44,6 +44,10 @@ function getRegistrationById(id: number | null) {
     );
 }
 
+function getTrayElement() {
+    return document.getElementById("virtual-keyboard-tray");
+}
+
 function getActiveRegistration() {
     const activeElement = document.activeElement;
 
@@ -67,7 +71,7 @@ function getActiveRegistration() {
 
     if (
         activeElement instanceof Node &&
-        virtualKeyboardState.keyboardDomNode?.contains(activeElement)
+        getTrayElement()?.contains(activeElement)
     ) {
         return getRegistrationById(
             virtualKeyboardState.lastActiveRegistrationId,

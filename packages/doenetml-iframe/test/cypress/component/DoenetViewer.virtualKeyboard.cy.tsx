@@ -20,6 +20,20 @@ function Harness() {
 }
 
 describe("ExternalVirtualKeyboard — iframe routing", () => {
+    function expectWriteCallCount(alias: string, count: number) {
+        cy.get(alias).should((spy) => {
+            const writeCalls = spy
+                .getCalls()
+                .filter((call) =>
+                    call.args[0].keyCommands.some(
+                        (command: { type: string }) =>
+                            command.type !== "accessed",
+                    ),
+                );
+            expect(writeCalls).to.have.length(count);
+        });
+    }
+
     it("posts keyboard events only to the focused iframe", () => {
         cy.mount(<Harness />);
 
@@ -45,15 +59,19 @@ describe("ExternalVirtualKeyboard — iframe routing", () => {
         cy.get("iframe").eq(0).focus();
         cy.get(".open-keyboard-button").click({ force: true });
         cy.get("#virtual-keyboard-tray.open").should("exist");
-        cy.get("#virtual-keyboard-tray .key-x").click();
+        cy.get("#virtual-keyboard-tray .key-x").focus();
+        cy.focused().should("have.class", "key-x");
+        cy.get("#virtual-keyboard-tray .key-y").click({ force: true });
 
-        cy.get("@firstPostMessage").should("have.been.called");
-        cy.get("@secondPostMessage").should("not.have.been.called");
+        expectWriteCallCount("@firstPostMessage", 1);
+        expectWriteCallCount("@secondPostMessage", 0);
 
         cy.get("iframe").eq(1).focus();
-        cy.get("#virtual-keyboard-tray .key-y").click();
+        cy.get("#virtual-keyboard-tray .key-x").focus();
+        cy.focused().should("have.class", "key-x");
+        cy.get("#virtual-keyboard-tray .key-y").click({ force: true });
 
-        cy.get("@firstPostMessage").should("have.callCount", 1);
-        cy.get("@secondPostMessage").should("have.callCount", 1);
+        expectWriteCallCount("@firstPostMessage", 1);
+        expectWriteCallCount("@secondPostMessage", 1);
     });
 });
