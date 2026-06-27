@@ -2709,7 +2709,8 @@ describe("LineSegment tag tests @group1", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Helper: compute direction unit vector from slope (same formula as LineSegment.js)
+// Helper: compute direction unit vector from slope.
+// Matches LineSegment.js for finite slopes and ±Infinity, which are the cases these tests use.
 // ---------------------------------------------------------------------------
 function dirFromSlope(slope: number): [number, number] {
     if (slope === Infinity) return [0, 1];
@@ -2752,7 +2753,6 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const lIdx = await resolvePathToNodeIdx("l");
 
         // Initial: ep1=(0,0), L=1 (essentialSignedLength default), slope=2
-        const [dx0, dy0] = dirFromSlope(2);
         let ep1 = [0, 0];
         let ep2 = ep2FromEp1SlopeLength(ep1, 2, 1);
 
