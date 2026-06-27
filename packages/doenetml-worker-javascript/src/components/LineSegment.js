@@ -1039,25 +1039,19 @@ export default class LineSegment extends GraphicalComponent {
                 } else {
                     // Case D: 0 endpoints + 0 through, slope/length active.
                     // ep1 from essentialEp1 global dep; ep2 derived.
+                    // Build ep2 as an expression so symbolic ep1 values are preserved.
                     let ep1 = g.essentialEp1 ?? [me.fromAst(0), me.fromAst(0)];
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
+                        let ep1Coord = ep1[Number(dim)] ?? me.fromAst(0);
                         if (pointInd === "0") {
-                            unconstrainedEndpoints[arrayKey] =
-                                ep1[Number(dim)] ?? me.fromAst(0);
+                            unconstrainedEndpoints[arrayKey] = ep1Coord;
                         } else {
-                            let ep1Coord = (
-                                ep1[Number(dim)] ?? me.fromAst(0)
-                            ).evaluate_to_constant();
-                            if (!Number.isFinite(ep1Coord)) {
-                                unconstrainedEndpoints[arrayKey] =
-                                    me.fromAst("\uff3f");
-                                continue;
-                            }
                             let dir = getDirectionComponent(dim, dirX, dirY);
-                            unconstrainedEndpoints[arrayKey] = me.fromAst(
-                                ep1Coord + signedLength * dir,
-                            );
+                            let delta = signedLength * dir;
+                            unconstrainedEndpoints[arrayKey] = me
+                                .fromAst(["+", ep1Coord.tree, delta])
+                                .simplify();
                         }
                     }
                 }
