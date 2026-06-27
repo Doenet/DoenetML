@@ -3482,8 +3482,8 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
 <graph name="g">
   <lineSegment name="l" endpoints="(1,2) (5,4)" />
 </graph>
-<math name="cx">$l.centerX1</math>
-<math name="cy">$l.centerX2</math>
+<math name="cx">$l.center.x</math>
+<math name="cy">$l.center.y</math>
 `,
         });
 
@@ -3679,7 +3679,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
 <graph name="g">
   <lineSegment name="l" endpoints="(0,0) (4,0)" />
 </graph>
-<mathInput name="mi">$l.centerX1</mathInput>
+<mathInput name="mi">$l.center.x</mathInput>
 `,
         });
 
