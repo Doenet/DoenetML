@@ -3537,10 +3537,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const lIdx = await resolvePathToNodeIdx("l");
         const sIdx = await resolvePathToNodeIdx("s");
 
-        // slope=0, center=(2,0), length=4
-        // Changing slope via the referenced number should rotate around center
-        // Use updateMathInputValue to set $l.slope directly isn't available,
-        // but we can check the inverse via the slope state variable.
+        // slope=0, center=(2,0), length=4 — verify initial state
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[sIdx].stateValues.value).closeTo(0, 1e-10);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
@@ -3555,6 +3552,225 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
             0,
             1e-10,
         );
+    });
+
+    // -----------------------------------------------------------------------
+    // slope inverse via mathInput — keeps center and length, rotates direction
+    // -----------------------------------------------------------------------
+    it("slope inverse via mathInput — rotates segment around center", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.slope</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: center=(2,0), length=4, slope=0
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Set slope to 1 via mathInput — should rotate around center (2,0), keep length 4
+        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        const expectedSlope = 1;
+        expect(sv[lIdx].stateValues.slope).closeTo(expectedSlope, 1e-10);
+        // Center should stay at (2,0)
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        // Length should stay at 4
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        // Verify endpoints are symmetric around center
+        const theta = Math.atan(1);
+        const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(2 - 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0 - 2 * dy, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2 + 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0 + 2 * dy, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // length inverse via mathInput — keeps center and direction, changes length
+    // -----------------------------------------------------------------------
+    it("length inverse via mathInput — scales segment around center", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.length</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: center=(2,0), length=4, slope=0
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Set length to 6 — center stays at (2,0), direction unchanged, ep1=(-1,0), ep2=(5,0)
+        await updateMathInputValue({ latex: "6", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(5, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // center inverse via mathInput — translates segment
+    // -----------------------------------------------------------------------
+    it("center inverse via mathInput — translates segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.centerX1</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: center=(2,0), ep1=(0,0), ep2=(4,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+
+        // Set center x to 5 → translate by 3: ep1=(3,0), ep2=(7,0)
+        await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            5,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        // Length and slope unchanged
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // slope inverse works with basedOnSlopeOrThrough (Case D)
+    // -----------------------------------------------------------------------
+    it("slope inverse via mathInput — works when slope attr present", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="4" />
+</graph>
+<mathInput name="mi">$l.slope</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        // Initial: slope=0, length=4, ep1=(0,0), ep2=(4,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Change slope to 1 via mathInput
+        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        // Slope should update to 1; center and length preserved
+        expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        const theta = Math.atan(1);
+        const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
+        const cx = sv[lIdx].stateValues.center[0].evaluate_to_constant();
+        const cy = sv[lIdx].stateValues.center[1].evaluate_to_constant();
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(cx - 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(cx + 2 * dx, 1e-10);
     });
 
     // -----------------------------------------------------------------------

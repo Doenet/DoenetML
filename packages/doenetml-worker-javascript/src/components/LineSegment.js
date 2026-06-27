@@ -2002,9 +2002,9 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                numericalEndpoints: {
+                endpoints: {
                     dependencyType: "stateVariable",
-                    variableName: "numericalEndpoints",
+                    variableName: "endpoints",
                 },
                 numDimensions: {
                     dependencyType: "stateVariable",
@@ -2016,8 +2016,12 @@ export default class LineSegment extends GraphicalComponent {
                     return { setValue: { slope: NaN } };
                 }
 
-                let ps = dependencyValues.numericalEndpoints;
-                let slope = (ps[1][1] - ps[0][1]) / (ps[1][0] - ps[0][0]);
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
+                let slope = (B2 - A2) / (B1 - A1);
 
                 return { setValue: { slope } };
             },
@@ -2030,11 +2034,11 @@ export default class LineSegment extends GraphicalComponent {
                 if (dependencyValues.numDimensions !== 2) {
                     return { success: false };
                 }
-                let ps = dependencyValues.numericalEndpoints;
-                let A1 = ps[0][0],
-                    A2 = ps[0][1];
-                let B1 = ps[1][0],
-                    B2 = ps[1][1];
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
                 if (
                     !Number.isFinite(A1) ||
                     !Number.isFinite(A2) ||
@@ -2075,11 +2079,11 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let half = L / 2;
-                let ep1 = [
+                let newEp1 = [
                     me.fromAst(cx - half * dirX),
                     me.fromAst(cy - half * dirY),
                 ];
-                let ep2 = [
+                let newEp2 = [
                     me.fromAst(cx + half * dirX),
                     me.fromAst(cy + half * dirY),
                 ];
@@ -2088,8 +2092,8 @@ export default class LineSegment extends GraphicalComponent {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "numericalEndpoints",
-                            desiredValue: [ep1, ep2],
+                            setDependency: "endpoints",
+                            desiredValue: [newEp1, newEp2],
                         },
                     ],
                 };
