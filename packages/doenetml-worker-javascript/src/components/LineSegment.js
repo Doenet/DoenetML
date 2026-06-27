@@ -214,7 +214,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.slope = {
             createComponentOfType: "number",
             description:
-                "The slope (direction) of the line segment in the x-y plane. Can go negative after dragging for full 360° rotation; the public slope state variable is NaN outside 2D.",
+                "The slope (direction) of the line segment in the x-y plane. It can become negative after dragging to support full 360° rotation.",
         };
 
         attributes.length = {
@@ -854,7 +854,6 @@ export default class LineSegment extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "essentialEp1",
                     };
-                    let dependenciesByKey = {};
                     for (let arrayKey of arrayKeys) {
                         dependenciesByKey[arrayKey] = {};
                     }
@@ -2052,7 +2051,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
-            description: "The slope of the line segment (2D only).",
+            description:
+                "The slope of the line segment in the x-y plane; returns NaN when the segment is not 2D.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -2526,15 +2526,13 @@ export default class LineSegment extends GraphicalComponent {
                         );
                     }
                 }
-
                 let newPointComponents = {};
                 for (let ind in newNumericalPoints) {
-                    newPointComponents[ind + ",0"] = me.fromAst(
-                        newNumericalPoints[ind][0],
-                    );
-                    newPointComponents[ind + ",1"] = me.fromAst(
-                        newNumericalPoints[ind][1],
-                    );
+                    for (let dim = 0; dim < numDimensions; dim++) {
+                        newPointComponents[`${ind},${dim}`] = me.fromAst(
+                            newNumericalPoints[ind][dim],
+                        );
+                    }
                 }
 
                 let newInstructions = [

@@ -4076,6 +4076,48 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).eqls([2, 1, 7]);
     });
 
+    it("moveLineSegment action in 3D preserves compensation after a constraint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <point name="P">(4,6,10)<constrainToGrid dx="2" dy="3" dz="5" /></point>
+  <point name="Q">(-4,-1,1)</point>
+  <lineSegment name="l" endpoints="$P $Q" />
+</graph>
+`,
+        });
+
+        await moveLineSegment({
+            componentIdx: await resolvePathToNodeIdx("l"),
+            point1coords: [4.5, 2, 14],
+            point2coords: [-3.5, -5, 5],
+            core,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 15]);
+        expect(
+            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -4, 6]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[0].map(
+                (v) => v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 15]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[1].map(
+                (v) => v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -4, 6]);
+    });
+
     it("Case A (1 endpoint + 1 through) works in 3D", async () => {
         // through IS ep2 regardless of dimension
         const { core, resolvePathToNodeIdx } = await createTestCore({
