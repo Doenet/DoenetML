@@ -401,6 +401,26 @@ describe("LineSegment tag tests @group1", async () => {
         });
     });
 
+    it("pointOffset without through preserves legacy one-endpoint behavior", async () => {
+        const { core, resolvePathToNodeIdx } = await setupScene({
+            lineProperties: `endpoints="$dp1" pointOffset="1"`,
+            additionalComponents: `<point name="dp1">(1,2)</point>`,
+        });
+
+        let points = [
+            [1, 2],
+            [0, 0],
+        ];
+        let definingPointNames = ["dp1"];
+
+        await runPointBasedTests({
+            core,
+            resolvePathToNodeIdx,
+            points,
+            definingPointNames,
+        });
+    });
+
     it("multiple layers of copied points", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
             lineProperties: `endpoints="$p1c $p2c"`,
