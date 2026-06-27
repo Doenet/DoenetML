@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+    compositedContrastRatio,
+    TEXT_CONTRAST_THRESHOLD,
+} from "@doenet/utils/style";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -1550,6 +1554,60 @@ describe("Section heading color accessibility diagnostics", async () => {
   <p>Content.</p>
 </section>`,
         });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("emits diagnostics when a boxed child inherits inaccessible parent heading colors", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" notStartedColor="black">
+  <section name="child" boxed>
+    <title>Inherited bad color</title>
+    <p>Content.</p>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(
+            diagnostics.some((d: any) => d.message.includes("notStartedColor")),
+        ).toBe(true);
+    });
+
+    it("derives an accessible dark-mode heading color from an authored light-mode color", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="#d9d9d9">
+  <title>Derived dark color</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sectionState =
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues;
+
+        expect(sectionState.titleColor).eq("#d9d9d9");
+        expect(sectionState.titleColorDarkMode).not.eq("#3a3a3a");
+
+        const darkRatio = compositedContrastRatio({
+            foreground: "#ffffff",
+            canvas: sectionState.titleColorDarkMode,
+        });
+        expect(darkRatio).not.toBeNull();
+        expect(darkRatio!).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+
         const diagnostics = core.core!.diagnostics.filter(
             (d: any) =>
                 d.type === "accessibility" &&

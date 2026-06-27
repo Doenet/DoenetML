@@ -7,6 +7,8 @@ import {
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import {
     compositedContrastRatio,
+    invertLightness,
+    suggestAccessibleDarkModeColorAgainst,
     TEXT_CONTRAST_THRESHOLD,
 } from "@doenet/utils/style";
 import { returnFeedbackDefinitionStateVariables } from "../../utils/feedback";
@@ -20,48 +22,103 @@ import {
     deleteChildrenFromDynamicChild,
 } from "../../utils/dynamicChildren";
 
-function pickSectionTitleStateColor(
+const sectionTitleStateKeys = ["completed", "inProgress", "notStarted"];
+
+function titleStateKeyFromCredit(creditAchieved) {
+    if (creditAchieved === 1) {
+        return "completed";
+    }
+
+    if (creditAchieved > 0) {
+        return "inProgress";
+    }
+
+    return "notStarted";
+}
+
+function resolveSectionTitleLightColorSpec({
     dependencyValues,
     usedDefault,
     ownColorName,
-    parentColorName,
-) {
+    parentColors,
+    parentSources,
+    stateKey,
+}) {
     if (!usedDefault[ownColorName]) {
-        return dependencyValues[ownColorName];
+        return {
+            value: dependencyValues[ownColorName],
+            source: { authored: true, colorName: ownColorName },
+        };
     }
 
-    if (typeof dependencyValues[parentColorName] === "string") {
-        return dependencyValues[parentColorName];
+    const inheritedValue = parentColors?.[stateKey];
+    if (typeof inheritedValue === "string") {
+        return {
+            value: inheritedValue,
+            source: parentSources?.[stateKey] ?? {
+                authored: false,
+                colorName: ownColorName,
+            },
+        };
     }
 
-    return dependencyValues[ownColorName];
+    return {
+        value: dependencyValues[ownColorName],
+        source: { authored: false, colorName: ownColorName },
+    };
 }
 
-function resolveSectionTitleColor(dependencyValues, usedDefault, colorNames) {
-    if (dependencyValues.creditAchieved === 1) {
-        return pickSectionTitleStateColor(
-            dependencyValues,
-            usedDefault,
-            colorNames.completed,
-            colorNames.parentCompleted,
-        );
+function deriveSectionTitleDarkModeColor(lightColor) {
+    const suggestedDarkColor = suggestAccessibleDarkModeColorAgainst({
+        startColor: invertLightness(lightColor),
+        partnerColor: "#ffffff",
+        channelRole: "background",
+        threshold: TEXT_CONTRAST_THRESHOLD,
+    });
+
+    return suggestedDarkColor ?? lightColor;
+}
+
+function resolveSectionTitleDarkColorSpec({
+    dependencyValues,
+    usedDefault,
+    ownDarkColorName,
+    ownLightColorName,
+    parentColorsDarkMode,
+    parentSourcesDarkMode,
+    stateKey,
+}) {
+    if (!usedDefault[ownDarkColorName]) {
+        return {
+            value: dependencyValues[ownDarkColorName],
+            source: { authored: true, colorName: ownDarkColorName },
+        };
     }
 
-    if (dependencyValues.creditAchieved > 0) {
-        return pickSectionTitleStateColor(
-            dependencyValues,
-            usedDefault,
-            colorNames.inProgress,
-            colorNames.parentInProgress,
-        );
+    if (!usedDefault[ownLightColorName]) {
+        return {
+            value: deriveSectionTitleDarkModeColor(
+                dependencyValues[ownLightColorName],
+            ),
+            source: { authored: true, colorName: ownLightColorName },
+        };
     }
 
-    return pickSectionTitleStateColor(
-        dependencyValues,
-        usedDefault,
-        colorNames.notStarted,
-        colorNames.parentNotStarted,
-    );
+    const inheritedValue = parentColorsDarkMode?.[stateKey];
+    if (typeof inheritedValue === "string") {
+        return {
+            value: inheritedValue,
+            source: parentSourcesDarkMode?.[stateKey] ?? {
+                authored: false,
+                colorName: ownDarkColorName,
+            },
+        };
+    }
+
+    return {
+        value: dependencyValues[ownDarkColorName],
+        source: { authored: false, colorName: ownDarkColorName },
+    };
 }
 
 /**
@@ -936,16 +993,12 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.titleColor = {
-            // Note: currently title color is used only when boxed or collapsible
+        stateVariableDefinitions.sectionTitleStateColors = {
             additionalStateVariablesDefined: [
-                {
-                    variableName: "titleColorDarkMode",
-                    forRenderer: true,
-                },
-                { variableName: "titleColorAccessibilityDiagnostics" },
+                "sectionTitleStateColorsDarkMode",
+                "sectionTitleStateColorSources",
+                "sectionTitleStateColorSourcesDarkMode",
             ],
-            forRenderer: true,
             returnDependencies: () => ({
                 completedColor: {
                     dependencyType: "stateVariable",
@@ -957,18 +1010,6 @@ export class SectioningComponent extends BlockComponent {
                 },
                 notStartedColor: {
                     dependencyType: "stateVariable",
-                    variableName: "notStartedColor",
-                },
-                parentCompletedColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "completedColor",
-                },
-                parentInProgressColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "inProgressColor",
-                },
-                parentNotStartedColor: {
-                    dependencyType: "parentStateVariable",
                     variableName: "notStartedColor",
                 },
                 completedColorDarkMode: {
@@ -983,17 +1024,112 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "notStartedColorDarkMode",
                 },
-                parentCompletedColorDarkMode: {
+                parentSectionTitleStateColors: {
                     dependencyType: "parentStateVariable",
-                    variableName: "completedColorDarkMode",
+                    variableName: "sectionTitleStateColors",
                 },
-                parentInProgressColorDarkMode: {
+                parentSectionTitleStateColorsDarkMode: {
                     dependencyType: "parentStateVariable",
-                    variableName: "inProgressColorDarkMode",
+                    variableName: "sectionTitleStateColorsDarkMode",
                 },
-                parentNotStartedColorDarkMode: {
+                parentSectionTitleStateColorSources: {
                     dependencyType: "parentStateVariable",
-                    variableName: "notStartedColorDarkMode",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                parentSectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                const sectionTitleStateColors = {};
+                const sectionTitleStateColorsDarkMode = {};
+                const sectionTitleStateColorSources = {};
+                const sectionTitleStateColorSourcesDarkMode = {};
+
+                const colorNamesByState = {
+                    completed: {
+                        light: "completedColor",
+                        dark: "completedColorDarkMode",
+                    },
+                    inProgress: {
+                        light: "inProgressColor",
+                        dark: "inProgressColorDarkMode",
+                    },
+                    notStarted: {
+                        light: "notStartedColor",
+                        dark: "notStartedColorDarkMode",
+                    },
+                };
+
+                for (const stateKey of sectionTitleStateKeys) {
+                    const colorNames = colorNamesByState[stateKey];
+                    const lightSpec = resolveSectionTitleLightColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownColorName: colorNames.light,
+                        parentColors:
+                            dependencyValues.parentSectionTitleStateColors,
+                        parentSources:
+                            dependencyValues.parentSectionTitleStateColorSources,
+                        stateKey,
+                    });
+                    sectionTitleStateColors[stateKey] = lightSpec.value;
+                    sectionTitleStateColorSources[stateKey] = lightSpec.source;
+
+                    const darkSpec = resolveSectionTitleDarkColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownDarkColorName: colorNames.dark,
+                        ownLightColorName: colorNames.light,
+                        parentColorsDarkMode:
+                            dependencyValues.parentSectionTitleStateColorsDarkMode,
+                        parentSourcesDarkMode:
+                            dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
+                        stateKey,
+                    });
+                    sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
+                    sectionTitleStateColorSourcesDarkMode[stateKey] =
+                        darkSpec.source;
+                }
+
+                return {
+                    setValue: {
+                        sectionTitleStateColors,
+                        sectionTitleStateColorsDarkMode,
+                        sectionTitleStateColorSources,
+                        sectionTitleStateColorSourcesDarkMode,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.titleColor = {
+            // Note: currently title color is used only when boxed or collapsible
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "titleColorDarkMode",
+                    forRenderer: true,
+                },
+                { variableName: "titleColorAccessibilityDiagnostics" },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                sectionTitleStateColors: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColors",
+                },
+                sectionTitleStateColorsDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                sectionTitleStateColorSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                sectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
                 },
                 creditAchieved: {
                     dependencyType: "stateVariable",
@@ -1008,80 +1144,49 @@ export class SectioningComponent extends BlockComponent {
                     variableName: "collapsible",
                 },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                const titleColor = resolveSectionTitleColor(
-                    dependencyValues,
-                    usedDefault,
-                    {
-                        completed: "completedColor",
-                        parentCompleted: "parentCompletedColor",
-                        inProgress: "inProgressColor",
-                        parentInProgress: "parentInProgressColor",
-                        notStarted: "notStartedColor",
-                        parentNotStarted: "parentNotStartedColor",
-                    },
+            definition({ dependencyValues }) {
+                const titleStateKey = titleStateKeyFromCredit(
+                    dependencyValues.creditAchieved,
                 );
-                const titleColorDarkMode = resolveSectionTitleColor(
-                    dependencyValues,
-                    usedDefault,
-                    {
-                        completed: "completedColorDarkMode",
-                        parentCompleted: "parentCompletedColorDarkMode",
-                        inProgress: "inProgressColorDarkMode",
-                        parentInProgress: "parentInProgressColorDarkMode",
-                        notStarted: "notStartedColorDarkMode",
-                        parentNotStarted: "parentNotStartedColorDarkMode",
-                    },
-                );
+                const titleColor =
+                    dependencyValues.sectionTitleStateColors[titleStateKey];
+                const titleColorDarkMode =
+                    dependencyValues.sectionTitleStateColorsDarkMode[
+                        titleStateKey
+                    ];
 
                 const diagnostics = [];
                 if (dependencyValues.boxed || dependencyValues.collapsible) {
-                    for (const colorCheck of [
-                        {
-                            authorSet: !usedDefault.completedColor,
-                            colorValue: dependencyValues.completedColor,
-                            colorName: "completedColor",
-                            textColor: "#000000",
-                        },
-                        {
-                            authorSet: !usedDefault.inProgressColor,
-                            colorValue: dependencyValues.inProgressColor,
-                            colorName: "inProgressColor",
-                            textColor: "#000000",
-                        },
-                        {
-                            authorSet: !usedDefault.notStartedColor,
-                            colorValue: dependencyValues.notStartedColor,
-                            colorName: "notStartedColor",
-                            textColor: "#000000",
-                        },
-                        {
-                            authorSet: !usedDefault.completedColorDarkMode,
-                            colorValue: dependencyValues.completedColorDarkMode,
-                            colorName: "completedColorDarkMode",
-                            textColor: "#ffffff",
-                            modeSuffix: " (dark mode)",
-                        },
-                        {
-                            authorSet: !usedDefault.inProgressColorDarkMode,
-                            colorValue:
-                                dependencyValues.inProgressColorDarkMode,
-                            colorName: "inProgressColorDarkMode",
-                            textColor: "#ffffff",
-                            modeSuffix: " (dark mode)",
-                        },
-                        {
-                            authorSet: !usedDefault.notStartedColorDarkMode,
-                            colorValue:
-                                dependencyValues.notStartedColorDarkMode,
-                            colorName: "notStartedColorDarkMode",
-                            textColor: "#ffffff",
-                            modeSuffix: " (dark mode)",
-                        },
-                    ]) {
+                    for (const stateKey of sectionTitleStateKeys) {
+                        const lightSource =
+                            dependencyValues.sectionTitleStateColorSources[
+                                stateKey
+                            ];
                         addSectionTitleColorContrastDiagnostic({
                             diagnostics,
-                            ...colorCheck,
+                            authorSet: Boolean(lightSource?.authored),
+                            colorValue:
+                                dependencyValues.sectionTitleStateColors[
+                                    stateKey
+                                ],
+                            colorName: lightSource?.colorName ?? stateKey,
+                            textColor: "#000000",
+                        });
+
+                        const darkSource =
+                            dependencyValues
+                                .sectionTitleStateColorSourcesDarkMode[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: Boolean(darkSource?.authored),
+                            colorValue:
+                                dependencyValues
+                                    .sectionTitleStateColorsDarkMode[stateKey],
+                            colorName: darkSource?.colorName ?? stateKey,
+                            textColor: "#ffffff",
+                            modeSuffix: " (dark mode)",
                         });
                     }
                 }
