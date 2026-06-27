@@ -367,24 +367,23 @@ export default class LineSegment extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                if (dependencyValues.endpointsAttr !== null) {
-                    let numDimensions =
-                        dependencyValues.endpointsAttr.stateValues
-                            .numDimensions;
-                    return {
-                        setValue: { numDimensions: Math.max(numDimensions, 2) },
-                        checkForActualChange: { numDimensions: true },
-                    };
-                } else if (dependencyValues.throughAttr !== null) {
-                    let numDimensions =
-                        dependencyValues.throughAttr.stateValues.numDimensions;
-                    return {
-                        setValue: { numDimensions: Math.max(numDimensions, 2) },
-                        checkForActualChange: { numDimensions: true },
-                    };
-                } else {
-                    return { setValue: { numDimensions: 2 } };
-                }
+                const endpointsDimensions =
+                    dependencyValues.endpointsAttr?.stateValues.numDimensions ??
+                    0;
+                const throughDimensions =
+                    dependencyValues.throughAttr?.stateValues.numDimensions ??
+                    0;
+
+                return {
+                    setValue: {
+                        numDimensions: Math.max(
+                            endpointsDimensions,
+                            throughDimensions,
+                            2,
+                        ),
+                    },
+                    checkForActualChange: { numDimensions: true },
+                };
             },
         };
 
@@ -479,6 +478,40 @@ export default class LineSegment extends GraphicalComponent {
                             anyPositioningAttr &&
                             dependencyValues.numEndpointsSpecified < 2 &&
                             dependencyValues.numDimensions === 2,
+                    },
+                };
+            },
+        };
+
+        // True when the public length state variable should expose the signed
+        // defining length rather than the Euclidean distance between endpoints.
+        // Case A (one endpoint + one through point) still uses the new endpoint
+        // dependency graph, but its geometry is fully determined by those two
+        // points, so length should stay Euclidean there.
+        stateVariableDefinitions.lengthIsSigned = {
+            returnDependencies: () => ({
+                basedOnSlopeOrThrough: {
+                    dependencyType: "stateVariable",
+                    variableName: "basedOnSlopeOrThrough",
+                },
+                numEndpointsSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "numEndpointsSpecified",
+                },
+                numThroughPoints: {
+                    dependencyType: "stateVariable",
+                    variableName: "numThroughPoints",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        lengthIsSigned:
+                            dependencyValues.basedOnSlopeOrThrough &&
+                            !(
+                                dependencyValues.numEndpointsSpecified === 1 &&
+                                dependencyValues.numThroughPoints === 1
+                            ),
                     },
                 };
             },
@@ -1696,7 +1729,7 @@ export default class LineSegment extends GraphicalComponent {
 
         stateVariableDefinitions.length = {
             description:
-                "The line segment's length. In 2D slope/through-based parameterizations, this is the signed defining length; otherwise it is the Euclidean length.",
+                "The line segment's length. In 2D cases where slope/length parameterize the segment, this is the signed defining length; otherwise it is the Euclidean length.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1705,9 +1738,9 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                basedOnSlopeOrThrough: {
+                lengthIsSigned: {
                     dependencyType: "stateVariable",
-                    variableName: "basedOnSlopeOrThrough",
+                    variableName: "lengthIsSigned",
                 },
                 lengthAttr: {
                     dependencyType: "attributeComponent",
@@ -1728,10 +1761,7 @@ export default class LineSegment extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (
-                    dependencyValues.basedOnSlopeOrThrough &&
-                    dependencyValues.numDimensions === 2
-                ) {
+                if (dependencyValues.lengthIsSigned) {
                     const length =
                         dependencyValues.lengthAttr !== null
                             ? dependencyValues.lengthAttr.stateValues.value
@@ -1786,10 +1816,7 @@ export default class LineSegment extends GraphicalComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (
-                    dependencyValues.basedOnSlopeOrThrough &&
-                    dependencyValues.numDimensions === 2
-                ) {
+                if (dependencyValues.lengthIsSigned) {
                     const desiredLength =
                         desiredStateVariableValues.length.evaluate_to_constant();
 
