@@ -3820,4 +3820,39 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
         ).closeTo(0, 1e-10);
     });
+
+    it("through/slope positioning stays disabled outside 2D", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3,4)</point>
+<graph name="g">
+  <lineSegment name="l" through="$T" slope="1" length="2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.numDimensions).eq(3);
+        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(false);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+    });
 });
