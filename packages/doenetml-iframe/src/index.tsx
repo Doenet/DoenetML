@@ -21,6 +21,7 @@ import {
     DoenetEditorProps,
     createHtmlForDoenetViewer,
     createHtmlForDoenetEditor,
+    setIframeBodyBackground,
 } from "./utils";
 
 export const version: string = IFRAME_VERSION;
@@ -673,6 +674,16 @@ export const DoenetEditor = React.forwardRef<
             pendingActions.current.push(action);
         }
     }, [propsSnapshotStr, srcDoc]);
+
+    // Keep the iframe body's empty margin area aligned with the current
+    // dark-mode setting without reloading the editor document (which would
+    // discard in-progress edits).
+    React.useEffect(() => {
+        const body = ref.current?.contentDocument?.body;
+        if (body) {
+            setIframeBodyBackground(body, doenetEditorProps.darkMode);
+        }
+    }, [doenetEditorProps.darkMode, srcDoc]);
 
     // Push function-prop identity changes into the iframe. We have no live
     // use case for this yet, but supporting it keeps callback semantics

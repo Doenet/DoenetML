@@ -16,35 +16,64 @@ export type DoenetEditorProps = Omit<
     "doenetML" | "width" | "height" | "externalVirtualKeyboardProvided"
 >;
 
+type BodyBackgroundMode = "dark" | "light" | "system";
+
 const DARK_CANVAS = "#121212";
 const LIGHT_CANVAS = "white";
+const BODY_BACKGROUND_ATTRIBUTE = "data-doenet-body-background";
 
 /**
- * Return an inline style string and optional <style> block that set the body
- * background colour to match the requested dark-mode setting.
- *
- * - "dark"   → always dark
- * - "light"  → always light (white)
- * - "system" → follow the OS preference via a CSS media query
+ * Normalize the public dark-mode prop to the subset used for the iframe body.
  */
-function bodyBackgroundStyle(darkMode: string | undefined): {
-    inlineStyle: string;
-    styleBlock: string;
-} {
+function bodyBackgroundMode(
+    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
+): BodyBackgroundMode {
     if (darkMode === "dark") {
-        return {
-            inlineStyle: `background-color:${DARK_CANVAS}`,
-            styleBlock: "",
-        };
+        return "dark";
     }
     if (darkMode === "system") {
-        return {
-            inlineStyle: `background-color:${LIGHT_CANVAS}`,
-            styleBlock: `<style>@media (prefers-color-scheme: dark) { body { background-color: ${DARK_CANVAS}; } }</style>`,
-        };
+        return "system";
     }
-    // "light" or unset
-    return { inlineStyle: `background-color:${LIGHT_CANVAS}`, styleBlock: "" };
+    return "light";
+}
+
+/**
+ * Return the stylesheet and attribute value used to theme the iframe body.
+ *
+ * The body background is controlled via an attribute rather than an inline
+ * background-color so `"system"` can switch cleanly with a media query and so
+ * the editor can update the body theme in-place without rebuilding the iframe.
+ */
+function bodyBackgroundStyle(
+    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
+): {
+    attributeValue: BodyBackgroundMode;
+    styleBlock: string;
+} {
+    return {
+        attributeValue: bodyBackgroundMode(darkMode),
+        styleBlock: `<style>
+body[${BODY_BACKGROUND_ATTRIBUTE}="light"],
+body[${BODY_BACKGROUND_ATTRIBUTE}="system"] {
+    background-color: ${LIGHT_CANVAS};
+}
+body[${BODY_BACKGROUND_ATTRIBUTE}="dark"] {
+    background-color: ${DARK_CANVAS};
+}
+@media (prefers-color-scheme: dark) {
+    body[${BODY_BACKGROUND_ATTRIBUTE}="system"] {
+        background-color: ${DARK_CANVAS};
+    }
+}
+</style>`,
+    };
+}
+
+export function setIframeBodyBackground(
+    body: HTMLElement,
+    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
+) {
+    body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
 }
 
 /**
@@ -58,17 +87,17 @@ export function createHtmlForDoenetViewer(
     cssUrl: string,
 ) {
     // Since function props disappear when stringifying
-    // and we'll have access tot them only via proxying with ComLink,
+    // and we'll have access to them only via proxying with ComLink,
     // whether or not a function prop was specified is masked.
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
-    const { inlineStyle: bgStyle, styleBlock: bgStyleBlock } =
-        bodyBackgroundStyle((doenetViewerProps as any).darkMode);
+    const { attributeValue: bodyBackground, styleBlock: bgStyleBlock } =
+        bodyBackgroundStyle(doenetViewerProps.darkMode);
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
-    // TODO: rather tha load the doenet logo from doenet.org, serve it directly
+    // TODO: rather than load the Doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
     <head>
@@ -76,7 +105,7 @@ export function createHtmlForDoenetViewer(
         <link rel="stylesheet" href="${cssUrl}">
         ${bgStyleBlock}
     </head>
-    <body style="margin:0; ${bgStyle}">
+    <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
@@ -113,14 +142,14 @@ export function createHtmlForDoenetEditor(
     const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
     // Since function props disappear when stringifying
-    // and we'll have access tot them only via proxying with ComLink,
+    // and we'll have access to them only via proxying with ComLink,
     // whether or not a function prop was specified is masked.
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetEditorPropsSpecified: string[] = Object.keys(augmentedProps);
 
-    const { inlineStyle: bgStyle, styleBlock: bgStyleBlock } =
-        bodyBackgroundStyle((doenetEditorProps as any).darkMode);
+    const { attributeValue: bodyBackground, styleBlock: bgStyleBlock } =
+        bodyBackgroundStyle(doenetEditorProps.darkMode);
 
     return `
     <html style="overflow:hidden">
@@ -129,7 +158,7 @@ export function createHtmlForDoenetEditor(
         <link rel="stylesheet" href="${cssUrl}">
         ${bgStyleBlock}
     </head>
-    <body style="margin:0; ${bgStyle}">
+    <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
