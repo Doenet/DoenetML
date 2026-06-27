@@ -11,6 +11,6 @@
         "test": "echo \"No unit tests (run test-cypress-docs or test-cypress-docs-fast-fail)\"",
         "test-cypress-docs": "cypress open --config baseUrl=http://localhost:3000",
         "test-cypress-docs-all": "cypress run -b 'chrome' --headless --config video=false",
-        "test-cypress-docs-fast-fail": "cypress run -b 'chrome' --headless --config 'video=false,retries=0,defaultCommandTimeout=15000'"
+        "test-cypress-docs-fast-fail": "cypress run -b 'chrome' --headless --config video=false,retries=0,defaultCommandTimeout=15000"
     }
 }

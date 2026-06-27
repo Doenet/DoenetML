@@ -181,8 +181,10 @@ npm run test-cypress-docs-fast-fail -w packages/docs-cypress
 ### 4. Stop the serve server when done
 
 ```bash
-lsof -ti:3000 | xargs kill
+lsof -ti:3000 | xargs -r kill
 ```
+
+(`-r` / `--no-run-if-empty` silences the error when nothing is listening on port 3000.)
 
 ### Common failure: "cannot verify http://localhost:3000"
 

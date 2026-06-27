@@ -33,7 +33,7 @@ html:not(.dark) .nextra-content ._text-primary-600 {
  * backgrounds (rgb(246 248 250) for code blocks, rgb(250 250 250) for the
  * page body). #1A7E32 is a slightly darker green that gives 4.84–5.15:1
  * across all relevant light-mode backgrounds. */
-html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A"] {
+html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     color: #1a7e32 !important; /* overrides `color: var(--shiki-light)` */
 }
 

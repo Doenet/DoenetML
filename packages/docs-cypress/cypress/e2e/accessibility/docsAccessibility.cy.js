@@ -28,8 +28,12 @@ function enableDarkMode() {
 }
 
 /**
- * Run the full set of axe rules (all WCAG 2.x levels) against the main page
- * content and report any violations with helpful context.
+ * Run WCAG 2.x (A, AA, 2.1 AA) and best-practice axe rules against the main
+ * page content and report any violations with helpful context.
+ *
+ * The `frame-title` rule is disabled: DoenetML live examples are sandboxed
+ * iframes whose internals are covered by the main test-cypress suite, not
+ * by these docs-level checks.
  */
 function checkPageAccessibility() {
     cy.injectAxe();
