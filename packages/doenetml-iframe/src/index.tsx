@@ -416,6 +416,16 @@ export const DoenetEditor = React.forwardRef<
         doenetEditorProps.darkMode ?? "system",
     );
 
+    function syncIframeBodyBackground() {
+        const body = ref.current?.contentDocument?.body;
+        if (body) {
+            setIframeBodyBackground(
+                body,
+                doenetEditorPropsRef.current.darkMode,
+            );
+        }
+    }
+
     React.useImperativeHandle(
         forwardedRef,
         () => ({
@@ -564,6 +574,7 @@ export const DoenetEditor = React.forwardRef<
                     for (const action of queued) {
                         action(editorIframe);
                     }
+                    syncIframeBodyBackground();
                 }
             }
         };
@@ -677,13 +688,10 @@ export const DoenetEditor = React.forwardRef<
 
     // Keep the iframe body's empty margin area aligned with live dark-mode
     // changes without reloading the editor document (which would discard
-    // in-progress edits). Fresh srcDoc content already includes the correct
-    // initial body background.
+    // in-progress edits). iframeReady also re-syncs the body after any
+    // srcDoc rebuild so mount-time darkMode doesn't leak back in.
     React.useEffect(() => {
-        const body = ref.current?.contentDocument?.body;
-        if (body) {
-            setIframeBodyBackground(body, doenetEditorProps.darkMode);
-        }
+        syncIframeBodyBackground();
     }, [doenetEditorProps.darkMode]);
 
     // Push function-prop identity changes into the iframe. We have no live
