@@ -34,6 +34,96 @@ function getClampedPointOffset(pointOffsetAttr, essentialPointOffset) {
     );
 }
 
+function getNumericValue(mathOrNumber) {
+    return mathOrNumber instanceof me.class
+        ? mathOrNumber.evaluate_to_constant()
+        : Number(mathOrNumber);
+}
+
+function getNumericEndpointPair(
+    desiredUnconstrainedEndpoints,
+    currentEndpoints,
+    pointInds = [0, 1],
+) {
+    return pointInds.map((pointInd) =>
+        [0, 1].map((dim) => {
+            let key = pointInd + "," + dim;
+            if (key in desiredUnconstrainedEndpoints) {
+                return getNumericValue(desiredUnconstrainedEndpoints[key]);
+            }
+            return currentEndpoints[pointInd][dim].evaluate_to_constant();
+        }),
+    );
+}
+
+function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
+    const dx = endpoint2[0] - endpoint1[0];
+    const dy = endpoint2[1] - endpoint1[1];
+
+    if (dx === 0 && dy === 0) {
+        return {
+            slope: fallbackSlope,
+            signedLength: 0,
+        };
+    }
+
+    if (dx === 0) {
+        return {
+            slope: dy > 0 ? Infinity : -Infinity,
+            signedLength: dy,
+        };
+    }
+
+    return {
+        slope: dy / dx,
+        signedLength: Math.hypot(dx, dy) * Math.sign(dx),
+    };
+}
+
+function addSlopeAndLengthInstructions({
+    instructions,
+    globalDependencyValues,
+    endpoint1,
+    endpoint2,
+}) {
+    const fallbackSlope =
+        globalDependencyValues.slopeAttr !== null
+            ? globalDependencyValues.slopeAttr.stateValues.value
+            : globalDependencyValues.essentialSlope;
+
+    const { slope, signedLength } = getSlopeAndSignedLength(
+        endpoint1,
+        endpoint2,
+        fallbackSlope,
+    );
+
+    if (globalDependencyValues.slopeAttr !== null) {
+        instructions.push({
+            setDependency: "slopeAttr",
+            desiredValue: slope,
+            variableIndex: 0,
+        });
+    } else {
+        instructions.push({
+            setDependency: "essentialSlope",
+            desiredValue: slope,
+        });
+    }
+
+    if (globalDependencyValues.lengthAttr !== null) {
+        instructions.push({
+            setDependency: "lengthAttr",
+            desiredValue: signedLength,
+            variableIndex: 0,
+        });
+    } else {
+        instructions.push({
+            setDependency: "essentialSignedLength",
+            desiredValue: signedLength,
+        });
+    }
+}
+
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
         super(args);
@@ -810,23 +900,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
-                if (g.numEndpointsSpecified >= 2) {
-                    if (
-                        g.slopeAttr !== null ||
-                        g.lengthAttr !== null ||
-                        g.pointOffsetAttr !== null ||
-                        g.numThroughPoints > 0
-                    ) {
-                        sendDiagnostics.push({
-                            type: "info",
-                            message:
-                                "slope, length, pointOffset, and through are ignored when two endpoints are specified",
-                        });
-                    }
-                } else if (
-                    g.numEndpointsSpecified === 1 &&
-                    g.numThroughPoints === 1
-                ) {
+                if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
                     if (
                         g.slopeAttr !== null ||
                         g.lengthAttr !== null ||
@@ -941,10 +1015,14 @@ export default class LineSegment extends GraphicalComponent {
                             unconstrainedEndpoints[arrayKey] =
                                 ep1[Number(dim)] ?? me.fromAst(0);
                         } else {
-                            let ep1Coord =
-                                (
-                                    ep1[Number(dim)] ?? me.fromAst(0)
-                                ).evaluate_to_constant() || 0;
+                            let ep1Coord = (
+                                ep1[Number(dim)] ?? me.fromAst(0)
+                            ).evaluate_to_constant();
+                            if (!Number.isFinite(ep1Coord)) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
                             let dir = dim === "0" ? dirX : dirY;
                             unconstrainedEndpoints[arrayKey] = me.fromAst(
                                 ep1Coord + signedLength * dir,
@@ -1033,23 +1111,6 @@ export default class LineSegment extends GraphicalComponent {
 
                 let instructions = [];
 
-                // Helper: get numeric value from math expression or desired value dict.
-                function numericDesiredOrCurrent(pointInd, dim, currentEp) {
-                    let key = pointInd + "," + dim;
-                    if (
-                        key in desiredStateVariableValues.unconstrainedEndpoints
-                    ) {
-                        let val =
-                            desiredStateVariableValues.unconstrainedEndpoints[
-                                key
-                            ];
-                        return val instanceof me.class
-                            ? val.evaluate_to_constant()
-                            : Number(val);
-                    }
-                    return currentEp[dim].evaluate_to_constant();
-                }
-
                 const numEndpointsSpecified = g.numEndpointsSpecified;
                 const numThroughPoints = g.numThroughPoints;
 
@@ -1080,51 +1141,6 @@ export default class LineSegment extends GraphicalComponent {
                     return { success: true, instructions };
                 }
 
-                // Helper: push slope and length updates when ep2 direction changed.
-                async function pushSlopeAndLength(ep1Num, ep2Num) {
-                    const dx = ep2Num[0] - ep1Num[0];
-                    const dy = ep2Num[1] - ep1Num[1];
-                    let newSlope, newSignedLength;
-                    if (dx === 0 && dy === 0) {
-                        newSignedLength = 0;
-                        newSlope =
-                            g.slopeAttr !== null
-                                ? g.slopeAttr.stateValues.value
-                                : g.essentialSlope;
-                    } else if (dx === 0) {
-                        newSlope = dy > 0 ? Infinity : -Infinity;
-                        newSignedLength = dy; // sign encodes direction
-                    } else {
-                        newSlope = dy / dx;
-                        newSignedLength =
-                            Math.sqrt(dx * dx + dy * dy) * Math.sign(dx);
-                    }
-                    if (g.slopeAttr !== null) {
-                        instructions.push({
-                            setDependency: "slopeAttr",
-                            desiredValue: newSlope,
-                            variableIndex: 0,
-                        });
-                    } else {
-                        instructions.push({
-                            setDependency: "essentialSlope",
-                            desiredValue: newSlope,
-                        });
-                    }
-                    if (g.lengthAttr !== null) {
-                        instructions.push({
-                            setDependency: "lengthAttr",
-                            desiredValue: newSignedLength,
-                            variableIndex: 0,
-                        });
-                    } else {
-                        instructions.push({
-                            setDependency: "essentialSignedLength",
-                            desiredValue: newSignedLength,
-                        });
-                    }
-                }
-
                 if (numEndpointsSpecified === 1 && numThroughPoints === 0) {
                     // Case B: ep1 from endpoints attr; ep2 = ep1 + L × dir(slope).
                     // ep1 desired → update ep1 attr directly (slope/length unchanged → ep2 translates)
@@ -1150,17 +1166,20 @@ export default class LineSegment extends GraphicalComponent {
                     if (!onlyEp1Desired) {
                         // Need numeric ep1 and ep2 to compute new slope/length.
                         let currentEndpoints = await stateValues.endpoints;
-                        let ep1Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(0, d, currentEndpoints[0]),
-                        );
-                        let ep2Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(1, d, currentEndpoints[1]),
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredStateVariableValues.unconstrainedEndpoints,
+                            currentEndpoints,
                         );
                         if (
                             ep1Num.every(Number.isFinite) &&
                             ep2Num.every(Number.isFinite)
                         ) {
-                            await pushSlopeAndLength(ep1Num, ep2Num);
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
                         }
                     }
                 } else if (numThroughPoints === 1) {
@@ -1192,16 +1211,12 @@ export default class LineSegment extends GraphicalComponent {
                         }
                         const [dirX2, dirY2] = direction;
                         let currentEndpoints = await stateValues.endpoints;
-                        const ep1DesiredX = numericDesiredOrCurrent(
-                            0,
-                            0,
-                            currentEndpoints[0],
-                        );
-                        const ep1DesiredY = numericDesiredOrCurrent(
-                            0,
-                            1,
-                            currentEndpoints[0],
-                        );
+                        const [[ep1DesiredX, ep1DesiredY]] =
+                            getNumericEndpointPair(
+                                desiredStateVariableValues.unconstrainedEndpoints,
+                                currentEndpoints,
+                                [0],
+                            );
                         T_new = [
                             ep1DesiredX + tT * L * dirX2,
                             ep1DesiredY + tT * L * dirY2,
@@ -1210,11 +1225,9 @@ export default class LineSegment extends GraphicalComponent {
                         // ep2 desired (alone or with ep1): use t-parameterization.
                         // T_new = ep1_new + tT * (ep2_new - ep1_new)
                         let currentEndpoints = await stateValues.endpoints;
-                        let ep1Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(0, d, currentEndpoints[0]),
-                        );
-                        let ep2Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(1, d, currentEndpoints[1]),
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredStateVariableValues.unconstrainedEndpoints,
+                            currentEndpoints,
                         );
                         if (
                             !ep1Num.every(Number.isFinite) ||
@@ -1227,7 +1240,12 @@ export default class LineSegment extends GraphicalComponent {
                             ep1Num[1] + tT * (ep2Num[1] - ep1Num[1]),
                         ];
                         // Also update slope/length since ep2 changed.
-                        await pushSlopeAndLength(ep1Num, ep2Num);
+                        addSlopeAndLengthInstructions({
+                            instructions,
+                            globalDependencyValues: g,
+                            endpoint1: ep1Num,
+                            endpoint2: ep2Num,
+                        });
                     }
 
                     // Update through point T.
@@ -1270,17 +1288,20 @@ export default class LineSegment extends GraphicalComponent {
                     }
                     if (!onlyEp1Desired) {
                         let currentEndpoints = await stateValues.endpoints;
-                        let ep1Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(0, d, currentEndpoints[0]),
-                        );
-                        let ep2Num = [0, 1].map((d) =>
-                            numericDesiredOrCurrent(1, d, currentEndpoints[1]),
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredStateVariableValues.unconstrainedEndpoints,
+                            currentEndpoints,
                         );
                         if (
                             ep1Num.every(Number.isFinite) &&
                             ep2Num.every(Number.isFinite)
                         ) {
-                            await pushSlopeAndLength(ep1Num, ep2Num);
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
                         }
                     }
                 }
