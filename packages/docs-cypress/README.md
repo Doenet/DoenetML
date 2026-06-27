@@ -8,14 +8,21 @@ in both light and dark mode.
 
 ## Running the tests
 
-The documentation site must be running before you start Cypress.  Start it
-in a separate terminal:
+Build the static docs export first:
 
 ```bash
-npm run dev -w packages/docs-nextra
+export NODE_OPTIONS="--max_old_space_size=6114"
+npm run build:docs-prereqs && npm run build:docs
 ```
 
-Then, from the repo root, run the tests headlessly:
+Then serve the generated `packages/docs-nextra/out/` directory in a separate
+terminal:
+
+```bash
+npx serve -l 3000 packages/docs-nextra/out/
+```
+
+From the repo root, run the tests headlessly:
 
 ```bash
 npm run test:docs-cypress

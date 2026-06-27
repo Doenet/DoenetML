@@ -7,9 +7,10 @@
  * issue (#1368) was specifically a dark-mode contrast failure on attribute
  * reference pages.
  *
- * Running these tests requires the docs site to be running at the baseUrl
- * configured in cypress.config.js (default http://localhost:3000).  Start it
- * with `npm run dev -w packages/docs-nextra` before opening Cypress.
+ * Running these tests requires the built docs site to be served at the
+ * baseUrl configured in cypress.config.js (default http://localhost:3000).
+ * The recommended workflow is `npm run build:docs` followed by
+ * `npx serve -l 3000 packages/docs-nextra/out/`.
  */
 
 /**
