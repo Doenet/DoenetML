@@ -139,6 +139,32 @@ function addSlopeAndLengthInstructions({
     }
 }
 
+function addThroughPointInstructions({
+    instructions,
+    dependencyNamesByKey,
+    throughPoint,
+}) {
+    for (let dim = 0; dim < throughPoint.length; dim++) {
+        const throughDependencyName =
+            dependencyNamesByKey["0," + dim]?.throughCoord ??
+            dependencyNamesByKey["1," + dim]?.throughCoord;
+
+        if (throughDependencyName !== undefined) {
+            instructions.push({
+                setDependency: throughDependencyName,
+                desiredValue: me.fromAst(throughPoint[dim]),
+                variableIndex: 0,
+            });
+        }
+    }
+}
+
+function mergePointCoords(pointCoords, currentPoint, numDimensions) {
+    return Array.from({ length: numDimensions }, (_, dim) =>
+        pointCoords[dim] !== undefined ? pointCoords[dim] : currentPoint[dim],
+    );
+}
+
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
         super(args);
@@ -1053,6 +1079,7 @@ export default class LineSegment extends GraphicalComponent {
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
+                workspace,
                 arraySize,
             }) {
                 // Old behavior (basedOnSlopeOrThrough === false):
@@ -1106,10 +1133,14 @@ export default class LineSegment extends GraphicalComponent {
 
                 const g = globalDependencyValues;
                 const numDim = g.numDimensions ?? 2;
-
-                const desiredKeys = Object.keys(
+                workspace ??= {};
+                Object.assign(
+                    workspace,
                     desiredStateVariableValues.unconstrainedEndpoints,
                 );
+                const desiredUnconstrainedEndpoints = workspace;
+
+                const desiredKeys = Object.keys(desiredUnconstrainedEndpoints);
                 const onlyEp1Desired = desiredKeys.every((k) =>
                     k.startsWith("0,"),
                 );
@@ -1131,8 +1162,7 @@ export default class LineSegment extends GraphicalComponent {
                                 setDependency:
                                     dependencyNamesByKey[arrayKey].ep1Coord,
                                 desiredValue:
-                                    desiredStateVariableValues
-                                        .unconstrainedEndpoints[arrayKey],
+                                    desiredUnconstrainedEndpoints[arrayKey],
                                 variableIndex: 0,
                             });
                         } else {
@@ -1140,8 +1170,7 @@ export default class LineSegment extends GraphicalComponent {
                                 setDependency:
                                     dependencyNamesByKey[arrayKey].throughCoord,
                                 desiredValue:
-                                    desiredStateVariableValues
-                                        .unconstrainedEndpoints[arrayKey],
+                                    desiredUnconstrainedEndpoints[arrayKey],
                                 variableIndex: 0,
                             });
                         }
@@ -1164,8 +1193,7 @@ export default class LineSegment extends GraphicalComponent {
                                     setDependency:
                                         dependencyNamesByKey[arrayKey].ep1Coord,
                                     desiredValue:
-                                        desiredStateVariableValues
-                                            .unconstrainedEndpoints[arrayKey],
+                                        desiredUnconstrainedEndpoints[arrayKey],
                                     variableIndex: 0,
                                 });
                             }
@@ -1175,7 +1203,7 @@ export default class LineSegment extends GraphicalComponent {
                         // Need numeric ep1 and ep2 to compute new slope/length.
                         let currentEndpoints = await stateValues.endpoints;
                         let [ep1Num, ep2Num] = getNumericEndpointPair(
-                            desiredStateVariableValues.unconstrainedEndpoints,
+                            desiredUnconstrainedEndpoints,
                             currentEndpoints,
                         );
                         if (
@@ -1220,7 +1248,7 @@ export default class LineSegment extends GraphicalComponent {
                         const [dirX2, dirY2] = direction;
                         let currentEndpoints = await stateValues.endpoints;
                         const [ep1Desired] = getNumericEndpointPair(
-                            desiredStateVariableValues.unconstrainedEndpoints,
+                            desiredUnconstrainedEndpoints,
                             currentEndpoints,
                             numDim,
                             [0],
@@ -1237,7 +1265,7 @@ export default class LineSegment extends GraphicalComponent {
                         // T_new = ep1_new + tT * (ep2_new - ep1_new)
                         let currentEndpoints = await stateValues.endpoints;
                         let [ep1Num, ep2Num] = getNumericEndpointPair(
-                            desiredStateVariableValues.unconstrainedEndpoints,
+                            desiredUnconstrainedEndpoints,
                             currentEndpoints,
                             numDim,
                         );
@@ -1259,18 +1287,11 @@ export default class LineSegment extends GraphicalComponent {
                         });
                     }
 
-                    // Update through point T.
-                    for (let d = 0; d < numDim; d++) {
-                        let arrayKey = "0," + d;
-                        if (arrayKey in dependencyNamesByKey) {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey].throughCoord,
-                                desiredValue: me.fromAst(T_new[d]),
-                                variableIndex: 0,
-                            });
-                        }
-                    }
+                    addThroughPointInstructions({
+                        instructions,
+                        dependencyNamesByKey,
+                        throughPoint: T_new,
+                    });
                 } else {
                     // Case D: 0 endpoints + 0 through; ep1 in essentialEp1, ep2 derived.
                     // ep1 desired → update essentialEp1 directly (slope/length unchanged → ep2 translates)
@@ -1288,8 +1309,7 @@ export default class LineSegment extends GraphicalComponent {
                                     setDependency: "essentialEp1",
                                     desiredValue: {
                                         [String(dim)]:
-                                            desiredStateVariableValues
-                                                .unconstrainedEndpoints[
+                                            desiredUnconstrainedEndpoints[
                                                 arrayKey
                                             ],
                                     },
@@ -1300,7 +1320,7 @@ export default class LineSegment extends GraphicalComponent {
                     if (!onlyEp1Desired) {
                         let currentEndpoints = await stateValues.endpoints;
                         let [ep1Num, ep2Num] = getNumericEndpointPair(
-                            desiredStateVariableValues.unconstrainedEndpoints,
+                            desiredUnconstrainedEndpoints,
                             currentEndpoints,
                         );
                         if (
@@ -2214,7 +2234,11 @@ export default class LineSegment extends GraphicalComponent {
                     if (Number.isFinite(v1) && Number.isFinite(v2)) {
                         center[arrayKey] = me.fromAst((v1 + v2) / 2);
                     } else {
-                        center[arrayKey] = me.fromAst("\uff3f");
+                        center[arrayKey] = me.fromAst([
+                            "/",
+                            ["+", ep1[dim].tree, ep2[dim].tree],
+                            2,
+                        ]);
                     }
                 }
                 return { setValue: { center } };
@@ -2231,32 +2255,24 @@ export default class LineSegment extends GraphicalComponent {
                 let newEp1 = [];
                 let newEp2 = [];
                 for (let d = 0; d < numDim; d++) {
-                    let v1 = ep1[d].evaluate_to_constant();
-                    let v2 = ep2[d].evaluate_to_constant();
-                    if (!Number.isFinite(v1) || !Number.isFinite(v2)) {
-                        return { success: false };
-                    }
-                    let currentCenter = (v1 + v2) / 2;
-                    let desiredCenterVal =
+                    let currentCenter = me.fromAst([
+                        "/",
+                        ["+", ep1[d].tree, ep2[d].tree],
+                        2,
+                    ]);
+                    let desiredCenter =
                         String(d) in desiredStateVariableValues.center
-                            ? desiredStateVariableValues.center[
-                                  String(d)
-                              ] instanceof me.class
-                                ? desiredStateVariableValues.center[
-                                      String(d)
-                                  ].evaluate_to_constant()
-                                : Number(
-                                      desiredStateVariableValues.center[
-                                          String(d)
-                                      ],
-                                  )
+                            ? convertValueToMathExpression(
+                                  desiredStateVariableValues.center[String(d)],
+                              )
                             : currentCenter;
-                    if (!Number.isFinite(desiredCenterVal)) {
-                        return { success: false };
-                    }
-                    let delta = desiredCenterVal - currentCenter;
-                    newEp1.push(me.fromAst(v1 + delta));
-                    newEp2.push(me.fromAst(v2 + delta));
+                    let delta = me.fromAst([
+                        "+",
+                        desiredCenter.tree,
+                        ["-", currentCenter.tree],
+                    ]);
+                    newEp1.push(me.fromAst(["+", ep1[d].tree, delta.tree]));
+                    newEp2.push(me.fromAst(["+", ep2[d].tree, delta.tree]));
                 }
 
                 return {
@@ -2285,8 +2301,10 @@ export default class LineSegment extends GraphicalComponent {
     ];
 
     async moveLineSegmentSinglePoint({
+        coords,
         x,
         y,
+        z,
         pointRole,
         transient,
         skippable,
@@ -2295,16 +2313,26 @@ export default class LineSegment extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        let pointCoords = coords ?? [x, y];
+        if (coords === undefined && z !== undefined) {
+            pointCoords.push(z);
+        }
+
+        if (
+            pointCoords.length < 2 ||
+            pointCoords.some(
+                (coord) => coord !== undefined && !Number.isFinite(coord),
+            )
+        ) {
             console.warn(
-                `Invalid endpoint coordinates for line segment move: x=${x}, y=${y}`,
+                `Invalid endpoint coordinates for line segment move: ${pointCoords.join(", ")}`,
             );
             return;
         }
 
         if (pointRole === "endpoint1") {
             return await this.moveLineSegment({
-                point1coords: [x, y],
+                point1coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -2314,7 +2342,7 @@ export default class LineSegment extends GraphicalComponent {
             });
         } else if (pointRole === "endpoint2") {
             return await this.moveLineSegment({
-                point2coords: [x, y],
+                point2coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -2353,6 +2381,24 @@ export default class LineSegment extends GraphicalComponent {
             }
         }
 
+        const numDimensions = await this.stateValues.numDimensions;
+        let numericalEndpoints = await this.stateValues.numericalEndpoints;
+
+        if (point1coords !== undefined) {
+            point1coords = mergePointCoords(
+                point1coords,
+                numericalEndpoints[0],
+                numDimensions,
+            );
+        }
+        if (point2coords !== undefined) {
+            point2coords = mergePointCoords(
+                point2coords,
+                numericalEndpoints[1],
+                numDimensions,
+            );
+        }
+
         // When basedOnSlopeOrThrough, ep2 is derived from ep1 + slope/length.
         // A single-endpoint drag on the graph should keep the OTHER endpoint fixed
         // (same intent as Vector's tail+displacement action).
@@ -2361,7 +2407,6 @@ export default class LineSegment extends GraphicalComponent {
         // This does NOT affect drags via referenced points (which go through the inverse
         // definition directly and only receive the desired position of the moved endpoint).
         if (await this.stateValues.basedOnSlopeOrThrough) {
-            let numericalEndpoints = await this.stateValues.numericalEndpoints;
             if (point1coords !== undefined && point2coords === undefined) {
                 // ep1 dragged: keep ep2 fixed
                 point2coords = numericalEndpoints[1];
@@ -2377,12 +2422,14 @@ export default class LineSegment extends GraphicalComponent {
         let newComponents = {};
 
         if (point1coords !== undefined) {
-            newComponents["0,0"] = me.fromAst(point1coords[0]);
-            newComponents["0,1"] = me.fromAst(point1coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`0,${dim}`] = me.fromAst(point1coords[dim]);
+            }
         }
         if (point2coords !== undefined) {
-            newComponents["1,0"] = me.fromAst(point2coords[0]);
-            newComponents["1,1"] = me.fromAst(point2coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`1,${dim}`] = me.fromAst(point2coords[dim]);
+            }
         }
 
         // Note: we set skipRendererUpdate to true
