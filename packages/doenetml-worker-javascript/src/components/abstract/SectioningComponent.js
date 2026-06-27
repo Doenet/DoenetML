@@ -20,6 +20,80 @@ import {
     deleteChildrenFromDynamicChild,
 } from "../../utils/dynamicChildren";
 
+function pickSectionTitleStateColor(
+    dependencyValues,
+    usedDefault,
+    ownColorName,
+    parentColorName,
+) {
+    if (!usedDefault[ownColorName]) {
+        return dependencyValues[ownColorName];
+    }
+
+    if (typeof dependencyValues[parentColorName] === "string") {
+        return dependencyValues[parentColorName];
+    }
+
+    return dependencyValues[ownColorName];
+}
+
+function resolveSectionTitleColor(dependencyValues, usedDefault, colorNames) {
+    if (dependencyValues.creditAchieved === 1) {
+        return pickSectionTitleStateColor(
+            dependencyValues,
+            usedDefault,
+            colorNames.completed,
+            colorNames.parentCompleted,
+        );
+    }
+
+    if (dependencyValues.creditAchieved > 0) {
+        return pickSectionTitleStateColor(
+            dependencyValues,
+            usedDefault,
+            colorNames.inProgress,
+            colorNames.parentInProgress,
+        );
+    }
+
+    return pickSectionTitleStateColor(
+        dependencyValues,
+        usedDefault,
+        colorNames.notStarted,
+        colorNames.parentNotStarted,
+    );
+}
+
+function addSectionTitleColorContrastDiagnostic({
+    diagnostics,
+    colorAttr,
+    colorName,
+    textColor,
+    modeSuffix = "",
+}) {
+    if (!colorAttr?.position) {
+        return;
+    }
+
+    const colorValue = colorAttr.stateValues?.value;
+    if (!colorValue) {
+        return;
+    }
+
+    const ratio = compositedContrastRatio({
+        foreground: textColor,
+        canvas: colorValue,
+    });
+    if (ratio !== null && ratio < TEXT_CONTRAST_THRESHOLD) {
+        diagnostics.push({
+            type: "accessibility",
+            level: 1,
+            message: `${colorName} has insufficient contrast for the section heading text${modeSuffix} (${ratio.toFixed(2)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`,
+            position: colorAttr.position,
+        });
+    }
+}
+
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
         super(args);
@@ -852,6 +926,13 @@ export class SectioningComponent extends BlockComponent {
 
         stateVariableDefinitions.titleColor = {
             // Note: currently title color is used only when boxed or collapsible
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "titleColorDarkMode",
+                    forRenderer: true,
+                },
+                { variableName: "titleColorAccessibilityDiagnostics" },
+            ],
             forRenderer: true,
             returnDependencies: () => ({
                 completedColor: {
@@ -878,58 +959,6 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "parentStateVariable",
                     variableName: "notStartedColor",
                 },
-                creditAchieved: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditAchieved",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let titleColor = dependencyValues.notStartedColor;
-                if (dependencyValues.creditAchieved === 1) {
-                    if (!usedDefault.completedColor) {
-                        titleColor = dependencyValues.completedColor;
-                    } else if (
-                        typeof dependencyValues.parentCompletedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentCompletedColor;
-                    } else {
-                        titleColor = dependencyValues.completedColor;
-                    }
-                } else if (dependencyValues.creditAchieved > 0) {
-                    if (!usedDefault.inProgressColor) {
-                        titleColor = dependencyValues.inProgressColor;
-                    } else if (
-                        typeof dependencyValues.parentInProgressColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentInProgressColor;
-                    } else {
-                        titleColor = dependencyValues.inProgressColor;
-                    }
-                } else {
-                    if (!usedDefault.notStartedColor) {
-                        titleColor = dependencyValues.notStartedColor;
-                    } else if (
-                        typeof dependencyValues.parentNotStartedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentNotStartedColor;
-                    } else {
-                        titleColor = dependencyValues.notStartedColor;
-                    }
-                }
-
-                return { setValue: { titleColor } };
-            },
-        };
-
-        stateVariableDefinitions.titleColorDarkMode = {
-            // Dark-mode equivalent of titleColor. The renderer picks between
-            // titleColor and titleColorDarkMode based on the current theme so
-            // that the heading box is always legible on both canvases.
-            forRenderer: true,
-            returnDependencies: () => ({
                 completedColorDarkMode: {
                     dependencyType: "stateVariable",
                     variableName: "completedColorDarkMode",
@@ -958,64 +987,6 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let titleColorDarkMode =
-                    dependencyValues.notStartedColorDarkMode;
-                if (dependencyValues.creditAchieved === 1) {
-                    if (!usedDefault.completedColorDarkMode) {
-                        titleColorDarkMode =
-                            dependencyValues.completedColorDarkMode;
-                    } else if (
-                        typeof dependencyValues.parentCompletedColorDarkMode ===
-                        "string"
-                    ) {
-                        titleColorDarkMode =
-                            dependencyValues.parentCompletedColorDarkMode;
-                    } else {
-                        titleColorDarkMode =
-                            dependencyValues.completedColorDarkMode;
-                    }
-                } else if (dependencyValues.creditAchieved > 0) {
-                    if (!usedDefault.inProgressColorDarkMode) {
-                        titleColorDarkMode =
-                            dependencyValues.inProgressColorDarkMode;
-                    } else if (
-                        typeof dependencyValues.parentInProgressColorDarkMode ===
-                        "string"
-                    ) {
-                        titleColorDarkMode =
-                            dependencyValues.parentInProgressColorDarkMode;
-                    } else {
-                        titleColorDarkMode =
-                            dependencyValues.inProgressColorDarkMode;
-                    }
-                } else {
-                    if (!usedDefault.notStartedColorDarkMode) {
-                        titleColorDarkMode =
-                            dependencyValues.notStartedColorDarkMode;
-                    } else if (
-                        typeof dependencyValues.parentNotStartedColorDarkMode ===
-                        "string"
-                    ) {
-                        titleColorDarkMode =
-                            dependencyValues.parentNotStartedColorDarkMode;
-                    } else {
-                        titleColorDarkMode =
-                            dependencyValues.notStartedColorDarkMode;
-                    }
-                }
-
-                return { setValue: { titleColorDarkMode } };
-            },
-        };
-
-        stateVariableDefinitions.titleColorAccessibilityDiagnostics = {
-            // No meaningful rendered value; exists only to emit accessibility
-            // diagnostics when author-supplied heading-box background colors
-            // fail WCAG AA contrast against the inherited heading text color
-            // (black in light mode, white in dark mode).
-            returnDependencies: () => ({
                 completedColorAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "completedColor",
@@ -1055,95 +1026,83 @@ export class SectioningComponent extends BlockComponent {
                     variableName: "collapsible",
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, usedDefault }) {
+                const titleColor = resolveSectionTitleColor(
+                    dependencyValues,
+                    usedDefault,
+                    {
+                        completed: "completedColor",
+                        parentCompleted: "parentCompletedColor",
+                        inProgress: "inProgressColor",
+                        parentInProgress: "parentInProgressColor",
+                        notStarted: "notStartedColor",
+                        parentNotStarted: "parentNotStartedColor",
+                    },
+                );
+                const titleColorDarkMode = resolveSectionTitleColor(
+                    dependencyValues,
+                    usedDefault,
+                    {
+                        completed: "completedColorDarkMode",
+                        parentCompleted: "parentCompletedColorDarkMode",
+                        inProgress: "inProgressColorDarkMode",
+                        parentInProgress: "parentInProgressColorDarkMode",
+                        notStarted: "notStartedColorDarkMode",
+                        parentNotStarted: "parentNotStartedColorDarkMode",
+                    },
+                );
+
                 const diagnostics = [];
-
-                // Title colors only apply to boxed or collapsible sections.
-                if (!dependencyValues.boxed && !dependencyValues.collapsible) {
-                    return {
-                        setValue: {
-                            titleColorAccessibilityDiagnostics: null,
+                if (dependencyValues.boxed || dependencyValues.collapsible) {
+                    for (const colorCheck of [
+                        {
+                            colorAttr: dependencyValues.completedColorAttr,
+                            colorName: "completedColor",
+                            textColor: "#000000",
                         },
-                    };
-                }
-
-                /**
-                 * Emits a contrast diagnostic if an author-supplied heading
-                 * background color fails WCAG AA against the heading text.
-                 *
-                 * Only fires when the attribute was explicitly authored
-                 * (i.e., the component carries a source position). CSS
-                 * variable references (e.g. `var(--mainGray)`) are skipped
-                 * because `colord` cannot parse them.
-                 */
-                function checkHeadingColor(
-                    colorAttr,
-                    colorName,
-                    textColor,
-                    modeSuffix,
-                ) {
-                    if (!colorAttr?.position) {
-                        return;
-                    }
-                    const colorValue = colorAttr.stateValues?.value;
-                    if (!colorValue) return;
-
-                    const ratio = compositedContrastRatio({
-                        foreground: textColor,
-                        canvas: colorValue,
-                    });
-                    if (ratio !== null && ratio < TEXT_CONTRAST_THRESHOLD) {
-                        diagnostics.push({
-                            type: "accessibility",
-                            level: 1,
-                            message: `${colorName} has insufficient contrast for the section heading text${modeSuffix} (${ratio.toFixed(2)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`,
-                            position: colorAttr.position,
+                        {
+                            colorAttr: dependencyValues.inProgressColorAttr,
+                            colorName: "inProgressColor",
+                            textColor: "#000000",
+                        },
+                        {
+                            colorAttr: dependencyValues.notStartedColorAttr,
+                            colorName: "notStartedColor",
+                            textColor: "#000000",
+                        },
+                        {
+                            colorAttr:
+                                dependencyValues.completedColorDarkModeAttr,
+                            colorName: "completedColorDarkMode",
+                            textColor: "#ffffff",
+                            modeSuffix: " (dark mode)",
+                        },
+                        {
+                            colorAttr:
+                                dependencyValues.inProgressColorDarkModeAttr,
+                            colorName: "inProgressColorDarkMode",
+                            textColor: "#ffffff",
+                            modeSuffix: " (dark mode)",
+                        },
+                        {
+                            colorAttr:
+                                dependencyValues.notStartedColorDarkModeAttr,
+                            colorName: "notStartedColorDarkMode",
+                            textColor: "#ffffff",
+                            modeSuffix: " (dark mode)",
+                        },
+                    ]) {
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            ...colorCheck,
                         });
                     }
                 }
 
-                // Light mode: heading text inherits --canvasText = black.
-                checkHeadingColor(
-                    dependencyValues.completedColorAttr,
-                    "completedColor",
-                    "#000000",
-                    "",
-                );
-                checkHeadingColor(
-                    dependencyValues.inProgressColorAttr,
-                    "inProgressColor",
-                    "#000000",
-                    "",
-                );
-                checkHeadingColor(
-                    dependencyValues.notStartedColorAttr,
-                    "notStartedColor",
-                    "#000000",
-                    "",
-                );
-
-                // Dark mode: heading text inherits --canvasText = white.
-                checkHeadingColor(
-                    dependencyValues.completedColorDarkModeAttr,
-                    "completedColorDarkMode",
-                    "#ffffff",
-                    " (dark mode)",
-                );
-                checkHeadingColor(
-                    dependencyValues.inProgressColorDarkModeAttr,
-                    "inProgressColorDarkMode",
-                    "#ffffff",
-                    " (dark mode)",
-                );
-                checkHeadingColor(
-                    dependencyValues.notStartedColorDarkModeAttr,
-                    "notStartedColorDarkMode",
-                    "#ffffff",
-                    " (dark mode)",
-                );
-
                 return {
                     setValue: {
+                        titleColor,
+                        titleColorDarkMode,
                         titleColorAccessibilityDiagnostics: null,
                     },
                     sendDiagnostics: diagnostics,

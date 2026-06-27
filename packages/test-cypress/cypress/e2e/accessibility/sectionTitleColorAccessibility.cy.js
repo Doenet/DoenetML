@@ -9,13 +9,6 @@ import { getDiagnosticsByType } from "../../support/diagnostics";
  * The heading text inherits `--canvasText` (black in light mode, white in
  * dark mode), so the background colors must have sufficient contrast against
  * those text colors.
- *
- * These tests verify:
- *  1. Default colors pass axe `color-contrast` in both light and dark mode.
- *  2. Author-supplied colors that fail contrast emit a level-1 accessibility
- *     diagnostic and are flagged by the axe scanner.
- *  3. Author-supplied colors that pass contrast emit no diagnostic and clear
- *     the axe scanner.
  */
 describe(
     "Section title-color accessibility checks",
@@ -27,20 +20,57 @@ describe(
             cy.injectAxe();
         });
 
-        function postDoenetML(doenetML) {
-            cy.window().then((win) => {
-                win.postMessage({ doenetML }, "*");
-            });
+        function waitForCypressHarness() {
+            cy.get("#testRunner_toggleControls").should("exist");
         }
 
-        function postDoenetMLDarkMode(doenetML, settleSelector) {
+        function postDoenetML({ doenetML, darkMode, settleSelector }) {
+            waitForCypressHarness();
             cy.window().then((win) => {
-                win.postMessage({ doenetML, darkMode: "dark" }, "*");
+                const message = darkMode
+                    ? { doenetML, darkMode }
+                    : { doenetML };
+                win.postMessage(message, "*");
             });
-            cy.get('[data-theme="dark"]').should("exist");
+
+            if (darkMode === "dark") {
+                cy.get('[data-theme="dark"]').should("exist");
+            }
+
             if (settleSelector) {
                 cy.get(settleSelector).should("exist");
             }
+        }
+
+        function loadAwardedProblem({
+            problemAttributes = "",
+            awardCredit = 1,
+            darkMode,
+        }) {
+            const awardCreditAttribute =
+                awardCredit === 1 ? "" : ` credit="${awardCredit}"`;
+
+            postDoenetML({
+                darkMode,
+                settleSelector: "#p",
+                doenetML: `<problem name="p" boxed ${problemAttributes}>
+  <title>A problem</title>
+  <answer name="ans" inline>
+    <award${awardCreditAttribute}><when>true</when></award>
+  </answer>
+</problem>`,
+            });
+
+            cy.get("#ans_button").should("contain.text", "Check Work");
+        }
+
+        function submitAnswerAndExpectHeadingColor(expectedColor) {
+            cy.get("#ans_button").click();
+            cy.get(".section-heading-p").should(
+                "have.css",
+                "background-color",
+                expectedColor,
+            );
         }
 
         function checkColorContrastViolations(assertionFn) {
@@ -111,148 +141,177 @@ describe(
             });
         }
 
-        // ── Default color tests ────────────────────────────────────────────
-
         it("default boxed section colors pass axe in light mode", () => {
-            postDoenetML(`<problem name="p" boxed>
-  <title>A problem</title>
+            postDoenetML({
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed>
+  <title>A section</title>
   <p>Content.</p>
-</problem>`);
-            cy.get("#p").should("exist");
+</section>`,
+            });
             expectColorContrastA11yPass();
         });
 
         it("default collapsible section colors pass axe in light mode", () => {
-            postDoenetML(`<aside name="a" collapsible>
+            postDoenetML({
+                settleSelector: "#a",
+                doenetML: `<aside name="a" collapsible>
   <title>An aside</title>
   <p>Content.</p>
-</aside>`);
-            cy.get("#a").should("exist");
+</aside>`,
+            });
             expectColorContrastA11yPass();
         });
 
         it("default boxed section colors pass axe in dark mode", () => {
-            postDoenetMLDarkMode(
-                `<problem name="p" boxed>
-  <title>A problem</title>
+            postDoenetML({
+                darkMode: "dark",
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed>
+  <title>A section</title>
   <p>Content.</p>
-</problem>`,
-                "#p",
-            );
-            // Let the theme settle.
+</section>`,
+            });
             cy.wait(200);
             expectColorContrastA11yPass();
         });
 
         it("default collapsible section colors pass axe in dark mode", () => {
-            postDoenetMLDarkMode(
-                `<aside name="a" collapsible>
+            postDoenetML({
+                darkMode: "dark",
+                settleSelector: "#a",
+                doenetML: `<aside name="a" collapsible>
   <title>An aside</title>
   <p>Content.</p>
 </aside>`,
-                "#a",
-            );
+            });
             cy.wait(200);
             expectColorContrastA11yPass();
         });
 
-        // ── Author-supplied color diagnostic tests ─────────────────────────
-        // Verify that bad custom colors both:
-        //  a) trigger a worker-level level-1 accessibility diagnostic, and
-        //  b) are caught by axe's color-contrast rule.
-
-        it("insufficient completedColor in light mode emits diagnostic and fails axe", () => {
-            // #ff9900 (orange) on white canvas: black text on orange ≈ 2.7:1
-            // (fails 4.5:1). Use it as completedColor for a boxed section.
-            // But we need credit to actually use completedColor, so use an
-            // always-correct answer.
-            postDoenetML(`<problem name="p" boxed completedColor="#ff9900">
-  <title>A problem</title>
-  <p>Content.</p>
-</problem>`);
-            cy.get("#p").should("exist");
+        it("insufficient completedColor in light mode emits diagnostic and fails axe after completion", () => {
+            // #666666 against black text is 3.66:1, which fails WCAG AA.
+            loadAwardedProblem({
+                problemAttributes: 'completedColor="#666666"',
+            });
 
             expectHeadingColorDiagnostic({ colorName: "completedColor" });
+
+            submitAnswerAndExpectHeadingColor("rgb(102, 102, 102)");
+            expectColorContrastA11yFail();
         });
 
         it("insufficient notStartedColor in light mode emits diagnostic and fails axe", () => {
-            // Light yellow (#eeee00) on the light canvas: black text on
-            // #eeee00 has contrast ≈ 1.06:1 — terrible.
-            postDoenetML(`<problem name="p" boxed notStartedColor="#eeee00">
-  <title>A problem</title>
+            // #444444 against black text is 2.16:1, which fails WCAG AA.
+            postDoenetML({
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed notStartedColor="#444444">
+  <title>A section</title>
   <p>Content.</p>
-</problem>`);
-            cy.get("#p").should("exist");
+</section>`,
+            });
 
             expectHeadingColorDiagnostic({ colorName: "notStartedColor" });
-
+            cy.get(".section-heading-p").should(
+                "have.css",
+                "background-color",
+                "rgb(68, 68, 68)",
+            );
             expectColorContrastA11yFail();
         });
 
         it("sufficient custom notStartedColor in light mode passes axe and has no diagnostic", () => {
-            // Deep navy (#002244) on light mode: black text on #002244 is
-            // 14.5:1 — well above AA. (White text on deep navy is also fine,
-            // but the light mode canvas text is black.)
-            postDoenetML(`<problem name="p" boxed notStartedColor="#002244">
-  <title>A problem</title>
+            // #d9d9d9 against black text is 14.88:1, well above WCAG AA.
+            postDoenetML({
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed notStartedColor="#d9d9d9">
+  <title>A section</title>
   <p>Content.</p>
-</problem>`);
-            cy.get("#p").should("exist");
+</section>`,
+            });
 
             expectNoLevel1AccessibilityIssues();
-
             expectColorContrastA11yPass();
         });
 
-        it("insufficient notStartedColorDarkMode emits diagnostic", () => {
-            // Light gray in dark mode: white text on #a9a9a9 ≈ 2.3:1 — fails.
-            postDoenetMLDarkMode(
-                `<problem name="p" boxed notStartedColorDarkMode="#a9a9a9">
-  <title>A problem</title>
+        it("insufficient inProgressColorDarkMode emits diagnostic and fails axe after partial credit", () => {
+            // #8a8a8a against white text is 3.45:1, which fails WCAG AA.
+            loadAwardedProblem({
+                darkMode: "dark",
+                awardCredit: 0.5,
+                problemAttributes: 'inProgressColorDarkMode="#8a8a8a"',
+            });
+
+            expectHeadingColorDiagnostic({
+                colorName: "inProgressColorDarkMode",
+                modeSuffix: "(dark mode)",
+            });
+
+            submitAnswerAndExpectHeadingColor("rgb(138, 138, 138)");
+            cy.wait(200);
+            expectColorContrastA11yFail();
+        });
+
+        it("insufficient notStartedColorDarkMode emits diagnostic and fails axe", () => {
+            // #a9a9a9 against white text is 2.35:1, which fails WCAG AA.
+            postDoenetML({
+                darkMode: "dark",
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed notStartedColorDarkMode="#a9a9a9">
+  <title>A section</title>
   <p>Content.</p>
-</problem>`,
-                "#p",
-            );
+</section>`,
+            });
 
             expectHeadingColorDiagnostic({
                 colorName: "notStartedColorDarkMode",
                 modeSuffix: "(dark mode)",
             });
-
+            cy.get(".section-heading-p").should(
+                "have.css",
+                "background-color",
+                "rgb(169, 169, 169)",
+            );
             cy.wait(200);
             expectColorContrastA11yFail();
         });
 
         it("sufficient custom notStartedColorDarkMode passes axe and has no diagnostic", () => {
-            // #1c1c1c: white text contrast ≈ 16:1 — passes AA and AAA.
-            postDoenetMLDarkMode(
-                `<problem name="p" boxed notStartedColorDarkMode="#1c1c1c">
-  <title>A problem</title>
+            // #1c1c1c against white text is 17.04:1, which passes WCAG AAA.
+            postDoenetML({
+                darkMode: "dark",
+                settleSelector: "#p",
+                doenetML: `<section name="p" boxed notStartedColorDarkMode="#1c1c1c">
+  <title>A section</title>
   <p>Content.</p>
-</problem>`,
-                "#p",
-            );
+</section>`,
+            });
 
             expectNoLevel1AccessibilityIssues();
-
+            cy.get(".section-heading-p").should(
+                "have.css",
+                "background-color",
+                "rgb(28, 28, 28)",
+            );
             cy.wait(200);
             expectColorContrastA11yPass();
         });
 
-        it("insufficient completedColorDarkMode emits diagnostic", () => {
-            // Light green (#a6f19f) in dark mode: white text ≈ 1.3:1 — fails.
-            postDoenetMLDarkMode(
-                `<problem name="p" boxed completedColorDarkMode="#a6f19f">
-  <title>A problem</title>
-  <p>Content.</p>
-</problem>`,
-                "#p",
-            );
+        it("insufficient completedColorDarkMode emits diagnostic and fails axe after completion", () => {
+            // #a6f19f against white text is 1.34:1, which fails WCAG AA.
+            loadAwardedProblem({
+                darkMode: "dark",
+                problemAttributes: 'completedColorDarkMode="#a6f19f"',
+            });
 
             expectHeadingColorDiagnostic({
                 colorName: "completedColorDarkMode",
                 modeSuffix: "(dark mode)",
             });
+
+            submitAnswerAndExpectHeadingColor("rgb(166, 241, 159)");
+            cy.wait(200);
+            expectColorContrastA11yFail();
         });
     },
 );

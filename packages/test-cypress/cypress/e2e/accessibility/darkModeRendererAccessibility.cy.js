@@ -22,7 +22,12 @@ describe(
             cy.injectAxe();
         });
 
+        function waitForCypressHarness() {
+            cy.get("#testRunner_toggleControls").should("exist");
+        }
+
         function loadInDarkMode(doenetML, settleSelector) {
+            waitForCypressHarness();
             cy.window().then((win) => {
                 win.postMessage({ doenetML, darkMode: "dark" }, "*");
             });
@@ -86,10 +91,10 @@ describe(
             {
                 name: "boxed section — not started (default dark-mode heading color)",
                 doenetML: `
-<problem name="prob" boxed>
-  <title>A boxed problem</title>
+<section name="prob" boxed>
+  <title>A boxed section</title>
   <p>Some content.</p>
-</problem>`,
+</section>`,
                 settle: "#prob",
             },
             {
@@ -241,7 +246,12 @@ describe(
             cy.injectAxe();
         });
 
+        function waitForCypressHarness() {
+            cy.get("#testRunner_toggleControls").should("exist");
+        }
+
         function loadWithMathInput(darkMode) {
+            waitForCypressHarness();
             cy.window().then((win) => {
                 win.postMessage(
                     {
