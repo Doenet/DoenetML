@@ -64,19 +64,32 @@ function resolveSectionTitleColor(dependencyValues, usedDefault, colorNames) {
     );
 }
 
+/**
+ * Appends a contrast accessibility diagnostic when an explicitly authored
+ * heading background color fails WCAG AA (4.5:1) against the heading text.
+ *
+ * Only fires when `authorSet` is true (i.e. the author overrode the default)
+ * and the color is a parseable concrete value (CSS variable references like
+ * `var(--mainGray)` return `null` from `compositedContrastRatio` and are
+ * silently skipped).
+ *
+ * @param {object} params
+ * @param {object[]} params.diagnostics - Accumulator array.
+ * @param {boolean} params.authorSet - Whether the author explicitly set the attribute.
+ * @param {string} params.colorValue - The resolved color string.
+ * @param {string} params.colorName - Attribute name for the diagnostic message.
+ * @param {string} params.textColor - Heading text color (#000000 or #ffffff).
+ * @param {string} [params.modeSuffix] - Optional mode suffix for the message.
+ */
 function addSectionTitleColorContrastDiagnostic({
     diagnostics,
-    colorAttr,
+    authorSet,
+    colorValue,
     colorName,
     textColor,
     modeSuffix = "",
 }) {
-    if (!colorAttr?.position) {
-        return;
-    }
-
-    const colorValue = colorAttr.stateValues?.value;
-    if (!colorValue) {
+    if (!authorSet || !colorValue) {
         return;
     }
 
@@ -89,7 +102,6 @@ function addSectionTitleColorContrastDiagnostic({
             type: "accessibility",
             level: 1,
             message: `${colorName} has insufficient contrast for the section heading text${modeSuffix} (${ratio.toFixed(2)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`,
-            position: colorAttr.position,
         });
     }
 }
@@ -987,36 +999,6 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
-                completedColorAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "completedColor",
-                    variableNames: ["value"],
-                },
-                inProgressColorAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "inProgressColor",
-                    variableNames: ["value"],
-                },
-                notStartedColorAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "notStartedColor",
-                    variableNames: ["value"],
-                },
-                completedColorDarkModeAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "completedColorDarkMode",
-                    variableNames: ["value"],
-                },
-                inProgressColorDarkModeAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "inProgressColorDarkMode",
-                    variableNames: ["value"],
-                },
-                notStartedColorDarkModeAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "notStartedColorDarkMode",
-                    variableNames: ["value"],
-                },
                 boxed: {
                     dependencyType: "stateVariable",
                     variableName: "boxed",
@@ -1056,37 +1038,42 @@ export class SectioningComponent extends BlockComponent {
                 if (dependencyValues.boxed || dependencyValues.collapsible) {
                     for (const colorCheck of [
                         {
-                            colorAttr: dependencyValues.completedColorAttr,
+                            authorSet: !usedDefault.completedColor,
+                            colorValue: dependencyValues.completedColor,
                             colorName: "completedColor",
                             textColor: "#000000",
                         },
                         {
-                            colorAttr: dependencyValues.inProgressColorAttr,
+                            authorSet: !usedDefault.inProgressColor,
+                            colorValue: dependencyValues.inProgressColor,
                             colorName: "inProgressColor",
                             textColor: "#000000",
                         },
                         {
-                            colorAttr: dependencyValues.notStartedColorAttr,
+                            authorSet: !usedDefault.notStartedColor,
+                            colorValue: dependencyValues.notStartedColor,
                             colorName: "notStartedColor",
                             textColor: "#000000",
                         },
                         {
-                            colorAttr:
-                                dependencyValues.completedColorDarkModeAttr,
+                            authorSet: !usedDefault.completedColorDarkMode,
+                            colorValue: dependencyValues.completedColorDarkMode,
                             colorName: "completedColorDarkMode",
                             textColor: "#ffffff",
                             modeSuffix: " (dark mode)",
                         },
                         {
-                            colorAttr:
-                                dependencyValues.inProgressColorDarkModeAttr,
+                            authorSet: !usedDefault.inProgressColorDarkMode,
+                            colorValue:
+                                dependencyValues.inProgressColorDarkMode,
                             colorName: "inProgressColorDarkMode",
                             textColor: "#ffffff",
                             modeSuffix: " (dark mode)",
                         },
                         {
-                            colorAttr:
-                                dependencyValues.notStartedColorDarkModeAttr,
+                            authorSet: !usedDefault.notStartedColorDarkMode,
+                            colorValue:
+                                dependencyValues.notStartedColorDarkMode,
                             colorName: "notStartedColorDarkMode",
                             textColor: "#ffffff",
                             modeSuffix: " (dark mode)",

@@ -1445,3 +1445,119 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
     });
 });
+
+describe("Section heading color accessibility diagnostics", async () => {
+    it("emits no diagnostics when default CSS-variable colors are used", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed>
+  <title>Default colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) => d.type === "accessibility" && d.level === 1,
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("emits diagnostics for insufficient light-mode heading colors", async () => {
+        // black on black = 1:1, fails 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColor="black"
+  inProgressColor="black"
+  completedColor="black">
+  <title>Bad colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics.length).toBeGreaterThanOrEqual(3);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("completedColor")),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("inProgressColor")),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("notStartedColor")),
+        ).toBe(true);
+    });
+
+    it("emits diagnostics for insufficient dark-mode heading colors", async () => {
+        // white on white = 1:1, fails 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColorDarkMode="white"
+  inProgressColorDarkMode="white"
+  completedColorDarkMode="white">
+  <title>Bad dark colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics.length).toBeGreaterThanOrEqual(3);
+        expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("completedColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("(dark mode)")),
+        ).toBe(true);
+    });
+
+    it("emits no diagnostics for accessible custom colors", async () => {
+        // #d0d0d0 on white canvas: black text contrast > 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColor="#d0d0d0"
+  notStartedColorDarkMode="#2a2a2a">
+  <title>Good colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("does not emit diagnostics for non-boxed sections", async () => {
+        // Heading colors are irrelevant for non-boxed/non-collapsible sections.
+        const { core } = await createTestCore({
+            doenetML: `<section name="sec" notStartedColor="black">
+  <title>Non-boxed</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+});
