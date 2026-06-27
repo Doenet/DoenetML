@@ -22,16 +22,6 @@ function directionFromSlope(slope) {
     return [Math.cos(theta), Math.sin(theta)];
 }
 
-function getClampedPointOffset(pointOffsetAttr, essentialPointOffset) {
-    const raw =
-        pointOffsetAttr !== null
-            ? pointOffsetAttr.stateValues.value
-            : essentialPointOffset;
-    // Fall back to 0 if the value is non-finite (NaN, Infinity, etc.)
-    const finite = Number.isFinite(raw) ? raw : 0;
-    return Math.max(-1, Math.min(1, finite));
-}
-
 function getNumericValue(mathOrNumber) {
     return mathOrNumber instanceof me.class
         ? mathOrNumber.evaluate_to_constant()
@@ -223,6 +213,7 @@ export default class LineSegment extends GraphicalComponent {
 
         attributes.pointOffset = {
             createComponentOfType: "number",
+            clamp: [-1, 1],
             description:
                 "Where the through point sits along the segment: -1=first endpoint, 0=midpoint, 1=second endpoint.",
         };
@@ -1015,10 +1006,10 @@ export default class LineSegment extends GraphicalComponent {
                     } else if (g.numThroughPoints === 1) {
                         // Case C: 0 endpoints + 1 through.
                         // Build endpoints as expressions so symbolic through points are preserved.
-                        const po = getClampedPointOffset(
-                            g.pointOffsetAttr,
-                            g.essentialPointOffset,
-                        );
+                        const po =
+                            g.pointOffsetAttr !== null
+                                ? g.pointOffsetAttr.stateValues.value
+                                : g.essentialPointOffset;
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
                             let throughCoordVal =
@@ -1231,10 +1222,10 @@ export default class LineSegment extends GraphicalComponent {
                     // Case C: through point T is the position handle.
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
-                    const po = getClampedPointOffset(
-                        g.pointOffsetAttr,
-                        g.essentialPointOffset,
-                    );
+                    const po =
+                        g.pointOffsetAttr !== null
+                            ? g.pointOffsetAttr.stateValues.value
+                            : g.essentialPointOffset;
                     const tT = (1 + po) / 2;
 
                     let T_new;
