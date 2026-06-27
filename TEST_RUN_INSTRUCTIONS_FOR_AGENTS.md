@@ -160,7 +160,7 @@ Use `npm exec serve` to host it (it handles clean URLs — `/reference/document`
 resolves to `out/reference/document.html` automatically):
 
 ```bash
-npm exec serve -- -l 3000 packages/docs-nextra/out/ &
+npm exec serve -- --no-port-switching -l 3000 packages/docs-nextra/out/ &
 npm exec wait-on -- http://localhost:3000
 ```
 
@@ -187,6 +187,8 @@ lsof -ti:3000 | xargs kill
 ### Common failure: "cannot verify http://localhost:3000"
 
 The serve server is not running.  Start it (step 2) before running Cypress.
+If port 3000 is already occupied, `serve` now exits instead of silently
+switching to another port, so free the port and restart the command.
 
 ### Common failure: colour-contrast violations after style changes
 

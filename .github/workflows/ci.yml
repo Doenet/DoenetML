@@ -438,7 +438,7 @@ jobs:
 
             - name: Start docs server
               run: |
-                  npm exec serve -- -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
+                  npm exec serve -- --no-port-switching -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
                   echo $! > /tmp/docs-serve.pid
 
             - name: Wait for docs server
