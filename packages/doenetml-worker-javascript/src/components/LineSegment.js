@@ -23,15 +23,13 @@ function directionFromSlope(slope) {
 }
 
 function getClampedPointOffset(pointOffsetAttr, essentialPointOffset) {
-    return Math.max(
-        -1,
-        Math.min(
-            1,
-            pointOffsetAttr !== null
-                ? pointOffsetAttr.stateValues.value
-                : essentialPointOffset,
-        ),
-    );
+    const raw =
+        pointOffsetAttr !== null
+            ? pointOffsetAttr.stateValues.value
+            : essentialPointOffset;
+    // Fall back to 0 if the value is non-finite (NaN, Infinity, etc.)
+    const finite = Number.isFinite(raw) ? raw : 0;
+    return Math.max(-1, Math.min(1, finite));
 }
 
 function getNumericValue(mathOrNumber) {
@@ -2144,7 +2142,13 @@ export default class LineSegment extends GraphicalComponent {
                 // Flip if needed to stay closest to current direction.
                 let currentDirX = (B1 - A1) / L;
                 let currentDirY = (B2 - A2) / L;
-                if (currentDirX * dirX + currentDirY * dirY < 0) {
+                // For finite slopes, flip direction to stay closest to current.
+                // For vertical slopes (±Infinity), the direction [0, ±1] is exact
+                // and flipping would incorrectly invert the sign (Inf ↔ -Inf).
+                if (
+                    Number.isFinite(m) &&
+                    currentDirX * dirX + currentDirY * dirY < 0
+                ) {
                     dirX = -dirX;
                     dirY = -dirY;
                 }
