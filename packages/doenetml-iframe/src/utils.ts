@@ -16,43 +16,15 @@ export type DoenetEditorProps = Omit<
     "doenetML" | "width" | "height" | "externalVirtualKeyboardProvided"
 >;
 
+type IframeDarkMode =
+    | DoenetViewerProps["darkMode"]
+    | DoenetEditorProps["darkMode"];
 type BodyBackgroundMode = "dark" | "light" | "system";
 
 const DARK_CANVAS = "#121212";
 const LIGHT_CANVAS = "white";
 const BODY_BACKGROUND_ATTRIBUTE = "data-doenet-body-background";
-
-/**
- * Normalize the public dark-mode prop to the subset used for the iframe body.
- */
-function bodyBackgroundMode(
-    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
-): BodyBackgroundMode {
-    if (darkMode === "dark") {
-        return "dark";
-    }
-    if (darkMode === "system") {
-        return "system";
-    }
-    return "light";
-}
-
-/**
- * Return the stylesheet and attribute value used to theme the iframe body.
- *
- * The body background is controlled via an attribute rather than an inline
- * background-color so `"system"` can switch cleanly with a media query and so
- * the editor can update the body theme in-place without rebuilding the iframe.
- */
-function bodyBackgroundStyle(
-    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
-): {
-    attributeValue: BodyBackgroundMode;
-    styleBlock: string;
-} {
-    return {
-        attributeValue: bodyBackgroundMode(darkMode),
-        styleBlock: `<style>
+const BODY_BACKGROUND_STYLE_BLOCK = `<style>
 body[${BODY_BACKGROUND_ATTRIBUTE}="light"],
 body[${BODY_BACKGROUND_ATTRIBUTE}="system"] {
     background-color: ${LIGHT_CANVAS};
@@ -65,13 +37,27 @@ body[${BODY_BACKGROUND_ATTRIBUTE}="dark"] {
         background-color: ${DARK_CANVAS};
     }
 }
-</style>`,
-    };
+</style>`;
+
+/**
+ * Normalize the public dark-mode prop to the subset used for the iframe body.
+ */
+function bodyBackgroundMode(darkMode: IframeDarkMode): BodyBackgroundMode {
+    if (darkMode === "dark") {
+        return "dark";
+    }
+    if (darkMode === "system") {
+        return "system";
+    }
+    return "light";
 }
 
+/**
+ * Update the iframe body's theme attribute without rebuilding the document.
+ */
 export function setIframeBodyBackground(
     body: HTMLElement,
-    darkMode: DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"],
+    darkMode: IframeDarkMode,
 ) {
     body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
 }
@@ -93,8 +79,7 @@ export function createHtmlForDoenetViewer(
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
-    const { attributeValue: bodyBackground, styleBlock: bgStyleBlock } =
-        bodyBackgroundStyle(doenetViewerProps.darkMode);
+    const bodyBackground = bodyBackgroundMode(doenetViewerProps.darkMode);
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly
@@ -103,7 +88,7 @@ export function createHtmlForDoenetViewer(
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
-        ${bgStyleBlock}
+        ${BODY_BACKGROUND_STYLE_BLOCK}
     </head>
     <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
         <script type="module">
@@ -148,15 +133,14 @@ export function createHtmlForDoenetEditor(
     // we pass an extra variable of the props that were specified.
     const doenetEditorPropsSpecified: string[] = Object.keys(augmentedProps);
 
-    const { attributeValue: bodyBackground, styleBlock: bgStyleBlock } =
-        bodyBackgroundStyle(doenetEditorProps.darkMode);
+    const bodyBackground = bodyBackgroundMode(doenetEditorProps.darkMode);
 
     return `
     <html style="overflow:hidden">
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
-        ${bgStyleBlock}
+        ${BODY_BACKGROUND_STYLE_BLOCK}
     </head>
     <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
         <script type="module">
