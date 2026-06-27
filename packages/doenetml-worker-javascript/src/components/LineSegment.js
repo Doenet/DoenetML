@@ -911,26 +911,6 @@ export default class LineSegment extends GraphicalComponent {
 
                 // New parameterization — compute ep1/ep2 from slope/length/through.
                 const g = globalDependencyValues;
-                const slope =
-                    g.slopeAttr !== null
-                        ? g.slopeAttr.stateValues.value
-                        : g.essentialSlope;
-                const signedLength =
-                    g.lengthAttr !== null
-                        ? g.lengthAttr.stateValues.value
-                        : g.essentialSignedLength;
-
-                // Compute direction unit vector from slope.
-                const direction = directionFromSlope(slope);
-                if (direction === null) {
-                    // NaN slope → undefined segment
-                    let unconstrainedEndpoints = {};
-                    for (let arrayKey of arrayKeys) {
-                        unconstrainedEndpoints[arrayKey] = me.fromAst("\uff3f");
-                    }
-                    return { setValue: { unconstrainedEndpoints } };
-                }
-                const [dirX, dirY] = direction;
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
@@ -961,6 +941,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
                     // Case A: 1 endpoint + 1 through → through is ep2.
+                    // slope, length, and pointOffset are all ignored here.
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding = "1_" + (Number(dim) + 1);
@@ -978,82 +959,121 @@ export default class LineSegment extends GraphicalComponent {
                                 throughVal ?? me.fromAst(0);
                         }
                     }
-                } else if (
-                    g.numEndpointsSpecified === 1 &&
-                    g.numThroughPoints === 0
-                ) {
-                    // Case B: 1 endpoint, ep2 = ep1 + L × dir.
-                    // Build ep2 as an expression so symbolic endpoints are preserved.
-                    for (let arrayKey of arrayKeys) {
-                        let [pointInd, dim] = arrayKey.split(",");
-                        let varEnding = "1_" + (Number(dim) + 1);
-                        let ep1Coord =
-                            dependencyValuesByKey[arrayKey].ep1Coord
-                                .stateValues["pointX" + varEnding];
-                        if (!ep1Coord) {
-                            unconstrainedEndpoints[arrayKey] =
-                                me.fromAst("\uff3f");
-                            continue;
-                        }
-                        if (pointInd === "0") {
-                            unconstrainedEndpoints[arrayKey] = ep1Coord;
-                        } else {
-                            let delta =
-                                signedLength *
-                                getDirectionComponent(dim, dirX, dirY);
-                            unconstrainedEndpoints[arrayKey] = me
-                                .fromAst(["+", ep1Coord.tree, delta])
-                                .simplify();
-                        }
-                    }
-                } else if (g.numThroughPoints === 1) {
-                    // Case C: 0 endpoints + 1 through.
-                    // Build endpoints as expressions so symbolic through points are preserved.
-                    const po = getClampedPointOffset(
-                        g.pointOffsetAttr,
-                        g.essentialPointOffset,
-                    );
-                    for (let arrayKey of arrayKeys) {
-                        let [pointInd, dim] = arrayKey.split(",");
-                        let throughCoordVal =
-                            dependencyValuesByKey[arrayKey].throughCoord
-                                ?.stateValues["x" + (Number(dim) + 1)];
-                        if (!throughCoordVal) {
-                            unconstrainedEndpoints[arrayKey] =
-                                me.fromAst("\uff3f");
-                            continue;
-                        }
-                        let dir = getDirectionComponent(dim, dirX, dirY);
-                        if (pointInd === "0") {
-                            let coeff = ((1 + po) / 2) * signedLength * dir;
-                            unconstrainedEndpoints[arrayKey] = me
-                                .fromAst(["+", throughCoordVal.tree, -coeff])
-                                .simplify();
-                        } else {
-                            let coeff = ((1 - po) / 2) * signedLength * dir;
-                            unconstrainedEndpoints[arrayKey] = me
-                                .fromAst(["+", throughCoordVal.tree, coeff])
-                                .simplify();
-                        }
-                    }
                 } else {
-                    // Case D: 0 endpoints + 0 through, slope/length active.
-                    // ep1 from essentialEp1 global dep; ep2 derived.
-                    // Build ep2 as an expression so symbolic ep1 values are preserved.
-                    let ep1 = g.essentialEp1 ?? [me.fromAst(0), me.fromAst(0)];
-                    for (let arrayKey of arrayKeys) {
-                        let [pointInd, dim] = arrayKey.split(",");
-                        let ep1Coord = ep1[Number(dim)] ?? me.fromAst(0);
-                        if (pointInd === "0") {
-                            unconstrainedEndpoints[arrayKey] = ep1Coord;
-                        } else {
-                            let dir = getDirectionComponent(dim, dirX, dirY);
-                            let delta = signedLength * dir;
-                            unconstrainedEndpoints[arrayKey] = me
-                                .fromAst(["+", ep1Coord.tree, delta])
-                                .simplify();
+                    // Cases B, C, D all need slope and signedLength.
+                    const slope =
+                        g.slopeAttr !== null
+                            ? g.slopeAttr.stateValues.value
+                            : g.essentialSlope;
+                    const signedLength =
+                        g.lengthAttr !== null
+                            ? g.lengthAttr.stateValues.value
+                            : g.essentialSignedLength;
+
+                    // Compute direction unit vector from slope.
+                    const direction = directionFromSlope(slope);
+                    if (direction === null) {
+                        // NaN/non-finite slope → undefined segment for these cases.
+                        for (let arrayKey of arrayKeys) {
+                            unconstrainedEndpoints[arrayKey] =
+                                me.fromAst("\uff3f");
                         }
+                        let result = { setValue: { unconstrainedEndpoints } };
+                        if (sendDiagnostics.length > 0) {
+                            result.sendDiagnostics = sendDiagnostics;
+                        }
+                        return result;
                     }
+                    const [dirX, dirY] = direction;
+
+                    if (
+                        g.numEndpointsSpecified === 1 &&
+                        g.numThroughPoints === 0
+                    ) {
+                        // Case B: 1 endpoint, ep2 = ep1 + L × dir.
+                        // Build ep2 as an expression so symbolic endpoints are preserved.
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let varEnding = "1_" + (Number(dim) + 1);
+                            let ep1Coord =
+                                dependencyValuesByKey[arrayKey].ep1Coord
+                                    .stateValues["pointX" + varEnding];
+                            if (!ep1Coord) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let delta =
+                                    signedLength *
+                                    getDirectionComponent(dim, dirX, dirY);
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } else if (g.numThroughPoints === 1) {
+                        // Case C: 0 endpoints + 1 through.
+                        // Build endpoints as expressions so symbolic through points are preserved.
+                        const po = getClampedPointOffset(
+                            g.pointOffsetAttr,
+                            g.essentialPointOffset,
+                        );
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let throughCoordVal =
+                                dependencyValuesByKey[arrayKey].throughCoord
+                                    ?.stateValues["x" + (Number(dim) + 1)];
+                            if (!throughCoordVal) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            let dir = getDirectionComponent(dim, dirX, dirY);
+                            if (pointInd === "0") {
+                                let coeff = ((1 + po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst([
+                                        "+",
+                                        throughCoordVal.tree,
+                                        -coeff,
+                                    ])
+                                    .simplify();
+                            } else {
+                                let coeff = ((1 - po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", throughCoordVal.tree, coeff])
+                                    .simplify();
+                            }
+                        }
+                    } else {
+                        // Case D: 0 endpoints + 0 through, slope/length active.
+                        // ep1 from essentialEp1 global dep; ep2 derived.
+                        // Build ep2 as an expression so symbolic ep1 values are preserved.
+                        let ep1 = g.essentialEp1 ?? [
+                            me.fromAst(0),
+                            me.fromAst(0),
+                        ];
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let ep1Coord = ep1[Number(dim)] ?? me.fromAst(0);
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let dir = getDirectionComponent(
+                                    dim,
+                                    dirX,
+                                    dirY,
+                                );
+                                let delta = signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } // end else { // Cases B, C, D
                 }
 
                 let result = { setValue: { unconstrainedEndpoints } };
