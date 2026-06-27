@@ -213,6 +213,8 @@ export default class LineSegment extends GraphicalComponent {
 
         attributes.pointOffset = {
             createComponentOfType: "number",
+            createStateVariable: "pointOffsetAttr",
+            defaultValue: 0,
             clamp: [-1, 1],
             description:
                 "Where the through point sits along the segment: -1=first endpoint, 0=midpoint, 1=second endpoint.",
@@ -767,10 +769,13 @@ export default class LineSegment extends GraphicalComponent {
                         attributeName: "length",
                         variableNames: ["value"],
                     },
-                    pointOffsetAttr: {
+                    pointOffsetAttrComponent: {
                         dependencyType: "attributeComponent",
                         attributeName: "pointOffset",
-                        variableNames: ["value"],
+                    },
+                    pointOffsetAttr: {
+                        dependencyType: "stateVariable",
+                        variableName: "pointOffsetAttr",
                     },
                     essentialSlope: {
                         dependencyType: "stateVariable",
@@ -907,7 +912,7 @@ export default class LineSegment extends GraphicalComponent {
                     if (
                         g.slopeAttr !== null ||
                         g.lengthAttr !== null ||
-                        g.pointOffsetAttr !== null
+                        g.pointOffsetAttrComponent !== null
                     ) {
                         sendDiagnostics.push({
                             type: "info",
@@ -917,7 +922,7 @@ export default class LineSegment extends GraphicalComponent {
                     }
                 } else if (
                     g.numThroughPoints === 0 &&
-                    g.pointOffsetAttr !== null
+                    g.pointOffsetAttrComponent !== null
                 ) {
                     sendDiagnostics.push({
                         type: "info",
@@ -1007,8 +1012,8 @@ export default class LineSegment extends GraphicalComponent {
                         // Case C: 0 endpoints + 1 through.
                         // Build endpoints as expressions so symbolic through points are preserved.
                         const po =
-                            g.pointOffsetAttr !== null
-                                ? g.pointOffsetAttr.stateValues.value
+                            g.pointOffsetAttrComponent !== null
+                                ? g.pointOffsetAttr
                                 : g.essentialPointOffset;
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
@@ -1223,8 +1228,8 @@ export default class LineSegment extends GraphicalComponent {
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
                     const po =
-                        g.pointOffsetAttr !== null
-                            ? g.pointOffsetAttr.stateValues.value
+                        g.pointOffsetAttrComponent !== null
+                            ? g.pointOffsetAttr
                             : g.essentialPointOffset;
                     const tT = (1 + po) / 2;
 
