@@ -170,25 +170,25 @@ export default class LineSegment extends GraphicalComponent {
         attributes.through = {
             createComponentOfType: "point",
             description:
-                "A 2D point the line segment passes through when using slope/length/pointOffset.",
+                "A point the line segment passes through when using slope/length/pointOffset.",
         };
 
         attributes.slope = {
             createComponentOfType: "number",
             description:
-                "The 2D slope (direction) of the line segment. Can go negative after dragging for full 360° rotation.",
+                "The slope (direction) of the line segment in 2D. Can go negative after dragging for full 360° rotation. Ignored in 3D.",
         };
 
         attributes.length = {
             createComponentOfType: "number",
             description:
-                "The signed length of the 2D line segment. Negative values flip the direction relative to the slope.",
+                "The signed length of the line segment. Negative values flip the direction relative to the slope.",
         };
 
         attributes.pointOffset = {
             createComponentOfType: "number",
             description:
-                "Where the 2D through point sits along the segment: -1=first endpoint, 0=midpoint, 1=second endpoint.",
+                "Where the through point sits along the segment: -1=first endpoint, 0=midpoint, 1=second endpoint.",
         };
 
         attributes.addControls = {
@@ -430,13 +430,13 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // True when the 2D slope/length/through attrs are active
-        // (plus pointOffset when paired with through)
-        // and fewer than 2 explicit endpoints are given.
+        // True when slope/length/through attrs are active (plus pointOffset when
+        // paired with through) and fewer than 2 explicit endpoints are given.
         // Mirrors Line.js's basedOnSlope pattern.
-        // When false, all old unconstrainedEndpoints code paths run unchanged,
-        // including higher-dimensional segments where slope-based positioning
-        // is not well defined.
+        // When false, all old unconstrainedEndpoints code paths run unchanged.
+        // Note: slope is a 2D concept — in 3D, Cases B/C/D that depend on slope
+        // produce undefined (NaN) endpoints, while Case A (1 endpoint + 1 through)
+        // and length-only cases work correctly in any dimension.
         stateVariableDefinitions.basedOnSlopeOrThrough = {
             stateVariablesDeterminingDependencies: [],
             returnDependencies: () => ({
@@ -460,10 +460,6 @@ export default class LineSegment extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "numEndpointsSpecified",
                 },
-                numDimensions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDimensions",
-                },
             }),
             definition({ dependencyValues }) {
                 const anyPositioningAttr =
@@ -476,8 +472,7 @@ export default class LineSegment extends GraphicalComponent {
                     setValue: {
                         basedOnSlopeOrThrough:
                             anyPositioningAttr &&
-                            dependencyValues.numEndpointsSpecified < 2 &&
-                            dependencyValues.numDimensions === 2,
+                            dependencyValues.numEndpointsSpecified < 2,
                     },
                 };
             },
