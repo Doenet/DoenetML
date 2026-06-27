@@ -3406,6 +3406,48 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(2, 1e-10);
     });
 
+    it("through point clamps pointOffset to [-1,1]", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l1" through="(1,2)" slope="0" length="3" pointOffset="-2" />
+  <lineSegment name="l2" through="(4,2)" slope="0" length="3" pointOffset="2" />
+</graph>
+`,
+        });
+
+        const l1Idx = await resolvePathToNodeIdx("l1");
+        const l2Idx = await resolvePathToNodeIdx("l2");
+
+        const sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[l1Idx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+
+        expect(
+            sv[l2Idx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+    });
+
     // -----------------------------------------------------------------------
     // Case C: dragging referenced endpoint translates whole segment
     // -----------------------------------------------------------------------
