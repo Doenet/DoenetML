@@ -1450,7 +1450,7 @@ describe("Sectioning tag tests @group3", async () => {
     });
 });
 
-describe("Section heading color accessibility diagnostics", async () => {
+describe("Section heading color accessibility diagnostics @group3", async () => {
     it("emits no diagnostics when default CSS-variable colors are used", async () => {
         const { core } = await createTestCore({
             doenetML: `<problem name="p" boxed>
