@@ -84,6 +84,24 @@ describe(
                 settle: "#sec",
             },
             {
+                name: "boxed section — not started (default dark-mode heading color)",
+                doenetML: `
+<problem name="prob" boxed>
+  <title>A boxed problem</title>
+  <p>Some content.</p>
+</problem>`,
+                settle: "#prob",
+            },
+            {
+                name: "collapsible section — not started (default dark-mode heading color)",
+                doenetML: `
+<aside name="as" collapsible>
+  <title>Collapsible aside</title>
+  <p>Some content.</p>
+</aside>`,
+                settle: "#as",
+            },
+            {
                 name: "tabular / table",
                 doenetML: `
 <tabular name="t">

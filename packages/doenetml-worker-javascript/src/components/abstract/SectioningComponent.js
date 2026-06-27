@@ -5,6 +5,10 @@ import {
     setUpVariantSeedAndRng,
 } from "../../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
+import {
+    compositedContrastRatio,
+    TEXT_CONTRAST_THRESHOLD,
+} from "@doenet/utils/style";
 import { returnFeedbackDefinitionStateVariables } from "../../utils/feedback";
 import {
     returnScoredSectionAttributes,
@@ -140,6 +144,36 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "var(--mainGray)",
             description:
                 "Color used to indicate this section has not been started.",
+        };
+
+        attributes.completedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "completedColorDarkMode",
+            // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
+            defaultValue: "#1a5e20",
+            description:
+                "Color used to indicate this section has been completed (dark mode). " +
+                "If omitted, defaults to a dark green that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.inProgressColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "inProgressColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section is in progress (dark mode). " +
+                "If omitted, defaults to a dark gray that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.notStartedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "notStartedColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section has not been started (dark mode). " +
+                "If omitted, defaults to a dark gray that meets WCAG AA contrast for white text.",
         };
 
         return attributes;
@@ -887,6 +921,233 @@ export class SectioningComponent extends BlockComponent {
                 }
 
                 return { setValue: { titleColor } };
+            },
+        };
+
+        stateVariableDefinitions.titleColorDarkMode = {
+            // Dark-mode equivalent of titleColor. The renderer picks between
+            // titleColor and titleColorDarkMode based on the current theme so
+            // that the heading box is always legible on both canvases.
+            forRenderer: true,
+            returnDependencies: () => ({
+                completedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorDarkMode",
+                },
+                inProgressColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "inProgressColorDarkMode",
+                },
+                notStartedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "notStartedColorDarkMode",
+                },
+                parentCompletedColorDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "completedColorDarkMode",
+                },
+                parentInProgressColorDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "inProgressColorDarkMode",
+                },
+                parentNotStartedColorDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "notStartedColorDarkMode",
+                },
+                creditAchieved: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditAchieved",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let titleColorDarkMode =
+                    dependencyValues.notStartedColorDarkMode;
+                if (dependencyValues.creditAchieved === 1) {
+                    if (!usedDefault.completedColorDarkMode) {
+                        titleColorDarkMode =
+                            dependencyValues.completedColorDarkMode;
+                    } else if (
+                        typeof dependencyValues.parentCompletedColorDarkMode ===
+                        "string"
+                    ) {
+                        titleColorDarkMode =
+                            dependencyValues.parentCompletedColorDarkMode;
+                    } else {
+                        titleColorDarkMode =
+                            dependencyValues.completedColorDarkMode;
+                    }
+                } else if (dependencyValues.creditAchieved > 0) {
+                    if (!usedDefault.inProgressColorDarkMode) {
+                        titleColorDarkMode =
+                            dependencyValues.inProgressColorDarkMode;
+                    } else if (
+                        typeof dependencyValues.parentInProgressColorDarkMode ===
+                        "string"
+                    ) {
+                        titleColorDarkMode =
+                            dependencyValues.parentInProgressColorDarkMode;
+                    } else {
+                        titleColorDarkMode =
+                            dependencyValues.inProgressColorDarkMode;
+                    }
+                } else {
+                    if (!usedDefault.notStartedColorDarkMode) {
+                        titleColorDarkMode =
+                            dependencyValues.notStartedColorDarkMode;
+                    } else if (
+                        typeof dependencyValues.parentNotStartedColorDarkMode ===
+                        "string"
+                    ) {
+                        titleColorDarkMode =
+                            dependencyValues.parentNotStartedColorDarkMode;
+                    } else {
+                        titleColorDarkMode =
+                            dependencyValues.notStartedColorDarkMode;
+                    }
+                }
+
+                return { setValue: { titleColorDarkMode } };
+            },
+        };
+
+        stateVariableDefinitions.titleColorAccessibilityDiagnostics = {
+            // No meaningful rendered value; exists only to emit accessibility
+            // diagnostics when author-supplied heading-box background colors
+            // fail WCAG AA contrast against the inherited heading text color
+            // (black in light mode, white in dark mode).
+            returnDependencies: () => ({
+                completedColorAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "completedColor",
+                    variableNames: ["value"],
+                },
+                inProgressColorAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "inProgressColor",
+                    variableNames: ["value"],
+                },
+                notStartedColorAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "notStartedColor",
+                    variableNames: ["value"],
+                },
+                completedColorDarkModeAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "completedColorDarkMode",
+                    variableNames: ["value"],
+                },
+                inProgressColorDarkModeAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "inProgressColorDarkMode",
+                    variableNames: ["value"],
+                },
+                notStartedColorDarkModeAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "notStartedColorDarkMode",
+                    variableNames: ["value"],
+                },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const diagnostics = [];
+
+                // Title colors only apply to boxed or collapsible sections.
+                if (!dependencyValues.boxed && !dependencyValues.collapsible) {
+                    return {
+                        setValue: {
+                            titleColorAccessibilityDiagnostics: null,
+                        },
+                    };
+                }
+
+                /**
+                 * Emits a contrast diagnostic if an author-supplied heading
+                 * background color fails WCAG AA against the heading text.
+                 *
+                 * Only fires when the attribute was explicitly authored
+                 * (i.e., the component carries a source position). CSS
+                 * variable references (e.g. `var(--mainGray)`) are skipped
+                 * because `colord` cannot parse them.
+                 */
+                function checkHeadingColor(
+                    colorAttr,
+                    colorName,
+                    textColor,
+                    modeSuffix,
+                ) {
+                    if (!colorAttr?.position) {
+                        return;
+                    }
+                    const colorValue = colorAttr.stateValues?.value;
+                    if (!colorValue) return;
+
+                    const ratio = compositedContrastRatio({
+                        foreground: textColor,
+                        canvas: colorValue,
+                    });
+                    if (ratio !== null && ratio < TEXT_CONTRAST_THRESHOLD) {
+                        diagnostics.push({
+                            type: "accessibility",
+                            level: 1,
+                            message: `${colorName} has insufficient contrast for the section heading text${modeSuffix} (${ratio.toFixed(2)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`,
+                            position: colorAttr.position,
+                        });
+                    }
+                }
+
+                // Light mode: heading text inherits --canvasText = black.
+                checkHeadingColor(
+                    dependencyValues.completedColorAttr,
+                    "completedColor",
+                    "#000000",
+                    "",
+                );
+                checkHeadingColor(
+                    dependencyValues.inProgressColorAttr,
+                    "inProgressColor",
+                    "#000000",
+                    "",
+                );
+                checkHeadingColor(
+                    dependencyValues.notStartedColorAttr,
+                    "notStartedColor",
+                    "#000000",
+                    "",
+                );
+
+                // Dark mode: heading text inherits --canvasText = white.
+                checkHeadingColor(
+                    dependencyValues.completedColorDarkModeAttr,
+                    "completedColorDarkMode",
+                    "#ffffff",
+                    " (dark mode)",
+                );
+                checkHeadingColor(
+                    dependencyValues.inProgressColorDarkModeAttr,
+                    "inProgressColorDarkMode",
+                    "#ffffff",
+                    " (dark mode)",
+                );
+                checkHeadingColor(
+                    dependencyValues.notStartedColorDarkModeAttr,
+                    "notStartedColorDarkMode",
+                    "#ffffff",
+                    " (dark mode)",
+                );
+
+                return {
+                    setValue: {
+                        titleColorAccessibilityDiagnostics: null,
+                    },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
