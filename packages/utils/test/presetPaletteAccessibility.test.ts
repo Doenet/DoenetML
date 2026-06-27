@@ -26,14 +26,12 @@ function describePresetPaletteAccessibility({
 }: {
     mode: "light" | "dark";
     canvas: string;
-    graphicColorKeys: readonly [
-        "lineColor" | "lineColorDarkMode",
-        "markerColor" | "markerColorDarkMode",
-    ];
-    textColorKeys: readonly [
-        "textColor" | "textColorDarkMode",
-        "highContrastColor" | "highContrastColorDarkMode",
-    ];
+    graphicColorKeys:
+        | readonly ["lineColor", "markerColor"]
+        | readonly ["lineColorDarkMode", "markerColorDarkMode"];
+    textColorKeys:
+        | readonly ["textColor", "highContrastColor"]
+        | readonly ["textColorDarkMode", "highContrastColorDarkMode"];
 }) {
     describe(`preset palette ${mode}-mode accessibility`, () => {
         const presets = returnDefaultStyleDefinitions();
