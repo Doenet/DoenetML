@@ -43,10 +43,11 @@ function getNumericValue(mathOrNumber) {
 function getNumericEndpointPair(
     desiredUnconstrainedEndpoints,
     currentEndpoints,
+    numDimensions = 2,
     pointInds = [0, 1],
 ) {
     return pointInds.map((pointInd) =>
-        [0, 1].map((dim) => {
+        Array.from({ length: numDimensions }, (_, dim) => {
             let key = pointInd + "," + dim;
             if (key in desiredUnconstrainedEndpoints) {
                 return getNumericValue(desiredUnconstrainedEndpoints[key]);
@@ -81,6 +82,17 @@ function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
         slope: dy / dx,
         signedLength: Math.hypot(dx, dy) * Math.sign(dx),
     };
+}
+
+function getDirectionComponent(dim, dirX, dirY) {
+    let dimNumber = Number(dim);
+    if (dimNumber === 0) {
+        return dirX;
+    }
+    if (dimNumber === 1) {
+        return dirY;
+    }
+    return 0;
 }
 
 function addSlopeAndLengthInstructions({
@@ -176,7 +188,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.slope = {
             createComponentOfType: "number",
             description:
-                "The slope (direction) of the line segment in 2D. Can go negative after dragging for full 360° rotation. Ignored in 3D.",
+                "The slope (direction) of the line segment in the x-y plane. Can go negative after dragging for full 360° rotation; the public slope state variable is NaN outside 2D.",
         };
 
         attributes.length = {
@@ -434,9 +446,9 @@ export default class LineSegment extends GraphicalComponent {
         // paired with through) and fewer than 2 explicit endpoints are given.
         // Mirrors Line.js's basedOnSlope pattern.
         // When false, all old unconstrainedEndpoints code paths run unchanged.
-        // Note: slope is a 2D concept — in 3D, Cases B/C/D that depend on slope
-        // produce undefined (NaN) endpoints, while Case A (1 endpoint + 1 through)
-        // and length-only cases work correctly in any dimension.
+        // Note: slope is a 2D concept, so Cases B/C/D apply it only in the x-y
+        // plane and preserve higher coordinates. Case A (1 endpoint + 1 through)
+        // is fully dimension-agnostic.
         stateVariableDefinitions.basedOnSlopeOrThrough = {
             stateVariablesDeterminingDependencies: [],
             returnDependencies: () => ({
@@ -452,10 +464,6 @@ export default class LineSegment extends GraphicalComponent {
                     dependencyType: "attributeComponent",
                     attributeName: "through",
                 },
-                pointOffsetAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "pointOffset",
-                },
                 numEndpointsSpecified: {
                     dependencyType: "stateVariable",
                     variableName: "numEndpointsSpecified",
@@ -465,9 +473,7 @@ export default class LineSegment extends GraphicalComponent {
                 const anyPositioningAttr =
                     dependencyValues.slopeAttr !== null ||
                     dependencyValues.lengthAttr !== null ||
-                    dependencyValues.throughAttr !== null ||
-                    (dependencyValues.pointOffsetAttr !== null &&
-                        dependencyValues.throughAttr !== null);
+                    dependencyValues.throughAttr !== null;
                 return {
                     setValue: {
                         basedOnSlopeOrThrough:
@@ -970,9 +976,8 @@ export default class LineSegment extends GraphicalComponent {
                             unconstrainedEndpoints[arrayKey] = ep1Coord;
                         } else {
                             let delta =
-                                dim === "0"
-                                    ? signedLength * dirX
-                                    : signedLength * dirY;
+                                signedLength *
+                                getDirectionComponent(dim, dirX, dirY);
                             unconstrainedEndpoints[arrayKey] = me.fromAst(
                                 ep1Val + delta,
                             );
@@ -997,7 +1002,7 @@ export default class LineSegment extends GraphicalComponent {
                                 me.fromAst("\uff3f");
                             continue;
                         }
-                        let dir = dim === "0" ? dirX : dirY;
+                        let dir = getDirectionComponent(dim, dirX, dirY);
                         if (pointInd === "0") {
                             unconstrainedEndpoints[arrayKey] = me.fromAst(
                                 T - ((1 + po) / 2) * signedLength * dir,
@@ -1026,7 +1031,7 @@ export default class LineSegment extends GraphicalComponent {
                                     me.fromAst("\uff3f");
                                 continue;
                             }
-                            let dir = dim === "0" ? dirX : dirY;
+                            let dir = getDirectionComponent(dim, dirX, dirY);
                             unconstrainedEndpoints[arrayKey] = me.fromAst(
                                 ep1Coord + signedLength * dir,
                             );
@@ -1214,16 +1219,19 @@ export default class LineSegment extends GraphicalComponent {
                         }
                         const [dirX2, dirY2] = direction;
                         let currentEndpoints = await stateValues.endpoints;
-                        const [[ep1DesiredX, ep1DesiredY]] =
-                            getNumericEndpointPair(
-                                desiredStateVariableValues.unconstrainedEndpoints,
-                                currentEndpoints,
-                                [0],
-                            );
-                        T_new = [
-                            ep1DesiredX + tT * L * dirX2,
-                            ep1DesiredY + tT * L * dirY2,
-                        ];
+                        const [ep1Desired] = getNumericEndpointPair(
+                            desiredStateVariableValues.unconstrainedEndpoints,
+                            currentEndpoints,
+                            numDim,
+                            [0],
+                        );
+                        T_new = ep1Desired.map(
+                            (value, dim) =>
+                                value +
+                                tT *
+                                    L *
+                                    getDirectionComponent(dim, dirX2, dirY2),
+                        );
                     } else {
                         // ep2 desired (alone or with ep1): use t-parameterization.
                         // T_new = ep1_new + tT * (ep2_new - ep1_new)
@@ -1231,6 +1239,7 @@ export default class LineSegment extends GraphicalComponent {
                         let [ep1Num, ep2Num] = getNumericEndpointPair(
                             desiredStateVariableValues.unconstrainedEndpoints,
                             currentEndpoints,
+                            numDim,
                         );
                         if (
                             !ep1Num.every(Number.isFinite) ||
@@ -1238,10 +1247,9 @@ export default class LineSegment extends GraphicalComponent {
                         ) {
                             return { success: false };
                         }
-                        T_new = [
-                            ep1Num[0] + tT * (ep2Num[0] - ep1Num[0]),
-                            ep1Num[1] + tT * (ep2Num[1] - ep1Num[1]),
-                        ];
+                        T_new = ep1Num.map(
+                            (value, dim) => value + tT * (ep2Num[dim] - value),
+                        );
                         // Also update slope/length since ep2 changed.
                         addSlopeAndLengthInstructions({
                             instructions,
