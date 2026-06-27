@@ -983,16 +983,14 @@ export default class LineSegment extends GraphicalComponent {
                     g.numThroughPoints === 0
                 ) {
                     // Case B: 1 endpoint, ep2 = ep1 + L × dir.
+                    // Build ep2 as an expression so symbolic endpoints are preserved.
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding = "1_" + (Number(dim) + 1);
                         let ep1Coord =
                             dependencyValuesByKey[arrayKey].ep1Coord
                                 .stateValues["pointX" + varEnding];
-                        let ep1Val = ep1Coord
-                            ? ep1Coord.evaluate_to_constant()
-                            : 0;
-                        if (!Number.isFinite(ep1Val)) {
+                        if (!ep1Coord) {
                             unconstrainedEndpoints[arrayKey] =
                                 me.fromAst("\uff3f");
                             continue;
@@ -1003,13 +1001,14 @@ export default class LineSegment extends GraphicalComponent {
                             let delta =
                                 signedLength *
                                 getDirectionComponent(dim, dirX, dirY);
-                            unconstrainedEndpoints[arrayKey] = me.fromAst(
-                                ep1Val + delta,
-                            );
+                            unconstrainedEndpoints[arrayKey] = me
+                                .fromAst(["+", ep1Coord.tree, delta])
+                                .simplify();
                         }
                     }
                 } else if (g.numThroughPoints === 1) {
                     // Case C: 0 endpoints + 1 through.
+                    // Build endpoints as expressions so symbolic through points are preserved.
                     const po = getClampedPointOffset(
                         g.pointOffsetAttr,
                         g.essentialPointOffset,
@@ -1019,23 +1018,22 @@ export default class LineSegment extends GraphicalComponent {
                         let throughCoordVal =
                             dependencyValuesByKey[arrayKey].throughCoord
                                 ?.stateValues["x" + (Number(dim) + 1)];
-                        let T = throughCoordVal
-                            ? throughCoordVal.evaluate_to_constant()
-                            : 0;
-                        if (!Number.isFinite(T)) {
+                        if (!throughCoordVal) {
                             unconstrainedEndpoints[arrayKey] =
                                 me.fromAst("\uff3f");
                             continue;
                         }
                         let dir = getDirectionComponent(dim, dirX, dirY);
                         if (pointInd === "0") {
-                            unconstrainedEndpoints[arrayKey] = me.fromAst(
-                                T - ((1 + po) / 2) * signedLength * dir,
-                            );
+                            let coeff = ((1 + po) / 2) * signedLength * dir;
+                            unconstrainedEndpoints[arrayKey] = me
+                                .fromAst(["+", throughCoordVal.tree, -coeff])
+                                .simplify();
                         } else {
-                            unconstrainedEndpoints[arrayKey] = me.fromAst(
-                                T + ((1 - po) / 2) * signedLength * dir,
-                            );
+                            let coeff = ((1 - po) / 2) * signedLength * dir;
+                            unconstrainedEndpoints[arrayKey] = me
+                                .fromAst(["+", throughCoordVal.tree, coeff])
+                                .simplify();
                         }
                     }
                 } else {
@@ -2114,12 +2112,20 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let m = desiredStateVariableValues.slope;
+                // Normalize to a number in case a math expression was passed.
+                if (m instanceof me.class) {
+                    m = m.evaluate_to_constant();
+                }
                 if (Number.isNaN(m)) {
                     return { success: false };
                 }
 
                 // Compute candidate unit direction from desired slope.
-                let [dirX, dirY] = directionFromSlope(m);
+                const direction = directionFromSlope(m);
+                if (direction === null) {
+                    return { success: false };
+                }
+                let [dirX, dirY] = direction;
 
                 // Flip if needed to stay closest to current direction.
                 let currentDirX = (B1 - A1) / L;
