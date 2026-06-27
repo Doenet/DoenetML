@@ -131,6 +131,73 @@ npm run preview -w @doenet/test-cypress -- --host 127.0.0.1 --port 4173 --strict
 
 4. Re-run Cypress with fast-fail settings.
 
+## Documentation Accessibility Tests (`@doenet/docs-cypress`)
+
+`packages/docs-cypress` runs cypress-axe accessibility checks against the
+built documentation site (WCAG 2.x, both light mode and dark mode).
+
+The docs site must be built and served before Cypress runs.
+
+### 1. Build the docs (if not already built or after style/content changes)
+
+```bash
+export NODE_OPTIONS="--max_old_space_size=6114"
+npm run build:docs
+```
+
+This requires the docs prerequisites (doenetml, standalone, iframe) to already
+be built.  If they are missing, build them first:
+
+```bash
+export NODE_OPTIONS="--max_old_space_size=6114"
+npm run build:docs-prereqs && npm run build:docs
+```
+
+### 2. Serve the static export
+
+The docs produces a static export in `packages/docs-nextra/out/`.
+Use `npm exec serve` to host it (it handles clean URLs — `/reference/document`
+resolves to `out/reference/document.html` automatically):
+
+```bash
+npm exec serve -- --no-port-switching -l 3000 packages/docs-nextra/out/ &
+npm exec wait-on -- http://localhost:3000
+```
+
+Run the server in a background terminal or with `&`.
+
+### 3. Run Cypress in headless mode (non-interactive)
+
+```bash
+npm run test-cypress-docs-all -w packages/docs-cypress
+```
+
+Or fast-fail for quick iteration:
+
+```bash
+npm run test-cypress-docs-fast-fail -w packages/docs-cypress
+```
+
+### 4. Stop the serve server when done
+
+```bash
+lsof -ti:3000 | xargs -r kill
+```
+
+(`-r` / `--no-run-if-empty` silences the error when nothing is listening on port 3000.)
+
+### Common failure: "cannot verify http://localhost:3000"
+
+The serve server is not running.  Start it (step 2) before running Cypress.
+If port 3000 is already occupied, `serve` now exits instead of silently
+switching to another port, so free the port and restart the command.
+
+### Common failure: colour-contrast violations after style changes
+
+If you changed `packages/docs-nextra/pages/style.css` or other doc styles,
+rebuild the docs (step 1) before running the tests — Cypress reads the built
+`out/` directory, not the source files.
+
 ## Quick Checklist
 
 1. Use non-interactive commands only.
@@ -140,3 +207,4 @@ npm run preview -w @doenet/test-cypress -- --host 127.0.0.1 --port 4173 --strict
 5. Only after rebuilding and starting preview, run Cypress.
 6. Use `cypress run` (headless), not `cypress open`.
 7. Stop background preview server after tests finish.
+8. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.

@@ -30,6 +30,7 @@
         "./packages/doenetml-prototype",
         "./packages/docs-nextra",
         "./packages/vscode-extension/extension",
+        "./packages/docs-cypress",
         "./packages/*"
     ],
     "scripts": {
@@ -59,7 +60,8 @@
         "test:doenetml-cypress": "npm run test-cypress-all -w packages/doenetml",
         "test:doenetml-iframe-cypress": "npm run test-cypress-all -w packages/doenetml-iframe",
         "version:changesets": "changeset version && npm install --package-lock-only",
-        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w doenet-vscode-extension"
+        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w doenet-vscode-extension",
+        "test:docs-cypress": "npm run test-cypress-docs-all -w packages/docs-cypress"
     },
     "prettier": {
         "tabWidth": 4
@@ -184,6 +186,7 @@
         "rollup-plugin-polyfill-node": "^0.13.0",
         "rollup-plugin-visualizer": "^6.0.5",
         "seedrandom": "^3.0.5",
+        "serve": "^14.2.5",
         "source-map-generator": "^2.0.2",
         "tailwindcss": "^3.4.19",
         "ts-morph": "^25.0.1",
