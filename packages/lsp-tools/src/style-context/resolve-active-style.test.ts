@@ -101,7 +101,7 @@ describe("resolveActiveStyle — built-in presets", () => {
         // Assert against a field where the preset path and the bare-fallback
         // path differ. styleNumber=1's preset runs through
         // `addMissingColorWordsToStyleDefinition`, so its `lineColorWord`
-        // is the word derived from `#648FFF`. The unknown-styleNumber
+        // is the word derived from `#1f5dff`. The unknown-styleNumber
         // fallback skips that derivation and `resolveStyleDefinition` fills
         // the missing word with `""`. Asserting on `markerStyle="circle"`
         // alone wouldn't distinguish the paths since both seeds share it.
@@ -429,9 +429,9 @@ describe("resolveActiveStyleAttributeValue", () => {
     });
 
     it("attaches colorWord for a hex color attribute (built-in styleNumber=1 default lineColor)", () => {
-        // Built-in styleNumber=1 ships lineColor="#648FFF"; the resolver
+        // Built-in styleNumber=1 ships lineColor="#1f5dff"; the resolver
         // should ride along the styleDefinition's own number (1) and pair
-        // the hex with whatever word `colorValueToWord` derives.
+        // the hex with the canonical "blue" color word shown in the help UI.
         const sourceObj = new DoenetSourceObject(
             `<setup><styleDefinition styleNumber="1"/></setup>`,
         );
@@ -442,11 +442,23 @@ describe("resolveActiveStyleAttributeValue", () => {
             "lineColor",
             { excludeAttribute: { node: sd, attributeName: "lineColor" } },
         );
-        expect(result?.value).toBe("#648FFF");
-        // The derived word is whatever the nearest-canonical-color lookup
-        // returns; just assert it's present and not the raw hex.
-        expect(typeof result?.colorWord).toBe("string");
-        expect(result?.colorWord).not.toBe(result?.value);
+        expect(result?.value).toBe("#1f5dff");
+        expect(result?.colorWord).toBe("blue");
+    });
+
+    it("keeps built-in styleNumber=3's accessible preset color in the orange family", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="3"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            sd,
+            "lineColor",
+            { excludeAttribute: { node: sd, attributeName: "lineColor" } },
+        );
+        expect(result?.value).toBe("#a6510c");
+        expect(result?.colorWord).toBe("orange");
     });
 
     it("suppresses colorWord when the value already IS a CSS named color", () => {

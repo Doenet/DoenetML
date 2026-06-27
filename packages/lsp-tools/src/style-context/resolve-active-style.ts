@@ -527,7 +527,7 @@ export function resolveActiveStyle(
  * attributes (`lineColor`, `fillColorDarkMode`, etc.), also carries the
  * human-readable `colorWord` derived via `colorValueToWord` — the help
  * panel renders it in parens next to the hex so authors don't have to
- * eyeball "#648FFF" to remember it's the cornflower-ish default.
+ * eyeball "#1f5dff" to remember it's the default blue preset.
  *
  * `colorWord` is suppressed when the resolved value is itself a CSS named
  * color (e.g. `lineColor="red"`) since `red (red)` would just be noise.

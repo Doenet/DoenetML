@@ -5,64 +5,83 @@ import {
     getStyleValueNumber,
     compositedContrastRatio,
     CANVAS_DARK_MODE_COLOR,
+    CANVAS_LIGHT_MODE_COLOR,
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
 } from "../src/style";
 
+const MODE_CONFIG = {
+    light: {
+        canvas: CANVAS_LIGHT_MODE_COLOR,
+        graphicColorKeys: ["lineColor", "markerColor"] as const,
+        textColorKeys: ["textColor", "highContrastColor"] as const,
+    },
+    dark: {
+        canvas: CANVAS_DARK_MODE_COLOR,
+        graphicColorKeys: ["lineColorDarkMode", "markerColorDarkMode"] as const,
+        textColorKeys: [
+            "textColorDarkMode",
+            "highContrastColorDarkMode",
+        ] as const,
+    },
+} as const;
+
 /**
- * Guards that every built-in preset is accessible in DARK mode, so the
- * recomputed dark-mode palette can never silently regress below WCAG AA.
+ * Guards that every built-in preset is accessible in both LIGHT and DARK mode,
+ * so the palette can never silently regress below WCAG AA.
  *
- * (Light-mode preset values are pre-existing and intentionally left as-is here:
- * several presets — including the default blue line color — sit below 3:1 in
- * light mode, but fixing them changes Doenet's default palette and is tracked
- * separately in Doenet/DoenetML#1364. This guard covers the dark-mode values,
- * which were (re)computed by the dark-mode work.)
+ * Light-mode failures (styles 1, 3, 6) were fixed alongside adding these
+ * assertions (see Doenet/DoenetML#1364). Dark-mode values were fixed in the
+ * earlier dark-mode accessibility PR.
  */
-describe("preset palette dark-mode accessibility", () => {
-    const presets = returnDefaultStyleDefinitions();
+function describePresetPaletteAccessibility(mode: "light" | "dark") {
+    const { canvas, graphicColorKeys, textColorKeys } = MODE_CONFIG[mode];
 
-    for (const styleNumber of Object.keys(presets)) {
-        const styleDef = presets[styleNumber];
+    describe(`preset palette ${mode}-mode accessibility`, () => {
+        const presets = returnDefaultStyleDefinitions();
 
-        it(`style ${styleNumber} line/marker meet the graphic threshold in dark mode`, () => {
-            const lineOpacity =
-                getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
-            const markerOpacity =
-                getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
+        for (const styleNumber of Object.keys(presets)) {
+            const styleDef = presets[styleNumber];
 
-            for (const [colorKey, opacity] of [
-                ["lineColorDarkMode", lineOpacity],
-                ["markerColorDarkMode", markerOpacity],
-            ] as const) {
-                const dark = getStyleValueString(styleDef, colorKey)!;
-                const darkRatio = compositedContrastRatio({
-                    foreground: dark,
-                    canvas: CANVAS_DARK_MODE_COLOR,
-                    opacityMultiplier: opacity,
-                })!;
-                expect(
-                    darkRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
-            }
-        });
+            it(`style ${styleNumber} line/marker meet the graphic threshold in ${mode} mode`, () => {
+                const lineOpacity =
+                    getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
+                const markerOpacity =
+                    getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
 
-        it(`style ${styleNumber} text/highContrast meet the text threshold in dark mode`, () => {
-            for (const colorKey of [
-                "textColorDarkMode",
-                "highContrastColorDarkMode",
-            ] as const) {
-                const dark = getStyleValueString(styleDef, colorKey)!;
-                const darkRatio = compositedContrastRatio({
-                    foreground: dark,
-                    canvas: CANVAS_DARK_MODE_COLOR,
-                })!;
-                expect(
-                    darkRatio,
-                    `style ${styleNumber} ${colorKey}`,
-                ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
-            }
-        });
-    }
-});
+                for (const [colorKey, opacity] of [
+                    [graphicColorKeys[0], lineOpacity],
+                    [graphicColorKeys[1], markerOpacity],
+                ] as const) {
+                    const color = getStyleValueString(styleDef, colorKey)!;
+                    const contrastRatio = compositedContrastRatio({
+                        foreground: color,
+                        canvas,
+                        opacityMultiplier: opacity,
+                    })!;
+                    expect(
+                        contrastRatio,
+                        `style ${styleNumber} ${colorKey}`,
+                    ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
+                }
+            });
+
+            it(`style ${styleNumber} text/highContrast meet the text threshold in ${mode} mode`, () => {
+                for (const colorKey of textColorKeys) {
+                    const color = getStyleValueString(styleDef, colorKey)!;
+                    const contrastRatio = compositedContrastRatio({
+                        foreground: color,
+                        canvas,
+                    })!;
+                    expect(
+                        contrastRatio,
+                        `style ${styleNumber} ${colorKey}`,
+                    ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+                }
+            });
+        }
+    });
+}
+
+describePresetPaletteAccessibility("light");
+describePresetPaletteAccessibility("dark");

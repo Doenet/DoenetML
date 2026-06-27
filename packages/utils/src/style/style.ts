@@ -475,8 +475,8 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
  *    is a known constant, this **guarantees** an accessible result by
  *    construction (no diagnostic needed) with zero author effort. Note that
  *    lightness *inversion* would be wrong here: a light-mode-accessible graphic
- *    color may itself be light (e.g. the default `#648FFF` line), and inverting
- *    its lightness would push it *darker* and below threshold.
+ *    color may already sit on the lighter half of the scale, and inverting its
+ *    lightness would push it *darker* and below threshold.
  *
  *  - **Contrasted against an *author-variable* partner** (`text` vs
  *    `background`): the goal is to flip the figure/ground relationship
@@ -734,20 +734,20 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 highContrastColorDarkMode: "#FF7A7A",
             },
             3: {
-                lineColor: "#F19143",
+                lineColor: "#a6510c",
                 lineColorDarkMode: "#F19143",
                 lineOpacity: 0.7,
                 lineWidth: 3,
                 lineWidthWord: "",
                 lineStyle: "solid",
                 lineStyleWord: "",
-                markerColor: "#F19143",
+                markerColor: "#a6510c",
                 markerColorDarkMode: "#F19143",
                 markerOpacity: 0.7,
                 markerStyle: "triangle",
                 markerStyleWord: "triangle",
                 markerSize: 5,
-                fillColor: "#F19143",
+                fillColor: "#a6510c",
                 fillColorDarkMode: "#F19143",
                 fillOpacity: 0.3,
                 textColor: "#BE5A0E",
@@ -800,20 +800,20 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
                 highContrastColorDarkMode: "white",
             },
             6: {
-                lineColor: "gray",
+                lineColor: "#636363",
                 lineColorDarkMode: "#CCCCCC",
                 lineOpacity: 0.7,
                 lineWidth: 1,
                 lineWidthWord: "thin",
                 lineStyle: "dotted",
                 lineStyleWord: "dotted",
-                markerColor: "gray",
+                markerColor: "#636363",
                 markerColorDarkMode: "#CCCCCC",
                 markerOpacity: 0.7,
                 markerStyle: "circle",
                 markerStyleWord: "point",
                 markerSize: 5,
-                fillColor: "gray",
+                fillColor: "#636363",
                 fillColorDarkMode: "#CCCCCC",
                 fillOpacity: 0.3,
                 textColor: "#757575",
