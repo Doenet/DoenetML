@@ -104,6 +104,7 @@ describe("color words", () => {
         expect(colorValueToWord("#1f5dff")).eq("blue");
         expect(colorValueToWord("#648FFF")).eq("blue");
         expect(colorValueToWord("#a6510c")).eq("orange");
+        expect(colorValueToWord("#F19143")).eq("orange");
         expect(colorValueToWord("rgb(0,0,255)")).eq("blue");
         expect(colorValueToWord("#800080")).eq("purple");
         expect(colorValueToWord("rgb(128,0,128)")).eq("purple");
