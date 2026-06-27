@@ -446,6 +446,21 @@ describe("resolveActiveStyleAttributeValue", () => {
         expect(result?.colorWord).toBe("blue");
     });
 
+    it("keeps built-in styleNumber=3's accessible preset color in the orange family", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<setup><styleDefinition styleNumber="3"/></setup>`,
+        );
+        const sd = findElement(sourceObj, "styleDefinition");
+        const result = resolveActiveStyleAttributeValue(
+            sourceObj,
+            sd,
+            "lineColor",
+            { excludeAttribute: { node: sd, attributeName: "lineColor" } },
+        );
+        expect(result?.value).toBe("#a6510c");
+        expect(result?.colorWord).toBe("orange");
+    });
+
     it("suppresses colorWord when the value already IS a CSS named color", () => {
         // <styleDefinition lineColor="red"/> excluded from itself falls back
         // to the styleNumber=1 preset (a hex) — to actually exercise the

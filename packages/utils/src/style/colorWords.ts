@@ -110,6 +110,7 @@ const extraAnchorDefinitions: Record<string, AnchorDefinition> = {
     redDark: { hex: "#8b0000", canonical: "red" },
     orangeLight: { hex: "#ffa07a", canonical: "orange" },
     orangeCustom: { hex: "#F19143", canonical: "orange" },
+    orangePresetAccessible: { hex: "#a6510c", canonical: "orange" },
     orangeDark: { hex: "#ff8c00", canonical: "orange" },
     yellowLight: { hex: "#ffffe0", canonical: "yellow" },
     yellowDark: { hex: "#bdb76b", canonical: "yellow" },
