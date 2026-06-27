@@ -47,7 +47,11 @@ function resolveSectionTitleLightColorSpec({
     if (!usedDefault[ownColorName]) {
         return {
             value: dependencyValues[ownColorName],
-            source: { authored: true, colorName: ownColorName },
+            source: {
+                authored: true,
+                colorName: ownColorName,
+                inherited: false,
+            },
         };
     }
 
@@ -55,16 +59,19 @@ function resolveSectionTitleLightColorSpec({
     if (typeof inheritedValue === "string") {
         return {
             value: inheritedValue,
-            source: parentSources?.[stateKey] ?? {
-                authored: false,
-                colorName: ownColorName,
-            },
+            source: parentSources?.[stateKey]
+                ? { ...parentSources[stateKey], inherited: true }
+                : {
+                      authored: false,
+                      colorName: ownColorName,
+                      inherited: true,
+                  },
         };
     }
 
     return {
         value: dependencyValues[ownColorName],
-        source: { authored: false, colorName: ownColorName },
+        source: { authored: false, colorName: ownColorName, inherited: false },
     };
 }
 
@@ -91,7 +98,11 @@ function resolveSectionTitleDarkColorSpec({
     if (!usedDefault[ownDarkColorName]) {
         return {
             value: dependencyValues[ownDarkColorName],
-            source: { authored: true, colorName: ownDarkColorName },
+            source: {
+                authored: true,
+                colorName: ownDarkColorName,
+                inherited: false,
+            },
         };
     }
 
@@ -100,7 +111,11 @@ function resolveSectionTitleDarkColorSpec({
             value: deriveSectionTitleDarkModeColor(
                 dependencyValues[ownLightColorName],
             ),
-            source: { authored: true, colorName: ownLightColorName },
+            source: {
+                authored: true,
+                colorName: ownLightColorName,
+                inherited: false,
+            },
         };
     }
 
@@ -108,17 +123,39 @@ function resolveSectionTitleDarkColorSpec({
     if (typeof inheritedValue === "string") {
         return {
             value: inheritedValue,
-            source: parentSourcesDarkMode?.[stateKey] ?? {
-                authored: false,
-                colorName: ownDarkColorName,
-            },
+            source: parentSourcesDarkMode?.[stateKey]
+                ? { ...parentSourcesDarkMode[stateKey], inherited: true }
+                : {
+                      authored: false,
+                      colorName: ownDarkColorName,
+                      inherited: true,
+                  },
         };
     }
 
     return {
         value: dependencyValues[ownDarkColorName],
-        source: { authored: false, colorName: ownDarkColorName },
+        source: {
+            authored: false,
+            colorName: ownDarkColorName,
+            inherited: false,
+        },
     };
+}
+
+function shouldEmitSectionTitleColorDiagnostic({
+    source,
+    parentIsBoxedOrCollapsible,
+}) {
+    if (!source?.authored) {
+        return false;
+    }
+
+    if (!source.inherited) {
+        return true;
+    }
+
+    return !parentIsBoxedOrCollapsible;
 }
 
 /**
@@ -1111,7 +1148,6 @@ export class SectioningComponent extends BlockComponent {
                     variableName: "titleColorDarkMode",
                     forRenderer: true,
                 },
-                { variableName: "titleColorAccessibilityDiagnostics" },
             ],
             forRenderer: true,
             returnDependencies: () => ({
@@ -1143,6 +1179,14 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "collapsible",
                 },
+                parentBoxed: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "boxed",
+                },
+                parentCollapsible: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "collapsible",
+                },
             }),
             definition({ dependencyValues }) {
                 const titleStateKey = titleStateKeyFromCredit(
@@ -1157,6 +1201,10 @@ export class SectioningComponent extends BlockComponent {
 
                 const diagnostics = [];
                 if (dependencyValues.boxed || dependencyValues.collapsible) {
+                    const parentIsBoxedOrCollapsible = Boolean(
+                        dependencyValues.parentBoxed ||
+                        dependencyValues.parentCollapsible,
+                    );
                     for (const stateKey of sectionTitleStateKeys) {
                         const lightSource =
                             dependencyValues.sectionTitleStateColorSources[
@@ -1164,7 +1212,10 @@ export class SectioningComponent extends BlockComponent {
                             ];
                         addSectionTitleColorContrastDiagnostic({
                             diagnostics,
-                            authorSet: Boolean(lightSource?.authored),
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: lightSource,
+                                parentIsBoxedOrCollapsible,
+                            }),
                             colorValue:
                                 dependencyValues.sectionTitleStateColors[
                                     stateKey
@@ -1180,7 +1231,10 @@ export class SectioningComponent extends BlockComponent {
                             ];
                         addSectionTitleColorContrastDiagnostic({
                             diagnostics,
-                            authorSet: Boolean(darkSource?.authored),
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: darkSource,
+                                parentIsBoxedOrCollapsible,
+                            }),
                             colorValue:
                                 dependencyValues
                                     .sectionTitleStateColorsDarkMode[stateKey],
@@ -1195,7 +1249,6 @@ export class SectioningComponent extends BlockComponent {
                     setValue: {
                         titleColor,
                         titleColorDarkMode,
-                        titleColorAccessibilityDiagnostics: null,
                     },
                     sendDiagnostics: diagnostics,
                 };

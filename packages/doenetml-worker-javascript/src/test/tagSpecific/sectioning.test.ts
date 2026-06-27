@@ -1587,6 +1587,28 @@ describe("Section heading color accessibility diagnostics", async () => {
         ).toBe(true);
     });
 
+    it("does not duplicate diagnostics across nested boxed sections", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" boxed notStartedColor="black">
+  <title>Parent</title>
+  <section name="child" boxed>
+    <title>Child</title>
+    <p>Content.</p>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ) &&
+                d.message?.includes("notStartedColor"),
+        );
+        expect(diagnostics).toHaveLength(1);
+    });
+
     it("derives an accessible dark-mode heading color from an authored light-mode color", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<section name="sec" boxed notStartedColor="#d9d9d9">
