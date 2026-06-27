@@ -41,12 +41,13 @@ body[${BODY_BACKGROUND_ATTRIBUTE}="dark"] {
 
 /**
  * Normalize the public dark-mode prop to the subset used for the iframe body.
+ * Omitted values follow the public component default of `"system"`.
  */
 function bodyBackgroundMode(darkMode: IframeDarkMode): BodyBackgroundMode {
     if (darkMode === "dark") {
         return "dark";
     }
-    if (darkMode === "system") {
+    if (darkMode === undefined || darkMode === "system") {
         return "system";
     }
     return "light";
