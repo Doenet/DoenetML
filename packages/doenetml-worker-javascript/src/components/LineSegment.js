@@ -10,6 +10,30 @@ import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
+function directionFromSlope(slope) {
+    if (slope === Infinity || slope === -Infinity) {
+        return [0, Math.sign(slope)];
+    }
+    if (!Number.isFinite(slope)) {
+        return null;
+    }
+
+    let theta = Math.atan(slope);
+    return [Math.cos(theta), Math.sin(theta)];
+}
+
+function getClampedPointOffset(pointOffsetAttr, essentialPointOffset) {
+    return Math.max(
+        -1,
+        Math.min(
+            1,
+            pointOffsetAttr !== null
+                ? pointOffsetAttr.stateValues.value
+                : essentialPointOffset,
+        ),
+    );
+}
+
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
         super(args);
@@ -314,7 +338,8 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // True when slope/length/through/pointOffset attrs are active
+        // True when slope/length/through attrs are active
+        // (plus pointOffset when paired with through)
         // and fewer than 2 explicit endpoints are given.
         // Mirrors Line.js's basedOnSlope pattern.
         // When false, all old unconstrainedEndpoints code paths run unchanged.
@@ -343,15 +368,16 @@ export default class LineSegment extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const anyNewAttr =
+                const anyPositioningAttr =
                     dependencyValues.slopeAttr !== null ||
                     dependencyValues.lengthAttr !== null ||
                     dependencyValues.throughAttr !== null ||
-                    dependencyValues.pointOffsetAttr !== null;
+                    (dependencyValues.pointOffsetAttr !== null &&
+                        dependencyValues.throughAttr !== null);
                 return {
                     setValue: {
                         basedOnSlopeOrThrough:
-                            anyNewAttr &&
+                            anyPositioningAttr &&
                             dependencyValues.numEndpointsSpecified < 2,
                     },
                 };
@@ -771,15 +797,8 @@ export default class LineSegment extends GraphicalComponent {
                         : g.essentialSignedLength;
 
                 // Compute direction unit vector from slope.
-                let dirX, dirY;
-                if (slope === Infinity || slope === -Infinity) {
-                    dirX = 0;
-                    dirY = Math.sign(slope);
-                } else if (Number.isFinite(slope)) {
-                    let theta = Math.atan(slope);
-                    dirX = Math.cos(theta);
-                    dirY = Math.sin(theta);
-                } else {
+                const direction = directionFromSlope(slope);
+                if (direction === null) {
                     // NaN slope → undefined segment
                     let unconstrainedEndpoints = {};
                     for (let arrayKey of arrayKeys) {
@@ -787,6 +806,7 @@ export default class LineSegment extends GraphicalComponent {
                     }
                     return { setValue: { unconstrainedEndpoints } };
                 }
+                const [dirX, dirY] = direction;
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
@@ -883,14 +903,9 @@ export default class LineSegment extends GraphicalComponent {
                     }
                 } else if (g.numThroughPoints === 1) {
                     // Case C: 0 endpoints + 1 through.
-                    const po = Math.max(
-                        -1,
-                        Math.min(
-                            1,
-                            g.pointOffsetAttr !== null
-                                ? g.pointOffsetAttr.stateValues.value
-                                : g.essentialPointOffset,
-                        ),
+                    const po = getClampedPointOffset(
+                        g.pointOffsetAttr,
+                        g.essentialPointOffset,
                     );
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
@@ -1152,14 +1167,9 @@ export default class LineSegment extends GraphicalComponent {
                     // Case C: through point T is the position handle.
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
-                    const po = Math.max(
-                        -1,
-                        Math.min(
-                            1,
-                            g.pointOffsetAttr !== null
-                                ? g.pointOffsetAttr.stateValues.value
-                                : g.essentialPointOffset,
-                        ),
+                    const po = getClampedPointOffset(
+                        g.pointOffsetAttr,
+                        g.essentialPointOffset,
                     );
                     const tT = (1 + po) / 2;
 
@@ -1176,15 +1186,11 @@ export default class LineSegment extends GraphicalComponent {
                             g.lengthAttr !== null
                                 ? g.lengthAttr.stateValues.value
                                 : g.essentialSignedLength;
-                        let dirX2, dirY2;
-                        if (slope === Infinity || slope === -Infinity) {
-                            dirX2 = 0;
-                            dirY2 = Math.sign(slope);
-                        } else {
-                            const theta = Math.atan(slope);
-                            dirX2 = Math.cos(theta);
-                            dirY2 = Math.sin(theta);
+                        const direction = directionFromSlope(slope);
+                        if (direction === null) {
+                            return { success: false };
                         }
+                        const [dirX2, dirY2] = direction;
                         let currentEndpoints = await stateValues.endpoints;
                         const ep1DesiredX = numericDesiredOrCurrent(
                             0,
@@ -2060,15 +2066,7 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 // Compute candidate unit direction from desired slope.
-                let dirX, dirY;
-                if (m === Infinity || m === -Infinity) {
-                    dirX = 0;
-                    dirY = Math.sign(m);
-                } else {
-                    let theta = Math.atan(m);
-                    dirX = Math.cos(theta);
-                    dirY = Math.sin(theta);
-                }
+                let [dirX, dirY] = directionFromSlope(m);
 
                 // Flip if needed to stay closest to current direction.
                 let currentDirX = (B1 - A1) / L;
