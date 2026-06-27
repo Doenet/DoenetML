@@ -71,9 +71,9 @@ function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
     if (dx === 0) {
         return {
             slope: dy > 0 ? Infinity : -Infinity,
-            // For vertical segments, let slope encode up vs down so that
-            // reapplying signedLength * directionFromSlope(slope) preserves
-            // the dragged endpoint.
+            // For vertical segments, slope encodes up vs down, so a positive
+            // length still preserves the dragged endpoint when reapplied with
+            // directionFromSlope(slope).
             signedLength: Math.abs(dy),
         };
     }
@@ -214,7 +214,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.slope = {
             createComponentOfType: "number",
             description:
-                "The slope (direction) of the line segment in the x-y plane. It can become negative after dragging to support full 360° rotation.",
+                "The slope of the line segment in the x-y plane. It may be negative and can change sign when the direction passes through vertical.",
         };
 
         attributes.length = {
@@ -2114,7 +2114,7 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let m = desiredStateVariableValues.slope;
-                if (!Number.isFinite(m) && m !== Infinity && m !== -Infinity) {
+                if (Number.isNaN(m)) {
                     return { success: false };
                 }
 
