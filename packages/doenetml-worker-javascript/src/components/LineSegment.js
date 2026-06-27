@@ -70,7 +70,10 @@ function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
     if (dx === 0) {
         return {
             slope: dy > 0 ? Infinity : -Infinity,
-            signedLength: dy,
+            // For vertical segments, let slope encode up vs down so that
+            // reapplying signedLength * directionFromSlope(slope) preserves
+            // the dragged endpoint.
+            signedLength: Math.abs(dy),
         };
     }
 
@@ -1692,7 +1695,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
-            description: "The length of the line segment.",
+            description:
+                "The line segment's length. In 2D slope/through-based parameterizations, this is the signed defining length; otherwise it is the Euclidean length.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1701,6 +1705,19 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
+                basedOnSlopeOrThrough: {
+                    dependencyType: "stateVariable",
+                    variableName: "basedOnSlopeOrThrough",
+                },
+                lengthAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "length",
+                    variableNames: ["value"],
+                },
+                essentialSignedLength: {
+                    dependencyType: "stateVariable",
+                    variableName: "essentialSignedLength",
+                },
                 numDimensions: {
                     dependencyType: "stateVariable",
                     variableName: "numDimensions",
@@ -1711,6 +1728,20 @@ export default class LineSegment extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                if (
+                    dependencyValues.basedOnSlopeOrThrough &&
+                    dependencyValues.numDimensions === 2
+                ) {
+                    const length =
+                        dependencyValues.lengthAttr !== null
+                            ? dependencyValues.lengthAttr.stateValues.value
+                            : dependencyValues.essentialSignedLength;
+
+                    return {
+                        setValue: { length: me.fromAst(length) },
+                    };
+                }
+
                 let length2 = 0;
                 let epoint1 = dependencyValues.endpoints[0];
                 let epoint2 = dependencyValues.endpoints[1];
@@ -1755,6 +1786,41 @@ export default class LineSegment extends GraphicalComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                if (
+                    dependencyValues.basedOnSlopeOrThrough &&
+                    dependencyValues.numDimensions === 2
+                ) {
+                    const desiredLength =
+                        desiredStateVariableValues.length.evaluate_to_constant();
+
+                    if (!Number.isFinite(desiredLength)) {
+                        return { success: false };
+                    }
+
+                    if (dependencyValues.lengthAttr !== null) {
+                        return {
+                            success: true,
+                            instructions: [
+                                {
+                                    setDependency: "lengthAttr",
+                                    desiredValue: desiredLength,
+                                    variableIndex: 0,
+                                },
+                            ],
+                        };
+                    }
+
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "essentialSignedLength",
+                                desiredValue: desiredLength,
+                            },
+                        ],
+                    };
+                }
+
                 let midpoint = [];
                 let dir = [];
                 let epoint1 = dependencyValues.endpoints[0];
