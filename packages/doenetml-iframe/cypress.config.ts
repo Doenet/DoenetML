@@ -27,6 +27,13 @@ export default defineConfig({
                     // resolves at cypress dev-server compile time too.
                     IFRAME_VERSION: JSON.stringify(iframeVersion),
                 },
+                resolve: {
+                    // Component specs may import linked workspace packages
+                    // (notably @doenet/virtual-keyboard) directly. Dedupe
+                    // React so those packages share the same hook dispatcher as
+                    // Cypress's React mount runtime.
+                    dedupe: ["react", "react-dom"],
+                },
                 plugins: [
                     {
                         // The @doenet/standalone bundle (~32 MB JS, plus a
