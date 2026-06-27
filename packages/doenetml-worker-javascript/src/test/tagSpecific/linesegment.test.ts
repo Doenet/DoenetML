@@ -2727,6 +2727,21 @@ function ep2FromEp1SlopeLength(
     return [ep1[0] + L * dx, ep1[1] + L * dy];
 }
 
+function signedLengthFromEndpoints(ep1: number[], ep2: number[]): number {
+    const dx = ep2[0] - ep1[0];
+    const dy = ep2[1] - ep1[1];
+
+    if (dx === 0 && dy === 0) {
+        return 0;
+    }
+
+    if (dx === 0) {
+        return Math.abs(dy);
+    }
+
+    return Math.hypot(dx, dy) * Math.sign(dx);
+}
+
 describe("LineSegment slope/length/through/pointOffset attribute tests @group5", async () => {
     // -----------------------------------------------------------------------
     // Case D: no endpoints, slope only
@@ -2775,9 +2790,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
             } else {
                 expect(seg.slope).eqls(expectedSlope);
             }
-            const expectedLen = Math.sqrt(
-                (ep2[0] - ep1[0]) ** 2 + (ep2[1] - ep1[1]) ** 2,
-            );
+            const expectedLen = signedLengthFromEndpoints(ep1, ep2);
             expect(seg.length.evaluate_to_constant()).closeTo(
                 expectedLen,
                 1e-10,
@@ -2924,6 +2937,71 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(0, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [0, -4],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(-4, 1e-10);
+        expect(sv[LIdx].stateValues.value).closeTo(4, 1e-10);
+    });
+
+    it("signed length state variable round-trips in slope-based mode", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="0" length="4" />
+</graph>
+<mathInput name="milength" bindValueTo="$l.length" />
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const lengthInputIdx = await resolvePathToNodeIdx("milength");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).eq(4);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        await updateMathInputValue({
+            latex: "-3",
+            componentIdx: lengthInputIdx,
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).eq(-3);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(-3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: lengthInputIdx,
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).eq(2);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
         ).closeTo(0, 1e-10);
     });
 
