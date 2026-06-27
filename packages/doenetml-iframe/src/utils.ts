@@ -63,6 +63,19 @@ export function setIframeBodyBackground(
     body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
 }
 
+function createIframeHead(standaloneUrl: string, cssUrl: string) {
+    return `
+    <head>
+        <script type="module" src="${standaloneUrl}"></script>
+        <link rel="stylesheet" href="${cssUrl}">
+        ${BODY_BACKGROUND_STYLE_BLOCK}
+    </head>`;
+}
+
+function createIframeBodyOpenTag(darkMode: IframeDarkMode) {
+    return `<body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackgroundMode(darkMode)}">`;
+}
+
 /**
  * Create HTML for a single page document that renders the given DoenetML.
  */
@@ -80,18 +93,12 @@ export function createHtmlForDoenetViewer(
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
-    const bodyBackground = bodyBackgroundMode(doenetViewerProps.darkMode);
-
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-        ${BODY_BACKGROUND_STYLE_BLOCK}
-    </head>
-    <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
+    ${createIframeHead(standaloneUrl, cssUrl)}
+    ${createIframeBodyOpenTag(doenetViewerProps.darkMode)}
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
@@ -134,16 +141,10 @@ export function createHtmlForDoenetEditor(
     // we pass an extra variable of the props that were specified.
     const doenetEditorPropsSpecified: string[] = Object.keys(augmentedProps);
 
-    const bodyBackground = bodyBackgroundMode(doenetEditorProps.darkMode);
-
     return `
     <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-        ${BODY_BACKGROUND_STYLE_BLOCK}
-    </head>
-    <body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackground}">
+    ${createIframeHead(standaloneUrl, cssUrl)}
+    ${createIframeBodyOpenTag(doenetEditorProps.darkMode)}
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
