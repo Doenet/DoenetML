@@ -1521,6 +1521,16 @@ describe("Section heading color accessibility diagnostics", async () => {
             ),
         ).toBe(true);
         expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("inProgressColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("notStartedColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
             diagnostics.some((d: any) => d.message.includes("(dark mode)")),
         ).toBe(true);
     });
@@ -1594,6 +1604,31 @@ describe("Section heading color accessibility diagnostics", async () => {
   <section name="child" boxed>
     <title>Child</title>
     <p>Content.</p>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ) &&
+                d.message?.includes("notStartedColor"),
+        );
+        expect(diagnostics).toHaveLength(1);
+    });
+
+    it("does not duplicate diagnostics across boxed sections separated by a non-boxed intermediary", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" boxed notStartedColor="black">
+  <title>Parent</title>
+  <section name="middle">
+    <title>Middle</title>
+    <problem name="child" boxed>
+      <title>Child</title>
+      <p>Content.</p>
+    </problem>
   </section>
 </section>`,
         });
