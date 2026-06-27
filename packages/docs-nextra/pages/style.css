@@ -9,6 +9,34 @@
     margin-top: 1.5rem;
 }
 
+/* ---------------------------------------------------------------------------
+ * Pre-existing Nextra/Shiki contrast fixes
+ * ---------------------------------------------------------------------------
+ * These rules correct WCAG 2.x AA failures that originate in third-party
+ * theme choices (Nextra's primary colour and the GitHub Light Shiki theme)
+ * rather than our own custom styles. They are scoped to light mode only;
+ * dark mode values in both cases already pass by a wide margin.
+ * --------------------------------------------------------------------------- */
+
+/* Nextra's default primary-600 link colour is hsl(212deg 100% 45%)
+ * ≈ rgb(0 107 230), which gives 4.49:1 on the gray-100 (rgb(243 244 246))
+ * background applied to even table rows — just below the 4.5:1 AA threshold
+ * (the exact ratio depends on the browser's HSL rounding).
+ * Lowering the lightness to 40% gives 5.44:1 on gray-100 and 5.99:1 on white,
+ * both well above the threshold. */
+html:not(.dark) .nextra-content ._text-primary-600 {
+    color: hsl(212deg 100% 40%);
+}
+
+/* The GitHub Light Shiki theme uses #22863A (a medium green) for XML/DoenetML
+ * tag-name tokens. That colour gives only 4.35–4.43:1 on Nextra's off-white
+ * backgrounds (rgb(246 248 250) for code blocks, rgb(250 250 250) for the
+ * page body). #1A7E32 is a slightly darker green that gives 4.84–5.15:1
+ * across all relevant light-mode backgrounds. */
+html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A"] {
+    color: #1a7e32 !important; /* overrides `color: var(--shiki-light)` */
+}
+
 /* Attribute and property names highlighted in blue. */
 .attr-name,
 .prop-name {
