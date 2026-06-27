@@ -3879,7 +3879,10 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(0, 1e-10);
     });
 
-    it("through/slope positioning stays disabled outside 2D", async () => {
+    it("slope/through positioning is active in 3D (slope gives 2D planar direction)", async () => {
+        // basedOnSlopeOrThrough activates in 3D; slope is still numerically applied
+        // as a 2D direction in the x-y plane. The public slope state variable
+        // returns NaN in 3D, but the attr value is still used for positioning.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,3,4)</point>
@@ -3893,34 +3896,19 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const sv = await core.returnAllStateVariables(false, true);
 
         expect(sv[lIdx].stateValues.numDimensions).eq(3);
-        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(false);
-        expect(
-            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
-        ).closeTo(1, 1e-10);
-        expect(
-            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
-        expect(
-            sv[lIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
-        expect(
-            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
-        expect(
-            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
-        expect(
-            sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(true);
+        // Public slope state variable is NaN in 3D
+        expect(sv[lIdx].stateValues.slope).eqls(NaN);
     });
 
-    it("through/slope positioning stays disabled when through is 3D and an endpoint is specified", async () => {
+    it("Case A (1 endpoint + 1 through) works in 3D", async () => {
+        // through IS ep2 regardless of dimension
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<point name="P">(1,2)</point>
-<point name="T">(2,3,4)</point>
+<point name="P">(1,2,3)</point>
+<point name="T">(4,5,6)</point>
 <graph name="g">
-  <lineSegment name="l" endpoints="$P" through="$T" slope="1" length="2" />
+  <lineSegment name="l" endpoints="$P" through="$T" />
 </graph>
 `,
         });
@@ -3929,7 +3917,8 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const sv = await core.returnAllStateVariables(false, true);
 
         expect(sv[lIdx].stateValues.numDimensions).eq(3);
-        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(false);
+        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(true);
+        // ep1 = P, ep2 = T
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
         ).closeTo(1, 1e-10);
@@ -3938,15 +3927,15 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(2, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
+        ).closeTo(3, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
+        ).closeTo(4, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
+        ).closeTo(5, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
-        ).closeTo(0, 1e-10);
+        ).closeTo(6, 1e-10);
     });
 });
