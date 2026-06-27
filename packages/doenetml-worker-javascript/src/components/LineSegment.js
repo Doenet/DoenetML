@@ -482,41 +482,6 @@ export default class LineSegment extends GraphicalComponent {
                 };
             },
         };
-
-        // True when the public length state variable should expose the signed
-        // defining length rather than the Euclidean distance between endpoints.
-        // Case A (one endpoint + one through point) still uses the new endpoint
-        // dependency graph, but its geometry is fully determined by those two
-        // points, so length should stay Euclidean there.
-        stateVariableDefinitions.lengthIsSigned = {
-            returnDependencies: () => ({
-                basedOnSlopeOrThrough: {
-                    dependencyType: "stateVariable",
-                    variableName: "basedOnSlopeOrThrough",
-                },
-                numEndpointsSpecified: {
-                    dependencyType: "stateVariable",
-                    variableName: "numEndpointsSpecified",
-                },
-                numThroughPoints: {
-                    dependencyType: "stateVariable",
-                    variableName: "numThroughPoints",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        lengthIsSigned:
-                            dependencyValues.basedOnSlopeOrThrough &&
-                            !(
-                                dependencyValues.numEndpointsSpecified === 1 &&
-                                dependencyValues.numThroughPoints === 1
-                            ),
-                    },
-                };
-            },
-        };
-
         // Essential slope — used when basedOnSlopeOrThrough but no slope attr.
         stateVariableDefinitions.essentialSlope = {
             defaultValue: 0,
@@ -1729,7 +1694,7 @@ export default class LineSegment extends GraphicalComponent {
 
         stateVariableDefinitions.length = {
             description:
-                "The line segment's length. In 2D cases where slope/length parameterize the segment, this is the signed defining length; otherwise it is the Euclidean length.",
+                "The Euclidean length of the line segment (always non-negative).",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1738,19 +1703,6 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                lengthIsSigned: {
-                    dependencyType: "stateVariable",
-                    variableName: "lengthIsSigned",
-                },
-                lengthAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "length",
-                    variableNames: ["value"],
-                },
-                essentialSignedLength: {
-                    dependencyType: "stateVariable",
-                    variableName: "essentialSignedLength",
-                },
                 numDimensions: {
                     dependencyType: "stateVariable",
                     variableName: "numDimensions",
@@ -1761,17 +1713,6 @@ export default class LineSegment extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.lengthIsSigned) {
-                    const length =
-                        dependencyValues.lengthAttr !== null
-                            ? dependencyValues.lengthAttr.stateValues.value
-                            : dependencyValues.essentialSignedLength;
-
-                    return {
-                        setValue: { length: me.fromAst(length) },
-                    };
-                }
-
                 let length2 = 0;
                 let epoint1 = dependencyValues.endpoints[0];
                 let epoint2 = dependencyValues.endpoints[1];
@@ -1816,38 +1757,6 @@ export default class LineSegment extends GraphicalComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (dependencyValues.lengthIsSigned) {
-                    const desiredLength =
-                        desiredStateVariableValues.length.evaluate_to_constant();
-
-                    if (!Number.isFinite(desiredLength)) {
-                        return { success: false };
-                    }
-
-                    if (dependencyValues.lengthAttr !== null) {
-                        return {
-                            success: true,
-                            instructions: [
-                                {
-                                    setDependency: "lengthAttr",
-                                    desiredValue: desiredLength,
-                                    variableIndex: 0,
-                                },
-                            ],
-                        };
-                    }
-
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "essentialSignedLength",
-                                desiredValue: desiredLength,
-                            },
-                        ],
-                    };
-                }
-
                 let midpoint = [];
                 let dir = [];
                 let epoint1 = dependencyValues.endpoints[0];
