@@ -403,6 +403,58 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
+            # Upload the static export so the accessibility test job can serve it.
+            - name: Upload docs static export
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+    test-docs-cypress:
+        name: Docs Accessibility (Cypress + axe)
+        runs-on: ubuntu-latest
+        needs: build-docs
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download docs static export
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+            - name: Start docs server
+              run: |
+                  npx serve -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
+                  echo $! > /tmp/docs-serve.pid
+
+            - name: Wait for docs server
+              run: npx wait-on http://localhost:3000 --timeout 30000
+
+            - name: Run docs accessibility tests
+              run: npm run test-cypress-docs-all -w packages/docs-cypress
+
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-cypress-screenshots
+                  path: ./packages/docs-cypress/cypress/screenshots
+                  if-no-files-found: ignore
+
     lint-ts:
         name: Lint Typescript Code
         runs-on: ubuntu-latest

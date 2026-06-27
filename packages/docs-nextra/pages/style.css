@@ -14,9 +14,12 @@
 .prop-name {
     color: rgb(29, 85, 197);
 }
+/* Dark mode: rgb(0,122,255) on the gray-700 pill gives only ~2.6:1 contrast
+   (fails WCAG AA). Use a lighter blue (Tailwind blue-300) that achieves
+   ~5.7:1 against the rgb(55,65,81) pill background. */
 :is(html[class~="dark"] .nextra-content) .attr-name,
 :is(html[class~="dark"] .nextra-content) .prop-name {
-    color: rgb(0, 122, 255);
+    color: rgb(147, 197, 253);
 }
 
 /* Type label that leads each indented detail paragraph. */
@@ -101,7 +104,12 @@
 /* "(default)" marker after the default keyword value. */
 .attr-default-marker {
     font-style: italic;
-    color: rgb(107, 114, 128);
+    /* gray-600: at least 6.9:1 against any Nextra light-mode background. */
+    color: rgb(75, 85, 99);
+}
+/* Dark mode: gray-400 achieves ~7.4:1 against Nextra dark backgrounds. */
+:is(html[class~="dark"] .nextra-content) .attr-default-marker {
+    color: rgb(156, 163, 175);
 }
 
 /* Small Value/Description table for enumerated (non-boolean) attributes. */
@@ -146,6 +154,12 @@
 .attr-filter-input:focus {
     outline: 2px solid rgb(29, 85, 197);
     outline-offset: -1px;
+}
+/* Dark mode: the light-mode blue (29,85,197) achieves only ~2.8:1 against the
+   dark page background (fails WCAG 1.4.11 non-text contrast of 3:1).
+   Use Tailwind blue-400 which achieves ~7.4:1. */
+:is(html[class~="dark"] .nextra-content) .attr-filter-input:focus {
+    outline-color: rgb(96, 165, 250);
 }
 :is(html[class~="dark"] .nextra-content) .attr-filter-input {
     border-color: rgb(75, 85, 99);
@@ -194,7 +208,12 @@
 }
 .attr-group-count {
     font-weight: 400;
-    color: rgb(107, 114, 128);
+    /* gray-600: at least 6.9:1 against any Nextra light-mode background. */
+    color: rgb(75, 85, 99);
+}
+/* Dark mode: same contrast fix as .attr-default-marker above. */
+:is(html[class~="dark"] .nextra-content) .attr-group-count {
+    color: rgb(156, 163, 175);
 }
 .attr-group-body {
     padding: 0 0.75rem 0.25rem;
@@ -209,5 +228,10 @@
 .attr-filter-empty {
     margin: 0.5em 0 0.5em 0.25em;
     font-style: italic;
-    color: rgb(107, 114, 128);
+    /* gray-600: at least 6.9:1 against any Nextra light-mode background. */
+    color: rgb(75, 85, 99);
+}
+/* Dark mode: same contrast fix as .attr-default-marker above. */
+:is(html[class~="dark"] .nextra-content) .attr-filter-empty {
+    color: rgb(156, 163, 175);
 }
