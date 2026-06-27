@@ -16,6 +16,37 @@ export type DoenetEditorProps = Omit<
     "doenetML" | "width" | "height" | "externalVirtualKeyboardProvided"
 >;
 
+const DARK_CANVAS = "#121212";
+const LIGHT_CANVAS = "white";
+
+/**
+ * Return an inline style string and optional <style> block that set the body
+ * background colour to match the requested dark-mode setting.
+ *
+ * - "dark"   → always dark
+ * - "light"  → always light (white)
+ * - "system" → follow the OS preference via a CSS media query
+ */
+function bodyBackgroundStyle(darkMode: string | undefined): {
+    inlineStyle: string;
+    styleBlock: string;
+} {
+    if (darkMode === "dark") {
+        return {
+            inlineStyle: `background-color:${DARK_CANVAS}`,
+            styleBlock: "",
+        };
+    }
+    if (darkMode === "system") {
+        return {
+            inlineStyle: `background-color:${LIGHT_CANVAS}`,
+            styleBlock: `<style>@media (prefers-color-scheme: dark) { body { background-color: ${DARK_CANVAS}; } }</style>`,
+        };
+    }
+    // "light" or unset
+    return { inlineStyle: `background-color:${LIGHT_CANVAS}`, styleBlock: "" };
+}
+
 /**
  * Create HTML for a single page document that renders the given DoenetML.
  */
@@ -33,6 +64,9 @@ export function createHtmlForDoenetViewer(
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
+    const { inlineStyle: bgStyle, styleBlock: bgStyleBlock } =
+        bodyBackgroundStyle((doenetViewerProps as any).darkMode);
+
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather tha load the doenet logo from doenet.org, serve it directly
     return `
@@ -40,8 +74,9 @@ export function createHtmlForDoenetViewer(
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
+        ${bgStyleBlock}
     </head>
-    <body style="margin:0; background-color:white">
+    <body style="margin:0; ${bgStyle}">
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
@@ -84,13 +119,17 @@ export function createHtmlForDoenetEditor(
     // we pass an extra variable of the props that were specified.
     const doenetEditorPropsSpecified: string[] = Object.keys(augmentedProps);
 
+    const { inlineStyle: bgStyle, styleBlock: bgStyleBlock } =
+        bodyBackgroundStyle((doenetEditorProps as any).darkMode);
+
     return `
     <html style="overflow:hidden">
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
+        ${bgStyleBlock}
     </head>
-    <body style="margin:0; background-color:white">
+    <body style="margin:0; ${bgStyle}">
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
