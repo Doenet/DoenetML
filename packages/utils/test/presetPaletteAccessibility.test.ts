@@ -10,6 +10,22 @@ import {
     TEXT_CONTRAST_THRESHOLD,
 } from "../src/style";
 
+const MODE_CONFIG = {
+    light: {
+        canvas: CANVAS_LIGHT_MODE_COLOR,
+        graphicColorKeys: ["lineColor", "markerColor"] as const,
+        textColorKeys: ["textColor", "highContrastColor"] as const,
+    },
+    dark: {
+        canvas: CANVAS_DARK_MODE_COLOR,
+        graphicColorKeys: ["lineColorDarkMode", "markerColorDarkMode"] as const,
+        textColorKeys: [
+            "textColorDarkMode",
+            "highContrastColorDarkMode",
+        ] as const,
+    },
+} as const;
+
 /**
  * Guards that every built-in preset is accessible in both LIGHT and DARK mode,
  * so the palette can never silently regress below WCAG AA.
@@ -18,21 +34,9 @@ import {
  * assertions (see Doenet/DoenetML#1364). Dark-mode values were fixed in the
  * earlier dark-mode accessibility PR.
  */
-function describePresetPaletteAccessibility({
-    mode,
-    canvas,
-    graphicColorKeys,
-    textColorKeys,
-}: {
-    mode: "light" | "dark";
-    canvas: string;
-    graphicColorKeys:
-        | readonly ["lineColor", "markerColor"]
-        | readonly ["lineColorDarkMode", "markerColorDarkMode"];
-    textColorKeys:
-        | readonly ["textColor", "highContrastColor"]
-        | readonly ["textColorDarkMode", "highContrastColorDarkMode"];
-}) {
+function describePresetPaletteAccessibility(mode: "light" | "dark") {
+    const { canvas, graphicColorKeys, textColorKeys } = MODE_CONFIG[mode];
+
     describe(`preset palette ${mode}-mode accessibility`, () => {
         const presets = returnDefaultStyleDefinitions();
 
@@ -79,16 +83,5 @@ function describePresetPaletteAccessibility({
     });
 }
 
-describePresetPaletteAccessibility({
-    mode: "light",
-    canvas: CANVAS_LIGHT_MODE_COLOR,
-    graphicColorKeys: ["lineColor", "markerColor"],
-    textColorKeys: ["textColor", "highContrastColor"],
-});
-
-describePresetPaletteAccessibility({
-    mode: "dark",
-    canvas: CANVAS_DARK_MODE_COLOR,
-    graphicColorKeys: ["lineColorDarkMode", "markerColorDarkMode"],
-    textColorKeys: ["textColorDarkMode", "highContrastColorDarkMode"],
-});
+describePresetPaletteAccessibility("light");
+describePresetPaletteAccessibility("dark");
