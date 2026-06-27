@@ -19,7 +19,7 @@ Then serve the generated `packages/docs-nextra/out/` directory in a separate
 terminal:
 
 ```bash
-npx serve -l 3000 packages/docs-nextra/out/
+npm exec serve -- -l 3000 packages/docs-nextra/out/
 ```
 
 From the repo root, run the tests headlessly:

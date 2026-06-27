@@ -10,7 +10,7 @@
  * Running these tests requires the built docs site to be served at the
  * baseUrl configured in cypress.config.js (default http://localhost:3000).
  * The recommended workflow is `npm run build:docs` followed by
- * `npx serve -l 3000 packages/docs-nextra/out/`.
+ * `npm exec serve -- -l 3000 packages/docs-nextra/out/`.
  */
 
 /**

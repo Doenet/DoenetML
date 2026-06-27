@@ -438,11 +438,11 @@ jobs:
 
             - name: Start docs server
               run: |
-                  npx serve -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
+                  npm exec serve -- -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
                   echo $! > /tmp/docs-serve.pid
 
             - name: Wait for docs server
-              run: npx wait-on http://localhost:3000 --timeout 30000
+              run: npm exec wait-on -- http://localhost:3000 --timeout 30000
 
             - name: Run docs accessibility tests
               run: npm run test-cypress-docs-all -w packages/docs-cypress

@@ -156,12 +156,12 @@ npm run build:docs-prereqs && npm run build:docs
 ### 2. Serve the static export
 
 The docs produces a static export in `packages/docs-nextra/out/`.
-Use `npx serve` to host it (it handles clean URLs — `/reference/document`
+Use `npm exec serve` to host it (it handles clean URLs — `/reference/document`
 resolves to `out/reference/document.html` automatically):
 
 ```bash
-npx serve -l 3000 packages/docs-nextra/out/ &
-npx wait-on http://localhost:3000
+npm exec serve -- -l 3000 packages/docs-nextra/out/ &
+npm exec wait-on -- http://localhost:3000
 ```
 
 Run the server in a background terminal or with `&`.
