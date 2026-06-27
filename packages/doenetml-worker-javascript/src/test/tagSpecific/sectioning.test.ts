@@ -1609,6 +1609,47 @@ describe("Section heading color accessibility diagnostics", async () => {
         expect(diagnostics).toHaveLength(1);
     });
 
+    it("falls back to the accessible default dark-mode heading color for authored CSS variables", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="var(--mainGray)">
+  <title>CSS variable color</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sectionState =
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues;
+
+        expect(sectionState.titleColor).eq("var(--mainGray)");
+        expect(sectionState.titleColorDarkMode).eq("#3a3a3a");
+    });
+
+    it("does not emit diagnostics for translucent heading colors that remain accessible after compositing", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="rgba(0,0,0,0.5)">
+  <title>Translucent heading</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+
+        const ratio = compositedContrastRatio({
+            foreground: "#000000",
+            canvas: "#ffffff",
+            background: "rgba(0,0,0,0.5)",
+        });
+        expect(ratio).not.toBeNull();
+        expect(ratio!).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+    });
+
     it("derives an accessible dark-mode heading color from an authored light-mode color", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<section name="sec" boxed notStartedColor="#d9d9d9">

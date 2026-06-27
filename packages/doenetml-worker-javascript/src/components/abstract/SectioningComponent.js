@@ -6,6 +6,8 @@ import {
 } from "../../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import {
+    CANVAS_DARK_MODE_COLOR,
+    CANVAS_LIGHT_MODE_COLOR,
     compositedContrastRatio,
     invertLightness,
     suggestAccessibleDarkModeColorAgainst,
@@ -76,14 +78,12 @@ function resolveSectionTitleLightColorSpec({
 }
 
 function deriveSectionTitleDarkModeColor(lightColor) {
-    const suggestedDarkColor = suggestAccessibleDarkModeColorAgainst({
+    return suggestAccessibleDarkModeColorAgainst({
         startColor: invertLightness(lightColor),
         partnerColor: "#ffffff",
         channelRole: "background",
         threshold: TEXT_CONTRAST_THRESHOLD,
     });
-
-    return suggestedDarkColor ?? lightColor;
 }
 
 function resolveSectionTitleDarkColorSpec({
@@ -107,13 +107,28 @@ function resolveSectionTitleDarkColorSpec({
     }
 
     if (!usedDefault[ownLightColorName]) {
+        const derivedDarkColor = deriveSectionTitleDarkModeColor(
+            dependencyValues[ownLightColorName],
+        );
+        if (derivedDarkColor !== null) {
+            return {
+                value: derivedDarkColor,
+                source: {
+                    authored: true,
+                    colorName: ownLightColorName,
+                    inherited: false,
+                },
+            };
+        }
+
+        // CSS variables and other unparseable light-mode colors cannot be
+        // adapted safely in the worker, so fall back to the accessible default
+        // dark-mode color unless the author pins an explicit *DarkMode value.
         return {
-            value: deriveSectionTitleDarkModeColor(
-                dependencyValues[ownLightColorName],
-            ),
+            value: dependencyValues[ownDarkColorName],
             source: {
-                authored: true,
-                colorName: ownLightColorName,
+                authored: false,
+                colorName: ownDarkColorName,
                 inherited: false,
             },
         };
@@ -173,6 +188,7 @@ function shouldEmitSectionTitleColorDiagnostic({
  * @param {string} params.colorValue - The resolved color string.
  * @param {string} params.colorName - Attribute name for the diagnostic message.
  * @param {string} params.textColor - Heading text color (#000000 or #ffffff).
+ * @param {string} params.canvasColor - Viewer canvas color for the current theme.
  * @param {string} [params.modeSuffix] - Optional mode suffix for the message.
  */
 function addSectionTitleColorContrastDiagnostic({
@@ -181,6 +197,7 @@ function addSectionTitleColorContrastDiagnostic({
     colorValue,
     colorName,
     textColor,
+    canvasColor,
     modeSuffix = "",
 }) {
     if (!authorSet || !colorValue) {
@@ -189,7 +206,8 @@ function addSectionTitleColorContrastDiagnostic({
 
     const ratio = compositedContrastRatio({
         foreground: textColor,
-        canvas: colorValue,
+        canvas: canvasColor,
+        background: colorValue,
     });
     if (ratio !== null && ratio < TEXT_CONTRAST_THRESHOLD) {
         diagnostics.push({
@@ -1222,6 +1240,7 @@ export class SectioningComponent extends BlockComponent {
                                 ],
                             colorName: lightSource?.colorName ?? stateKey,
                             textColor: "#000000",
+                            canvasColor: CANVAS_LIGHT_MODE_COLOR,
                         });
 
                         const darkSource =
@@ -1240,6 +1259,7 @@ export class SectioningComponent extends BlockComponent {
                                     .sectionTitleStateColorsDarkMode[stateKey],
                             colorName: darkSource?.colorName ?? stateKey,
                             textColor: "#ffffff",
+                            canvasColor: CANVAS_DARK_MODE_COLOR,
                             modeSuffix: " (dark mode)",
                         });
                     }
