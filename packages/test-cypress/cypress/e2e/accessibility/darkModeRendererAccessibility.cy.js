@@ -212,3 +212,118 @@ describe(
         }
     },
 );
+
+describe(
+    "Virtual keyboard dark-mode appearance and accessibility",
+    { tags: ["@group5"] },
+    () => {
+        beforeEach(() => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+            cy.injectAxe();
+        });
+
+        function loadWithMathInput(darkMode) {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<p><mathInput name="mi" /></p>`,
+                        darkMode,
+                    },
+                    "*",
+                );
+            });
+            cy.get("#mi").should("exist");
+        }
+
+        function openKeyboardTray() {
+            // The open-keyboard-button peeks above the tray.
+            cy.get(".open-keyboard-button").click();
+            cy.get("#virtual-keyboard-tray.open").should("exist");
+        }
+
+        it("tray uses white background in light mode (regression)", () => {
+            loadWithMathInput("light");
+            openKeyboardTray();
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(255, 255, 255)",
+            );
+        });
+
+        it("tray uses dark background in dark mode", () => {
+            loadWithMathInput("dark");
+            openKeyboardTray();
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(30, 30, 30)",
+            );
+        });
+
+        it("tray updates when dark mode changes after mount", () => {
+            loadWithMathInput("light");
+            openKeyboardTray();
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(255, 255, 255)",
+            );
+
+            cy.window().then((win) => {
+                win.postMessage({ darkMode: "dark" }, "*");
+            });
+
+            cy.get("#virtual-keyboard-tray").should(
+                "have.css",
+                "background-color",
+                "rgb(30, 30, 30)",
+            );
+        });
+
+        it("key faces use dark background in dark mode", () => {
+            loadWithMathInput("dark");
+            openKeyboardTray();
+            // Key buttons don't carry the keyboard-button class in HTML — it
+            // comes from @apply in CSS. Use .keyboard-region button to target
+            // regular (non-special) keys in the grid area.
+            cy.get("#virtual-keyboard-tray .keyboard-region button")
+                .first()
+                .should("have.css", "background-color", "rgb(45, 45, 45)");
+        });
+
+        it("key text is white in dark mode", () => {
+            loadWithMathInput("dark");
+            openKeyboardTray();
+            cy.get("#virtual-keyboard-tray .keyboard-region button")
+                .first()
+                .should("have.css", "color", "rgb(255, 255, 255)");
+        });
+
+        it("virtual keyboard passes axe color-contrast in dark mode", () => {
+            loadWithMathInput("dark");
+            openKeyboardTray();
+            // Let MathJax finish rendering math key labels.
+            cy.wait(300);
+            cy.checkA11y(
+                ["#virtual-keyboard-tray"],
+                {
+                    runOnly: { type: "rule", values: ["color-contrast"] },
+                    includedImpacts: ["critical", "serious", "moderate"],
+                },
+                (violations) => {
+                    expect(
+                        violations,
+                        violations
+                            .map(
+                                (v) =>
+                                    `${v.id}: ${v.nodes.map((n) => n.html).join(", ")}`,
+                            )
+                            .join("\n"),
+                    ).to.have.length(0);
+                },
+            );
+        });
+    },
+);

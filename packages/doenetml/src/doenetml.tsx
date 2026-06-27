@@ -314,6 +314,7 @@ export function DoenetViewer({
                         externalVirtualKeyboardProvided={
                             externalVirtualKeyboardProvided
                         }
+                        theme={resolvedTheme}
                     >
                         {variantSelector}
                         {viewer}
@@ -502,6 +503,7 @@ export const DoenetEditor = React.forwardRef<
                         externalVirtualKeyboardProvided={
                             externalVirtualKeyboardProvided
                         }
+                        theme={resolvedTheme}
                     >
                         {editor}
                     </WrapWithKeyboard>
@@ -517,16 +519,20 @@ export const DoenetEditor = React.forwardRef<
 function WrapWithKeyboard({
     addVirtualKeyboard,
     externalVirtualKeyboardProvided,
+    theme,
     children,
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
+    theme?: "dark" | "light";
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            ownerRef={focusedMathInput}
+            theme={theme}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
             }}

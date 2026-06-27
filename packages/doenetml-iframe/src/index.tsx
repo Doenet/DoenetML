@@ -3,11 +3,18 @@ import React from "react";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
-import { findAllNewlines, getLineCharRange } from "@doenet/utils";
+import {
+    findAllNewlines,
+    getLineCharRange,
+    getSystemTheme,
+    subscribeToSystemTheme,
+} from "@doenet/utils";
 import type {
     DiagnosticRecord,
     ErrorRecord,
     WarningRecord,
+    ThemeSetting,
+    ResolvedTheme,
 } from "@doenet/utils";
 import {
     DoenetViewerProps,
@@ -40,6 +47,22 @@ import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
+
+function subscribeToPinnedTheme() {
+    return () => {};
+}
+
+function useResolvedTheme(setting: ThemeSetting): ResolvedTheme {
+    const subscribe =
+        setting === "system" ? subscribeToSystemTheme : subscribeToPinnedTheme;
+    const systemTheme = React.useSyncExternalStore(
+        subscribe,
+        getSystemTheme,
+        () => "light" as ResolvedTheme,
+    );
+
+    return setting === "system" ? systemTheme : setting;
+}
 
 /**
  * A message that is sent from an iframe to the parent window.
@@ -132,6 +155,9 @@ export function DoenetViewer({
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
+    const resolvedTheme = useResolvedTheme(
+        doenetViewerProps.darkMode ?? "system",
+    );
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
@@ -287,7 +313,9 @@ export function DoenetViewer({
 
     return (
         <React.Fragment>
-            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
+            {addVirtualKeyboard ? (
+                <ExternalVirtualKeyboard ownerRef={ref} theme={resolvedTheme} />
+            ) : null}
             <iframe
                 title="Doenet document"
                 ref={ref}
@@ -383,6 +411,9 @@ export const DoenetEditor = React.forwardRef<
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
         DiagnosticRecord[]
     >([]);
+    const resolvedTheme = useResolvedTheme(
+        doenetEditorProps.darkMode ?? "system",
+    );
 
     React.useImperativeHandle(
         forwardedRef,
@@ -752,7 +783,9 @@ export const DoenetEditor = React.forwardRef<
 
     return (
         <React.Fragment>
-            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
+            {addVirtualKeyboard ? (
+                <ExternalVirtualKeyboard ownerRef={ref} theme={resolvedTheme} />
+            ) : null}
             <iframe
                 title="Doenet Editor"
                 ref={ref}
