@@ -6945,4 +6945,22 @@ describe("Point tag tests @group4", async () => {
         await movePoint({ componentIdx: viaGroupIdx, x: 0, y: -1, core });
         await check_labels(0, -1);
     });
+
+    it("self-reference outside label or text context still reports a circular dependency", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="a">(2,3)
+    <label><math>$a</math></label>
+  </point>
+</graph>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(1);
+        expect(diagnostics.errors[0].message).contain(
+            "Circular dependency detected",
+        );
+    });
 });
