@@ -225,6 +225,20 @@ describe(
 <p><fractionInput name="f" /></p>`,
                 settle: "#m",
             },
+            {
+                name: "DoenetML tag elements (.doenet-tag green text)",
+                doenetML: `
+<p name="tp">Use <tag>point</tag> for a point,
+<tage>image</tage> for a self-closing tag,
+and <tagc>section</tagc> to close one.</p>`,
+                settle: "#tp",
+            },
+            {
+                name: "orbitalDiagramInput (interactive orbital diagram)",
+                doenetML: `
+<orbitalDiagramInput name="odi" />`,
+                settle: "#odi",
+            },
         ];
 
         for (const testCase of cases) {
@@ -351,6 +365,167 @@ describe(
                             .join("\n"),
                     ).to.have.length(0);
                 },
+            );
+        });
+    },
+);
+
+describe(
+    "Check-work button states — dark-mode contrast",
+    { tags: ["@group5"] },
+    () => {
+        const DOENETML = `
+<p>Enter <m>2</m>: <mathInput name="mi" />
+<answer name="ans">2</answer></p>
+<p>Enter <m>x+y</m>: <mathInput name="mi2" />
+<answer name="ans2">x+y</answer></p>`;
+
+        beforeEach(() => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+            cy.injectAxe();
+            cy.get("#testRunner_toggleControls").should("exist");
+            cy.window().then((win) => {
+                win.postMessage({ doenetML: DOENETML, darkMode: "dark" }, "*");
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+            cy.get("#mi").should("exist");
+        });
+
+        function checkContrast() {
+            cy.checkA11y(
+                [".doenet-viewer"],
+                {
+                    runOnly: { type: "rule", values: ["color-contrast"] },
+                    includedImpacts: [
+                        "critical",
+                        "serious",
+                        "moderate",
+                        "minor",
+                    ],
+                },
+                (violations) => {
+                    expect(
+                        violations,
+                        JSON.stringify(
+                            violations.map((v) => ({
+                                id: v.id,
+                                nodes: v.nodes.map((n) => n.html),
+                            })),
+                            null,
+                            2,
+                        ),
+                    ).to.have.length(0);
+                },
+                true,
+            );
+        }
+
+        it("dark mode: correct check-work button", () => {
+            cy.get("#mi textarea").type("2{enter}", { force: true });
+            cy.get(".check-work-correct").should("exist");
+            checkContrast();
+        });
+
+        it("dark mode: incorrect check-work button", () => {
+            cy.get("#mi textarea").type("99{enter}", { force: true });
+            cy.get(".check-work-incorrect").should("exist");
+            checkContrast();
+        });
+
+        it("dark mode: mixed correct and incorrect check-work buttons", () => {
+            cy.get("#mi textarea").type("2{enter}", { force: true });
+            cy.get(".check-work-correct").should("exist");
+            cy.get("#mi2 textarea").type("99{enter}", { force: true });
+            cy.get(".check-work-incorrect").should("exist");
+            checkContrast();
+        });
+    },
+);
+
+describe(
+    "Error banner — light and dark mode contrast",
+    { tags: ["@group5"] },
+    () => {
+        // <bad> is an unrecognised tag; the core emits an error diagnostic which
+        // causes DocViewer to render the "This document contains errors!" banner.
+        const ERROR_DOENETML = `<p name="p">Hello</p><bad />`;
+
+        beforeEach(() => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+            cy.injectAxe();
+        });
+
+        function loadAndWaitForErrorBanner(darkMode) {
+            cy.get("#testRunner_toggleControls").should("exist");
+            cy.window().then((win) => {
+                win.postMessage({ doenetML: ERROR_DOENETML, darkMode }, "*");
+            });
+            if (darkMode === "dark") {
+                cy.get('[data-theme="dark"]').should("exist");
+            }
+            // The error banner appears once the document and diagnostics are ready.
+            cy.contains("This document contains errors!").should("be.visible");
+        }
+
+        it("light mode: error banner passes color-contrast", () => {
+            loadAndWaitForErrorBanner("light");
+            cy.checkA11y(
+                [".doenet-viewer"],
+                {
+                    runOnly: { type: "rule", values: ["color-contrast"] },
+                    includedImpacts: [
+                        "critical",
+                        "serious",
+                        "moderate",
+                        "minor",
+                    ],
+                },
+                (violations) => {
+                    expect(
+                        violations,
+                        JSON.stringify(
+                            violations.map((v) => ({
+                                id: v.id,
+                                nodes: v.nodes.map((n) => n.html),
+                            })),
+                            null,
+                            2,
+                        ),
+                    ).to.have.length(0);
+                },
+                true,
+            );
+        });
+
+        it("dark mode: error banner passes color-contrast", () => {
+            loadAndWaitForErrorBanner("dark");
+            cy.checkA11y(
+                [".doenet-viewer"],
+                {
+                    runOnly: { type: "rule", values: ["color-contrast"] },
+                    includedImpacts: [
+                        "critical",
+                        "serious",
+                        "moderate",
+                        "minor",
+                    ],
+                },
+                (violations) => {
+                    expect(
+                        violations,
+                        JSON.stringify(
+                            violations.map((v) => ({
+                                id: v.id,
+                                nodes: v.nodes.map((n) => n.html),
+                            })),
+                            null,
+                            2,
+                        ),
+                    ).to.have.length(0);
+                },
+                true,
             );
         });
     },
