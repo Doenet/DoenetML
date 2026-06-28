@@ -305,6 +305,15 @@ export function DoenetViewer({
                     fontSize: "1.3em",
                     marginLeft: "20px",
                     marginTop: "20px",
+                    backgroundColor:
+                        resolvedTheme === "dark"
+                            ? "#7f1d1d"
+                            : "hsl(0, 54%, 82%)",
+                    color: resolvedTheme === "dark" ? "white" : "black",
+                    borderWidth: 3,
+                    borderStyle: "solid",
+                    borderColor: "#c1292e",
+                    padding: "0.5em",
                 }}
             >
                 {errorIcon} {inErrorState}
@@ -794,6 +803,15 @@ export const DoenetEditor = React.forwardRef<
                     fontSize: "1.3em",
                     marginLeft: "20px",
                     marginTop: "20px",
+                    backgroundColor:
+                        resolvedTheme === "dark"
+                            ? "#7f1d1d"
+                            : "hsl(0, 54%, 82%)",
+                    color: resolvedTheme === "dark" ? "white" : "black",
+                    borderWidth: 3,
+                    borderStyle: "solid",
+                    borderColor: "#c1292e",
+                    padding: "0.5em",
                 }}
             >
                 {errorIcon} {inErrorState}

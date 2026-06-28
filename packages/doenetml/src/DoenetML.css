@@ -424,6 +424,27 @@ div.jxgbox input[type="checkbox"] {
     padding: 1px 7px 1px 7px;
 }
 
+/*
+ * Smart-label dark-mode overrides.
+ *
+ * `.smart-label-pure`: transparent background with hardcoded black text.
+ *   On a dark JSXGraph canvas this produces invisible text — switch to
+ *   canvas-text color so it adapts to the theme.
+ *
+ * `.smart-label-outline`: white bubble on the dark canvas is jarring.
+ *   Use an elevated-surface background consistent with other dark-mode
+ *   popover surfaces, with a theme-aware border and text.
+ */
+[data-theme="dark"] .smart-label-pure {
+    color: var(--canvasText);
+}
+
+[data-theme="dark"] .smart-label-outline {
+    background-color: #2d2d2d;
+    border-color: var(--canvasText);
+    color: var(--canvasText);
+}
+
 /* Fix: Ensure div-based paragraphs maintain standard paragraph spacing */
 .doenet-viewer .para {
     margin-block-start: 1em;

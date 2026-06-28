@@ -516,6 +516,7 @@
 [data-theme="dark"] .editor-panel .footer-menu {
     background-color: var(--canvas);
     border-color: #555;
+    color: var(--canvasText);
 }
 
 /* Responses icon — muted slate instead of medium gray (#667085 fails on #121212) */

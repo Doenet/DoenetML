@@ -376,7 +376,8 @@ describe(
     () => {
         const DOENETML = `
 <p>Enter <m>2</m>: <answer name="ans"><mathInput name="mi" />2</answer></p>
-<p>Enter <m>x+y</m>: <answer name="ans2"><mathInput name="mi2" />x+y</answer></p>`;
+<p>Enter <m>x+y</m>: <answer name="ans2"><mathInput name="mi2" />x+y</answer></p>
+<p>Limited: <answer name="ans_limited" maxAttempts="1"><mathInput name="mi_limited" />42</answer></p>`;
 
         beforeEach(() => {
             cy.clearIndexedDB();
@@ -436,6 +437,16 @@ describe(
             cy.get(".check-work-correct").should("exist");
             cy.get("#mi2 textarea").type("99{enter}", { force: true });
             cy.get(".check-work-incorrect").should("exist");
+            checkContrast();
+        });
+
+        it("dark mode: disabled check-work button (attempts exhausted)", () => {
+            // Submit once to exhaust the single allowed attempt, leaving the
+            // button in its disabled (gray) state.
+            cy.get("#mi_limited textarea").type("99{enter}", { force: true });
+            cy.get(".check-work-incorrect").should("exist");
+            // After the one attempt the button becomes disabled.
+            cy.get(".check-work-unvalidated:disabled").should("exist");
             checkContrast();
         });
     },

@@ -31,3 +31,18 @@ export function resolveMarkerColor(
 ): string {
     return darkMode === "dark" ? style.markerColorDarkMode : style.markerColor;
 }
+
+/**
+ * The color used for draggable handles on graph elements (polygon vertices,
+ * polyline vertices, vector/line-segment endpoints, curve control points,
+ * etc.). Mirrors the `--graphHandle` CSS variable so all graph element
+ * renderers stay in sync.
+ *
+ * Note: JSXGraph receives resolved hex values, not CSS variable strings,
+ * because `data-theme` is applied to an inner wrapper div rather than
+ * `<html>`, so `getComputedStyle(document.documentElement)` always reads
+ * the light-mode value regardless of the current theme.
+ */
+export function resolveHandleColor(darkMode: DarkMode): string {
+    return darkMode === "dark" ? "#b0b0b0" : "#404040";
+}

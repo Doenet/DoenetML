@@ -10,7 +10,11 @@ import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveHandleColor,
+} from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -96,8 +100,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: "black",
-            visible: !verticesFixed.current && !SVs.hidden,
+            highlightFillColor: resolveHandleColor(darkMode),
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             highlight: true,

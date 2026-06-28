@@ -15,7 +15,7 @@ import { JXGCurve, JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
@@ -300,12 +300,13 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 });
             });
 
+            const handleColor = resolveHandleColor(darkMode);
             segmentAttributes.current = {
                 visible: false,
                 withLabel: false,
                 fixed: true,
-                strokeColor: "var(--graphHandle)",
-                highlightStrokeColor: "var(--graphHandle)",
+                strokeColor: handleColor,
+                highlightStrokeColor: handleColor,
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
@@ -316,8 +317,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 fixed: false,
                 fillColor: "none",
                 strokeColor: "none",
-                highlightFillColor: "var(--graphHandle)",
-                highlightStrokeColor: "var(--graphHandle)",
+                highlightFillColor: handleColor,
+                highlightStrokeColor: handleColor,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -325,8 +326,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 showInfoBox: SVs.showCoordsWhenDragging,
             };
             throughPointAlwaysVisible.current = {
-                fillcolor: "var(--graphHandle)",
-                strokecolor: "var(--graphHandle)",
+                fillcolor: handleColor,
+                strokecolor: handleColor,
             };
             throughPointHoverVisible.current = {
                 fillcolor: "none",
@@ -337,10 +338,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 visible: false,
                 withLabel: false,
                 fixed: false,
-                fillColor: "var(--graphHandle)",
-                strokeColor: "var(--graphHandle)",
-                highlightFillColor: "var(--graphHandle)",
-                highlightStrokeColor: "var(--graphHandle)",
+                fillColor: handleColor,
+                strokeColor: handleColor,
+                highlightFillColor: handleColor,
+                highlightStrokeColor: handleColor,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET,
