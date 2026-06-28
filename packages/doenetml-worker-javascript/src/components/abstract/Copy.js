@@ -1485,18 +1485,16 @@ export default class Copy extends CompositeComponent {
         } catch (e) {
             // When the error is "Encountered X", it means this Copy is a descendant of its
             // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
-            // If we're inside a label or text context, fall back to displaying a meaningful
-            // state variable of the source component rather than showing an error.
+            // In recognized rendering contexts, fall back to the source's public `value`
+            // state variable rather than showing an error.
             if (e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX)) {
-                // Walk up the ancestor chain to determine if we're in a label or text context.
+                // Walk up the ancestor chain to determine if we're in a recognized context.
                 // ancestor.componentClass gives the class of each ancestor (closest first).
                 // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
                 // e.g. <group>) since they pass their contents into their parent's context
                 // unchanged. Any other component (e.g. <point>, <math>) establishes its own
                 // context, so we stop there. For example, `$a` inside
                 // `<label><math>$a</math></label>` uses math's context rather than label's.
-                // In a label context: prefer latex (for math rendering), fallback to text.
-                // In a text context: prefer text (for plain output), fallback to latex.
                 const fallbackPropName = getSelfReferentialFallbackPropName({
                     componentAncestors: component.ancestors,
                     componentInfoObjects,
