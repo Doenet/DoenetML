@@ -764,16 +764,14 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
             );
 
             if (layerChanged && SVs.curveType === "bezier") {
-                segmentLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                throughPointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                controlPointLayer = 10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET;
                 segmentAttributes.current!.layer = segmentLayer;
                 throughPointAttributes.current!.layer = throughPointLayer;
                 controlPointAttributes.current!.layer = controlPointLayer;
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+
             if (SVs.curveType === "bezier") {
-                const handleColor = resolveHandleColor(darkMode);
                 segmentAttributes.current!.strokeColor = handleColor;
                 segmentAttributes.current!.highlightStrokeColor = handleColor;
                 throughPointAttributes.current!.highlightFillColor =
