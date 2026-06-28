@@ -1,9 +1,11 @@
+import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
+    getSelfReferentialFallbackPropName,
 } from "../../utils/copy";
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import {
@@ -1481,6 +1483,57 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = res.components;
             nComponents = res.nComponents;
         } catch (e) {
+            // When the error is "Encountered X", it means this Copy is a descendant of its
+            // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
+            // In recognized rendering contexts, fall back to the source's public `value`
+            // state variable rather than showing an error.
+            if (e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX)) {
+                // Walk up the ancestor chain to determine if we're in a recognized context.
+                // ancestor.componentClass gives the class of each ancestor (closest first).
+                // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
+                // e.g. <group>) since they pass their contents into their parent's context
+                // unchanged. Any other component (e.g. <point>, <math>) establishes its own
+                // context, so we stop there. For example, `$a` inside
+                // `<label><math>$a</math></label>` uses math's context rather than label's.
+                const fallbackPropName = getSelfReferentialFallbackPropName({
+                    componentAncestors: component.ancestors,
+                    componentInfoObjects,
+                    replacementSourceComponentType:
+                        replacementSourceComponent.componentType,
+                });
+
+                if (fallbackPropName) {
+                    try {
+                        let fallbackResults = await replacementFromProp({
+                            component,
+                            components,
+                            nComponents,
+                            stateIdInfo,
+                            replacementSource: replacementSourceComponent,
+                            propName: fallbackPropName,
+                            allDoenetMLs,
+                            compositeAttributesObj,
+                            componentInfoObjects,
+                            numComponentsForSource,
+                            publicCaseInsensitiveAliasSubstitutions,
+                        });
+                        diagnostics.push(...fallbackResults.diagnostics);
+                        nComponents = fallbackResults.nComponents;
+                        return {
+                            serializedReplacements:
+                                fallbackResults.serializedReplacements,
+                            propVariablesCopiedByReplacement:
+                                fallbackResults.propVariablesCopiedByReplacement,
+                            diagnostics,
+                            nComponents,
+                        };
+                    } catch (innerError) {
+                        // Fall through to the circular dependency handler below
+                        // so this still reports as the original self-reference.
+                    }
+                }
+            }
+
             console.error("we're calling this circular", e);
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
