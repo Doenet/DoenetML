@@ -82,6 +82,7 @@ html {
     --mainPurple: #4a03d9;
     --errorText: var(--mainRed);
     --indicatorHoverBlue: var(--lightBlue);
+    --buttonHoverBlue: var(--lightBlue);
     --doenetTagColor: #3e844a;
 }
 
@@ -112,6 +113,7 @@ html {
     --mainPurple: #a78bfa;
     --errorText: #ff6b6b;
     --indicatorHoverBlue: #5b8cb5;
+    --buttonHoverBlue: hsl(209, 54%, 82%);
     --doenetTagColor: #5cb870;
 }
 .doenet-viewer {

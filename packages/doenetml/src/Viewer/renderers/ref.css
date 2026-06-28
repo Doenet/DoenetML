@@ -12,8 +12,8 @@
     padding: 1px 6px 1px 6px;
 
     &:hover {
-        background-color: var(--lightBlue);
-        color: var(--canvasText);
+        background-color: var(--buttonHoverBlue);
+        color: black;
     }
 
     &:focus {
