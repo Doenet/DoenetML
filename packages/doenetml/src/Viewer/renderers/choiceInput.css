@@ -244,3 +244,24 @@
 .doenet-viewer .custom-select-partialcorrect:focus-within {
     outline-color: var(--mainOrange);
 }
+
+/*
+ * In dark mode the darkened --lightBlue (#1e3a5f) is nearly indistinguishable
+ * from the indicator default background (#a9a9a9) and the dark canvas.  Use a
+ * medium-bright blue (#5b8cb5) that remains visible on the dark canvas
+ * (contrast ≈ 5:1 against #121212) for the hover state of small indicators.
+ */
+[data-theme="dark"]
+    .doenet-viewer
+    .radio-container:hover
+    input
+    ~ .radio-checkmark {
+    background-color: #5b8cb5;
+}
+[data-theme="dark"]
+    .doenet-viewer
+    .checkbox-container:hover
+    input
+    ~ .checkbox-checkmark {
+    background-color: #5b8cb5;
+}

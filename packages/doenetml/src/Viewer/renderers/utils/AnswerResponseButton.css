@@ -10,6 +10,8 @@
     display: inline;
 }
 .answer-response-tooltip {
-    background-color: var(--mainGray);
+    background-color: var(--canvas);
+    color: var(--canvasText);
+    border: 1px solid var(--canvasText);
     padding: 0.2em 0.5em;
 }

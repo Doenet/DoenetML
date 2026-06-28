@@ -27,7 +27,7 @@ export default React.memo(function Tag(props: UseDoenetRendererProps) {
     }
 
     return (
-        <code id={id} style={{ color: "var(--mainGreen)" }}>
+        <code id={id} className="doenet-tag">
             {open}
             {children}
             {close}

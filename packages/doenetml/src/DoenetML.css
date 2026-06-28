@@ -80,13 +80,14 @@ html {
     --lightOrange: #efab34;
     --mainOrange: #a36600;
     --mainPurple: #4a03d9;
+    --errorText: var(--mainRed);
 }
 
 [data-theme="dark"] {
     font-family: "Open Sans" !important;
     --menuWidth: 220px;
     --mainBlue: #1a5a99;
-    --lightBlue: hsl(209, 54%, 82%);
+    --lightBlue: #1e3a5f;
     --solidLightBlue: #1a5a99;
     --mainGray: #a9a9a9;
     --donutBody: #eea177;
@@ -94,19 +95,20 @@ html {
     --mainBorder: 2px solid white;
     --mainBorderRadius: 5px;
     --mainRed: #c1292e;
-    --lightRed: hsl(0, 54%, 82%);
+    --lightRed: #7f1d1d;
     --mainGreen: #3e844a;
     --canvas: #121212;
     --canvasText: white;
     --revealButtonSurface: #3a3a3a;
     --graphHandle: #b0b0b0;
-    --lightGreen: #a6f19f;
+    --lightGreen: #1a5e20;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #a9abe5;
     --mainYellow: #efab34;
-    --lightOrange: #efab34;
+    --lightOrange: #7a3e00;
     --mainOrange: #a36600;
     --mainPurple: #a78bfa;
+    --errorText: #ff6b6b;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
@@ -332,28 +334,28 @@ div.jxgbox input[type="checkbox"] {
 /* CSS rules for the wrapping div in fullscreen mode */
 
 .JXG_wrap_private:-moz-full-screen {
-    background-color: #ccc;
+    background-color: var(--canvas, #ccc);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-webkit-full-screen {
-    background-color: #ccc;
+    background-color: var(--canvas, #ccc);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:fullscreen {
-    background-color: #ccc;
+    background-color: var(--canvas, #ccc);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-ms-fullscreen {
-    background-color: #ccc;
+    background-color: var(--canvas, #ccc);
     padding: 0;
     width: 100%;
     height: 100%;
@@ -420,6 +422,20 @@ div.jxgbox input[type="checkbox"] {
 .doenet-viewer .para {
     margin-block-start: 1em;
     margin-block-end: 1em;
+}
+
+/*
+ * DoenetML <tag> element: render as green inline code. In dark mode use a
+ * brighter green so the text is readable against the dark canvas (#121212).
+ * The light-mode value (#3e844a) matches --mainGreen but cannot share that
+ * variable because --mainGreen is also used as a button *background* color
+ * (correct answer button) where white foreground text requires the darker shade.
+ */
+.doenet-viewer .doenet-tag {
+    color: #3e844a;
+}
+[data-theme="dark"] .doenet-viewer .doenet-tag {
+    color: #5cb870;
 }
 
 /**************************************************

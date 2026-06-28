@@ -37,13 +37,13 @@
     }
 
     .pretzelProblem {
-        border: 1px solid #333;
+        border: 1px solid var(--canvasText);
         /* padding: 5px; */
     }
 
     .pretzelAnswer {
         padding: 10px;
-        background-color: #ddd;
+        background-color: var(--revealButtonSurface);
     }
 
     .pretzelInputStatement {
@@ -55,16 +55,16 @@
     .pretzelWrapper {
         display: grid;
         gap: 0px;
-        border-left: 1px solid #333;
-        border-right: 1px solid #333;
+        border-left: 1px solid var(--canvasText);
+        border-right: 1px solid var(--canvasText);
     }
 
     .pretzelWrapperTop {
-        border-top: 1px solid #333;
+        border-top: 1px solid var(--canvasText);
     }
 
     .pretzelWrapperBottom {
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid var(--canvasText);
         margin-bottom: 10px;
     }
 

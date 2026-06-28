@@ -87,17 +87,17 @@
 }
 
 .doenet-viewer button.check-work-response-saved {
-    background-color: rgb(74, 3, 217); /* Dark Purple */
+    background-color: var(--mainPurple);
     color: white;
     cursor: default;
 
     &:hover {
-        background-color: rgb(161, 129, 224); /* Light Purple */
+        background-color: color-mix(in srgb, var(--mainPurple) 60%, white);
         color: black;
     }
 }
 .doenet-viewer button.check-work-response-saved:focus {
-    outline-color: rgb(74, 3, 217); /* Dark Purple */
+    outline-color: var(--mainPurple);
 }
 
 .doenet-viewer button.check-work-pending {
@@ -125,4 +125,20 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
+}
+
+/*
+ * In dark mode, hover backgrounds for check-work buttons come from the
+ * darkened --lightGreen / --lightBlue / --lightRed / --lightOrange /
+ * --mainPurple variables, all of which are now dark-toned.  The default
+ * hover text color is `black` (written for the light-mode pastels), which
+ * would be invisible against those dark backgrounds.  Switch to white.
+ */
+[data-theme="dark"] .doenet-viewer button.check-work-unvalidated:hover,
+[data-theme="dark"] .doenet-viewer button.check-work-unvalidated:disabled:hover,
+[data-theme="dark"] .doenet-viewer button.check-work-correct:hover,
+[data-theme="dark"] .doenet-viewer button.check-work-incorrect:hover,
+[data-theme="dark"] .doenet-viewer button.check-work-partialcorrect:hover,
+[data-theme="dark"] .doenet-viewer button.check-work-response-saved:hover {
+    color: white;
 }

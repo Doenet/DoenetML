@@ -13,12 +13,21 @@
 
     &:hover {
         background-color: var(--lightBlue);
+        /* Light-mode hover bg (--lightBlue) is a light pastel: switch to black
+           text so it remains readable.  The dark-mode override below restores
+           white text because dark-mode --lightBlue is a dark shade. */
+        color: black;
     }
 
     &:focus {
         outline: 2px solid var(--mainBlue);
         outline-offset: 2px;
     }
+}
+
+/* Dark-mode --lightBlue is dark (#1e3a5f), so white text is needed on hover. */
+[data-theme="dark"] .doenet-viewer button.ref-button:hover {
+    color: white;
 }
 
 .doenet-viewer button.ref-button-disabled {

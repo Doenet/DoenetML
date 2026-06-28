@@ -656,7 +656,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         mathInputStyle.borderColor = getComputedStyle(
             document.documentElement,
         ).getPropertyValue("--mainGray");
-        mathInputStyle.backgroundColor = "rgba(239, 239, 239, 0.3)";
+        mathInputStyle.backgroundColor = "rgba(128, 128, 128, 0.15)";
         mathInputStyle.pointerEvents = "none";
         mathInputWrapperCursor = "not-allowed";
     }
