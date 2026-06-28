@@ -31,7 +31,6 @@
 
 .doenet-viewer button.check-work-unvalidated:disabled {
     background-color: var(--mainGray);
-    color: white;
     cursor: not-allowed;
     color: black;
 

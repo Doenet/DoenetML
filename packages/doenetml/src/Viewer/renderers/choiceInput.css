@@ -58,7 +58,7 @@
     cursor: not-allowed;
 }
 
-/* On mouse-over, add a grey background color */
+/* On mouse-over, add a theme-aware blue background color */
 .doenet-viewer .radio-container:hover input ~ .radio-checkmark {
     background-color: var(--indicatorHoverBlue);
 }
