@@ -16,6 +16,83 @@ type Options = Parameters<typeof loadPyodide>[0];
 export { PREFIG_WHEEL_FILENAME };
 
 /**
+ * SVG path data for each supported hatch fill style (8×8 px tile).
+ * These must stay in sync with the patterns defined in
+ * `packages/doenetml/src/Viewer/renderers/utils/fillPatterns.ts`.
+ */
+type HatchPatternDef = { width: number; height: number; path: string };
+
+const HATCH_PATTERN_DEFS: Record<string, HatchPatternDef> = {
+    horizontal: { width: 8, height: 8, path: "M0,4 L8,4" },
+    vertical: { width: 8, height: 8, path: "M4,0 L4,8" },
+    diagonal: { width: 12, height: 12, path: "M0,12 L12,0" },
+    backdiagonal: { width: 12, height: 12, path: "M0,0 L12,12" },
+    crosshatch: { width: 8, height: 8, path: "M0,4 L8,4 M4,0 L4,8" },
+    diagonalcrosshatch: {
+        width: 12,
+        height: 12,
+        path: "M0,12 L12,0 M0,0 L12,12",
+    },
+};
+
+/**
+ * Scans the SVG string for `fill="url(#doenet-hatch-STYLE-COLORHEX)"` references
+ * emitted by the PreFigure XML generator and injects the corresponding `<pattern>`
+ * definitions into the SVG's `<defs>` section.
+ *
+ * Returns the SVG string unchanged when no hatch references are found.
+ */
+function injectHatchPatterns(svg: string): string {
+    // Match fill="url(#doenet-hatch-STYLE-COLORHEX)"
+    const patternRefRe =
+        /fill="url\(#(doenet-hatch-([a-z]+)-([0-9a-f]{3,8}))\)"/g;
+
+    const seen = new Set<string>();
+    const patternDefs: string[] = [];
+
+    let match: RegExpExecArray | null;
+    while ((match = patternRefRe.exec(svg)) !== null) {
+        const [, id, style, colorHex] = match;
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+
+        const def = HATCH_PATTERN_DEFS[style];
+        if (!def) {
+            continue;
+        }
+
+        const color = `#${colorHex}`;
+        patternDefs.push(
+            `<pattern id="${id}" width="${def.width}" height="${def.height}" patternUnits="userSpaceOnUse">` +
+                `<path d="${def.path}" stroke="${color}" stroke-width="1.5" fill="none"/>` +
+                `</pattern>`,
+        );
+    }
+
+    if (patternDefs.length === 0) {
+        return svg;
+    }
+
+    // Inject all patterns before the closing </defs> tag.
+    const defsClose = svg.indexOf("</defs>");
+    if (defsClose === -1) {
+        // No <defs> found — insert a fresh <defs> block after the opening <svg ...>.
+        const svgTagEnd = svg.indexOf(">") + 1;
+        return (
+            svg.slice(0, svgTagEnd) +
+            `<defs>${patternDefs.join("")}</defs>` +
+            svg.slice(svgTagEnd)
+        );
+    }
+
+    return (
+        svg.slice(0, defsClose) + patternDefs.join("") + svg.slice(defsClose)
+    );
+}
+
+/**
  * A class for compiling a PreFigure document file using a WASM implementation of python.
  */
 export class PreFigureCompiler {
@@ -149,7 +226,8 @@ for _handler in _prefigure_logger.handlers:
 import prefig
 prefig.engine.build_from_string("${mode}", ${JSON.stringify(source)})
         `);
-        const [svg, annotations] = result;
+        const [rawSvg, annotations] = result;
+        const svg = injectHatchPatterns(rawSvg);
         return { svg, annotations };
     }
 }

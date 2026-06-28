@@ -35,6 +35,7 @@ export interface SelectedStyle {
     lineOpacity?: number;
     fillOpacity?: number;
     lineStyle?: string;
+    fillStyle?: string;
     markerStyle?: string;
     markerSize?: number;
     markerColor?: string;

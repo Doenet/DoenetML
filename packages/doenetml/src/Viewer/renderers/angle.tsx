@@ -11,6 +11,7 @@ import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
+import { getOrInjectPattern } from "./utils/fillPatterns";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -73,7 +74,12 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
             radius: SVs.numericalRadius,
-            fillColor: SVs.selectedStyle.fillColor,
+            fillColor: getOrInjectPattern(
+                board.renderer.defs as SVGDefsElement | null,
+                board.container.id,
+                SVs.selectedStyle.fillStyle ?? "solid",
+                SVs.selectedStyle.fillColor,
+            ),
             strokeColor: SVs.selectedStyle.lineColor,
             highlight: false,
             orthoType: SVs.emphasizeRightAngle ? "square" : "sector",
@@ -184,12 +190,14 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             syncLayer(angleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
-            if (
-                angleJXG.current.visProp.fillcolor !==
-                SVs.selectedStyle.fillColor
-            ) {
-                angleJXG.current.visProp.fillcolor =
-                    SVs.selectedStyle.fillColor;
+            const angleFillColor = getOrInjectPattern(
+                board.renderer.defs as SVGDefsElement | null,
+                board.container.id,
+                SVs.selectedStyle.fillStyle ?? "solid",
+                SVs.selectedStyle.fillColor,
+            );
+            if (angleJXG.current.visProp.fillcolor !== angleFillColor) {
+                angleJXG.current.visProp.fillcolor = angleFillColor;
             }
             if (
                 angleJXG.current.visProp.strokecolor !==

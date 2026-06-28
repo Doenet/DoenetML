@@ -30,6 +30,7 @@ import {
     syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
+import { getOrInjectPattern } from "./utils/fillPatterns";
 
 interface PolygonSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -93,9 +94,18 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         }
 
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-        const fillColor = SVs.filled
+        const resolvedFillColor = SVs.filled
             ? resolveFillColor(SVs.selectedStyle, darkMode)
             : "none";
+        const fillColor =
+            SVs.filled && board
+                ? getOrInjectPattern(
+                      board.renderer.defs as SVGDefsElement | null,
+                      board.container.id,
+                      SVs.selectedStyle.fillStyle ?? "solid",
+                      resolvedFillColor,
+                  )
+                : resolvedFillColor;
 
         jsxPointAttributes.current = {
             fillColor: "none",
@@ -515,9 +525,18 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-            const fillColor = SVs.filled
+            const resolvedFillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
+            const fillColor =
+                SVs.filled && board
+                    ? getOrInjectPattern(
+                          board.renderer.defs as SVGDefsElement | null,
+                          board.container.id,
+                          SVs.selectedStyle.fillStyle ?? "solid",
+                          resolvedFillColor,
+                      )
+                    : resolvedFillColor;
 
             polygonJXG.current.name = SVs.labelForGraph;
 

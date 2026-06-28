@@ -8,6 +8,7 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve, JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
+import { getOrInjectPattern } from "./utils/fillPatterns";
 
 interface RegionBetweenCurveXAxisSVs extends GraphicalSVs {
     haveFunction: boolean;
@@ -62,6 +63,12 @@ export default React.memo(function RegionBetweenCurveXAxis(
                 ? SVs.selectedStyle.fillColorDarkMode
                 : SVs.selectedStyle.fillColor;
 
+        fillColor = getOrInjectPattern(
+            board.renderer.defs as SVGDefsElement | null,
+            board.container.id,
+            SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor,
+        );
         // Note: actual content of label is being ignored
         // but, if label is non-empty, then jsxgraph display a label
         // which is an integral sign = value of integral
@@ -156,6 +163,13 @@ export default React.memo(function RegionBetweenCurveXAxis(
                 darkMode === "dark"
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor;
+
+            fillColor = getOrInjectPattern(
+                board.renderer.defs as SVGDefsElement | null,
+                board.container.id,
+                SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor,
+            );
 
             if (integralJXG.current.visProp.fillcolor !== fillColor) {
                 integralJXG.current.visProp.fillcolor = fillColor;

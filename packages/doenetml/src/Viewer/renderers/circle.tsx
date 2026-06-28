@@ -41,6 +41,7 @@ import {
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
+import { getOrInjectPattern } from "./utils/fillPatterns";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -131,6 +132,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (!SVs.filled) {
             jsxCircleAttributes.fillColor = "none";
             jsxCircleAttributes.highlightFillColor = "none";
+        } else if (board) {
+            const resolvedFillColor = jsxCircleAttributes.fillColor;
+            const patternFill = getOrInjectPattern(
+                board.renderer.defs as SVGDefsElement | null,
+                board.container.id,
+                SVs.selectedStyle.fillStyle ?? "solid",
+                resolvedFillColor,
+            );
+            jsxCircleAttributes.fillColor = patternFill;
+            jsxCircleAttributes.highlightFillColor = patternFill;
         }
 
         if (SVs.filled) {
@@ -676,9 +687,18 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             syncLayer(circleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-            const fillColor = SVs.filled
+            const resolvedFillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
+            const fillColor =
+                SVs.filled && board
+                    ? getOrInjectPattern(
+                          board.renderer.defs as SVGDefsElement | null,
+                          board.container.id,
+                          SVs.selectedStyle.fillStyle ?? "solid",
+                          resolvedFillColor,
+                      )
+                    : resolvedFillColor;
 
             syncLineStrokeStyle(circleJXG.current, {
                 lineColor,

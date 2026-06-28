@@ -168,6 +168,42 @@ export let styleAttributes: StyleAttributes = {
         componentType: "number",
         description: "Opacity of fills, 0 to 1.",
     },
+    fillStyle: {
+        componentType: "text",
+        description: "Fill pattern used inside closed shapes.",
+        toLowerCase: true,
+        validValues: [
+            { value: "solid", description: "Solid fill." },
+            {
+                value: "horizontal",
+                description: "Horizontal line pattern.",
+            },
+            {
+                value: "vertical",
+                description: "Vertical line pattern.",
+            },
+            {
+                value: "diagonal",
+                description: "Diagonal line pattern (/).",
+            },
+            {
+                value: "backDiagonal",
+                description: "Back-diagonal line pattern (\\).",
+            },
+            {
+                value: "crosshatch",
+                description: "Horizontal and vertical crosshatch pattern.",
+            },
+            {
+                value: "diagonalCrosshatch",
+                description: "Diagonal crosshatch pattern (X).",
+            },
+        ],
+    },
+    fillStyleWord: {
+        componentType: "text",
+        description: "Human-readable name of the fill style.",
+    },
     textColor: {
         componentType: "text",
         description: "Text color (light mode).",
@@ -266,6 +302,7 @@ const LINE_OVERRIDE_KEYS = [
 
 const FILL_OVERRIDE_KEYS = [
     "fillOpacity",
+    "fillStyle",
 ] as const satisfies readonly StyleDefinitionKey[];
 
 /**
@@ -287,8 +324,8 @@ export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
 );
 
 /**
- * Fill toggles for closed-shape components. Only `fillOpacity` is included —
- * it's decorative and not part of the contrast check, unlike `lineOpacity` /
+ * Fill toggles for closed-shape components. `fillOpacity` and `fillStyle` are
+ * both decorative and not part of the contrast check, unlike `lineOpacity` /
  * `markerOpacity`.
  */
 export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
@@ -614,6 +651,9 @@ function deriveMissingDarkModeColor(
  * - `lineStyle` (text) → `lineStyleWord`: `"dashed"`, `"dotted"`, else `""`.
  * - `markerStyle` (text) → `markerStyleWord`: copies the value, then normalizes
  *   `"circle"` → `"point"` and any `"triangle*"` → `"triangle"`.
+ * - `fillStyle` (text) → `fillStyleWord`: human-readable description of the
+ *   fill pattern (e.g. `"horizontal lines"`, `"cross hatched"`), or `""` for
+ *   `"solid"`.
  *
  * Used both by the styleDefinitions-merge path and by the per-component
  * override path so the two share identical word-derivation rules.
@@ -684,6 +724,24 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
                 "triangle",
                 markerStylePosition,
             );
+        }
+    }
+
+    if ("fillStyle" in styleDef && !("fillStyleWord" in styleDef)) {
+        const fillStyle = getStyleValueString(styleDef, "fillStyle");
+        if (fillStyle) {
+            const fillStylePosition = styleDef.fillStyle?.position;
+            const fillStyleWordMap: Record<string, string> = {
+                solid: "",
+                horizontal: "horizontal lines",
+                vertical: "vertical lines",
+                diagonal: "diagonal lines",
+                backdiagonal: "reverse diagonal lines",
+                crosshatch: "cross hatched",
+                diagonalcrosshatch: "diagonal cross hatched",
+            };
+            const word = fillStyleWordMap[fillStyle] ?? "";
+            setStyleValue(styleDef, "fillStyleWord", word, fillStylePosition);
         }
     }
 }

@@ -8,6 +8,7 @@ import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve } from "./jsxgraph-distrib/types";
 import { styleToDash } from "./utils/styleToDash";
+import { getOrInjectPattern } from "./utils/fillPatterns";
 
 interface RegionBetweenCurvesSVs extends GraphicalSVs {
     haveFunctions: boolean;
@@ -67,6 +68,13 @@ export default React.memo(function RegionBetweenCurves(
             darkMode === "dark"
                 ? SVs.selectedStyle.fillColorDarkMode
                 : SVs.selectedStyle.fillColor;
+
+        fillColor = getOrInjectPattern(
+            board.renderer.defs as SVGDefsElement | null,
+            board.container.id,
+            SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor,
+        );
 
         let jsxAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
@@ -236,6 +244,13 @@ export default React.memo(function RegionBetweenCurves(
                 darkMode === "dark"
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor;
+
+            fillColor = getOrInjectPattern(
+                board.renderer.defs as SVGDefsElement | null,
+                board.container.id,
+                SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor,
+            );
 
             if (regionJXG.current.visProp.fillcolor !== fillColor) {
                 regionJXG.current.visProp.fillcolor = fillColor;

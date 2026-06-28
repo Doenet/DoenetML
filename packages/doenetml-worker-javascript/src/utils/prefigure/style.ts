@@ -93,7 +93,17 @@ export function styleAttributes({
     if (includeFill) {
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
         if (fill) {
-            attrs.push(`fill="${escapeXml(fill)}"`);
+            const fillStyle = selectedStyle?.fillStyle;
+            if (fillStyle && fillStyle !== "solid") {
+                // Encode fill style + color into a pattern ID that the SVG
+                // post-processor in compiler.ts will resolve into a <pattern> def.
+                const colorHex = fill.replace(/^#/, "").toLowerCase();
+                attrs.push(
+                    `fill="url(#doenet-hatch-${escapeXml(fillStyle)}-${escapeXml(colorHex)})"`,
+                );
+            } else {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
         }
     }
 
