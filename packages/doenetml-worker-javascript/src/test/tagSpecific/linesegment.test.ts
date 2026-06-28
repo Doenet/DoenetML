@@ -3011,6 +3011,66 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         expect(sv[LIdx].stateValues.value).closeTo(2, 1e-10);
     });
 
+    it("slope and length both specified keep public length Euclidean", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<number name="L">3</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [-2, 0],
+            core,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[LIdx].stateValues.value).closeTo(-2, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+    });
+
+    it("vertical drag canonicalizes signed length onto the slope sign", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">Infinity</number>
+<number name="L">-3</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [0, 1],
+            core,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[mIdx].stateValues.value).eqls(-Infinity);
+        expect(sv[LIdx].stateValues.value).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(-3, 1e-10);
+    });
+
     // -----------------------------------------------------------------------
     // Case D: dragging a referenced endpoint translates the whole segment
     // -----------------------------------------------------------------------

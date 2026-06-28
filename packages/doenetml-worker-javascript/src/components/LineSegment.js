@@ -59,9 +59,8 @@ function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
     if (dx === 0) {
         return {
             slope: dy > 0 ? Infinity : -Infinity,
-            // For vertical segments, slope encodes up vs down, so a positive
-            // length still preserves the dragged endpoint when reapplied with
-            // directionFromSlope(slope).
+            // For vertical segments, canonicalize interactions so slope encodes
+            // up vs down and the defining length stays non-negative.
             signedLength: Math.abs(dy),
         };
     }
@@ -208,7 +207,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.length = {
             createComponentOfType: "number",
             description:
-                "The signed length of the line segment. Negative values flip the direction relative to the slope.",
+                "The signed defining length used with the slope/through parameterization. Negative values flip the direction relative to the slope, while the public length state variable remains Euclidean and non-negative.",
         };
 
         attributes.pointOffset = {
@@ -550,17 +549,6 @@ export default class LineSegment extends GraphicalComponent {
             definition: () => ({
                 useEssentialOrDefaultValue: { essentialPointOffset: true },
             }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "essentialPointOffset",
-                            value: desiredStateVariableValues.essentialPointOffset,
-                        },
-                    ],
-                };
-            },
         };
 
         // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrThrough is true
