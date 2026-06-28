@@ -6946,14 +6946,13 @@ describe("Point tag tests @group4", async () => {
         await check_labels(0, -1);
     });
 
-    it("self-reference outside label or text context still reports a circular dependency", async () => {
+    it("self-reference outside a recognised context still reports a circular dependency", async () => {
+        // <boolean> is not a label/text/math/m/md context, so the fallback is skipped.
         const { core } = await createTestCore({
             doenetML: `
-<graph>
-  <point name="a">(2,3)
-    <label><math>$a</math></label>
-  </point>
-</graph>
+<point name="a">(2,3)
+  <label><boolean>$a</boolean></label>
+</point>
 `,
         });
 

@@ -18,6 +18,9 @@ export function getSelfReferentialFallbackPropName({
     componentInfoObjects,
     replacementSourceComponentType,
 }) {
+    // Walk up ancestors (closest first) through transparent composites
+    // (treatAsComponentForRecursiveReplacements, e.g. <group>) to detect the
+    // rendering context. Stop at any other component type.
     let contextType = null;
     for (const ancestor of componentAncestors) {
         const ancestorClass = ancestor.componentClass;
@@ -40,24 +43,72 @@ export function getSelfReferentialFallbackPropName({
             contextType = "text";
             break;
         }
+        if (
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: ancestorType,
+                baseComponentType: "math",
+            })
+        ) {
+            contextType = "math";
+            break;
+        }
+        // <m> and <md> are inline-math contexts that prefer latex output.
+        // They extend InlineComponent directly (not math/text), so check explicitly.
+        if (
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: ancestorType,
+                baseComponentType: "m",
+            }) ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: ancestorType,
+                baseComponentType: "md",
+            })
+        ) {
+            contextType = "latex";
+            break;
+        }
         if (!ancestorClass.treatAsComponentForRecursiveReplacements) {
             break;
         }
     }
 
-    let fallbackPropNames = [];
-    if (contextType === "label") {
-        fallbackPropNames = ["latex", "text"];
-    } else if (contextType === "text") {
-        fallbackPropNames = ["text", "latex"];
+    if (contextType === null) {
+        return undefined;
     }
 
+    // Determine the preferred createComponentOfType ordering for this context:
+    // - label / latex (m, md): prefer latex-typed, then text-typed
+    // - text:                  prefer text-typed, then latex-typed
+    // - math:                  prefer math-typed, then text-typed
+    const preferredTypes =
+        contextType === "text"
+            ? ["text", "latex"]
+            : contextType === "math"
+              ? ["math", "text"]
+              : ["latex", "text"]; // label, m, md
+
+    // Find the first public state variable whose createComponentOfType matches
+    // a preferred type, in preference order.
     const publicVarDescriptions =
         componentInfoObjects.publicStateVariableInfo[
             replacementSourceComponentType
         ]?.stateVariableDescriptions;
 
-    return fallbackPropNames.find((name) => publicVarDescriptions?.[name]);
+    if (!publicVarDescriptions) {
+        return undefined;
+    }
+
+    for (const preferredType of preferredTypes) {
+        for (const [varName, varDesc] of Object.entries(
+            publicVarDescriptions,
+        )) {
+            if (varDesc.createComponentOfType === preferredType) {
+                return varName;
+            }
+        }
+    }
+
+    return undefined;
 }
 
 export default class Copy extends CompositeComponent {
