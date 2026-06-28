@@ -132,6 +132,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: resolveHandleColor(darkMode),
+            layer: pointLayer,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
 

@@ -101,6 +101,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: resolveHandleColor(darkMode),
+            visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             highlight: true,

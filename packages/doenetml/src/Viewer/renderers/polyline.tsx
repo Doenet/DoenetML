@@ -124,6 +124,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: resolveHandleColor(darkMode),
+            layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
         if (verticesFixed.current || SVs.hidden || !validCoords) {
