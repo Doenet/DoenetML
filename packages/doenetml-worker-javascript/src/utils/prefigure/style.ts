@@ -19,6 +19,9 @@ const prefigurePointStyleByMarkerStyle: Record<string, string> = {
     "double-circle": "double-circle",
 };
 
+const hatchPatternColorRe =
+    /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
 /**
  * Returns a `selectedStyle` whose color fields hold the dark-mode values when
  * `darkMode` is true, so the rest of the PreFigure conversion (which reads the
@@ -92,14 +95,19 @@ export function styleAttributes({
 
     if (includeFill) {
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
+        const usePatternFill =
+            !!fill &&
+            !!selectedStyle?.fillStyle &&
+            selectedStyle.fillStyle !== "solid" &&
+            hatchPatternColorRe.test(fill);
+
         if (fill) {
-            const fillStyle = selectedStyle?.fillStyle;
-            if (fillStyle && fillStyle !== "solid") {
+            if (usePatternFill) {
                 // Encode fill style + color into a pattern ID that the SVG
                 // post-processor in compiler.ts will resolve into a <pattern> def.
                 const colorHex = fill.replace(/^#/, "").toLowerCase();
                 attrs.push(
-                    `fill="url(#doenet-hatch-${escapeXml(fillStyle)}-${escapeXml(colorHex)})"`,
+                    `fill="url(#doenet-hatch-${escapeXml(selectedStyle.fillStyle!)}-${escapeXml(colorHex)})"`,
                 );
             } else {
                 attrs.push(`fill="${escapeXml(fill)}"`);
@@ -114,7 +122,13 @@ export function styleAttributes({
 
     if (includeFill) {
         const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
-        if (fillOpacity !== null) {
+        const usePatternFill =
+            !!selectedStyle?.fillStyle &&
+            selectedStyle.fillStyle !== "solid" &&
+            hatchPatternColorRe.test(
+                selectedStyle?.fillColor ?? selectedStyle?.fillColorWord ?? "",
+            );
+        if (fillOpacity !== null && !usePatternFill) {
             attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
         }
     }

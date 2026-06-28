@@ -3,6 +3,13 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import {
+    buildClosedShapeStyleDescription,
+    buildFillStyleDescription,
+    getBorderDescription,
+    getFillColorWord,
+    getLineColorWord,
+} from "../utils/graphicalStyleDescriptions";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 
@@ -146,69 +153,25 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescription;
-                if (!dependencyValues.filled) {
-                    styleDescription = borderDescription + lineColorWord;
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-                    const fillStyleWord =
-                        dependencyValues.selectedStyle.fillStyleWord;
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescription = "filled " + fillColorWord;
-                        if (fillStyleWord) {
-                            styleDescription += " with " + fillStyleWord;
-                        }
-                        if (borderDescription) {
-                            styleDescription +=
-                                (fillStyleWord ? " and " : " with ") +
-                                borderDescription +
-                                "border";
-                        }
-                    } else {
-                        styleDescription = "filled " + fillColorWord;
-                        if (fillStyleWord) {
-                            styleDescription += " with " + fillStyleWord;
-                        }
-                        styleDescription +=
-                            (fillStyleWord ? " and " : " with ") +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescription = buildClosedShapeStyleDescription({
+                    filled: dependencyValues.filled,
+                    lineColorWord,
+                    fillColorWord,
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                    borderDescription,
+                });
 
                 return { setValue: { styleDescription } };
             },
@@ -236,74 +199,29 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescriptionWithNoun;
-                if (!dependencyValues.filled) {
-                    styleDescriptionWithNoun =
-                        borderDescription + lineColorWord + " circle";
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-                    const fillStyleWord =
-                        dependencyValues.selectedStyle.fillStyleWord;
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescriptionWithNoun =
-                            "filled " + fillColorWord + " circle";
-                        if (fillStyleWord) {
-                            styleDescriptionWithNoun +=
-                                " with " + fillStyleWord;
-                        }
-                        if (borderDescription) {
-                            styleDescriptionWithNoun +=
-                                (fillStyleWord ? " and a " : " with a ") +
-                                borderDescription +
-                                "border";
-                        }
-                    } else {
-                        styleDescriptionWithNoun =
-                            "filled " + fillColorWord + " circle";
-                        if (fillStyleWord) {
-                            styleDescriptionWithNoun +=
-                                " with " + fillStyleWord;
-                        }
-                        styleDescriptionWithNoun +=
-                            (fillStyleWord ? " and a " : " with a ") +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescriptionWithNoun =
+                    buildClosedShapeStyleDescription({
+                        filled: dependencyValues.filled,
+                        lineColorWord,
+                        fillColorWord,
+                        fillStyleWord:
+                            dependencyValues.selectedStyle.fillStyleWord,
+                        borderDescription,
+                        noun: " circle",
+                        includeBorderArticle: true,
+                    });
 
                 return { setValue: { styleDescriptionWithNoun } };
             },
@@ -327,30 +245,12 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderStyleDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderStyleDescription) {
-                        borderStyleDescription += " ";
-                    }
-                    borderStyleDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-
-                if (borderStyleDescription) {
-                    borderStyleDescription += " ";
-                }
-
-                borderStyleDescription += lineColorWord;
+                const borderStyleDescription =
+                    getBorderDescription(dependencyValues.selectedStyle) +
+                    getLineColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    );
 
                 return { setValue: { borderStyleDescription } };
             },
@@ -378,25 +278,14 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let fillColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWordDarkMode;
-                } else {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWord;
-                }
-
-                let fillStyleDescription;
-                if (!dependencyValues.filled) {
-                    fillStyleDescription = "unfilled";
-                } else {
-                    fillStyleDescription = fillColorWord;
-                    if (dependencyValues.selectedStyle.fillStyleWord) {
-                        fillStyleDescription +=
-                            " " + dependencyValues.selectedStyle.fillStyleWord;
-                    }
-                }
+                const fillStyleDescription = buildFillStyleDescription({
+                    filled: dependencyValues.filled,
+                    fillColorWord: getFillColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    ),
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                });
 
                 return { setValue: { fillStyleDescription } };
             },

@@ -41,7 +41,7 @@ import {
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
-import { getOrInjectPattern } from "./utils/fillPatterns";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -133,15 +133,17 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             jsxCircleAttributes.fillColor = "none";
             jsxCircleAttributes.highlightFillColor = "none";
         } else if (board) {
-            const resolvedFillColor = jsxCircleAttributes.fillColor;
-            const patternFill = getOrInjectPattern(
-                board.renderer.defs as SVGDefsElement | null,
-                board.container.id,
-                SVs.selectedStyle.fillStyle ?? "solid",
-                resolvedFillColor,
+            Object.assign(
+                jsxCircleAttributes,
+                getPatternFillAttributes({
+                    defsEl: board.renderer.defs as SVGDefsElement | null,
+                    boardId: board.container.id,
+                    fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                    fillColor: jsxCircleAttributes.fillColor,
+                    fillOpacity: SVs.selectedStyle.fillOpacity,
+                    highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                }),
             );
-            jsxCircleAttributes.fillColor = patternFill;
-            jsxCircleAttributes.highlightFillColor = patternFill;
         }
 
         if (SVs.filled) {
@@ -690,15 +692,24 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             const resolvedFillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
-            const fillColor =
+            const fillAttributes =
                 SVs.filled && board
-                    ? getOrInjectPattern(
-                          board.renderer.defs as SVGDefsElement | null,
-                          board.container.id,
-                          SVs.selectedStyle.fillStyle ?? "solid",
-                          resolvedFillColor,
-                      )
-                    : resolvedFillColor;
+                    ? getPatternFillAttributes({
+                          defsEl: board.renderer.defs as SVGDefsElement | null,
+                          boardId: board.container.id,
+                          fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      })
+                    : {
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillColor: resolvedFillColor,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      };
 
             syncLineStrokeStyle(circleJXG.current, {
                 lineColor,
@@ -707,19 +718,22 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 dash: styleToDash(SVs.selectedStyle.lineStyle),
             });
 
-            if (circleJXG.current.visProp.fillcolor !== fillColor) {
-                circleJXG.current.visProp.fillcolor = fillColor;
-                circleJXG.current.visProp.highlightfillcolor = fillColor;
+            if (
+                circleJXG.current.visProp.fillcolor !== fillAttributes.fillColor
+            ) {
+                circleJXG.current.visProp.fillcolor = fillAttributes.fillColor;
+                circleJXG.current.visProp.highlightfillcolor =
+                    fillAttributes.highlightFillColor;
                 circleJXG.current.visProp.hasinnerpoints = SVs.filled;
             }
             if (
                 circleJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 circleJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
                 circleJXG.current.visProp.highlightfillopacity =
-                    SVs.selectedStyle.fillOpacity * 0.5;
+                    fillAttributes.highlightFillOpacity;
             }
 
             circleJXG.current.name = SVs.labelForGraph;

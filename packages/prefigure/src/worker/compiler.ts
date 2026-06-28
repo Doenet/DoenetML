@@ -16,8 +16,8 @@ type Options = Parameters<typeof loadPyodide>[0];
 export { PREFIG_WHEEL_FILENAME };
 
 /**
- * SVG path data for each supported hatch fill style (8×8 px tile).
- * These must stay in sync with the patterns defined in
+ * SVG path data for each supported hatch fill style. These must stay in sync
+ * with the patterns defined in
  * `packages/doenetml/src/Viewer/renderers/utils/fillPatterns.ts`.
  */
 type HatchPatternDef = { width: number; height: number; path: string };
@@ -43,9 +43,12 @@ const HATCH_PATTERN_DEFS: Record<string, HatchPatternDef> = {
  * Returns the SVG string unchanged when no hatch references are found.
  */
 function injectHatchPatterns(svg: string): string {
-    // Match fill="url(#doenet-hatch-STYLE-COLORHEX)"
-    const patternRefRe =
-        /fill="url\(#(doenet-hatch-([a-z]+)-([0-9a-f]{3,8}))\)"/g;
+    // Match fill="url(#doenet-hatch-STYLE-COLORHEX)" where COLORHEX is 3, 4,
+    // 6, or 8 hex digits.
+    const patternRefRe = new RegExp(
+        'fill="url\\(#(doenet-hatch-([a-z]+)-((?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})))\\)"',
+        "g",
+    );
 
     const seen = new Set<string>();
     const patternDefs: string[] = [];
@@ -109,7 +112,7 @@ export class PreFigureCompiler {
         }
     }
 
-    private normalizeIndexUrl(pyodide: PyodideInterface): string {
+    _normalizeIndexUrl(pyodide: PyodideInterface): string {
         // Accessing this internal field is currently required to align package
         // downloads with the runtime index URL.
         const rawIndexUrl = (pyodide as any)._api.config.indexURL as string;
@@ -119,7 +122,7 @@ export class PreFigureCompiler {
         return `${rawIndexUrl}/`;
     }
 
-    private async loadPrefigureDependencies(
+    async _loadPrefigureDependencies(
         pyodide: PyodideInterface,
         indexURL: string,
     ) {
@@ -166,7 +169,7 @@ for _handler in _prefigure_logger.handlers:
         }
     }
 
-    private async initialize(options: Options) {
+    async _initialize(options: Options) {
         // Prefer `._pyodide` over creating a new pyodide instance since
         // `._pyodide` was provided by the user.
         const pyodide = (await this._pyodide) || (await loadPyodide(options));
@@ -178,8 +181,8 @@ for _handler in _prefigure_logger.handlers:
         // Python with `import prefigBrowserApi`.
         pyodide.registerJsModule("prefigBrowserApi", prefigBrowserApi);
 
-        const indexURL = this.normalizeIndexUrl(pyodide);
-        await this.loadPrefigureDependencies(pyodide, indexURL);
+        const indexURL = this._normalizeIndexUrl(pyodide);
+        await this._loadPrefigureDependencies(pyodide, indexURL);
 
         this.pyodide = pyodide;
     }
@@ -198,7 +201,7 @@ for _handler in _prefigure_logger.handlers:
             return;
         }
 
-        this.pyodideInitPromise = this.initialize(options).catch((error) => {
+        this.pyodideInitPromise = this._initialize(options).catch((error) => {
             // Allow retries after transient init failures.
             this.pyodideInitPromise = null;
             throw error;

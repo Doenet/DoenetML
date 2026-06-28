@@ -167,6 +167,32 @@ describe("PreFigureCompiler", () => {
         );
     });
 
+    it("injects hatch patterns for 4- and 8-digit hex colors", async () => {
+        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
+        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
+        mocks.loadPackageSpy.mockResolvedValue(undefined);
+        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
+        mocks.runPythonSpy.mockResolvedValue([
+            '<svg><path fill="url(#doenet-hatch-horizontal-abcd)"/><path fill="url(#doenet-hatch-vertical-11223344)"/></svg>',
+            "",
+        ]);
+
+        const { PreFigureCompiler } = await import("../src/worker/compiler");
+        const compiler = new PreFigureCompiler();
+
+        await compiler.init();
+        const result = await compiler.compile("svg", "<diagram/>");
+
+        expect(result.svg).toContain(
+            '<pattern id="doenet-hatch-horizontal-abcd"',
+        );
+        expect(result.svg).toContain('stroke="#abcd"');
+        expect(result.svg).toContain(
+            '<pattern id="doenet-hatch-vertical-11223344"',
+        );
+        expect(result.svg).toContain('stroke="#11223344"');
+    });
+
     it("coalesces concurrent init calls into one initialization", async () => {
         const pyodide = createPyodideMock("https://cdn.example.com/assets/");
         mocks.loadPyodideSpy.mockResolvedValue(pyodide);

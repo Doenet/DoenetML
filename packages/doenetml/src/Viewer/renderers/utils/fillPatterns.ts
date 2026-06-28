@@ -90,3 +90,44 @@ export function getOrInjectPattern(
 
     return `url(#${id})`;
 }
+
+/**
+ * Resolves fill props for patterned SVG fills. When a non-solid pattern is
+ * successfully injected, the hatch strokes render at full opacity so the
+ * default graph fill opacity does not wash them out.
+ */
+export function getPatternFillAttributes({
+    defsEl,
+    boardId,
+    fillStyle,
+    fillColor,
+    fillOpacity,
+    highlightFillOpacity = fillOpacity * 0.5,
+}: {
+    defsEl: SVGDefsElement | null;
+    boardId: string;
+    fillStyle: string;
+    fillColor: string;
+    fillOpacity: number;
+    highlightFillOpacity?: number;
+}): {
+    fillColor: string;
+    fillOpacity: number;
+    highlightFillColor: string;
+    highlightFillOpacity: number;
+} {
+    const resolvedFillColor = getOrInjectPattern(
+        defsEl,
+        boardId,
+        fillStyle,
+        fillColor,
+    );
+    const usesPatternFill = resolvedFillColor !== fillColor;
+
+    return {
+        fillColor: resolvedFillColor,
+        fillOpacity: usesPatternFill ? 1 : fillOpacity,
+        highlightFillColor: resolvedFillColor,
+        highlightFillOpacity: usesPatternFill ? 1 : highlightFillOpacity,
+    };
+}

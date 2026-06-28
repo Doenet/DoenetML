@@ -30,7 +30,7 @@ import {
     syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
-import { getOrInjectPattern } from "./utils/fillPatterns";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 
 interface PolygonSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -97,15 +97,22 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         const resolvedFillColor = SVs.filled
             ? resolveFillColor(SVs.selectedStyle, darkMode)
             : "none";
-        const fillColor =
+        const fillAttributes =
             SVs.filled && board
-                ? getOrInjectPattern(
-                      board.renderer.defs as SVGDefsElement | null,
-                      board.container.id,
-                      SVs.selectedStyle.fillStyle ?? "solid",
-                      resolvedFillColor,
-                  )
-                : resolvedFillColor;
+                ? getPatternFillAttributes({
+                      defsEl: board.renderer.defs as SVGDefsElement | null,
+                      boardId: board.container.id,
+                      fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                      fillColor: resolvedFillColor,
+                      fillOpacity: SVs.selectedStyle.fillOpacity,
+                      highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                  })
+                : {
+                      fillColor: resolvedFillColor,
+                      fillOpacity: SVs.selectedStyle.fillOpacity,
+                      highlightFillColor: resolvedFillColor,
+                      highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                  };
 
         jsxPointAttributes.current = {
             fillColor: "none",
@@ -142,10 +149,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             }),
 
             //specific to polygon
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
-            highlightFillColor: fillColor,
-            highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
+            highlightFillColor: fillAttributes.highlightFillColor,
+            highlightFillOpacity: fillAttributes.highlightFillOpacity,
             vertices: jsxPointAttributes.current,
             borders: jsxBorderAttributes,
         };
@@ -528,15 +535,24 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             const resolvedFillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
-            const fillColor =
+            const fillAttributes =
                 SVs.filled && board
-                    ? getOrInjectPattern(
-                          board.renderer.defs as SVGDefsElement | null,
-                          board.container.id,
-                          SVs.selectedStyle.fillStyle ?? "solid",
-                          resolvedFillColor,
-                      )
-                    : resolvedFillColor;
+                    ? getPatternFillAttributes({
+                          defsEl: board.renderer.defs as SVGDefsElement | null,
+                          boardId: board.container.id,
+                          fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      })
+                    : {
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillColor: resolvedFillColor,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      };
 
             polygonJXG.current.name = SVs.labelForGraph;
 
@@ -547,20 +563,24 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 label.update();
             }
 
-            if (polygonJXG.current.visProp.fillcolor !== fillColor) {
-                polygonJXG.current.visProp.fillcolor = fillColor;
-                polygonJXG.current.visProp.highlightfillcolor = fillColor;
+            if (
+                polygonJXG.current.visProp.fillcolor !==
+                fillAttributes.fillColor
+            ) {
+                polygonJXG.current.visProp.fillcolor = fillAttributes.fillColor;
+                polygonJXG.current.visProp.highlightfillcolor =
+                    fillAttributes.highlightFillColor;
                 polygonJXG.current.visProp.hasinnerpoints = SVs.filled;
             }
 
             if (
                 polygonJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 polygonJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
                 polygonJXG.current.visProp.highlightfillopacity =
-                    SVs.selectedStyle.fillOpacity * 0.5;
+                    fillAttributes.highlightFillOpacity;
             }
 
             polygonJXG.current.needsUpdate = true;
