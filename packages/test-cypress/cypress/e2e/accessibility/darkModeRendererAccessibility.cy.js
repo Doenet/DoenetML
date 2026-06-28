@@ -376,7 +376,8 @@ describe(
     () => {
         const DOENETML = `
 <p>Enter <m>2</m>: <answer name="ans"><mathInput name="mi" />2</answer></p>
-<p>Enter <m>x+y</m>: <answer name="ans2"><mathInput name="mi2" />x+y</answer></p>`;
+<p>Enter <m>x+y</m>: <answer name="ans2"><mathInput name="mi2" />x+y</answer></p>
+<p>Disabled: <answer name="ans_disabled" disabled><mathInput name="mi_disabled" />42</answer></p>`;
 
         beforeEach(() => {
             cy.clearIndexedDB();
@@ -437,6 +438,72 @@ describe(
             cy.get("#mi2 textarea").type("99{enter}", { force: true });
             cy.get(".check-work-incorrect").should("exist");
             checkContrast();
+        });
+
+        it("dark mode: disabled check-work button", () => {
+            cy.get(".check-work-unvalidated:disabled").should("exist");
+            checkContrast();
+        });
+    },
+);
+
+describe(
+    "Graph handles react to live dark-mode changes",
+    { tags: ["@group5"] },
+    () => {
+        const DOENETML = `
+<graph name="g">
+  <curve through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls alwaysVisible>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
+  </curve>
+</graph>`;
+
+        function assertVisiblePointFillIncludesColor(expectedColor) {
+            cy.window().should((win) => {
+                const boards = Object.values(win.JXG?.boards ?? {});
+                expect(
+                    boards.length,
+                    "number of JSXGraph boards",
+                ).to.be.greaterThan(0);
+
+                const colors = boards.flatMap((board) =>
+                    (board.objectsList ?? [])
+                        .filter(
+                            (obj) =>
+                                obj?.elType === "point" &&
+                                obj?.visProp?.visible &&
+                                obj?.visProp?.fillcolor &&
+                                obj.visProp.fillcolor !== "none",
+                        )
+                        .map((obj) =>
+                            String(obj.visProp.fillcolor).toLowerCase(),
+                        ),
+                );
+                expect(
+                    colors,
+                    `visible point fills (expecting ${expectedColor}): ${colors.join(", ")}`,
+                ).to.include(expectedColor);
+            });
+        }
+
+        it("bezier handles update after a dark-mode toggle", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+            cy.get("#testRunner_toggleControls").should("exist");
+
+            cy.window().then((win) => {
+                win.postMessage({ doenetML: DOENETML, darkMode: "light" }, "*");
+            });
+            cy.get("#g").should("exist");
+
+            assertVisiblePointFillIncludesColor("#404040");
+
+            cy.window().then((win) => {
+                win.postMessage({ darkMode: "dark" }, "*");
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+
+            assertVisiblePointFillIncludesColor("#b0b0b0");
         });
     },
 );

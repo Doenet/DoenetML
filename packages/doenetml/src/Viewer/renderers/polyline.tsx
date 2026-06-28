@@ -10,7 +10,7 @@ import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -23,6 +23,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
@@ -123,7 +124,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: "black",
+            highlightFillColor: resolveHandleColor(darkMode),
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
@@ -411,6 +412,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             polylineJXG.current.visProp.highlight = !fixLocation.current;
             polylineJXG.current.isDraggable = !fixLocation.current;
 
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
+
             let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
             let layerChanged = syncLayer(
                 polylineJXG.current,
@@ -493,6 +497,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                     let pointVisible =
                         pointsVisible &&
                         vertexIndicesDraggable.current.includes(i);
+                    syncVisPropValues(pointsJXG.current[i], {
+                        highlightfillcolor: handleColor,
+                    });
                     pointsJXG.current[i].visProp["visible"] = pointVisible;
                     pointsJXG.current[i].visPropCalc["visible"] = pointVisible;
                     pointsJXG.current[i].visProp.showinfobox =

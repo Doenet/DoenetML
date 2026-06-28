@@ -837,6 +837,22 @@ export function syncLineStrokeStyle(
 }
 
 /**
+ * Sync one or more raw `visProp` entries on a JSXGraph object without calling
+ * `setAttribute`, which is often unnecessarily expensive during per-render
+ * updates.
+ */
+export function syncVisPropValues(
+    obj: { visProp: Record<string, any> },
+    values: Record<string, any>,
+): void {
+    for (const [key, value] of Object.entries(values)) {
+        if (obj.visProp[key] !== value) {
+            obj.visProp[key] = value;
+        }
+    }
+}
+
+/**
  * Sync the `withlabel` attribute based on whether `labelForGraph` is
  * non-empty, calling `setAttribute` only when the value actually changes.
  * `previousWithLabelRef` tracks the last applied value across renders.

@@ -17,6 +17,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
@@ -24,7 +25,7 @@ import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -131,9 +132,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray"),
+            highlightFillColor: resolveHandleColor(darkMode),
             layer: pointLayer,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
@@ -451,6 +450,14 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const handleColor = resolveHandleColor(darkMode);
+
+            syncVisPropValues(point1JXG.current, {
+                highlightfillcolor: handleColor,
+            });
+            syncVisPropValues(point2JXG.current, {
+                highlightfillcolor: handleColor,
+            });
 
             syncLineStrokeStyle(vectorJXG.current, {
                 lineColor,

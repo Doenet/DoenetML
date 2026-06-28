@@ -10,7 +10,11 @@ import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveHandleColor,
+} from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -23,6 +27,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 
@@ -96,7 +101,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: "black",
+            highlightFillColor: resolveHandleColor(darkMode),
             visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -400,6 +405,9 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 }
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
+
             // add or delete points as required and change data array size
             if (
                 previousNumVertices.current !== null &&
@@ -456,6 +464,9 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 let vertexVisible =
                     verticesVisible &&
                     vertexIndicesDraggable.current.includes(i);
+                syncVisPropValues(polygonJXG.current.vertices[i], {
+                    highlightfillcolor: handleColor,
+                });
                 polygonJXG.current.vertices[i].visProp["visible"] =
                     vertexVisible;
                 polygonJXG.current.vertices[i].visPropCalc["visible"] =

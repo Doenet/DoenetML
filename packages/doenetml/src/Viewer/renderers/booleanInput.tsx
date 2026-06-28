@@ -483,22 +483,6 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    let checkWorkStyle: React.CSSProperties = {
-        cursor: "pointer",
-        padding: "1px 6px 1px 6px",
-    };
-    let checkWorkTabIndex = "0";
-
-    if (disabled) {
-        // Disable the checkWorkButton
-        checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        checkWorkStyle.color = "black";
-        checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = "-1";
-    }
-
     const validationState = calculateValidationState(SVs);
     const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
         actionKey: "submitAnswer",

@@ -1570,9 +1570,15 @@ export function DocViewer({
         return (
             <div
                 style={{
+                    backgroundColor: "var(--lightRed)",
+                    color: "var(--canvasText)",
+                    borderWidth: 3,
+                    borderStyle: "solid",
+                    borderColor: "var(--mainRed)",
                     fontSize: "1.3em",
                     marginLeft: "20px",
                     marginTop: "20px",
+                    padding: "0.5em",
                 }}
             >
                 <MdError color="red" fontSize={"24pt"} /> {errMsg}
@@ -1610,12 +1616,16 @@ export function DocViewer({
     if (!coreCreated.current) {
         if (!documentRenderer) {
             noCoreWarning = (
-                <div style={{ backgroundColor: "lightCyan" }}>
+                <div
+                    style={{
+                        backgroundColor: "var(--canvas)",
+                        color: "var(--canvasText)",
+                    }}
+                >
                     <p>Initializing....</p>
                 </div>
             );
         }
-        viewerStyle.backgroundColor = "#F0F0F0";
     }
 
     let errorOverview = null;
@@ -1682,7 +1692,21 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
             if (!this.props.coreCreated) {
                 return null;
             } else {
-                return <h1>Something went wrong.</h1>;
+                return (
+                    <div
+                        style={{
+                            backgroundColor: "var(--lightRed)",
+                            color: "var(--canvasText)",
+                            padding: "1em",
+                            textAlign: "center",
+                            borderWidth: 3,
+                            borderStyle: "solid",
+                            borderColor: "var(--mainRed)",
+                        }}
+                    >
+                        <b>Error</b>: Something went wrong.
+                    </div>
+                );
             }
         }
         return this.props.children;

@@ -65,10 +65,11 @@ export function RendererLoadFailed(props: {
             id={props.componentInstructions?.id}
             role="alert"
             style={{
-                backgroundColor: "#ff9999",
-                color: "#222",
+                backgroundColor: "var(--lightRed)",
+                color: "var(--canvasText)",
                 borderWidth: 3,
                 borderStyle: "solid",
+                borderColor: "var(--mainRed)",
                 padding: "0.5em",
                 textAlign: "center",
             }}
