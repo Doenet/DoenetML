@@ -61,7 +61,7 @@
 
 /* On mouse-over, add a light blue background color */
 .doenet-viewer .boolean-container:hover input[type="checkbox"] ~ .checkmark {
-    background-color: var(--lightBlue);
+    background-color: var(--indicatorHoverBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
@@ -112,18 +112,4 @@
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
-}
-
-/*
- * In dark mode the darkened --lightBlue (#1e3a5f) is nearly indistinguishable
- * from the indicator default background (#a9a9a9) and the dark canvas.  Use a
- * medium-bright blue (#5b8cb5) that remains visible on the dark canvas
- * (contrast ≈ 5:1 against #121212) for the hover state of the small indicator.
- */
-[data-theme="dark"]
-    .doenet-viewer
-    .boolean-container:hover
-    input[type="checkbox"]
-    ~ .checkmark {
-    background-color: #5b8cb5;
 }

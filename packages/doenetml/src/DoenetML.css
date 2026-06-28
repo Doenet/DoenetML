@@ -81,6 +81,8 @@ html {
     --mainOrange: #a36600;
     --mainPurple: #4a03d9;
     --errorText: var(--mainRed);
+    --indicatorHoverBlue: var(--lightBlue);
+    --doenetTagColor: #3e844a;
 }
 
 [data-theme="dark"] {
@@ -109,6 +111,8 @@ html {
     --mainOrange: #a36600;
     --mainPurple: #a78bfa;
     --errorText: #ff6b6b;
+    --indicatorHoverBlue: #5b8cb5;
+    --doenetTagColor: #5cb870;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
@@ -425,17 +429,13 @@ div.jxgbox input[type="checkbox"] {
 }
 
 /*
- * DoenetML <tag> element: render as green inline code. In dark mode use a
- * brighter green so the text is readable against the dark canvas (#121212).
- * The light-mode value (#3e844a) matches --mainGreen but cannot share that
- * variable because --mainGreen is also used as a button *background* color
- * (correct answer button) where white foreground text requires the darker shade.
+ * DoenetML <tag> element: render as green inline code. `--doenetTagColor`
+ * stays separate from `--mainGreen` because button backgrounds need the darker
+ * `--mainGreen` shade for white foreground text, while inline tags need a
+ * brighter dark-mode green to stay readable on the canvas.
  */
 .doenet-viewer .doenet-tag {
-    color: #3e844a;
-}
-[data-theme="dark"] .doenet-viewer .doenet-tag {
-    color: #5cb870;
+    color: var(--doenetTagColor);
 }
 
 /**************************************************

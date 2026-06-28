@@ -21,7 +21,7 @@
 
     &:hover {
         background-color: var(--lightBlue);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -37,7 +37,7 @@
 
     &:hover {
         background-color: var(--lightBlue);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -48,7 +48,7 @@
 
     &:hover {
         background-color: var(--lightGreen);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -63,7 +63,7 @@
 
     &:hover {
         background-color: var(--lightRed);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -78,7 +78,7 @@
 
     &:hover {
         background-color: var(--lightOrange);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -92,8 +92,12 @@
     cursor: default;
 
     &:hover {
-        background-color: color-mix(in srgb, var(--mainPurple) 60%, white);
-        color: black;
+        background-color: color-mix(
+            in srgb,
+            var(--mainPurple) 60%,
+            var(--canvas)
+        );
+        color: var(--canvasText);
     }
 }
 .doenet-viewer button.check-work-response-saved:focus {
@@ -125,20 +129,4 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
-}
-
-/*
- * In dark mode, hover backgrounds for check-work buttons come from the
- * darkened --lightGreen / --lightBlue / --lightRed / --lightOrange /
- * --mainPurple variables, all of which are now dark-toned.  The default
- * hover text color is `black` (written for the light-mode pastels), which
- * would be invisible against those dark backgrounds.  Switch to white.
- */
-[data-theme="dark"] .doenet-viewer button.check-work-unvalidated:hover,
-[data-theme="dark"] .doenet-viewer button.check-work-unvalidated:disabled:hover,
-[data-theme="dark"] .doenet-viewer button.check-work-correct:hover,
-[data-theme="dark"] .doenet-viewer button.check-work-incorrect:hover,
-[data-theme="dark"] .doenet-viewer button.check-work-partialcorrect:hover,
-[data-theme="dark"] .doenet-viewer button.check-work-response-saved:hover {
-    color: white;
 }
