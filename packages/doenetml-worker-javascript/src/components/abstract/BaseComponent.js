@@ -7,6 +7,8 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
 
+export const SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX = "Encountered ";
+
 export default class BaseComponent {
     constructor({
         componentIdx,
@@ -1412,7 +1414,9 @@ export default class BaseComponent {
 
     async serialize(parameters = {}) {
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
-            throw Error("Encountered " + this.componentIdx);
+            throw Error(
+                `${SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX}${this.componentIdx}`,
+            );
         }
 
         let includeDefiningChildren = true;

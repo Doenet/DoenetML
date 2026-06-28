@@ -1,3 +1,4 @@
+import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import {
     postProcessCopy,
@@ -11,6 +12,53 @@ import {
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
+
+export function getSelfReferentialFallbackPropName({
+    componentAncestors,
+    componentInfoObjects,
+    replacementSourceComponentType,
+}) {
+    let contextType = null;
+    for (const ancestor of componentAncestors) {
+        const ancestorClass = ancestor.componentClass;
+        const ancestorType = ancestorClass.componentType;
+        if (
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: ancestorType,
+                baseComponentType: "label",
+            })
+        ) {
+            contextType = "label";
+            break;
+        }
+        if (
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: ancestorType,
+                baseComponentType: "text",
+            })
+        ) {
+            contextType = "text";
+            break;
+        }
+        if (!ancestorClass.treatAsComponentForRecursiveReplacements) {
+            break;
+        }
+    }
+
+    let fallbackPropNames = [];
+    if (contextType === "label") {
+        fallbackPropNames = ["latex", "text"];
+    } else if (contextType === "text") {
+        fallbackPropNames = ["text", "latex"];
+    }
+
+    const publicVarDescriptions =
+        componentInfoObjects.publicStateVariableInfo[
+            replacementSourceComponentType
+        ]?.stateVariableDescriptions;
+
+    return fallbackPropNames.find((name) => publicVarDescriptions?.[name]);
+}
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -1485,63 +1533,22 @@ export default class Copy extends CompositeComponent {
             // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
             // If we're inside a label or text context, fall back to displaying a meaningful
             // state variable of the source component rather than showing an error.
-            if (e.message?.startsWith("Encountered ")) {
+            if (e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX)) {
                 // Walk up the ancestor chain to determine if we're in a label or text context.
                 // ancestor.componentClass gives the class of each ancestor (closest first).
                 // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
                 // e.g. <group>) since they pass their contents into their parent's context
                 // unchanged. Any other component (e.g. <point>, <math>) establishes its own
-                // context, so we stop there — being inside a <label> that is itself inside a
-                // <point> does not count as being in a label context.
-                let contextType = null;
-                for (const ancestor of component.ancestors) {
-                    const ancestorClass = ancestor.componentClass;
-                    const ancestorType = ancestorClass.componentType;
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: ancestorType,
-                            baseComponentType: "label",
-                        })
-                    ) {
-                        contextType = "label";
-                        break;
-                    }
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: ancestorType,
-                            baseComponentType: "text",
-                        })
-                    ) {
-                        contextType = "text";
-                        break;
-                    }
-                    // Only continue through transparent composites (e.g. group).
-                    // Any other component type terminates the context search.
-                    if (
-                        !ancestorClass.treatAsComponentForRecursiveReplacements
-                    ) {
-                        break;
-                    }
-                }
-
+                // context, so we stop there. For example, `$a` inside
+                // `<label><math>$a</math></label>` uses math's context rather than label's.
                 // In a label context: prefer latex (for math rendering), fallback to text.
                 // In a text context: prefer text (for plain output), fallback to latex.
-                // If no label/text context was detected, skip the fallback entirely.
-                const fallbackPropNames =
-                    contextType === "label"
-                        ? ["latex", "text"]
-                        : contextType === "text"
-                          ? ["text", "latex"]
-                          : [];
-
-                const publicVarDescriptions =
-                    componentInfoObjects.publicStateVariableInfo[
-                        replacementSourceComponent.componentType
-                    ]?.stateVariableDescriptions;
-
-                const fallbackPropName = fallbackPropNames.find(
-                    (name) => publicVarDescriptions?.[name],
-                );
+                const fallbackPropName = getSelfReferentialFallbackPropName({
+                    componentAncestors: component.ancestors,
+                    componentInfoObjects,
+                    replacementSourceComponentType:
+                        replacementSourceComponent.componentType,
+                });
 
                 if (fallbackPropName) {
                     try {
