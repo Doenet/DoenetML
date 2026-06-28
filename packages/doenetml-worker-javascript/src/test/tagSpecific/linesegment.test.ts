@@ -3347,7 +3347,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     // -----------------------------------------------------------------------
     // Case C: 0 endpoints + 1 through, slope, length, pointOffset=0 (midpoint)
     // -----------------------------------------------------------------------
-    it("through point only — segment centered on through point", async () => {
+    it("through point with slope/length — segment centered on through point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,3)</point>
@@ -3402,6 +3402,76 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         );
         expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
             5,
+            1e-10,
+        );
+    });
+
+    it("through point alone uses default slope/length and updates them when dragging ep2", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3)</point>
+<graph name="g">
+  <lineSegment name="l" through="$T" />
+</graph>
+<number name="m">$l.slope</number>
+<math name="L">$l.length</math>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const TIdx = await resolvePathToNodeIdx("T");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[LIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            1,
+            1e-10,
+        );
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [2.5, 4],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            3.5,
+            1e-10,
+        );
+        expect(sv[mIdx].stateValues.value).closeTo(1, 1e-10);
+        expect(sv[LIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            Math.sqrt(2),
             1e-10,
         );
     });
@@ -3780,7 +3850,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     // -----------------------------------------------------------------------
     // slope inverse
     // -----------------------------------------------------------------------
-    it("slope state variable inverse — keeps center and length", async () => {
+    it("slope, center, and length state variables return correct initial values", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
