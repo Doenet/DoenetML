@@ -15,6 +15,16 @@ import {
     addChildrenToDynamicChild,
     deleteChildrenFromDynamicChild,
 } from "../../utils/dynamicChildren";
+import {
+    CANVAS_DARK_MODE_COLOR,
+    CANVAS_LIGHT_MODE_COLOR,
+    sectionTitleStateKeys,
+    titleStateKeyFromCredit,
+    resolveSectionTitleLightColorSpec,
+    resolveSectionTitleDarkColorSpec,
+    shouldEmitSectionTitleColorDiagnostic,
+    addSectionTitleColorContrastDiagnostic,
+} from "../../utils/sectionTitleColors";
 
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
@@ -140,6 +150,42 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "var(--mainGray)",
             description:
                 "Color used to indicate this section has not been started.",
+        };
+
+        attributes.completedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "completedColorDarkMode",
+            // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
+            defaultValue: "#1a5e20",
+            description:
+                "Color used to indicate this section has been completed (dark mode). " +
+                "If omitted, the dark-mode color is derived from `completedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark green " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.inProgressColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "inProgressColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section is in progress (dark mode). " +
+                "If omitted, the dark-mode color is derived from `inProgressColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.notStartedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "notStartedColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section has not been started (dark mode). " +
+                "If omitted, the dark-mode color is derived from `notStartedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         return attributes;
@@ -816,9 +862,12 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.titleColor = {
-            // Note: currently title color is used only when boxed or collapsible
-            forRenderer: true,
+        stateVariableDefinitions.sectionTitleStateColors = {
+            additionalStateVariablesDefined: [
+                "sectionTitleStateColorsDarkMode",
+                "sectionTitleStateColorSources",
+                "sectionTitleStateColorSourcesDarkMode",
+            ],
             returnDependencies: () => ({
                 completedColor: {
                     dependencyType: "stateVariable",
@@ -832,61 +881,211 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "notStartedColor",
                 },
-                parentCompletedColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "completedColor",
+                completedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorDarkMode",
                 },
-                parentInProgressColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "inProgressColor",
+                inProgressColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "inProgressColorDarkMode",
                 },
-                parentNotStartedColor: {
+                notStartedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "notStartedColorDarkMode",
+                },
+                parentSectionTitleStateColors: {
                     dependencyType: "parentStateVariable",
-                    variableName: "notStartedColor",
+                    variableName: "sectionTitleStateColors",
+                },
+                parentSectionTitleStateColorsDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                parentSectionTitleStateColorSources: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                parentSectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
+                },
+                parentBoxed: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "boxed",
+                },
+                parentCollapsible: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                const sectionTitleStateColors = {};
+                const sectionTitleStateColorsDarkMode = {};
+                const sectionTitleStateColorSources = {};
+                const sectionTitleStateColorSourcesDarkMode = {};
+                const parentIsBoxedOrCollapsible = Boolean(
+                    dependencyValues.parentBoxed ||
+                    dependencyValues.parentCollapsible,
+                );
+
+                const colorNamesByState = {
+                    completed: {
+                        light: "completedColor",
+                        dark: "completedColorDarkMode",
+                    },
+                    inProgress: {
+                        light: "inProgressColor",
+                        dark: "inProgressColorDarkMode",
+                    },
+                    notStarted: {
+                        light: "notStartedColor",
+                        dark: "notStartedColorDarkMode",
+                    },
+                };
+
+                for (const stateKey of sectionTitleStateKeys) {
+                    const colorNames = colorNamesByState[stateKey];
+                    const lightSpec = resolveSectionTitleLightColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownColorName: colorNames.light,
+                        parentColors:
+                            dependencyValues.parentSectionTitleStateColors,
+                        parentSources:
+                            dependencyValues.parentSectionTitleStateColorSources,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColors[stateKey] = lightSpec.value;
+                    sectionTitleStateColorSources[stateKey] = lightSpec.source;
+
+                    const darkSpec = resolveSectionTitleDarkColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownDarkColorName: colorNames.dark,
+                        ownLightColorName: colorNames.light,
+                        parentColorsDarkMode:
+                            dependencyValues.parentSectionTitleStateColorsDarkMode,
+                        parentSourcesDarkMode:
+                            dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
+                    sectionTitleStateColorSourcesDarkMode[stateKey] =
+                        darkSpec.source;
+                }
+
+                return {
+                    setValue: {
+                        sectionTitleStateColors,
+                        sectionTitleStateColorsDarkMode,
+                        sectionTitleStateColorSources,
+                        sectionTitleStateColorSourcesDarkMode,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.titleColor = {
+            // Note: currently title color is used only when boxed or collapsible
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "titleColorDarkMode",
+                    forRenderer: true,
+                },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                sectionTitleStateColors: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColors",
+                },
+                sectionTitleStateColorsDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                sectionTitleStateColorSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                sectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
                 },
                 creditAchieved: {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                let titleColor = dependencyValues.notStartedColor;
-                if (dependencyValues.creditAchieved === 1) {
-                    if (!usedDefault.completedColor) {
-                        titleColor = dependencyValues.completedColor;
-                    } else if (
-                        typeof dependencyValues.parentCompletedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentCompletedColor;
-                    } else {
-                        titleColor = dependencyValues.completedColor;
-                    }
-                } else if (dependencyValues.creditAchieved > 0) {
-                    if (!usedDefault.inProgressColor) {
-                        titleColor = dependencyValues.inProgressColor;
-                    } else if (
-                        typeof dependencyValues.parentInProgressColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentInProgressColor;
-                    } else {
-                        titleColor = dependencyValues.inProgressColor;
-                    }
-                } else {
-                    if (!usedDefault.notStartedColor) {
-                        titleColor = dependencyValues.notStartedColor;
-                    } else if (
-                        typeof dependencyValues.parentNotStartedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentNotStartedColor;
-                    } else {
-                        titleColor = dependencyValues.notStartedColor;
+            definition({ dependencyValues }) {
+                const titleStateKey = titleStateKeyFromCredit(
+                    dependencyValues.creditAchieved,
+                );
+                const titleColor =
+                    dependencyValues.sectionTitleStateColors[titleStateKey];
+                const titleColorDarkMode =
+                    dependencyValues.sectionTitleStateColorsDarkMode[
+                        titleStateKey
+                    ];
+
+                const diagnostics = [];
+                if (dependencyValues.boxed || dependencyValues.collapsible) {
+                    for (const stateKey of sectionTitleStateKeys) {
+                        const lightSource =
+                            dependencyValues.sectionTitleStateColorSources[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: lightSource,
+                            }),
+                            colorValue:
+                                dependencyValues.sectionTitleStateColors[
+                                    stateKey
+                                ],
+                            colorName: lightSource?.colorName ?? stateKey,
+                            textColor: "#000000",
+                            canvasColor: CANVAS_LIGHT_MODE_COLOR,
+                        });
+
+                        const darkSource =
+                            dependencyValues
+                                .sectionTitleStateColorSourcesDarkMode[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: darkSource,
+                            }),
+                            colorValue:
+                                dependencyValues
+                                    .sectionTitleStateColorsDarkMode[stateKey],
+                            colorName: darkSource?.colorName ?? stateKey,
+                            textColor: "#ffffff",
+                            canvasColor: CANVAS_DARK_MODE_COLOR,
+                            modeSuffix: " (dark mode)",
+                        });
                     }
                 }
 
-                return { setValue: { titleColor } };
+                return {
+                    setValue: {
+                        titleColor,
+                        titleColorDarkMode,
+                    },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

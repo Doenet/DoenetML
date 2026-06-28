@@ -22,7 +22,12 @@ describe(
             cy.injectAxe();
         });
 
+        function waitForCypressHarness() {
+            cy.get("#testRunner_toggleControls").should("exist");
+        }
+
         function loadInDarkMode(doenetML, settleSelector) {
+            waitForCypressHarness();
             cy.window().then((win) => {
                 win.postMessage({ doenetML, darkMode: "dark" }, "*");
             });
@@ -82,6 +87,24 @@ describe(
 <blockQuote>Quoted block.</blockQuote>
 </section>`,
                 settle: "#sec",
+            },
+            {
+                name: "boxed section — not started (default dark-mode heading color)",
+                doenetML: `
+<section name="prob" boxed>
+  <title>A boxed section</title>
+  <p>Some content.</p>
+</section>`,
+                settle: "#prob",
+            },
+            {
+                name: "collapsible section — not started (default dark-mode heading color)",
+                doenetML: `
+<aside name="as" collapsible>
+  <title>Collapsible aside</title>
+  <p>Some content.</p>
+</aside>`,
+                settle: "#as",
             },
             {
                 name: "tabular / table",
@@ -223,7 +246,12 @@ describe(
             cy.injectAxe();
         });
 
+        function waitForCypressHarness() {
+            cy.get("#testRunner_toggleControls").should("exist");
+        }
+
         function loadWithMathInput(darkMode) {
+            waitForCypressHarness();
             cy.window().then((win) => {
                 win.postMessage(
                     {

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useContext, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -20,6 +20,7 @@ import {
 } from "./utils/checkWork";
 import { cesc } from "@doenet/utils";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { DocContext } from "../DocViewer";
 
 interface SectionSVs {
     [key: string]: any;
@@ -32,6 +33,7 @@ interface SectionSVs {
     title: string;
     titleChildName?: string;
     titleColor?: string;
+    titleColorDarkMode?: string;
     titlePrefix?: string;
     sectionNumber?: string;
     level: number;
@@ -44,6 +46,15 @@ interface SectionSVs {
 export default React.memo(function Section(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SectionSVs>(props);
+
+    const { darkMode } = useContext(DocContext) || {};
+
+    // Pick the heading box background appropriate for the current theme.
+    // titleColorDarkMode is a hex default; titleColor may be a CSS variable.
+    const headingBoxBg =
+        darkMode === "dark" && SVs.titleColorDarkMode != null
+            ? SVs.titleColorDarkMode
+            : SVs.titleColor;
 
     // List item styling constants
     // When a section is rendered as a list item (SVs.isListItem), the section number
@@ -102,7 +113,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     ): React.CSSProperties => {
         const baseStyle: React.CSSProperties = {
             padding: BOX_PADDING,
-            backgroundColor: SVs.titleColor,
+            backgroundColor: headingBoxBg,
             borderTopLeftRadius: "var(--mainBorderRadius)",
             borderTopRightRadius: "var(--mainBorderRadius)",
             ...(isCollapsible && {
