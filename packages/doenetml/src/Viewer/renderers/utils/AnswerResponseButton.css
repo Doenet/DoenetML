@@ -3,12 +3,12 @@
     --button-hover-color: color-mix(
         in srgb,
         var(--revealButtonSurface) 85%,
-        black
+        var(--canvasText)
     );
     --button-active-color: color-mix(
         in srgb,
         var(--revealButtonSurface) 70%,
-        black
+        var(--canvasText)
     );
     color: var(--canvasText);
     padding: 0;
