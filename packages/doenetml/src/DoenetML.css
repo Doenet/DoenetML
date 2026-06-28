@@ -340,28 +340,28 @@ div.jxgbox input[type="checkbox"] {
 /* CSS rules for the wrapping div in fullscreen mode */
 
 .JXG_wrap_private:-moz-full-screen {
-    background-color: var(--canvas, #ccc);
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-webkit-full-screen {
-    background-color: var(--canvas, #ccc);
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:fullscreen {
-    background-color: var(--canvas, #ccc);
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-ms-fullscreen {
-    background-color: var(--canvas, #ccc);
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
