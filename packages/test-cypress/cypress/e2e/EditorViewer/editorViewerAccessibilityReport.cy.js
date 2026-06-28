@@ -57,7 +57,7 @@ describe(
             );
             cy.get(".accessibility-status-button.has-level-1-issues").should(
                 "contain.text",
-                "Accessibility Concerns",
+                "Accessibility Errors",
             );
             cy.get(".accessibility-status-button")
                 .invoke("attr", "title")
@@ -78,7 +78,7 @@ describe(
             cy.get(".accessibility-status-button.has-level-1-issues").should(
                 "not.exist",
             );
-            cy.get(".accessibility-status-button.no-level-1-issues").should(
+            cy.get(".accessibility-status-button.accessibility-issues").should(
                 "exist",
             );
             cy.get(".accessibility-status-button")
