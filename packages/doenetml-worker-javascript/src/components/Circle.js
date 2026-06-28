@@ -183,18 +183,27 @@ export default class Circle extends Curve {
                         fillColorWord =
                             dependencyValues.selectedStyle.fillColorWord;
                     }
+                    const fillStyleWord =
+                        dependencyValues.selectedStyle.fillStyleWord;
 
                     if (fillColorWord === lineColorWord) {
                         styleDescription = "filled " + fillColorWord;
+                        if (fillStyleWord) {
+                            styleDescription += " with " + fillStyleWord;
+                        }
                         if (borderDescription) {
                             styleDescription +=
-                                " with " + borderDescription + "border";
+                                (fillStyleWord ? " and " : " with ") +
+                                borderDescription +
+                                "border";
                         }
                     } else {
-                        styleDescription =
-                            "filled " +
-                            fillColorWord +
-                            " with " +
+                        styleDescription = "filled " + fillColorWord;
+                        if (fillStyleWord) {
+                            styleDescription += " with " + fillStyleWord;
+                        }
+                        styleDescription +=
+                            (fillStyleWord ? " and " : " with ") +
                             borderDescription +
                             lineColorWord +
                             " border";
@@ -265,19 +274,31 @@ export default class Circle extends Curve {
                         fillColorWord =
                             dependencyValues.selectedStyle.fillColorWord;
                     }
+                    const fillStyleWord =
+                        dependencyValues.selectedStyle.fillStyleWord;
 
                     if (fillColorWord === lineColorWord) {
                         styleDescriptionWithNoun =
                             "filled " + fillColorWord + " circle";
+                        if (fillStyleWord) {
+                            styleDescriptionWithNoun +=
+                                " with " + fillStyleWord;
+                        }
                         if (borderDescription) {
                             styleDescriptionWithNoun +=
-                                " with a " + borderDescription + "border";
+                                (fillStyleWord ? " and a " : " with a ") +
+                                borderDescription +
+                                "border";
                         }
                     } else {
                         styleDescriptionWithNoun =
-                            "filled " +
-                            fillColorWord +
-                            " circle with a " +
+                            "filled " + fillColorWord + " circle";
+                        if (fillStyleWord) {
+                            styleDescriptionWithNoun +=
+                                " with " + fillStyleWord;
+                        }
+                        styleDescriptionWithNoun +=
+                            (fillStyleWord ? " and a " : " with a ") +
                             borderDescription +
                             lineColorWord +
                             " border";
@@ -371,6 +392,10 @@ export default class Circle extends Curve {
                     fillStyleDescription = "unfilled";
                 } else {
                     fillStyleDescription = fillColorWord;
+                    if (dependencyValues.selectedStyle.fillStyleWord) {
+                        fillStyleDescription +=
+                            " " + dependencyValues.selectedStyle.fillStyleWord;
+                    }
                 }
 
                 return { setValue: { fillStyleDescription } };

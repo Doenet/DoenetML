@@ -21,4 +21,6 @@ Closed shapes in graphs (polygon, circle, region, angle) now accept a `fillStyle
 
 Both the JSXGraph interactive renderer and the PreFigure static diagram renderer support all patterns. The hatch lines use the shape's fill color.
 
+Filled circles and polygons also include the hatch wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
+
 Closes #1386.

@@ -150,18 +150,27 @@ export default class Polygon extends Polyline {
                         fillColorWord =
                             dependencyValues.selectedStyle.fillColorWord;
                     }
+                    const fillStyleWord =
+                        dependencyValues.selectedStyle.fillStyleWord;
 
                     if (fillColorWord === lineColorWord) {
                         styleDescription = "filled " + fillColorWord;
+                        if (fillStyleWord) {
+                            styleDescription += " with " + fillStyleWord;
+                        }
                         if (borderDescription) {
                             styleDescription +=
-                                " with " + borderDescription + "border";
+                                (fillStyleWord ? " and " : " with ") +
+                                borderDescription +
+                                "border";
                         }
                     } else {
-                        styleDescription =
-                            "filled " +
-                            fillColorWord +
-                            " with " +
+                        styleDescription = "filled " + fillColorWord;
+                        if (fillStyleWord) {
+                            styleDescription += " with " + fillStyleWord;
+                        }
+                        styleDescription +=
+                            (fillStyleWord ? " and " : " with ") +
                             borderDescription +
                             lineColorWord +
                             " border";
@@ -232,19 +241,31 @@ export default class Polygon extends Polyline {
                         fillColorWord =
                             dependencyValues.selectedStyle.fillColorWord;
                     }
+                    const fillStyleWord =
+                        dependencyValues.selectedStyle.fillStyleWord;
 
                     if (fillColorWord === lineColorWord) {
                         styleDescriptionWithNoun =
                             "filled " + fillColorWord + " polygon";
+                        if (fillStyleWord) {
+                            styleDescriptionWithNoun +=
+                                " with " + fillStyleWord;
+                        }
                         if (borderDescription) {
                             styleDescriptionWithNoun +=
-                                " with a " + borderDescription + "border";
+                                (fillStyleWord ? " and a " : " with a ") +
+                                borderDescription +
+                                "border";
                         }
                     } else {
                         styleDescriptionWithNoun =
-                            "filled " +
-                            fillColorWord +
-                            " polygon with a " +
+                            "filled " + fillColorWord + " polygon";
+                        if (fillStyleWord) {
+                            styleDescriptionWithNoun +=
+                                " with " + fillStyleWord;
+                        }
+                        styleDescriptionWithNoun +=
+                            (fillStyleWord ? " and a " : " with a ") +
                             borderDescription +
                             lineColorWord +
                             " border";
@@ -338,6 +359,10 @@ export default class Polygon extends Polyline {
                     fillStyleDescription = "unfilled";
                 } else {
                     fillStyleDescription = fillColorWord;
+                    if (dependencyValues.selectedStyle.fillStyleWord) {
+                        fillStyleDescription +=
+                            " " + dependencyValues.selectedStyle.fillStyleWord;
+                    }
                 }
 
                 return { setValue: { fillStyleDescription } };

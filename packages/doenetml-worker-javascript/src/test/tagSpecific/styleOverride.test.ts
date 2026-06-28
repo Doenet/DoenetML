@@ -255,6 +255,44 @@ describe("Per-component style override tests @group4", async () => {
         expect(C3.stateValues.selectedStyle.fillOpacity).eq(0.3);
     });
 
+    it("fillStyle values flow through to selectedStyle and derive fillStyleWord", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinition styleNumber="2" fillStyle="backDiagonal" />
+</setup>
+<graph>
+  <polygon
+    name="P"
+    vertices="(0,0) (1,0) (1,1)"
+    filled
+    fillStyle="horizontal"
+  />
+  <circle
+    name="C"
+    center="(3,0)"
+    radius="1"
+    filled
+    styleNumber="2"
+  />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        const C = stateVariables[await resolvePathToNodeIdx("C")];
+
+        expect(P.stateValues.selectedStyle.fillStyle).eq("horizontal");
+        expect(P.stateValues.selectedStyle.fillStyleWord).eq(
+            "horizontal lines",
+        );
+        expect(C.stateValues.selectedStyle.fillStyle).eq("backdiagonal");
+        expect(C.stateValues.selectedStyle.fillStyleWord).eq(
+            "reverse diagonal lines",
+        );
+    });
+
     it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
         // Same #1231 borrow path as the circle test above, but Parabola opts
         // into only the "line" override category.
@@ -320,16 +358,19 @@ describe("Per-component style override tests @group4", async () => {
         expect(polyAttrs.lineWidth).toBeDefined();
         expect(polyAttrs.lineStyle).toBeDefined();
         expect(polyAttrs.fillOpacity).toBeDefined();
+        expect(polyAttrs.fillStyle).toBeDefined();
         expect(polyAttrs.markerStyle).toBeUndefined();
 
         // Curve is line+fill (closed-curve case); Parabola overrides to line-only
         const Curve = (await import("../../components/Curve.js")).default;
         const curveAttrs = Curve.createAttributesObject();
         expect(curveAttrs.fillOpacity).toBeDefined();
+        expect(curveAttrs.fillStyle).toBeDefined();
         const Parabola = (await import("../../components/Parabola.js")).default;
         const parAttrs = Parabola.createAttributesObject();
         expect(parAttrs.lineWidth).toBeDefined();
         expect(parAttrs.fillOpacity).toBeUndefined();
+        expect(parAttrs.fillStyle).toBeUndefined();
 
         // Subclasses inherit their parent's category:
         // - Triangle/Rectangle/RegularPolygon inherit Polygon's line+fill
@@ -338,8 +379,10 @@ describe("Per-component style override tests @group4", async () => {
         // - CobwebPolyline inherits Polyline's line-only (no fill)
         const Triangle = (await import("../../components/Triangle.js")).default;
         expect(Triangle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Triangle.createAttributesObject().fillStyle).toBeDefined();
         const Circle = (await import("../../components/Circle.js")).default;
         expect(Circle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Circle.createAttributesObject().fillStyle).toBeDefined();
         const BestFitLine = (await import("../../components/BestFitLine.js"))
             .default;
         const bflAttrs = BestFitLine.createAttributesObject();

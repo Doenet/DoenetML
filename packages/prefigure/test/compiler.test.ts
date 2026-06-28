@@ -118,6 +118,55 @@ describe("PreFigureCompiler", () => {
         });
     });
 
+    it("injects one shared hatch pattern into an existing defs block", async () => {
+        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
+        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
+        mocks.loadPackageSpy.mockResolvedValue(undefined);
+        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
+        mocks.runPythonSpy.mockResolvedValue([
+            '<svg><defs><marker id="m"/></defs><path fill="url(#doenet-hatch-horizontal-1f5dff)"/><path fill="url(#doenet-hatch-horizontal-1f5dff)"/></svg>',
+            "",
+        ]);
+
+        const { PreFigureCompiler } = await import("../src/worker/compiler");
+        const compiler = new PreFigureCompiler();
+
+        await compiler.init();
+        const result = await compiler.compile("svg", "<diagram/>");
+
+        expect(result.svg).toContain(
+            '<pattern id="doenet-hatch-horizontal-1f5dff"',
+        );
+        expect(
+            result.svg.match(/id="doenet-hatch-horizontal-1f5dff"/g),
+        ).toHaveLength(1);
+        expect(result.svg).toContain('<marker id="m"/>');
+    });
+
+    it("injects hatch patterns even when the svg has no defs block", async () => {
+        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
+        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
+        mocks.loadPackageSpy.mockResolvedValue(undefined);
+        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
+        mocks.runPythonSpy.mockResolvedValue([
+            '<svg><path fill="url(#doenet-hatch-diagonalcrosshatch-ff0000)"/></svg>',
+            "",
+        ]);
+
+        const { PreFigureCompiler } = await import("../src/worker/compiler");
+        const compiler = new PreFigureCompiler();
+
+        await compiler.init();
+        const result = await compiler.compile("svg", "<diagram/>");
+
+        expect(result.svg).toContain(
+            '<defs><pattern id="doenet-hatch-diagonalcrosshatch-ff0000"',
+        );
+        expect(result.svg).toContain(
+            'd="M0,12 L12,0 M0,0 L12,12" stroke="#ff0000"',
+        );
+    });
+
     it("coalesces concurrent init calls into one initialization", async () => {
         const pyodide = createPyodideMock("https://cdn.example.com/assets/");
         mocks.loadPyodideSpy.mockResolvedValue(pyodide);
