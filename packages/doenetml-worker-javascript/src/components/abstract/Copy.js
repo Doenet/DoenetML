@@ -1569,9 +1569,8 @@ export default class Copy extends CompositeComponent {
                             nComponents,
                         };
                     } catch (innerError) {
-                        // Re-throw the original error so it is handled as
-                        // the circular dependency it actually is.
-                        throw e;
+                        // Fall through to the circular dependency handler below
+                        // so this still reports as the original self-reference.
                     }
                 }
             }

@@ -6873,7 +6873,6 @@ describe("Point tag tests @group4", async () => {
         // Also covers context-aware fallback selection:
         // - $a directly in <label> → latex fallback (label context)
         // - $a in <label><group>$a</group></label> → label context through transparent group
-        // - $a in <label><point>$a</point></label> → no label context (point is opaque)
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
