@@ -375,10 +375,8 @@ describe(
     { tags: ["@group5"] },
     () => {
         const DOENETML = `
-<p>Enter <m>2</m>: <mathInput name="mi" />
-<answer name="ans">2</answer></p>
-<p>Enter <m>x+y</m>: <mathInput name="mi2" />
-<answer name="ans2">x+y</answer></p>`;
+<p>Enter <m>2</m>: <answer name="ans"><mathInput name="mi" />2</answer></p>
+<p>Enter <m>x+y</m>: <answer name="ans2"><mathInput name="mi2" />x+y</answer></p>`;
 
         beforeEach(() => {
             cy.clearIndexedDB();
@@ -422,25 +420,21 @@ describe(
         }
 
         it("dark mode: correct check-work button", () => {
-            cy.get("#mi textarea").type("2", { force: true });
-            cy.get("button.check-work").first().click();
+            cy.get("#mi textarea").type("2{enter}", { force: true });
             cy.get(".check-work-correct").should("exist");
             checkContrast();
         });
 
         it("dark mode: incorrect check-work button", () => {
-            cy.get("#mi textarea").type("99", { force: true });
-            cy.get("button.check-work").first().click();
+            cy.get("#mi textarea").type("99{enter}", { force: true });
             cy.get(".check-work-incorrect").should("exist");
             checkContrast();
         });
 
         it("dark mode: mixed correct and incorrect check-work buttons", () => {
-            cy.get("#mi textarea").type("2", { force: true });
-            cy.get("button.check-work").first().click();
+            cy.get("#mi textarea").type("2{enter}", { force: true });
             cy.get(".check-work-correct").should("exist");
-            cy.get("#mi2 textarea").type("99", { force: true });
-            cy.get("button.check-work").last().click();
+            cy.get("#mi2 textarea").type("99{enter}", { force: true });
             cy.get(".check-work-incorrect").should("exist");
             checkContrast();
         });
