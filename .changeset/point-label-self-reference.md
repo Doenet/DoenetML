@@ -6,8 +6,8 @@
 "doenet-vscode-extension": patch
 ---
 
-Point labels: fix self-references like `<label>$a</label>` so they render the point coordinates instead of a circular dependency error.
+Fix self-referential references in `<label>` and `<text>` contexts (e.g. `<label>$a</label>` inside component `a`) so they render a meaningful value instead of a circular dependency error.
 
-When a point label references its own point without an explicit prop, DoenetML now falls back to the point's public label/text state in label and text contexts while preserving the existing circular-dependency error outside those contexts.
+When a component references itself without an explicit prop inside its own `<label>` or `<text>`, DoenetML now falls back to the component's public `latex` or `text` state variable (depending on context) rather than showing an error. The existing circular-dependency error is preserved for self-references outside label/text contexts.
 
 Closes #1333.
