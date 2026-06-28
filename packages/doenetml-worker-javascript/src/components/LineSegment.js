@@ -216,7 +216,7 @@ export default class LineSegment extends GraphicalComponent {
             defaultValue: 0,
             clamp: [-1, 1],
             description:
-                "Where the through point sits along the segment: -1=first endpoint, 0=midpoint, 1=second endpoint.",
+                "Where the through point sits along the segment (requires through to be set): -1=first endpoint, 0=midpoint, 1=second endpoint. Clamped to [-1, 1].",
         };
 
         attributes.addControls = {
@@ -1253,6 +1253,9 @@ export default class LineSegment extends GraphicalComponent {
                                     L *
                                     getDirectionComponent(dim, dirX2, dirY2),
                         );
+                        if (!T_new.every(Number.isFinite)) {
+                            return { success: false };
+                        }
                     } else {
                         // ep2 desired (alone or with ep1): use t-parameterization.
                         // T_new = ep1_new + tT * (ep2_new - ep1_new)
