@@ -772,17 +772,23 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 controlPointAttributes.current!.layer = controlPointLayer;
             }
 
-            const handleColor = resolveHandleColor(darkMode);
-            segmentAttributes.current!.strokeColor = handleColor;
-            segmentAttributes.current!.highlightStrokeColor = handleColor;
-            throughPointAttributes.current!.highlightFillColor = handleColor;
-            throughPointAttributes.current!.highlightStrokeColor = handleColor;
-            throughPointAlwaysVisible.current!.fillcolor = handleColor;
-            throughPointAlwaysVisible.current!.strokecolor = handleColor;
-            controlPointAttributes.current!.fillColor = handleColor;
-            controlPointAttributes.current!.strokeColor = handleColor;
-            controlPointAttributes.current!.highlightFillColor = handleColor;
-            controlPointAttributes.current!.highlightStrokeColor = handleColor;
+            if (SVs.curveType === "bezier") {
+                const handleColor = resolveHandleColor(darkMode);
+                segmentAttributes.current!.strokeColor = handleColor;
+                segmentAttributes.current!.highlightStrokeColor = handleColor;
+                throughPointAttributes.current!.highlightFillColor =
+                    handleColor;
+                throughPointAttributes.current!.highlightStrokeColor =
+                    handleColor;
+                throughPointAlwaysVisible.current!.fillcolor = handleColor;
+                throughPointAlwaysVisible.current!.strokecolor = handleColor;
+                controlPointAttributes.current!.fillColor = handleColor;
+                controlPointAttributes.current!.strokeColor = handleColor;
+                controlPointAttributes.current!.highlightFillColor =
+                    handleColor;
+                controlPointAttributes.current!.highlightStrokeColor =
+                    handleColor;
+            }
 
             let lineColor =
                 darkMode === "dark"
