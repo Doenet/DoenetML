@@ -14,6 +14,7 @@ import {
     syncLayer,
     syncLineFamilyVisibility,
     syncLineStrokeStyle,
+    syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
@@ -433,6 +434,14 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const handleColor = resolveHandleColor(darkMode);
+
+            syncVisPropValues(point1JXG.current, {
+                highlightfillcolor: handleColor,
+            });
+            syncVisPropValues(point2JXG.current, {
+                highlightfillcolor: handleColor,
+            });
 
             syncLineStrokeStyle(lineSegmentJXG.current, {
                 lineColor,

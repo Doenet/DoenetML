@@ -17,7 +17,11 @@ import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
-import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncVisPropValues,
+} from "./utils/jsxgraph";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -768,6 +772,18 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 controlPointAttributes.current!.layer = controlPointLayer;
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+            segmentAttributes.current!.strokeColor = handleColor;
+            segmentAttributes.current!.highlightStrokeColor = handleColor;
+            throughPointAttributes.current!.highlightFillColor = handleColor;
+            throughPointAttributes.current!.highlightStrokeColor = handleColor;
+            throughPointAlwaysVisible.current!.fillcolor = handleColor;
+            throughPointAlwaysVisible.current!.strokecolor = handleColor;
+            controlPointAttributes.current!.fillColor = handleColor;
+            controlPointAttributes.current!.strokeColor = handleColor;
+            controlPointAttributes.current!.highlightFillColor = handleColor;
+            controlPointAttributes.current!.highlightStrokeColor = handleColor;
+
             let lineColor =
                 darkMode === "dark"
                     ? SVs.selectedStyle.lineColorDarkMode
@@ -1063,6 +1079,37 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                         layer: controlPointLayer,
                     });
                 }
+
+                syncVisPropValues(throughPointsJXG.current![i], {
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                if (throughPointsJXG.current![i].visProp.fillcolor !== "none") {
+                    syncVisPropValues(throughPointsJXG.current![i], {
+                        fillcolor: handleColor,
+                        strokecolor: handleColor,
+                    });
+                }
+                syncVisPropValues(controlPointsJXG.current![i][0], {
+                    fillcolor: handleColor,
+                    strokecolor: handleColor,
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(segmentsJXG.current![i][0], {
+                    strokecolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(controlPointsJXG.current![i][1], {
+                    fillcolor: handleColor,
+                    strokecolor: handleColor,
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(segmentsJXG.current![i][1], {
+                    strokecolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
 
                 throughPointsJXG.current![i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,

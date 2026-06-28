@@ -23,6 +23,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
@@ -411,6 +412,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             polylineJXG.current.visProp.highlight = !fixLocation.current;
             polylineJXG.current.isDraggable = !fixLocation.current;
 
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
+
             let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
             let layerChanged = syncLayer(
                 polylineJXG.current,
@@ -493,6 +497,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                     let pointVisible =
                         pointsVisible &&
                         vertexIndicesDraggable.current.includes(i);
+                    syncVisPropValues(pointsJXG.current[i], {
+                        highlightfillcolor: handleColor,
+                    });
                     pointsJXG.current[i].visProp["visible"] = pointVisible;
                     pointsJXG.current[i].visPropCalc["visible"] = pointVisible;
                     pointsJXG.current[i].visProp.showinfobox =

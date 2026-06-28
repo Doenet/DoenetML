@@ -448,6 +448,75 @@ describe(
 );
 
 describe(
+    "Graph handles react to live dark-mode changes",
+    { tags: ["@group5"] },
+    () => {
+        const DOENETML = `
+<graph name="g">
+  <curve through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls alwaysVisible>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
+  </curve>
+</graph>`;
+
+        function getVisiblePointFillColors() {
+            return cy.window().then((win) => {
+                const boards = Object.values(win.JXG?.boards ?? {});
+                expect(
+                    boards.length,
+                    "number of JSXGraph boards",
+                ).to.be.greaterThan(0);
+
+                return boards.flatMap((board) =>
+                    (board.objectsList ?? [])
+                        .filter(
+                            (obj) =>
+                                obj?.elType === "point" &&
+                                obj?.visProp?.visible &&
+                                obj?.visProp?.fillcolor &&
+                                obj.visProp.fillcolor !== "none",
+                        )
+                        .map((obj) =>
+                            String(obj.visProp.fillcolor).toLowerCase(),
+                        ),
+                );
+            });
+        }
+
+        it("bezier handles update after a dark-mode toggle", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+            cy.get("#testRunner_toggleControls").should("exist");
+
+            cy.window().then((win) => {
+                win.postMessage({ doenetML: DOENETML, darkMode: "light" }, "*");
+            });
+            cy.get("#g").should("exist");
+            cy.wait(200);
+
+            getVisiblePointFillColors().then((colors) => {
+                expect(
+                    colors,
+                    `light-mode visible point fills ${colors.join(", ")}`,
+                ).to.include("#404040");
+            });
+
+            cy.window().then((win) => {
+                win.postMessage({ darkMode: "dark" }, "*");
+            });
+            cy.get('[data-theme="dark"]').should("exist");
+            cy.wait(200);
+
+            getVisiblePointFillColors().then((colors) => {
+                expect(
+                    colors,
+                    `dark-mode visible point fills ${colors.join(", ")}`,
+                ).to.include("#b0b0b0");
+            });
+        });
+    },
+);
+
+describe(
     "Error banner — light and dark mode contrast",
     { tags: ["@group5"] },
     () => {

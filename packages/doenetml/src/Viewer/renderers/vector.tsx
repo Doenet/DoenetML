@@ -17,6 +17,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
@@ -449,6 +450,14 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const handleColor = resolveHandleColor(darkMode);
+
+            syncVisPropValues(point1JXG.current, {
+                highlightfillcolor: handleColor,
+            });
+            syncVisPropValues(point2JXG.current, {
+                highlightfillcolor: handleColor,
+            });
 
             syncLineStrokeStyle(vectorJXG.current, {
                 lineColor,

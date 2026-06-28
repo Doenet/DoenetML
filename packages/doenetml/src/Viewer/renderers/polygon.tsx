@@ -27,6 +27,7 @@ import {
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
 } from "./utils/jsxgraph";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 
@@ -404,6 +405,9 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 }
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
+
             // add or delete points as required and change data array size
             if (
                 previousNumVertices.current !== null &&
@@ -460,6 +464,9 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 let vertexVisible =
                     verticesVisible &&
                     vertexIndicesDraggable.current.includes(i);
+                syncVisPropValues(polygonJXG.current.vertices[i], {
+                    highlightfillcolor: handleColor,
+                });
                 polygonJXG.current.vertices[i].visProp["visible"] =
                     vertexVisible;
                 polygonJXG.current.vertices[i].visPropCalc["visible"] =
