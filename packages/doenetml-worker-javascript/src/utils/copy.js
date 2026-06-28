@@ -775,7 +775,8 @@ export function addAttributesToSingleReplacementChange(
  * `math` or `text` (or a component that inherits from one of those).
  *
  * The recognized contexts are any ancestor that inherits from:
- * label, text, math, m, md, boolean, mathList, textList, or booleanList.
+ * label, text, math, m, md, boolean, number, mathList, numberList,
+ * textList, or booleanList.
  *
  * Transparent composites (treatAsComponentForRecursiveReplacements, e.g.
  * <group>) are walked through; any other ancestor type stops the search.
@@ -800,7 +801,9 @@ export function getSelfReferentialFallbackPropName({
                 "m",
                 "md",
                 "boolean",
+                "number",
                 "mathList",
+                "numberList",
                 "textList",
                 "booleanList",
             ].some((base) =>

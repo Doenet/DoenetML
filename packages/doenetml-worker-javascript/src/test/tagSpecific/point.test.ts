@@ -7014,21 +7014,62 @@ describe("Point tag tests @group4", async () => {
         await check_labels(-1, 4);
     });
 
-    it("self-reference outside a recognized context still reports a circular dependency", async () => {
-        // <number> is not in the recognized context list, so a self-referential
-        // $a inside it does not get a fallback and still errors.
-        const { core } = await createTestCore({
+    it("self-referential point works via number context and via adapted inner point", async () => {
+        // <number> is a recognized context (qualitatively similar to <math>).
+        // An inner <point> also works because point adapts to coords, a math subtype.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
-  <point name="a">(2,3)
-    <label><number>$a</number></label>
+  <point name="viaNumber">(2,3)
+    <label><number>$viaNumber</number></label>
+  </point>
+  <point name="viaInnerPoint">(2,3)
+    <label><point>$viaInnerPoint</point></label>
   </point>
 </graph>
 `,
         });
 
         const diagnostics = getDiagnosticsByType(core);
-        expect(diagnostics.errors.length).eq(1);
+        expect(diagnostics.errors.length).eq(0);
+
+        const viaNumberIdx = await resolvePathToNodeIdx("viaNumber");
+        const viaInnerPointIdx = await resolvePathToNodeIdx("viaInnerPoint");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const viaNumberLabel = stateVariables[viaNumberIdx].stateValues.label;
+        const viaInnerPointLabel =
+            stateVariables[viaInnerPointIdx].stateValues.label;
+
+        expect(typeof viaNumberLabel).eq("string");
+        expect(viaNumberLabel.length).greaterThan(0);
+        expect(typeof viaInnerPointLabel).eq("string");
+        expect(viaInnerPointLabel.length).greaterThan(0);
+
+        // Labels update when the point moves (inner-point case tracks coords;
+        // number context renders NaN for a non-scalar, which is acceptable)
+        await movePoint({ componentIdx: viaNumberIdx, x: 5, y: -2, core });
+        await movePoint({ componentIdx: viaInnerPointIdx, x: 5, y: -2, core });
+        const sv2 = await core.returnAllStateVariables(false, true);
+        expect(sv2[viaInnerPointIdx].stateValues.label).not.eq(
+            viaInnerPointLabel,
+        );
+    });
+
+    it("self-reference inside a non-sensical context like <answer> still errors", async () => {
+        // Components like <answer> are not in the recognized rendering-context
+        // list and don't make sense inside a <label>. The circular-dependency
+        // error is the expected outcome in such cases.
+        const { core } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer>$a</answer></label>
+</point>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).greaterThan(0);
         expect(diagnostics.errors[0].message).contain(
             "Circular dependency detected",
         );
