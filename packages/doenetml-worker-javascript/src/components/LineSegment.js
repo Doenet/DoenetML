@@ -195,7 +195,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.through = {
             createComponentOfType: "point",
             description:
-                "A point the line segment passes through when using slope/length/pointOffset.",
+                "A reference point the line segment passes through. Used with slope/length/pointOffset to position the segment, or alone to center a default 1-unit horizontal segment.",
         };
 
         attributes.slope = {
