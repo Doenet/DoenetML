@@ -422,21 +422,25 @@ describe(
         }
 
         it("dark mode: correct check-work button", () => {
-            cy.get("#mi textarea").type("2{enter}", { force: true });
+            cy.get("#mi textarea").type("2", { force: true });
+            cy.get("button.check-work").first().click();
             cy.get(".check-work-correct").should("exist");
             checkContrast();
         });
 
         it("dark mode: incorrect check-work button", () => {
-            cy.get("#mi textarea").type("99{enter}", { force: true });
+            cy.get("#mi textarea").type("99", { force: true });
+            cy.get("button.check-work").first().click();
             cy.get(".check-work-incorrect").should("exist");
             checkContrast();
         });
 
         it("dark mode: mixed correct and incorrect check-work buttons", () => {
-            cy.get("#mi textarea").type("2{enter}", { force: true });
+            cy.get("#mi textarea").type("2", { force: true });
+            cy.get("button.check-work").first().click();
             cy.get(".check-work-correct").should("exist");
-            cy.get("#mi2 textarea").type("99{enter}", { force: true });
+            cy.get("#mi2 textarea").type("99", { force: true });
+            cy.get("button.check-work").last().click();
             cy.get(".check-work-incorrect").should("exist");
             checkContrast();
         });
