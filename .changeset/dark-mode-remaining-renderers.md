@@ -16,7 +16,7 @@ Addresses all remaining DoenetML renderer pieces that displayed poorly or inacce
 - **`pretzel.css`**: Replace hardcoded `#333` borders with `var(--canvasText)` and `#ddd` answer background with `var(--revealButtonSurface)`.
 - **`orbitalDiagram.tsx`** / **`orbitalDiagramInput.tsx`**: Replace hardcoded `#E2E2E2` row backgrounds with `var(--revealButtonSurface)`; replace hardcoded `#1A5A99` selected-row border and box stroke with `var(--mainBlue)`.
 - **`mathInput.tsx`**: Replace `rgba(239,239,239,0.3)` disabled background (light-mode tint) with neutral `rgba(128,128,128,0.15)`.
-- **`checkWork.css`**: Replace hardcoded `rgb(74,3,217)` / `rgb(161,129,224)` response-saved button colors with `var(--mainPurple)` + `color-mix`; switch hover text to `var(--canvasText)` so the same rules stay readable in both themes.
+- **`checkWork.css`**: Replace hardcoded `rgb(74,3,217)` / `rgb(161,129,224)` response-saved button colors with `var(--mainPurple)` + `color-mix`; switch status-button hover text to `var(--canvasText)` so the same rules stay readable in both themes, while keeping disabled buttons gray on hover.
 - **`AnswerResponseButton.css`**: Fix the tooltip to use `var(--canvas)` + `var(--canvasText)` + border, and replace the remaining hardcoded `#aaa/#ccc/#ddd` button states with theme-aware surface/text colors.
 - **`ref.css`**: Keep the main blue button text white, and switch the hover text to `var(--canvasText)` so the same rule is readable on both the light and dark hover backgrounds.
 - **`choiceInput.css`** / **`booleanInput.css`**: Use shared `--indicatorHoverBlue` so radio/checkbox hover indicators stay visible in dark mode without duplicating per-file overrides.

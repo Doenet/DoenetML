@@ -25,8 +25,6 @@ interface OrbitalDiagramInputSVs {
     selectedBoxIndex: number;
 }
 
-// border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
-
 export default React.memo(function orbitalDiagramInput(
     props: UseDoenetRendererProps,
 ) {
@@ -277,7 +275,6 @@ const OrbitalRow = React.memo(function OrbitalRow({
     };
     if (selectedRow === rowNumber) {
         rowStyle["border"] = "var(--mainBlue) solid 2px";
-        // rowStyle['backgroundColor'] = '#1A5A99';
     }
 
     //Make boxes

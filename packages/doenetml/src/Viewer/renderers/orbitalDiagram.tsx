@@ -22,8 +22,6 @@ interface OrbitalDiagramSVs {
     value: OrbitalRowData[];
 }
 
-// border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
-
 export default React.memo(function orbitalDiagram(
     props: UseDoenetRendererProps,
 ) {

@@ -36,8 +36,8 @@
     color: black;
 
     &:hover {
-        background-color: var(--lightBlue);
-        color: var(--canvasText);
+        background-color: var(--mainGray);
+        color: black;
     }
 }
 
