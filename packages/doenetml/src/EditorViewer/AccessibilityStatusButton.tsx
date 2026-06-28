@@ -71,10 +71,10 @@ export function AccessibilityStatusButton({
             type="button"
             className={`accessibility-status-button ${
                 accessibilityLevel1Count > 0
-                    ? "has-level-1-issues" :
-                        accessibilityLevel2Count > 0
-                        ? "has-level-2-issues"
-                        : "no-accessibility-issues"
+                    ? "has-level-1-issues"
+                    : accessibilityLevel2Count > 0
+                      ? "has-level-2-issues"
+                      : "no-accessibility-issues"
             }`}
             onClick={onToggle}
             title={getAccessibilityStatusTitle({
@@ -93,12 +93,12 @@ export function AccessibilityStatusButton({
                     <IoWarningSharp />
                     <span>Accessibility Errors</span>
                 </>
-            ) : (accessibilityLevel2Count > 0 ? (
+            ) : accessibilityLevel2Count > 0 ? (
                 <>
                     <IoAccessibility />
                     <span>Accessibility Concerns</span>
                 </>
-            ) :
+            ) : (
                 <IoAccessibility />
             )}
         </button>
