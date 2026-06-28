@@ -6865,4 +6865,85 @@ describe("Point tag tests @group4", async () => {
         expect(p2Latex).contain("0.000000000007");
         expect(p2Latex).contain("2000000000000000000000");
     });
+
+    it("referencing a point directly in its own label works", async () => {
+        // Regression test for: https://github.com/Doenet/DoenetML/issues/1333
+        // `<label>$a</label>` inside point `a` should display the point's
+        // coordinates (same as `$a.coords`), not an error.
+        // Also covers context-aware fallback selection:
+        // - $a directly in <label> → latex fallback (label context)
+        // - $a in <label><group>$a</group></label> → label context through transparent group
+        // - $a in <label><point>$a</point></label> → no label context (point is opaque)
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="a">(2,3)
+    <label>$a</label>
+  </point>
+  <point name="ref">(2,3)
+    <label>$ref.coords</label>
+  </point>
+  <point name="viaGroup">(2,3)
+    <label><group>$viaGroup</group></label>
+  </point>
+</graph>
+`,
+        });
+
+        const aIdx = await resolvePathToNodeIdx("a");
+        const refIdx = await resolvePathToNodeIdx("ref");
+        const viaGroupIdx = await resolvePathToNodeIdx("viaGroup");
+
+        async function check_labels(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const aLabel = stateVariables[aIdx].stateValues.label;
+            const refLabel = stateVariables[refIdx].stateValues.label;
+            const viaGroupLabel = stateVariables[viaGroupIdx].stateValues.label;
+
+            // $a (self-reference) should give same result as $ref.coords
+            expect(aLabel).eq(refLabel);
+            // $viaGroup inside a transparent <group> should also match
+            expect(viaGroupLabel).eq(refLabel);
+
+            expect(
+                stateVariables[aIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+            expect(
+                stateVariables[refIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+            expect(
+                stateVariables[viaGroupIdx].stateValues.xs.map(
+                    (v: any) => v.tree,
+                ),
+            ).eqls([x, y]);
+        }
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        // Initial state: all points at (2, 3), labels non-empty
+        const initialStateVariables = await core.returnAllStateVariables(
+            false,
+            true,
+        );
+        const initialLabel = initialStateVariables[aIdx].stateValues.label;
+        expect(typeof initialLabel).eq("string");
+        expect(initialLabel.length).greaterThan(0);
+        await check_labels(2, 3);
+
+        // Move point a and verify its label updates
+        await movePoint({ componentIdx: aIdx, x: -4, y: 7, core });
+        await movePoint({ componentIdx: refIdx, x: -4, y: 7, core });
+        await movePoint({ componentIdx: viaGroupIdx, x: -4, y: 7, core });
+        await check_labels(-4, 7);
+
+        // Move again
+        await movePoint({ componentIdx: aIdx, x: 0, y: -1, core });
+        await movePoint({ componentIdx: refIdx, x: 0, y: -1, core });
+        await movePoint({ componentIdx: viaGroupIdx, x: 0, y: -1, core });
+        await check_labels(0, -1);
+    });
 });

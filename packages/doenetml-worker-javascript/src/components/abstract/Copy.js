@@ -1481,6 +1481,101 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = res.components;
             nComponents = res.nComponents;
         } catch (e) {
+            // When the error is "Encountered X", it means this Copy is a descendant of its
+            // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
+            // If we're inside a label or text context, fall back to displaying a meaningful
+            // state variable of the source component rather than showing an error.
+            if (e.message?.startsWith("Encountered ")) {
+                // Walk up the ancestor chain to determine if we're in a label or text context.
+                // ancestor.componentClass gives the class of each ancestor (closest first).
+                // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
+                // e.g. <group>) since they pass their contents into their parent's context
+                // unchanged. Any other component (e.g. <point>, <math>) establishes its own
+                // context, so we stop there — being inside a <label> that is itself inside a
+                // <point> does not count as being in a label context.
+                let contextType = null;
+                for (const ancestor of component.ancestors) {
+                    const ancestorClass = ancestor.componentClass;
+                    const ancestorType = ancestorClass.componentType;
+                    if (
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: ancestorType,
+                            baseComponentType: "label",
+                        })
+                    ) {
+                        contextType = "label";
+                        break;
+                    }
+                    if (
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: ancestorType,
+                            baseComponentType: "text",
+                        })
+                    ) {
+                        contextType = "text";
+                        break;
+                    }
+                    // Only continue through transparent composites (e.g. group).
+                    // Any other component type terminates the context search.
+                    if (
+                        !ancestorClass.treatAsComponentForRecursiveReplacements
+                    ) {
+                        break;
+                    }
+                }
+
+                // In a label context: prefer latex (for math rendering), fallback to text.
+                // In a text context: prefer text (for plain output), fallback to latex.
+                // If no label/text context was detected, skip the fallback entirely.
+                const fallbackPropNames =
+                    contextType === "label"
+                        ? ["latex", "text"]
+                        : contextType === "text"
+                          ? ["text", "latex"]
+                          : [];
+
+                const publicVarDescriptions =
+                    componentInfoObjects.publicStateVariableInfo[
+                        replacementSourceComponent.componentType
+                    ]?.stateVariableDescriptions;
+
+                const fallbackPropName = fallbackPropNames.find(
+                    (name) => publicVarDescriptions?.[name],
+                );
+
+                if (fallbackPropName) {
+                    try {
+                        let fallbackResults = await replacementFromProp({
+                            component,
+                            components,
+                            nComponents,
+                            stateIdInfo,
+                            replacementSource: replacementSourceComponent,
+                            propName: fallbackPropName,
+                            allDoenetMLs,
+                            compositeAttributesObj,
+                            componentInfoObjects,
+                            numComponentsForSource,
+                            publicCaseInsensitiveAliasSubstitutions,
+                        });
+                        diagnostics.push(...fallbackResults.diagnostics);
+                        nComponents = fallbackResults.nComponents;
+                        return {
+                            serializedReplacements:
+                                fallbackResults.serializedReplacements,
+                            propVariablesCopiedByReplacement:
+                                fallbackResults.propVariablesCopiedByReplacement,
+                            diagnostics,
+                            nComponents,
+                        };
+                    } catch (innerError) {
+                        // Re-throw the original error so it is handled as
+                        // the circular dependency it actually is.
+                        throw e;
+                    }
+                }
+            }
+
             console.error("we're calling this circular", e);
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
