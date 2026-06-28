@@ -136,7 +136,7 @@ describe("getSelfReferentialFallbackPropName", () => {
         ).eq("value");
     });
 
-    it("treats mrow (subtype of m) as a recognised context", () => {
+    it("treats mrow (subtype of m) as a recognized context", () => {
         expect(
             getSelfReferentialFallbackPropName({
                 componentAncestors: makeAncestors({ type: "mrow" }),
@@ -159,10 +159,50 @@ describe("getSelfReferentialFallbackPropName", () => {
         ).toBeUndefined();
     });
 
-    it("returns undefined when no recognised context ancestor is found", () => {
+    it("returns 'value' for point inside boolean context", () => {
         expect(
             getSelfReferentialFallbackPropName({
                 componentAncestors: makeAncestors({ type: "boolean" }),
+                componentInfoObjects,
+                replacementSourceComponentType: "point",
+            }),
+        ).eq("value");
+    });
+
+    it("returns 'value' for point inside mathList context", () => {
+        expect(
+            getSelfReferentialFallbackPropName({
+                componentAncestors: makeAncestors({ type: "mathList" }),
+                componentInfoObjects,
+                replacementSourceComponentType: "point",
+            }),
+        ).eq("value");
+    });
+
+    it("returns 'value' for point inside textList context", () => {
+        expect(
+            getSelfReferentialFallbackPropName({
+                componentAncestors: makeAncestors({ type: "textList" }),
+                componentInfoObjects,
+                replacementSourceComponentType: "point",
+            }),
+        ).eq("value");
+    });
+
+    it("returns 'value' for point inside booleanList context", () => {
+        expect(
+            getSelfReferentialFallbackPropName({
+                componentAncestors: makeAncestors({ type: "booleanList" }),
+                componentInfoObjects,
+                replacementSourceComponentType: "point",
+            }),
+        ).eq("value");
+    });
+
+    it("returns undefined when no recognized context ancestor is found", () => {
+        expect(
+            getSelfReferentialFallbackPropName({
+                componentAncestors: makeAncestors({ type: "point" }),
                 componentInfoObjects,
                 replacementSourceComponentType: "point",
             }),

@@ -6871,8 +6871,8 @@ describe("Point tag tests @group4", async () => {
         // `<label>$a</label>` inside point `a` should display the point's
         // coordinates (same as `$a.coords`), not an error.
         // Also covers context-aware fallback selection:
-        // - $a directly in <label> → latex fallback (label context)
-        // - $a in <label><group>$a</group></label> → label context through transparent group
+        // - $a directly in <label>
+        // - $a via transparent <group> inside <label>
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
@@ -6946,13 +6946,84 @@ describe("Point tag tests @group4", async () => {
         await check_labels(0, -1);
     });
 
-    it("self-reference outside a recognised context still reports a circular dependency", async () => {
-        // <boolean> is not a label/text/math/m/md context, so the fallback is skipped.
+    it("self-referential point in label works via m, math, boolean contexts", async () => {
+        // <m>, <math>, and <boolean> are all recognized contexts, so a
+        // self-referential $a inside them within a <label> should resolve
+        // to the point's coordinates rather than error.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="viaM">(2,3)
+    <label><m>$viaM</m></label>
+  </point>
+  <point name="viaMath">(2,3)
+    <label><math>$viaMath</math></label>
+  </point>
+  <point name="viaBoolean">(2,3)
+    <label><boolean>$viaBoolean</boolean></label>
+  </point>
+  <point name="ref">(2,3)
+    <label>$ref.coords</label>
+  </point>
+</graph>
+`,
+        });
+
+        const viaMIdx = await resolvePathToNodeIdx("viaM");
+        const viaMathIdx = await resolvePathToNodeIdx("viaMath");
+        const viaBooleanIdx = await resolvePathToNodeIdx("viaBoolean");
+        const refIdx = await resolvePathToNodeIdx("ref");
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        async function check_labels(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const viaMLabel = stateVariables[viaMIdx].stateValues.label;
+            const viaMathLabel = stateVariables[viaMathIdx].stateValues.label;
+            const viaBooleanLabel =
+                stateVariables[viaBooleanIdx].stateValues.label;
+
+            // All three should be non-empty strings
+            expect(typeof viaMLabel).eq("string");
+            expect(viaMLabel.length).greaterThan(0);
+            expect(typeof viaMathLabel).eq("string");
+            expect(viaMathLabel.length).greaterThan(0);
+            expect(typeof viaBooleanLabel).eq("string");
+            expect(viaBooleanLabel.length).greaterThan(0);
+
+            // <m> and <math> both render math, so they should match $ref.coords
+            const refLabel = stateVariables[refIdx].stateValues.label;
+            expect(viaMLabel).eq(refLabel);
+            expect(viaMathLabel).eq(refLabel);
+
+            expect(
+                stateVariables[viaMIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+        }
+
+        await check_labels(2, 3);
+
+        await movePoint({ componentIdx: viaMIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: viaMathIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: viaBooleanIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: refIdx, x: -1, y: 4, core });
+        await check_labels(-1, 4);
+    });
+
+    it("self-reference outside a recognized context still reports a circular dependency", async () => {
+        // <number> is not in the recognized context list, so a self-referential
+        // $a inside it does not get a fallback and still errors.
         const { core } = await createTestCore({
             doenetML: `
-<point name="a">(2,3)
-  <label><boolean>$a</boolean></label>
-</point>
+<graph>
+  <point name="a">(2,3)
+    <label><number>$a</number></label>
+  </point>
+</graph>
 `,
         });
 

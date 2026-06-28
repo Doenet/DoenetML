@@ -770,12 +770,12 @@ export function addAttributesToSingleReplacementChange(
 /**
  * When a Copy/Ref with no explicit prop is a descendant of its own source
  * component (a self-referential copy), serializing the source throws. In a
- * recognised rendering context we fall back to the source's `value` state
+ * recognized rendering context we fall back to the source's `value` state
  * variable instead of showing an error — but only when `value` is typed as
  * `math` or `text` (or a component that inherits from one of those).
  *
- * The recognised contexts are any ancestor that inherits from:
- * label, text, math, m, or md.
+ * The recognized contexts are any ancestor that inherits from:
+ * label, text, math, m, md, boolean, mathList, textList, or booleanList.
  *
  * Transparent composites (treatAsComponentForRecursiveReplacements, e.g.
  * <group>) are walked through; any other ancestor type stops the search.
@@ -787,20 +787,30 @@ export function getSelfReferentialFallbackPropName({
     componentInfoObjects,
     replacementSourceComponentType,
 }) {
-    // Determine whether we're inside a recognised rendering context.
-    let inRecognisedContext = false;
+    // Determine whether we're inside a recognized rendering context.
+    let inRecognizedContext = false;
     for (const ancestor of componentAncestors) {
         const ancestorClass = ancestor.componentClass;
         const ancestorType = ancestorClass.componentType;
         if (
-            ["label", "text", "math", "m", "md"].some((base) =>
+            [
+                "label",
+                "text",
+                "math",
+                "m",
+                "md",
+                "boolean",
+                "mathList",
+                "textList",
+                "booleanList",
+            ].some((base) =>
                 componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: ancestorType,
                     baseComponentType: base,
                 }),
             )
         ) {
-            inRecognisedContext = true;
+            inRecognizedContext = true;
             break;
         }
         // Only continue through transparent composites (e.g. <group>).
@@ -809,7 +819,7 @@ export function getSelfReferentialFallbackPropName({
         }
     }
 
-    if (!inRecognisedContext) {
+    if (!inRecognizedContext) {
         return undefined;
     }
 
