@@ -766,3 +766,92 @@ export function addAttributesToSingleReplacementChange(
         }
     }
 }
+
+/**
+ * When a Copy/Ref with no explicit prop is a descendant of its own source
+ * component (a self-referential copy), serializing the source throws. In a
+ * recognised rendering context we fall back to the source's `value` state
+ * variable instead of showing an error — but only when `value` is typed as
+ * `math` or `text` (or a component that inherits from one of those).
+ *
+ * The recognised contexts are any ancestor that inherits from:
+ * label, text, math, m, or md.
+ *
+ * Transparent composites (treatAsComponentForRecursiveReplacements, e.g.
+ * <group>) are walked through; any other ancestor type stops the search.
+ *
+ * Returns `"value"` if the fallback applies, otherwise `undefined`.
+ */
+export function getSelfReferentialFallbackPropName({
+    componentAncestors,
+    componentInfoObjects,
+    replacementSourceComponentType,
+}) {
+    // Determine whether we're inside a recognised rendering context.
+    let inRecognisedContext = false;
+    for (const ancestor of componentAncestors) {
+        const ancestorClass = ancestor.componentClass;
+        const ancestorType = ancestorClass.componentType;
+        if (
+            ["label", "text", "math", "m", "md"].some((base) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: ancestorType,
+                    baseComponentType: base,
+                }),
+            )
+        ) {
+            inRecognisedContext = true;
+            break;
+        }
+        // Only continue through transparent composites (e.g. <group>).
+        if (!ancestorClass.treatAsComponentForRecursiveReplacements) {
+            break;
+        }
+    }
+
+    if (!inRecognisedContext) {
+        return undefined;
+    }
+
+    // Look up the `value` state variable on the source component.
+    // `value` may be a direct public var or an alias to another var.
+    const publicVarInfo =
+        componentInfoObjects.publicStateVariableInfo[
+            replacementSourceComponentType
+        ];
+    if (!publicVarInfo) {
+        return undefined;
+    }
+
+    // Resolve alias if needed: Point's `value` aliases `coords`, etc.
+    let valueType =
+        publicVarInfo.stateVariableDescriptions?.value?.createComponentOfType;
+    if (valueType === undefined && publicVarInfo.aliases?.value) {
+        const aliasTarget = publicVarInfo.aliases.value.target;
+        valueType =
+            publicVarInfo.stateVariableDescriptions?.[aliasTarget]
+                ?.createComponentOfType;
+    }
+
+    if (!valueType) {
+        return undefined;
+    }
+
+    // Use `value` only when it is math- or text-typed (including subtypes like
+    // coords, which inherits from math). Math and text can adapt to each other,
+    // so no context-specific preference is needed.
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: valueType,
+            baseComponentType: "math",
+        }) ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: valueType,
+            baseComponentType: "text",
+        })
+    ) {
+        return "value";
+    }
+
+    return undefined;
+}
