@@ -2331,9 +2331,11 @@ export default class LineSegment extends GraphicalComponent {
 
         if (
             pointCoords.length < 2 ||
-            pointCoords.some(
-                (coord) => coord !== undefined && !Number.isFinite(coord),
-            )
+            !Number.isFinite(pointCoords[0]) ||
+            !Number.isFinite(pointCoords[1]) ||
+            pointCoords
+                .slice(2)
+                .some((coord) => coord !== undefined && !Number.isFinite(coord))
         ) {
             console.warn(
                 `Invalid endpoint coordinates for line segment move: ${pointCoords.join(", ")}`,
