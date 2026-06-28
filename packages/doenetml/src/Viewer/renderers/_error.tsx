@@ -17,10 +17,12 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
 
     if (SVs.showMessage) {
         let errorStyle: React.CSSProperties = {
-            backgroundColor: "#ff9999",
+            backgroundColor: "var(--lightRed)",
+            color: "var(--canvasText)",
             textAlign: "center",
             borderWidth: 3,
             borderStyle: "solid",
+            borderColor: "var(--mainRed)",
         };
         let rangeMessage = null;
         if (SVs.rangeMessage) {

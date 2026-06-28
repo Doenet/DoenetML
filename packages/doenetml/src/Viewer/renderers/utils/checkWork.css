@@ -20,7 +20,7 @@
     cursor: pointer;
 
     &:hover {
-        background-color: var(--lightBlue);
+        background-color: var(--buttonHoverBlue);
         color: black;
     }
 }
@@ -31,12 +31,11 @@
 
 .doenet-viewer button.check-work-unvalidated:disabled {
     background-color: var(--mainGray);
-    color: white;
     cursor: not-allowed;
     color: black;
 
     &:hover {
-        background-color: var(--lightBlue);
+        background-color: var(--mainGray);
         color: black;
     }
 }
@@ -48,7 +47,7 @@
 
     &:hover {
         background-color: var(--lightGreen);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -63,7 +62,7 @@
 
     &:hover {
         background-color: var(--lightRed);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -78,7 +77,7 @@
 
     &:hover {
         background-color: var(--lightOrange);
-        color: black;
+        color: var(--canvasText);
     }
 }
 
@@ -87,17 +86,21 @@
 }
 
 .doenet-viewer button.check-work-response-saved {
-    background-color: rgb(74, 3, 217); /* Dark Purple */
+    background-color: var(--mainPurple);
     color: white;
     cursor: default;
 
     &:hover {
-        background-color: rgb(161, 129, 224); /* Light Purple */
-        color: black;
+        background-color: color-mix(
+            in srgb,
+            var(--mainPurple) 60%,
+            var(--canvas)
+        );
+        color: var(--canvasText);
     }
 }
 .doenet-viewer button.check-work-response-saved:focus {
-    outline-color: rgb(74, 3, 217); /* Dark Purple */
+    outline-color: var(--mainPurple);
 }
 
 .doenet-viewer button.check-work-pending {

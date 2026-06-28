@@ -10,7 +10,8 @@
 }
 
 .doenet-viewer .text-input-disabled {
-    border: 2px solid var(--mainGray);
+    border: 2px solid var(--revealButtonSurface);
+    background-color: var(--revealButtonSurface) !important;
     cursor: not-allowed;
 }
 

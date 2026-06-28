@@ -1621,10 +1621,12 @@ export function DocViewer({
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
         let errorStyle = {
-            backgroundColor: "#ff9999",
+            backgroundColor: "var(--lightRed)",
+            color: "var(--canvasText)",
             textAlign: "center" as const,
             borderWidth: 3,
             borderStyle: "solid",
+            borderColor: "var(--mainRed)",
         };
         errorOverview = (
             <div style={errorStyle}>

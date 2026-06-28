@@ -652,11 +652,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     let mathInputWrapperCursor = "allowed";
     if (SVs.disabled) {
-        // Disable the mathInput
-        mathInputStyle.borderColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        mathInputStyle.backgroundColor = "rgba(239, 239, 239, 0.3)";
+        // Disabled state: border and background both use --revealButtonSurface
+        // so the border blends into the background (muted, flat appearance).
+        // In light mode --revealButtonSurface is #e3e3e3, same as --mainGray,
+        // which already produced this effect.  Setting the border explicitly
+        // here makes dark mode match: #3a3a3a border on #3a3a3a background.
+        mathInputStyle.borderColor = "var(--revealButtonSurface)";
+        mathInputStyle.backgroundColor = "var(--revealButtonSurface)";
         mathInputStyle.pointerEvents = "none";
         mathInputWrapperCursor = "not-allowed";
     }

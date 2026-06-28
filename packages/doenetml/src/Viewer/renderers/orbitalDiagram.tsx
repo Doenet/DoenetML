@@ -22,8 +22,6 @@ interface OrbitalDiagramSVs {
     value: OrbitalRowData[];
 }
 
-// border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
-
 export default React.memo(function orbitalDiagram(
     props: UseDoenetRendererProps,
 ) {
@@ -80,11 +78,11 @@ const OrbitalRow = React.memo(function OrbitalRow({
         width: "800px",
         height: "44px",
         display: "flex",
-        backgroundColor: "#E2E2E2",
+        backgroundColor: "var(--revealButtonSurface)",
         marginTop: "2px",
         marginBottom: "2px",
         padding: "2px",
-        border: "white solid 2px",
+        border: "var(--canvas) solid 2px",
     };
 
     //Make boxes
