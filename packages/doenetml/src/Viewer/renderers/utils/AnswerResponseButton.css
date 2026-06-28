@@ -7,7 +7,7 @@
     );
     --button-active-color: color-mix(
         in srgb,
-        var(--revealButtonSurface) 70%,
+        var(--revealButtonSurface) 80%,
         var(--canvasText)
     );
     color: var(--canvasText);
