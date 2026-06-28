@@ -159,7 +159,9 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "#1a5e20",
             description:
                 "Color used to indicate this section has been completed (dark mode). " +
-                "If omitted, defaults to a dark green that meets WCAG AA contrast for white text.",
+                "If omitted, the dark-mode color is derived from completedColor when " +
+                "that attribute is explicitly set; otherwise falls back to a dark green " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         attributes.inProgressColorDarkMode = {
@@ -169,7 +171,9 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "#3a3a3a",
             description:
                 "Color used to indicate this section is in progress (dark mode). " +
-                "If omitted, defaults to a dark gray that meets WCAG AA contrast for white text.",
+                "If omitted, the dark-mode color is derived from inProgressColor when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         attributes.notStartedColorDarkMode = {
@@ -179,7 +183,9 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "#3a3a3a",
             description:
                 "Color used to indicate this section has not been started (dark mode). " +
-                "If omitted, defaults to a dark gray that meets WCAG AA contrast for white text.",
+                "If omitted, the dark-mode color is derived from notStartedColor when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         return attributes;
