@@ -11,6 +11,7 @@
 
 .doenet-viewer .text-input-disabled {
     border: 2px solid var(--mainGray);
+    background-color: var(--revealButtonSurface);
     cursor: not-allowed;
 }
 

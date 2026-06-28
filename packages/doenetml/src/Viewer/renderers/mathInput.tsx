@@ -656,7 +656,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
         mathInputStyle.borderColor = getComputedStyle(
             document.documentElement,
         ).getPropertyValue("--mainGray");
-        mathInputStyle.backgroundColor = "rgba(128, 128, 128, 0.15)";
+        // Use the reveal-button surface color so the disabled state is clearly
+        // visible in both themes: #e3e3e3 on a white canvas (light) and #3a3a3a
+        // on a #121212 canvas (dark), rather than a barely-opaque gray overlay.
+        mathInputStyle.backgroundColor = "var(--revealButtonSurface)";
         mathInputStyle.pointerEvents = "none";
         mathInputWrapperCursor = "not-allowed";
     }
