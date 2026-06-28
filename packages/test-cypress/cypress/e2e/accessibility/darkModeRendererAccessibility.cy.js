@@ -458,15 +458,15 @@ describe(
   </curve>
 </graph>`;
 
-        function getVisiblePointFillColors() {
-            return cy.window().then((win) => {
+        function assertVisiblePointFillIncludesColor(expectedColor) {
+            cy.window().should((win) => {
                 const boards = Object.values(win.JXG?.boards ?? {});
                 expect(
                     boards.length,
                     "number of JSXGraph boards",
                 ).to.be.greaterThan(0);
 
-                return boards.flatMap((board) =>
+                const colors = boards.flatMap((board) =>
                     (board.objectsList ?? [])
                         .filter(
                             (obj) =>
@@ -479,6 +479,10 @@ describe(
                             String(obj.visProp.fillcolor).toLowerCase(),
                         ),
                 );
+                expect(
+                    colors,
+                    `visible point fills (expecting ${expectedColor}): ${colors.join(", ")}`,
+                ).to.include(expectedColor);
             });
         }
 
@@ -491,27 +495,15 @@ describe(
                 win.postMessage({ doenetML: DOENETML, darkMode: "light" }, "*");
             });
             cy.get("#g").should("exist");
-            cy.wait(200);
 
-            getVisiblePointFillColors().then((colors) => {
-                expect(
-                    colors,
-                    `light-mode visible point fills ${colors.join(", ")}`,
-                ).to.include("#404040");
-            });
+            assertVisiblePointFillIncludesColor("#404040");
 
             cy.window().then((win) => {
                 win.postMessage({ darkMode: "dark" }, "*");
             });
             cy.get('[data-theme="dark"]').should("exist");
-            cy.wait(200);
 
-            getVisiblePointFillColors().then((colors) => {
-                expect(
-                    colors,
-                    `dark-mode visible point fills ${colors.join(", ")}`,
-                ).to.include("#b0b0b0");
-            });
+            assertVisiblePointFillIncludesColor("#b0b0b0");
         });
     },
 );
