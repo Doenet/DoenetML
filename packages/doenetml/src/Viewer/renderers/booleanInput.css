@@ -59,7 +59,7 @@
     border-color: var(--mainGray);
 }
 
-/* On mouse-over, add a light blue background color */
+/* On mouse-over, use the theme-aware indicator hover color */
 .doenet-viewer .boolean-container:hover input[type="checkbox"] ~ .checkmark {
     background-color: var(--indicatorHoverBlue);
 }

@@ -161,7 +161,7 @@
     cursor: not-allowed;
 }
 
-/* On mouse-over, add a light blue background color */
+/* On mouse-over, use the theme-aware indicator hover color */
 .doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark {
     background-color: var(--indicatorHoverBlue);
 }

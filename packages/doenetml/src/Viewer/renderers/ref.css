@@ -23,7 +23,7 @@
 }
 
 .doenet-viewer button.ref-button-disabled {
-    color: var(--canvasText);
+    color: black;
     background-color: var(--mainGray);
     cursor: not-allowed;
     &:hover {
