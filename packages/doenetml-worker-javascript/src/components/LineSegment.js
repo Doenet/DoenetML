@@ -10,6 +10,148 @@ import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
+function directionFromSlope(slope) {
+    if (slope === Infinity || slope === -Infinity) {
+        return [0, Math.sign(slope)];
+    }
+    if (!Number.isFinite(slope)) {
+        return null;
+    }
+
+    let theta = Math.atan(slope);
+    return [Math.cos(theta), Math.sin(theta)];
+}
+
+function getNumericValue(mathOrNumber) {
+    return mathOrNumber instanceof me.class
+        ? mathOrNumber.evaluate_to_constant()
+        : Number(mathOrNumber);
+}
+
+function getNumericEndpointPair(
+    desiredUnconstrainedEndpoints,
+    currentEndpoints,
+    numDimensions = 2,
+    pointInds = [0, 1],
+) {
+    return pointInds.map((pointInd) =>
+        Array.from({ length: numDimensions }, (_, dim) => {
+            let key = pointInd + "," + dim;
+            if (key in desiredUnconstrainedEndpoints) {
+                return getNumericValue(desiredUnconstrainedEndpoints[key]);
+            }
+            return currentEndpoints[pointInd][dim].evaluate_to_constant();
+        }),
+    );
+}
+
+function getSlopeAndSignedLength(endpoint1, endpoint2, fallbackSlope) {
+    const dx = endpoint2[0] - endpoint1[0];
+    const dy = endpoint2[1] - endpoint1[1];
+
+    if (dx === 0 && dy === 0) {
+        return {
+            slope: fallbackSlope,
+            signedLength: 0,
+        };
+    }
+
+    if (dx === 0) {
+        return {
+            slope: dy > 0 ? Infinity : -Infinity,
+            // For vertical segments, canonicalize interactions so slope encodes
+            // up vs down and the defining length stays non-negative.
+            signedLength: Math.abs(dy),
+        };
+    }
+
+    return {
+        slope: dy / dx,
+        signedLength: Math.hypot(dx, dy) * Math.sign(dx),
+    };
+}
+
+function getDirectionComponent(dim, dirX, dirY) {
+    let dimNumber = Number(dim);
+    if (dimNumber === 0) {
+        return dirX;
+    }
+    if (dimNumber === 1) {
+        return dirY;
+    }
+    return 0;
+}
+
+function addSlopeAndLengthInstructions({
+    instructions,
+    globalDependencyValues,
+    endpoint1,
+    endpoint2,
+}) {
+    const fallbackSlope =
+        globalDependencyValues.slopeAttr !== null
+            ? globalDependencyValues.slopeAttr.stateValues.value
+            : globalDependencyValues.essentialSlope;
+
+    const { slope, signedLength } = getSlopeAndSignedLength(
+        endpoint1,
+        endpoint2,
+        fallbackSlope,
+    );
+
+    if (globalDependencyValues.slopeAttr !== null) {
+        instructions.push({
+            setDependency: "slopeAttr",
+            desiredValue: slope,
+            variableIndex: 0,
+        });
+    } else {
+        instructions.push({
+            setDependency: "essentialSlope",
+            desiredValue: slope,
+        });
+    }
+
+    if (globalDependencyValues.lengthAttr !== null) {
+        instructions.push({
+            setDependency: "lengthAttr",
+            desiredValue: signedLength,
+            variableIndex: 0,
+        });
+    } else {
+        instructions.push({
+            setDependency: "essentialSignedLength",
+            desiredValue: signedLength,
+        });
+    }
+}
+
+function addThroughPointInstructions({
+    instructions,
+    dependencyNamesByKey,
+    throughPoint,
+}) {
+    for (let dim = 0; dim < throughPoint.length; dim++) {
+        const throughDependencyName =
+            dependencyNamesByKey["0," + dim]?.throughCoord ??
+            dependencyNamesByKey["1," + dim]?.throughCoord;
+
+        if (throughDependencyName !== undefined) {
+            instructions.push({
+                setDependency: throughDependencyName,
+                desiredValue: me.fromAst(throughPoint[dim]),
+                variableIndex: 0,
+            });
+        }
+    }
+}
+
+function mergePointCoords(pointCoords, currentPoint, numDimensions) {
+    return Array.from({ length: numDimensions }, (_, dim) =>
+        pointCoords[dim] !== undefined ? pointCoords[dim] : currentPoint[dim],
+    );
+}
+
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
         super(args);
@@ -48,6 +190,33 @@ export default class LineSegment extends GraphicalComponent {
         attributes.endpoints = {
             createComponentOfType: "pointList",
             description: "The two endpoints of the line segment.",
+        };
+
+        attributes.through = {
+            createComponentOfType: "point",
+            description:
+                "A reference point the line segment passes through. Used with slope/length/pointOffset to position the segment, or alone to center a default 1-unit horizontal segment.",
+        };
+
+        attributes.slope = {
+            createComponentOfType: "number",
+            description:
+                "The slope of the line segment in the x-y plane. It may be negative and can change sign when the direction passes through vertical.",
+        };
+
+        attributes.length = {
+            createComponentOfType: "number",
+            description:
+                "The signed defining length used with the slope/through parameterization. Negative values flip the direction relative to the slope, while the public length state variable remains Euclidean and non-negative.",
+        };
+
+        attributes.pointOffset = {
+            createComponentOfType: "number",
+            createStateVariable: "pointOffsetAttr",
+            defaultValue: 0,
+            clamp: [-1, 1],
+            description:
+                "Where the through point sits along the segment (requires through to be set): -1=first endpoint, 0=midpoint, 1=second endpoint. Clamped to [-1, 1].",
         };
 
         attributes.addControls = {
@@ -219,23 +388,227 @@ export default class LineSegment extends GraphicalComponent {
                     attributeName: "endpoints",
                     variableNames: ["numDimensions"],
                 },
+                throughAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "through",
+                    variableNames: ["numDimensions"],
+                },
             }),
             definition: function ({ dependencyValues }) {
-                // console.log('definition of numDimensions')
-                // console.log(dependencyValues)
+                const endpointsDimensions =
+                    dependencyValues.endpointsAttr?.stateValues.numDimensions ??
+                    0;
+                const throughDimensions =
+                    dependencyValues.throughAttr?.stateValues.numDimensions ??
+                    0;
 
-                if (dependencyValues.endpointsAttr !== null) {
-                    let numDimensions =
-                        dependencyValues.endpointsAttr.stateValues
-                            .numDimensions;
-                    return {
-                        setValue: { numDimensions: Math.max(numDimensions, 2) },
-                        checkForActualChange: { numDimensions: true },
-                    };
-                } else {
-                    // line segment through zero points
-                    return { setValue: { numDimensions: 2 } };
+                return {
+                    setValue: {
+                        numDimensions: Math.max(
+                            endpointsDimensions,
+                            throughDimensions,
+                            2,
+                        ),
+                    },
+                    checkForActualChange: { numDimensions: true },
+                };
+            },
+        };
+
+        // How many endpoints are explicitly prescribed in the endpoints attribute.
+        stateVariableDefinitions.numEndpointsSpecified = {
+            returnDependencies: () => ({
+                endpointsAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "endpoints",
+                    variableNames: ["numPoints"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.endpointsAttr === null) {
+                    return { setValue: { numEndpointsSpecified: 0 } };
                 }
+                return {
+                    setValue: {
+                        numEndpointsSpecified: Math.min(
+                            dependencyValues.endpointsAttr.stateValues
+                                .numPoints,
+                            2,
+                        ),
+                    },
+                };
+            },
+        };
+
+        // How many through points are prescribed (0 or 1).
+        stateVariableDefinitions.numThroughPoints = {
+            returnDependencies: () => ({
+                throughAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "through",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        numThroughPoints:
+                            dependencyValues.throughAttr !== null ? 1 : 0,
+                    },
+                };
+            },
+        };
+
+        // True when slope/length/through attrs are active (plus pointOffset when
+        // paired with through) and fewer than 2 explicit endpoints are given.
+        // Mirrors Line.js's basedOnSlope pattern.
+        // When false, all old unconstrainedEndpoints code paths run unchanged.
+        // Note: slope is a 2D concept, so Cases B/C/D apply it only in the x-y
+        // plane and preserve higher coordinates. Case A (1 endpoint + 1 through)
+        // is fully dimension-agnostic.
+        stateVariableDefinitions.basedOnSlopeOrThrough = {
+            stateVariablesDeterminingDependencies: [],
+            returnDependencies: () => ({
+                slopeAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "slope",
+                },
+                lengthAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "length",
+                },
+                throughAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "through",
+                },
+                numEndpointsSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "numEndpointsSpecified",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const anyPositioningAttr =
+                    dependencyValues.slopeAttr !== null ||
+                    dependencyValues.lengthAttr !== null ||
+                    dependencyValues.throughAttr !== null;
+                return {
+                    setValue: {
+                        basedOnSlopeOrThrough:
+                            anyPositioningAttr &&
+                            dependencyValues.numEndpointsSpecified < 2,
+                    },
+                };
+            },
+        };
+        // Essential slope — used when basedOnSlopeOrThrough but no slope attr.
+        stateVariableDefinitions.essentialSlope = {
+            defaultValue: 0,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { essentialSlope: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "essentialSlope",
+                            value: desiredStateVariableValues.essentialSlope,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Essential signed length — used when basedOnSlopeOrThrough but no length attr.
+        stateVariableDefinitions.essentialSignedLength = {
+            defaultValue: 1,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { essentialSignedLength: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "essentialSignedLength",
+                            value: desiredStateVariableValues.essentialSignedLength,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Essential point offset — used when numThroughPoints===1 but no pointOffset attr.
+        stateVariableDefinitions.essentialPointOffset = {
+            defaultValue: 0,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { essentialPointOffset: true },
+            }),
+        };
+
+        // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrThrough is true
+        // but no endpoints attr is specified. Stored separately from unconstrainedEndpoints
+        // essential state to avoid a self-referential dependency.
+        // Modeled after Line.js's essentialPoints array.
+        stateVariableDefinitions.essentialEp1 = {
+            isArray: true,
+            numDimensions: 1,
+            isLocation: true,
+            hasEssential: true,
+            set: convertValueToMathExpression,
+            defaultValueByArrayKey: () => me.fromAst(0),
+            entryPrefixes: ["essentialEp1X"],
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                let ind = Number(varEnding) - 1;
+                if (!Number.isInteger(ind) || ind < 0) {
+                    return [];
+                }
+                if (arraySize) {
+                    return ind < arraySize[0] ? [String(ind)] : [];
+                }
+                return [String(ind)];
+            },
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
+            returnArrayDependenciesByKey: () => ({}),
+            arrayDefinitionByKey({ arrayKeys }) {
+                let essentialEp1 = {};
+                for (let arrayKey of arrayKeys) {
+                    essentialEp1[arrayKey] = true;
+                }
+                return { useEssentialOrDefaultValue: { essentialEp1 } };
+            },
+            inverseArrayDefinitionByKey({ desiredStateVariableValues }) {
+                let instructions = [];
+                for (let arrayKey in desiredStateVariableValues.essentialEp1) {
+                    instructions.push({
+                        setEssentialValue: "essentialEp1",
+                        value: {
+                            [arrayKey]: convertValueToMathExpression(
+                                desiredStateVariableValues.essentialEp1[
+                                    arrayKey
+                                ],
+                            ),
+                        },
+                    });
+                }
+                return { success: true, instructions };
             },
         };
 
@@ -331,114 +704,636 @@ export default class LineSegment extends GraphicalComponent {
             returnArraySize({ dependencyValues }) {
                 return [2, dependencyValues.numDimensions];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
-                let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
-
-                    dependenciesByKey[arrayKey] = {
-                        endpointsAttr: {
-                            dependencyType: "attributeComponent",
-                            attributeName: "endpoints",
-                            variableNames: ["pointX" + varEnding],
-                        },
-                    };
+            stateVariablesDeterminingDependencies: [
+                "basedOnSlopeOrThrough",
+                "numEndpointsSpecified",
+                "numThroughPoints",
+            ],
+            returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
+                // When not using the new slope/through parameterization,
+                // use the original dependency structure (both endpoints from attr or essential).
+                if (!stateValues.basedOnSlopeOrThrough) {
+                    let dependenciesByKey = {};
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                        dependenciesByKey[arrayKey] = {
+                            endpointsAttr: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "endpoints",
+                                variableNames: ["pointX" + varEnding],
+                            },
+                        };
+                    }
+                    return { dependenciesByKey };
                 }
-                return { dependenciesByKey };
+
+                // New parameterization — global dependencies shared across all keys.
+                let globalDependencies = {
+                    basedOnSlopeOrThrough: {
+                        dependencyType: "stateVariable",
+                        variableName: "basedOnSlopeOrThrough",
+                    },
+                    numEndpointsSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEndpointsSpecified",
+                    },
+                    numThroughPoints: {
+                        dependencyType: "stateVariable",
+                        variableName: "numThroughPoints",
+                    },
+                    numDimensions: {
+                        dependencyType: "stateVariable",
+                        variableName: "numDimensions",
+                    },
+                    slopeAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "slope",
+                        variableNames: ["value"],
+                    },
+                    lengthAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "length",
+                        variableNames: ["value"],
+                    },
+                    pointOffsetAttrComponent: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "pointOffset",
+                    },
+                    pointOffsetAttr: {
+                        dependencyType: "stateVariable",
+                        variableName: "pointOffsetAttr",
+                    },
+                    essentialSlope: {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialSlope",
+                    },
+                    essentialSignedLength: {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialSignedLength",
+                    },
+                    essentialPointOffset: {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialPointOffset",
+                    },
+                };
+
+                // Case A or B: 1 explicit endpoint — need ep1 from endpoints attr.
+                if (stateValues.numEndpointsSpecified === 1) {
+                    globalDependencies.ep1FromAttr = {
+                        dependencyType: "attributeComponent",
+                        attributeName: "endpoints",
+                        variableNames: [],
+                    };
+                    // We'll fetch individual coords per key below.
+                    let dependenciesByKey = {};
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding = "1_" + (Number(dim) + 1);
+                        dependenciesByKey[arrayKey] = {
+                            ep1Coord: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "endpoints",
+                                variableNames: ["pointX" + varEnding],
+                            },
+                        };
+                    }
+                    // For case A, also need through point coords.
+                    if (stateValues.numThroughPoints === 1) {
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let varEnding = "1_" + (Number(dim) + 1);
+                            dependenciesByKey[arrayKey].throughCoord = {
+                                dependencyType: "attributeComponent",
+                                attributeName: "through",
+                                variableNames: ["x" + (Number(dim) + 1)],
+                            };
+                        }
+                    }
+                    return { globalDependencies, dependenciesByKey };
+                }
+
+                // Case C or D: 0 explicit endpoints.
+                let dependenciesByKey = {};
+                if (stateValues.numThroughPoints === 1) {
+                    // Case C: need through point coords per key.
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        dependenciesByKey[arrayKey] = {
+                            throughCoord: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "through",
+                                variableNames: ["x" + (Number(dim) + 1)],
+                            },
+                        };
+                    }
+                } else {
+                    // Case D: ep1 from essentialEp1 (separate state variable to avoid
+                    // self-referential dependency on unconstrainedEndpoints entries).
+                    // ep2 is derived from ep1 + slope/length.
+                    globalDependencies.essentialEp1 = {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialEp1",
+                    };
+                    for (let arrayKey of arrayKeys) {
+                        dependenciesByKey[arrayKey] = {};
+                    }
+                    return { globalDependencies, dependenciesByKey };
+                }
+                return { globalDependencies, dependenciesByKey };
             },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log("array definition of lineSegment endpoints");
-                // console.log(dependencyValuesByKey);
-                // console.log(arrayKeys);
+
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
+                // Old behavior: basedOnSlopeOrThrough is false.
+                if (!globalDependencyValues?.basedOnSlopeOrThrough) {
+                    let unconstrainedEndpoints = {};
+                    let essentialUnconstrainedEndpoints = {};
+
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                        if (
+                            dependencyValuesByKey[arrayKey].endpointsAttr !==
+                                null &&
+                            dependencyValuesByKey[arrayKey].endpointsAttr
+                                .stateValues["pointX" + varEnding]
+                        ) {
+                            unconstrainedEndpoints[arrayKey] =
+                                dependencyValuesByKey[
+                                    arrayKey
+                                ].endpointsAttr.stateValues[
+                                    "pointX" + varEnding
+                                ];
+                        } else {
+                            essentialUnconstrainedEndpoints[arrayKey] = true;
+                        }
+                    }
+
+                    let result = {};
+                    if (Object.keys(unconstrainedEndpoints).length > 0) {
+                        result.setValue = { unconstrainedEndpoints };
+                    }
+                    if (
+                        Object.keys(essentialUnconstrainedEndpoints).length > 0
+                    ) {
+                        result.useEssentialOrDefaultValue = {
+                            unconstrainedEndpoints:
+                                essentialUnconstrainedEndpoints,
+                        };
+                    }
+                    return result;
+                }
+
+                // New parameterization — compute ep1/ep2 from slope/length/through.
+                const g = globalDependencyValues;
+
+                // Emit diagnostics for ignored attributes.
+                let sendDiagnostics = [];
+                if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
+                    if (
+                        g.slopeAttr !== null ||
+                        g.lengthAttr !== null ||
+                        g.pointOffsetAttrComponent !== null
+                    ) {
+                        sendDiagnostics.push({
+                            type: "info",
+                            message:
+                                "slope, length, and pointOffset are ignored when an endpoint and a through point are both specified",
+                        });
+                    }
+                } else if (
+                    g.numThroughPoints === 0 &&
+                    g.pointOffsetAttrComponent !== null
+                ) {
+                    sendDiagnostics.push({
+                        type: "info",
+                        message:
+                            "pointOffset has no effect without a through point",
+                    });
+                }
 
                 let unconstrainedEndpoints = {};
-                let essentialUnconstrainedEndpoints = {};
 
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
+                    // Case A: 1 endpoint + 1 through → through is ep2.
+                    // slope, length, and pointOffset are all ignored here.
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding = "1_" + (Number(dim) + 1);
+                        if (pointInd === "0") {
+                            unconstrainedEndpoints[arrayKey] =
+                                dependencyValuesByKey[
+                                    arrayKey
+                                ].ep1Coord.stateValues["pointX" + varEnding];
+                        } else {
+                            // ep2 = through point
+                            let throughVal =
+                                dependencyValuesByKey[arrayKey].throughCoord
+                                    ?.stateValues["x" + (Number(dim) + 1)];
+                            unconstrainedEndpoints[arrayKey] =
+                                throughVal ?? me.fromAst(0);
+                        }
+                    }
+                } else {
+                    // Cases B, C, D all need slope and signedLength.
+                    const slope =
+                        g.slopeAttr !== null
+                            ? g.slopeAttr.stateValues.value
+                            : g.essentialSlope;
+                    const signedLength =
+                        g.lengthAttr !== null
+                            ? g.lengthAttr.stateValues.value
+                            : g.essentialSignedLength;
+
+                    // Compute direction unit vector from slope.
+                    const direction = directionFromSlope(slope);
+                    if (direction === null) {
+                        // NaN/non-finite slope → undefined segment for these cases.
+                        for (let arrayKey of arrayKeys) {
+                            unconstrainedEndpoints[arrayKey] =
+                                me.fromAst("\uff3f");
+                        }
+                        let result = { setValue: { unconstrainedEndpoints } };
+                        if (sendDiagnostics.length > 0) {
+                            result.sendDiagnostics = sendDiagnostics;
+                        }
+                        return result;
+                    }
+                    const [dirX, dirY] = direction;
 
                     if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
+                        g.numEndpointsSpecified === 1 &&
+                        g.numThroughPoints === 0
                     ) {
-                        unconstrainedEndpoints[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].endpointsAttr.stateValues["pointX" + varEnding];
+                        // Case B: 1 endpoint, ep2 = ep1 + L × dir.
+                        // Build ep2 as an expression so symbolic endpoints are preserved.
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let varEnding = "1_" + (Number(dim) + 1);
+                            let ep1Coord =
+                                dependencyValuesByKey[arrayKey].ep1Coord
+                                    .stateValues["pointX" + varEnding];
+                            if (!ep1Coord) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let delta =
+                                    signedLength *
+                                    getDirectionComponent(dim, dirX, dirY);
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } else if (g.numThroughPoints === 1) {
+                        // Case C: 0 endpoints + 1 through.
+                        // Build endpoints as expressions so symbolic through points are preserved.
+                        const po =
+                            g.pointOffsetAttrComponent !== null
+                                ? g.pointOffsetAttr
+                                : g.essentialPointOffset;
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let throughCoordVal =
+                                dependencyValuesByKey[arrayKey].throughCoord
+                                    ?.stateValues["x" + (Number(dim) + 1)];
+                            if (!throughCoordVal) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            let dir = getDirectionComponent(dim, dirX, dirY);
+                            if (pointInd === "0") {
+                                let coeff = ((1 + po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst([
+                                        "+",
+                                        throughCoordVal.tree,
+                                        -coeff,
+                                    ])
+                                    .simplify();
+                            } else {
+                                let coeff = ((1 - po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", throughCoordVal.tree, coeff])
+                                    .simplify();
+                            }
+                        }
                     } else {
-                        essentialUnconstrainedEndpoints[arrayKey] = true;
-                    }
+                        // Case D: 0 endpoints + 0 through, slope/length active.
+                        // ep1 from essentialEp1 global dep; ep2 derived.
+                        // Build ep2 as an expression so symbolic ep1 values are preserved.
+                        let ep1 = g.essentialEp1 ?? [
+                            me.fromAst(0),
+                            me.fromAst(0),
+                        ];
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let ep1Coord = ep1[Number(dim)] ?? me.fromAst(0);
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let dir = getDirectionComponent(
+                                    dim,
+                                    dirX,
+                                    dirY,
+                                );
+                                let delta = signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } // end else { // Cases B, C, D
                 }
 
-                let result = {};
-
-                if (Object.keys(unconstrainedEndpoints).length > 0) {
-                    result.setValue = { unconstrainedEndpoints };
+                let result = { setValue: { unconstrainedEndpoints } };
+                if (sendDiagnostics.length > 0) {
+                    result.sendDiagnostics = sendDiagnostics;
                 }
-                if (Object.keys(essentialUnconstrainedEndpoints).length > 0) {
-                    result.useEssentialOrDefaultValue = {
-                        unconstrainedEndpoints: essentialUnconstrainedEndpoints,
-                    };
-                }
-
                 return result;
             },
+
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
+                globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
+                workspace,
+                arraySize,
             }) {
-                // console.log(`inverse array definition of unconstrainedEndpoints of lineSegment`);
-                // console.log(desiredStateVariableValues)
-                // console.log(JSON.parse(JSON.stringify(stateValues)))
-                // console.log(dependencyValuesByKey);
+                // Old behavior (basedOnSlopeOrThrough === false):
+                // update each desired endpoint from attr or essential independently.
+                if (!globalDependencyValues?.basedOnSlopeOrThrough) {
+                    let instructions = [];
+                    for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                        if (
+                            dependencyValuesByKey[arrayKey].endpointsAttr !==
+                                null &&
+                            dependencyValuesByKey[arrayKey].endpointsAttr
+                                .stateValues["pointX" + varEnding]
+                        ) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey]
+                                        .endpointsAttr,
+                                desiredValue:
+                                    desiredStateVariableValues
+                                        .unconstrainedEndpoints[arrayKey],
+                                childIndex: 0,
+                                variableIndex: 0,
+                            });
+                        } else {
+                            instructions.push({
+                                setEssentialValue: "unconstrainedEndpoints",
+                                value: {
+                                    [arrayKey]:
+                                        desiredStateVariableValues
+                                            .unconstrainedEndpoints[arrayKey],
+                                },
+                            });
+                        }
+                    }
+                    return { success: true, instructions };
+                }
+
+                // New parameterization inverse.
+                // Architectural principle: the inverse follows the dependency graph only.
+                // "Keep the other endpoint fixed" when dragging a graph handle is handled
+                // by moveLineSegment, which passes both desired endpoint positions.
+                // (Same design as Vector tail+displacement vs tail+head.)
+                //
+                // - ep1 keys desired only → update position handle; slope/length unchanged
+                //   → whole segment translates (e.g., when referenced endpoint is dragged)
+                // - ep2 keys desired only → compute new slope/length from (current_ep1, desired_ep2)
+                // - both desired (from action) → update ep1 handle AND slope/length
+
+                const g = globalDependencyValues;
+                const numDim = g.numDimensions ?? 2;
+                workspace ??= {};
+                Object.assign(
+                    workspace,
+                    desiredStateVariableValues.unconstrainedEndpoints,
+                );
+                const desiredUnconstrainedEndpoints = workspace;
+
+                const desiredKeys = Object.keys(desiredUnconstrainedEndpoints);
+                const onlyEp1Desired = desiredKeys.every((k) =>
+                    k.startsWith("0,"),
+                );
+                const onlyEp2Desired = desiredKeys.every((k) =>
+                    k.startsWith("1,"),
+                );
 
                 let instructions = [];
 
-                for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                const numEndpointsSpecified = g.numEndpointsSpecified;
+                const numThroughPoints = g.numThroughPoints;
 
-                    if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
-                    ) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].endpointsAttr,
-                            desiredValue:
-                                desiredStateVariableValues
-                                    .unconstrainedEndpoints[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
+                if (numEndpointsSpecified === 1 && numThroughPoints === 1) {
+                    // Case A: ep1 → endpoints attr independently, ep2 → through attr independently.
+                    for (let arrayKey of desiredKeys) {
+                        let [pointInd, dim] = arrayKey.split(",").map(Number);
+                        if (pointInd === 0) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey].ep1Coord,
+                                desiredValue:
+                                    desiredUnconstrainedEndpoints[arrayKey],
+                                variableIndex: 0,
+                            });
+                        } else {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey].throughCoord,
+                                desiredValue:
+                                    desiredUnconstrainedEndpoints[arrayKey],
+                                variableIndex: 0,
+                            });
+                        }
+                    }
+                    return { success: true, instructions };
+                }
+
+                if (numEndpointsSpecified === 1 && numThroughPoints === 0) {
+                    // Case B: ep1 from endpoints attr; ep2 = ep1 + L × dir(slope).
+                    // ep1 desired → update ep1 attr directly (slope/length unchanged → ep2 translates)
+                    // ep2 desired → compute new slope/length
+                    // both desired (from action) → update ep1 attr + slope/length
+
+                    if (!onlyEp2Desired) {
+                        // ep1 keys: pass through directly to ep1Coord dependency.
+                        for (let arrayKey of desiredKeys) {
+                            let [pointInd] = arrayKey.split(",").map(Number);
+                            if (pointInd === 0) {
+                                instructions.push({
+                                    setDependency:
+                                        dependencyNamesByKey[arrayKey].ep1Coord,
+                                    desiredValue:
+                                        desiredUnconstrainedEndpoints[arrayKey],
+                                    variableIndex: 0,
+                                });
+                            }
+                        }
+                    }
+                    if (!onlyEp1Desired) {
+                        // Need numeric ep1 and ep2 to compute new slope/length.
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                        );
+                        if (
+                            ep1Num.every(Number.isFinite) &&
+                            ep2Num.every(Number.isFinite)
+                        ) {
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
+                        }
+                    }
+                } else if (numThroughPoints === 1) {
+                    // Case C: through point T is the position handle.
+                    // ep1 = T - (1+po)/2 * L * dir
+                    // ep2 = T + (1-po)/2 * L * dir
+                    const po =
+                        g.pointOffsetAttrComponent !== null
+                            ? g.pointOffsetAttr
+                            : g.essentialPointOffset;
+                    const tT = (1 + po) / 2;
+
+                    let T_new;
+                    if (onlyEp1Desired) {
+                        // Only ep1 desired (referenced point dragged): translate segment.
+                        // Compute T from desired ep1 + current slope/length direction.
+                        // Slope/length stay unchanged; whole segment translates.
+                        const slope =
+                            g.slopeAttr !== null
+                                ? g.slopeAttr.stateValues.value
+                                : g.essentialSlope;
+                        const L =
+                            g.lengthAttr !== null
+                                ? g.lengthAttr.stateValues.value
+                                : g.essentialSignedLength;
+                        const direction = directionFromSlope(slope);
+                        if (direction === null) {
+                            return { success: false };
+                        }
+                        const [dirX2, dirY2] = direction;
+                        let currentEndpoints = await stateValues.endpoints;
+                        const [ep1Desired] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                            numDim,
+                            [0],
+                        );
+                        T_new = ep1Desired.map(
+                            (value, dim) =>
+                                value +
+                                tT *
+                                    L *
+                                    getDirectionComponent(dim, dirX2, dirY2),
+                        );
+                        if (!T_new.every(Number.isFinite)) {
+                            return { success: false };
+                        }
                     } else {
-                        instructions.push({
-                            setEssentialValue: "unconstrainedEndpoints",
-                            value: {
-                                [arrayKey]:
-                                    desiredStateVariableValues
-                                        .unconstrainedEndpoints[arrayKey],
-                            },
+                        // ep2 desired (alone or with ep1): use t-parameterization.
+                        // T_new = ep1_new + tT * (ep2_new - ep1_new)
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                            numDim,
+                        );
+                        if (
+                            !ep1Num.every(Number.isFinite) ||
+                            !ep2Num.every(Number.isFinite)
+                        ) {
+                            return { success: false };
+                        }
+                        T_new = ep1Num.map(
+                            (value, dim) => value + tT * (ep2Num[dim] - value),
+                        );
+                        // Also update slope/length since ep2 changed.
+                        addSlopeAndLengthInstructions({
+                            instructions,
+                            globalDependencyValues: g,
+                            endpoint1: ep1Num,
+                            endpoint2: ep2Num,
                         });
+                    }
+
+                    addThroughPointInstructions({
+                        instructions,
+                        dependencyNamesByKey,
+                        throughPoint: T_new,
+                    });
+                } else {
+                    // Case D: 0 endpoints + 0 through; ep1 in essentialEp1, ep2 derived.
+                    // ep1 desired → update essentialEp1 directly (slope/length unchanged → ep2 translates)
+                    // ep2 desired → compute new slope/length (ep1 essentialEp1 unchanged)
+                    // both desired (from action) → update essentialEp1 + slope/length
+
+                    if (!onlyEp2Desired) {
+                        // ep1 keys: pass through directly to essentialEp1.
+                        for (let arrayKey of desiredKeys) {
+                            let [pointInd, dim] = arrayKey
+                                .split(",")
+                                .map(Number);
+                            if (pointInd === 0) {
+                                instructions.push({
+                                    setDependency: "essentialEp1",
+                                    desiredValue: {
+                                        [String(dim)]:
+                                            desiredUnconstrainedEndpoints[
+                                                arrayKey
+                                            ],
+                                    },
+                                });
+                            }
+                        }
+                    }
+                    if (!onlyEp1Desired) {
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                        );
+                        if (
+                            ep1Num.every(Number.isFinite) &&
+                            ep2Num.every(Number.isFinite)
+                        ) {
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
+                        }
                     }
                 }
 
-                return {
-                    success: true,
-                    instructions,
-                };
+                return { success: true, instructions };
             },
         };
 
@@ -817,7 +1712,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
-            description: "The length of the line segment.",
+            description:
+                "The Euclidean length of the line segment (always non-negative).",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1152,7 +2048,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
-            description: "The slope of the line segment (2D only).",
+            description:
+                "The slope of the line segment in the x-y plane; returns NaN when the segment is not 2D.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1161,9 +2058,9 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                numericalEndpoints: {
+                endpoints: {
                     dependencyType: "stateVariable",
-                    variableName: "numericalEndpoints",
+                    variableName: "endpoints",
                 },
                 numDimensions: {
                     dependencyType: "stateVariable",
@@ -1175,10 +2072,229 @@ export default class LineSegment extends GraphicalComponent {
                     return { setValue: { slope: NaN } };
                 }
 
-                let ps = dependencyValues.numericalEndpoints;
-                let slope = (ps[1][1] - ps[0][1]) / (ps[1][0] - ps[0][0]);
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
+                let slope = (B2 - A2) / (B1 - A1);
 
                 return { setValue: { slope } };
+            },
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                // Keep center and length fixed; rotate direction to desired slope.
+                // Pick the orientation closest to the current direction.
+                if (dependencyValues.numDimensions !== 2) {
+                    return { success: false };
+                }
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
+                if (
+                    !Number.isFinite(A1) ||
+                    !Number.isFinite(A2) ||
+                    !Number.isFinite(B1) ||
+                    !Number.isFinite(B2)
+                ) {
+                    return { success: false };
+                }
+                let cx = (A1 + B1) / 2;
+                let cy = (A2 + B2) / 2;
+                let L = Math.sqrt((B1 - A1) ** 2 + (B2 - A2) ** 2);
+                if (L === 0) {
+                    return { success: false };
+                }
+
+                let m = desiredStateVariableValues.slope;
+                // Normalize to a number in case a math expression was passed.
+                if (m instanceof me.class) {
+                    m = m.evaluate_to_constant();
+                }
+                if (Number.isNaN(m)) {
+                    return { success: false };
+                }
+
+                // Compute candidate unit direction from desired slope.
+                const direction = directionFromSlope(m);
+                if (direction === null) {
+                    return { success: false };
+                }
+                let [dirX, dirY] = direction;
+
+                // Flip if needed to stay closest to current direction.
+                let currentDirX = (B1 - A1) / L;
+                let currentDirY = (B2 - A2) / L;
+                // For finite slopes, flip direction to stay closest to current.
+                // For vertical slopes (±Infinity), the direction [0, ±1] is exact
+                // and flipping would incorrectly invert the sign (Inf ↔ -Inf).
+                if (
+                    Number.isFinite(m) &&
+                    currentDirX * dirX + currentDirY * dirY < 0
+                ) {
+                    dirX = -dirX;
+                    dirY = -dirY;
+                }
+
+                let half = L / 2;
+                let newEp1 = [
+                    me.fromAst(cx - half * dirX),
+                    me.fromAst(cy - half * dirY),
+                ];
+                let newEp2 = [
+                    me.fromAst(cx + half * dirX),
+                    me.fromAst(cy + half * dirY),
+                ];
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "endpoints",
+                            desiredValue: [newEp1, newEp2],
+                        },
+                    ],
+                };
+            },
+        };
+
+        stateVariableDefinitions.center = {
+            description: "The midpoint of the line segment.",
+            public: true,
+            isLocation: true,
+            shadowingInstructions: {
+                createComponentOfType: "math",
+                addAttributeComponentsShadowingStateVariables:
+                    returnNumberDisplayAttributeComponentShadowing(),
+                returnWrappingComponents(prefix) {
+                    if (prefix === "centerX") {
+                        return [];
+                    } else {
+                        return [
+                            [
+                                "point",
+                                {
+                                    componentType: "mathList",
+                                    isAttributeNamed: "xs",
+                                },
+                            ],
+                        ];
+                    }
+                },
+            },
+            isArray: true,
+            numDimensions: 1,
+            indexAliases: [["x", "y", "z"]],
+            entryPrefixes: ["centerX"],
+            returnEntryDimensions: () => 0,
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                let ind = Number(varEnding) - 1;
+                if (!Number.isInteger(ind) || ind < 0) {
+                    return [];
+                }
+                if (arraySize) {
+                    return ind < arraySize[0] ? [String(ind)] : [];
+                }
+                return [String(ind)];
+            },
+            arrayVarNameFromPropIndex(propIndex, varName) {
+                if (varName === "center") {
+                    return "centerX" + propIndex[0];
+                }
+                return null;
+            },
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
+            returnArrayDependenciesByKey() {
+                return {
+                    globalDependencies: {
+                        endpoints: {
+                            dependencyType: "stateVariable",
+                            variableName: "endpoints",
+                        },
+                        numDimensions: {
+                            dependencyType: "stateVariable",
+                            variableName: "numDimensions",
+                        },
+                    },
+                };
+            },
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                let center = {};
+                let ep1 = globalDependencyValues.endpoints[0];
+                let ep2 = globalDependencyValues.endpoints[1];
+                for (let arrayKey of arrayKeys) {
+                    let dim = Number(arrayKey);
+                    let v1 = ep1[dim].evaluate_to_constant();
+                    let v2 = ep2[dim].evaluate_to_constant();
+                    if (Number.isFinite(v1) && Number.isFinite(v2)) {
+                        center[arrayKey] = me.fromAst((v1 + v2) / 2);
+                    } else {
+                        center[arrayKey] = me.fromAst([
+                            "/",
+                            ["+", ep1[dim].tree, ep2[dim].tree],
+                            2,
+                        ]);
+                    }
+                }
+                return { setValue: { center } };
+            },
+            inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                globalDependencyValues,
+            }) {
+                // Translate both endpoints by delta = desired_center - current_center.
+                let ep1 = globalDependencyValues.endpoints[0];
+                let ep2 = globalDependencyValues.endpoints[1];
+                let numDim = globalDependencyValues.numDimensions;
+
+                let newEp1 = [];
+                let newEp2 = [];
+                for (let d = 0; d < numDim; d++) {
+                    let currentCenter = me.fromAst([
+                        "/",
+                        ["+", ep1[d].tree, ep2[d].tree],
+                        2,
+                    ]);
+                    let desiredCenter =
+                        String(d) in desiredStateVariableValues.center
+                            ? convertValueToMathExpression(
+                                  desiredStateVariableValues.center[String(d)],
+                              )
+                            : currentCenter;
+                    let delta = me.fromAst([
+                        "+",
+                        desiredCenter.tree,
+                        ["-", currentCenter.tree],
+                    ]);
+                    newEp1.push(me.fromAst(["+", ep1[d].tree, delta.tree]));
+                    newEp2.push(me.fromAst(["+", ep2[d].tree, delta.tree]));
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "endpoints",
+                            desiredValue: [newEp1, newEp2],
+                        },
+                    ],
+                };
             },
         };
 
@@ -1196,8 +2312,10 @@ export default class LineSegment extends GraphicalComponent {
     ];
 
     async moveLineSegmentSinglePoint({
+        coords,
         x,
         y,
+        z,
         pointRole,
         transient,
         skippable,
@@ -1206,16 +2324,28 @@ export default class LineSegment extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        let pointCoords = coords ?? [x, y];
+        if (coords === undefined && z !== undefined) {
+            pointCoords.push(z);
+        }
+
+        if (
+            pointCoords.length < 2 ||
+            !Number.isFinite(pointCoords[0]) ||
+            !Number.isFinite(pointCoords[1]) ||
+            pointCoords
+                .slice(2)
+                .some((coord) => coord !== undefined && !Number.isFinite(coord))
+        ) {
             console.warn(
-                `Invalid endpoint coordinates for line segment move: x=${x}, y=${y}`,
+                `Invalid endpoint coordinates for line segment move: ${pointCoords.join(", ")}`,
             );
             return;
         }
 
         if (pointRole === "endpoint1") {
             return await this.moveLineSegment({
-                point1coords: [x, y],
+                point1coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -1225,7 +2355,7 @@ export default class LineSegment extends GraphicalComponent {
             });
         } else if (pointRole === "endpoint2") {
             return await this.moveLineSegment({
-                point2coords: [x, y],
+                point2coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -1264,15 +2394,55 @@ export default class LineSegment extends GraphicalComponent {
             }
         }
 
+        const numDimensions = await this.stateValues.numDimensions;
+        let numericalEndpoints = await this.stateValues.numericalEndpoints;
+
+        if (point1coords !== undefined) {
+            point1coords = mergePointCoords(
+                point1coords,
+                numericalEndpoints[0],
+                numDimensions,
+            );
+        }
+        if (point2coords !== undefined) {
+            point2coords = mergePointCoords(
+                point2coords,
+                numericalEndpoints[1],
+                numDimensions,
+            );
+        }
+
+        // When basedOnSlopeOrThrough, ep2 is derived from ep1 + slope/length.
+        // A single-endpoint drag on the graph should keep the OTHER endpoint fixed
+        // (same intent as Vector's tail+displacement action).
+        // We achieve this by passing BOTH desired endpoint positions to performUpdate,
+        // so the inverse can compute new slope/length to match.
+        // This does NOT affect drags via referenced points (which go through the inverse
+        // definition directly and only receive the desired position of the moved endpoint).
+        if (await this.stateValues.basedOnSlopeOrThrough) {
+            if (point1coords !== undefined && point2coords === undefined) {
+                // ep1 dragged: keep ep2 fixed
+                point2coords = numericalEndpoints[1];
+            } else if (
+                point2coords !== undefined &&
+                point1coords === undefined
+            ) {
+                // ep2 dragged: keep ep1 fixed
+                point1coords = numericalEndpoints[0];
+            }
+        }
+
         let newComponents = {};
 
         if (point1coords !== undefined) {
-            newComponents["0,0"] = me.fromAst(point1coords[0]);
-            newComponents["0,1"] = me.fromAst(point1coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`0,${dim}`] = me.fromAst(point1coords[dim]);
+            }
         }
         if (point2coords !== undefined) {
-            newComponents["1,0"] = me.fromAst(point2coords[0]);
-            newComponents["1,1"] = me.fromAst(point2coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`1,${dim}`] = me.fromAst(point2coords[dim]);
+            }
         }
 
         // Note: we set skipRendererUpdate to true
@@ -1369,15 +2539,13 @@ export default class LineSegment extends GraphicalComponent {
                         );
                     }
                 }
-
                 let newPointComponents = {};
                 for (let ind in newNumericalPoints) {
-                    newPointComponents[ind + ",0"] = me.fromAst(
-                        newNumericalPoints[ind][0],
-                    );
-                    newPointComponents[ind + ",1"] = me.fromAst(
-                        newNumericalPoints[ind][1],
-                    );
+                    for (let dim = 0; dim < numDimensions; dim++) {
+                        newPointComponents[`${ind},${dim}`] = me.fromAst(
+                            newNumericalPoints[ind][dim],
+                        );
+                    }
                 }
 
                 let newInstructions = [
