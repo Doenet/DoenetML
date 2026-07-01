@@ -9,8 +9,15 @@ describe("fill-pattern color tokens", () => {
         const color = "RGB(255, 0, 0)";
         const token = encodeFillPatternColorToken(color);
 
-        expect(token).toBe("726762283235352c20302c203029");
-        expect(decodeFillPatternColorToken(token)).toBe("rgb(255, 0, 0)");
+        // Original case is preserved — token decodes back to the trimmed input.
+        expect(token).toBe("524742283235352c20302c203029");
+        expect(decodeFillPatternColorToken(token)).toBe("RGB(255, 0, 0)");
+    });
+
+    it("preserves case for CSS custom properties", () => {
+        const color = "var(--MyBrandColor)";
+        const token = encodeFillPatternColorToken(color);
+        expect(decodeFillPatternColorToken(token)).toBe("var(--MyBrandColor)");
     });
 
     it("rejects malformed tokens", () => {

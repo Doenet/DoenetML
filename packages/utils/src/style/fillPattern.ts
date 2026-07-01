@@ -17,16 +17,19 @@ function hexToBytes(hex: string): Uint8Array | null {
 }
 
 /**
- * Encode an arbitrary CSS color string into a lowercase hex token that is safe
- * to embed in SVG pattern IDs.
+ * Encode an arbitrary CSS color string into a hex token that is safe
+ * to embed in SVG pattern IDs (only `trim()` is applied — the original
+ * case is preserved so CSS custom properties like `var(--MyColor)` round-trip
+ * correctly when the token is decoded back to the stroke color).
  */
 export function encodeFillPatternColorToken(color: string): string {
-    const normalizedColor = color.trim().toLowerCase();
-    return bytesToHex(new TextEncoder().encode(normalizedColor));
+    return bytesToHex(new TextEncoder().encode(color.trim()));
 }
 
 /**
  * Decode a color token produced by `encodeFillPatternColorToken`.
+ * Returns `null` for tokens that are not valid hex or do not decode to
+ * valid UTF-8.
  */
 export function decodeFillPatternColorToken(token: string): string | null {
     const bytes = hexToBytes(token);
@@ -35,7 +38,7 @@ export function decodeFillPatternColorToken(token: string): string | null {
     }
 
     try {
-        return new TextDecoder().decode(bytes);
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     } catch {
         return null;
     }
