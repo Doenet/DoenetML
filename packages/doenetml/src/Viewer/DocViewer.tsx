@@ -1305,7 +1305,14 @@ export function DocViewer({
         coreCreated.current = true;
         coreCreationInProgress.current = false;
         preventMoreAnimations.current = false;
-        for (let actionArgs of actionsBeforeCoreCreated.current) {
+        // Snapshot and clear the queue before dispatching so that stale
+        // actions from a previous core lifetime (e.g. an initial setTheme
+        // queued before the first core was created) cannot survive into a
+        // future core reinitialization and override the correctly-initialized
+        // theme or other state.
+        const pendingActions = actionsBeforeCoreCreated.current;
+        actionsBeforeCoreCreated.current = [];
+        for (let actionArgs of pendingActions) {
             executeAction(actionArgs);
         }
         setStage("coreCreated");
