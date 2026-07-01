@@ -112,6 +112,40 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
             });
     });
 
+    it("does not refresh the viewer when no code changes are pending", () => {
+        cy.mount(<Harness />);
+
+        // Wait for the initial diagnostics callback (from the first render).
+        cy.get('[data-test="call-count"]').should("not.have.text", "0");
+
+        cy.get('[data-test="call-count"]')
+            .invoke("text")
+            .then((initialCountText) => {
+                const initialCount = Number(initialCountText);
+
+                // Press Ctrl/Cmd+S without making any code changes (Update/Reset
+                // button would show "Reset" if document has been interacted with,
+                // but the shortcut must not trigger a reset in any case when code
+                // hasn't changed).
+                cy.get(".viewer").then(($viewer) => {
+                    const prevented = dispatchKeydown($viewer[0], {
+                        code: "KeyS",
+                        withModifier: true,
+                    });
+                    // Browser "save page" dialog is still suppressed.
+                    expect(prevented).to.equal(true);
+                });
+
+                // No refresh: the diagnostics callback count must not grow.
+                cy.wait(500);
+                cy.get('[data-test="call-count"]')
+                    .invoke("text")
+                    .should((text) => {
+                        expect(Number(text)).to.equal(initialCount);
+                    });
+            });
+    });
+
     it("does not refresh or prevent default for a plain 'S' keydown without the modifier", () => {
         cy.mount(<Harness />);
 

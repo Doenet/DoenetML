@@ -850,7 +850,12 @@ export const EditorViewer = React.forwardRef<
             if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
-                updateViewer();
+                // Only trigger the update when code has actually changed.
+                // When the button shows "Reset" (documentInteracted only),
+                // Ctrl/Cmd-S should be a no-op rather than resetting the viewer.
+                if (codeChangedRef.current) {
+                    updateViewer();
+                }
             }
         };
 
