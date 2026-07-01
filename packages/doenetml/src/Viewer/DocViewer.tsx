@@ -656,9 +656,19 @@ export function DocViewer({
             return;
         }
 
-        // Note: it is possible that core has been terminated, so we need the question mark
-        const actionResult =
-            await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        // Note: it is possible that core has been terminated, so we need the question mark.
+        // If the dispatch rejects (e.g. worker terminated mid-call), resolve the pending
+        // callback as false so the callAction promise settles and lastSkippableAction can
+        // be released — without this, onActionCallbacks would retain the entry forever.
+        let actionResult;
+        try {
+            actionResult =
+                await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        } catch (e) {
+            console.warn("DocViewer: dispatchActionJavascript failed", e);
+            resolveAction({ actionId: actionArgs.args?.actionId });
+            return;
+        }
 
         if (actionResult) {
             resolveAction(actionResult);
