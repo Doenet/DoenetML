@@ -374,8 +374,8 @@ export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
  *    `returnSelectedStyleStateVariableDefinition` only lowercases string
  *    values when the attribute spec sets `toLowerCase: true`, but the
  *    parallel `<styleDefinition>` path lowercases unconditionally. Today's
- *    text-typed override keys (`markerStyle`, `lineStyle`) all opt in; the
- *    guard fails loudly if a new one slips in without opting in.
+ *    text-typed override keys (`markerStyle`, `lineStyle`, `fillStyle`) all
+ *    opt in; the guard fails loudly if a new one slips in without opting in.
  */
 for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
     for (const [key, spec] of Object.entries(group)) {
@@ -662,7 +662,7 @@ function deriveMissingDarkModeColor(
  * - `markerStyle` (text) → `markerStyleWord`: copies the value, then normalizes
  *   `"circle"` → `"point"` and any `"triangle*"` → `"triangle"`.
  * - `fillStyle` (text) → `fillStyleWord`: human-readable description of the
- *   fill pattern (e.g. `"horizontal lines"`, `"cross hatched"`), or `""` for
+ *   fill pattern (e.g. `"horizontal lines"`, `"diamonds"`), or `""` for
  *   `"solid"`.
  *
  * Used both by the styleDefinitions-merge path and by the per-component

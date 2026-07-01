@@ -122,7 +122,8 @@ export function getOrInjectPattern(
     }
 
     const svgNS = "http://www.w3.org/2000/svg";
-    const pattern = document.createElementNS(svgNS, "pattern");
+    const ownerDocument = defsEl.ownerDocument ?? document;
+    const pattern = ownerDocument.createElementNS(svgNS, "pattern");
     pattern.setAttribute("id", id);
     pattern.setAttribute("width", String(def.width));
     pattern.setAttribute("height", String(def.height));
@@ -131,7 +132,7 @@ export function getOrInjectPattern(
     // endpoints meet without a sub-pixel anti-aliasing seam.
     pattern.setAttribute("overflow", "visible");
 
-    const path = document.createElementNS(svgNS, "path");
+    const path = ownerDocument.createElementNS(svgNS, "path");
     path.setAttribute("d", def.path);
     if (def.useFill) {
         path.setAttribute("fill", fillColor);
