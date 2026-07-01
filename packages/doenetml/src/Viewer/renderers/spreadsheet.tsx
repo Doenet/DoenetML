@@ -2,13 +2,11 @@ import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-// @ts-ignore
 import { HotTable } from "@handsontable/react-wrapper";
 import { HyperFormula } from "hyperformula";
 import "handsontable/styles/handsontable.min.css";
 import "handsontable/styles/ht-theme-classic.min.css";
 import { sizeToCSS } from "./utils/css";
-// @ts-ignore
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
