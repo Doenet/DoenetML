@@ -172,13 +172,16 @@ export function DocViewer({
     const diagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
-    const actionsBeforeCoreCreated = useRef<
-        {
-            actionName: string;
-            componentIdx: number | undefined;
-            args: Record<string, any>;
-        }[]
-    >([]);
+    type DeferredCoreAction = {
+        actionName: string;
+        componentIdx: number | undefined;
+        args: Record<string, any>;
+    };
+
+    // Actions queued while a new core is still booting. Always clear this
+    // queue after handing its contents off so entries from an earlier core
+    // lifetime cannot leak into a later reinitialization.
+    const actionsBeforeCoreCreated = useRef<DeferredCoreAction[]>([]);
 
     const preventMoreAnimations = useRef(false);
     const animationInfo = useRef<
@@ -244,6 +247,16 @@ export function DocViewer({
         coreWorker.current = null;
         nativeCoreWorker.current = null;
         return disposeCoreWorker(remote, native, { graceful });
+    }
+
+    function clearDeferredCoreActions() {
+        actionsBeforeCoreCreated.current = [];
+    }
+
+    function takeDeferredCoreActions() {
+        const pendingActions = actionsBeforeCoreCreated.current;
+        clearDeferredCoreActions();
+        return pendingActions;
     }
 
     const contextForRenderers = {
@@ -473,7 +486,7 @@ export function DocViewer({
             // in a fresh worker can't hang on a wedged predecessor
             // (Doenet/DoenetApps#2957).
             await teardownCurrentCoreWorker({ graceful: true });
-            actionsBeforeCoreCreated.current = [];
+            clearDeferredCoreActions();
             for (let id in animationInfo.current) {
                 cancelAnimationFrame(id);
             }
@@ -616,7 +629,9 @@ export function DocViewer({
             args,
         };
 
-        executeAction(actionArgs);
+        executeAction(actionArgs).catch((e) => {
+            console.warn("DocViewer: executeAction failed", e);
+        });
 
         if (promiseResolve) {
             // If we were sent promiseResolve as an argument,
@@ -633,11 +648,7 @@ export function DocViewer({
         }
     }
 
-    async function executeAction(actionArgs: {
-        actionName: string;
-        componentIdx: number | undefined;
-        args: Record<string, any>;
-    }) {
+    async function executeAction(actionArgs: DeferredCoreAction) {
         if (!coreCreated.current) {
             // If core has not yet been created,
             // queue the action to be sent once core is created
@@ -645,12 +656,33 @@ export function DocViewer({
             return;
         }
 
-        // Note: it is possible that core has been terminated, so we need the question mark
-        const actionResult =
-            await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        // Note: it is possible that core has been terminated, so we need the question mark.
+        // If the dispatch rejects or the worker is absent (optional chaining returns
+        // undefined), settle the pending callAction promise as false so it does not hang
+        // and so lastSkippableAction can be released.
+        let actionResult;
+        try {
+            actionResult =
+                await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        } catch (e) {
+            console.warn("DocViewer: dispatchActionJavascript failed", e);
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
+            return;
+        }
 
         if (actionResult) {
             resolveAction(actionResult);
+        } else {
+            // coreWorker.current was null/undefined — optional chaining returned
+            // undefined, which is not a throw. Settle the callback as false so the
+            // callAction promise does not hang.
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
         }
     }
 
@@ -885,13 +917,19 @@ export function DocViewer({
         resolveAction({ actionId });
     }
 
-    function resolveAction({ actionId }: { actionId?: string }) {
+    function resolveAction({
+        actionId,
+        success = true,
+    }: {
+        actionId?: string;
+        success?: boolean;
+    }) {
         if (!actionId) {
             return;
         }
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
-            callback(true);
+            callback(success);
             onActionCallbacks.current.delete(actionId);
         }
 
@@ -1305,8 +1343,16 @@ export function DocViewer({
         coreCreated.current = true;
         coreCreationInProgress.current = false;
         preventMoreAnimations.current = false;
-        for (let actionArgs of actionsBeforeCoreCreated.current) {
-            executeAction(actionArgs);
+        // Snapshot and clear the queue before dispatching so that stale
+        // actions from a previous core lifetime (e.g. an initial setTheme
+        // queued before the first core was created) cannot survive into a
+        // future core reinitialization and override the correctly-initialized
+        // theme or other state.
+        const pendingActions = takeDeferredCoreActions();
+        for (let actionArgs of pendingActions) {
+            executeAction(actionArgs).catch((e) => {
+                console.warn("DocViewer: deferred executeAction failed", e);
+            });
         }
         setStage("coreCreated");
         initializedCallback?.({ activityId, docId });
