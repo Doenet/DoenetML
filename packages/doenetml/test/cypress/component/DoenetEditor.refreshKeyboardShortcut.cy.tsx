@@ -113,16 +113,26 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                 // modifier is released after jumping to the end.
                 appendExtraTextToEditor();
 
-                // Fire Ctrl/Cmd+S on the rendered viewer container (focus in
-                // the rendered document, not the code editor panel).
-                triggerSaveShortcutOnViewer({ withModifier: true });
                 cy.get('[data-test="Viewer Update Button"]')
                     .invoke("attr", "title")
                     .should("match", /^Update Viewer (cmd|ctrl)\+s$/);
+                // Fire Ctrl/Cmd+S on the rendered viewer container (focus in
+                // the rendered document, not the code editor panel).
+                triggerSaveShortcutOnViewer({ withModifier: true });
 
                 // The shortcut should have flushed the edit and refreshed the
-                // viewer, exactly like clicking Update.
+                // viewer, exactly like clicking Update. Once the refresh
+                // completes there are no pending edits, so the button returns
+                // to its disabled, no-shortcut state.
                 cy.get('[data-test="last-source"]').should("contain", "EXTRA");
+                cy.get('[data-test="Viewer Update Button"]').should(
+                    "be.disabled",
+                );
+                cy.get('[data-test="Viewer Update Button"]').should(
+                    "have.attr",
+                    "title",
+                    "Update Viewer",
+                );
                 cy.get('[data-test="call-count"]')
                     .invoke("text")
                     .then((finalCountText) => {
