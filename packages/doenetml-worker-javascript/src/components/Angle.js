@@ -11,6 +11,7 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
+    static styleOverrideCategories = ["fill"];
 
     static componentDocs = {
         summary: "An angle defined by three points or a measure",

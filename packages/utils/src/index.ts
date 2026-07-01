@@ -18,6 +18,7 @@ export * from "./math/mathexpressions";
 export * from "./math/rounding";
 export * from "./math/subset-of-reals-operations";
 export * from "./style/colorWords";
+export * from "./style/fillPattern";
 export * from "./style/style";
 export * from "./style/styleDefinitionHelpers";
 export * from "./theme/theme";

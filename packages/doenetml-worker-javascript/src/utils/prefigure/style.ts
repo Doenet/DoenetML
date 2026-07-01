@@ -1,7 +1,10 @@
 import { Position } from "../dast/types";
 import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
-import type { DiagnosticRecord } from "@doenet/utils";
+import {
+    encodeFillPatternColorToken,
+    type DiagnosticRecord,
+} from "@doenet/utils";
 
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
@@ -18,9 +21,6 @@ const prefigurePointStyleByMarkerStyle: Record<string, string> = {
     plus: "plus",
     "double-circle": "double-circle",
 };
-
-const hatchPatternColorRe =
-    /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
 /**
  * Returns a `selectedStyle` whose color fields hold the dark-mode values when
@@ -98,16 +98,15 @@ export function styleAttributes({
         const usePatternFill =
             !!fill &&
             !!selectedStyle?.fillStyle &&
-            selectedStyle.fillStyle !== "solid" &&
-            hatchPatternColorRe.test(fill);
+            selectedStyle.fillStyle !== "solid";
 
         if (fill) {
             if (usePatternFill) {
                 // Encode fill style + color into a pattern ID that the SVG
                 // post-processor in compiler.ts will resolve into a <pattern> def.
-                const colorHex = fill.replace(/^#/, "").toLowerCase();
+                const colorToken = encodeFillPatternColorToken(fill);
                 attrs.push(
-                    `fill="url(#doenet-hatch-${escapeXml(selectedStyle.fillStyle!)}-${escapeXml(colorHex)})"`,
+                    `fill="url(#doenet-hatch-${escapeXml(selectedStyle.fillStyle!)}-${colorToken})"`,
                 );
             } else {
                 attrs.push(`fill="${escapeXml(fill)}"`);
@@ -123,11 +122,13 @@ export function styleAttributes({
     if (includeFill) {
         const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
         const usePatternFill =
+            !!(
+                selectedStyle?.fillColor ??
+                selectedStyle?.fillColorWord ??
+                ""
+            ) &&
             !!selectedStyle?.fillStyle &&
-            selectedStyle.fillStyle !== "solid" &&
-            hatchPatternColorRe.test(
-                selectedStyle?.fillColor ?? selectedStyle?.fillColorWord ?? "",
-            );
+            selectedStyle.fillStyle !== "solid";
         if (fillOpacity !== null && !usePatternFill) {
             attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
         }

@@ -11,7 +11,7 @@ import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
-import { getOrInjectPattern } from "./utils/fillPatterns";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -67,6 +67,14 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             return null;
         }
 
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor: SVs.selectedStyle.fillColor,
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+        });
+
         var jsxAngleAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
@@ -74,12 +82,8 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
             radius: SVs.numericalRadius,
-            fillColor: getOrInjectPattern(
-                board.renderer.defs as SVGDefsElement | null,
-                board.container.id,
-                SVs.selectedStyle.fillStyle ?? "solid",
-                SVs.selectedStyle.fillColor,
-            ),
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
             strokeColor: SVs.selectedStyle.lineColor,
             highlight: false,
             orthoType: SVs.emphasizeRightAngle ? "square" : "sector",
@@ -190,14 +194,23 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             syncLayer(angleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
-            const angleFillColor = getOrInjectPattern(
-                board.renderer.defs as SVGDefsElement | null,
-                board.container.id,
-                SVs.selectedStyle.fillStyle ?? "solid",
-                SVs.selectedStyle.fillColor,
-            );
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor: SVs.selectedStyle.fillColor,
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+            });
+            const angleFillColor = fillAttributes.fillColor;
             if (angleJXG.current.visProp.fillcolor !== angleFillColor) {
                 angleJXG.current.visProp.fillcolor = angleFillColor;
+            }
+            if (
+                angleJXG.current.visProp.fillopacity !==
+                fillAttributes.fillOpacity
+            ) {
+                angleJXG.current.visProp.fillopacity =
+                    fillAttributes.fillOpacity;
             }
             if (
                 angleJXG.current.visProp.strokecolor !==

@@ -13,7 +13,9 @@ describe("PreFigure style attributes", () => {
             warningPrefix: "test",
         });
 
-        expect(attrs).toContain('fill="url(#doenet-hatch-diagonal-abcd)"');
+        expect(attrs).toContain(
+            'fill="url(#doenet-hatch-diagonal-2361626364)"',
+        );
         expect(attrs).not.toContain('fill-opacity="0.3"');
     });
 
@@ -28,11 +30,11 @@ describe("PreFigure style attributes", () => {
         });
 
         expect(attrs).toContain(
-            'fill="url(#doenet-hatch-crosshatch-11223344)"',
+            'fill="url(#doenet-hatch-crosshatch-233131323233333434)"',
         );
     });
 
-    it("falls back to plain fills when the color is not hex", () => {
+    it("uses hatch pattern urls for named fill colors too", () => {
         const attrs = styleAttributes({
             selectedStyle: {
                 fillColorWord: "blue",
@@ -43,7 +45,9 @@ describe("PreFigure style attributes", () => {
             warningPrefix: "test",
         });
 
-        expect(attrs).toContain('fill="blue"');
-        expect(attrs).toContain('fill-opacity="0.3"');
+        expect(attrs).toContain(
+            'fill="url(#doenet-hatch-horizontal-626c7565)"',
+        );
+        expect(attrs).not.toContain('fill-opacity="0.3"');
     });
 });

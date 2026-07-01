@@ -8,6 +8,7 @@
  */
 export * from "./colorWords";
 export * from "./colorAccessibility";
+export * from "./fillPattern";
 export * from "./styleContrastAccessibility";
 export * from "./style";
 export * from "./styleDefinitionHelpers";

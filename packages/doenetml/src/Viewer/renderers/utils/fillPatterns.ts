@@ -1,3 +1,5 @@
+import { encodeFillPatternColorToken } from "@doenet/utils";
+
 /**
  * SVG fill-pattern support for JSXGraph renderers.
  *
@@ -34,16 +36,15 @@ const FILL_PATTERN_DEFS: Record<string, PatternDef> = {
 
 /**
  * Returns a stable pattern element ID for a given board + fill style + color.
- * The color hex is included so different fill colors get different patterns.
+ * The encoded color token is included so different fill colors get different
+ * patterns, even when the authored color is a CSS name or functional notation.
  */
 function buildPatternId(
     boardId: string,
     fillStyle: string,
-    colorHex: string,
+    fillColor: string,
 ): string {
-    // Strip '#' and lowercase so IDs stay valid XML identifiers.
-    const safeColor = colorHex.replace(/^#/, "").toLowerCase();
-    return `doenet-hatch-${boardId}-${fillStyle}-${safeColor}`;
+    return `doenet-hatch-${boardId}-${fillStyle}-${encodeFillPatternColorToken(fillColor)}`;
 }
 
 /**

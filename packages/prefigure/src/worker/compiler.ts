@@ -9,11 +9,20 @@
  */
 
 import { PyodideInterface, loadPyodide } from "pyodide";
+import { decodeFillPatternColorToken } from "@doenet/utils";
 import { prefigBrowserApi } from "./compat-api";
 import { PREFIG_WHEEL_FILENAME } from "./compiler-metadata";
 
 type Options = Parameters<typeof loadPyodide>[0];
 export { PREFIG_WHEEL_FILENAME };
+
+function escapeSvgAttribute(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+}
 
 /**
  * SVG path data for each supported hatch fill style. These must stay in sync
@@ -36,17 +45,17 @@ const HATCH_PATTERN_DEFS: Record<string, HatchPatternDef> = {
 };
 
 /**
- * Scans the SVG string for `fill="url(#doenet-hatch-STYLE-COLORHEX)"` references
+ * Scans the SVG string for `fill="url(#doenet-hatch-STYLE-COLORTOKEN)"` references
  * emitted by the PreFigure XML generator and injects the corresponding `<pattern>`
  * definitions into the SVG's `<defs>` section.
  *
  * Returns the SVG string unchanged when no hatch references are found.
  */
 function injectHatchPatterns(svg: string): string {
-    // Match fill="url(#doenet-hatch-STYLE-COLORHEX)" where COLORHEX is 3, 4,
-    // 6, or 8 hex digits.
+    // Match fill="url(#doenet-hatch-STYLE-COLORTOKEN)" where COLORTOKEN is the
+    // UTF-8 hex encoding of the original CSS color string.
     const patternRefRe = new RegExp(
-        'fill="url\\(#(doenet-hatch-([a-z]+)-((?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})))\\)"',
+        'fill="url\\(#(doenet-hatch-([a-z]+)-([0-9a-f]+))\\)"',
         "g",
     );
 
@@ -55,7 +64,7 @@ function injectHatchPatterns(svg: string): string {
 
     let match: RegExpExecArray | null;
     while ((match = patternRefRe.exec(svg)) !== null) {
-        const [, id, style, colorHex] = match;
+        const [, id, style, colorToken] = match;
         if (seen.has(id)) {
             continue;
         }
@@ -66,10 +75,14 @@ function injectHatchPatterns(svg: string): string {
             continue;
         }
 
-        const color = `#${colorHex}`;
+        const color = decodeFillPatternColorToken(colorToken);
+        if (!color) {
+            continue;
+        }
+
         patternDefs.push(
             `<pattern id="${id}" width="${def.width}" height="${def.height}" patternUnits="userSpaceOnUse">` +
-                `<path d="${def.path}" stroke="${color}" stroke-width="1.5" fill="none"/>` +
+                `<path d="${def.path}" stroke="${escapeSvgAttribute(color)}" stroke-width="1.5" fill="none"/>` +
                 `</pattern>`,
         );
     }

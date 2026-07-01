@@ -124,7 +124,7 @@ describe("PreFigureCompiler", () => {
         mocks.loadPackageSpy.mockResolvedValue(undefined);
         mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
         mocks.runPythonSpy.mockResolvedValue([
-            '<svg><defs><marker id="m"/></defs><path fill="url(#doenet-hatch-horizontal-1f5dff)"/><path fill="url(#doenet-hatch-horizontal-1f5dff)"/></svg>',
+            '<svg><defs><marker id="m"/></defs><path fill="url(#doenet-hatch-horizontal-23316635646666)"/><path fill="url(#doenet-hatch-horizontal-23316635646666)"/></svg>',
             "",
         ]);
 
@@ -135,12 +135,13 @@ describe("PreFigureCompiler", () => {
         const result = await compiler.compile("svg", "<diagram/>");
 
         expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-horizontal-1f5dff"',
+            '<pattern id="doenet-hatch-horizontal-23316635646666"',
         );
         expect(
-            result.svg.match(/id="doenet-hatch-horizontal-1f5dff"/g),
+            result.svg.match(/id="doenet-hatch-horizontal-23316635646666"/g),
         ).toHaveLength(1);
         expect(result.svg).toContain('<marker id="m"/>');
+        expect(result.svg).toContain('stroke="#1f5dff"');
     });
 
     it("injects hatch patterns even when the svg has no defs block", async () => {
@@ -149,7 +150,7 @@ describe("PreFigureCompiler", () => {
         mocks.loadPackageSpy.mockResolvedValue(undefined);
         mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
         mocks.runPythonSpy.mockResolvedValue([
-            '<svg><path fill="url(#doenet-hatch-diagonalcrosshatch-ff0000)"/></svg>',
+            '<svg><path fill="url(#doenet-hatch-diagonalcrosshatch-23666630303030)"/></svg>',
             "",
         ]);
 
@@ -160,7 +161,7 @@ describe("PreFigureCompiler", () => {
         const result = await compiler.compile("svg", "<diagram/>");
 
         expect(result.svg).toContain(
-            '<defs><pattern id="doenet-hatch-diagonalcrosshatch-ff0000"',
+            '<defs><pattern id="doenet-hatch-diagonalcrosshatch-23666630303030"',
         );
         expect(result.svg).toContain(
             'd="M0,12 L12,0 M0,0 L12,12" stroke="#ff0000"',
@@ -173,7 +174,7 @@ describe("PreFigureCompiler", () => {
         mocks.loadPackageSpy.mockResolvedValue(undefined);
         mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
         mocks.runPythonSpy.mockResolvedValue([
-            '<svg><path fill="url(#doenet-hatch-horizontal-abcd)"/><path fill="url(#doenet-hatch-vertical-11223344)"/></svg>',
+            '<svg><path fill="url(#doenet-hatch-horizontal-2361626364)"/><path fill="url(#doenet-hatch-vertical-233131323233333434)"/></svg>',
             "",
         ]);
 
@@ -184,13 +185,35 @@ describe("PreFigureCompiler", () => {
         const result = await compiler.compile("svg", "<diagram/>");
 
         expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-horizontal-abcd"',
+            '<pattern id="doenet-hatch-horizontal-2361626364"',
         );
         expect(result.svg).toContain('stroke="#abcd"');
         expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-vertical-11223344"',
+            '<pattern id="doenet-hatch-vertical-233131323233333434"',
         );
         expect(result.svg).toContain('stroke="#11223344"');
+    });
+
+    it("injects hatch patterns for named fill colors", async () => {
+        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
+        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
+        mocks.loadPackageSpy.mockResolvedValue(undefined);
+        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
+        mocks.runPythonSpy.mockResolvedValue([
+            '<svg><path fill="url(#doenet-hatch-crosshatch-626c61636b)"/></svg>',
+            "",
+        ]);
+
+        const { PreFigureCompiler } = await import("../src/worker/compiler");
+        const compiler = new PreFigureCompiler();
+
+        await compiler.init();
+        const result = await compiler.compile("svg", "<diagram/>");
+
+        expect(result.svg).toContain(
+            '<pattern id="doenet-hatch-crosshatch-626c61636b"',
+        );
+        expect(result.svg).toContain('stroke="black"');
     });
 
     it("coalesces concurrent init calls into one initialization", async () => {
