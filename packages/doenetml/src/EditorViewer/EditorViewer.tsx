@@ -374,12 +374,14 @@ export const EditorViewer = React.forwardRef<
         [activateTab],
     );
 
-    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
-    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
-    // via refs and early-returns when nothing has changed so the programmatic
-    // call is a true no-op (no spurious `setResponses([])` re-render). For
-    // the button this guard is invisible (the button is disabled when both
-    // `codeChanged` and `documentInteracted` are false).
+    // Shared between the viewer-controls button and the imperative
+    // `updateRenderedView()` ref method. Reads via refs and early-returns when
+    // nothing has changed so the programmatic call is a true no-op (no
+    // spurious `setResponses([])` re-render). When source is unchanged but the
+    // rendered document has been interacted with, this remounts the viewer to
+    // clear that interaction state. The Ctrl/Cmd-S shortcut reuses this helper
+    // only when `codeChangedRef.current` is true so the shortcut mirrors
+    // "Update", not "Reset".
     const updateViewer = useCallback(() => {
         if (!codeChangedRef.current && !documentInteractedRef.current) {
             return;
@@ -850,9 +852,8 @@ export const EditorViewer = React.forwardRef<
             if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
-                // Only trigger the update when code has actually changed.
-                // When the button shows "Reset" (documentInteracted only),
-                // Ctrl/Cmd-S should be a no-op rather than resetting the viewer.
+                // Ctrl/Cmd-S mirrors "Update", not "Reset": still suppress the
+                // browser save dialog, but only flush pending source edits.
                 if (codeChangedRef.current) {
                     updateViewer();
                 }
