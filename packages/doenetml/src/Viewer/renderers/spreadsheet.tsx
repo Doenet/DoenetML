@@ -3,9 +3,10 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 // @ts-ignore
-import { HotTable } from "@handsontable/react";
+import { HotTable } from "@handsontable/react-wrapper";
 import { HyperFormula } from "hyperformula";
-import "handsontable/dist/handsontable.full.css";
+import "handsontable/styles/handsontable.min.css";
+import "handsontable/styles/ht-theme-classic.min.css";
 import { sizeToCSS } from "./utils/css";
 // @ts-ignore
 import { registerAllModules } from "handsontable/registry";
@@ -57,6 +58,7 @@ export default React.memo(function SpreadsheetRenderer(
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"
+                theme="ht-theme-classic"
                 data={SVs.cells.map((x) => [...x])}
                 colHeaders={SVs.columnHeaders as any}
                 rowHeaders={SVs.rowHeaders as any}
