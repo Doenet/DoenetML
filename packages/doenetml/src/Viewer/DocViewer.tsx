@@ -629,7 +629,9 @@ export function DocViewer({
             args,
         };
 
-        executeAction(actionArgs);
+        executeAction(actionArgs).catch((e) => {
+            console.warn("DocViewer: executeAction failed", e);
+        });
 
         if (promiseResolve) {
             // If we were sent promiseResolve as an argument,
@@ -1321,7 +1323,9 @@ export function DocViewer({
         // theme or other state.
         const pendingActions = takeDeferredCoreActions();
         for (let actionArgs of pendingActions) {
-            executeAction(actionArgs);
+            executeAction(actionArgs).catch((e) => {
+                console.warn("DocViewer: deferred executeAction failed", e);
+            });
         }
         setStage("coreCreated");
         initializedCallback?.({ activityId, docId });
