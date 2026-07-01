@@ -107,6 +107,15 @@ export function styleAttributes({
         if (fillOpacity !== null) {
             attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
         }
+
+        const fillStyle = selectedStyle?.fillStyle;
+        if (fillStyle && fillStyle !== "solid") {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+                position: warningPosition,
+            });
+        }
     }
 
     const lineStyle = selectedStyle?.lineStyle;

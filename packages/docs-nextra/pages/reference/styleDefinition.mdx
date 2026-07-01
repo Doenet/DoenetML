@@ -56,4 +56,31 @@ style is an adaptation of the default "red" `styleNumber` of $2$, generating a t
 attributes ending in `Word` define the way doenet will render the style descriptions in text references when the `styleDescription` or 
 `styleDescriptionWithNoun` properties are used.
 
+---
+
+### Example: Pattern fills and `fillPatternOpacity`
+
+```doenet-editor-horiz
+<setup>
+  <styleDefinition
+    styleNumber="11"
+    fillColor="#0f766e"
+    fillColorWord="teal"
+    fillStyle="dots"
+    fillPatternOpacity="0.5"
+    lineColor="#0f766e"
+    lineColorWord="teal"
+  />
+</setup>
+
+<p>The left polygon uses a patterned fill, while the right polygon uses a solid fill.</p>
+
+<graph xmin="-1" xmax="6" ymin="-1" ymax="3">
+  <shortDescription>A graph with one polygon filled with teal dots and another with a translucent solid teal fill</shortDescription>
+  <polygon styleNumber="11" filled vertices="(0,0) (2,0) (1,2)" />
+  <polygon filled fillColor="#0f766e" fillOpacity="0.2" vertices="(3,0) (5,0) (4,2)" />
+</graph>
+```
+
+Use `fillPatternOpacity` to control the opacity of a non-solid `fillStyle` pattern such as `dots` or `diamonds`. Keep using `fillOpacity` for solid fills.
 
