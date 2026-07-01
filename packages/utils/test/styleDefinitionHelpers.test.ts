@@ -29,6 +29,8 @@ const expectedKeys: (keyof ResolvedStyleDefinition)[] = [
     "fillColorDarkMode",
     "fillColorWordDarkMode",
     "fillOpacity",
+    "fillStyle",
+    "fillStyleWord",
     "textColor",
     "textColorWord",
     "textColorDarkMode",

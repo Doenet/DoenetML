@@ -1,7 +1,10 @@
 import { Position } from "../dast/types";
 import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
-import type { DiagnosticRecord } from "@doenet/utils";
+import {
+    encodeFillPatternColorToken,
+    type DiagnosticRecord,
+} from "@doenet/utils";
 
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
@@ -92,8 +95,22 @@ export function styleAttributes({
 
     if (includeFill) {
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
+        const usePatternFill =
+            !!fill &&
+            !!selectedStyle?.fillStyle &&
+            selectedStyle.fillStyle !== "solid";
+
         if (fill) {
-            attrs.push(`fill="${escapeXml(fill)}"`);
+            if (usePatternFill) {
+                // Encode fill style + color into a pattern ID that the SVG
+                // post-processor in compiler.ts will resolve into a <pattern> def.
+                const colorToken = encodeFillPatternColorToken(fill);
+                attrs.push(
+                    `fill="url(#doenet-hatch-${escapeXml(selectedStyle.fillStyle!)}-${colorToken})"`,
+                );
+            } else {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
         }
     }
 
@@ -104,7 +121,15 @@ export function styleAttributes({
 
     if (includeFill) {
         const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
-        if (fillOpacity !== null) {
+        const usePatternFill =
+            !!(
+                selectedStyle?.fillColor ??
+                selectedStyle?.fillColorWord ??
+                ""
+            ) &&
+            !!selectedStyle?.fillStyle &&
+            selectedStyle.fillStyle !== "solid";
+        if (fillOpacity !== null && !usePatternFill) {
             attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
         }
     }

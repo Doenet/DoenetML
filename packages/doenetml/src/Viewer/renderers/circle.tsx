@@ -41,6 +41,7 @@ import {
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -131,6 +132,18 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (!SVs.filled) {
             jsxCircleAttributes.fillColor = "none";
             jsxCircleAttributes.highlightFillColor = "none";
+        } else if (board) {
+            Object.assign(
+                jsxCircleAttributes,
+                getPatternFillAttributes({
+                    defsEl: board.renderer.defs as SVGDefsElement | null,
+                    boardId: board.container.id,
+                    fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                    fillColor: jsxCircleAttributes.fillColor,
+                    fillOpacity: SVs.selectedStyle.fillOpacity,
+                    highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                }),
+            );
         }
 
         if (SVs.filled) {
@@ -676,9 +689,27 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             syncLayer(circleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-            const fillColor = SVs.filled
+            const resolvedFillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
+            const fillAttributes =
+                SVs.filled && board
+                    ? getPatternFillAttributes({
+                          defsEl: board.renderer.defs as SVGDefsElement | null,
+                          boardId: board.container.id,
+                          fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      })
+                    : {
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillColor: resolvedFillColor,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      };
 
             syncLineStrokeStyle(circleJXG.current, {
                 lineColor,
@@ -687,19 +718,22 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 dash: styleToDash(SVs.selectedStyle.lineStyle),
             });
 
-            if (circleJXG.current.visProp.fillcolor !== fillColor) {
-                circleJXG.current.visProp.fillcolor = fillColor;
-                circleJXG.current.visProp.highlightfillcolor = fillColor;
+            if (
+                circleJXG.current.visProp.fillcolor !== fillAttributes.fillColor
+            ) {
+                circleJXG.current.visProp.fillcolor = fillAttributes.fillColor;
+                circleJXG.current.visProp.highlightfillcolor =
+                    fillAttributes.highlightFillColor;
                 circleJXG.current.visProp.hasinnerpoints = SVs.filled;
             }
             if (
                 circleJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 circleJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
                 circleJXG.current.visProp.highlightfillopacity =
-                    SVs.selectedStyle.fillOpacity * 0.5;
+                    fillAttributes.highlightFillOpacity;
             }
 
             circleJXG.current.name = SVs.labelForGraph;

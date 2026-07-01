@@ -255,6 +255,76 @@ describe("Per-component style override tests @group4", async () => {
         expect(C3.stateValues.selectedStyle.fillOpacity).eq(0.3);
     });
 
+    it("fillStyle values flow through to selectedStyle and derive fillStyleWord", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinition styleNumber="2" fillStyle="backDiagonal" />
+</setup>
+<graph>
+  <polygon
+    name="P"
+    vertices="(0,0) (1,0) (1,1)"
+    filled
+    fillStyle="horizontal"
+  />
+  <circle
+    name="C"
+    center="(3,0)"
+    radius="1"
+    filled
+    styleNumber="2"
+  />
+  <angle
+    name="A"
+    through="(0,0) (1,0) (1,1)"
+    fillStyle="vertical"
+  />
+  <function name="f">x</function>
+  <regionBetweenCurveXAxis
+    name="RX"
+    function="$f"
+    boundaryValues="0 1"
+    fillStyle="crosshatch"
+  />
+  <function name="f1">x</function>
+  <function name="f2">x^2</function>
+  <regionBetweenCurves
+    name="RB"
+    boundaryValues="0 1"
+    fillStyle="diagonalCrosshatch"
+  >
+    $f1 $f2
+  </regionBetweenCurves>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P = stateVariables[await resolvePathToNodeIdx("P")];
+        const C = stateVariables[await resolvePathToNodeIdx("C")];
+        const A = stateVariables[await resolvePathToNodeIdx("A")];
+        const RX = stateVariables[await resolvePathToNodeIdx("RX")];
+        const RB = stateVariables[await resolvePathToNodeIdx("RB")];
+
+        expect(P.stateValues.selectedStyle.fillStyle).eq("horizontal");
+        expect(P.stateValues.selectedStyle.fillStyleWord).eq(
+            "horizontal lines",
+        );
+        expect(C.stateValues.selectedStyle.fillStyle).eq("backdiagonal");
+        expect(C.stateValues.selectedStyle.fillStyleWord).eq(
+            "reverse diagonal lines",
+        );
+        expect(A.stateValues.selectedStyle.fillStyle).eq("vertical");
+        expect(A.stateValues.selectedStyle.fillStyleWord).eq("vertical lines");
+        expect(RX.stateValues.selectedStyle.fillStyle).eq("crosshatch");
+        expect(RX.stateValues.selectedStyle.fillStyleWord).eq("cross hatched");
+        expect(RB.stateValues.selectedStyle.fillStyle).eq("diagonalcrosshatch");
+        expect(RB.stateValues.selectedStyle.fillStyleWord).eq(
+            "diagonal cross hatched",
+        );
+    });
+
     it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
         // Same #1231 borrow path as the circle test above, but Parabola opts
         // into only the "line" override category.
@@ -320,16 +390,19 @@ describe("Per-component style override tests @group4", async () => {
         expect(polyAttrs.lineWidth).toBeDefined();
         expect(polyAttrs.lineStyle).toBeDefined();
         expect(polyAttrs.fillOpacity).toBeDefined();
+        expect(polyAttrs.fillStyle).toBeDefined();
         expect(polyAttrs.markerStyle).toBeUndefined();
 
         // Curve is line+fill (closed-curve case); Parabola overrides to line-only
         const Curve = (await import("../../components/Curve.js")).default;
         const curveAttrs = Curve.createAttributesObject();
         expect(curveAttrs.fillOpacity).toBeDefined();
+        expect(curveAttrs.fillStyle).toBeDefined();
         const Parabola = (await import("../../components/Parabola.js")).default;
         const parAttrs = Parabola.createAttributesObject();
         expect(parAttrs.lineWidth).toBeDefined();
         expect(parAttrs.fillOpacity).toBeUndefined();
+        expect(parAttrs.fillStyle).toBeUndefined();
 
         // Subclasses inherit their parent's category:
         // - Triangle/Rectangle/RegularPolygon inherit Polygon's line+fill
@@ -338,8 +411,31 @@ describe("Per-component style override tests @group4", async () => {
         // - CobwebPolyline inherits Polyline's line-only (no fill)
         const Triangle = (await import("../../components/Triangle.js")).default;
         expect(Triangle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Triangle.createAttributesObject().fillStyle).toBeDefined();
         const Circle = (await import("../../components/Circle.js")).default;
         expect(Circle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Circle.createAttributesObject().fillStyle).toBeDefined();
+        const Angle = (await import("../../components/Angle.js")).default;
+        expect(Angle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Angle.createAttributesObject().fillStyle).toBeDefined();
+        const RegionBetweenCurveXAxis = (
+            await import("../../components/RegionBetweenCurveXAxis.js")
+        ).default;
+        expect(
+            RegionBetweenCurveXAxis.createAttributesObject().fillOpacity,
+        ).toBeDefined();
+        expect(
+            RegionBetweenCurveXAxis.createAttributesObject().fillStyle,
+        ).toBeDefined();
+        const RegionBetweenCurves = (
+            await import("../../components/RegionBetweenCurves.js")
+        ).default;
+        expect(
+            RegionBetweenCurves.createAttributesObject().fillOpacity,
+        ).toBeDefined();
+        expect(
+            RegionBetweenCurves.createAttributesObject().fillStyle,
+        ).toBeDefined();
         const BestFitLine = (await import("../../components/BestFitLine.js"))
             .default;
         const bflAttrs = BestFitLine.createAttributesObject();

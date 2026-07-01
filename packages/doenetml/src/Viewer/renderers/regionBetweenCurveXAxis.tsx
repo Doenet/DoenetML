@@ -8,6 +8,7 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve, JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 
 interface RegionBetweenCurveXAxisSVs extends GraphicalSVs {
     haveFunction: boolean;
@@ -57,11 +58,16 @@ export default React.memo(function RegionBetweenCurveXAxis(
             return null;
         }
 
-        let fillColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.fillColorDarkMode
-                : SVs.selectedStyle.fillColor;
-
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor:
+                darkMode === "dark"
+                    ? SVs.selectedStyle.fillColorDarkMode
+                    : SVs.selectedStyle.fillColor,
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+        });
         // Note: actual content of label is being ignored
         // but, if label is non-empty, then jsxgraph display a label
         // which is an integral sign = value of integral
@@ -75,8 +81,8 @@ export default React.memo(function RegionBetweenCurveXAxis(
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
 
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
             highlight: false,
 
             // don't display points at left and right endpoints along function
@@ -152,21 +158,31 @@ export default React.memo(function RegionBetweenCurveXAxis(
                 integralJXG.current.setAttribute({ layer });
             }
 
-            let fillColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.fillColorDarkMode
-                    : SVs.selectedStyle.fillColor;
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor:
+                    darkMode === "dark"
+                        ? SVs.selectedStyle.fillColorDarkMode
+                        : SVs.selectedStyle.fillColor,
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+            });
 
-            if (integralJXG.current.visProp.fillcolor !== fillColor) {
-                integralJXG.current.visProp.fillcolor = fillColor;
+            if (
+                integralJXG.current.visProp.fillcolor !==
+                fillAttributes.fillColor
+            ) {
+                integralJXG.current.visProp.fillcolor =
+                    fillAttributes.fillColor;
             }
 
             if (
                 integralJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 integralJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
             }
 
             // including both update and full updates for all parts of curve and board
