@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { DoenetEditor } from "../../../src/doenetml-inline-worker";
 
 const SAMPLE_DOENETML = "<p>hello</p>";
+const INTERACTIVE_DOENETML = `
+<p>What is 1+1? <answer name="ans">2</answer></p>
+<p>Submitted response: <math name="sr" extend="$ans.submittedResponse" /></p>
+`;
 
 type DiagnosticsCall = {
     summary: {
@@ -14,7 +18,7 @@ type DiagnosticsCall = {
     doenetML: string;
 };
 
-function Harness() {
+function Harness({ doenetML = SAMPLE_DOENETML }: { doenetML?: string }) {
     const [calls, setCalls] = useState<DiagnosticsCall[]>([]);
 
     return (
@@ -24,7 +28,7 @@ function Harness() {
                 {calls.length > 0 ? calls[calls.length - 1].doenetML : ""}
             </div>
             <DoenetEditor
-                doenetML={SAMPLE_DOENETML}
+                doenetML={doenetML}
                 addVirtualKeyboard={false}
                 showViewer={true}
                 diagnosticsSummaryCallback={(summary, doenetML) => {
@@ -63,6 +67,30 @@ function dispatchKeydown(
     return event.defaultPrevented;
 }
 
+function appendExtraTextToEditor() {
+    cy.get(".cm-content")
+        .click()
+        .type("{ctrl}{end}", { force: true })
+        .type(" EXTRA", { force: true });
+}
+
+function triggerSaveShortcutOnViewer({
+    withModifier,
+    withShift = false,
+}: {
+    withModifier: boolean;
+    withShift?: boolean;
+}) {
+    cy.get(".viewer").then(($viewer) => {
+        const prevented = dispatchKeydown($viewer[0], {
+            code: "KeyS",
+            withModifier,
+            withShift,
+        });
+        expect(prevented).to.equal(withModifier && !withShift);
+    });
+}
+
 describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
     it("refreshes the viewer (like Update) when fired from the rendered document and prevents the browser save dialog", () => {
         cy.mount(<Harness />);
@@ -83,31 +111,77 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                 // refresh the viewer. Append plain text (no `<`/`=`) to avoid
                 // triggering autocomplete. Two `.type()` calls so the Ctrl
                 // modifier is released after jumping to the end.
-                cy.get(".cm-content")
-                    .click()
-                    .type("{ctrl}{end}", { force: true })
-                    .type(" EXTRA", { force: true });
+                appendExtraTextToEditor();
 
+                cy.get('[data-test="Viewer Update Button"]')
+                    .invoke("attr", "title")
+                    .should("match", /^Update Viewer (cmd|ctrl)\+s$/);
                 // Fire Ctrl/Cmd+S on the rendered viewer container (focus in
                 // the rendered document, not the code editor panel).
-                cy.get(".viewer").then(($viewer) => {
-                    const prevented = dispatchKeydown($viewer[0], {
-                        code: "KeyS",
-                        withModifier: true,
-                    });
-                    // Browser "save page" dialog must be suppressed.
-                    expect(prevented).to.equal(true);
-                });
+                triggerSaveShortcutOnViewer({ withModifier: true });
 
                 // The shortcut should have flushed the edit and refreshed the
-                // viewer, exactly like clicking Update.
+                // viewer, exactly like clicking Update. Once the refresh
+                // completes there are no pending edits, so the button returns
+                // to its disabled, no-shortcut state.
                 cy.get('[data-test="last-source"]').should("contain", "EXTRA");
+                cy.get('[data-test="Viewer Update Button"]').should(
+                    "be.disabled",
+                );
+                cy.get('[data-test="Viewer Update Button"]').should(
+                    "have.attr",
+                    "title",
+                    "Update Viewer",
+                );
                 cy.get('[data-test="call-count"]')
                     .invoke("text")
                     .then((finalCountText) => {
                         expect(Number(finalCountText)).to.be.greaterThan(
                             initialCount,
                         );
+                    });
+            });
+    });
+
+    it("does not reset the viewer when the rendered document has been interacted with but no code changes are pending", () => {
+        cy.mount(<Harness doenetML={INTERACTIVE_DOENETML} />);
+
+        // Wait for the initial diagnostics callback (from the first render).
+        cy.get('[data-test="call-count"]').should("not.have.text", "0");
+        cy.get("#ans textarea").type("2{enter}", { force: true });
+        cy.get("#sr").should("contain.text", "2");
+        cy.get('[data-test="Viewer Update Button"]').should(
+            "contain.text",
+            "Reset",
+        );
+        cy.get('[data-test="Viewer Update Button"]').should("not.be.disabled");
+        cy.get('[data-test="Viewer Update Button"]').should(
+            "have.attr",
+            "title",
+            "Reset Viewer",
+        );
+
+        cy.get('[data-test="call-count"]')
+            .invoke("text")
+            .then((countAfterInteractionText) => {
+                const countAfterInteraction = Number(countAfterInteractionText);
+
+                // Press Ctrl/Cmd+S in the "Reset" state. The browser save
+                // dialog must still be suppressed, but the viewer state must
+                // remain intact because no source edit is pending.
+                triggerSaveShortcutOnViewer({ withModifier: true });
+
+                // No reset: the submitted response, Reset-enabled button state,
+                // and diagnostics callback count must all remain unchanged.
+                cy.wait(500);
+                cy.get("#sr").should("contain.text", "2");
+                cy.get('[data-test="Viewer Update Button"]').should(
+                    "not.be.disabled",
+                );
+                cy.get('[data-test="call-count"]')
+                    .invoke("text")
+                    .should((text) => {
+                        expect(Number(text)).to.equal(countAfterInteraction);
                     });
             });
     });
@@ -126,18 +200,9 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                 const countAfterInitial = Number(countAfterInitialText);
 
                 // Edit the buffer so a refresh would be observable if it fired.
-                cy.get(".cm-content")
-                    .click()
-                    .type("{ctrl}{end}", { force: true })
-                    .type(" EXTRA", { force: true });
+                appendExtraTextToEditor();
 
-                cy.get(".viewer").then(($viewer) => {
-                    const prevented = dispatchKeydown($viewer[0], {
-                        code: "KeyS",
-                        withModifier: false,
-                    });
-                    expect(prevented).to.equal(false);
-                });
+                triggerSaveShortcutOnViewer({ withModifier: false });
 
                 // No refresh: the diagnostics callback count must not grow.
                 cy.wait(500);
@@ -163,19 +228,11 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                 const countAfterInitial = Number(countAfterInitialText);
 
                 // Edit the buffer so a refresh would be observable if it fired.
-                cy.get(".cm-content")
-                    .click()
-                    .type("{ctrl}{end}", { force: true })
-                    .type(" EXTRA", { force: true });
+                appendExtraTextToEditor();
 
-                cy.get(".viewer").then(($viewer) => {
-                    const prevented = dispatchKeydown($viewer[0], {
-                        code: "KeyS",
-                        withModifier: true,
-                        withShift: true,
-                    });
-                    // "Save As" must not be hijacked.
-                    expect(prevented).to.equal(false);
+                triggerSaveShortcutOnViewer({
+                    withModifier: true,
+                    withShift: true,
                 });
 
                 // No refresh: the diagnostics callback count must not grow.

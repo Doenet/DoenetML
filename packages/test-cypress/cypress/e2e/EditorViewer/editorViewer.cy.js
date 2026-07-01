@@ -121,7 +121,16 @@ describe("EditorViewer Tests", { tags: ["@group5"] }, function () {
             .should("not.be.disabled")
             .should("contain.text", "Reset");
 
+        // Ctrl+S is a no-op when the button shows "Reset" (no code change
+        // pending) — the viewer should not reset and the input must be preserved.
         cy.get(".cm-activeLine").type("{ctrl+s}");
+        cy.get("#ti_input").should("have.value", "Scrappy");
+        cy.get("[data-test='Viewer Update Button']")
+            .should("not.be.disabled")
+            .should("contain.text", "Reset");
+
+        // Clicking the Reset button still works.
+        cy.get("[data-test='Viewer Update Button']").click();
         cy.get("#ti_input").should("have.value", "");
     });
 
