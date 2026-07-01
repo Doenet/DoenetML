@@ -172,13 +172,16 @@ export function DocViewer({
     const diagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
-    const actionsBeforeCoreCreated = useRef<
-        {
-            actionName: string;
-            componentIdx: number | undefined;
-            args: Record<string, any>;
-        }[]
-    >([]);
+    type DeferredCoreAction = {
+        actionName: string;
+        componentIdx: number | undefined;
+        args: Record<string, any>;
+    };
+
+    // Actions queued while a new core is still booting. Always clear this
+    // queue after handing its contents off so entries from an earlier core
+    // lifetime cannot leak into a later reinitialization.
+    const actionsBeforeCoreCreated = useRef<DeferredCoreAction[]>([]);
 
     const preventMoreAnimations = useRef(false);
     const animationInfo = useRef<
@@ -244,6 +247,16 @@ export function DocViewer({
         coreWorker.current = null;
         nativeCoreWorker.current = null;
         return disposeCoreWorker(remote, native, { graceful });
+    }
+
+    function clearDeferredCoreActions() {
+        actionsBeforeCoreCreated.current = [];
+    }
+
+    function takeDeferredCoreActions() {
+        const pendingActions = actionsBeforeCoreCreated.current;
+        clearDeferredCoreActions();
+        return pendingActions;
     }
 
     const contextForRenderers = {
@@ -473,7 +486,7 @@ export function DocViewer({
             // in a fresh worker can't hang on a wedged predecessor
             // (Doenet/DoenetApps#2957).
             await teardownCurrentCoreWorker({ graceful: true });
-            actionsBeforeCoreCreated.current = [];
+            clearDeferredCoreActions();
             for (let id in animationInfo.current) {
                 cancelAnimationFrame(id);
             }
@@ -633,11 +646,7 @@ export function DocViewer({
         }
     }
 
-    async function executeAction(actionArgs: {
-        actionName: string;
-        componentIdx: number | undefined;
-        args: Record<string, any>;
-    }) {
+    async function executeAction(actionArgs: DeferredCoreAction) {
         if (!coreCreated.current) {
             // If core has not yet been created,
             // queue the action to be sent once core is created
@@ -1310,8 +1319,7 @@ export function DocViewer({
         // queued before the first core was created) cannot survive into a
         // future core reinitialization and override the correctly-initialized
         // theme or other state.
-        const pendingActions = actionsBeforeCoreCreated.current;
-        actionsBeforeCoreCreated.current = [];
+        const pendingActions = takeDeferredCoreActions();
         for (let actionArgs of pendingActions) {
             executeAction(actionArgs);
         }
