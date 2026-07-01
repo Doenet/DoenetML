@@ -64,6 +64,9 @@ export default React.memo(function SpreadsheetRenderer(
                         ? "ht-theme-classic-dark"
                         : "ht-theme-classic"
                 }
+                // Handsontable 18's ARIA treegrid roles currently violate
+                // aria-required-children; preserve native table semantics.
+                ariaTags={false}
                 data={SVs.cells.map((x) => [...x])}
                 colHeaders={SVs.columnHeaders as any}
                 rowHeaders={SVs.rowHeaders as any}

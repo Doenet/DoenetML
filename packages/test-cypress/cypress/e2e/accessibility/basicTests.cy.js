@@ -1072,11 +1072,6 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
 
         cy.checkAccessibility([".doenet-viewer"], {
             // onlyWarnImpacts: ["moderate", "minor"],
-            // Handsontable 18 uses role="treegrid" on its root element but
-            // includes role="presentation" children as part of its internal
-            // layout. This violates the aria-required-children rule, which is
-            // a known Handsontable ARIA issue outside our control.
-            rules: { "aria-required-children": { enabled: false } },
         });
     });
 
