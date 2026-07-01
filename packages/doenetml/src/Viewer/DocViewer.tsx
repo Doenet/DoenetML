@@ -657,21 +657,32 @@ export function DocViewer({
         }
 
         // Note: it is possible that core has been terminated, so we need the question mark.
-        // If the dispatch rejects (e.g. worker terminated mid-call), resolve the pending
-        // callback as false so the callAction promise settles and lastSkippableAction can
-        // be released — without this, onActionCallbacks would retain the entry forever.
+        // If the dispatch rejects or the worker is absent (optional chaining returns
+        // undefined), settle the pending callAction promise as false so it does not hang
+        // and so lastSkippableAction can be released.
         let actionResult;
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
         } catch (e) {
             console.warn("DocViewer: dispatchActionJavascript failed", e);
-            resolveAction({ actionId: actionArgs.args?.actionId });
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
             return;
         }
 
         if (actionResult) {
             resolveAction(actionResult);
+        } else {
+            // coreWorker.current was null/undefined — optional chaining returned
+            // undefined, which is not a throw. Settle the callback as false so the
+            // callAction promise does not hang.
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
         }
     }
 
@@ -906,13 +917,19 @@ export function DocViewer({
         resolveAction({ actionId });
     }
 
-    function resolveAction({ actionId }: { actionId?: string }) {
+    function resolveAction({
+        actionId,
+        success = true,
+    }: {
+        actionId?: string;
+        success?: boolean;
+    }) {
         if (!actionId) {
             return;
         }
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
-            callback(true);
+            callback(success);
             onActionCallbacks.current.delete(actionId);
         }
 
