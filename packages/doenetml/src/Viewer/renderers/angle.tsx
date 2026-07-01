@@ -12,6 +12,7 @@ import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
+import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -71,7 +72,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             defsEl: board.renderer.defs as SVGDefsElement | null,
             boardId: board.container.id,
             fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
-            fillColor: SVs.selectedStyle.fillColor,
+            fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
             fillOpacity: SVs.selectedStyle.fillOpacity,
         });
 
@@ -84,7 +85,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             radius: SVs.numericalRadius,
             fillColor: fillAttributes.fillColor,
             fillOpacity: fillAttributes.fillOpacity,
-            strokeColor: SVs.selectedStyle.lineColor,
+            strokeColor: resolveLineColor(SVs.selectedStyle, darkMode),
             highlight: false,
             orthoType: SVs.emphasizeRightAngle ? "square" : "sector",
         };
@@ -198,7 +199,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 defsEl: board.renderer.defs as SVGDefsElement | null,
                 boardId: board.container.id,
                 fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
-                fillColor: SVs.selectedStyle.fillColor,
+                fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
                 fillOpacity: SVs.selectedStyle.fillOpacity,
             });
             const angleFillColor = fillAttributes.fillColor;
@@ -212,12 +213,12 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 angleJXG.current.visProp.fillopacity =
                     fillAttributes.fillOpacity;
             }
-            if (
-                angleJXG.current.visProp.strokecolor !==
-                SVs.selectedStyle.lineColor
-            ) {
-                angleJXG.current.visProp.strokecolor =
-                    SVs.selectedStyle.lineColor;
+            const angleLineColor = resolveLineColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
+            if (angleJXG.current.visProp.strokecolor !== angleLineColor) {
+                angleJXG.current.visProp.strokecolor = angleLineColor;
             }
 
             angleJXG.current.name = SVs.labelForGraph;
