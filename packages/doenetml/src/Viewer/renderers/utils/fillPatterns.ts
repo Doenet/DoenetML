@@ -20,6 +20,19 @@ type PatternDef = {
     strokeLinecap?: string;
 };
 
+const warnedUnsupportedFillStyles = new Set<string>();
+
+function warnUnsupportedFillStyle(fillStyle: string) {
+    if (warnedUnsupportedFillStyles.has(fillStyle)) {
+        return;
+    }
+
+    warnedUnsupportedFillStyles.add(fillStyle);
+    console.warn(
+        `DoenetML: unsupported fillStyle "${fillStyle}" rendered as a solid fill.`,
+    );
+}
+
 /**
  * Maps each non-solid fillStyle value to its SVG pattern definition.
  *
@@ -109,8 +122,15 @@ export function getOrInjectPattern(
     fillColor: string,
 ): string {
     const def = FILL_PATTERN_DEFS[fillStyle];
-    if (!def || !defsEl) {
-        // Solid fill or no defs available — return the plain color.
+    if (!def) {
+        if (fillStyle !== "solid") {
+            warnUnsupportedFillStyle(fillStyle);
+        }
+        return fillColor;
+    }
+
+    if (!defsEl) {
+        // No defs available — return the plain color.
         return fillColor;
     }
 

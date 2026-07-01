@@ -23,6 +23,8 @@ Available `fillStyle` values are:
 
 The `dots` and `diamonds` patterns are drawn from the BANA (Braille Authority of North America) Texture Palette for Tiger Embossers, intended for tactile graphics. Pattern fills now use `fillPatternOpacity` (default `1`) instead of the solid-fill `fillOpacity` default (`0.3`).
 
+The previous `crosshatch` and `diagonalCrosshatch` values are replaced by `dots` and `diamonds`, respectively.
+
 The JSXGraph interactive renderer supports all patterns. Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
 
 `@doenet/prefigure` no longer injects SVG hatch definitions. Until native PreFigure pattern support lands, non-solid `fillStyle` values there warn and fall back to solid fills.
