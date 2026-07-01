@@ -239,6 +239,28 @@ and <tagc>section</tagc> to close one.</p>`,
 <orbitalDiagramInput name="odi" />`,
                 settle: "#odi",
             },
+            {
+                name: "spreadsheet with headers and formula",
+                doenetML: `
+<spreadsheet name="ss">
+    <row header>
+        <cell>Item</cell>
+        <cell>Value</cell>
+        <cell>Double</cell>
+    </row>
+    <row>
+        <cell>Alpha</cell>
+        <cell>42</cell>
+        <cell>=B2*2</cell>
+    </row>
+    <row>
+        <cell>Beta</cell>
+        <cell>7</cell>
+        <cell>=B3*2</cell>
+    </row>
+</spreadsheet>`,
+                settle: "#ss",
+            },
         ];
 
         for (const testCase of cases) {
