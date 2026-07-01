@@ -285,14 +285,14 @@ describe("Per-component style override tests @group4", async () => {
     name="RX"
     function="$f"
     boundaryValues="0 1"
-    fillStyle="crosshatch"
+    fillStyle="dots"
   />
   <function name="f1">x</function>
   <function name="f2">x^2</function>
   <regionBetweenCurves
     name="RB"
     boundaryValues="0 1"
-    fillStyle="diagonalCrosshatch"
+    fillStyle="diamonds"
   >
     $f1 $f2
   </regionBetweenCurves>
@@ -317,12 +317,10 @@ describe("Per-component style override tests @group4", async () => {
         );
         expect(A.stateValues.selectedStyle.fillStyle).eq("vertical");
         expect(A.stateValues.selectedStyle.fillStyleWord).eq("vertical lines");
-        expect(RX.stateValues.selectedStyle.fillStyle).eq("crosshatch");
-        expect(RX.stateValues.selectedStyle.fillStyleWord).eq("cross hatched");
-        expect(RB.stateValues.selectedStyle.fillStyle).eq("diagonalcrosshatch");
-        expect(RB.stateValues.selectedStyle.fillStyleWord).eq(
-            "diagonal cross hatched",
-        );
+        expect(RX.stateValues.selectedStyle.fillStyle).eq("dots");
+        expect(RX.stateValues.selectedStyle.fillStyleWord).eq("dots");
+        expect(RB.stateValues.selectedStyle.fillStyle).eq("diamonds");
+        expect(RB.stateValues.selectedStyle.fillStyleWord).eq("diamonds");
     });
 
     it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {

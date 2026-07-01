@@ -73,6 +73,7 @@ export default React.memo(function RegionBetweenCurves(
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
 
         let jsxAttributes: Record<string, any> = {
@@ -248,6 +249,7 @@ export default React.memo(function RegionBetweenCurves(
                         ? SVs.selectedStyle.fillColorDarkMode
                         : SVs.selectedStyle.fillColor,
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
 
             if (

@@ -4,7 +4,6 @@
 "@doenet/doenetml-iframe": patch
 "@doenet/vscode-extension": patch
 "doenet-vscode-extension": patch
-"@doenet/prefigure": patch
 ---
 
 Graph: add `fillStyle` style attribute for patterned fills on closed shapes.
@@ -16,11 +15,11 @@ Closed shapes in graphs (`polygon`, `circle`, `angle`, `regionBetweenCurves`, an
 - `vertical` — vertical line pattern
 - `diagonal` — diagonal lines (/)
 - `backDiagonal` — back-diagonal lines (\\)
-- `crosshatch` — horizontal + vertical grid
-- `diagonalCrosshatch` — diagonal X-pattern
+- `dots` — dots pattern
+- `diamonds` — filled diamonds pattern
 
-Both the JSXGraph interactive renderer and the PreFigure static diagram renderer support all patterns. The hatch lines use the shape's fill color and stay fully opaque so the pattern remains visible.
+The patterns are drawn from the BANA (Braille Authority of North America) Texture Palette for Tiger Embossers, intended for tactile graphics.
 
-Filled circles and polygons also include the hatch wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
+Both the JSXGraph interactive renderer supports all patterns. Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
 
 Closes #1386.

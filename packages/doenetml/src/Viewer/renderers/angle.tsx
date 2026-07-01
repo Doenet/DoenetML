@@ -74,6 +74,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
             fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
 
         var jsxAngleAttributes: Record<string, any> = {
@@ -201,6 +202,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                 fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
             const angleFillColor = fillAttributes.fillColor;
             if (angleJXG.current.visProp.fillcolor !== angleFillColor) {
