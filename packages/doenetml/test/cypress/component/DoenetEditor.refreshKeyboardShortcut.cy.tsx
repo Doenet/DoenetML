@@ -116,6 +116,9 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
                 // Fire Ctrl/Cmd+S on the rendered viewer container (focus in
                 // the rendered document, not the code editor panel).
                 triggerSaveShortcutOnViewer({ withModifier: true });
+                cy.get('[data-test="Viewer Update Button"]')
+                    .invoke("attr", "title")
+                    .should("match", /^Update Viewer (cmd|ctrl)\+s$/);
 
                 // The shortcut should have flushed the edit and refreshed the
                 // viewer, exactly like clicking Update.
@@ -142,6 +145,11 @@ describe("DoenetEditor Ctrl/Cmd+S refresh shortcut", () => {
             "Reset",
         );
         cy.get('[data-test="Viewer Update Button"]').should("not.be.disabled");
+        cy.get('[data-test="Viewer Update Button"]').should(
+            "have.attr",
+            "title",
+            "Reset Viewer",
+        );
 
         cy.get('[data-test="call-count"]')
             .invoke("text")

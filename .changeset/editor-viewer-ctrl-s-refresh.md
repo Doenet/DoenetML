@@ -6,6 +6,6 @@
 "doenet-vscode-extension": patch
 ---
 
-Editor: Ctrl/Cmd+S now refreshes pending source edits when focus is anywhere in the editor-viewer, including the rendered document, without triggering the viewer's Reset behavior when no code changes are pending.
+Editor: Ctrl/Cmd+S now refreshes pending source edits when focus is anywhere in the editor-viewer, including the rendered document, without triggering the viewer's Reset behavior when no code changes are pending. When the button is showing Reset, its tooltip now omits the Ctrl/Cmd+S hint.
 
 The shortcut follows the platform convention used by the code editor — Cmd+S on macOS, Ctrl+S elsewhere — and ignores AltGr/Alt combinations so AltGr+S still inserts a character.
