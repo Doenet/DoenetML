@@ -281,11 +281,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         const diagnosticsByType = await getWarnings(doenetML);
-        expect(
-            diagnosticsByType.warnings.some((x) =>
-                x.message.includes("fill style"),
-            ),
-        ).eq(false);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
     });
 
     it("renderer=prefigure maps endpoint and equilibriumPoint as points", async () => {

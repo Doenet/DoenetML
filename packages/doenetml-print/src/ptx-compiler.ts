@@ -16,8 +16,8 @@ const rawPackaging = rawPackagingImport as Uint8Array;
 import rawLxmlImport from "./assets/lxml-5.2.1-cp312-cp312-pyodide_2024_0_wasm32.whl?uint8array&base64";
 const rawLxml = rawLxmlImport as Uint8Array;
 
-// @ts-ignore
 // Keep this wheel path in sync with PREFIG_VERSION in packages/prefigure/src/worker/compiler-metadata.ts
+// @ts-ignore
 import rawPrefigImport from "../../prefigure/pyodide_packages/prefig-0.6.7-py3-none-any.whl?uint8array&base64";
 const rawPrefig = rawPrefigImport as Uint8Array;
 
