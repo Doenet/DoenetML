@@ -86,6 +86,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     >(SVs.selectedIndices);
 
     let selectedIndicesWhenSetState = useRef(null);
+    const embeddedLabelClicksToAllow = useRef(new WeakSet<HTMLElement>());
 
     if (
         !ignoreUpdate &&
@@ -572,8 +573,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // receives focus normally.
         //
         // The selector covers:
-        //   - any nested <input> except the choice input's own control
+        //   - any nested form control except the outer choice input's own
+        //     radio/checkbox
         //   - <textarea>
+        //   - <select> and <button>
         //   - [contenteditable]
         //   - .mathInputWrapper — MathQuill's visual spans are regular <span>
         //     elements; clicking them does not target a native form control, so
@@ -586,8 +589,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         //
         function preventDefaultIfInput(e: React.MouseEvent) {
             const target = e.target as HTMLElement;
+            const outerChoiceControl = e.currentTarget.querySelector(
+                ":scope > input.choiceinput-control",
+            );
+
+            if (embeddedLabelClicksToAllow.current.has(target)) {
+                embeddedLabelClicksToAllow.current.delete(target);
+                return;
+            }
+
             const embeddedLabel = target.closest(
-                "label:not(.radio-container):not(.checkbox-container)",
+                "label",
             ) as HTMLLabelElement | null;
 
             if (embeddedLabel && embeddedLabel !== e.currentTarget) {
@@ -597,18 +609,38 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         ? document.getElementById(embeddedLabel.htmlFor)
                         : null);
 
-                if (labelledControl instanceof HTMLElement) {
+                if (
+                    labelledControl instanceof HTMLElement &&
+                    labelledControl !== outerChoiceControl
+                ) {
                     e.preventDefault();
                     labelledControl.focus();
+
+                    if (
+                        labelledControl instanceof HTMLInputElement &&
+                        (labelledControl.type === "checkbox" ||
+                            labelledControl.type === "radio")
+                    ) {
+                        // Recreate the inner label's native toggle behavior
+                        // without letting the outer choice intercept the
+                        // synthetic click we trigger here.
+                        embeddedLabelClicksToAllow.current.add(labelledControl);
+                        labelledControl.click();
+                    }
+
                     return;
                 }
             }
 
             const interactiveTarget = target.closest(
-                "input:not(.choiceinput-control), textarea, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
+                "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
             );
 
-            if (interactiveTarget && interactiveTarget !== e.currentTarget) {
+            if (
+                interactiveTarget &&
+                interactiveTarget !== e.currentTarget &&
+                interactiveTarget !== outerChoiceControl
+            ) {
                 e.preventDefault();
             }
         }
