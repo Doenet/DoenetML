@@ -23,6 +23,7 @@ interface FractionInputSVs {
     labelPosition?: string;
     forceFullCheckWorkButton: boolean;
     justSubmitted: boolean;
+    colorCorrectness: boolean;
     shortDescription?: string;
     descriptionChildInd?: number;
     externalLabelRendererIds?: string[];
