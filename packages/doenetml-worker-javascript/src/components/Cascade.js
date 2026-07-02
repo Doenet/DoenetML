@@ -24,6 +24,13 @@ export default class Cascade extends SectioningComponent {
 
         attributes.noAutoTitle.defaultValue = true;
 
+        // Keep the explicit attribute value separate so the effective state
+        // variable can inherit from the parent when the attribute is omitted.
+        // Mark it non-public so it doesn't appear in the schema or as a
+        // shadowable property.
+        attributes.asList.createStateVariable = "asListPreliminary";
+        attributes.asList.public = false;
+
         attributes.revealAll = {
             createComponentOfType: "boolean",
             createStateVariable: "revealAllPreliminary",
@@ -45,6 +52,43 @@ export default class Cascade extends SectioningComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Cascade is a structural container rather than a numbered item, even
+        // when it sits inside a list-producing parent such as <problems>.
+        stateVariableDefinitions.isListItem = {
+            forRenderer: true,
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { isListItem: false } }),
+        };
+
+        // Make cascade transparent for `asList` propagation unless the author
+        // explicitly sets `asList` on the cascade itself.
+        stateVariableDefinitions.asList = {
+            description: "Whether to render this section's children as a list.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                asListPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "asListPreliminary",
+                },
+                parentAsList: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "asList",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let asList = dependencyValues.parentAsList;
+                if (!usedDefault.asListPreliminary) {
+                    asList = dependencyValues.asListPreliminary;
+                }
+
+                return { setValue: { asList: Boolean(asList) } };
+            },
+        };
 
         stateVariableDefinitions.childrenAggregateScores = {
             returnDependencies: () => ({}),

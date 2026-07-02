@@ -1168,6 +1168,33 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    /** Run assertions against the CSS `::before` pseudo-element for an item. */
+    function withBeforeStyle(itemId, callback) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            callback(win.getComputedStyle($el[0], "::before"));
+        });
+    }
+
+    /** Assert the CSS list marker rendered through the item's `::before`. */
+    function verifyBeforeContent(itemId, expectedContent) {
+        withBeforeStyle(itemId, (before) => {
+            expect(before.getPropertyValue("content")).to.equal(
+                expectedContent,
+            );
+        });
+    }
+
+    /** Assert that an item does not render a CSS list marker. */
+    function verifyNoBeforeContent(itemId) {
+        withBeforeStyle(itemId, (before) => {
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+    }
+
     /**
      * Verifies baseline list-item numbering behavior for two non-boxed items.
      *
@@ -1190,34 +1217,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${escapedItem2Id}`).should("have.text", item2Text);
 
         // Verify section numbers are rendered via CSS ::before pseudo-elements
-        cy.get(`#${escapedItem1Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"1."');
-        });
-
-        cy.get(`#${escapedItem2Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"2."');
-        });
+        verifyBeforeContent(item1Id, '"1."');
+        verifyBeforeContent(item2Id, '"2."');
 
         // Introduction and conclusion should NOT have section numbers
-        cy.get("#intro").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
-
-        cy.get("#conclusion").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
+        verifyNoBeforeContent("intro");
+        verifyNoBeforeContent("conclusion");
     }
 
     /**
@@ -1226,11 +1231,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * (e.g., choiceInput/math on the first rendered line).
      */
     function verifyNonBoxedListItemUsesInlineBefore(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1253,18 +1254,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         const escapedItemId = cesc(itemId);
         const escapedHeadingClassName = cesc(`section-heading-${itemId}`);
 
-        cy.get(`#${escapedItemId}`).then(($sectionEl) => {
-            const win = $sectionEl[0].ownerDocument.defaultView;
-            const sectionBefore = win.getComputedStyle(
-                $sectionEl[0],
-                "::before",
-            );
-            expect(sectionBefore.getPropertyValue("content")).to.be.oneOf([
-                "none",
-                '""',
-                "",
-            ]);
-        });
+        verifyNoBeforeContent(itemId);
 
         cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
             ($headingEl) => {
@@ -1302,8 +1292,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("flex");
+        });
 
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1320,12 +1311,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     }
 
+    /** Assert that the section root itself owns the rendered list marker. */
     function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const rootBefore = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (rootBefore) => {
             expect(rootBefore.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1589,5 +1577,32 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             "Do this",
             "Do that",
         );
+    });
+
+    it("problems render children as list through cascade", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">1+1=<answer>2</answer></problem>
+                <problem name="problem2">2+1=<answer>3</answer></problem>
+                <problem name="problem3">3+1=<answer>4</answer></problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Wait for the document to render
+        cy.get("#problem1").should("exist");
+
+        verifyNoBeforeContent("cascade");
+        verifyBeforeContent("problem1", '"1."');
+        verifyBeforeContent("problem2", '"2."');
+        verifyBeforeContent("problem3", '"3."');
     });
 });
