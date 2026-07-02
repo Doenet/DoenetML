@@ -1590,4 +1590,53 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             "Do that",
         );
     });
+
+    it("problems render children as list through cascade", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">1+1=<answer>2</answer></problem>
+                <problem name="problem2">2+1=<answer>3</answer></problem>
+                <problem name="problem3">3+1=<answer>4</answer></problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Wait for the document to render
+        cy.get("#problem1").should("exist");
+
+        // cascade itself should NOT be a list item (no number)
+        cy.get("#cascade").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+
+        // problems inside cascade should be numbered as list items 1, 2, 3
+        cy.get("#problem1").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"1."');
+        });
+
+        cy.get("#problem2").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"2."');
+        });
+
+        cy.get("#problem3").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"3."');
+        });
+    });
 });
