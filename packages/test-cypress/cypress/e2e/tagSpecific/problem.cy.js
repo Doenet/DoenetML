@@ -1168,6 +1168,31 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    /** Assert the CSS list marker rendered through the item's `::before`. */
+    function verifyBeforeContent(itemId, expectedContent) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal(
+                expectedContent,
+            );
+        });
+    }
+
+    /** Assert that an item does not render a CSS list marker. */
+    function verifyNoBeforeContent(itemId) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+    }
+
     /**
      * Verifies baseline list-item numbering behavior for two non-boxed items.
      *
@@ -1190,34 +1215,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${escapedItem2Id}`).should("have.text", item2Text);
 
         // Verify section numbers are rendered via CSS ::before pseudo-elements
-        cy.get(`#${escapedItem1Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"1."');
-        });
-
-        cy.get(`#${escapedItem2Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"2."');
-        });
+        verifyBeforeContent(item1Id, '"1."');
+        verifyBeforeContent(item2Id, '"2."');
 
         // Introduction and conclusion should NOT have section numbers
-        cy.get("#intro").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
-
-        cy.get("#conclusion").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
+        verifyNoBeforeContent("intro");
+        verifyNoBeforeContent("conclusion");
     }
 
     /**
@@ -1612,31 +1615,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         // Wait for the document to render
         cy.get("#problem1").should("exist");
 
-        // cascade itself should NOT be a list item (no number)
-        cy.get("#cascade").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
-
-        // problems inside cascade should be numbered as list items 1, 2, 3
-        cy.get("#problem1").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"1."');
-        });
-
-        cy.get("#problem2").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"2."');
-        });
-
-        cy.get("#problem3").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"3."');
-        });
+        verifyNoBeforeContent("cascade");
+        verifyBeforeContent("problem1", '"1."');
+        verifyBeforeContent("problem2", '"2."');
+        verifyBeforeContent("problem3", '"3."');
     });
 });

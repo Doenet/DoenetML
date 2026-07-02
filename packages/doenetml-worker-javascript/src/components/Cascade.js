@@ -24,8 +24,8 @@ export default class Cascade extends SectioningComponent {
 
         attributes.noAutoTitle.defaultValue = true;
 
-        // Store the raw asList attribute value separately so we can compute
-        // the effective asList by also inheriting from the parent when not explicitly set.
+        // Store the raw `asList` attribute value separately so the effective
+        // state variable can inherit from the parent when left at its default.
         attributes.asList.createStateVariable = "asListFromAttr";
 
         attributes.revealAll = {
@@ -50,9 +50,8 @@ export default class Cascade extends SectioningComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // Cascade is never itself a list item — it is a transparent structural container.
-        // Even when nested inside <problems asList>, cascade should not receive a list number;
-        // instead, its children (e.g. <problem> elements) inherit the asList flag.
+        // Cascade is a structural container rather than a numbered item, even
+        // when it sits inside a list-producing parent such as <problems>.
         stateVariableDefinitions.isListItem = {
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -61,10 +60,10 @@ export default class Cascade extends SectioningComponent {
             },
         };
 
-        // Propagate the parent's asList to cascade's children when asList is not
-        // explicitly set on this cascade, so that <problems><cascade><problem> works
-        // the same as <problems><problem>.
+        // Make cascade transparent for `asList` propagation unless the author
+        // explicitly sets `asList` on the cascade itself.
         stateVariableDefinitions.asList = {
+            description: "Whether to render this section's children as a list.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
