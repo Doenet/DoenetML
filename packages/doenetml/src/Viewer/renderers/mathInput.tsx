@@ -380,6 +380,7 @@ interface MathInputSVs {
     shortDescription: string;
     showCheckWork: boolean;
     showPreview: boolean;
+    includeValidationStateInShortDescription?: boolean;
     // Optional because `_matrixComponentInput` reuses this renderer
     // (`rendererType = "mathInput"`) without defining the SV; the
     // `??` fallback below handles the absent case.
@@ -736,11 +737,16 @@ export default function MathInput(props: UseDoenetRendererProps) {
             mathInputStyle.borderColor = "var(--mainOrange)";
             mathInputStyle.outlineColor = "var(--mainOrange)";
         }
-        shortDescription = addValidationStateToShortDescription(
-            validationState.current,
-            shortDescription,
-        );
+        if (SVs.includeValidationStateInShortDescription !== false) {
+            shortDescription = addValidationStateToShortDescription(
+                validationState.current,
+                shortDescription,
+            );
+        }
     }
+
+    const ariaDescription =
+        hasExplicitLabel && shortDescription ? shortDescription : undefined;
 
     const labelComponent = hasLabel ? (
         <label
@@ -794,9 +800,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     }
                     shortDescriptionId={shortDescriptionId}
                     // Supplementary annotations (not primary labels)
-                    aria-description={
-                        hasExplicitLabel ? shortDescription : undefined
-                    }
+                    aria-description={ariaDescription}
                     aria-details={ariaDetailsIds || undefined}
                     config={{
                         autoCommands:

@@ -690,33 +690,69 @@ export default class Choiceinput extends Input {
             },
         };
 
-        stateVariableDefinitions.indicesMatchedByBoundValue = {
+        // hasBoundValue is used by indicesMatchedByBoundValue to avoid
+        // depending on choiceChildren.text when bindValueTo is absent.
+        // Without this guard, $choice.selected inside a <choice> creates a
+        // circular resolve-blocker:
+        //   allSelectedIndices → indicesMatchedByBoundValue → c1.text
+        //   → ($c1.selected composite) → c1.selected → childIndicesSelected
+        //   → selectedIndices → allSelectedIndices
+        stateVariableDefinitions.hasBoundValue = {
             returnDependencies: () => ({
-                choiceOrder: {
-                    dependencyType: "stateVariable",
-                    variableName: "choiceOrder",
-                },
-                choiceChildren: {
-                    dependencyType: "child",
-                    childGroups: ["choices"],
-                    variableNames: ["text"],
-                },
                 bindValueTo: {
                     dependencyType: "attributeComponent",
                     attributeName: "bindValueTo",
-                    variableNames: ["value"],
-                },
-                selectMultiple: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectMultiple",
                 },
             }),
             definition({ dependencyValues }) {
-                let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1],
-                );
+                return {
+                    setValue: {
+                        hasBoundValue: dependencyValues.bindValueTo !== null,
+                    },
+                };
+            },
+        };
 
+        stateVariableDefinitions.indicesMatchedByBoundValue = {
+            // Only pull in bound-value-specific dependencies when
+            // bindValueTo is present. When bindValueTo is absent this
+            // variable always returns [], so those dependencies are
+            // unnecessary and the choiceChildren.text dependency causes the
+            // cycle described on hasBoundValue above.
+            stateVariablesDeterminingDependencies: ["hasBoundValue"],
+            returnDependencies: ({ stateValues }) => {
+                const deps = {
+                    bindValueTo: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "bindValueTo",
+                        variableNames: ["value"],
+                    },
+                };
+
+                if (stateValues.hasBoundValue) {
+                    deps.choiceOrder = {
+                        dependencyType: "stateVariable",
+                        variableName: "choiceOrder",
+                    };
+                    deps.selectMultiple = {
+                        dependencyType: "stateVariable",
+                        variableName: "selectMultiple",
+                    };
+                    deps.choiceChildren = {
+                        dependencyType: "child",
+                        childGroups: ["choices"],
+                        variableNames: ["text"],
+                    };
+                }
+
+                return deps;
+            },
+            definition({ dependencyValues }) {
                 if (dependencyValues.bindValueTo !== null) {
+                    const choiceChildrenOrdered =
+                        dependencyValues.choiceOrder.map(
+                            (i) => dependencyValues.choiceChildren[i - 1],
+                        );
                     let choiceTexts = choiceChildrenOrdered.map((x) =>
                         x.stateValues.text.toLowerCase().trim(),
                     );

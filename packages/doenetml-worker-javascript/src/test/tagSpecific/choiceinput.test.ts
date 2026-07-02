@@ -4119,4 +4119,99 @@ ${tagLine}
             stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
         ).eq(false);
     });
+
+    it("$c1.selected inside c1 does not cause circular dependency (issue #1399)", async () => {
+        // Referencing a choice's own `selected` property inside its content
+        // used to cause a circular resolve-blocker cycle.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<choiceInput name="ci">
+  <choice name="c1">$c1.selected</choice>
+  <choice name="c2">cat</choice>
+</choiceInput>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const c1Idx = await resolvePathToNodeIdx("c1");
+        const c2Idx = await resolvePathToNodeIdx("c2");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        // Initially nothing selected
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        expect(sv[c2Idx].stateValues.selected).eq(false);
+        // c1's text renders $c1.selected = false
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("false");
+
+        // Select c1 (display index 1)
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [1],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(true);
+        expect(sv[c2Idx].stateValues.selected).eq(false);
+        // c1's text now renders $c1.selected = true
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("true");
+
+        // Deselect c1
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("false");
+    });
+
+    it("conditionalContent depending on choice.selected inside choice does not cause circular dependency (issue #1399)", async () => {
+        // The discussion post linked from issue #1399 shows conditionalContent
+        // inside a choice whose condition references the choice's own `selected`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<choiceInput name="ci">
+  <choice name="c1">
+    The expression can be factored
+    <conditionalContent>
+      <case condition="$c1.selected">
+        and it factors further
+      </case>
+      <else>.</else>
+    </conditionalContent>
+  </choice>
+  <choice name="c2">Other choice</choice>
+</choiceInput>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const c1Idx = await resolvePathToNodeIdx("c1");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        // When not selected the else branch renders "."
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).contain(".");
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).not.contain(
+            "factors further",
+        );
+
+        // Select c1
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [1],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(true);
+        // When selected the case branch renders "and it factors further"
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).contain("factors further");
+    });
 });

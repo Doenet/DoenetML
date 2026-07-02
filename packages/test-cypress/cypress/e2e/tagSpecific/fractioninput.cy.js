@@ -51,29 +51,114 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#pDen").should("have.text", "denominator: 7");
     });
 
-    it("fraction input in answer", () => {
+    it("fraction input in answer shows correctness styling and accessibility text", () => {
         cy.window().then(async (win) => {
+            const correctColor = getCSSVariableAsRGB(win, "--mainGreen");
+            const partialColor = getCSSVariableAsRGB(win, "--mainOrange");
+            const incorrectColor = getCSSVariableAsRGB(win, "--mainRed");
+            const defaultColor = getCSSVariableAsRGB(win, "--canvasText");
+
             win.postMessage(
                 {
                     doenetML: `
         <answer name="ans">
-            <fractionInput name="frac">
-                <shortDescription>Simplify two tenths</shortDescription>
-            </fractionInput>
-            <award>1/5</award>
+            <label>Simplify two tenths</label>
+            <fractionInput name="frac" />
+            <award><when><math>$frac</math> = <math>1/5</math></when></award>
+            <award credit="0.5"><when><math>$frac</math> = <math>2/5</math></when></award>
         </answer>
         `,
                 },
                 "*",
             );
+
+            function checkFractionPartLabelText(partIndex, expectedText) {
+                cy.get("#frac textarea")
+                    .eq(partIndex)
+                    .should("have.attr", "aria-labelledby")
+                    .then((ariaLabelledBy) => {
+                        const labelIds = ariaLabelledBy.split(" ");
+                        cy.document().then((doc) => {
+                            const labelText = labelIds
+                                .map(
+                                    (labelId) =>
+                                        doc.getElementById(labelId)
+                                            ?.textContent ?? "",
+                                )
+                                .join(" ");
+                            expect(labelText).include(expectedText);
+                            expect(labelText).not.include("(Correct)");
+                            expect(labelText).not.include(
+                                "(Partially correct)",
+                            );
+                            expect(labelText).not.include("(Incorrect)");
+                        });
+                    });
+            }
+
+            function checkInputBoxBorderColor(expectedColor) {
+                cy.get("#frac .mq-editable-field")
+                    .eq(0)
+                    .should("have.css", "border-color", expectedColor);
+                cy.get("#frac .mq-editable-field")
+                    .eq(1)
+                    .should("have.css", "border-color", expectedColor);
+            }
+
+            function checkFractionDescription(expectedDescription) {
+                cy.get("#frac table").then(($table) => {
+                    const accessibleDescription =
+                        $table.attr("aria-description") ??
+                        $table.attr("aria-label");
+
+                    expect(accessibleDescription).to.equal(expectedDescription);
+                });
+            }
+
+            checkInputBoxBorderColor(defaultColor);
+            checkFractionDescription(undefined);
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+
+            cy.get("#frac textarea").eq(0).type("1", { force: true });
+            cy.get("#frac textarea").eq(1).type("5", { force: true });
+            cy.get("#frac_button").should("contain.text", "Check Work").click();
+            cy.get("#frac_button").should("contain.text", "Correct");
+            checkInputBoxBorderColor(correctColor);
+            checkFractionDescription("(Correct)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+
+            cy.get("#frac textarea")
+                .eq(0)
+                .type("{end}{backspace}2{enter}", { force: true });
+            cy.get("#frac_button").click();
+            cy.get("#frac_button").should("contain.text", "50% Correct");
+            checkInputBoxBorderColor(partialColor);
+            checkFractionDescription("(Partially correct)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+
+            cy.get("#frac textarea")
+                .eq(1)
+                .type("{end}{backspace}7{enter}", { force: true });
+            cy.get("#frac_button").click();
+            cy.get("#frac_button").should("contain.text", "Incorrect");
+            checkInputBoxBorderColor(incorrectColor);
+            checkFractionDescription("(Incorrect)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
         });
-
-        cy.get("#frac textarea").eq(0).type("1", { force: true });
-        cy.get("#frac textarea").eq(1).type("5", { force: true });
-
-        cy.get("#frac_button").should("contain.text", "Check Work").click();
-        cy.get("#frac_button").should("contain.text", "Correct");
     });
+
+    function getCSSVariableAsRGB(win, varName) {
+        const el = win.document.createElement("div");
+        el.style.color = `var(${varName})`;
+        win.document.body.appendChild(el);
+        const rgbValue = win.getComputedStyle(el).color;
+        el.remove();
+        return rgbValue;
+    }
 
     it("bindValueTo a math input, two-way", () => {
         cy.window().then(async (win) => {
