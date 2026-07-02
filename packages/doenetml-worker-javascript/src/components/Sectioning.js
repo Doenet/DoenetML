@@ -98,52 +98,13 @@ export class Aside extends SectioningComponentNumberWithSiblings {
         };
 
         attributes.collapsible.defaultValue = true;
-
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-            description:
-                "Whether the collapsible section starts in the open state.",
-        };
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
-
-        stateVariableDefinitions.rendered.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.rendered.definition = ({
-            dependencyValues,
-        }) => ({
-            useEssentialOrDefaultValue: {
-                rendered: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.level.definition = () => ({
             setValue: { level: 3 },
@@ -341,52 +302,13 @@ export class Proof extends UnnumberedSectioningComponent {
         };
 
         attributes.collapsible.defaultValue = true;
-
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-            description:
-                "Whether the collapsible section starts in the open state.",
-        };
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
-
-        stateVariableDefinitions.rendered.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.rendered.definition = ({
-            dependencyValues,
-        }) => ({
-            useEssentialOrDefaultValue: {
-                rendered: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.level.definition = () => ({
             setValue: { level: 3 },

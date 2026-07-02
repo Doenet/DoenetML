@@ -126,6 +126,14 @@ export class SectioningComponent extends BlockComponent {
             description: "Whether the section can be collapsed and expanded.",
         };
 
+        attributes.startOpen = {
+            createComponentOfType: "boolean",
+            createStateVariable: "startOpen",
+            defaultValue: true,
+            description:
+                "Whether the collapsible section starts in the open state.",
+        };
+
         attributes.level = {
             createComponentOfType: "integer",
             description:
@@ -1212,11 +1220,18 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({}),
-            definition() {
+            returnDependencies: () => ({
+                startOpen: {
+                    dependencyType: "stateVariable",
+                    variableName: "startOpen",
+                },
+            }),
+            definition({ dependencyValues }) {
                 return {
                     useEssentialOrDefaultValue: {
-                        open: true,
+                        open: {
+                            defaultValue: dependencyValues.startOpen,
+                        },
                     },
                 };
             },
@@ -1237,11 +1252,18 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({}),
-            definition() {
+            returnDependencies: () => ({
+                startOpen: {
+                    dependencyType: "stateVariable",
+                    variableName: "startOpen",
+                },
+            }),
+            definition({ dependencyValues }) {
                 return {
                     useEssentialOrDefaultValue: {
-                        rendered: true,
+                        rendered: {
+                            defaultValue: dependencyValues.startOpen,
+                        },
                     },
                 };
             },

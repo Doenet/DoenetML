@@ -1076,6 +1076,54 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
     });
 
+    it("collapsible sectioning components respect startOpen", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="closedSection" collapsible startOpen="false">
+        <title>Closed section</title>
+        <p>Content</p>
+      </section>
+      <example name="openExample" collapsible>
+        <title>Open example</title>
+        <p>Content</p>
+      </example>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.rendered,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("openExample")]
+                .stateValues.open,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("openExample")]
+                .stateValues.rendered,
+        ).eq(true);
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentIdx: await resolvePathToNodeIdx("closedSection"),
+            args: {},
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.rendered,
+        ).eq(true);
+    });
+
     it("aside content with postponeRendering isn't created before opening", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
