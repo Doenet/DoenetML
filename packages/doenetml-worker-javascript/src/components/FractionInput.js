@@ -873,6 +873,84 @@ export default class FractionComponentInput extends BaseComponent {
             },
         };
 
+        // Mirror the parent fractionInput's correctness state variables so the
+        // mathInput renderer can color each input box's border.
+        stateVariableDefinitions.colorCorrectness = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                parentColorCorrectness: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "colorCorrectness",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        colorCorrectness:
+                            dependencyValues.parentColorCorrectness ?? false,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.creditAchieved = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                parentCreditAchieved: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "creditAchieved",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        creditAchieved:
+                            dependencyValues.parentCreditAchieved ?? 0,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.justSubmitted = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                parentJustSubmitted: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "justSubmitted",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        justSubmitted:
+                            dependencyValues.parentJustSubmitted ?? false,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.numAttemptsLeft = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                parentNumAttemptsLeft: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "numAttemptsLeft",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        numAttemptsLeft:
+                            dependencyValues.parentNumAttemptsLeft ?? Infinity,
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 }
