@@ -2135,7 +2135,7 @@ describe("AutoCompleter", () => {
             expect(
                 snippetItem?.textEdit && "range" in snippetItem.textEdit,
             ).toBe(true);
-            expect(snippetItem?.filterText).toBe("test-snippet");
+            expect(snippetItem?.filterText).toBe("<test-snippet");
         });
 
         it("Snippet items indent multiline text", async () => {

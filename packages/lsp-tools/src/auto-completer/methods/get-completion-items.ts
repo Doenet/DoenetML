@@ -257,6 +257,24 @@ function createSnippetCompletionItems(
     }>,
     startOffset: number,
     endOffset: number,
+    /**
+     * Prefix prepended to `snippet.key` when building `filterText`.
+     *
+     * When the textEdit range starts at `<` (i.e. the user typed `<`), VS Code
+     * computes the filter prefix as the text in the range — e.g. `<ans` after
+     * typing `<ans`.  Without the `<` prefix, `filterText = "answer-labeled"`
+     * would not match the filter prefix `<ans` and the snippet would disappear
+     * from the list.  Passing `"<"` here makes `filterText = "<answer-labeled"`,
+     * which starts with `<ans` and keeps the item visible.
+     *
+     * CodemirrorLSP plugin strips the leading `<` before applying its own
+     * substring filter, so `"<answer-labeled".includes("ans")` still matches.
+     *
+     * Default `""` (no prefix) is correct for explicit Ctrl+Space invocations
+     * where the textEdit range is empty (starts at cursor) and the filter prefix
+     * is the bare typed word without a leading `<`.
+     */
+    filterTextPrefix: string = "",
 ): CompletionItem[] {
     return snippets.map((snippet) => {
         const { formattedSnippet, indentSize } = formatSnippetWithIndent(
@@ -282,7 +300,7 @@ function createSnippetCompletionItems(
                 range: createTextEditRange(sourceObj, startOffset, endOffset),
                 newText: formattedSnippet,
             },
-            filterText: snippet.key,
+            filterText: filterTextPrefix + snippet.key,
             ...(completionData
                 ? {
                       data: completionData,
@@ -441,11 +459,17 @@ function createElementAndSnippetCompletionItems(
         new Set(allowedElementNames),
         typedPrefix,
     );
+    // When the textEdit range starts at `<` (insertLeadingBracket=false, meaning
+    // the user typed `<`), VS Code computes the filter prefix from the range text
+    // (e.g. `<ans`). Prepend `<` to filterText so items match that prefix while
+    // still matching the bare typed word in codemirror (which uses substring).
+    const snippetFilterTextPrefix = insertLeadingBracket ? "" : "<";
     const snippetItems = createSnippetCompletionItems(
         autoCompleter.sourceObj,
         snippets,
         startOffset,
         endOffset,
+        snippetFilterTextPrefix,
     );
     for (const item of snippetItems) {
         // Snippet labels are unique snippet keys; look up sortText by the
