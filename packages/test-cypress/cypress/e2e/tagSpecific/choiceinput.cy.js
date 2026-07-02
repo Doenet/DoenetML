@@ -630,11 +630,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get("#innerRadioCi_choice1_input").click({ force: true });
+        cy.get("#innerRadioCi").contains("red").click();
         cy.get("#innerRadioCi_choice1_input").should("be.checked");
         cy.get("#outerRadioCi_choice1_input").should("not.be.checked");
 
-        cy.get("#innerCheckboxCi_choice2_input").click({ force: true });
+        cy.get("#innerCheckboxCi").contains("mouse").click();
         cy.get("#innerCheckboxCi_choice2_input").should("be.checked");
         cy.get("#outerCheckboxCi_choice1_input").should("not.be.checked");
     });
