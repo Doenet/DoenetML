@@ -136,7 +136,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             fillColor: fillColor,
             strokeColor,
             strokeOpacity: SVs.selectedStyle.markerOpacity,
-            fillOpacity: SVs.selectedStyle.markerOpacity,
+            fillOpacity: useOpenSymbol ? 1 : SVs.selectedStyle.markerOpacity,
             highlightFillColor: "var(--mainGray)",
             highlightStrokeColor: "var(--lightBlue)",
             size: normalizePointSize(
