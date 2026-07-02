@@ -300,8 +300,8 @@ that has a border and a shaded banner for the title.
   <p>This section can be collapsed and expanded by clicking the title banner.</p>
 </section>
 
-<section collapsible startOpen><title>Open by default</title>
-  <p>This section starts expanded because <c>startOpen</c> is set.</p>
+<section collapsible startOpen="false"><title>Start collapsed</title>
+  <p>This section starts collapsed because <c>startOpen</c> is set to <c>false</c>.</p>
 </section>
 ```
 
@@ -309,10 +309,10 @@ that has a border and a shaded banner for the title.
 
 The `collapsible` attribute makes a `<section>{:dn}` collapsible — clicking the title
 banner toggles the section open or closed. By default a collapsible section starts
-closed; use `startOpen` to have it start expanded.
+expanded; set `startOpen="false"` to have it start collapsed.
 
-(`<aside>{:dn}` and `<proof>{:dn}` are collapsible and closed by default without
-setting this attribute.)
+(`<aside>{:dn}` and `<proof>{:dn}` are collapsible and start collapsed by default
+without setting this attribute.)
 
 
 

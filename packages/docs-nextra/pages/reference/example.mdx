@@ -218,13 +218,32 @@ shaded banner for the title.
 
 ---
 
+### Attribute Example: collapsible
+
+
+```doenet-example
+<example collapsible>
+  <title>Worked example</title>
+  <p><lorem generateWords="10"/></p>
+</example>
+
+<example collapsible startOpen="false">
+  <title>Start collapsed</title>
+  <p><lorem generateWords="10"/></p>
+</example>
+```
+
+
+
+The `collapsible` attribute makes an `<example>{:dn}` collapsible — clicking the title
+banner toggles it open or closed. A collapsible example starts expanded by default;
+set `startOpen="false"` to have it start collapsed.
+
+
+
+---
+
 ### Attribute Example: hide
-
-
-```doenet-editor-horiz
-<booleanInput name="hideExample">
-  <label>Click here to hide the example</label>
-</booleanInput>
 
 <example hide="$hideExample">
   <p><lorem generateWords="10"/></p>
