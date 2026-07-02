@@ -105,7 +105,18 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
                     .should("have.css", "border-color", expectedColor);
             }
 
+            function checkFractionDescription(expectedDescription) {
+                cy.get("#frac table").then(($table) => {
+                    const accessibleDescription =
+                        $table.attr("aria-description") ??
+                        $table.attr("aria-label");
+
+                    expect(accessibleDescription).to.equal(expectedDescription);
+                });
+            }
+
             checkInputBoxBorderColor(defaultColor);
+            checkFractionDescription(undefined);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
 
@@ -114,6 +125,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").should("contain.text", "Check Work").click();
             cy.get("#frac_button").should("contain.text", "Correct");
             checkInputBoxBorderColor(correctColor);
+            checkFractionDescription("(Correct)");
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
 
@@ -123,6 +135,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "50% Correct");
             checkInputBoxBorderColor(partialColor);
+            checkFractionDescription("(Partially correct)");
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
 
@@ -132,6 +145,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "Incorrect");
             checkInputBoxBorderColor(incorrectColor);
+            checkFractionDescription("(Incorrect)");
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
         });

@@ -10,6 +10,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { addValidationStateToShortDescription } from "./utils/validationState";
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
@@ -74,7 +75,7 @@ export default React.memo(function FractionInput(
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const groupLabelledByIds = [
         hasLabel ? labelId : null,
@@ -82,6 +83,13 @@ export default React.memo(function FractionInput(
     ]
         .filter(Boolean)
         .join(" ");
+
+    if (SVs.colorCorrectness) {
+        shortDescription = addValidationStateToShortDescription(
+            validationState.current,
+            shortDescription,
+        );
+    }
 
     const descriptionChild =
         SVs.descriptionChildInd !== undefined &&
