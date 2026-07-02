@@ -12,6 +12,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { addValidationStateToShortDescription } from "./utils/validationState";
 
 interface FractionInputSVs {
     [key: string]: any;
@@ -22,6 +23,7 @@ interface FractionInputSVs {
     labelPosition?: string;
     forceFullCheckWorkButton: boolean;
     justSubmitted: boolean;
+    colorCorrectness: boolean;
     shortDescription?: string;
     descriptionChildInd?: number;
     externalLabelRendererIds?: string[];
@@ -74,7 +76,7 @@ export default React.memo(function FractionInput(
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const groupLabelledByIds = [
         hasLabel ? labelId : null,
@@ -100,6 +102,22 @@ export default React.memo(function FractionInput(
         );
     }
 
+    const fractionInputStyle: React.CSSProperties = {};
+
+    if (SVs.colorCorrectness) {
+        if (validationState.current === "correct") {
+            fractionInputStyle.outline = "2px solid var(--mainGreen)";
+        } else if (validationState.current === "incorrect") {
+            fractionInputStyle.outline = "2px solid var(--mainRed)";
+        } else if (validationState.current === "partialcorrect") {
+            fractionInputStyle.outline = "2px solid var(--mainOrange)";
+        }
+        shortDescription = addValidationStateToShortDescription(
+            validationState.current,
+            shortDescription,
+        );
+    }
+
     const labelComponent = hasLabel ? (
         <span
             id={labelId}
@@ -122,7 +140,7 @@ export default React.memo(function FractionInput(
                 verticalAlign: "middle",
             }}
         >
-            <div className="fraction-input" id={id}>
+            <div className="fraction-input" id={id} style={fractionInputStyle}>
                 <table
                     aria-labelledby={groupLabelledByIds || undefined}
                     aria-label={
