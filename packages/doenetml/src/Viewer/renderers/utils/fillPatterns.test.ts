@@ -6,20 +6,20 @@ describe("fillPatterns", () => {
         vi.restoreAllMocks();
     });
 
-    it("warns once when a stale unsupported fillStyle falls back to solid", () => {
+    it("warns once when an unsupported fillStyle falls back to solid", () => {
         const warnSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => undefined);
 
-        expect(getOrInjectPattern(null, "board1", "crosshatch", "#abc")).toBe(
+        expect(getOrInjectPattern(null, "board1", "zigzag", "#abc")).toBe(
             "#abc",
         );
-        expect(getOrInjectPattern(null, "board2", "crosshatch", "#def")).toBe(
+        expect(getOrInjectPattern(null, "board2", "zigzag", "#def")).toBe(
             "#def",
         );
 
         expect(warnSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy.mock.calls[0][0]).toContain("crosshatch");
+        expect(warnSpy.mock.calls[0][0]).toContain("zigzag");
     });
 
     it("does not warn for solid fills", () => {

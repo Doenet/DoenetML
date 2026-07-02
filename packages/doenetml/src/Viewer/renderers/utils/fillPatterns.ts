@@ -105,7 +105,7 @@ function buildPatternId(
     fillStyle: string,
     fillColor: string,
 ): string {
-    return `doenet-hatch-${boardId}-${fillStyle}-${encodeFillPatternColorToken(fillColor)}`;
+    return `doenet-fill-pattern-${boardId}-${fillStyle}-${encodeFillPatternColorToken(fillColor)}`;
 }
 
 /**
