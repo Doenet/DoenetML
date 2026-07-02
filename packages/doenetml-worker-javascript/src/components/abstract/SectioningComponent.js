@@ -1259,25 +1259,11 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({
-                collapsible: {
-                    dependencyType: "stateVariable",
-                    variableName: "collapsible",
-                },
-                startOpen: {
-                    dependencyType: "stateVariable",
-                    variableName: "startOpen",
-                },
-            }),
-            definition({ dependencyValues }) {
-                // When not collapsible, always rendered regardless of any stored
-                // essential value (handles collapsible toggling false at runtime).
-                if (!dependencyValues.collapsible) {
-                    return { setValue: { rendered: true } };
-                }
+            returnDependencies: () => ({}),
+            definition() {
                 return {
                     useEssentialOrDefaultValue: {
-                        rendered: { defaultValue: dependencyValues.startOpen },
+                        rendered: true,
                     },
                 };
             },

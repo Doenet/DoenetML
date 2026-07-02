@@ -106,6 +106,23 @@ export class Aside extends SectioningComponentNumberWithSiblings {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        stateVariableDefinitions.rendered.returnDependencies = () => ({
+            startOpen: {
+                dependencyType: "stateVariable",
+                variableName: "startOpen",
+            },
+        });
+
+        stateVariableDefinitions.rendered.definition = ({
+            dependencyValues,
+        }) => ({
+            useEssentialOrDefaultValue: {
+                rendered: {
+                    defaultValue: dependencyValues.startOpen,
+                },
+            },
+        });
+
         stateVariableDefinitions.level.definition = () => ({
             setValue: { level: 3 },
         });
@@ -309,6 +326,23 @@ export class Proof extends UnnumberedSectioningComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.rendered.returnDependencies = () => ({
+            startOpen: {
+                dependencyType: "stateVariable",
+                variableName: "startOpen",
+            },
+        });
+
+        stateVariableDefinitions.rendered.definition = ({
+            dependencyValues,
+        }) => ({
+            useEssentialOrDefaultValue: {
+                rendered: {
+                    defaultValue: dependencyValues.startOpen,
+                },
+            },
+        });
 
         stateVariableDefinitions.level.definition = () => ({
             setValue: { level: 3 },

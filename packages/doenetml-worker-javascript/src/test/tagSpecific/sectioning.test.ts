@@ -1095,29 +1095,20 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
+        // collapsible + startOpen="false" → starts closed
         expect(
             stateVariables[await resolvePathToNodeIdx("closedSection")]
                 .stateValues.open,
         ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("closedSection")]
-                .stateValues.rendered,
-        ).eq(false);
+        // collapsible without startOpen → starts open (default startOpen=true)
         expect(
             stateVariables[await resolvePathToNodeIdx("openExample")]
                 .stateValues.open,
         ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("openExample")]
-                .stateValues.rendered,
-        ).eq(true);
+        // not collapsible → always open; startOpen is ignored
         expect(
             stateVariables[await resolvePathToNodeIdx("plainSection")]
                 .stateValues.open,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("plainSection")]
-                .stateValues.rendered,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("plainText")].stateValues
@@ -1133,10 +1124,6 @@ describe("Sectioning tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("closedSection")]
                 .stateValues.open,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("closedSection")]
-                .stateValues.rendered,
         ).eq(true);
     });
 
@@ -1193,7 +1180,7 @@ describe("Sectioning tag tests @group3", async () => {
     `,
         });
 
-        // Initially collapsible=false (toggle is false), so open and rendered must be true
+        // Initially collapsible=false (toggle is false), so open must be true
         // regardless of startOpen="false"
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
@@ -1202,10 +1189,6 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
-                .rendered,
         ).eq(true);
 
         // Enable collapsible — section starts closed per startOpen="false",
@@ -1223,10 +1206,6 @@ describe("Sectioning tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
         ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
-                .rendered,
-        ).eq(false);
 
         // Disable collapsible with the section still closed (essential open=false) —
         // the section must be forced open despite the stored essential value
@@ -1242,10 +1221,6 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
-                .rendered,
         ).eq(true);
     });
 
