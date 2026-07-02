@@ -1,0 +1,11 @@
+# @doenet/doenetml-prototype
+
+## 0.9.0
+
+### Patch Changes
+
+- 211ea46: Prototype: wrap composite list replacements in synthetic `<asList>` parents in the FlatDast.
+
+    When the JS core reports a `_compositeReplacementActiveRange` for a renderable parent, the FlatDast bridge now wraps the relevant replacement range in an `<asList>` element (and, where nested composites require grouping, a passthrough `<_fragment>`), while treating whitespace-only replacement slots as spacing rather than comma-delimited list items. This applies to both the initial FlatDast and FlatDast updates, so prototype renderers no longer need to inspect `_compositeReplacementActiveRange` to decide where to insert commas.
+
+    Closes #1334.
