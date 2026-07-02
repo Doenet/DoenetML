@@ -346,12 +346,15 @@ describe("AutoCompleter", () => {
         // Same recovered empty-placeholder shape as the previous test, but the
         // surrounding <aa> is still open. Match the normal body completion
         // behavior by keeping the close-tag option before allowed children.
+        // The close-tag item must now include a textEdit (to replace the `<`
+        // with `</aa>`) so VS Code does not duplicate the `<` on acceptance.
         const source = `<aa><<c></c>`;
         const autoCompleter = new AutoCompleter(source, schema.elements);
         const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
         const items = await autoCompleter.getCompletionItems(offset);
         expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
-        expect(items[0].textEdit).toBeUndefined();
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+        expect(items[0].filterText).toBe("</aa>");
     });
 
     it("inserts a full close tag when explicit completion is invoked before another tag in an unclosed parent (#1328)", async () => {
@@ -680,8 +683,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</a>",
                   "kind": 10,
                   "label": "/a>",
+                  "textEdit": {
+                    "newText": "</a>",
+                    "range": {
+                      "end": {
+                        "character": 5,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 4,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
               ]
             `);
@@ -694,8 +711,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</a>",
                   "kind": 10,
                   "label": "/a>",
+                  "textEdit": {
+                    "newText": "</a>",
+                    "range": {
+                      "end": {
+                        "character": 6,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 4,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
               ]
             `);
@@ -713,8 +744,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</a>",
                   "kind": 10,
                   "label": "/a>",
+                  "textEdit": {
+                    "newText": "</a>",
+                    "range": {
+                      "end": {
+                        "character": 5,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 4,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
               ]
             `);
@@ -727,8 +772,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</a>",
                   "kind": 10,
                   "label": "/a>",
+                  "textEdit": {
+                    "newText": "</a>",
+                    "range": {
+                      "end": {
+                        "character": 6,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 4,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
               ]
             `);
@@ -845,8 +904,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</aa>",
                   "kind": 10,
                   "label": "/aa>",
+                  "textEdit": {
+                    "newText": "</aa>",
+                    "range": {
+                      "end": {
+                        "character": 6,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 5,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
                 {
                   "kind": 10,
@@ -879,8 +952,22 @@ describe("AutoCompleter", () => {
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "</aa>",
                   "kind": 10,
                   "label": "/aa>",
+                  "textEdit": {
+                    "newText": "</aa>",
+                    "range": {
+                      "end": {
+                        "character": 7,
+                        "line": 0,
+                      },
+                      "start": {
+                        "character": 5,
+                        "line": 0,
+                      },
+                    },
+                  },
                 },
               ]
             `);
@@ -2048,7 +2135,7 @@ describe("AutoCompleter", () => {
             expect(
                 snippetItem?.textEdit && "range" in snippetItem.textEdit,
             ).toBe(true);
-            expect(snippetItem?.filterText).toBe("test-snippet");
+            expect(snippetItem?.filterText).toBe("<test-snippet");
         });
 
         it("Snippet items indent multiline text", async () => {
