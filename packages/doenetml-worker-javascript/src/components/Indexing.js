@@ -3,12 +3,19 @@ import TextComponent from "./Text";
 
 export class H extends TextComponent {
     static componentType = "h";
+
+    static componentDocs = {
+        summary:
+            "A heading for an index entry (available only for PreTeXt compatibility).",
+    };
+    static excludeFromSchema = true;
     static rendererType = "text";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.sortby = {
             createComponentOfType: "text",
+            description: "Property name to sort the indexed values by.",
         };
         return attributes;
     }
@@ -17,7 +24,11 @@ export class H extends TextComponent {
 export class Idx extends CompositeComponent {
     static componentType = "idx";
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static componentDocs = {
+        summary:
+            "A back-of-the-book index entry (available only for PreTeXt compatibility).",
+    };
+    static excludeFromSchema = true;
 
     static returnChildGroups() {
         return [

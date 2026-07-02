@@ -5,6 +5,11 @@ export default class Footnote extends InlineComponent {
     static componentType = "footnote";
     static renderChildren = true;
 
+    static componentDocs = {
+        summary:
+            "Inline footnote whose body is shown on demand and is auto-numbered in the document",
+    };
+
     static includeBlankStringChildren = true;
 
     static returnChildGroups() {
@@ -20,6 +25,7 @@ export default class Footnote extends InlineComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.text = {
+            description: "The footnote's body as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -41,6 +47,8 @@ export default class Footnote extends InlineComponent {
         };
 
         stateVariableDefinitions.footnoteTag = {
+            description:
+                "The auto-generated marker (number) used to reference this footnote.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

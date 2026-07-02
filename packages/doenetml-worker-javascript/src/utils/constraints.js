@@ -30,6 +30,8 @@ export function applyConstraintFromComponentConstraints(
 export function returnConstraintGraphInfoDefinitions() {
     return {
         scales: {
+            description:
+                "The graph axis scales (x and y) used when applying this constraint.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -38,7 +40,7 @@ export function returnConstraintGraphInfoDefinitions() {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale", "yscale"],
+                    variableNames: ["xScale", "yScale"],
                 },
                 shadowedConstraints: {
                     dependencyType: "shadowSource",
@@ -48,7 +50,7 @@ export function returnConstraintGraphInfoDefinitions() {
             definition({ dependencyValues }) {
                 if (dependencyValues.graphAncestor) {
                     let SVs = dependencyValues.graphAncestor.stateValues;
-                    let scales = [SVs.xscale, SVs.yscale, 1];
+                    let scales = [SVs.xScale, SVs.yScale, 1];
 
                     if (scales.every((x) => Number.isFinite(x) && x > 0)) {
                         return { setValue: { scales } };
@@ -483,6 +485,7 @@ export function returnConstraintDefinitions(
     };
 
     stateVariableDefinitions.constraintUsed = {
+        description: "Whether this constraint was applied to the component.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",

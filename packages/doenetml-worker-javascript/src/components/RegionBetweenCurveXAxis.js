@@ -2,11 +2,17 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 
 export default class RegionBetweenCurveXAxis extends GraphicalComponent {
     static componentType = "regionBetweenCurveXAxis";
+    static styleOverrideCategories = ["fill"];
 
+    static componentDocs = {
+        summary: "A region bounded between a curve and the x-axis",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.boundaryValues = {
+            description:
+                "Boundary values defining the region's left/right edges.",
             createComponentOfType: "numberList",
             createStateVariable: "boundaryValues",
             defaultValue: [0, 1],
@@ -16,6 +22,7 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
 
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function whose graph bounds the region.",
         };
 
         return attributes;
@@ -25,6 +32,7 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the region's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -55,6 +63,7 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "region".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -1,19 +1,24 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
+const { eigs, square, abs, divide } = me.math;
 
 export default class EigenDecomposition extends BaseComponent {
     static componentType = "eigenDecomposition";
     static rendererType = undefined;
 
+    static componentDocs = {
+        summary: "Computes the eigenvalues and eigenvectors of a square matrix",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -32,13 +37,17 @@ export default class EigenDecomposition extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.decomposition = {
+            description:
+                "The eigendecomposition of the matrix as a list of eigenvalue/eigenvector pairs.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "numEigenvectors",
+                    description:
+                        "The number of eigenvectors found in the decomposition.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "integer",
@@ -121,7 +130,7 @@ export default class EigenDecomposition extends BaseComponent {
 
                 let result;
                 try {
-                    result = me.math.eigs(matrixArray);
+                    result = eigs(matrixArray);
                 } catch (e) {
                     console.error(
                         "Could nt calculate eigenvalues of matrix",
@@ -129,11 +138,11 @@ export default class EigenDecomposition extends BaseComponent {
                     );
                     let warning = {
                         message: "Could not calculate eigenvalues of matrix",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { decomposition: null, numEigenvectors: 0 },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -147,12 +156,13 @@ export default class EigenDecomposition extends BaseComponent {
         };
 
         stateVariableDefinitions.eigenvalues = {
+            description: "The eigenvalues of the matrix.",
             isArray: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["eigenvalue"],
             returnArraySizeDependencies: () => ({
@@ -194,13 +204,15 @@ export default class EigenDecomposition extends BaseComponent {
         };
 
         stateVariableDefinitions.eigenvectors = {
+            description:
+                "The eigenvectors of the matrix, as a 2D array (one column per eigenvalue).",
             isArray: true,
             public: true,
             numDimensions: 2,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "eigenvectorX") {
                         return [];
@@ -344,10 +356,10 @@ export default class EigenDecomposition extends BaseComponent {
                             globalDependencyValues.decomposition.eigenvectors[i]
                                 .vector[j];
                         vector.push(val);
-                        vectorMag += me.math.square(me.math.abs(val));
+                        vectorMag += square(abs(val));
                     }
                     vectorMag = Math.sqrt(vectorMag);
-                    vector = vector.map((x) => me.math.divide(x, vectorMag));
+                    vector = vector.map((x) => divide(x, vectorMag));
 
                     for (let j = 0; j < arraySize[1]; j++) {
                         eigenvectors[`${i},${j}`] = vector[j];

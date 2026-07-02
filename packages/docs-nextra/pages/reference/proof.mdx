@@ -1,21 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <proof>{:dn}`
+# `<proof>{:dn}`
 
+<ComponentDisplay name='proof'/>
 
-A ` <proof>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component. It is unnumbered and collapsible. Its rendered appearance is similar to an ` <aside>{:dn}`.
+A `<proof>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component. It is unnumbered and collapsible. Its rendered appearance is similar to an `<aside>{:dn}`.
 
-## Attributes and Properties 
- <AttrDisplay name='proof'/> 
- <PropDisplay name='proof'/>
+<AttrPropDisplay name='proof'/>
 
----
+## Examples
 
-### Example: ` <proof>{:dn}` with default title
+### Example: `<proof>{:dn}` with default title
 
 
 ```doenet-editor-horiz
@@ -29,19 +28,19 @@ component. It is unnumbered and collapsible. Its rendered appearance is similar 
   <p>Some interesting supplemental info.</p>
 </aside>
 <problem>
-  <p><answer>42</answer></p>
+  <p><answer><label>The answer to life, the universe, and everything</label>42</answer></p>
 </problem>
 ```
 
 
 
-Within a DoenetML document, default titles for sectional components are auto-numbered. Sectional components such as ` <section>{:dn}` and ` <problem>{:dn}` are on the same counter, but a ` <proof>{:dn}` is not part of the document's default numbering schema.
+Within a DoenetML document, default titles for sectional components are auto-numbered. Sectional components such as `<section>{:dn}` and `<problem>{:dn}` are on the same counter, but a `<proof>{:dn}` is not part of the document's default numbering schema.
 
 
 
 ---
 
-### Example: ` <proof>{:dn}` with custom title
+### Example: `<proof>{:dn}` with custom title
 
 
 ```doenet-editor-horiz
@@ -52,11 +51,11 @@ Within a DoenetML document, default titles for sectional components are auto-num
 
 
 
-A custom ` <proof>{:dn}` title is creating by providing a ` <title>{:dn}` tag within the ` <proof>{:dn}`.
+A custom `<proof>{:dn}` title is creating by providing a `<title>{:dn}` tag within the `<proof>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: startOpen
 
@@ -69,5 +68,5 @@ A custom ` <proof>{:dn}` title is creating by providing a ` <title>{:dn}` tag wi
 
 
 
-The `startOpen` attribute renders the ` <proof>{:dn}` box as open; it must be clicked once to close.
+The `startOpen` attribute renders the `<proof>{:dn}` box as open; it must be clicked once to close.
 

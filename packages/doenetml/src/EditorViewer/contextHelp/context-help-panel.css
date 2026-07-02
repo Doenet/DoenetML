@@ -1,0 +1,372 @@
+.editor-panel .help-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.editor-panel .help-panel-empty {
+    color: #667085;
+}
+
+.editor-panel .help-placeholder {
+    margin: 0;
+    font-style: italic;
+}
+
+.editor-panel .help-placeholder code {
+    background: var(--mainGray);
+    /*
+     * Help placeholder text inherits a muted color from `.help-panel-empty`
+     * (#667085). On `var(--mainGray)` that yields ~3.5:1 — below WCAG 2 AA's
+     * 4.5:1 minimum for normal text — and axe surfaces it when the panel
+     * mounts open on help by default. Restore the canvas text color on the
+     * code element so it sits on top of the gray chip with sufficient
+     * contrast.
+     */
+    color: var(--canvasText);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-style: normal;
+}
+
+.editor-panel .help-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.editor-panel .help-element-name {
+    font-family: monospace;
+    font-weight: 600;
+}
+
+/*
+ * Element `<tag>` name rendered as a link to its reference page (in the
+ * title row of every help kind). Keeps the monospace/bold of a plain name
+ * but adopts the link color so authors recognize it as clickable. Sits
+ * alongside the footer "Reference page →" link, not in place of it.
+ */
+.editor-panel a.help-element-name-link {
+    color: var(--mainBlue);
+    text-decoration: none;
+}
+
+.editor-panel a.help-element-name-link:hover,
+.editor-panel a.help-element-name-link:focus {
+    text-decoration: underline;
+}
+
+/*
+ * Element help title: the linked `<tag>` name followed by an em-dash and
+ * the one-sentence summary, flowing as a single wrapping line. Bottom
+ * margin removed so it sits flush in the panel's flex column gap.
+ */
+.editor-panel .help-element-title {
+    margin: 0;
+}
+
+.editor-panel .help-attribute-name,
+.editor-panel .help-property-name,
+.editor-panel .help-snippet-name {
+    font-family: monospace;
+    color: var(--mainBlue);
+}
+
+.editor-panel .help-snippet-preview {
+    margin: 0;
+    padding: 0.5rem;
+    background: var(--mainGray);
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.editor-panel .help-kind-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #667085;
+    letter-spacing: 0.5px;
+}
+
+.editor-panel .help-description {
+    margin: 0;
+}
+
+.editor-panel .help-ref-sentence {
+    margin: 0;
+}
+
+/*
+ * Secondary annotation under the primary ref sentence — used when the bare
+ * `$name` is a repeat-introduced binding (valueName/indexName) rather than a
+ * `name=` attribute. Lighter weight than the main sentence so the eye lands
+ * on the primary referent first.
+ */
+.editor-panel .help-ref-derived {
+    margin: 0;
+    color: #475467;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.editor-panel .help-description code,
+.editor-panel .help-ref-sentence code,
+.editor-panel .help-ref-derived code {
+    background: var(--mainGray);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-size: 0.85em;
+    font-style: normal;
+}
+
+.editor-panel .help-detail {
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.editor-panel .help-detail-label {
+    font-weight: 500;
+    color: #667085;
+    flex-shrink: 0;
+}
+
+.editor-panel .help-detail-value {
+    font-family: monospace;
+    color: var(--mainBlue);
+    word-break: break-word;
+}
+
+.editor-panel .help-values-list {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.editor-panel .help-value-item {
+    background: var(--mainGray);
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+/*
+ * Subtle annotation next to a value item (e.g. the `(styleNumber N)` tag on
+ * the "Active default:" row, #1198). Muted color and slightly smaller text so
+ * it reads as metadata rather than competing with the value itself.
+ */
+.editor-panel .help-detail-annotation {
+    color: #667085;
+    font-size: 0.8rem;
+}
+
+/* Allowed-values row stacks label above the definition list. */
+.editor-panel .help-allowed-values {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/*
+ * Two-column definition list: monospace value pill in column 1, description in
+ * column 2. `margin: 0` overrides the browser default `<dl>` margin.
+ */
+.editor-panel .help-allowed-values-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.2rem;
+    margin: 0;
+    width: 100%;
+}
+
+.editor-panel .help-allowed-values-list dt {
+    /* Inherits .help-value-item styling for the pill background. */
+    align-self: start;
+    justify-self: start;
+}
+
+.editor-panel .help-allowed-values-list dd {
+    margin: 0;
+    color: #344054;
+    align-self: center;
+}
+
+.editor-panel .help-value-description code {
+    background: var(--mainGray);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+/*
+ * Per-styleNumber breakdown row (#1204). Stacks a header line above a
+ * two-column key/value listing so authors can scan the resolved style
+ * attributes without horizontal scrolling.
+ */
+.editor-panel .help-style-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.editor-panel .help-style-breakdown-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.6rem;
+    row-gap: 0.15rem;
+    margin: 0;
+    width: 100%;
+}
+
+.editor-panel .help-style-breakdown-list dt {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #344054;
+    align-self: center;
+    justify-self: start;
+}
+
+.editor-panel .help-style-breakdown-list dd {
+    margin: 0;
+    align-self: center;
+    /* Same pill styling as help-value-item so the key/value rendering
+     * matches the rest of the panel. */
+    background: var(--mainGray);
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    width: fit-content;
+}
+
+/*
+ * Resolved function-names breakdown (#1205). Stacks a label/values pair —
+ * optionally repeated for `Added on this input:` and `Removed on this
+ * input:` rows — vertically so the chip list wraps without competing
+ * with the labels.
+ */
+.editor-panel .help-function-names-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/*
+ * "What can go here?" suggestions surfaced when the cursor sits in an
+ * element body or at the top level. The header names the location, the list
+ * shows curated starter components as links, and a muted footer points at
+ * Ctrl+Space for the full set.
+ */
+.editor-panel .help-suggestions-header {
+    margin: 0;
+}
+
+.editor-panel .help-suggestions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.editor-panel .help-suggestion-summary {
+    color: #344054;
+}
+
+.editor-panel .help-suggestions-footer {
+    margin: 0;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.editor-panel .help-suggestions-header code,
+.editor-panel .help-suggestions-footer code {
+    background: var(--mainGray);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+.editor-panel .help-docs-link {
+    color: var(--mainBlue);
+    text-decoration: none;
+    width: fit-content;
+}
+
+.editor-panel .help-docs-link:hover,
+.editor-panel .help-docs-link:focus {
+    text-decoration: underline;
+}
+
+/* ============================================================
+ * Dark mode overrides for the context-help panel
+ *
+ * Light-mode muted grays (#667085, #475467, #344054) have
+ * insufficient contrast on the dark canvas (#121212):
+ *   #667085 → ~3.9:1 (fails 4.5:1), #344054 → worse.
+ *
+ * Blue accents: var(--mainBlue) = #1a5a99 is only ~1.9:1 on
+ * #121212 in dark mode. Override locally to #79c0ff (~10:1).
+ *
+ * Chip/code backgrounds: var(--mainGray) = #a9a9a9 in dark mode,
+ * which gives only 2.3:1 contrast with white (var(--canvasText)).
+ * Override to an elevated dark surface (#2a2a2a, same as tooltips).
+ * ============================================================ */
+
+/* Muted secondary text — #94a3b8 ≈ 7.7:1 on #121212 */
+[data-theme="dark"] .editor-panel .help-panel-empty,
+[data-theme="dark"] .editor-panel .help-placeholder,
+[data-theme="dark"] .editor-panel .help-kind-label,
+[data-theme="dark"] .editor-panel .help-detail-label,
+[data-theme="dark"] .editor-panel .help-detail-annotation,
+[data-theme="dark"] .editor-panel .help-suggestions-footer,
+[data-theme="dark"] .editor-panel .help-ref-derived {
+    color: #94a3b8;
+}
+
+/* Slightly stronger muted text — #cbd5e1 ≈ 11.7:1 on #121212 */
+[data-theme="dark"] .editor-panel .help-allowed-values-list dd,
+[data-theme="dark"] .editor-panel .help-style-breakdown-list dt,
+[data-theme="dark"] .editor-panel .help-suggestion-summary {
+    color: #cbd5e1;
+}
+
+/* Blue accent text — #79c0ff ≈ 10:1 on #121212 */
+[data-theme="dark"] .editor-panel a.help-element-name-link,
+[data-theme="dark"] .editor-panel .help-attribute-name,
+[data-theme="dark"] .editor-panel .help-property-name,
+[data-theme="dark"] .editor-panel .help-snippet-name,
+[data-theme="dark"] .editor-panel .help-detail-value,
+[data-theme="dark"] .editor-panel .help-docs-link {
+    color: #79c0ff;
+}
+
+/* Chip and inline-code backgrounds — elevated dark surface so white text passes */
+[data-theme="dark"] .editor-panel .help-snippet-preview,
+[data-theme="dark"] .editor-panel .help-value-item,
+[data-theme="dark"] .editor-panel .help-style-breakdown-list dd,
+[data-theme="dark"] .editor-panel .help-description code,
+[data-theme="dark"] .editor-panel .help-ref-sentence code,
+[data-theme="dark"] .editor-panel .help-ref-derived code,
+[data-theme="dark"] .editor-panel .help-value-description code,
+[data-theme="dark"] .editor-panel .help-suggestions-header code,
+[data-theme="dark"] .editor-panel .help-suggestions-footer code,
+[data-theme="dark"] .editor-panel .help-placeholder code {
+    background: #2a2a2a;
+    color: var(--canvasText);
+}

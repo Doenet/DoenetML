@@ -3,10 +3,21 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
+interface TabularSVs {
+    [key: string]: any;
+    hidden: boolean;
+    renderInlineForListItem: boolean;
+    width?: any;
+    height?: any;
+    top?: any;
+}
+
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<TabularSVs>(props);
 
     const ref = useRef(null);
 
@@ -35,8 +46,20 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
         }
     }
 
+    // Known limitation: when tabular is the first child of a list-item section,
+    // the table box/cell padding can leave a slight horizontal/vertical offset.
+    // We intentionally leave that visual quirk unchanged for now to avoid adding
+    // table-specific list-item layout rules without a stronger product need.
+
     return (
-        <div style={{ margin: "12px 0" }} ref={ref}>
+        <div
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
+            ref={ref}
+        >
             <table id={id} style={tableStyle}>
                 <tbody>{children}</tbody>
             </table>

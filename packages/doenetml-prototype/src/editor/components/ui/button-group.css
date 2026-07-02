@@ -1,0 +1,19 @@
+.ui-button-group {
+    @apply inline-flex;
+
+    & .ui-button {
+        @apply rounded-none;
+    }
+
+    & .ui-button:first-child {
+        @apply rounded-l;
+    }
+
+    & .ui-button:last-child {
+        @apply rounded-r;
+    }
+
+    & .ui-button:not(:last-child) {
+        border-right-width: 0;
+    }
+}

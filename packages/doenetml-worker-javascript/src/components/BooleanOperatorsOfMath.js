@@ -3,6 +3,9 @@ import BooleanBaseOperatorOfMath from "./abstract/BooleanBaseOperatorOfMath";
 export class IsInteger extends BooleanBaseOperatorOfMath {
     static componentType = "isInteger";
 
+    static componentDocs = {
+        summary: "True when the math child evaluates to an integer",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -46,6 +49,9 @@ export class IsInteger extends BooleanBaseOperatorOfMath {
 export class IsNumber extends BooleanBaseOperatorOfMath {
     static componentType = "isNumber";
 
+    static componentDocs = {
+        summary: "True when the math child evaluates to a finite number",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -75,6 +81,9 @@ export class IsNumber extends BooleanBaseOperatorOfMath {
 export class IsBetween extends BooleanBaseOperatorOfMath {
     static componentType = "isBetween";
 
+    static componentDocs = {
+        summary: "True when a math value is between two given bounds",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.limits = {
@@ -82,12 +91,16 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
             createStateVariable: "limits",
             defaultValue: [],
             public: true,
+            description:
+                "Numeric limits used by the boolean operator (e.g. bounds for isBetween).",
         };
         attributes.strict = {
             createComponentOfType: "boolean",
             createStateVariable: "strict",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the comparison is strict (e.g. uses < instead of ≤).",
         };
         return attributes;
     }

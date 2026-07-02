@@ -10,6 +10,10 @@ export class Paginator extends BlockComponent {
         });
     }
     static componentType = "paginator";
+
+    static componentDocs = {
+        summary: "Defines a paginated section of content",
+    };
     static rendererType = "containerBlock";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -21,6 +25,7 @@ export class Paginator extends BlockComponent {
             createComponentOfType: "integer",
             createStateVariable: "initialPage",
             defaultValue: 1,
+            description: "1-based page index shown on first render.",
         };
         return attributes;
     }
@@ -38,6 +43,7 @@ export class Paginator extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.numPages = {
+            description: "The total number of pages.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -56,6 +62,7 @@ export class Paginator extends BlockComponent {
         };
 
         stateVariableDefinitions.currentPage = {
+            description: "The currently displayed page (1-based).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -233,10 +240,16 @@ export class PaginatorControls extends BlockComponent {
     static componentType = "paginatorControls";
     static renderChildren = true;
 
+    static componentDocs = {
+        summary:
+            "Previous/next page controls referencing a paginator elsewhere in the document",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.previousLabel = {
+            description: 'Label for the "previous page" button.',
             createComponentOfType: "text",
             createStateVariable: "previousLabel",
             defaultValue: "Previous",
@@ -244,6 +257,7 @@ export class PaginatorControls extends BlockComponent {
             public: true,
         };
         attributes.nextLabel = {
+            description: 'Label for the "next page" button.',
             createComponentOfType: "text",
             createStateVariable: "nextLabel",
             defaultValue: "Next",
@@ -251,6 +265,7 @@ export class PaginatorControls extends BlockComponent {
             public: true,
         };
         attributes.pageLabel = {
+            description: "Label format for the current page indicator.",
             createComponentOfType: "text",
             createStateVariable: "pageLabel",
             defaultValue: "Page",
@@ -259,6 +274,8 @@ export class PaginatorControls extends BlockComponent {
         };
         attributes.paginator = {
             createReferences: true,
+            description:
+                "Reference to the `<paginator>` these controls operate on.",
         };
 
         return attributes;
@@ -366,6 +383,8 @@ export class PaginatorControls extends BlockComponent {
         // disabledDirectly for paginatorControls is not affected by the readOnly flag
         // nor the parentDisabled flag
         stateVariableDefinitions.disabledDirectly = {
+            description:
+                "Whether the controls are disabled directly (rather than via inheritance).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

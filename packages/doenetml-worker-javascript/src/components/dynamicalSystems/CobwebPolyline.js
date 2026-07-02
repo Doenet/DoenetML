@@ -1,14 +1,19 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import Polyline from "../Polyline";
 import me from "math-expressions";
 
 export default class CobwebPolyline extends Polyline {
     static componentType = "cobwebPolyline";
     static rendererType = "cobwebPolyline";
+
+    static componentDocs = {
+        summary:
+            "An interactive cobweb diagram for visualizing iteration of a one-variable function",
+    };
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -18,6 +23,8 @@ export default class CobwebPolyline extends Polyline {
             createStateVariable: "attractThreshold",
             defaultValue: 0.5,
             public: true,
+            description:
+                "Distance within which a dragged vertex snaps to the function curve or diagonal.",
         };
 
         attributes.numPoints = {
@@ -27,6 +34,8 @@ export default class CobwebPolyline extends Polyline {
             public: true,
             clamp: [0, Infinity],
             forRenderer: true,
+            description:
+                "Number of points (iterations) currently shown on the cobweb diagram.",
         };
 
         attributes.variable = {
@@ -35,6 +44,8 @@ export default class CobwebPolyline extends Polyline {
             defaultValue: me.fromAst("x"),
             public: true,
             forRenderer: true,
+            description:
+                "Symbol used as the independent variable when displaying iterate values.",
         };
 
         attributes.numIterationsRequired = {
@@ -42,27 +53,36 @@ export default class CobwebPolyline extends Polyline {
             createStateVariable: "numIterationsRequired",
             defaultValue: 0,
             public: true,
+            description:
+                "Minimum number of iterations the user is required to perform.",
         };
 
         attributes.initialPoint = {
             createComponentOfType: "point",
+            description:
+                "The starting point on the diagonal where iteration begins.",
         };
 
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function being iterated.",
         };
 
         attributes.lockToSolution = {
             createComponentOfType: "boolean",
             createStateVariable: "lockToSolution",
             defaultValue: false,
+            description:
+                "Whether to constrain dragged vertices to the correct cobweb solution.",
         };
 
         attributes.defaultPoint = {
             createComponentOfType: "point",
+            description:
+                "The default location for newly added points on the cobweb diagram.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -72,7 +92,7 @@ export default class CobwebPolyline extends Polyline {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.numDimensions.returnDependencies = () => ({});
@@ -81,12 +101,14 @@ export default class CobwebPolyline extends Polyline {
         });
 
         stateVariableDefinitions.initialPoint = {
+            description:
+                "The starting point on the diagonal where iteration begins.",
             isArray: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "initialPointX") {
                         return [];
@@ -234,6 +256,8 @@ export default class CobwebPolyline extends Polyline {
         stateVariableDefinitions.numVertices = {
             isAlias: true,
             targetVariableName: "numPoints",
+            description:
+                "Number of cobweb vertices currently shown (alias for numPoints).",
         };
 
         stateVariableDefinitions.numOriginalVertices = {
@@ -693,6 +717,8 @@ export default class CobwebPolyline extends Polyline {
             };
 
         stateVariableDefinitions.correctVertices = {
+            description:
+                "Per-vertex flags indicating whether each vertex is positioned at the correct cobweb solution.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -734,11 +760,13 @@ export default class CobwebPolyline extends Polyline {
         };
 
         stateVariableDefinitions.fractionCorrectVertices = {
+            description:
+                "The fraction of vertices placed at correct cobweb positions.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -747,6 +775,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of cobweb vertices that were evaluated for correctness.",
                 },
                 {
                     variableName: "numCorrectVertices",
@@ -754,6 +784,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of cobweb vertices placed at correct positions.",
                 },
             ],
             returnDependencies: () => ({
@@ -791,11 +823,13 @@ export default class CobwebPolyline extends Polyline {
         };
 
         stateVariableDefinitions.fractionCorrectVerticesAdjusted = {
+            description:
+                "The fraction of correct vertices, scaled by the required minimum number of iterations.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -804,6 +838,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The effective number of graded vertices after adjusting for the required minimum number of iterations.",
                 },
             ],
             returnDependencies: () => ({
@@ -852,6 +888,8 @@ export default class CobwebPolyline extends Polyline {
         };
 
         stateVariableDefinitions.numIterateValues = {
+            description:
+                "The number of iterate values produced by the cobweb diagram.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -872,12 +910,14 @@ export default class CobwebPolyline extends Polyline {
         };
 
         stateVariableDefinitions.iterateValues = {
+            description:
+                "The list of iterate values shown by the cobweb diagram.",
             isArray: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["iterateValue"],
             returnArraySizeDependencies: () => ({

@@ -7,6 +7,8 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
 
+export const SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX = "Encountered ";
+
 export default class BaseComponent {
     constructor({
         componentIdx,
@@ -334,28 +336,38 @@ export default class BaseComponent {
         return {
             name: {
                 createPrimitiveOfType: "string",
+                description:
+                    "The name used to reference this component from elsewhere in the document.",
             },
             hide: {
                 createComponentOfType: "boolean",
                 createStateVariable: "hide",
                 defaultValue: false,
                 public: true,
+                description:
+                    "Whether to hide this component from the rendered output.",
             },
             disabled: {
                 createComponentOfType: "boolean",
                 createStateVariable: "disabledPreliminary",
                 defaultValue: false,
+                description:
+                    "Whether this component is disabled and cannot be interacted with.",
             },
             fixed: {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixedPreliminary",
                 defaultValue: false,
                 ignoreFixed: true,
+                description:
+                    "Whether this component's value is fixed and cannot be modified.",
             },
             fixLocation: {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixLocationPreliminary",
                 defaultValue: false,
+                description:
+                    "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             },
             modifyIndirectly: {
                 createComponentOfType: "boolean",
@@ -364,6 +376,8 @@ export default class BaseComponent {
                 public: true,
                 propagateToProps: true,
                 excludeFromSchema: true,
+                description:
+                    "Whether this component can be modified indirectly through a property reference.",
             },
             styleNumber: {
                 createComponentOfType: "integer",
@@ -371,18 +385,25 @@ export default class BaseComponent {
                 defaultValue: 1,
                 public: true,
                 fallBackToParentStateVariable: "styleNumber",
+                fallBackToSourceCompositeStateVariable: "styleNumber",
+                description:
+                    "The style number used to select this component's visual styling from the available style definitions.",
             },
             isResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isResponse",
                 defaultValue: false,
                 public: true,
+                description:
+                    "Whether this component is treated as a response for the purposes of assessment.",
             },
             isPotentialResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isPotentialResponse",
                 defaultValue: false,
                 excludeFromSchema: true,
+                description:
+                    "Whether this component is a candidate response that could be marked as a response.",
             },
             permid: {
                 createPrimitiveOfType: "string",
@@ -390,6 +411,8 @@ export default class BaseComponent {
                 defaultValue: "",
                 public: true,
                 excludeFromSchema: true,
+                description:
+                    "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
             },
 
             // Adding `extend` and `copy` attributes so they are in the schema for all components.
@@ -397,9 +420,13 @@ export default class BaseComponent {
             // from the dast when references are expanded.
             extend: {
                 createReferences: true,
+                description:
+                    "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
             },
             copy: {
                 createReferences: true,
+                description:
+                    "Create an independent copy of another component by reference. Enter a references a `$name`.",
             },
         };
     }
@@ -473,6 +500,8 @@ export default class BaseComponent {
         let stateVariableDefinitions = {};
 
         stateVariableDefinitions.hidden = {
+            description:
+                "Whether this component is hidden from the rendered output.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -533,6 +562,21 @@ export default class BaseComponent {
             },
         };
 
+        // `hiddenIgnoreParent` is whether the component is hidden by its own
+        // `hide` attribute (or by an explicitly hidden source composite/adapter
+        // source), ignoring the visibility it inherits from its parent.
+        //
+        // It deliberately recurses through `hiddenIgnoreParent` (rather than
+        // `hidden`) of the source composite and adapter source so that it never
+        // depends on the visibility of ancestor sections. If it depended on the
+        // source composite's `hidden`, then for a component created by a
+        // composite (e.g. inside a `<repeat>`), the dependency would still climb
+        // up to ancestor sections through the composite's parent. That matters
+        // because `<choice>`'s `text` uses `hiddenIgnoreParent`, and a choice's
+        // text can be a credit-achieved dependency of an answer: if the choice
+        // is inside a `<cascade>`, ancestor `hidden` changes after submission,
+        // which would otherwise make the answer's `justSubmitted` immediately
+        // become false.
         stateVariableDefinitions.hiddenIgnoreParent = {
             returnDependencies: () => ({
                 hide: {
@@ -542,11 +586,11 @@ export default class BaseComponent {
                 },
                 sourceCompositeHidden: {
                     dependencyType: "sourceCompositeStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
                 adapterSourceHidden: {
                     dependencyType: "adapterSourceStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
             }),
             definition: ({ dependencyValues }) => {
@@ -563,6 +607,8 @@ export default class BaseComponent {
         };
 
         stateVariableDefinitions.disabled = {
+            description:
+                "Whether this component is disabled and cannot be interacted with.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -682,6 +728,8 @@ export default class BaseComponent {
         // and those state variables change, the fixed component's state variable
         // will change to reflect those new values.
         stateVariableDefinitions.fixed = {
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -824,6 +872,8 @@ export default class BaseComponent {
         // and those state variables change, the location state variable
         // will change to reflect those new values.
         stateVariableDefinitions.fixLocation = {
+            description:
+                "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -967,6 +1017,8 @@ export default class BaseComponent {
         };
 
         stateVariableDefinitions.doenetML = {
+            description:
+                "The DoenetML source code that produced this component.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -1134,6 +1186,39 @@ export default class BaseComponent {
                             isArray: false,
                         };
                     }
+                    if (attrName === varName) {
+                        stateVariableDescriptions[varName].fromAttribute = true;
+                    }
+                    if (attrObj.description !== undefined) {
+                        stateVariableDescriptions[varName].description =
+                            attrObj.description;
+                    }
+                    // Propagate the docs-only grouping flags onto the
+                    // attribute-derived state variable so a property whose
+                    // backing attribute has a different name (i.e.
+                    // `createStateVariable !== attrName`) still lands in the
+                    // same docs group as its attribute. For the common case
+                    // where attribute and state variable share a name, the
+                    // docs pipeline also derives the group from the attribute
+                    // (see `getPropInfo` in `compute-optimized-schema.ts`).
+                    if (attrObj.groupName !== undefined) {
+                        stateVariableDescriptions[varName].groupName =
+                            attrObj.groupName;
+                    }
+                    if (attrObj.highlighted !== undefined) {
+                        stateVariableDescriptions[varName].highlighted =
+                            attrObj.highlighted;
+                    }
+                    // Note: `stateVarExcludeFromSchema` (the
+                    // "keep-attribute / hide-companion-state-var" lever
+                    // for #1089) is handled in `get-schema.ts` by scanning
+                    // attribute objects directly — see the
+                    // `excludedStateVariableNames` loop in
+                    // `buildHelpPayloadForClass`. We intentionally do not
+                    // propagate it onto the state variable description
+                    // here, to keep attribute-derived flags in the
+                    // attribute layer and state-def-derived flags (handled
+                    // below) in the state-def layer.
                 }
             }
         }
@@ -1143,7 +1228,24 @@ export default class BaseComponent {
         for (let varName in stateDef) {
             let theStateDef = stateDef[varName];
             if (theStateDef.isAlias) {
-                aliases[varName] = theStateDef.targetVariableName;
+                aliases[varName] = {
+                    target: theStateDef.targetVariableName,
+                };
+                if (theStateDef.description !== undefined) {
+                    aliases[varName].description = theStateDef.description;
+                }
+                // Surface the alias's own `excludeFromSchema` flag so the
+                // schema generator can drop the alias without forcing its
+                // (still-author-facing) target to be hidden too. Used for
+                // aliases that exist only as a runtime convenience. No
+                // production state defs set this today; the lever is
+                // exercised synthetically in
+                // `packages/static-assets/test/schema-exclude-state-vars.test.ts`
+                // ("drops an alias marked excludeFromSchema …"), which is
+                // the contract for future callers.
+                if (theStateDef.excludeFromSchema) {
+                    aliases[varName].excludeFromSchema = true;
+                }
                 continue;
             }
             if (
@@ -1164,12 +1266,71 @@ export default class BaseComponent {
                         isArray: Boolean(theStateDef.isArray),
                     };
                 }
+                if (theStateDef.description !== undefined) {
+                    stateVariableDescriptions[varName].description =
+                        theStateDef.description;
+                }
+                // Propagate the state def's `excludeFromSchema` flag so the
+                // schema generator can drop this state variable from the
+                // author-facing properties list while leaving it usable at
+                // runtime. Used for plumbing state vars (renamed-aside
+                // `Original`/`Preliminary` forms, internal coordination
+                // state) that should not appear in autocomplete or context
+                // help. Companion to the attribute-level
+                // `excludeFromSchema` (which hides both attribute and
+                // state var, #1090).
+                if (theStateDef.excludeFromSchema) {
+                    stateVariableDescriptions[varName].excludeFromSchema = true;
+                }
+                // Propagate the docs-only grouping flags for pure-output
+                // properties (public state vars with no backing attribute,
+                // e.g. `creditAchieved`), so they can be placed in a docs
+                // group or highlighted directly on the state definition.
+                if (theStateDef.groupName !== undefined) {
+                    stateVariableDescriptions[varName].groupName =
+                        theStateDef.groupName;
+                }
+                if (theStateDef.highlighted !== undefined) {
+                    stateVariableDescriptions[varName].highlighted =
+                        theStateDef.highlighted;
+                }
+                // Surface the resting/default value the runtime falls back to
+                // when nothing else (attribute, child, parent) sets the
+                // variable. This is what consumers like the docs schema treat
+                // as the effective default of the corresponding attribute,
+                // because attributes for these state variables (e.g.
+                // `padZeros`, `displayDigits`) don't declare their own
+                // `defaultValue` — the default lives here.
+                //
+                // The `hasEssential` guard is a deliberate narrowing:
+                // non-essential state defs may carry a `defaultValue` field
+                // for purposes unrelated to "this is the resting value if
+                // nothing else sets it" (e.g. a fallback used by an internal
+                // definition function). Only essential state vars are
+                // semantically "the value the runtime falls back to," so only
+                // they donate a default here.
+                //
+                // We assign `theStateDef.defaultValue` by reference. The
+                // existing callers downstream — `get-schema.ts` and the docs
+                // pipeline — treat the value as read-only. If a future state
+                // def declares an object or array default, callers must not
+                // mutate it through this surface, or they'll corrupt the
+                // state def's own copy.
+                if (
+                    theStateDef.hasEssential &&
+                    theStateDef.defaultValue !== undefined
+                ) {
+                    stateVariableDescriptions[varName].defaultValue =
+                        theStateDef.defaultValue;
+                }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;
                     stateVariableDescriptions[varName].numDimensions =
                         theStateDef.numDimensions === undefined
                             ? 1
                             : theStateDef.numDimensions;
+                    stateVariableDescriptions[varName].schemaSubarrays =
+                        theStateDef.schemaSubarrays;
                     stateVariableDescriptions[varName].wrappingComponents =
                         theStateDef.shadowingInstructions
                             ?.returnWrappingComponents
@@ -1253,7 +1414,9 @@ export default class BaseComponent {
 
     async serialize(parameters = {}) {
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
-            throw Error("Encountered " + this.componentIdx);
+            throw Error(
+                `${SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX}${this.componentIdx}`,
+            );
         }
 
         let includeDefiningChildren = true;
@@ -1796,6 +1959,7 @@ export default class BaseComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -1832,6 +1996,7 @@ export default class BaseComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };

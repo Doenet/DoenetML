@@ -10,6 +10,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1548,31 +1549,31 @@ describe("Line tag tests @group3", async () => {
                 .coeffvar2.tree,
         ).eq("\uff3f");
 
-        const errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Line must be through points of at least two dimensions",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "Line is through points that depend on variables: x, y",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(4);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(4);
-        expect(errorWarnings.warnings[1].position.end.column).eq(45);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(45);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Line is through points that depend on variables: a, c",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(6);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(6);
-        expect(errorWarnings.warnings[2].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(61);
     });
 
     it("lines with bad equations", async () => {
@@ -1713,42 +1714,42 @@ describe("Line tag tests @group3", async () => {
                 .coeffvar2.tree,
         ).eq(0);
 
-        const errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(4);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            "No referent found for reference: $invalid1",
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "No referent found for reference: `$invalid1`",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(4);
-        expect(errorWarnings.warnings[0].position.start.column).eq(21);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(30);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(30);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            "No referent found for reference: $invalid2",
+        expect(diagnosticsByType.warnings[1].message).contain(
+            "No referent found for reference: `$invalid2`",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(7);
-        expect(errorWarnings.warnings[1].position.start.column).eq(31);
-        expect(errorWarnings.warnings[1].position.end.line).eq(7);
-        expect(errorWarnings.warnings[1].position.end.column).eq(40);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(7);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(31);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(40);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(8);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(8);
-        expect(errorWarnings.warnings[2].position.end.column).eq(33);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(8);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(8);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(33);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(9);
-        expect(errorWarnings.warnings[3].position.start.column).eq(5);
-        expect(errorWarnings.warnings[3].position.end.line).eq(9);
-        expect(errorWarnings.warnings[3].position.end.column).eq(31);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(9);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(9);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(31);
     });
 
     it("line from points with strange constraints", async () => {
@@ -6192,5 +6193,41 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("slope: 2/π");
+    });
+
+    it("avoidScientificNotation in line text and latex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <line
+    name="l1"
+    equation="y = 0.000000000007 x + 2000000000000000000000"
+  />
+  <line
+    name="l2"
+    equation="y = 0.000000000007 x + 2000000000000000000000"
+    avoidScientificNotation
+  />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let l1Text =
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.text;
+        let l2Text =
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.text;
+
+        expect(l1Text).match(/10\^\(-12\)|10\^21/);
+        expect(l2Text).contain("0.000000000007");
+        expect(l2Text).contain("2000000000000000000000");
+
+        let l1Latex =
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.latex;
+        let l2Latex =
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.latex;
+
+        expect(l1Latex).match(/10\^{-12}|10\^{21}/);
+        expect(l2Latex).contain("0.000000000007");
+        expect(l2Latex).contain("2000000000000000000000");
     });
 });

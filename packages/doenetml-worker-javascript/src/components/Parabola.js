@@ -1,25 +1,33 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
+    // Overrides Curve's ["line", "fill"]: parabolas have no enclosed interior to fill.
+    static styleOverrideCategories = ["line"];
+
+    static componentDocs = {
+        summary: "A parabola defined by formula or geometric parameters",
+    };
     static rendererType = "curve";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the parabola passes through.",
         };
         attributes.vertex = {
             createComponentOfType: "point",
             isLocation: true,
             createStateVariable: "prescribedVertex",
             defaultValue: null,
+            description: "The vertex of the parabola.",
         };
 
         delete attributes.parMin;
@@ -34,12 +42,22 @@ export default class Parabola extends Curve {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Borrow GraphicalComponent's definitions to skip Curve's
+        // parametric-curve state variables (the few Curve vars Parabola needs
+        // are cherry-picked from curveStateVariableDefinitions below). Must use
+        // `.call(this)`: the borrowed code resolves style-override groups off
+        // `this`'s prototype chain, so an unbound call would pick up
+        // GraphicalComponent's empty default instead of Parabola's ["line"],
+        // dropping overrides like lineWidth.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions.call(
+                this,
+                numerics,
+            );
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let curveStateVariableDefinitions =
@@ -53,6 +71,7 @@ export default class Parabola extends Curve {
             curveStateVariableDefinitions.styleDescription;
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "parabola".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -78,11 +97,12 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.parMax = {
+            description: "Maximum value of the parabola's parameter.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -90,11 +110,12 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.parMin = {
+            description: "Minimum value of the parabola's parameter.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -155,11 +176,12 @@ export default class Parabola extends Curve {
 
         stateVariableDefinitions.throughPoints = {
             public: true,
+            description: "Points the parabola passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "throughPointX") {
                         return [];
@@ -531,11 +553,13 @@ export default class Parabola extends Curve {
 
         stateVariableDefinitions.a = {
             public: true,
+            description:
+                "The leading coefficient of the parabola (in y = a x^2 + b x + c).",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -544,10 +568,12 @@ export default class Parabola extends Curve {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description:
+                        "The linear coefficient in y = a x^2 + b x + c.",
                 },
                 {
                     variableName: "c",
@@ -555,10 +581,11 @@ export default class Parabola extends Curve {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description: "The constant term in y = a x^2 + b x + c.",
                 },
                 "realValued",
             ],
@@ -659,7 +686,7 @@ export default class Parabola extends Curve {
                         let warning = {
                             message:
                                 "Haven't implemented parabola with vertex through more than 1 point.",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: {
@@ -668,7 +695,7 @@ export default class Parabola extends Curve {
                                 c: NaN,
                                 realValued: false,
                             },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -839,7 +866,7 @@ export default class Parabola extends Curve {
                     let warning = {
                         message:
                             "Haven't implemented parabola through more than 3 points.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -848,7 +875,7 @@ export default class Parabola extends Curve {
                             c: NaN,
                             realValued: false,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
             },
@@ -1310,12 +1337,13 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.vertex = {
+            description: "The vertex coordinates of the parabola.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "vertexX") {
                         return [];
@@ -1443,11 +1471,12 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.equation = {
+            description: "The parabola's equation as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             // TODO: implement additional properties
             additionalProperties: {
@@ -1555,6 +1584,8 @@ export default class Parabola extends Curve {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description:
+                "The parabola as a function of its parameter (alias to the first component function).",
         };
 
         stateVariableDefinitions.nearestPoint = {

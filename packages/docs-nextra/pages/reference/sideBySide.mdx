@@ -1,22 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <sideBySide>{:dn}`
+# `<sideBySide>{:dn}`
 
 
-` <sideBySide>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='sideBySide'/>
+
+`<sideBySide>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types) 
 component that takes enclosed sectional components and renders them in a side-by-side horizontal format.
 
-## Attributes and Properties 
- <AttrDisplay name='sideBySide'/> 
- <PropDisplay name='sideBySide'/>
+<AttrPropDisplay name='sideBySide'/>
 
 
----
+## Examples
 
-### Example: Default ` <sideBySide>{:dn}`
+### Example: Default `<sideBySide>{:dn}`
 
 
 ```doenet-example
@@ -37,27 +37,27 @@ component that takes enclosed sectional components and renders them in a side-by
 <hr/>
 
 <sideBySide> 
-  <graph/>
-  <graph/>
-  <graph/>
+  <graph><shortDescription>example graph</shortDescription></graph>
+  <graph><shortDescription>example graph</shortDescription></graph>
+  <graph><shortDescription>example graph</shortDescription></graph>
 </sideBySide>
 ```
 
 
 
-Three examples of different components placed in a ` <sideBySide>{:dn}` are illustrated. By default, portions are assigned an equal percentage width, with no margin. These settings can be modified with the `widths` and `margins` attributes.
+Three examples of different components placed in a `<sideBySide>{:dn}` are illustrated. By default, portions are assigned an equal percentage width, with no margin. These settings can be modified with the `widths` and `margins` attributes.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: widths
 
 
 ```doenet-example
 <sideBySide widths="20% 80%">
-  <graph/>
-  <graph/>
+  <graph><shortDescription>example graph</shortDescription></graph>
+  <graph><shortDescription>example graph</shortDescription></graph>
 </sideBySide>
 ```
 
@@ -74,9 +74,9 @@ The `widths` attribute assigns a width to each side-by-side portion by percent.
 
 ```doenet-example
 <sideBySide widths="20% 40% 40%" margins="2%">
-  <graph/>
-  <graph/>
-  <graph/>
+  <graph><shortDescription>example graph</shortDescription></graph>
+  <graph><shortDescription>example graph</shortDescription></graph>
+  <graph><shortDescription>example graph</shortDescription></graph>
 </sideBySide>      
 ```
 

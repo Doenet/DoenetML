@@ -32,42 +32,42 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.log("Test value displayed in browser");
-        cy.get(cesc("#e1")).should("have.text", "sin⁡(𝑥)(1)");
-        cy.get(cesc("#e2")).should("have.text", "cos⁡(𝑥)(2)");
-        cy.get(cesc("#e3")).should("have.text", "tan⁡(𝑥)(3)");
-        cy.get(cesc("#p1")).should(
+        cy.get("#e1").should("have.text", "sin⁡(𝑥)(1)");
+        cy.get("#e2").should("have.text", "cos⁡(𝑥)(2)");
+        cy.get("#e3").should("have.text", "tan⁡(𝑥)(3)");
+        cy.get("#p1").should(
             "have.text",
             "We have equation (1), equation (2), and equation (3).",
         );
-        cy.get(cesc("#re1")).should("have.text", "(1)");
-        cy.get(cesc("#re2")).should("have.text", "(2)");
-        cy.get(cesc("#re3")).should("have.text", "(3)");
+        cy.get("#re1").should("have.text", "(1)");
+        cy.get("#re2").should("have.text", "(2)");
+        cy.get("#re3").should("have.text", "(3)");
 
-        cy.get(cesc("#p2")).should(
+        cy.get("#p2").should(
             "have.text",
             "From copying properties: 1, 2, and 3.",
         );
-        cy.get(cesc("#te1")).should("have.text", "1");
-        cy.get(cesc("#te2")).should("have.text", "2");
-        cy.get(cesc("#te3")).should("have.text", "3");
+        cy.get("#te1").should("have.text", "1");
+        cy.get("#te2").should("have.text", "2");
+        cy.get("#te3").should("have.text", "3");
 
-        cy.get(cesc("#re1")).click();
+        cy.get("#re1").click();
 
-        cy.get(cesc("#e1")).then((el) => {
+        cy.get("#e1").then((el) => {
             let rect = el[0].getBoundingClientRect();
             expect(rect.top).gt(-1).lt(5);
         });
 
-        cy.get(cesc("#re2")).click();
+        cy.get("#re2").click();
 
-        cy.get(cesc("#e2")).then((el) => {
+        cy.get("#e2").then((el) => {
             let rect = el[0].getBoundingClientRect();
             expect(rect.top).gt(-1).lt(5);
         });
 
-        cy.get(cesc("#re3")).click();
+        cy.get("#re3").click();
 
-        cy.get(cesc("#e3")).then((el) => {
+        cy.get("#e3").then((el) => {
             let rect = el[0].getBoundingClientRect();
             expect(rect.top).gt(-1).lt(5);
         });
@@ -122,18 +122,15 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should(
-                "have.text",
-                toMathJaxString(`x(${counter})`),
-            );
-            cy.get(cesc("#px")).should(
+            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
             );
-            cy.get(cesc("#etx")).should("have.text", `${counter}`);
-            cy.get(cesc("#rx")).should("have.text", `(${counter})`);
-            cy.get(cesc("#rx")).click();
-            cy.get(cesc("#x")).then((el) => {
+            cy.get("#etx").should("have.text", `${counter}`);
+            cy.get("#rx").should("have.text", `(${counter})`);
+            cy.get("#rx").click();
+            cy.get("#x").then((el) => {
                 let rect = el[0].getBoundingClientRect();
                 expect(rect.top).gt(-1).lt(5);
             });
@@ -183,18 +180,18 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should(
+                cy.get("#y").should(
                     "have.text",
                     toMathJaxString(`y(${counter})`),
                 );
-                cy.get(cesc("#py")).should(
+                cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#ety")).should("have.text", `${counter}`);
-                cy.get(cesc("#ry")).should("have.text", `(${counter})`);
-                cy.get(cesc("#ry")).click();
-                cy.get(cesc("#y")).then((el) => {
+                cy.get("#ety").should("have.text", `${counter}`);
+                cy.get("#ry").should("have.text", `(${counter})`);
+                cy.get("#ry").click();
+                cy.get("#y").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
@@ -246,18 +243,18 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should(
+                cy.get("#z").should(
                     "have.text",
                     toMathJaxString(`z(${counter})`),
                 );
-                cy.get(cesc("#pz")).should(
+                cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#etz")).should("have.text", `${counter}`);
-                cy.get(cesc("#rz")).should("have.text", `(${counter})`);
-                cy.get(cesc("#rz")).click();
-                cy.get(cesc("#z")).then((el) => {
+                cy.get("#etz").should("have.text", `${counter}`);
+                cy.get("#rz").should("have.text", `(${counter})`);
+                cy.get("#rz").click();
+                cy.get("#z").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
@@ -266,40 +263,40 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
         checkEquationNumbering(2, 1);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}4{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "4");
+        cy.get("#ma").should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}2{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "2");
+        cy.get("#na").should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}0{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "0");
+        cy.get("#ma").should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}6{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "6");
+        cy.get("#na").should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}3{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "3");
+        cy.get("#ma").should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}1{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "1");
+        cy.get("#na").should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 
@@ -356,24 +353,21 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should(
-                "have.text",
-                toMathJaxString(`x(${counter})`),
-            );
-            cy.get(cesc("#px")).should(
+            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
             );
-            cy.get(cesc("#etx")).should("have.text", `${counter}`);
-            cy.get(cesc("#rx")).should("have.text", `(${counter})`);
-            cy.get(cesc("#rx")).click();
-            cy.get(cesc("#x")).then((el) => {
+            cy.get("#etx").should("have.text", `${counter}`);
+            cy.get("#rx").should("have.text", `(${counter})`);
+            cy.get("#rx").click();
+            cy.get("#x").then((el) => {
                 let rect = el[0].getBoundingClientRect();
                 expect(rect.top).gt(-1).lt(5);
             });
 
             cy.window().then(async (win) => {
-                cy.get(cesc("#ms")).should(
+                cy.get("#ms").should(
                     "have.text",
                     [
                         ...[...Array(m).keys()]
@@ -426,25 +420,25 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should(
+                cy.get("#y").should(
                     "have.text",
                     toMathJaxString(`y(${counter})`),
                 );
-                cy.get(cesc("#py")).should(
+                cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#ety")).should("have.text", `${counter}`);
-                cy.get(cesc("#ry")).should("have.text", `(${counter})`);
-                cy.get(cesc("#ry")).click();
-                cy.get(cesc("#y")).then((el) => {
+                cy.get("#ety").should("have.text", `${counter}`);
+                cy.get("#ry").should("have.text", `(${counter})`);
+                cy.get("#ry").click();
+                cy.get("#y").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
             });
 
             cy.window().then(async (win) => {
-                cy.get(cesc("#ns")).should(
+                cy.get("#ns").should(
                     "have.text",
                     [
                         ...[...Array(n).keys()]
@@ -499,18 +493,18 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should(
+                cy.get("#z").should(
                     "have.text",
                     toMathJaxString(`z(${counter})`),
                 );
-                cy.get(cesc("#pz")).should(
+                cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#etz")).should("have.text", `${counter}`);
-                cy.get(cesc("#rz")).should("have.text", `(${counter})`);
-                cy.get(cesc("#rz")).click();
-                cy.get(cesc("#z")).then((el) => {
+                cy.get("#etz").should("have.text", `${counter}`);
+                cy.get("#rz").should("have.text", `(${counter})`);
+                cy.get("#rz").click();
+                cy.get("#z").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
@@ -519,40 +513,40 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
         checkEquationNumbering(2, 1);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}4{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "4");
+        cy.get("#ma").should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}2{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "2");
+        cy.get("#na").should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}0{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "0");
+        cy.get("#ma").should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}6{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "6");
+        cy.get("#na").should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}3{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "3");
+        cy.get("#ma").should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}1{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "1");
+        cy.get("#na").should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 
@@ -609,19 +603,16 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should(
-                "have.text",
-                toMathJaxString(`x(${counter})`),
-            );
-            cy.get(cesc("#px")).should(
+            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
             );
-            cy.get(cesc("#etx")).should("have.text", `${counter}`);
-            cy.get(cesc("#rx")).should("have.text", `(${counter})`);
-            cy.get(cesc("#rx")).click();
+            cy.get("#etx").should("have.text", `${counter}`);
+            cy.get("#rx").should("have.text", `(${counter})`);
+            cy.get("#rx").click();
             cy.url().should("match", RegExp(cesc(`#x`) + "$"));
-            cy.get(cesc("#x")).then((el) => {
+            cy.get("#x").then((el) => {
                 let rect = el[0].getBoundingClientRect();
                 expect(rect.top).gt(-1).lt(5);
             });
@@ -682,7 +673,7 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                 });
             }
             cy.window().then(async (win) => {
-                cy.get(cesc("#ms")).should(
+                cy.get("#ms").should(
                     "have.text",
                     [...mPieces, ...mCounterPieces].join(""),
                 );
@@ -706,19 +697,19 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should(
+                cy.get("#y").should(
                     "have.text",
                     toMathJaxString(`y(${counter})`),
                 );
-                cy.get(cesc("#py")).should(
+                cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#ety")).should("have.text", `${counter}`);
-                cy.get(cesc("#ry")).should("have.text", `(${counter})`);
-                cy.get(cesc("#ry")).click();
+                cy.get("#ety").should("have.text", `${counter}`);
+                cy.get("#ry").should("have.text", `(${counter})`);
+                cy.get("#ry").click();
                 cy.url().should("match", RegExp(cesc(`#y`) + "$"));
-                cy.get(cesc("#y")).then((el) => {
+                cy.get("#y").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
@@ -779,7 +770,7 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
             }
 
             cy.window().then(async (win) => {
-                cy.get(cesc("#ns")).should(
+                cy.get("#ns").should(
                     "have.text",
                     [...nPieces, ...nCounterPieces].join(""),
                 );
@@ -803,19 +794,19 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should(
+                cy.get("#z").should(
                     "have.text",
                     toMathJaxString(`z(${counter})`),
                 );
-                cy.get(cesc("#pz")).should(
+                cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
                 );
-                cy.get(cesc("#etz")).should("have.text", `${counter}`);
-                cy.get(cesc("#rz")).should("have.text", `(${counter})`);
-                cy.get(cesc("#rz")).click();
+                cy.get("#etz").should("have.text", `${counter}`);
+                cy.get("#rz").should("have.text", `(${counter})`);
+                cy.get("#rz").click();
                 cy.url().should("match", RegExp(cesc(`#z`) + "$"));
-                cy.get(cesc("#z")).then((el) => {
+                cy.get("#z").then((el) => {
                     let rect = el[0].getBoundingClientRect();
                     expect(rect.top).gt(-1).lt(5);
                 });
@@ -824,40 +815,40 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
         checkEquationNumbering(2, 1);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}4{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "4");
+        cy.get("#ma").should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}2{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "2");
+        cy.get("#na").should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}0{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "0");
+        cy.get("#ma").should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}6{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "6");
+        cy.get("#na").should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
-        cy.get(cesc("#m") + " textarea").type(`{end}{backspace}3{enter}`, {
+        cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get(cesc("#ma")).should("contain.text", "3");
+        cy.get("#ma").should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
-        cy.get(cesc("#n") + " textarea").type(`{end}{backspace}1{enter}`, {
+        cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get(cesc("#na")).should("contain.text", "1");
+        cy.get("#na").should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 
@@ -877,9 +868,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#cancel")).should("have.text", toMathJaxString("x"));
-        cy.get(cesc("#bcancel")).should("have.text", toMathJaxString("y"));
-        cy.get(cesc("#bbox")).should("have.text", toMathJaxString("R"));
-        cy.get(cesc("#circle")).should("have.text", toMathJaxString("1"));
+        cy.get("#cancel").should("have.text", toMathJaxString("x"));
+        cy.get("#bcancel").should("have.text", toMathJaxString("y"));
+        cy.get("#bbox").should("have.text", toMathJaxString("R"));
+        cy.get("#circle").should("have.text", toMathJaxString("1"));
     });
 });

@@ -21,6 +21,11 @@ export default class Answer extends InlineComponent {
     }
     static componentType = "answer";
 
+    static componentDocs = {
+        summary:
+            "Assigns credit to student responses based on matches or logical rules",
+        docsSlug: "answer1",
+    };
     // Include children that can be added due to sugar
     static additionalSchemaChildren = [
         "math",
@@ -52,12 +57,18 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
             defaultValue: false,
             public: true,
+            highlighted: true,
+            description:
+                "Whether to render the answer's input inline rather than as a block.",
         };
         attributes.symbolicEquality = {
             createComponentOfType: "boolean",
             createStateVariable: "symbolicEquality",
             defaultValue: false,
             public: true,
+            highlighted: true,
+            description:
+                "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };
         attributes.forceFullCheckWorkButton = {
             createComponentOfType: "boolean",
@@ -65,6 +76,8 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
             defaultValue: false,
             public: true,
+            description:
+                "Whether to always render a full-size check-work button.",
         };
         attributes.forceSmallCheckWorkButton = {
             createComponentOfType: "boolean",
@@ -72,6 +85,7 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
             defaultValue: false,
             public: true,
+            description: "Whether to always render a small check-work button.",
         };
         attributes.simplifyOnCompare = {
             createComponentOfType: "text",
@@ -81,85 +95,148 @@ export default class Answer extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                {
+                    value: "none",
+                    description:
+                        "No simplification is applied before comparing.",
+                },
+                {
+                    value: "full",
+                    description:
+                        "Fully simplify both expressions before comparing.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
             public: true,
+            description:
+                "Level of simplification applied to math expressions before comparing them.",
         };
         attributes.expandOnCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "expandOnCompare",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to expand math expressions before comparing them.",
         };
         attributes.unorderedCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedCompare",
             defaultValue: false,
             public: true,
+            description:
+                "Whether order is ignored when comparing list-like responses.",
         };
         attributes.matchByExactPositions = {
             createComponentOfType: "boolean",
             createStateVariable: "matchByExactPositions",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to match list responses by exact position rather than by content.",
         };
         attributes.numAwardsCredited = {
             createComponentOfType: "integer",
             createStateVariable: "numAwardsCredited",
             defaultValue: 1,
             public: true,
+            description:
+                "Maximum number of matching awards whose credits are summed.",
         };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",
             createStateVariable: "allowedErrorInNumbers",
             defaultValue: 0,
             public: true,
+            description:
+                "Maximum allowed numeric error when comparing numbers (relative or absolute).",
         };
         attributes.includeErrorInNumberExponents = {
             createComponentOfType: "boolean",
             createStateVariable: "includeErrorInNumberExponents",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the allowed numeric error also applies to numbers in exponents.",
         };
         attributes.allowedErrorIsAbsolute = {
             createComponentOfType: "boolean",
             createStateVariable: "allowedErrorIsAbsolute",
             defaultValue: false,
             public: true,
+            description:
+                "Whether allowedErrorInNumbers is interpreted as an absolute (rather than relative) tolerance.",
         };
         attributes.numSignErrorsMatched = {
             createComponentOfType: "number",
             createStateVariable: "numSignErrorsMatched",
             defaultValue: 0,
             public: true,
+            description:
+                "Maximum number of sign errors that still count as a match.",
         };
         attributes.numPeriodicSetMatchesRequired = {
             createComponentOfType: "integer",
             createStateVariable: "numPeriodicSetMatchesRequired",
             defaultValue: 3,
             public: true,
+            description:
+                "Number of consecutive elements of a periodic set required to count as a match.",
         };
         attributes.caseInsensitiveMatch = {
             createComponentOfType: "boolean",
             createStateVariable: "caseInsensitiveMatch",
             defaultValue: false,
             public: true,
+            description: "Whether text comparisons ignore letter case.",
         };
         attributes.matchBlanks = {
             createComponentOfType: "boolean",
             createStateVariable: "matchBlanks",
             defaultValue: false,
             public: true,
+            description:
+                "Whether unfilled blanks in a math expression count as a match.",
         };
         attributes.type = {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultValue: null,
-            validValues: ["math", "text", "boolean", "videoWatched"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "math",
+                    description: "Expect a math expression answer.",
+                },
+                {
+                    value: "text",
+                    description: "Expect a text answer.",
+                },
+                {
+                    value: "boolean",
+                    description: "Expect a boolean answer.",
+                },
+                {
+                    value: "videoWatched",
+                    description:
+                        "Mark correct when the associated video has been watched.",
+                },
+            ],
+            description: "Type of input the answer expects.",
         };
 
         attributes.selectMultiple = {
@@ -167,18 +244,24 @@ export default class Answer extends InlineComponent {
             createStateVariable: "selectMultiple",
             defaultValue: false,
             public: true,
+            description:
+                "For choice answers: whether multiple choices may be selected.",
         };
         attributes.shuffleOrder = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "shuffleOrder",
             defaultValue: false,
             public: true,
+            description:
+                "For choice answers: whether to display choices in randomized order.",
         };
         attributes.preserveLastChoice = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "preserveLastChoice",
             defaultValue: false,
             public: true,
+            description:
+                "For choice answers: whether the last-rendered choice keeps its position when shuffling.",
         };
 
         // If `true`, then incorrect choices are disabled after they have been submitted.
@@ -187,6 +270,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "disableWrongChoices",
             defaultValue: false,
             public: true,
+            description:
+                "Whether incorrect choices are disabled after being submitted.",
         };
 
         // A list of factors that will multiply the original credit achieved to adjust it based on the number
@@ -200,6 +285,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "creditByAttempt",
             defaultValue: [],
             public: true,
+            description:
+                'Per-attempt credit multipliers (e.g. "1 0.7 0.5" for full/70%/50% on attempts 1/2/3+).',
         };
 
         attributes.splitSymbols = {
@@ -207,6 +294,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "splitSymbols",
             defaultValue: true,
             public: true,
+            description:
+                "Whether multi-character symbols should be split into a product of single-character variables when parsing.",
         };
 
         attributes.parseScientificNotation = {
@@ -214,6 +303,8 @@ export default class Answer extends InlineComponent {
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
 
         attributes.expanded = {
@@ -221,14 +312,22 @@ export default class Answer extends InlineComponent {
             createStateVariable: "expanded",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the answer's submitted-response panel is expanded by default.",
         };
 
+        // TODO: deprecate this attribute. It is currently unused — the
+        // renderer reads an accessible description from a `<description>`
+        // child, not from this attribute. Once a deprecation mechanism
+        // exists, emit an authoring warning when it is used.
         attributes.description = {
             createComponentOfType: "text",
             createStateVariable: "description",
             defaultValue: "",
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
+            description: "Currently unused",
         };
 
         attributes.showPreview = {
@@ -236,15 +335,21 @@ export default class Answer extends InlineComponent {
             createStateVariable: "showPreview",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to display a preview of the response as the student types.",
         };
 
         // Note: video and videoCreditLabel are not used in the component itself, only in the sugar.
         // They are added here so that they will be in the schema.
         attributes.video = {
             createReferences: true,
+            description:
+                "Reference to a video; when watched, this answer's videoWatched type marks credit.",
         };
         attributes.videoCreditLabel = {
             createComponentOfType: "text",
+            description:
+                "Label shown next to the credit indicator for a video-watched answer.",
         };
 
         Object.assign(attributes, returnLabelAttributes());
@@ -644,17 +749,17 @@ export default class Answer extends InlineComponent {
 
             let newChildren;
             let type;
-            let warnings = [];
+            let diagnostics = [];
 
             if (componentAttributes.type) {
                 type = componentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
-                    if (type === "videoWatched") {
+                    if (type.toLowerCase() === "videowatched") {
                         return { success: false };
                     }
-                    warnings.push({
+                    diagnostics.push({
                         message: `Invalid type for answer: ${type}`,
-                        level: 1,
+                        type: "warning",
                     });
                     type = "math";
                 }
@@ -723,7 +828,7 @@ export default class Answer extends InlineComponent {
             return {
                 success: true,
                 newChildren: newChildren,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         };
@@ -783,6 +888,72 @@ export default class Answer extends InlineComponent {
             stateVariableDefinitions,
             returnSimplifyExpandOnCompareWarning(),
         );
+
+        /**
+         * <answer> participates in list-item alignment only when its first input child
+         * is a non-inline <choiceInput>. In that case, <answer> forwards alignment so
+         * the choiceInput can suppress top margin and section numbering top-aligns.
+         *
+         * For other input configurations (for example inline choiceInput or mathInput),
+         * <answer> returns "none" and the section keeps baseline alignment.
+         */
+        stateVariableDefinitions.renderInlineForListItem = {
+            forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "listItemInlineAlignment", forRenderer: true },
+                { variableName: "childrenToRenderInlineForListItem" },
+            ],
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                inputChildren: {
+                    dependencyType: "child",
+                    childGroups: ["inputs"],
+                    variableNames: ["inline"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                const isInParentList = Boolean(
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx),
+                );
+
+                if (!isInParentList) {
+                    return {
+                        setValue: {
+                            renderInlineForListItem: false,
+                            listItemInlineAlignment: "none",
+                            childrenToRenderInlineForListItem: [],
+                        },
+                    };
+                }
+
+                // Propagate only to the first non-inline choiceInput input child.
+                // <answer> itself has no top margin to suppress.
+                const firstBlockChoiceInput =
+                    dependencyValues.inputChildren?.find(
+                        (child) =>
+                            child.componentType === "choiceInput" &&
+                            child.stateValues.inline === false,
+                    );
+
+                return {
+                    setValue: {
+                        renderInlineForListItem: false,
+                        listItemInlineAlignment: firstBlockChoiceInput
+                            ? "flex-start"
+                            : "none",
+                        childrenToRenderInlineForListItem: firstBlockChoiceInput
+                            ? [firstBlockChoiceInput]
+                            : [],
+                    },
+                };
+            },
+        };
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
@@ -1053,6 +1224,70 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.inputComponentIdxForLabel = {
+            stateVariablesDeterminingDependencies: ["inputChildrenWithValues"],
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "hasAuthoredInputChildrenForLabel",
+                },
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    inputChildrenWithValues: {
+                        dependencyType: "stateVariable",
+                        variableName: "inputChildrenWithValues",
+                    },
+                };
+
+                for (const [ind, input] of (
+                    stateValues.inputChildrenWithValues ?? []
+                ).entries()) {
+                    dependencies[`inputChildCreatedFromSugar${ind}`] = {
+                        dependencyType: "doenetAttribute",
+                        componentIdx: input.componentIdx,
+                        attributeName: "createdFromSugar",
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const inputChildrenWithValues =
+                    dependencyValues.inputChildrenWithValues ?? [];
+
+                let inputComponentIdxForLabel = null;
+                let hasAuthoredInputChildrenForLabel = false;
+
+                const inputChildrenCreatedFromSugar =
+                    inputChildrenWithValues.map(
+                        (_input, ind) =>
+                            dependencyValues[
+                                `inputChildCreatedFromSugar${ind}`
+                            ],
+                    );
+
+                hasAuthoredInputChildrenForLabel =
+                    inputChildrenCreatedFromSugar.some(
+                        (createdFromSugar) => !createdFromSugar,
+                    );
+
+                if (
+                    inputChildrenWithValues.length === 1 &&
+                    inputChildrenCreatedFromSugar[0]
+                ) {
+                    inputComponentIdxForLabel =
+                        inputChildrenWithValues[0].componentIdx;
+                }
+
+                return {
+                    setValue: {
+                        inputComponentIdxForLabel,
+                        hasAuthoredInputChildrenForLabel,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.awardInputResponseChildren = {
             returnDependencies: () => ({
                 awardInputResponseChildren: {
@@ -1109,7 +1344,89 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.labelsForAnswer = {
+            returnDependencies: () => ({
+                labelsReferencing: {
+                    dependencyType: "componentsReferencingAttribute",
+                    attributeName: "for",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        labelsForAnswer:
+                            dependencyValues.labelsReferencing ?? [],
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.focused = {
+            description:
+                "Whether any input within this answer currently has keyboard focus.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            stateVariablesDeterminingDependencies: [
+                "inputsForAnswer",
+                "inputChildrenWithValues",
+            ],
+            returnDependencies({ stateValues }) {
+                let dependencies = {
+                    numInputs: {
+                        dependencyType: "value",
+                        value: stateValues.inputsForAnswer.length,
+                    },
+                    numInputChildren: {
+                        dependencyType: "value",
+                        value: stateValues.inputChildrenWithValues.length,
+                    },
+                };
+                for (const [
+                    i,
+                    input,
+                ] of stateValues.inputsForAnswer.entries()) {
+                    dependencies["inputForAnswer" + i] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: input.componentIdx,
+                        variableName: "focused",
+                    };
+                }
+
+                for (const [
+                    i,
+                    input,
+                ] of stateValues.inputChildrenWithValues.entries()) {
+                    dependencies["inputChild" + i] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: input.componentIdx,
+                        variableName: "focused",
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let focused = false;
+                for (let i = 0; i < dependencyValues.numInputs; i++) {
+                    if (dependencyValues["inputForAnswer" + i]) {
+                        focused = true;
+                        break;
+                    }
+                }
+                for (let i = 0; i < dependencyValues.numInputChildren; i++) {
+                    if (dependencyValues["inputChild" + i]) {
+                        focused = true;
+                        break;
+                    }
+                }
+                return { setValue: { focused } };
+            },
+        };
+
         stateVariableDefinitions.numResponses = {
+            description:
+                "The number of current (unsubmitted) response values from this answer's inputs.",
             additionalStateVariablesDefined: ["usePotentialResponses"],
             public: true,
             shadowingInstructions: {
@@ -1284,6 +1601,8 @@ export default class Answer extends InlineComponent {
         };
 
         stateVariableDefinitions.currentResponses = {
+            description:
+                "The current (unsubmitted) response values from this answer's inputs.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -1508,9 +1827,13 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.currentResponse = {
             isAlias: true,
             targetVariableName: "currentResponse1",
+            description:
+                "The current (unsubmitted) response value from the answer's first input.",
         };
 
         stateVariableDefinitions.numSubmittedResponses = {
+            description:
+                "The number of response values from the most recent submission.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1577,6 +1900,7 @@ export default class Answer extends InlineComponent {
         };
 
         stateVariableDefinitions.submittedResponses = {
+            description: "The response values from the most recent submission.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -1683,6 +2007,8 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.submittedResponse = {
             isAlias: true,
             targetVariableName: "submittedResponse1",
+            description:
+                "The first response value from the most recent submission.",
         };
 
         stateVariableDefinitions.delegateCheckWork = {
@@ -1695,34 +2021,8 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "inputChildren",
                 },
-                sectionAncestor: {
+                ancestorSuppressingAnswerSubmitButtons: {
                     dependencyType: "ancestor",
-                    componentType: "_sectioningComponent",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                pAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "p",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                liAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "li",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                divAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "div",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                spanAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "span",
                     variableNames: ["suppressAnswerSubmitButtons"],
                 },
             }),
@@ -1732,18 +2032,8 @@ export default class Answer extends InlineComponent {
                 let delegateCheckWork = false;
 
                 if (
-                    dependencyValues.documentAncestor.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.sectionAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.pAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.liAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.divAncestor?.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    dependencyValues.spanAncestor?.stateValues
-                        .suppressAnswerSubmitButtons
+                    dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                        ?.stateValues.suppressAnswerSubmitButtons
                 ) {
                     delegateCheckWorkToAncestor = delegateCheckWork = true;
                 } else if (dependencyValues.inputChildren.length === 1) {
@@ -2048,6 +2338,8 @@ export default class Answer extends InlineComponent {
         };
 
         stateVariableDefinitions.numFeedbacks = {
+            description:
+                "The number of feedback messages produced by matched awards or applicable feedback definitions.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -2069,6 +2361,8 @@ export default class Answer extends InlineComponent {
         };
 
         stateVariableDefinitions.feedbacks = {
+            description:
+                "The feedback messages produced by matched awards or applicable feedback definitions.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "feedback",

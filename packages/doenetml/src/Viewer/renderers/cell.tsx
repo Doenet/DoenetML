@@ -4,8 +4,20 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
+interface CellSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    bottom?: any;
+    colSpan: number;
+    halign?: any;
+    inHeader: boolean;
+    right?: any;
+    text: string;
+}
+
 export default React.memo(function Cell(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<CellSVs>(props);
 
     if (SVs.hidden) {
         return null;
@@ -52,7 +64,7 @@ export default React.memo(function Cell(props: UseDoenetRendererProps) {
         });
     }
 
-    let content = children;
+    let content: React.ReactNode[] | string = children;
 
     if (content.length === 0) {
         content = SVs.text;

@@ -9,22 +9,45 @@ export function returnStandardSequenceAttributes() {
             createStateVariable: "type",
             defaultPrimitiveValue: "number",
             toLowerCase: true,
-            validValues: ["number", "math", "letters"],
+            validValues: [
+                {
+                    value: "number",
+                    description: "A sequence of numeric values.",
+                },
+                {
+                    value: "math",
+                    description:
+                        "A sequence of math expressions (allows symbolic from/to/step).",
+                },
+                {
+                    value: "letters",
+                    description:
+                        "A sequence of letters (single-letter or multi-letter labels).",
+                },
+            ],
+            description: "The kind of values in the sequence.",
         },
         from: {
             createComponentOfType: "_componentWithSelectableType",
+            description: "The first value in the sequence.",
         },
         to: {
             createComponentOfType: "_componentWithSelectableType",
+            description:
+                "The last value in the sequence. Used together with from to determine length when length is not specified.",
         },
         step: {
             createComponentOfType: "math",
+            description:
+                "The increment between successive values in the sequence.",
         },
         length: {
             createComponentOfType: "integer",
+            description: "The number of values in the sequence.",
         },
         exclude: {
             createComponentOfType: "_componentListWithSelectableType",
+            description: "Values to exclude from the sequence.",
         },
     };
 }
@@ -280,7 +303,7 @@ export function returnStandardSequenceStateVariableDefinitions() {
             },
         }),
         definition: function ({ dependencyValues }) {
-            let warnings = [];
+            let diagnostics = [];
 
             let validSequence = true;
 
@@ -289,10 +312,10 @@ export function returnStandardSequenceStateVariableDefinitions() {
                     !Number.isInteger(dependencyValues.specifiedLength) ||
                     dependencyValues.specifiedLength < 0
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Invalid length of sequence.  Must be a non-negative integer.",
-                        level: 2,
+                        type: "info",
                     });
                     validSequence = false;
                 }
@@ -305,12 +328,12 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedStep,
                     );
                     if (!Number.isFinite(numericalStep)) {
-                        warnings.push({
+                        diagnostics.push({
                             message:
                                 "Invalid step of sequence.  Must be a number for sequence of type " +
                                 dependencyValues.type +
                                 ".",
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -323,9 +346,9 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedFrom,
                     );
                     if (!Number.isFinite(numericalFrom)) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "from" of number sequence.  Must be a number.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -334,9 +357,9 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         lettersToNumber(dependencyValues.specifiedFrom) ===
                         undefined
                     ) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "from" of letters sequence.  Must be a letter combination.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -344,9 +367,9 @@ export function returnStandardSequenceStateVariableDefinitions() {
                     // type === math
 
                     if (Number.isNaN(dependencyValues.specifiedFrom.tree)) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "from" of sequence.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -359,9 +382,9 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedTo,
                     );
                     if (!Number.isFinite(numericalTo)) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "to" of number sequence.  Must be a number.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -370,9 +393,9 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         lettersToNumber(dependencyValues.specifiedTo) ===
                         undefined
                     ) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "to" of letters sequence.  Must be a letter combination.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
@@ -380,16 +403,19 @@ export function returnStandardSequenceStateVariableDefinitions() {
                     // type === math
 
                     if (Number.isNaN(dependencyValues.specifiedTo.tree)) {
-                        warnings.push({
+                        diagnostics.push({
                             message: `Invalid "to" of sequence.`,
-                            level: 2,
+                            type: "info",
                         });
                         validSequence = false;
                     }
                 }
             }
 
-            return { setValue: { validSequence }, sendWarnings: warnings };
+            return {
+                setValue: { validSequence },
+                sendDiagnostics: diagnostics,
+            };
         },
     };
 
@@ -692,7 +718,12 @@ export function returnSequenceValues(
                 exclude.some(
                     (x) =>
                         Math.abs(x - value) <=
-                        1e-14 * Math.max(Math.abs(x), Math.abs(value)),
+                        1e-14 *
+                            Math.max(
+                                Math.abs(x),
+                                Math.abs(value),
+                                Math.abs(step),
+                            ),
                 )
             ) {
                 continue;
@@ -759,7 +790,8 @@ export function returnSequenceValueForIndex({
             exclude.some(
                 (x) =>
                     Math.abs(x - value) <=
-                    1e-14 * Math.max(Math.abs(x), Math.abs(value)),
+                    1e-14 *
+                        Math.max(Math.abs(x), Math.abs(value), Math.abs(step)),
             )
         ) {
             return null;

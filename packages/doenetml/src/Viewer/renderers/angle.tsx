@@ -1,61 +1,81 @@
 import React, { useEffect, useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
-import { JXGObject } from "./jsxgraph-distrib/types";
+import { JXGAngle, JXGPoint } from "./jsxgraph-distrib/types";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { GraphicalSVs } from "./utils/graphicalSVs";
+import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
+import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
+
+interface AngleSVs extends GraphicalSVs {
+    numericalPoints: [number, number][];
+    numericalRadius: number;
+    swapPointOrder: boolean;
+    emphasizeRightAngle: boolean;
+    latexForRenderer: string;
+}
 
 export default React.memo(function Angle(props: UseDoenetRendererProps) {
-    let { id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer<AngleSVs>(props);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let point1JXG = useRef(null);
-    let point2JXG = useRef(null);
-    let point3JXG = useRef(null);
-    let angleJXG = useRef<JXGObject | null>(null);
+    let point1JXG = useRef<JXGPoint | null>(null);
+    let point2JXG = useRef<JXGPoint | null>(null);
+    let point3JXG = useRef<JXGPoint | null>(null);
+    let angleJXG = useRef<JXGAngle | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
 
     const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
-        //On unmount
         return () => {
             deleteGraphicalObject();
         };
     }, []);
 
     function deleteGraphicalObject() {
-        // if angle is defined
         if (point1JXG.current !== null) {
-            board?.removeObject(angleJXG.current);
+            board?.removeObject(angleJXG.current!);
             angleJXG.current = null;
             board?.removeObject(point1JXG.current);
             point1JXG.current = null;
-            board?.removeObject(point2JXG.current);
+            board?.removeObject(point2JXG.current!);
             point2JXG.current = null;
-            board?.removeObject(point3JXG.current);
+            board?.removeObject(point3JXG.current!);
             point3JXG.current = null;
         }
     }
 
-    function createAngleJXG(): JXGObject | null {
+    function createAngleJXG(): JXGAngle | null {
         if (board === null) {
             return null;
         }
 
         if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
+            SVs.numericalPoints.some((x) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             return null;
         }
+
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+        });
 
         var jsxAngleAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
@@ -64,8 +84,9 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
             radius: SVs.numericalRadius,
-            fillColor: SVs.selectedStyle.fillColor,
-            strokeColor: SVs.selectedStyle.lineColor,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
+            strokeColor: resolveLineColor(SVs.selectedStyle, darkMode),
             highlight: false,
             orthoType: SVs.emphasizeRightAngle ? "square" : "sector",
         };
@@ -132,7 +153,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             angleJXG.current = createAngleJXG();
         } else if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
+            SVs.numericalPoints.some((x) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             deleteGraphicalObject();
@@ -173,35 +194,42 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 visible: !SVs.hidden,
             });
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = angleJXG.current.visProp.layer !== layer;
+            syncLayer(angleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
-            if (layerChanged) {
-                angleJXG.current.setAttribute({ layer });
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+            });
+            const angleFillColor = fillAttributes.fillColor;
+            if (angleJXG.current.visProp.fillcolor !== angleFillColor) {
+                angleJXG.current.visProp.fillcolor = angleFillColor;
             }
-
             if (
-                angleJXG.current.visProp.fillcolor !==
-                SVs.selectedStyle.fillColor
+                angleJXG.current.visProp.fillopacity !==
+                fillAttributes.fillOpacity
             ) {
-                angleJXG.current.visProp.fillcolor =
-                    SVs.selectedStyle.fillColor;
+                angleJXG.current.visProp.fillopacity =
+                    fillAttributes.fillOpacity;
             }
-            if (
-                angleJXG.current.visProp.strokecolor !==
-                SVs.selectedStyle.lineColor
-            ) {
-                angleJXG.current.visProp.strokecolor =
-                    SVs.selectedStyle.lineColor;
+            const angleLineColor = resolveLineColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
+            if (angleJXG.current.visProp.strokecolor !== angleLineColor) {
+                angleJXG.current.visProp.strokecolor = angleLineColor;
             }
 
             angleJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                angleJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                angleJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             angleJXG.current.visProp.orthotype = SVs.emphasizeRightAngle
                 ? "square"
@@ -210,7 +238,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             angleJXG.current.needsUpdate = true;
             angleJXG.current.update();
 
-            if (angleJXG.current.hasLabel) {
+            if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
                 angleJXG.current.label.update();
             }

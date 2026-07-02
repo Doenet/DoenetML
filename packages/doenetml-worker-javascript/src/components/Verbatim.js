@@ -4,6 +4,7 @@ import {
 } from "@doenet/utils";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export class Pre extends BlockComponent {
     constructor(args) {
@@ -14,6 +15,10 @@ export class Pre extends BlockComponent {
         });
     }
     static componentType = "pre";
+
+    static componentDocs = {
+        summary: "A preformatted block preserving whitespace",
+    };
     static renderChildren = true;
 
     static includeBlankStringChildren = true;
@@ -29,6 +34,11 @@ export class Pre extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.displayDoenetMLIndices = {
             forRenderer: true,
@@ -79,6 +89,10 @@ export class DisplayDoenetML extends InlineComponent {
     static componentType = "displayDoenetML";
     static rendererType = "text";
 
+    static componentDocs = {
+        summary: "Displays a DoenetML source string verbatim",
+    };
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -125,6 +139,7 @@ export class DisplayDoenetML extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The verbatim text content.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

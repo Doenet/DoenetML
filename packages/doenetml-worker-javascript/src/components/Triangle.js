@@ -2,8 +2,28 @@ import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class Triangle extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            moveTriangleCenter: this.moveTriangleCenter.bind(this),
+        });
+    }
+
     static componentType = "triangle";
+
+    static componentDocs = {
+        summary: "A triangle defined by three vertices",
+    };
     static rendererType = "polygon";
+
+    /**
+     * Delegates to parent Polygon's movePolygonCenter action.
+     * Provides triangle-specific naming for semantic clarity.
+     */
+    get moveTriangleCenter() {
+        return this.movePolygonCenter;
+    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -150,6 +170,7 @@ export default class Triangle extends Polygon {
             };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices (always 3 for a triangle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

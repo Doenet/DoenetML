@@ -123,8 +123,8 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         }
     }
 
-    it("sample five prime numbers up to 20, only maxValue specified", async () => {
-        const doenetML = `<samplePrimeNumbers name="res" numSamples="5" maxValue="20"/>`;
+    it("sample five prime numbers up to 20, only to specified", async () => {
+        const doenetML = `<samplePrimeNumbers name="res" numSamples="5" to="20"/>`;
         const values = [2, 3, 5, 7, 11, 13, 17, 19];
         const valid_values = Array(5).fill(values);
         const componentName = "res";
@@ -138,8 +138,8 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
     });
 
-    it("sample five prime numbers between 50 and 100, only minValue specified", async () => {
-        const doenetML = `<samplePrimeNumbers name="res" numSamples="5" minValue="50"/>`;
+    it("sample five prime numbers between 50 and 100, only from specified", async () => {
+        const doenetML = `<samplePrimeNumbers name="res" numSamples="5" from="50"/>`;
         const values = [53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
         const valid_values = Array(5).fill(values);
         const componentName = "res";
@@ -155,7 +155,7 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
     it("sample fifty prime numbers between 10,000 and 100,0000", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<samplePrimeNumbers name="s" numSamples="50" minValue="10000" maxValue="100000" />`,
+            doenetML: `<samplePrimeNumbers name="s" numSamples="50" from="10000" to="100000" />`,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -186,7 +186,7 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
     });
 
     it("sample fifty prime numbers between 1900 and 2000, excluding 1931, 1979, and 1997", async () => {
-        const doenetML = `<samplePrimeNumbers name="res" numSamples="50" minValue="1900" maxValue="2000" exclude="1931 1979 1997"/>`;
+        const doenetML = `<samplePrimeNumbers name="res" numSamples="50" from="1900" to="2000" exclude="1931 1979 1997"/>`;
         const values = [
             1901, 1907, 1913, 1933, 1949, 1951, 1973, 1987, 1993, 1999,
         ];
@@ -208,14 +208,14 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
     <mathInput prefill="50" name="numSamples"/>
     <mathInput prefill="10" name="maxNum"/>
     <p>
-    <samplePrimeNumbers name="sample1" maxValue="$maxNum" numSamples="$numSamples" />
+    <samplePrimeNumbers name="sample1" to="$maxNum" numSamples="$numSamples" />
     </p>
 
     <mathInput prefill="180" name="numSamples2"/>
     <mathInput prefill="7, 19, 29, 37, 47" name="exclude"/>
     <mathList name="ml_exclude">$exclude</mathList>
     <p>
-    <samplePrimeNumbers name="sample2" exclude="$ml_exclude" maxValue="50" numSamples="$numSamples2" />
+    <samplePrimeNumbers name="sample2" exclude="$ml_exclude" to="50" numSamples="$numSamples2" />
     </p>
     `,
         });
@@ -549,7 +549,7 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
     it("asList", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><samplePrimeNumbers name="s" minValue="175" maxValue="205" numSamples="5" /></p>
+    <p name="p1"><samplePrimeNumbers name="s" from="175" to="205" numSamples="5" /></p>
     <p name="p2"><samplePrimeNumbers extend="$s" name="s2" asList="false" /></p>
     `,
         });
@@ -668,8 +668,8 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
     it(`resample prime numbers`, async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-          <p><samplePrimeNumbers name="spn1" numSamples="2" maxValue="1000" />,
-          <samplePrimeNumbers name="spn2" minValue="1000" maxValue="10000" />
+          <p><samplePrimeNumbers name="spn1" numSamples="2" to="1000" />,
+          <samplePrimeNumbers name="spn2" from="1000" to="10000" />
           </p>
 
           <p>

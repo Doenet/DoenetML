@@ -5,6 +5,9 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class Lorem extends CompositeComponent {
     static componentType = "lorem";
 
+    static componentDocs = {
+        summary: "Generates lorem ipsum placeholder text",
+    };
     static allowInSchemaAsComponent = ["text", "p"];
 
     static createsVariants = true;
@@ -16,6 +19,7 @@ export default class Lorem extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.minSentencesPerParagraph = {
+            description: "Minimum number of sentences per generated paragraph.",
             createComponentOfType: "number",
             createStateVariable: "minSentencesPerParagraph",
             defaultValue: 4,
@@ -23,6 +27,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.maxSentencesPerParagraph = {
+            description: "Maximum number of sentences per generated paragraph.",
             createComponentOfType: "number",
             createStateVariable: "maxSentencesPerParagraph",
             defaultValue: 8,
@@ -30,6 +35,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.minWordsPerSentence = {
+            description: "Minimum number of words per generated sentence.",
             createComponentOfType: "number",
             createStateVariable: "minWordsPerSentence",
             defaultValue: 4,
@@ -37,6 +43,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.maxWordsPerSentence = {
+            description: "Maximum number of words per generated sentence.",
             createComponentOfType: "number",
             createStateVariable: "maxWordsPerSentence",
             defaultValue: 8,
@@ -47,18 +54,21 @@ export default class Lorem extends CompositeComponent {
             createComponentOfType: "number",
             createStateVariable: "generateWords",
             defaultValue: null,
+            description: "Number of words of lorem-ipsum to generate.",
         };
 
         attributes.generateSentences = {
             createComponentOfType: "number",
             createStateVariable: "generateSentences",
             defaultValue: null,
+            description: "Number of sentences of lorem-ipsum to generate.",
         };
 
         attributes.generateParagraphs = {
             createComponentOfType: "number",
             createStateVariable: "generateParagraphs",
             defaultValue: null,
+            description: "Number of paragraphs of lorem-ipsum to generate.",
         };
 
         return attributes;
@@ -152,8 +162,7 @@ export default class Lorem extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         const lorem = new LoremIpsum({
             sentencesPerParagraph: {
@@ -250,8 +259,7 @@ export default class Lorem extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -262,9 +270,7 @@ export default class Lorem extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementResults = await this.createSerializedReplacements({
             component,
@@ -272,8 +278,7 @@ export default class Lorem extends CompositeComponent {
             nComponents,
             workspace,
         });
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementInstruction = {
@@ -284,7 +289,11 @@ export default class Lorem extends CompositeComponent {
             serializedReplacements: replacementResults.replacements,
         };
 
-        return { replacementChanges: [replacementInstruction], nComponents };
+        return {
+            replacementChanges: [replacementInstruction],
+            diagnostics,
+            nComponents,
+        };
     }
 
     static setUpVariant({

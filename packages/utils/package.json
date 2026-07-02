@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -13,6 +13,15 @@
     "exports": {
         ".": {
             "import": "./dist/index.js"
+        },
+        "./diagnostics/renderDiagnosticMarkdownHtml": {
+            "import": "./dist/diagnosticMarkdown.js"
+        },
+        "./markdown/parseInlineMarkdown": {
+            "import": "./dist/parseInlineMarkdown.js"
+        },
+        "./style": {
+            "import": "./dist/style.js"
         }
     },
     "scripts": {
@@ -32,6 +41,7 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ],
@@ -42,12 +52,15 @@
     },
     "dependencies": {
         "color-name": "^1.1.4",
-        "get-contrast": "^3.0.0",
-        "nearest-color": "^0.4.4",
-        "rgb": "^0.1.0"
+        "colord": "^2.9.3",
+        "math-expressions": "^2.0.0-alpha93",
+        "micromark": "^4.0.2",
+        "nearest-color": "^0.4.4"
     },
     "devDependencies": {
         "@types/color-name": "^2.0.0",
-        "@types/nearest-color": "^0.4.1"
+        "@types/nearest-color": "^0.4.1",
+        "@types/sha256": "^0.2.2",
+        "sha256": "^0.2.0"
     }
 }

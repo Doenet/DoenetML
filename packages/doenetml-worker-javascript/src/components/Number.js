@@ -11,10 +11,11 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import {
     textToAst,
     textToMathFactory,
@@ -35,15 +36,19 @@ export default class NumberComponent extends InlineComponent {
     }
     static componentType = "number";
 
+    static componentDocs = {
+        summary: "A numeric floating point value",
+    };
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderAsMath = {
+            description: "Whether to render the number using math typography.",
             createComponentOfType: "boolean",
             createStateVariable: "renderAsMath",
             defaultValue: false,
@@ -54,14 +59,19 @@ export default class NumberComponent extends InlineComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "convertBoolean",
             defaultValue: false,
+            description:
+                "Whether to convert boolean inputs to 1/0 instead of NaN.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
             createStateVariable: "valueOnNaN",
             defaultValue: NaN,
+            description:
+                "Numeric value to use when the input cannot be parsed.",
         };
 
         attributes.draggable = {
+            description: "Whether the number can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -70,6 +80,7 @@ export default class NumberComponent extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -157,7 +168,7 @@ export default class NumberComponent extends InlineComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
             childGroupsToStopSingleMatch: ["strings", "texts", "booleans"],
         });
@@ -394,6 +405,7 @@ export default class NumberComponent extends InlineComponent {
 
         stateVariableDefinitions.value = {
             public: true,
+            description: "The numeric value.",
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
                 // the reason we create a attribute component from the state variable,
@@ -403,7 +415,7 @@ export default class NumberComponent extends InlineComponent {
                     fixed: {
                         stateVariableToShadow: "fixed",
                     },
-                    ...returnRoundingAttributeComponentShadowing(),
+                    ...returnNumberDisplayAttributeComponentShadowing(),
                 },
             },
             hasEssential: true,
@@ -865,6 +877,7 @@ export default class NumberComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The number rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -878,6 +891,10 @@ export default class NumberComponent extends InlineComponent {
                 padZeros: {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
                 },
                 displayDigits: {
                     dependencyType: "stateVariable",
@@ -894,15 +911,13 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
                         text: numberToMathExpression(
@@ -964,10 +979,14 @@ export default class NumberComponent extends InlineComponent {
                 isPublic: true,
             });
 
+        stateVariableDefinitions.math.description =
+            "The number's value as a math expression.";
+
         stateVariableDefinitions.math.shadowingInstructions.addAttributeComponentsShadowingStateVariables =
-            returnRoundingAttributeComponentShadowing();
+            returnNumberDisplayAttributeComponentShadowing();
 
         stateVariableDefinitions.latex = {
+            description: "The number rendered as LaTeX.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
@@ -981,6 +1000,10 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
                 displayDigits: {
                     dependencyType: "stateVariable",
                     variableName: "displayDigits",
@@ -991,15 +1014,13 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
                         latex: numberToMathExpression(
@@ -1075,7 +1096,7 @@ export default class NumberComponent extends InlineComponent {
         {
             stateVariable: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         "text",

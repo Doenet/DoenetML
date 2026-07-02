@@ -1,22 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <term>{:dn}`
+# `<term>{:dn}`
 
+<ComponentDisplay name='term'/>
 
-` <term>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
+`<term>{:dn}` is a [Paragraph Markup](../concepts/essentialConcepts#component-types) 
 component that renders the enclosed text in the emphasized 
 styling associated with a defined vocabulary word.
 
-## Attributes and Properties 
-The ` <term>{:dn}` component does not have any attributes.
- <PropDisplay name='term'/>
+<AttrPropDisplay name='term'/>
 
----
+## Examples
 
-### Example: Using ` <term>{:dn}` to highlight important words
+### Example: Using `<term>{:dn}` to highlight important words
 
 
 ```doenet-editor-horiz
@@ -27,6 +26,6 @@ means the <sq>Distributed Open Education Network</sq>.</p>
 
 
 
-In the example above, ` <term>{:dn}` is used when referring to the word "Doenet", which is associated with a definition.
+In the example above, `<term>{:dn}` is used when referring to the word "Doenet", which is associated with a definition.
 
 

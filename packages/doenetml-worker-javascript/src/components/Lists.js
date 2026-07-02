@@ -12,26 +12,36 @@ export class Ol extends BlockComponent {
         super(args);
 
         Object.assign(this.actions, {
+            submitAllAnswers: this.submitAllAnswers.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
         });
     }
     static componentType = "ol";
+
+    static componentDocs = {
+        summary: "An ordered list",
+    };
     static rendererType = "list";
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // Accepted for backward compatibility but not yet rendered, so hidden
+        // from the schema (docs tables and editor autocomplete).
         attributes.label = {
+            description: "Label rendered before each list item.",
             createComponentOfType: "text",
             createStateVariable: "label",
             defaultValue: null,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
 
         attributes.level = {
             createComponentOfType: "integer",
+            description: "Nesting level of this list (1-based).",
         };
 
         attributes.marker = {
@@ -39,11 +49,20 @@ export class Ol extends BlockComponent {
             createStateVariable: "marker",
             defaultValue: null,
             forRenderer: true,
+            description:
+                "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
         };
 
-        // Silently ignore this for now
+        let scoredSectionAttributes = returnScoredSectionAttributes();
+        Object.assign(attributes, scoredSectionAttributes);
+
+        // Accepted for backward compatibility but currently ignored, so hidden
+        // from the schema (docs tables and editor autocomplete).
         attributes.cols = {
             createComponentOfType: "number",
+            description:
+                "Number of columns to lay items out in (currently ignored).",
+            excludeFromSchema: true,
         };
 
         return attributes;
@@ -64,6 +83,11 @@ export class Ol extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnScoredSectionStateVariableDefinition(),
+        );
 
         stateVariableDefinitions.numbered = {
             forRenderer: true,
@@ -114,6 +138,19 @@ export class Ol extends BlockComponent {
         return stateVariableDefinitions;
     }
 
+    async submitAllAnswers({
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        return submitAllAnswers({
+            component: this,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+
     recordVisibilityChange({ isVisible }) {
         this.coreFunctions.requestRecordEvent({
             verb: "visibilityChanged",
@@ -128,6 +165,10 @@ export class Ol extends BlockComponent {
 
 export class Ul extends Ol {
     static componentType = "ul";
+
+    static componentDocs = {
+        summary: "An unordered list",
+    };
     static rendererType = "list";
 
     static returnStateVariableDefinitions() {
@@ -153,6 +194,10 @@ export class Li extends BaseComponent {
         });
     }
     static componentType = "li";
+
+    static componentDocs = {
+        summary: "A list item within `<ol>` / `<ul>`",
+    };
     static rendererType = "list";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -193,6 +238,7 @@ export class Li extends BaseComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The list's content rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

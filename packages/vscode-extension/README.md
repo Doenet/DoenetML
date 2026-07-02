@@ -39,11 +39,30 @@ button for the currently running process.
 
 #### Packaging the extension
 
--   Make sure the `vsce` is installed (`npm install --global @vscode/vsce`)
--   Update version numbers in `package.json` and `extension/package.json`
--   Rebuild all sources with `npm run build`
--   Run `npm run package`
--   You should then have a new `doenet-vscode-extension-???.vsix` file that you can upload to the vscode extensions store
+Extension packaging and publishing is automated as part of the production release workflow. To manually package for testing:
+
+-   Make sure `npm run build` has been run to build all sources
+-   Run `npm run package` from the `packages/vscode-extension` directory
+-   You will have a new `doenet-vscode-extension-???.vsix` file that you can test locally
+
+#### Publishing the extension
+
+The production release workflow automatically publishes to the VS Code Marketplace after npm packages are published.
+
+If the extension publish step fails (e.g., token expiration, transient network issues):
+
+1. The npm packages will still be published, but the workflow will fail.
+2. Once the issue is resolved (e.g., PAT refreshed, network restored), manually republish:
+   ```bash
+   npm run publish -w packages/vscode-extension
+   ```
+3. Ensure `VSCE_PAT` environment variable is set to your Azure DevOps Personal Access Token.
+
+For permanent PAT rotation:
+
+1. Extension owner generates a new token via [dev.azure.com](https://dev.azure.com)
+2. Org admin updates the `VSCE_PAT` GitHub Actions secret
+3. Next production release will use the new token
 
 #### Updating the screencast
 

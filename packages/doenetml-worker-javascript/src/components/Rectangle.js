@@ -1,22 +1,73 @@
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class Rectangle extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            changeWidth: this.changeWidth.bind(this),
+            changeHeight: this.changeHeight.bind(this),
+            movePolygon: this.movePolygon.bind(this),
+            moveRectangleCenter: this.moveRectangleCenter.bind(this),
+        });
+    }
     static componentType = "rectangle";
+
+    static componentDocs = {
+        summary:
+            "A rectangle, potentially defined by width, height, center and/or corner vertices",
+    };
     static rendererType = "polygon";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.addControls = {
+            description: "Whether to render interactive control handles.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerWidthAndHeight",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a single control handle for moving the rectangle's center.",
+                },
+                {
+                    value: "widthAndHeight",
+                    description:
+                        "Show control handles for resizing width and height.",
+                },
+                {
+                    value: "centerWidthAndHeight",
+                    description:
+                        "Show control handles for both moving the center and resizing.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
+            valueForTrue: "centerWidthAndHeight",
+            valueForFalse: "none",
+        };
+
         attributes.center = {
             createComponentOfType: "point",
+            description: "The rectangle's center point.",
         };
         attributes.width = {
             createComponentOfType: "number",
+            description: "The rectangle's width.",
         };
         attributes.height = {
             createComponentOfType: "number",
+            description: "The rectangle's height.",
         };
 
         return attributes;
@@ -359,6 +410,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.center = {
+            description: "The rectangle's center coordinates.",
             public: true,
             isLocation: true,
             isArray: true,
@@ -366,7 +418,7 @@ export default class Rectangle extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "centerX") {
                         return [];
@@ -469,12 +521,13 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.width = {
+            description: "The rectangle's width.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
 
             returnDependencies() {
@@ -532,12 +585,13 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.height = {
+            description: "The rectangle's height.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
 
             returnDependencies() {
@@ -597,11 +651,12 @@ export default class Rectangle extends Polygon {
 
         stateVariableDefinitions.vertices = {
             public: true,
+            description: "The four corner vertices of the rectangle.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "vertexX") {
                         return [];
@@ -1393,6 +1448,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices (always 4 for a rectangle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1403,6 +1459,195 @@ export default class Rectangle extends Polygon {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async moveRectangleCenter({
+        center,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+        pointRole = "rectangle",
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "rectangle") {
+            console.warn(`Invalid pointRole for rectangle: ${pointRole}`);
+            return;
+        }
+
+        // Center must be 2D for rectangle
+        if (!Array.isArray(center) || center.length !== 2) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.draggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "center",
+                value: center.map((x) => me.fromAst(x)),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    center,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeWidth({
+        width,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(width)) {
+            console.warn(`Invalid width for rectangle change: width=${width}`);
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "width",
+                value: Math.max(0, width),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    width,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeHeight({
+        height,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(height)) {
+            console.warn(
+                `Invalid height for rectangle change: height=${height}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "height",
+                value: Math.max(0, height),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    height,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
     }
 
     async movePolygon({

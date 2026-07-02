@@ -163,8 +163,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     stateIdInfo,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
-    let errors = [];
-    let warnings = [];
+    let diagnostics = [];
 
     if (
         !component.attributes.createComponentOfType?.primitive &&
@@ -173,8 +172,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         return {
             replacements,
             replacementChanges,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -231,8 +229,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             // Note: use `originalReplacements` as may have modified `replacements`, above.
             replacements: originalReplacements,
             replacementChanges,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -304,8 +301,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             return {
                 replacements,
                 replacementChanges,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         } else if (
@@ -356,8 +352,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             return {
                 replacements,
                 replacementChanges,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -555,7 +550,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
     }
 
-    return { replacements, replacementChanges, errors, warnings, nComponents };
+    return { replacements, replacementChanges, diagnostics, nComponents };
 }
 
 export function calculateReplacementTypesFromChanges(
@@ -770,4 +765,106 @@ export function addAttributesToSingleReplacementChange(
             }
         }
     }
+}
+
+/**
+ * When a Copy/Ref with no explicit prop is a descendant of its own source
+ * component (a self-referential copy), serializing the source throws. In a
+ * recognized rendering context we fall back to the source's `value` state
+ * variable instead of showing an error — but only when `value` is typed as
+ * `math` or `text` (or a component that inherits from one of those).
+ *
+ * The recognized contexts are any ancestor that inherits from:
+ * label, text, math, m, md, boolean, number, mathList, numberList,
+ * textList, or booleanList.
+ *
+ * Transparent composites (treatAsComponentForRecursiveReplacements, e.g.
+ * <group>) are walked through; any other ancestor type stops the search.
+ *
+ * Returns `"value"` if the fallback applies, otherwise `undefined`.
+ */
+export function getSelfReferentialFallbackPropName({
+    componentAncestors,
+    componentInfoObjects,
+    replacementSourceComponentType,
+}) {
+    // Determine whether we're inside a recognized rendering context.
+    let inRecognizedContext = false;
+    for (const ancestor of componentAncestors) {
+        const ancestorClass = ancestor.componentClass;
+        const ancestorType = ancestorClass.componentType;
+        if (
+            [
+                "label",
+                "text",
+                "math",
+                "m",
+                "md",
+                "boolean",
+                "number",
+                "mathList",
+                "numberList",
+                "textList",
+                "booleanList",
+            ].some((base) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: ancestorType,
+                    baseComponentType: base,
+                }),
+            )
+        ) {
+            inRecognizedContext = true;
+            break;
+        }
+        // Only continue through transparent composites (e.g. <group>).
+        if (!ancestorClass.treatAsComponentForRecursiveReplacements) {
+            break;
+        }
+    }
+
+    if (!inRecognizedContext) {
+        return undefined;
+    }
+
+    // Look up the `value` state variable on the source component.
+    // `value` may be a direct public var or an alias to another var.
+    const publicVarInfo =
+        componentInfoObjects.publicStateVariableInfo[
+            replacementSourceComponentType
+        ];
+    if (!publicVarInfo) {
+        return undefined;
+    }
+
+    // Resolve alias if needed: Point's `value` aliases `coords`, etc.
+    let valueType =
+        publicVarInfo.stateVariableDescriptions?.value?.createComponentOfType;
+    if (valueType === undefined && publicVarInfo.aliases?.value) {
+        const aliasTarget = publicVarInfo.aliases.value.target;
+        valueType =
+            publicVarInfo.stateVariableDescriptions?.[aliasTarget]
+                ?.createComponentOfType;
+    }
+
+    if (!valueType) {
+        return undefined;
+    }
+
+    // Use `value` only when it is math- or text-typed (including subtypes like
+    // coords, which inherits from math). Math and text can adapt to each other,
+    // so no context-specific preference is needed.
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: valueType,
+            baseComponentType: "math",
+        }) ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: valueType,
+            baseComponentType: "text",
+        })
+    ) {
+        return "value";
+    }
+
+    return undefined;
 }

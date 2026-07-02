@@ -1,12 +1,11 @@
 import {
     DastElement,
-    DastElementV6,
-    DastMacroV6,
+    DastMacro,
+    DastMacroPathPart,
     DastRoot,
-    DastRootV6,
     toXml,
 } from "@doenet/parser";
-import { DoenetSourceObject, RowCol, isOldMacro } from "../index";
+import { DoenetSourceObject, RowCol } from "../index";
 import { AccessList } from "../initializers";
 
 /**
@@ -18,12 +17,12 @@ import { AccessList } from "../initializers";
 export function getMacroReferentAtOffset(
     this: DoenetSourceObject,
     offset: number | RowCol,
-    macro: DastMacroV6,
+    macro: DastMacro,
 ) {
-    if (isOldMacro(macro)) {
-        throw new Error(`Cannot resolve v0.6 style macro "${toXml(macro)}"`);
+    const [pathPart, ...restPath] = macro.path;
+    if (!pathPart) {
+        return null;
     }
-    let pathPart = macro.path[0];
     if (pathPart.index.length > 0) {
         throw new Error(
             `The first part of a macro path must be just a name without an index. Failed to resolve "${toXml(
@@ -36,40 +35,38 @@ export function getMacroReferentAtOffset(
     if (!referent) {
         return null;
     }
-    // If there are no ".foo" accesses, the referent gets returned.
-    if (!macro.accessedProp) {
+    // If there are no member accesses, the referent gets returned.
+    if (restPath.length === 0) {
         return {
             node: referent,
-            accessedProp: null,
+            unresolvedPath: [] as DastMacroPathPart[],
         };
     }
-    // Otherwise, we walk down the tree trying to
-    // resolve whatever `accessedProp` refers to until we find something
-    // that doesn't exist.
-    let prop: DastMacroV6 | null = macro.accessedProp;
-    let propReferent: DastElementV6 | null = referent;
-    while (prop) {
-        if (prop.path[0].index.length > 0) {
+    // Otherwise, walk down member path until unresolved.
+    let currReferent = referent;
+    for (let i = 0; i < restPath.length; i++) {
+        const part = restPath[i];
+        if (part.index.length > 0) {
             // Indexing can only be used on synthetic nodes.
             return {
                 node: referent,
-                accessedProp: prop,
+                unresolvedPath: restPath.slice(i),
             };
         }
-        propReferent = this.getNamedDescendent(referent, prop.path[0].name);
+        const propReferent = this.getNamedDescendant(currReferent, part.name);
         if (!propReferent) {
             return {
                 node: referent,
-                accessedProp: prop,
+                unresolvedPath: restPath.slice(i),
             };
         }
         // Step down one level
         referent = propReferent;
-        prop = prop.accessedProp;
+        currReferent = propReferent;
     }
     return {
         node: referent,
-        accessedProp: null,
+        unresolvedPath: [] as DastMacroPathPart[],
     };
 }
 
@@ -83,15 +80,15 @@ export function getAddressableNamesAtOffset(
 ) {
     const currElement =
         this.elementAtOffsetWithContext(offset).node || this.dast;
-    const descendentNamesMap = this._descendentNamesMap();
+    const descendantNamesMap = this._descendantNamesMap();
 
     const addressableChildren = getMacroAddressableChildrenAtElement(
         currElement,
-        descendentNamesMap,
+        descendantNamesMap,
     );
     const parents = this.getParents(currElement);
     const addressableParents = parents.map((ancestor) =>
-        getMacroAddressableChildrenAtElement(ancestor, descendentNamesMap),
+        getMacroAddressableChildrenAtElement(ancestor, descendantNamesMap),
     );
 
     return mergeLeftUniquePrefixes(addressableChildren, addressableParents);
@@ -103,10 +100,10 @@ export function getAddressableNamesAtOffset(
  * ensures that addresses are unique.
  */
 export function getMacroAddressableChildrenAtElement(
-    currElement: DastElementV6 | DastRootV6,
-    descendentNamesMap: Map<DastElementV6 | DastRootV6, AccessList>,
+    currElement: DastElement | DastRoot,
+    descendantNamesMap: Map<DastElement | DastRoot, AccessList>,
 ): string[][] {
-    const accessList = descendentNamesMap.get(currElement);
+    const accessList = descendantNamesMap.get(currElement);
     if (!accessList) {
         throw new Error(
             `Expected accessList to be defined for ${
@@ -128,7 +125,7 @@ export function getMacroAddressableChildrenAtElement(
     )) {
         const childNames = getMacroAddressableChildrenAtElement(
             element,
-            descendentNamesMap,
+            descendantNamesMap,
         );
         ret.push(...childNames.map((childName) => [name, ...childName]));
     }

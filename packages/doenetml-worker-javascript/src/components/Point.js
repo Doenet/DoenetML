@@ -8,15 +8,17 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { roundForDisplay } from "../utils/math";
 import {
     returnConstraintDefinitions,
     returnStickyGroupDefinitions,
 } from "../utils/constraints";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -30,7 +32,12 @@ export default class Point extends GraphicalComponent {
         });
     }
     static componentType = "point";
+    static styleOverrideCategories = ["marker"];
 
+    static componentDocs = {
+        summary:
+            "A point with coordinates that can be displayed and dragged on a graph",
+    };
     static canBeInList = true;
 
     // Note: for other components with public point state variables,
@@ -48,6 +55,7 @@ export default class Point extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.draggable = {
+            description: "Whether the point can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -57,42 +65,79 @@ export default class Point extends GraphicalComponent {
 
         attributes.x = {
             createComponentOfType: "math",
+            description: "The first coordinate (x) of the point.",
         };
         attributes.y = {
             createComponentOfType: "math",
+            description: "The second coordinate (y) of the point.",
         };
         attributes.z = {
             createComponentOfType: "math",
+            description: "The third coordinate (z) of the point.",
         };
         attributes.xs = {
             createComponentOfType: "mathList",
+            description: "The point's coordinates as a list.",
         };
         attributes.coords = {
             createComponentOfType: "coords",
+            description: "The point's coordinates as a single math expression.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.labelPosition = {
+            description: "Position of the point's label.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "upperright",
+            defaultValue: "upperRight",
             public: true,
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
-                "top",
-                "bottom",
-                "left",
-                "right",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the label above and to the right of the point.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the label above and to the left of the point.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the label below and to the right of the point.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the label below and to the left of the point.",
+                },
+                {
+                    value: "top",
+                    description: "Place the label directly above the point.",
+                },
+                {
+                    value: "bottom",
+                    description: "Place the label directly below the point.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the label directly to the left of the point.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the label directly to the right of the point.",
+                },
             ],
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -100,9 +145,50 @@ export default class Point extends GraphicalComponent {
             forRenderer: true,
         };
 
+        attributes.addControls = {
+            description: "Whether to render interactive control handles.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "both",
+            public: true,
+            toLowerCase: true,
+            valueForTrue: "both",
+            valueForFalse: "none",
+            // Note: validValues are declared in camelCase for autocomplete/validation purposes,
+            // but toLowerCase: true ensures stored values are always lowercase at runtime.
+            // The preprocessAttributesObject() utility lowercases all defined validValues values,
+            // so both the source declaration (camelCase) and stored value (lowercase) coexist.
+            // Code comparisons should use lowercase "xonly", "yonly", etc.
+            validValues: [
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+                {
+                    value: "both",
+                    description:
+                        "Show control handles for moving the point in both x and y.",
+                },
+                {
+                    value: "xOnly",
+                    description:
+                        "Show a control handle that constrains motion to the x direction.",
+                },
+                {
+                    value: "yOnly",
+                    description:
+                        "Show a control handle that constrains motion to the y direction.",
+                },
+            ],
+        };
+
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the point is off-screen.",
         };
+
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }
@@ -326,7 +412,7 @@ export default class Point extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         Object.assign(
@@ -341,6 +427,7 @@ export default class Point extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the point's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -374,6 +461,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "point".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -430,6 +518,8 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.hideOffGraphIndicator = {
+            description:
+                "Whether to suppress the off-graph indicator when out of view.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -507,6 +597,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of the point.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -633,6 +724,8 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.numDimensionsForConstraints = {
             isAlias: true,
             targetVariableName: "numDimensions",
+            description:
+                "Number of dimensions exposed to constraint computations (alias for numDimensions).",
         };
 
         stateVariableDefinitions.unconstrainedXs = {
@@ -905,12 +998,13 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.xs = {
+            description: "The point's coordinates as a list.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             isArray: true,
             entryPrefixes: ["x"],
@@ -1031,25 +1125,29 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.x = {
             isAlias: true,
             targetVariableName: "x1",
+            description: "The first coordinate (x) of the point.",
         };
 
         stateVariableDefinitions.y = {
             isAlias: true,
             targetVariableName: "x2",
+            description: "The second coordinate (y) of the point.",
         };
 
         stateVariableDefinitions.z = {
             isAlias: true,
             targetVariableName: "x3",
+            description: "The third coordinate (z) of the point.",
         };
 
         stateVariableDefinitions.coords = {
+            description: "The point's coordinates as a math expression.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "coords",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 xs: {
@@ -1129,6 +1227,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The point rendered as a LaTeX string.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -1155,17 +1254,19 @@ export default class Point extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.coords,
                     dependencyValues,
@@ -1179,6 +1280,7 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "coords",
+            description: "The point's coordinates as a single math expression.",
         };
 
         stateVariableDefinitions.numericalXs = {
@@ -1302,7 +1404,7 @@ export default class Point extends GraphicalComponent {
         {
             stateVariable: "coords",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },
@@ -1313,10 +1415,18 @@ export default class Point extends GraphicalComponent {
         y,
         z,
         transient,
+        skippable,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "point",
     }) {
+        if (pointRole !== "point") {
+            console.warn(`Invalid pointRole: ${pointRole}`);
+            return;
+        }
+
         let components = {};
         if (x !== undefined) {
             components[0] = me.fromAst(x);
@@ -1335,9 +1445,11 @@ export default class Point extends GraphicalComponent {
                         componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
+                        sourceDetails,
                     },
                 ],
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1350,6 +1462,7 @@ export default class Point extends GraphicalComponent {
                         componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
+                        sourceDetails,
                     },
                 ],
                 actionId,

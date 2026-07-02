@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { getDiagnosticsByType } from "../../support/diagnostics";
 
 describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
@@ -1832,9 +1833,9 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#n1")).should("have.text", "1");
-        cy.get(cesc("#n2")).should("have.text", "2");
-        cy.get(cesc("#n3")).should("have.text", "3");
+        cy.get("#n1").should("have.text", "1");
+        cy.get("#n2").should("have.text", "2");
+        cy.get("#n3").should("have.text", "3");
         cy.get(cesc("#c2.n1")).should("have.text", "1");
         cy.get(cesc("#c2.n2")).should("have.text", "2");
         cy.get(cesc("#c2.n3")).should("have.text", "3");
@@ -1876,27 +1877,27 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get("#b").click();
-        cy.get(cesc("#n1")).should("have.text", "2");
+        cy.get("#n1").should("have.text", "2");
         cy.get(cesc("#c2.n1")).should("have.text", "2");
-        cy.get(cesc("#n1")).should("have.text", "3");
+        cy.get("#n1").should("have.text", "3");
         cy.get(cesc("#c2.n1")).should("have.text", "3");
-        cy.get(cesc("#n1")).should("have.text", "4");
+        cy.get("#n1").should("have.text", "4");
         cy.get(cesc("#c2.n1")).should("have.text", "4");
-        cy.get(cesc("#n1")).should("have.text", "5");
+        cy.get("#n1").should("have.text", "5");
         cy.get(cesc("#c2.n1")).should("have.text", "5");
-        cy.get(cesc("#n1")).should("have.text", "6");
+        cy.get("#n1").should("have.text", "6");
         cy.get(cesc("#c2.n1")).should("have.text", "6");
-        cy.get(cesc("#n1")).should("have.text", "7");
+        cy.get("#n1").should("have.text", "7");
         cy.get(cesc("#c2.n1")).should("have.text", "7");
-        cy.get(cesc("#n1")).should("have.text", "8");
+        cy.get("#n1").should("have.text", "8");
         cy.get(cesc("#c2.n1")).should("have.text", "8");
-        cy.get(cesc("#n1")).should("have.text", "9");
+        cy.get("#n1").should("have.text", "9");
         cy.get(cesc("#c2.n1")).should("have.text", "9");
-        cy.get(cesc("#n1")).should("have.text", "10");
+        cy.get("#n1").should("have.text", "10");
         cy.get(cesc("#c2.n1")).should("have.text", "10");
-        cy.get(cesc("#n1")).should("have.text", "1");
+        cy.get("#n1").should("have.text", "1");
         cy.get(cesc("#c2.n1")).should("have.text", "1");
-        cy.get(cesc("#n1")).should("have.text", "2");
+        cy.get("#n1").should("have.text", "2");
         cy.get(cesc("#c2.n1")).should("have.text", "2");
 
         cy.get("#b").click();
@@ -1912,7 +1913,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         );
 
         // should stop at 2 or 3
-        cy.get(cesc("#n1")).contains(/2|3/);
+        cy.get("#n1").contains(/2|3/);
 
         let lastValue1;
 
@@ -1952,9 +1953,9 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", "2");
-            cy.get(cesc("#n3")).should("have.text", "3");
+            cy.get("#n1").should("have.text", `${lastValue1}`);
+            cy.get("#n2").should("have.text", "2");
+            cy.get("#n3").should("have.text", "3");
             cy.get(cesc("#c2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", "2");
             cy.get(cesc("#c2.n3")).should("have.text", "3");
@@ -1967,17 +1968,17 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get("#b").click();
-        cy.get(cesc("#n2")).should("have.text", "3");
+        cy.get("#n2").should("have.text", "3");
         cy.get(cesc("#c2.n2")).should("have.text", "3");
-        cy.get(cesc("#n2")).should("have.text", "4");
+        cy.get("#n2").should("have.text", "4");
         cy.get(cesc("#c2.n2")).should("have.text", "4");
-        cy.get(cesc("#n2")).should("have.text", "5");
+        cy.get("#n2").should("have.text", "5");
         cy.get(cesc("#c2.n2")).should("have.text", "5");
-        cy.get(cesc("#n2")).should("have.text", "6");
+        cy.get("#n2").should("have.text", "6");
         cy.get(cesc("#c2.n2")).should("have.text", "6");
-        cy.get(cesc("#n2")).should("have.text", "7");
+        cy.get("#n2").should("have.text", "7");
         cy.get(cesc("#c2.n2")).should("have.text", "7");
-        cy.get(cesc("#n2")).should("have.text", "8");
+        cy.get("#n2").should("have.text", "8");
         cy.get(cesc("#c2.n2")).should("have.text", "8");
 
         cy.get("#b").click();
@@ -1993,7 +1994,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         );
 
         // should stop at 9 or 0
-        cy.get(cesc("#n2")).contains(/8|9/);
+        cy.get("#n2").contains(/8|9/);
 
         let lastValue2;
 
@@ -2033,9 +2034,9 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", `${lastValue2}`);
-            cy.get(cesc("#n3")).should("have.text", "3");
+            cy.get("#n1").should("have.text", `${lastValue1}`);
+            cy.get("#n2").should("have.text", `${lastValue2}`);
+            cy.get("#n3").should("have.text", "3");
             cy.get(cesc("#c2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", `${lastValue2}`);
             cy.get(cesc("#c2.n3")).should("have.text", "3");
@@ -2044,22 +2045,22 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         cy.log("Switch to animate index 3 while animating");
 
         cy.get("#b").click();
-        cy.get(cesc("#n2")).should("have.text", "10");
+        cy.get("#n2").should("have.text", "10");
         cy.get(cesc("#c2.n2")).should("have.text", "10");
-        cy.get(cesc("#n2")).should("have.text", "1");
+        cy.get("#n2").should("have.text", "1");
         cy.get(cesc("#c2.n2")).should("have.text", "1");
 
         cy.get("#ind" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#n3")).should("have.text", "4");
+        cy.get("#n3").should("have.text", "4");
         cy.get(cesc("#c2.n3")).should("have.text", "4");
-        cy.get(cesc("#n3")).should("have.text", "5");
+        cy.get("#n3").should("have.text", "5");
         cy.get(cesc("#c2.n3")).should("have.text", "5");
-        cy.get(cesc("#n3")).should("have.text", "6");
+        cy.get("#n3").should("have.text", "6");
         cy.get(cesc("#c2.n3")).should("have.text", "6");
-        cy.get(cesc("#n3")).should("have.text", "7");
+        cy.get("#n3").should("have.text", "7");
         cy.get(cesc("#c2.n3")).should("have.text", "7");
 
         cy.get("#b").click();
@@ -2075,10 +2076,10 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         );
 
         // should stop at 7 or 8
-        cy.get(cesc("#n3")).contains(/7|8/);
+        cy.get("#n3").contains(/7|8/);
 
         // previous should have stopped at 1 or 2
-        cy.get(cesc("#n2")).contains(/1|2/);
+        cy.get("#n2").contains(/1|2/);
 
         let lastValue3;
 
@@ -2118,9 +2119,9 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", `${lastValue2}`);
-            cy.get(cesc("#n3")).should("have.text", `${lastValue3}`);
+            cy.get("#n1").should("have.text", `${lastValue1}`);
+            cy.get("#n2").should("have.text", `${lastValue2}`);
+            cy.get("#n3").should("have.text", `${lastValue3}`);
             cy.get(cesc("#c2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", `${lastValue2}`);
             cy.get(cesc("#c2.n3")).should("have.text", `${lastValue3}`);
@@ -2155,7 +2156,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get(cesc("#p1.n1")).should("have.text", "1");
-        cy.get(cesc("#n2")).should("have.text", "2");
+        cy.get("#n2").should("have.text", "2");
         cy.get(cesc("#p2.n1")).should("have.text", "3");
         cy.get(cesc("#c2.p1.n1")).should("have.text", "1");
         cy.get(cesc("#c2.n2")).should("have.text", "2");
@@ -2281,7 +2282,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
             ).eq(false);
 
             cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", "2");
+            cy.get("#n2").should("have.text", "2");
             cy.get(cesc("#p2.n1")).should("have.text", "3");
             cy.get(cesc("#c2.p1.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", "2");
@@ -2291,17 +2292,17 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         cy.log("Animate second number");
 
         cy.get(cesc(`#b2`)).click();
-        cy.get(cesc("#n2")).should("have.text", "3");
+        cy.get("#n2").should("have.text", "3");
         cy.get(cesc("#c2.n2")).should("have.text", "3");
-        cy.get(cesc("#n2")).should("have.text", "4");
+        cy.get("#n2").should("have.text", "4");
         cy.get(cesc("#c2.n2")).should("have.text", "4");
-        cy.get(cesc("#n2")).should("have.text", "5");
+        cy.get("#n2").should("have.text", "5");
         cy.get(cesc("#c2.n2")).should("have.text", "5");
-        cy.get(cesc("#n2")).should("have.text", "6");
+        cy.get("#n2").should("have.text", "6");
         cy.get(cesc("#c2.n2")).should("have.text", "6");
-        cy.get(cesc("#n2")).should("have.text", "7");
+        cy.get("#n2").should("have.text", "7");
         cy.get(cesc("#c2.n2")).should("have.text", "7");
-        cy.get(cesc("#n2")).should("have.text", "8");
+        cy.get("#n2").should("have.text", "8");
         cy.get(cesc("#c2.n2")).should("have.text", "8");
 
         cy.get(cesc(`#b2`)).click();
@@ -2317,7 +2318,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         );
 
         // should stop at 9 or 0
-        cy.get(cesc("#n2")).contains(/8|9/);
+        cy.get("#n2").contains(/8|9/);
 
         let lastValue2;
 
@@ -2360,7 +2361,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
             ).eq(false);
 
             cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", `${lastValue2}`);
+            cy.get("#n2").should("have.text", `${lastValue2}`);
             cy.get(cesc("#p2.n1")).should("have.text", "3");
             cy.get(cesc("#c2.p1.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", `${lastValue2}`);
@@ -2439,7 +2440,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
             ).eq(false);
 
             cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#n2")).should("have.text", `${lastValue2}`);
+            cy.get("#n2").should("have.text", `${lastValue2}`);
             cy.get(cesc("#p2.n1")).should("have.text", `${lastValue3}`);
             cy.get(cesc("#c2.p1.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#c2.n2")).should("have.text", `${lastValue2}`);
@@ -2954,34 +2955,36 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#b").should("have.text", "true");
 
         cy.window().then(async (win) => {
-            let errorWarnings = win.returnErrorWarnings1();
-
-            expect(errorWarnings.errors.length).eq(0);
-            expect(errorWarnings.warnings.length).eq(3);
-
-            expect(errorWarnings.warnings[0].message).contain(
-                'Invalid target for <animateFromSequence>: cannot find a state variable named "invalid" on a <number>',
+            let diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
             );
-            expect(errorWarnings.warnings[0].position.start.line).eq(5);
-            expect(errorWarnings.warnings[0].position.start.column).eq(3);
-            expect(errorWarnings.warnings[0].position.end.line).eq(5);
-            expect(errorWarnings.warnings[0].position.end.column).eq(65);
 
-            expect(errorWarnings.warnings[1].message).contain(
-                'Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <p>',
-            );
-            expect(errorWarnings.warnings[1].position.start.line).eq(6);
-            expect(errorWarnings.warnings[1].position.start.column).eq(3);
-            expect(errorWarnings.warnings[1].position.end.line).eq(6);
-            expect(errorWarnings.warnings[1].position.end.column).eq(57);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(3);
 
-            expect(errorWarnings.warnings[2].message).contain(
-                "Invalid target for <animateFromSequence>: cannot find target",
+            expect(diagnosticsByType.warnings[0].message).contain(
+                'Invalid target for `<animateFromSequence>`: cannot find a state variable named "invalid" on a `<number>`',
             );
-            expect(errorWarnings.warnings[2].position.start.line).eq(7);
-            expect(errorWarnings.warnings[2].position.start.column).eq(3);
-            expect(errorWarnings.warnings[2].position.end.line).eq(7);
-            expect(errorWarnings.warnings[2].position.end.column).eq(71);
+            expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
+            expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
+            expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
+            expect(diagnosticsByType.warnings[0].position.end.column).eq(65);
+
+            expect(diagnosticsByType.warnings[1].message).contain(
+                'Invalid target for `<animateFromSequence>`: cannot find a state variable named "value" on a `<p>`',
+            );
+            expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
+            expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
+            expect(diagnosticsByType.warnings[1].position.end.line).eq(6);
+            expect(diagnosticsByType.warnings[1].position.end.column).eq(57);
+
+            expect(diagnosticsByType.warnings[2].message).contain(
+                "Invalid target for `<animateFromSequence>`: cannot find target",
+            );
+            expect(diagnosticsByType.warnings[2].position.start.line).eq(7);
+            expect(diagnosticsByType.warnings[2].position.start.column).eq(3);
+            expect(diagnosticsByType.warnings[2].position.end.line).eq(7);
+            expect(diagnosticsByType.warnings[2].position.end.column).eq(71);
         });
     });
 

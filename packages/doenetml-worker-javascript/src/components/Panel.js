@@ -2,6 +2,10 @@ import InlineComponent from "./abstract/InlineComponent";
 
 export default class Panel extends InlineComponent {
     static componentType = "panel";
+
+    static componentDocs = {
+        summary: "A bordered panel containing arbitrary content.",
+    };
     static rendererType = "containerInline";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -11,6 +15,7 @@ export default class Panel extends InlineComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.columns = {
+            description: "Number of columns to lay out children in.",
             createComponentOfType: "text",
             createStateVariable: "columns",
             defaultValue: null,

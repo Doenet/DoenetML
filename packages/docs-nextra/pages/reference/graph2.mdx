@@ -4,23 +4,21 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-# ` <graph>{:dn}`
+# `<graph>{:dn}`
 
 
-## Examples Page 2
+## Attribute Examples
 
-
----
-
-### Attribute Example: description, decorative
+### Attribute Example: shortDescription, decorative
 
 
 ```doenet-editor-horiz
-<p>A graph without a description or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
+<p>A graph without a shortDescription or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
 <graph name="deficientGraph">
+  <shortDescription>An empty graph used to illustrate a missing description warning</shortDescription>
 </graph>
 
-<p>In general, each graph should have a description attribute set to a textual description of the graph contents.</p>
+<p>In general, each graph should have a shortDescription set to a textual description of the graph contents.</p>
 <graph>
   <shortDescription>A graph of the unit circle</shortDescription>
   <circle fixed />
@@ -28,10 +26,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 <p>If for some reason, a graph is just present for decoration or contains no content that a user of a screen reader needs to be aware of, 
 the attribute decorative should be added to the graph.</p>
-<graph decorative />
+<graph decorative>
+  <shortDescription>An empty decorative graph</shortDescription>
+</graph>
 ```
 
-Typically the `description` attribute should be specified for each ` <graph>{:dn}`.
+Typically a `<shortDescription>{:dn}` should be specified for each `<graph>{:dn}`.
 In special cases, the `decorative` attribute could be specified instead to indicate it can be ignored by screen readers.
 
 
@@ -57,7 +57,7 @@ In special cases, the `decorative` attribute could be specified instead to indic
 
 
 
-When the `identicalAxisScales` attribute is used, the overall proportions of the ` <graph>{:dn}` will be proportional to the range of the $x$ and $y$ axes, and the grid will be perfectly square.
+When the `identicalAxisScales` attribute is used, the overall proportions of the `<graph>{:dn}` will be proportional to the range of the $x$ and $y$ axes, and the grid will be perfectly square.
 
 
 
@@ -87,6 +87,37 @@ to `true` or `false`.
 
 ---
 
+### Attribute Example: displayXAxisTicks, displayYAxisTicks
+
+
+```doenet-example
+<graph 
+  name="g" 
+  displayXAxisTicks="false" 
+  displayYAxisTicks="false" 
+  size="small"
+  >
+    <shortDescription>A graph without axis tick marks</shortDescription>
+    <point/>
+    <line>y = x</line>
+</graph>
+```
+
+
+
+Use the `displayXAxisTicks` and `displayYAxisTicks` attributes to set 
+rendering of the axes tick marks to `true` or `false`.
+
+If `displayXAxisTickLabels` or `displayYAxisTickLabels` is not specified,
+then the corresponding tick-label setting inherits from the matching tick
+visibility setting. For example, if `displayXAxisTicks="false"` and
+`displayXAxisTickLabels` is omitted, then the x-axis tick labels are also
+hidden.
+
+
+
+---
+
 ### Attribute Example: displayXAxisTickLabels, displayYAxisTickLabels
 
 
@@ -107,6 +138,10 @@ to `true` or `false`.
 
 Use the `displayXAxisTickLabels` and `displayYAxisTickLabels` attributes to set 
 rendering of the axes tick labels to `true` or `false`.
+
+If either tick-label attribute is specified explicitly, it overrides the
+corresponding tick-visibility setting. This means you can independently show or
+hide tick marks and tick labels on each axis.
 
 
 
@@ -208,7 +243,7 @@ multiplier to the $x$-axis and the $y$-axis, respectively.
 
 
 
-The `showNavigation` attribute controls whether the default zooming controls at the bottom of the ` <graph>{:dn}` are visible.
+The `showNavigation` attribute controls whether the default zooming controls at the bottom of the `<graph>{:dn}` are visible.
 Even when the controls are not shown, the graph can still be panned by dragging it or zoomed by holding down Shift while scrolling.
 By default, `showNavigation` is set to `true`.
 
@@ -225,7 +260,7 @@ By default, `showNavigation` is set to `true`.
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" fixAxes="false" link="false">
+<graph copy="$g" fixAxes="false" >
   <shortDescription>A graph without the axes fixed (the default)</shortDescription>
 </graph>
 ```
@@ -233,7 +268,7 @@ By default, `showNavigation` is set to `true`.
 
 
 If the `fixAxes` attribute is set to `true`, the user cannot zoom in and 
-out of the ` <graph>{:dn}` or pan the graph from side to side. The navigation buttons at the base of the graph 
+out of the `<graph>{:dn}` or pan the graph from side to side. The navigation buttons at the base of the graph 
 will also not appear. By default, `fixAxes` is set to `false`.
 
 
@@ -274,7 +309,7 @@ will also not appear. By default, `fixAxes` is set to `false`.
 The `grid` attribute specifies the spacing of the gridlines. Valid values are `none`, `medium`, `dense`, 
 and `a b` (where a is the x-axis spacing and b is the y-axis spacing).
 
-The default ` <graph>{:dn}` does not show a grid; however, if only `grid` is specified, 
+The default `<graph>{:dn}` does not show a grid; however, if only `grid` is specified, 
 then a default medium grid is shown.
 
 Unless the `grid="a b"` specification is used, all grid spacings adapt to the scale of the graph.
@@ -319,7 +354,7 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties 1
 
@@ -336,12 +371,13 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 <p><c>horizontalAlign</c> = $g.horizontalAlign</p>
 <p><c>identicalAxisScales</c> = $g.identicalAxisScales</p>
 <p><c>displayXAxis</c> = $g.displayXAxis</p>
+<p><c>displayXAxisTicks</c> = $g.displayXAxisTicks</p>
 <p><c>displayXAxisTickLabels</c> = $g.displayXAxisTickLabels</p>
 ```
 
 
 
-The above listed ` <graph>{:dn}` attributes are also accessible as properties.
+The above listed `<graph>{:dn}` attributes are also accessible as properties.
 
 
 
@@ -368,7 +404,7 @@ The above listed ` <graph>{:dn}` attributes are also accessible as properties.
 
 
 
-The above listed ` <graph>{:dn}` attributes are also accessible as properties.
+The above listed `<graph>{:dn}` attributes are also accessible as properties.
 
 
 

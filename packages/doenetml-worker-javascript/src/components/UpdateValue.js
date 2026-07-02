@@ -27,6 +27,10 @@ export default class UpdateValue extends InlineComponent {
         });
     }
     static componentType = "updateValue";
+
+    static componentDocs = {
+        summary: "Updates one or more state variables on a target component",
+    };
     static rendererType = "button";
 
     static createAttributesObject() {
@@ -36,6 +40,8 @@ export default class UpdateValue extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the state variable that will be updated.",
         };
 
         attributes.type = {
@@ -43,14 +49,34 @@ export default class UpdateValue extends InlineComponent {
             createStateVariable: "type",
             defaultPrimitiveValue: "math",
             toLowerCase: true,
-            validValues: ["math", "number", "boolean", "text"],
+            validValues: [
+                {
+                    value: "math",
+                    description: "Treat the new value as a math expression.",
+                },
+                {
+                    value: "number",
+                    description: "Treat the new value as a number.",
+                },
+                {
+                    value: "boolean",
+                    description: "Treat the new value as a boolean.",
+                },
+                {
+                    value: "text",
+                    description: "Treat the new value as text.",
+                },
+            ],
+            description: "Component type used to interpret the new value.",
         };
 
         attributes.newValue = {
             createComponentOfType: "_componentWithSelectableType",
+            description: "New value to assign to the target.",
         };
 
         attributes.draggable = {
+            description: "Whether the update button can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -71,6 +97,7 @@ export default class UpdateValue extends InlineComponent {
         // for newValue with type==="math"
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied to the new value.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",
@@ -79,11 +106,29 @@ export default class UpdateValue extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the new value.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
         };
 
@@ -218,21 +263,21 @@ export default class UpdateValue extends InlineComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
-                let warnings = [];
+                let diagnostics = [];
                 if (
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
-                            "Invalid target for <updateValue>: cannot find target.",
-                        level: 1,
+                            "Invalid target for `<updateValue>`: cannot find target.",
+                        type: "warning",
                     });
                 }
 
                 return {
                     setValue: { targetIdentities },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -299,7 +344,7 @@ export default class UpdateValue extends InlineComponent {
             },
             definition({ dependencyValues }) {
                 let targets = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -308,11 +353,11 @@ export default class UpdateValue extends InlineComponent {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
                             let message =
-                                "Invalid target for <updateValue>: cannot find target.";
+                                "Invalid target for `<updateValue>`: cannot find target.";
 
-                            warnings.push({
+                            diagnostics.push({
                                 message,
-                                level: 1,
+                                type: "warning",
                             });
                             continue;
                         }
@@ -330,23 +375,23 @@ export default class UpdateValue extends InlineComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for <updateValue>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
-                                warnings.push({
+                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             } else {
-                                let message = `Invalid target for <updateValue>: cannot find a state variable named "value" on a <${target.componentType}>.`;
-                                warnings.push({
+                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             }
                         }
                     }
                 }
 
-                return { setValue: { targets }, sendWarnings: warnings };
+                return { setValue: { targets }, sendDiagnostics: diagnostics };
             },
         };
 

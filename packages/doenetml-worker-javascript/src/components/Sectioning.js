@@ -6,6 +6,11 @@ import {
 
 export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
+
+    static componentDocs = {
+        summary:
+            "A section of a document, with a title (auto-generated or custom) and content",
+    };
     static rendererType = "section";
 
     static createAttributesObject() {
@@ -24,6 +29,10 @@ export class Section extends SectioningComponentNumberWithSiblings {
 export class Subsection extends Section {
     static componentType = "subsection";
 
+    static componentDocs = {
+        summary:
+            "A sectional component nested one heading level deeper than `<section>`",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -37,6 +46,10 @@ export class Subsection extends Section {
 export class Subsubsection extends Section {
     static componentType = "subsubsection";
 
+    static componentDocs = {
+        summary:
+            "A sectional component nested one heading level deeper than `<subsection>`",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -50,6 +63,10 @@ export class Subsubsection extends Section {
 
 export class Paragraphs extends SectioningComponentNumberWithSiblings {
     static componentType = "paragraphs";
+
+    static componentDocs = {
+        summary: "A subsection of paragraphs (rendered at heading level 4)",
+    };
     static rendererType = "section";
 
     static returnStateVariableDefinitions() {
@@ -65,6 +82,10 @@ export class Paragraphs extends SectioningComponentNumberWithSiblings {
 
 export class Aside extends SectioningComponentNumberWithSiblings {
     static componentType = "aside";
+
+    static componentDocs = {
+        summary: "A note set off from the main flow of the document",
+    };
     static rendererType = "section";
 
     static createAttributesObject() {
@@ -72,43 +93,18 @@ export class Aside extends SectioningComponentNumberWithSiblings {
 
         attributes.postponeRendering = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            forRenderer: true,
-        };
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-        };
+        attributes.collapsible.defaultValue = true;
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.rendered.returnDependencies = () => ({
             startOpen: {
@@ -141,6 +137,10 @@ export class Aside extends SectioningComponentNumberWithSiblings {
 
 export class Objectives extends SectioningComponentNumberWithSiblings {
     static componentType = "objectives";
+
+    static componentDocs = {
+        summary: "A section listing learning objectives",
+    };
     static rendererType = "section";
 
     static createAttributesObject() {
@@ -168,6 +168,10 @@ export class Objectives extends SectioningComponentNumberWithSiblings {
 
 export class Problem extends SectioningComponentNumberWithSiblings {
     static componentType = "problem";
+
+    static componentDocs = {
+        summary: "A sectional component that defines a scored problem",
+    };
     static rendererType = "section";
 
     static createAttributesObject() {
@@ -176,6 +180,8 @@ export class Problem extends SectioningComponentNumberWithSiblings {
 
         attributes.isDistractor = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
         };
 
         return attributes;
@@ -194,18 +200,36 @@ export class Problem extends SectioningComponentNumberWithSiblings {
 
 export class Exercise extends Problem {
     static componentType = "exercise";
+
+    static componentDocs = {
+        summary: "A sectional component that defines a scored exercise",
+    };
 }
 
 export class Question extends Problem {
     static componentType = "question";
+
+    static componentDocs = {
+        summary:
+            "A sectional component that defines a scored question; similar to a `<problem>`",
+    };
 }
 
 export class Activity extends Problem {
     static componentType = "activity";
+
+    static componentDocs = {
+        summary:
+            "A sectional component with score aggregation, similar to `<problem>`",
+    };
 }
 
 export class Example extends SectioningComponentNumberWithSiblings {
     static componentType = "example";
+
+    static componentDocs = {
+        summary: "A sectional component that defines an example",
+    };
     static rendererType = "section";
 
     static returnStateVariableDefinitions() {
@@ -221,19 +245,37 @@ export class Example extends SectioningComponentNumberWithSiblings {
 
 export class Definition extends Example {
     static componentType = "definition";
+
+    static componentDocs = {
+        summary: "A sectional component for defining a term or concept",
+    };
 }
 
 export class Note extends Example {
     static componentType = "note";
+
+    static componentDocs = {
+        summary: "A note section, set off from the main flow of the document",
+    };
 }
 
 export class Theorem extends Example {
     static componentType = "theorem";
+
+    static componentDocs = {
+        summary:
+            "A sectional component for the statement of a theorem (or similar formal statement)",
+    };
 }
 
 export class Part extends SectioningComponentNumberWithSiblings {
     static componentType = "part";
     static rendererType = "section";
+
+    static componentDocs = {
+        summary:
+            "A subsection-style block rendered as a list item (a part of an exercise or problem)",
+    };
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -252,10 +294,19 @@ export class Part extends SectioningComponentNumberWithSiblings {
 
 export class Task extends Part {
     static componentType = "task";
+
+    static componentDocs = {
+        summary:
+            "A task of a multi-task activity or problem (alias for `<part>`)",
+    };
 }
 
 export class Proof extends UnnumberedSectioningComponent {
     static componentType = "proof";
+
+    static componentDocs = {
+        summary: "A proof section",
+    };
     static rendererType = "section";
 
     static createAttributesObject() {
@@ -263,43 +314,18 @@ export class Proof extends UnnumberedSectioningComponent {
 
         attributes.postponeRendering = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            forRenderer: true,
-        };
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-        };
+        attributes.collapsible.defaultValue = true;
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.rendered.returnDependencies = () => ({
             startOpen: {
@@ -334,6 +360,11 @@ export class Problems extends SectioningComponent {
     static componentType = "problems";
     static rendererType = "section";
 
+    static componentDocs = {
+        summary:
+            "A container element grouping `<problem>` components, which are rendered as a list by default",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.asList.defaultValue = true;
@@ -343,6 +374,11 @@ export class Problems extends SectioningComponent {
 
 export class Exercises extends Problems {
     static componentType = "exercises";
+
+    static componentDocs = {
+        summary:
+            "A container element grouping `<exercise>` components, which are rendered as a list by default",
+    };
 }
 
 export class StandinForFutureLayoutTag extends SectioningComponent {

@@ -1,0 +1,97 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<regionHalfPlane/>{:dn}`
+
+<ComponentDisplay name='regionHalfPlane'/>
+
+`<regionHalfPlane/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that represents one side of the plane bounded by a vertical or horizontal line. It does not
+render anything by itself; its role is to act as a region passed to a constraint such as
+[`<constrainTo>`](constrainTo) or [`<constrainToInterior>`](constrainToInterior), restricting a
+`<point>{:dn}` to that half-plane.
+
+With the default attributes the region is the right half-plane $x \ge 0$.
+
+<AttrPropDisplay name='regionHalfPlane'/>
+
+
+## Examples
+
+### Example: Constrain a `<point>{:dn}` to the right half-plane
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>A point that cannot cross to the left of the y-axis</shortDescription>
+  <point name="P" styleNumber="2" coords="(2, 1)">
+    <constrainTo>
+      <regionHalfPlane />
+    </constrainTo>
+  </point>
+</graph>
+
+<p>P is at $P.coords.</p>
+```
+
+The point can be moved freely in the right half-plane and is held against the $y$-axis when dragged to
+the left. The defaults — `horizontal="true"`, `boundaryValue="0"`, `greaterThan="true"` — describe the
+half-plane $x \ge 0$.
+
+
+## Attribute Examples
+
+### Attribute Example: horizontal
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>A point that cannot move below the x-axis</shortDescription>
+  <point name="P" styleNumber="2" coords="(1, 2)">
+    <constrainTo>
+      <regionHalfPlane horizontal="false" />
+    </constrainTo>
+  </point>
+</graph>
+```
+
+When `horizontal` is `false`, the half-plane extends vertically instead of horizontally. Combined
+with the default `boundaryValue="0"` and `greaterThan="true"`, this is the upper half-plane $y \ge 0$.
+
+
+---
+
+### Attribute Example: boundaryValue
+
+```doenet-editor-horiz
+<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A point constrained to lie at or to the right of x = 2</shortDescription>
+  <point name="P" styleNumber="2" coords="(4, 0)">
+    <constrainTo>
+      <regionHalfPlane boundaryValue="2" />
+    </constrainTo>
+  </point>
+</graph>
+```
+
+`boundaryValue` shifts the bounding line. With `horizontal="true"` (the default), it sets the vertical
+boundary $x = 2$.
+
+
+---
+
+### Attribute Example: greaterThan
+
+```doenet-editor-horiz
+<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A point constrained to the upper half-plane y less than or equal to 0</shortDescription>
+  <point name="P" styleNumber="2" coords="(1, -2)">
+    <constrainTo>
+      <regionHalfPlane horizontal="false" greaterThan="false" />
+    </constrainTo>
+  </point>
+</graph>
+```
+
+Setting `greaterThan` to `false` selects the opposite side of the boundary. The combination of
+`horizontal="false"` and `greaterThan="false"` here gives the lower half-plane $y \le 0$.

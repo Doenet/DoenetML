@@ -1,25 +1,24 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-## Attributes and Properties 
-
-# ` <split>{:dn}`
+# `<split>{:dn}`
 
 
-` <split>{:dn}` is an [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='split'/>
+
+`<split>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) 
 component that splits a numerical value or a text string into separate characters.
 
-<AttrDisplay name='split'/> 
-The ` <split>{:dn}` component has no properties.
+<AttrPropDisplay name='split'/>
 
----
+## Examples
 
-### Example: ` <split>{:dn}` numbers from user-input
+### Example: `<split>{:dn}` numbers from user-input
 
 
 ```doenet-editor-horiz
-<p>Type a 4-digit number: <mathInput name="n" prefill="3.142"/></p>
+<p><mathInput name="n" prefill="3.142"><label>Type a 4-digit number</label></mathInput></p>
 <p><split name="sN">$n</split></p>
 <p>sN[1] = $sN[1]</p>
 <p>sN[2] = $sN[2]</p>
@@ -31,17 +30,17 @@ The ` <split>{:dn}` component has no properties.
 
 
 In this example, a numerical value is split into separate digits that can be retrieved by 
-by referring to the desired index of the named  ` <split>{:dn}` component. Note that decimal 
+by referring to the desired index of the named  `<split>{:dn}` component. Note that decimal 
 points will occupy their own index.
 
 
 ---
 
-### Example: ` <split>{:dn}` a text string
+### Example: `<split>{:dn}` a text string
 
 
 ```doenet-editor-horiz
-<p>Type a word: <textInput name="t" prefill="Hi you!"/></p>
+<p><textInput name="t" prefill="Hi you!"><label>Type a word</label></textInput></p>
 <p><split name="sT">$t</split></p>
 <p>sT[1] = $sT[1]</p>
 <p>sT[2] = $sT[2]</p>
@@ -55,18 +54,18 @@ points will occupy their own index.
 
 
 In this example, a text string value is split into separate characters that can be 
-retrieved by referring to the desired index of the named ` <split>{:dn}` component. 
+retrieved by referring to the desired index of the named `<split>{:dn}` component. 
 Note that spaces and puncuation will occupy their own index.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: splitBy
 
 
 ```doenet-editor-horiz
-<p>Split the following by commas: <textInput name="ti" prefill="red,green,blue"/></p>
+<p><textInput name="ti" prefill="red,green,blue"><label>Split the following by commas</label></textInput></p>
 <p>
   <split name="cSplit" splitBy="comma">
     $ti
@@ -74,7 +73,7 @@ Note that spaces and puncuation will occupy their own index.
 </p>
 <p>cSplit[2] = $cSplit[2]</p>
 
-<p>Split the following by letter: <textInput name="ti2" prefill="red,green,blue"/></p>
+<p><textInput name="ti2" prefill="red,green,blue"><label>Split the following by letter</label></textInput></p>
 <p>
   <split name="lSplit" splitBy="letter">
     $ti2
@@ -82,7 +81,7 @@ Note that spaces and puncuation will occupy their own index.
 </p>
 <p>lSplit[2] = $lSplit[2]</p>
 
-<p>Split the following by word: <textInput name="ti3" prefill="red green blue"/></p>
+<p><textInput name="ti3" prefill="red green blue"><label>Split the following by word</label></textInput></p>
 <p>
   <split name="wSplit" splitBy="word">
     $ti3

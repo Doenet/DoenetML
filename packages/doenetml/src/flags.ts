@@ -15,7 +15,6 @@ export type DoenetMLFlags = {
     allowSaveEvents: boolean;
     messageParent: boolean;
     autoSubmit: boolean;
-    upgradeAccessibilityWarningsToErrors: boolean;
 };
 
 export const defaultFlags: DoenetMLFlags = {
@@ -31,5 +30,4 @@ export const defaultFlags: DoenetMLFlags = {
     allowSaveEvents: true,
     messageParent: false,
     autoSubmit: false,
-    upgradeAccessibilityWarningsToErrors: false,
 };

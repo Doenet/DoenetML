@@ -9,6 +9,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -763,18 +764,18 @@ describe("Parabola Tag Tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Haven't implemented parabola through more than 3 points`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(51);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(51);
     });
 
     it("parabola with prescribed vertex", async () => {
@@ -809,18 +810,18 @@ describe("Parabola Tag Tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Haven't implemented parabola with vertex through more than 1 point`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(54);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(54);
     });
 
     it("constrain to parabola", async () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { widthsBySize } from "@doenet/utils";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -160,46 +161,28 @@ describe("Video tag tests @group1", async () => {
         ).eq("block");
     });
 
-    it("warning if no short description specified", async () => {
+    it("accessibility diagnostic if no short description specified", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <video name="video1" />
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<video> must have a short description`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            "`<video>` must have a short description",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(1);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(24);
-    });
-
-    it("upgrade warning to error if no short description specified", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-<video name="video1" />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<video> must have a short description`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(24);
+        // Diagnostic range is narrowed to the opening tag (`<video`) so the
+        // editor squiggle and hover only cover the tag name itself.
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(7);
     });
 });

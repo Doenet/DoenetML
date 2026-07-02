@@ -94,6 +94,10 @@ function shuffleProblemOrder({ numProblems, variantRng, mode }) {
 export default class PretzelArranger extends CompositeComponent {
     static componentType = "_pretzelArranger";
 
+    static componentDocs = {
+        summary:
+            "Internal arranger that lays out subset visualizations within <pretzel>.",
+    };
     static createsVariants = true;
 
     static serializeReplacementsForChildren = true;
@@ -109,7 +113,18 @@ export default class PretzelArranger extends CompositeComponent {
             createStateVariable: "mode",
             defaultValue: "pretzel",
             toLowerCase: true,
-            validValues: ["pretzel", "circuit"],
+            validValues: [
+                {
+                    value: "pretzel",
+                    description:
+                        "Interleaved arrangement where each problem's answer feeds the next and one can start with any problem.",
+                },
+                {
+                    value: "circuit",
+                    description:
+                        "A variant of the pretzel where one must start with the first problem.",
+                },
+            ],
         };
 
         return attributes;
@@ -146,6 +161,7 @@ export default class PretzelArranger extends CompositeComponent {
         };
 
         stateVariableDefinitions.numProblems = {
+            description: "The number of problems arranged.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -193,7 +209,7 @@ export default class PretzelArranger extends CompositeComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let numProblems = dependencyValues.numProblems;
-                let warnings = [];
+                let diagnostics = [];
                 let problemOrder;
                 const mode = dependencyValues.mode;
 
@@ -202,10 +218,10 @@ export default class PretzelArranger extends CompositeComponent {
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredProblemOrder !== undefined) {
                     if (desiredProblemOrder.length !== numProblems) {
-                        warnings.push({
+                        diagnostics.push({
                             message:
                                 "Ignoring indices specified for problem as number of indices doesn't match number of problem children.",
-                            level: 2,
+                            type: "info",
                         });
                     } else {
                         desiredProblemOrder = desiredProblemOrder.map(Number);
@@ -219,28 +235,28 @@ export default class PretzelArranger extends CompositeComponent {
                                 (x) => x >= 1 && x <= numProblems,
                             )
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for pretzel as some indices out of range.",
-                                level: 2,
+                                type: "info",
                             });
                         } else if (
                             new Set(desiredProblemOrder).size !== numProblems
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for pretzel as some indices are repeated.",
-                                level: 2,
+                                type: "info",
                             });
                         } else if (
                             mode === "circuit" &&
                             numProblems > 0 &&
                             desiredProblemOrder[0] !== 1
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for pretzel in circuit mode as the first index must be 1.",
-                                level: 2,
+                                type: "info",
                             });
                         } else {
                             return {
@@ -264,7 +280,7 @@ export default class PretzelArranger extends CompositeComponent {
 
                 return {
                     setValue: { problemOrder },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -350,8 +366,7 @@ export default class PretzelArranger extends CompositeComponent {
                 const givenAnswers = [];
                 const distractors = [];
                 let validProblems = true;
-                const warnings = [];
-                const errors = [];
+                const diagnostics = [];
                 for (const [
                     idx,
                     problem,
@@ -420,12 +435,12 @@ export default class PretzelArranger extends CompositeComponent {
                     // Deliberately keep user-facing diagnostics in terms of
                     // public authoring syntax only. Even though parser sugar
                     // can normalize `<answer>` into internal `givenAnswer`
-                    // nodes, we avoid mentioning `givenAnswer` in warnings so
+                    // nodes, we avoid mentioning `givenAnswer` in diagnostics so
                     // we don't advertise a legacy form planned for deprecation.
-                    warnings.push({
+                    diagnostics.push({
                         message:
-                            "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
-                        level: 1,
+                            "Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.",
+                        type: "warning",
                     });
                 }
 
@@ -433,9 +448,10 @@ export default class PretzelArranger extends CompositeComponent {
                     dependencyValues.mode === "circuit" &&
                     distractors.includes(0)
                 ) {
-                    errors.push({
+                    diagnostics.push({
                         message:
-                            'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
+                            'Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.',
+                        type: "error",
                     });
                 }
 
@@ -446,8 +462,7 @@ export default class PretzelArranger extends CompositeComponent {
                         validProblems,
                         distractors,
                     },
-                    sendWarnings: warnings,
-                    sendErrors: errors,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -489,8 +504,7 @@ export default class PretzelArranger extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        const errors = [];
-        const warnings = [];
+        const diagnostics = [];
 
         let replacements = [];
 
@@ -601,8 +615,7 @@ export default class PretzelArranger extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -622,6 +635,7 @@ export default class PretzelArranger extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numProblems = 0;
         const mode = normalizePretzelMode(
@@ -664,6 +678,7 @@ export default class PretzelArranger extends CompositeComponent {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

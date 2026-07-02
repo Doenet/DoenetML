@@ -1,67 +1,69 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
-import {
-    getPositionFromAnchorByCoordinate,
-    POINTER_DRAG_THRESHOLD,
-} from "./utils/graph";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
+import type { ResolvedStyleDefinition } from "@doenet/utils";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import {
+    attachAnchoredGraphDragHandlers,
+    detachAnchoredGraphElement,
+} from "./utils/useAnchoredGraphDragHandler";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
-export default React.memo(function Text(props) {
-    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+interface TextSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    text: string;
+    selectedStyle: ResolvedStyleDefinition;
+}
 
+export default React.memo(function Text(props: UseDoenetRendererProps) {
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer<TextSVs>(props);
+
+    // @ts-ignore
     Text.ignoreActionsWithoutCore = () => true;
 
-    let textJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    const textJXG = useRef<JXGText | null>(null);
+    const anchorPointJXG = useRef<JXGPoint | null>(null);
+    const anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointerAtDown = useRef(null);
-    let pointAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    const pointerState = usePointerDragState();
+    const pointAtDown = useRef<number[] | null>(null);
+    const calculatedX = useRef<number | null>(null);
+    const calculatedY = useRef<number | null>(null);
+    const previousPositionFromAnchor = useRef<any>(null);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    const { fixed, fixLocation, lastPositionFromCore } = useDraggableRefs<
+        number[] | null
+    >(SVs, null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
+    useBoardPointerTracking(board, pointerState);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
-
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    useJSXGraphCleanup({
+        objectRef: textJXG,
+        destroy: () => detachAnchoredGraphElement(textJXG, board),
+    });
 
     const { darkMode } = useContext(DocContext) || {};
-
-    useEffect(() => {
-        //On unmount
-        return () => {
-            if (textJXG.current !== null) {
-                deleteTextJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createTextJXG() {
         if (board === null) {
@@ -83,7 +85,7 @@ export default React.memo(function Text(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxTextAttributes = {
+        let jsxTextAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
@@ -97,13 +99,13 @@ export default React.memo(function Text(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -117,12 +119,12 @@ export default React.memo(function Text(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxTextAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxTextAttributes.anchor = newAnchorPointJXG;
@@ -132,191 +134,34 @@ export default React.memo(function Text(props) {
         );
         jsxTextAttributes.anchorx = anchorx;
         jsxTextAttributes.anchory = anchory;
-        anchorRel.current = [anchorx, anchory];
+        anchorRel.current = [anchorx as string, anchory as string];
 
         let newTextJXG = board.create(
             "text",
             [0, 0, SVs.text],
             jsxTextAttributes,
-        );
-        newTextJXG.isDraggable = !fixLocation.current;
+        ) as JXGText;
 
-        newTextJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.textFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newTextJXG.on("hit", function (e) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            callAction({
-                action: actions.textFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newTextJXG.on("up", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveText,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.textClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newTextJXG.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveText,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newTextJXG.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                dragged.current = true;
-            }
-
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let width = newTextJXG.size[0] / board.unitX;
-            let height = newTextJXG.size[1] / board.unitY;
-
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
-
-            let offsetx = 0;
-            if (anchorx === "middle") {
-                offsetx = -width / 2;
-            } else if (anchorx === "right") {
-                offsetx = -width;
-            }
-            let offsety = 0;
-            if (anchory === "middle") {
-                offsety = -height / 2;
-            } else if (anchory === "top") {
-                offsety = -height;
-            }
-
-            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
-            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
-            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
-            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
-
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is that attributes .X() and .Y() are affected by the
-                // .setCoordinates function called in update().
-                // Due to this dependence, the location of .X() and .Y()
-                // can be affected by constraints of objects that the points depends on,
-                // leading to a different location on up than on drag
-                // (as dragging uses the mouse location)
-                // TODO: find an example where need this this additional complexity
-                var o = board.origin.scrCoords;
-
-                calculatedX.current =
-                    (pointAtDown.current[1] +
-                        e.x -
-                        pointerAtDown.current[0] -
-                        o[1]) /
-                    board.unitX;
-
-                calculatedY.current =
-                    (o[2] -
-                        (pointAtDown.current[2] +
-                            e.y -
-                            pointerAtDown.current[1])) /
-                    board.unitY;
-            } else {
-                calculatedX.current =
-                    newAnchorPointJXG.X() +
-                    newTextJXG.relativeCoords.usrCoords[1];
-                calculatedY.current =
-                    newAnchorPointJXG.Y() +
-                    newTextJXG.relativeCoords.usrCoords[2];
-            }
-
-            calculatedX.current = Math.min(
-                xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
-            );
-            calculatedY.current = Math.min(
-                ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
-            );
-
-            callAction({
-                action: actions.moveText,
-                args: {
-                    x: calculatedX.current,
-                    y: calculatedY.current,
-                    transient: true,
-                    skippable: true,
-                },
-            });
-
-            newTextJXG.relativeCoords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                [0, 0],
-            );
-            newAnchorPointJXG.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionFromCore.current,
-            );
-        });
-
-        newTextJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveText,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.textClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
+        attachAnchoredGraphDragHandlers({
+            board,
+            newJXG: newTextJXG,
+            newAnchorPoint: newAnchorPointJXG,
+            anchorRel,
+            pointerState,
+            pointAtDown,
+            calculatedX,
+            calculatedY,
+            fixed,
+            fixLocation,
+            lastPositionFromCore,
+            componentIdx,
+            actions,
+            callAction,
+            actionNames: {
+                move: "moveText",
+                focused: "textFocused",
+                clicked: "textClicked",
+            },
         });
 
         textJXG.current = newTextJXG;
@@ -324,38 +169,13 @@ export default React.memo(function Text(props) {
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
-    function deleteTextJXG() {
-        textJXG.current.off("drag");
-        textJXG.current.off("down");
-        textJXG.current.off("hit");
-        textJXG.current.off("up");
-        textJXG.current.off("keyfocusout");
-        textJXG.current.off("keydown");
-        board?.removeObject(textJXG.current);
-        textJXG.current = null;
-    }
-
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -370,7 +190,7 @@ export default React.memo(function Text(props) {
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -421,8 +241,8 @@ export default React.memo(function Text(props) {
             }
 
             if (textJXG.current.visProp.strokecolor !== textColor) {
-                textJXG.current.visProp.strokecolor = textColor;
-                textJXG.current.visProp.highlightstrokecolor = textColor;
+                textJXG.current.visProp.strokecolor = textColor!;
+                textJXG.current.visProp.highlightstrokecolor = textColor!;
             }
             if (textJXG.current.visProp.cssstyle !== cssStyle) {
                 textJXG.current.visProp.cssstyle = cssStyle;
@@ -441,15 +261,17 @@ export default React.memo(function Text(props) {
                 );
                 textJXG.current.visProp.anchorx = anchorx;
                 textJXG.current.visProp.anchory = anchory;
-                anchorRel.current = [anchorx, anchory];
+                anchorRel.current = [anchorx as string, anchory as string];
                 previousPositionFromAnchor.current = SVs.positionFromAnchor;
                 textJXG.current.fullUpdate();
             } else {
                 textJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
@@ -463,7 +285,7 @@ export default React.memo(function Text(props) {
     }
 
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
     return (

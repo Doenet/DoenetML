@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -10,6 +11,7 @@ import {
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -854,7 +856,7 @@ describe("BooleanInput tag tests @group1", async () => {
         );
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <booleanInput />
@@ -865,52 +867,28 @@ describe("BooleanInput tag tests @group1", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<booleanInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `\`<booleanInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `<booleanInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `\`<booleanInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-    });
-
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <booleanInput />
-                <booleanInput><shortDescription>hello</shortDescription></booleanInput>
-                <booleanInput><label>hello</label></booleanInput>
-                <booleanInput name="selectMe" labelIsName />
-                <booleanInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<booleanInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-
-        expect(errorWarnings.errors[1].message).contain(
-            `<booleanInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[1].position.start.line).eq(6);
-        expect(errorWarnings.errors[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {
@@ -941,5 +919,55 @@ describe("BooleanInput tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("bi")].activeChildren[1]
                 .componentType,
         ).eq("description");
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi">
+      <label>hello</label>
+    </booleanInput>
+    <boolean extend="$bi.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus the input
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the input
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
     });
 });

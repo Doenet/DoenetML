@@ -1,7 +1,9 @@
-// @ts-ignore
 import me from "math-expressions";
+import type { Tree } from "math-expressions";
 
-import { subsets, vectorOperators } from "@doenet/utils";
+import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
+
+export { roundForDisplay };
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -425,6 +427,9 @@ export function normalizeLatexString(
         ["\u221E", " \\infty "], // ∞
         ["\u2205", " \\emptyset "], // ∅
         ["\u2032", "'"], // ′
+        ["\u2061", " "], // function application
+        ["\u2062", " "], // invisible times
+        ["\\\\text(?=\\{)", "\\operatorname"],
     ];
 
     for (let sub of substitutions) {
@@ -551,19 +556,18 @@ export function mathStateVariableFromNumberStateVariable({
 }
 
 export function numberToMathExpression(
-    number: number | { re: number; im: number },
+    number: number | { re: number; im: number } | null,
 ) {
-    let mathTree;
+    let mathTree: Tree;
     if (typeof number === "number") {
         mathTree = number;
-    } else if (
-        typeof number?.re === "number" &&
-        typeof number?.im === "number"
-    ) {
+    } else if (number === null) {
+        mathTree = "\uff3f";
+    } else {
         if (number.im === 0) {
             mathTree = number.re;
         } else {
-            let imPart;
+            let imPart: Tree;
             if (number.im === 1) {
                 imPart = "i";
             } else if (number.im === -1) {
@@ -577,30 +581,8 @@ export function numberToMathExpression(
                 mathTree = ["+", number.re, imPart];
             }
         }
-    } else {
-        mathTree = number;
     }
     return me.fromAst(mathTree);
-}
-
-export function roundForDisplay({ value, dependencyValues }: any) {
-    let rounded = me.round_numbers_to_precision_plus_decimals(
-        value,
-        dependencyValues.displayDigits,
-        dependencyValues.displayDecimals,
-    );
-
-    if (
-        dependencyValues.displayDigits > 0 &&
-        dependencyValues.displaySmallAsZero > 0
-    ) {
-        rounded = me.set_small_zero(
-            rounded,
-            dependencyValues.displaySmallAsZero,
-        );
-    }
-
-    return rounded;
 }
 
 export function mergeListsWithOtherContainers(tree: any) {
@@ -971,7 +953,7 @@ export async function preprocessMathInverseDefinition({
     listIndex = [],
 }: any) {
     if (desiredValue.tree[0] === "list") {
-        let newAst = ["list"];
+        let newAst: [string, ...Tree[]] = ["list"];
         for (let [ind, entry] of desiredValue.tree.slice(1).entries()) {
             let newEntryResult = await preprocessMathInverseDefinition({
                 desiredValue: me.fromAst(entry),

@@ -1,11 +1,11 @@
 import BlockComponent from "./abstract/BlockComponent";
 import {
-    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
     sizePossibilities,
 } from "@doenet/utils";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Video extends BlockComponent {
     constructor(args) {
@@ -26,6 +26,9 @@ export default class Video extends BlockComponent {
     }
     static componentType = "video";
 
+    static componentDocs = {
+        summary: "Embeds a video player",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -33,37 +36,74 @@ export default class Video extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Explicit width of the video player (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",
             createStateVariable: "specifiedSize",
             defaultValue: "full",
             toLowerCase: true,
-            validValues: sizePossibilities,
+            validValues: [
+                { value: "tiny", description: "About 1/12 the full width." },
+                { value: "small", description: "About 30% of the full width." },
+                { value: "medium", description: "About half the full width." },
+                { value: "large", description: "About 70% of the full width." },
+                { value: "full", description: "The full available width." },
+            ],
+            description: "Named size preset for the video player.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the video player.",
         };
 
         attributes.displayMode = {
+            description: "How to size the video player.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
-            validValues: ["block", "inline"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "block",
+                    description: "Display as a block element on its own line.",
+                },
+                {
+                    value: "inline",
+                    description: "Render inline with surrounding text.",
+                },
+            ],
             defaultValue: "block",
             forRenderer: true,
             public: true,
         };
 
         attributes.horizontalAlign = {
+            description:
+                "Horizontal alignment of the video within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
-            validValues: ["center", "left", "right"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "center",
+                    description: "Center the video horizontally.",
+                },
+                {
+                    value: "left",
+                    description: "Align the video to the left edge.",
+                },
+                {
+                    value: "right",
+                    description: "Align the video to the right edge.",
+                },
+            ],
             defaultValue: "center",
             forRenderer: true,
             public: true,
         };
 
         attributes.youtube = {
+            description: "YouTube video ID to embed.",
             createComponentOfType: "text",
             createStateVariable: "youtube",
             defaultValue: null,
@@ -71,6 +111,7 @@ export default class Video extends BlockComponent {
             forRenderer: true,
         };
         attributes.source = {
+            description: "URL of the video source.",
             createComponentOfType: "text",
             createStateVariable: "source",
             defaultValue: null,
@@ -97,7 +138,15 @@ export default class Video extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
+
         stateVariableDefinitions.shortDescription = {
+            description: "A short accessibility description of the video.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -109,14 +158,10 @@ export default class Video extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.shortDescriptionChild.length > 0) {
                     const shortDescriptionChild =
                         dependencyValues.shortDescriptionChild[
@@ -127,19 +172,18 @@ export default class Video extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "") {
-                    warnings.push({
+                    diagnostics.push({
+                        type: "accessibility",
                         level: 1,
                         message:
-                            "For accessibility, <video> must have a short description.",
+                            "For accessibility, `<video>` must have a short description.",
                     });
                 }
 
-                return accessibilityWarningsResult({
+                return {
                     setValue: { shortDescription },
-                    warnings,
-                    upgradeWarningsToErrors:
-                        dependencyValues.upgradeAccessibilityWarningsToErrors,
-                });
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -165,6 +209,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.size = {
+            description: "The size of the video player.",
             public: true,
             defaultValue: "full",
             hasEssential: true,
@@ -239,6 +284,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.width = {
+            description: "The display width of the video player.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -263,6 +309,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.aspectRatio = {
+            description:
+                "The aspect ratio (width / height) of the video player.",
             public: true,
             forRenderer: true,
             defaultValue: "16 / 9",
@@ -300,6 +348,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.state = {
+            description:
+                "The video's current playback state (e.g. playing, paused).",
             hasEssential: true,
             defaultValue: "initializing",
             forRenderer: true,
@@ -332,6 +382,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.time = {
+            description: "The current playback time in seconds.",
             hasEssential: true,
             defaultValue: 0,
             forRenderer: true,
@@ -362,6 +413,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.duration = {
+            description: "The total duration of the video in seconds.",
             hasEssential: true,
             defaultValue: null,
             public: true,
@@ -403,6 +455,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.secondsWatched = {
+            description: "Total seconds the viewer has watched.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -426,6 +479,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.fractionWatched = {
+            description:
+                "Fraction of the video the viewer has watched (0 to 1).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -551,6 +606,15 @@ export default class Video extends BlockComponent {
             }
         }
 
+        // canSkipUpdatingRenderer is the video-specific part: segmentsWatched
+        // (and the secondsWatched/fractionWatched derived from it) are not
+        // rendered, so there is no optimistic edit to reconcile. Without it,
+        // this component would be forced into the renderer-update set and
+        // needlessly re-rendered on every watched segment as the video plays.
+        // skipRendererUpdate is just the usual action idiom: defer the single
+        // renderer fan-out to the trailing triggerChainedActions, which
+        // performs it (or leaves it deferred if this action was itself
+        // chained).
         await this.coreFunctions.performUpdate({
             updateInstructions: [
                 {

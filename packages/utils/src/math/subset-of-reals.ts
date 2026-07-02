@@ -7,7 +7,6 @@
 
 */
 
-//@ts-ignore
 import me from "math-expressions";
 
 /**

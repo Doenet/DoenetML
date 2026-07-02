@@ -289,4 +289,29 @@ describe("Document tag tests @group4", async () => {
                 .activeChildren,
         ).eqls(["a"]);
     });
+
+    // Regression for #1147 (half 2): the implicit `<document>` previously
+    // declared a `description` child group and a `description` state
+    // variable that read `text` from any `<description>` child. Because
+    // `<description>` (which extends `BlockComponent`) has no `text` state
+    // variable, any document that contained a `<description>` as a direct
+    // child crashed during dependency setup with
+    // "Unknown state variable text of <idx>". Standalone `<description>`
+    // tripped this most visibly. The legacy `document.description` state
+    // variable was never consumed; both the state variable and the
+    // `description` child group have been removed, so a `<description>`
+    // anywhere in a document now resolves cleanly.
+    it("standalone <description> does not crash", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<description>hello world</description>`,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The document resolves; `<description>` ends up as a generic
+        // active child of the implicit document rather than being lifted
+        // through a `description` child group.
+        const documentIdx = await resolvePathToNodeIdx("_document1");
+        expect(stateVariables[documentIdx].componentType).eq("document");
+    });
 });

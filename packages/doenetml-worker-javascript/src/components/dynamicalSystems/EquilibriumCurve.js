@@ -4,14 +4,32 @@ export default class EquilibriumCurve extends Curve {
     static componentType = "equilibriumCurve";
     static rendererType = "curve";
 
+    static componentDocs = {
+        summary:
+            "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        // The semantic intent on an equilibrium curve is `stable` — the
+        // renderer derives `dashed = !stable` and forces dashed rendering for
+        // unstable curves regardless of `selectedStyle.lineStyle` (see
+        // `styleToDash` in the curve renderer). Drop the per-component
+        // `lineStyle` attribute so authors can't write a confusing
+        // `<equilibriumCurve lineStyle="dotted">` whose effect depends on
+        // whether the curve happens to be stable. A styleDefinition can still
+        // populate `selectedStyle.lineStyle`; it takes effect only when the
+        // curve is stable.
+        delete attributes.lineStyle;
 
         attributes.stable = {
             createComponentOfType: "boolean",
             createStateVariable: "stable",
             defaultValue: true,
             public: true,
+            description:
+                "Whether the equilibrium is stable (rendered solid) or unstable (rendered dashed).",
         };
 
         attributes.switchable = {
@@ -20,6 +38,8 @@ export default class EquilibriumCurve extends Curve {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the user can toggle the stability of this equilibrium by clicking it.",
         };
 
         return attributes;

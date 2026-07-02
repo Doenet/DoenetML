@@ -3,15 +3,20 @@ import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    addShadowRoundingAttributes,
-    gatherRawRoundingFixedResponseAttributes,
-    returnRoundingAttributes,
-} from "../utils/rounding";
+    addShadowNumberDisplayAttributes,
+    gatherRawNumberDisplayFixedResponseAttributes,
+    returnNumberDisplayAttributes,
+} from "../utils/numberDisplay";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
+
+    static componentDocs = {
+        summary: "A list of numbers",
+    };
+    static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -39,9 +44,12 @@ export default class NumberList extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -50,10 +58,14 @@ export default class NumberList extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -64,11 +76,15 @@ export default class NumberList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -162,6 +178,7 @@ export default class NumberList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the number list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -544,11 +561,13 @@ export default class NumberList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of numbers in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "numbers",
+            description: "The list's numbers.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
@@ -588,14 +607,13 @@ export default class NumberList extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
         let componentsCopied = [];
 
         // For attributes that were left raw, we convert them and add them to the replacements
-        let attributesToConvert = gatherRawRoundingFixedResponseAttributes(
+        let attributesToConvert = gatherRawNumberDisplayFixedResponseAttributes(
             component,
             components,
         );
@@ -640,7 +658,7 @@ export default class NumberList extends CompositeComponent {
             }
 
             if (copyChildSource) {
-                nComponents = addShadowRoundingAttributes({
+                nComponents = addShadowNumberDisplayAttributes({
                     nComponents,
                     stateIdInfo,
                     source: copyChildSource,
@@ -699,8 +717,7 @@ export default class NumberList extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -712,9 +729,7 @@ export default class NumberList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let numComponents = await component.stateValues.numComponents;
 
@@ -744,7 +759,7 @@ export default class NumberList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -758,8 +773,7 @@ export default class NumberList extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -772,6 +786,6 @@ export default class NumberList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

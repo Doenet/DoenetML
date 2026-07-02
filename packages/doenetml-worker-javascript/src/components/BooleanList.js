@@ -6,6 +6,11 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
+    static componentDocs = {
+        summary: "A list of booleans",
+    };
+    static takesIndex = true;
+
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
@@ -32,20 +37,27 @@ export default class BooleanList extends CompositeComponent {
             createStateVariable: "unordered",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
         attributes.maxNumber = {
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
             public: true,
+            description: "Maximum number of items to retain in the list.",
         };
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
 
         attributes.isPotentialResponse = {
@@ -57,6 +69,8 @@ export default class BooleanList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -113,6 +127,7 @@ export default class BooleanList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the boolean list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -282,11 +297,13 @@ export default class BooleanList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of booleans in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "booleans",
+            description: "The list's booleans.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
@@ -326,8 +343,7 @@ export default class BooleanList extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
         let componentsCopied = [];
@@ -402,8 +418,7 @@ export default class BooleanList extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -415,9 +430,7 @@ export default class BooleanList extends CompositeComponent {
         componentInfoObjects,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let numComponents = await component.stateValues.numComponents;
 
@@ -441,7 +454,7 @@ export default class BooleanList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -455,8 +468,7 @@ export default class BooleanList extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -469,6 +481,6 @@ export default class BooleanList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

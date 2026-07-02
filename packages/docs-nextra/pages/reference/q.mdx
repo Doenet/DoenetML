@@ -1,0 +1,32 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<q>{:dn}`
+
+<ComponentDisplay name='q'/>
+
+`<q>{:dn}` is a [Paragraph Markup](../concepts/essentialConcepts#component-types)
+component that renders its enclosed content wrapped in curly double quotation marks (“ ”).
+
+
+<AttrPropDisplay name='q'/>
+
+
+## Examples
+
+### Example: `<q>{:dn}` in a paragraph
+
+
+```doenet-example
+<p>The instructions read, <q>Solve the equation</q>, but did not specify a method.</p>
+```
+
+
+
+`<q>{:dn}` automatically supplies a left double quotation mark before its content and a right
+double quotation mark after. To place each mark independently — for example, when a quotation
+spans multiple paragraphs — use [`<lq/>{:dn}`](lq) and [`<rq/>{:dn}`](rq) instead.
+
+

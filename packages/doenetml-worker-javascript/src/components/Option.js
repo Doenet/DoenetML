@@ -3,6 +3,10 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 
 export default class Option extends BaseComponent {
     static componentType = "option";
+
+    static componentDocs = {
+        summary: "A single option within a `<select>` block",
+    };
     static rendererType = undefined;
 
     static includeBlankStringChildren = true;
@@ -26,12 +30,14 @@ export default class Option extends BaseComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.selectForVariants = {
+            description: "Variant indices for which this option is selected.",
             createComponentOfType: "textListFromString",
             createStateVariable: "selectForVariants",
             defaultValue: [],
             public: true,
         };
         attributes.selectWeight = {
+            description: "Relative weight when randomly selecting an option.",
             createComponentOfType: "number",
             createStateVariable: "selectWeight",
             defaultValue: 1,

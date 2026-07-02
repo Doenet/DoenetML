@@ -1,43 +1,45 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <parabola>{:dn}`
+# `<parabola>{:dn}`
 
-` <parabola>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component that renders a parabola when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+<ComponentDisplay name='parabola'/>
 
-## Attributes and Properties 
- <AttrDisplay name='parabola'/> 
- <PropDisplay name='parabola'/>
+`<parabola>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
+component that renders a parabola when nested inside a [`<graph>{:dn}`](graph.mdx) component.
+
+<AttrPropDisplay name='parabola'/>
 
 
----
+## Examples
 
-### Example: Default ` <parabola>{:dn}`
+### Example: Default `<parabola>{:dn}`
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of the default parabola</shortDescription>
   <parabola/>
 </graph>
 ```
 
 
 
-The default ` <parabola>{:dn}` renders the graph of the equation $y = x^2$. It is not draggable.
+The default `<parabola>{:dn}` renders the graph of the equation $y = x^2$. It is not draggable.
 
 
 
 ---
 
-### Example: ` <parabola>{:dn}` passing through 3 points
+### Example: `<parabola>{:dn}` passing through 3 points
 
 
 ```doenet-editor-horiz
 <p>Drag the points to change the shape of the parabola.</p>
 <graph size="small">
+  <shortDescription>A graph of a parabola through three draggable points</shortDescription>
   <point name="A" coords="(-5,-3)"/>
   <point name="B" coords="(1,6)"/>
   <point name="C" coords="(7,2)"/>
@@ -53,17 +55,18 @@ $parab1.equation
 
 
 
-A ` <parabola>{:dn}` can be rendered when 3 throughPoints are specified with the `through` attribute.
+A `<parabola>{:dn}` can be rendered when 3 throughPoints are specified with the `through` attribute.
 
 
 
 ---
 
-### Example: ` <parabola>{:dn}` with vertex and throughPoint
+### Example: `<parabola>{:dn}` with vertex and throughPoint
 
 
 ```doenet-editor-horiz
 <graph size="small" grid="1 1">
+  <shortDescription>A graph of a parabola defined by vertex and a through point</shortDescription>
   <point name="V" styleNumber="5">(0,0)
     <constrainToGrid/>
   </point>
@@ -83,17 +86,18 @@ $parab1.equation
 
 
 
-A ` <parabola>{:dn}` can be rendered by specifying the `vertex` and a single throughPoint.
+A `<parabola>{:dn}` can be rendered by specifying the `vertex` and a single throughPoint.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: through
 
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a parabola</shortDescription>
   <parabola 
     name="parab1" 
     vertex="(2,2)" 
@@ -117,6 +121,7 @@ The `through` attribute specifies a point or points the parabola passes through.
 
 ```doenet-example
 <graph size="small">
+  <shortDescription>A graph of a parabola</shortDescription>
   <parabola 
     name="parab1" 
     vertex="(2,2)" 
@@ -135,11 +140,12 @@ The `vertex` attribute specifies the maximum or minimum point on the parabola.
 
 ---
 
-### Example: flipFunction
+### Attribute Example: flipFunction
 
 
 ```doenet-example
 <graph>
+  <shortDescription>A graph of two flipped parabolas</shortDescription>
   <parabola flipFunction/>
   <parabola 
     vertex="(4,4)" 
@@ -162,6 +168,7 @@ The `flipFunction` attribute is used to define a quadratic function in $y$.
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph illustrating two parabolas and a circle</shortDescription>
   <circle styleNumber="5" filled radius="6" fixed/>
   <parabola 
     name="parabola1" 
@@ -184,7 +191,7 @@ The `flipFunction` attribute is used to define a quadratic function in $y$.
   />
 </graph>
 
-<booleanInput name="hideParabola1" labelIsName/>
+<booleanInput name="hideParabola1"><label>Hide parabola1</label></booleanInput>
 <p>Standard graphical attributes:</p>
 <ul>
   <li><attr>hide</attr></li>
@@ -201,13 +208,14 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 
 
----
+## Property Examples
 
 ### Property Example: Style properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a parabola</shortDescription>
   <parabola 
     name="parab1" 
     vertex="(-2,2)" 
@@ -233,6 +241,7 @@ The `styleDescription` and `styleDescriptionWithNoun` properties render a text d
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of a parabola</shortDescription>
   <parabola name="parab1" vertex="(0,-1)" through="(2,1)"/>
 </graph>
 <p><c>a</c> = $parab1.a</p>

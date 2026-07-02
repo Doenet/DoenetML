@@ -11,6 +11,20 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../../utils/scoredSection";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../../utils/dynamicChildren";
+import {
+    CANVAS_DARK_MODE_COLOR,
+    CANVAS_LIGHT_MODE_COLOR,
+    sectionTitleStateKeys,
+    titleStateKeyFromCredit,
+    resolveSectionTitleLightColorSpec,
+    resolveSectionTitleDarkColorSpec,
+    shouldEmitSectionTitleColorDiagnostic,
+    addSectionTitleColorContrastDiagnostic,
+} from "../../utils/sectionTitleColors";
 
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
@@ -21,6 +35,8 @@ export class SectioningComponent extends BlockComponent {
             revealSection: this.revealSection.bind(this),
             closeSection: this.closeSection.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
 
@@ -43,6 +59,8 @@ export class SectioningComponent extends BlockComponent {
             createComponentOfType: "boolean",
             createStateVariable: "boxedPreliminary",
             defaultValue: false,
+            description:
+                "Whether to render this section with a visible box around it.",
         };
 
         attributes.includeAutoName = {
@@ -50,6 +68,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoName",
             defaultValue: false,
             public: true,
+            description:
+                'Whether to include the auto-generated section name (e.g. "Section") in the rendered title.',
         };
 
         attributes.includeAutoNumber = {
@@ -57,6 +77,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNumber",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to include the auto-generated section number in the rendered title.",
         };
 
         attributes.noAutoTitle = {
@@ -64,6 +86,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "noAutoTitle",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to suppress the auto-generated title entirely.",
         };
 
         attributes.includeAutoNameIfNoTitle = {
@@ -71,6 +95,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNameIfNoTitle",
             defaultValue: true,
             public: true,
+            description:
+                "Whether to include the auto-generated name when no explicit title is provided.",
         };
 
         attributes.includeAutoNumberIfNoTitle = {
@@ -78,6 +104,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNumberIfNoTitle",
             defaultValue: true,
             public: true,
+            description:
+                "Whether to include the auto-generated number when no explicit title is provided.",
         };
 
         attributes.asList = {
@@ -86,32 +114,95 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description: "Whether to render this section's children as a list.",
+        };
+
+        attributes.collapsible = {
+            createComponentOfType: "boolean",
+            createStateVariable: "collapsible",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+            description: "Whether the section can be collapsed and expanded.",
+        };
+
+        attributes.startOpen = {
+            createComponentOfType: "boolean",
+            createStateVariable: "startOpen",
+            defaultValue: true,
+            description:
+                "Whether the collapsible section starts in the open state.",
         };
 
         attributes.level = {
             createComponentOfType: "integer",
+            description:
+                "The heading level for this section (overrides the default level inferred from nesting).",
         };
 
         attributes.renameTo = {
             createComponentOfType: "text",
+            description:
+                'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
         };
 
         attributes.completedColor = {
             createComponentOfType: "text",
             createStateVariable: "completedColor",
             defaultValue: "var(--lightGreen)",
+            description:
+                "Color used to indicate this section has been completed.",
         };
 
         attributes.inProgressColor = {
             createComponentOfType: "text",
             createStateVariable: "inProgressColor",
             defaultValue: "var(--mainGray)",
+            description: "Color used to indicate this section is in progress.",
         };
 
         attributes.notStartedColor = {
             createComponentOfType: "text",
             createStateVariable: "notStartedColor",
             defaultValue: "var(--mainGray)",
+            description:
+                "Color used to indicate this section has not been started.",
+        };
+
+        attributes.completedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "completedColorDarkMode",
+            // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
+            defaultValue: "#1a5e20",
+            description:
+                "Color used to indicate this section has been completed (dark mode). " +
+                "If omitted, the dark-mode color is derived from `completedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark green " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.inProgressColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "inProgressColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section is in progress (dark mode). " +
+                "If omitted, the dark-mode color is derived from `inProgressColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.notStartedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "notStartedColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section has not been started (dark mode). " +
+                "If omitted, the dark-mode color is derived from `notStartedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         return attributes;
@@ -192,6 +283,8 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.boxed = {
+            description:
+                "Whether this section is rendered with a visible box around it.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -225,6 +318,7 @@ export class SectioningComponent extends BlockComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description: "The displayed number for this section.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",
@@ -338,6 +432,7 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.childIndicesToRender = {
+            additionalStateVariablesDefined: ["firstVisibleChild"],
             returnDependencies: () => ({
                 titleChildren: {
                     dependencyType: "child",
@@ -368,6 +463,9 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
+                // Tracks first non-hidden rendered child (including non-blank strings)
+                // so list-item sections can delegate alignment behavior to that child.
+                let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
                     (x) => x.componentIdx,
@@ -402,6 +500,12 @@ export class SectioningComponent extends BlockComponent {
                             )
                         ) {
                             childIndicesToRender.push(ind);
+                            if (
+                                firstVisibleChild === null &&
+                                !dependencyValues.hideChildren
+                            ) {
+                                firstVisibleChild = child;
+                            }
                         }
                     } else if (
                         typeof child !== "object" ||
@@ -409,10 +513,19 @@ export class SectioningComponent extends BlockComponent {
                         child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
+                        if (
+                            firstVisibleChild === null &&
+                            !dependencyValues.hideChildren &&
+                            (typeof child === "object" || child.trim() !== "")
+                        ) {
+                            firstVisibleChild = child;
+                        }
                     }
                 }
 
-                return { setValue: { childIndicesToRender } };
+                return {
+                    setValue: { childIndicesToRender, firstVisibleChild },
+                };
             },
             markStale: () => ({ updateRenderedChildren: true }),
         };
@@ -465,6 +578,140 @@ export class SectioningComponent extends BlockComponent {
                 return { setValue: { childrenToHide } };
             },
             markStale: () => ({ updateRenderedChildren: true }),
+        };
+
+        stateVariableDefinitions.nonBoxedListItemWithoutTitle = {
+            returnDependencies: () => ({
+                isListItem: {
+                    dependencyType: "stateVariable",
+                    variableName: "isListItem",
+                },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                titleChildName: {
+                    dependencyType: "stateVariable",
+                    variableName: "titleChildName",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // This is the only section mode that performs first-child list-item
+                // alignment delegation on the root section container.
+                const nonBoxedListItemWithoutTitle = Boolean(
+                    dependencyValues.isListItem &&
+                    !dependencyValues.boxed &&
+                    !dependencyValues.collapsible &&
+                    dependencyValues.titleChildName === null,
+                );
+
+                return { setValue: { nonBoxedListItemWithoutTitle } };
+            },
+        };
+
+        stateVariableDefinitions.childrenToRenderInlineForListItem = {
+            returnDependencies: () => ({
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // Delegate list-item inline rendering to the first visible child only.
+                let childrenToRenderInlineForListItem = [];
+                if (
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild &&
+                    typeof dependencyValues.firstVisibleChild === "object"
+                ) {
+                    childrenToRenderInlineForListItem = [
+                        dependencyValues.firstVisibleChild,
+                    ];
+                }
+                return { setValue: { childrenToRenderInlineForListItem } };
+            },
+        };
+
+        stateVariableDefinitions.firstVisibleChildAdjustedForListItem = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // Alignment adjustments only apply when the first visible child
+                // is a component object (not plain text).
+                const firstVisibleChildAdjustedForListItem = Boolean(
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    typeof dependencyValues.firstVisibleChild === "object",
+                );
+
+                return {
+                    setValue: {
+                        firstVisibleChildAdjustedForListItem,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.firstChildListItemAlignment = {
+            stateVariablesDeterminingDependencies: ["firstVisibleChild"],
+            forRenderer: true,
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {
+                    firstVisibleChildAdjustedForListItem: {
+                        dependencyType: "stateVariable",
+                        variableName: "firstVisibleChildAdjustedForListItem",
+                    },
+                };
+
+                if (stateValues.firstVisibleChild?.componentIdx !== undefined) {
+                    dependencies.firstVisibleChildListItemInlineAlignment = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.firstVisibleChild.componentIdx,
+                        variableName: "listItemInlineAlignment",
+                        variablesOptional: true,
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                // Baseline is a safe fallback if the first child does not expose
+                // an explicit list-item alignment signal.
+                let firstChildListItemAlignment = "none";
+
+                if (dependencyValues.firstVisibleChildAdjustedForListItem) {
+                    const alignmentFromFirstChild =
+                        dependencyValues.firstVisibleChildListItemInlineAlignment;
+
+                    if (
+                        alignmentFromFirstChild === "baseline" ||
+                        alignmentFromFirstChild === "flex-start"
+                    ) {
+                        firstChildListItemAlignment = alignmentFromFirstChild;
+                    } else {
+                        firstChildListItemAlignment = "baseline";
+                    }
+                }
+
+                return { setValue: { firstChildListItemAlignment } };
+            },
         };
 
         // Determine if the rendered children start with an `<introduction>`
@@ -528,6 +775,7 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The displayed title text for this section.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "titlePrefix",
@@ -631,9 +879,12 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.titleColor = {
-            // Note: currently title color is used only when boxed or collapsible
-            forRenderer: true,
+        stateVariableDefinitions.sectionTitleStateColors = {
+            additionalStateVariablesDefined: [
+                "sectionTitleStateColorsDarkMode",
+                "sectionTitleStateColorSources",
+                "sectionTitleStateColorSourcesDarkMode",
+            ],
             returnDependencies: () => ({
                 completedColor: {
                     dependencyType: "stateVariable",
@@ -647,61 +898,211 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "notStartedColor",
                 },
-                parentCompletedColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "completedColor",
+                completedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorDarkMode",
                 },
-                parentInProgressColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "inProgressColor",
+                inProgressColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "inProgressColorDarkMode",
                 },
-                parentNotStartedColor: {
+                notStartedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "notStartedColorDarkMode",
+                },
+                parentSectionTitleStateColors: {
                     dependencyType: "parentStateVariable",
-                    variableName: "notStartedColor",
+                    variableName: "sectionTitleStateColors",
+                },
+                parentSectionTitleStateColorsDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                parentSectionTitleStateColorSources: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                parentSectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
+                },
+                parentBoxed: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "boxed",
+                },
+                parentCollapsible: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                const sectionTitleStateColors = {};
+                const sectionTitleStateColorsDarkMode = {};
+                const sectionTitleStateColorSources = {};
+                const sectionTitleStateColorSourcesDarkMode = {};
+                const parentIsBoxedOrCollapsible = Boolean(
+                    dependencyValues.parentBoxed ||
+                    dependencyValues.parentCollapsible,
+                );
+
+                const colorNamesByState = {
+                    completed: {
+                        light: "completedColor",
+                        dark: "completedColorDarkMode",
+                    },
+                    inProgress: {
+                        light: "inProgressColor",
+                        dark: "inProgressColorDarkMode",
+                    },
+                    notStarted: {
+                        light: "notStartedColor",
+                        dark: "notStartedColorDarkMode",
+                    },
+                };
+
+                for (const stateKey of sectionTitleStateKeys) {
+                    const colorNames = colorNamesByState[stateKey];
+                    const lightSpec = resolveSectionTitleLightColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownColorName: colorNames.light,
+                        parentColors:
+                            dependencyValues.parentSectionTitleStateColors,
+                        parentSources:
+                            dependencyValues.parentSectionTitleStateColorSources,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColors[stateKey] = lightSpec.value;
+                    sectionTitleStateColorSources[stateKey] = lightSpec.source;
+
+                    const darkSpec = resolveSectionTitleDarkColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownDarkColorName: colorNames.dark,
+                        ownLightColorName: colorNames.light,
+                        parentColorsDarkMode:
+                            dependencyValues.parentSectionTitleStateColorsDarkMode,
+                        parentSourcesDarkMode:
+                            dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
+                    sectionTitleStateColorSourcesDarkMode[stateKey] =
+                        darkSpec.source;
+                }
+
+                return {
+                    setValue: {
+                        sectionTitleStateColors,
+                        sectionTitleStateColorsDarkMode,
+                        sectionTitleStateColorSources,
+                        sectionTitleStateColorSourcesDarkMode,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.titleColor = {
+            // Note: currently title color is used only when boxed or collapsible
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "titleColorDarkMode",
+                    forRenderer: true,
+                },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                sectionTitleStateColors: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColors",
+                },
+                sectionTitleStateColorsDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                sectionTitleStateColorSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                sectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
                 },
                 creditAchieved: {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                let titleColor = dependencyValues.notStartedColor;
-                if (dependencyValues.creditAchieved === 1) {
-                    if (!usedDefault.completedColor) {
-                        titleColor = dependencyValues.completedColor;
-                    } else if (
-                        typeof dependencyValues.parentCompletedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentCompletedColor;
-                    } else {
-                        titleColor = dependencyValues.completedColor;
-                    }
-                } else if (dependencyValues.creditAchieved > 0) {
-                    if (!usedDefault.inProgressColor) {
-                        titleColor = dependencyValues.inProgressColor;
-                    } else if (
-                        typeof dependencyValues.parentInProgressColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentInProgressColor;
-                    } else {
-                        titleColor = dependencyValues.inProgressColor;
-                    }
-                } else {
-                    if (!usedDefault.notStartedColor) {
-                        titleColor = dependencyValues.notStartedColor;
-                    } else if (
-                        typeof dependencyValues.parentNotStartedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentNotStartedColor;
-                    } else {
-                        titleColor = dependencyValues.notStartedColor;
+            definition({ dependencyValues }) {
+                const titleStateKey = titleStateKeyFromCredit(
+                    dependencyValues.creditAchieved,
+                );
+                const titleColor =
+                    dependencyValues.sectionTitleStateColors[titleStateKey];
+                const titleColorDarkMode =
+                    dependencyValues.sectionTitleStateColorsDarkMode[
+                        titleStateKey
+                    ];
+
+                const diagnostics = [];
+                if (dependencyValues.boxed || dependencyValues.collapsible) {
+                    for (const stateKey of sectionTitleStateKeys) {
+                        const lightSource =
+                            dependencyValues.sectionTitleStateColorSources[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: lightSource,
+                            }),
+                            colorValue:
+                                dependencyValues.sectionTitleStateColors[
+                                    stateKey
+                                ],
+                            colorName: lightSource?.colorName ?? stateKey,
+                            textColor: "#000000",
+                            canvasColor: CANVAS_LIGHT_MODE_COLOR,
+                        });
+
+                        const darkSource =
+                            dependencyValues
+                                .sectionTitleStateColorSourcesDarkMode[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: darkSource,
+                            }),
+                            colorValue:
+                                dependencyValues
+                                    .sectionTitleStateColorsDarkMode[stateKey],
+                            colorName: darkSource?.colorName ?? stateKey,
+                            textColor: "#ffffff",
+                            canvasColor: CANVAS_DARK_MODE_COLOR,
+                            modeSuffix: " (dark mode)",
+                        });
                     }
                 }
 
-                return { setValue: { titleColor } };
+                return {
+                    setValue: {
+                        titleColor,
+                        titleColorDarkMode,
+                    },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -809,15 +1210,9 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.collapsible = {
-            forRenderer: true,
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { collapsible: false } };
-            },
-        };
-
         stateVariableDefinitions.open = {
+            description:
+                "Whether this section is currently open (for collapsible sections).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -825,11 +1220,25 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({}),
-            definition() {
+            returnDependencies: () => ({
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+                startOpen: {
+                    dependencyType: "stateVariable",
+                    variableName: "startOpen",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // When not collapsible, always open regardless of any stored
+                // essential value (handles collapsible toggling false at runtime).
+                if (!dependencyValues.collapsible) {
+                    return { setValue: { open: true } };
+                }
                 return {
                     useEssentialOrDefaultValue: {
-                        open: true,
+                        open: { defaultValue: dependencyValues.startOpen },
                     },
                 };
             },
@@ -885,6 +1294,14 @@ export class SectioningComponent extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
         });
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     async revealSection({
@@ -972,6 +1389,7 @@ export class SectioningComponent extends BlockComponent {
         serializedComponent,
         sharedParameters,
         descendantVariantComponents,
+        core,
     }) {
         if (!serializedComponent.variants?.allPossibleVariants) {
             // no variant control child
@@ -997,19 +1415,27 @@ export class SectioningComponent extends BlockComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    console.warn(
-                        "Variant index " +
+                    core.addDiagnostic({
+                        type: "info",
+                        message:
+                            "Variant index " +
                             desiredVariant.index +
                             " must be a number",
-                    );
+                        position: serializedComponent.position,
+                        sourceDoc: serializedComponent.sourceDoc,
+                    });
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        console.warn(
-                            "Variant index " +
+                        core.addDiagnostic({
+                            type: "info",
+                            message:
+                                "Variant index " +
                                 desiredVariant.index +
                                 " must be an integer",
-                        );
+                            position: serializedComponent.position,
+                            sourceDoc: serializedComponent.sourceDoc,
+                        });
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
                     let indexFrom0 = (desiredVariantIndex - 1) % numVariants;
@@ -1074,10 +1500,12 @@ export class SectioningComponent extends BlockComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         return determineVariantsForSection({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
     }
 
@@ -1120,8 +1548,6 @@ export class SectioningComponent extends BlockComponent {
         });
 
         if (!result.success) {
-            console.log("Failed to get unique variant for section.");
-
             return { success: false };
         }
 
@@ -1150,6 +1576,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             createStateVariable: "includeParentNumber",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to prefix this section's number with the parent section's number.",
         };
 
         return attributes;
@@ -1162,6 +1590,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description: "The displayed number for this section.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",
@@ -1242,6 +1671,8 @@ export class UnnumberedSectioningComponent extends SectioningComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description:
+                        "The displayed number for this section (always null for unnumbered sections).",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",

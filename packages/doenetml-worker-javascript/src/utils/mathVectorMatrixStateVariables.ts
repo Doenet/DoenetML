@@ -1,14 +1,27 @@
-import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
-import { returnRoundingAttributeComponentShadowing } from "./rounding";
-//@ts-ignore
-import me from "math-expressions";
+import {
+    convertValueToMathExpression,
+    deepClone,
+    vectorOperators,
+} from "@doenet/utils";
+import { returnNumberDisplayAttributeComponentShadowing } from "./numberDisplay";
+import me, { Tree, Expression } from "math-expressions";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
+
+interface VectorWorkspace {
+    desiredVector?: Expression[];
+}
+
+interface MatrixWorkspace {
+    desiredMatrix?: Record<string, Expression>;
+}
 
 export function returnMathVectorMatrixStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
 
     stateVariableDefinitions.numDimensions = {
+        description:
+            "The number of dimensions if the math expression is interpreted as a vector or matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -49,11 +62,13 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.vector = {
+        description:
+            "The math expression interpreted as a vector (its components).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
             returnWrappingComponents(prefix: string | undefined) {
                 if (prefix === "x") {
                     return [];
@@ -153,8 +168,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { vector: any[] };
             globalDependencyValues: { value: any };
-            stateValues: { vector: Promise<any[]> };
-            workspace: any;
+            stateValues: { vector: Promise<Expression[]> };
+            workspace: VectorWorkspace;
             arraySize: number[];
         }) {
             // in case just one ind specified, merge with previous values
@@ -173,21 +188,21 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
                     desiredValue = me.fromAst([
                         tree[0],
-                        ...workspace.desiredVector.map((x: any) => x.tree),
+                        ...workspace.desiredVector.map((x) => x.tree),
                     ]);
                 } else if (tree[0] === "matrix") {
                     let size = tree[1].slice(1);
                     if (size[0] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push(
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             );
                         }
                         desiredMatrixVals = ["tuple", desiredMatrixVals];
@@ -197,11 +212,11 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                             desiredMatrixVals,
                         ]);
                     } else if (size[1] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push([
                                 "tuple",
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             ]);
                         }
                         desiredValue = me.fromAst([
@@ -215,17 +230,19 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [
+                    const desiredTree: Tree = [
                         tree[0],
                         [
                             tree[1][0],
-                            ...workspace.desiredVector.map((x: any) => x.tree),
+                            ...workspace.desiredVector.map(
+                                (x: Expression) => x.tree,
+                            ),
                         ],
                     ];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 
@@ -250,29 +267,39 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     stateVariableDefinitions.x = {
         isAlias: true,
         targetVariableName: "x1",
+        description:
+            "The first component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.y = {
         isAlias: true,
         targetVariableName: "x2",
+        description:
+            "The second component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.z = {
         isAlias: true,
         targetVariableName: "x3",
+        description:
+            "The third component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.numListItems = {
         isAlias: true,
         targetVariableName: "numDimensions",
+        description:
+            "The number of items when the math expression is interpreted as a list.",
     };
 
     stateVariableDefinitions.list = {
+        description:
+            "The math expression interpreted as a list (its elements).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
         },
         isArray: true,
         entryPrefixes: ["listItem"],
@@ -326,6 +353,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrixSize = {
+        description:
+            "The size of the math expression as a matrix, as a [numRows, numColumns] list.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "numberList",
@@ -360,6 +389,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numRows = {
+        description:
+            "The number of rows when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -382,6 +413,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numColumns = {
+        description:
+            "The number of columns when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -404,11 +437,13 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrix = {
+        description:
+            "The math expression interpreted as a matrix (its entries by row and column).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
             returnWrappingComponents(prefix: string | undefined) {
                 if (prefix === "matrixEntry") {
                     return [];
@@ -426,6 +461,16 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         isArray: true,
         numDimensions: 2,
         entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+        schemaSubarrays: {
+            rows: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by row.",
+            },
+            columns: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by column.",
+            },
+        },
         returnEntryDimensions: (prefix: string | undefined) => {
             if (prefix === "matrixEntry") {
                 return 0;
@@ -643,13 +688,13 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { matrix: Record<string, any> };
             globalDependencyValues: { value: any };
-            stateValues: { matrix: Promise<any> };
-            workspace: any;
+            stateValues: { matrix: Promise<Expression[][]> };
+            workspace: MatrixWorkspace;
             arraySize: number[];
         }) {
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredMatrix) {
-                workspace.desiredMatrix = [];
+                workspace.desiredMatrix = {};
             }
             for (let i = 0; i < arraySize[0]; i++) {
                 for (let j = 0; j < arraySize[1]; j++) {
@@ -672,23 +717,27 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
-                    desiredValue = [tree[0]];
-                    for (let ind = 0; ind < arraySize[0]; ind++) {
-                        desiredValue.push(
-                            workspace.desiredMatrix[ind + ",0"].tree,
-                        );
-                    }
+                    desiredValue = me.fromAst([
+                        tree[0],
+                        ...Array.from(
+                            { length: arraySize[0] },
+                            (_, ind) =>
+                                workspace.desiredMatrix![`${ind},0`].tree,
+                        ),
+                    ]);
                 } else if (tree[0] === "matrix") {
-                    let desiredMatrixVals: any[] = ["tuple"];
+                    let desiredMatrixVals: Tree = ["tuple"];
 
                     for (let i = 0; i < arraySize[0]; i++) {
-                        let row = ["tuple"];
+                        let row: Tree = ["tuple"];
                         for (let j = 0; j < arraySize[1]; j++) {
-                            row.push(workspace.desiredMatrix[`${i},${j}`].tree);
+                            row.push(
+                                workspace.desiredMatrix![`${i},${j}`].tree,
+                            );
                         }
                         desiredMatrixVals.push(row);
                     }
@@ -702,23 +751,23 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [tree[0]];
-                    let desiredVector = [tree[1][0]];
+                    let desiredTree: Tree = [tree[0]];
+                    let desiredVector: Tree = [tree[1][0]];
                     for (let ind = 0; ind < arraySize[1]; ind++) {
                         desiredVector.push(
-                            workspace.desiredMatrix["0," + ind].tree,
+                            workspace.desiredMatrix!["0," + ind].tree,
                         );
                     }
-                    desiredValue = [tree[0], desiredVector];
+                    desiredTree = [tree[0], desiredVector];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 
             if (!desiredValue) {
-                desiredValue = workspace.desiredMatrix["0,0"];
+                desiredValue = workspace.desiredMatrix!["0,0"];
             }
 
             let instructions = [

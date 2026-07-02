@@ -1,4 +1,4 @@
-import { DastNodes, DastNodesV6, DastRoot, toXml } from "@doenet/parser";
+import { DastNodes, DastRoot, toXml } from "@doenet/parser";
 import type {
     Root as MdastRoot,
     Nodes as MdastNodes,
@@ -198,7 +198,7 @@ function doenetToMdast(
                 case "title": {
                     const depth = sum(
                         sourceObj
-                            .getParents(node as DastNodesV6)
+                            .getParents(node)
                             .map((n) =>
                                 n.type === "element" &&
                                 DIVISIONS.includes(n.name)

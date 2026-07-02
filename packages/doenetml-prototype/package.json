@@ -5,7 +5,7 @@
     "version": "0.9.0-alpha1",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -26,7 +26,8 @@
         "test:before": "npm run build:test2",
         "build:test1": "wireit",
         "build:test2": "wireit",
-        "test": "npm run build:test1 && vitest"
+        "test": "npm run build:test1 && vitest",
+        "create-renderer-stub": "vite-node scripts/create-renderer-stub.ts"
     },
     "wireit": {
         "build:test1": {
@@ -36,7 +37,8 @@
                 "test/utils/vite.dast-to-flat-dast.config.ts"
             ],
             "output": [
-                "test/utils/dist/dast-to-flat-dast/**/*.js"
+                "test/utils/dist/dast-to-flat-dast/**/*.js",
+                "test/utils/dist/dast-to-flat-dast/**/*.map"
             ],
             "dependencies": [
                 "../doenetml-worker:build",
@@ -50,7 +52,8 @@
                 "test/utils/vite.run.config.ts"
             ],
             "output": [
-                "test/utils/dist/run/**/*.js"
+                "test/utils/dist/run/**/*.js",
+                "test/utils/dist/run/**/*.map"
             ],
             "dependencies": [
                 "build:test1"
@@ -67,6 +70,7 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"

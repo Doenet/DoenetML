@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -32,17 +32,20 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ],
             "dependencies": [
                 "../static-assets:build",
-                "../parser:build"
+                "../parser:build",
+                "../utils:build"
             ]
         }
     },
     "devDependencies": {},
     "dependencies": {
+        "@doenet/utils": "*",
         "mdast-util-to-markdown": "^2.1.2",
         "mdast-util-to-string": "^4.0.0"
     }

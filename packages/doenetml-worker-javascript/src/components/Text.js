@@ -27,6 +27,9 @@ export default class Text extends InlineComponent {
     }
     static componentType = "text";
 
+    static componentDocs = {
+        summary: "A text string",
+    };
     static includeBlankStringChildren = true;
 
     static variableForImplicitProp = "value";
@@ -39,6 +42,7 @@ export default class Text extends InlineComponent {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the text can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -47,6 +51,7 @@ export default class Text extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -55,6 +60,7 @@ export default class Text extends InlineComponent {
         };
 
         attributes.isLatex = {
+            description: "Whether the text content is treated as LaTeX.",
             createComponentOfType: "boolean",
             createStateVariable: "isLatex",
             defaultValue: false,
@@ -126,6 +132,7 @@ export default class Text extends InlineComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "The text value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
@@ -240,6 +247,7 @@ export default class Text extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The text rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -266,6 +274,7 @@ export default class Text extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description: "The text parsed as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -316,6 +325,7 @@ export default class Text extends InlineComponent {
         };
 
         stateVariableDefinitions.number = {
+            description: "The text parsed as a number.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

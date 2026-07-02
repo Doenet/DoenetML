@@ -4,6 +4,19 @@ import { cleanLatex } from "../utils/math";
 import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import type {
+    index as IndexType,
+    matrix as MatrixType,
+    multiply as MultiplyType,
+    subset as SubsetType,
+} from "mathjs";
+const { index, matrix, multiply, subset } = me.math as {
+    index: IndexType;
+    matrix: MatrixType;
+    multiply: MultiplyType;
+    subset: SubsetType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -281,20 +294,20 @@ describe("FunctionIterates tag tests @group2", async () => {
                 true,
             );
 
-            let A = me.math.matrix([
+            let A = matrix([
                 [a, b],
                 [c, d],
             ]);
-            let x = me.math.matrix([[u1], [u2]]);
+            let x = matrix([[u1], [u2]]);
 
             let iterNames = stateVariables[
                 await resolvePathToNodeIdx("iterates")
             ].replacements!.map((x) => x.componentIdx);
 
             for (let i = 0; i < n; i++) {
-                x = me.math.multiply(A, x);
-                let x1 = me.math.subset(x, me.math.index(0, 0));
-                let x2 = me.math.subset(x, me.math.index(1, 0));
+                x = multiply(A, x);
+                let x1 = subset(x, index(0, 0));
+                let x2 = subset(x, index(1, 0));
                 expect(
                     stateVariables[iterNames[i]].stateValues.value.tree,
                 ).eqls(["vector", x1, x2]);
@@ -392,18 +405,18 @@ describe("FunctionIterates tag tests @group2", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has 2 inputs and 1 output",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(4);
-        expect(errorWarnings.warnings[0].position.start.column).eq(21);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(34);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
     });
 
     it("change dimensions", async () => {

@@ -13,6 +13,11 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
+    static componentDocs = {
+        summary: "Repeats template content for each item in a source",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;
@@ -45,24 +50,33 @@ export default class Repeat extends CompositeComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "valueName",
             defaultValue: null,
+            description:
+                "Name to bind the current item to inside the repeat template.",
         };
 
         attributes.indexName = {
             createPrimitiveOfType: "string",
             createStateVariable: "indexName",
             defaultValue: null,
+            description:
+                "Name to bind the current 1-based index to inside the repeat template.",
         };
 
         attributes.for = {
             createComponentOfType: "group",
+            description:
+                "The collection of items to iterate over when generating repeats.",
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type used to wrap each item in the source.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether the generated repeats should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -73,6 +87,8 @@ export default class Repeat extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -294,8 +310,7 @@ export default class Repeat extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -324,12 +339,11 @@ export default class Repeat extends CompositeComponent {
                 workspace,
             });
             replacements.push(...res.replacements);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
+            diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
         }
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async replacementForIter({
@@ -341,8 +355,7 @@ export default class Repeat extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [
             {
@@ -412,7 +425,7 @@ export default class Repeat extends CompositeComponent {
 
         workspace.replacementsCreated = stateIdInfo.num;
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async calculateReplacementChanges({
@@ -424,8 +437,7 @@ export default class Repeat extends CompositeComponent {
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`)
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -458,7 +470,7 @@ export default class Repeat extends CompositeComponent {
 
         if (allSameChildSubstitutionNames) {
             // if all childSubstitutionNames are unchanged, don't do anything
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         if (recreateReplacements) {
@@ -472,8 +484,7 @@ export default class Repeat extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
@@ -494,7 +505,7 @@ export default class Repeat extends CompositeComponent {
                 withheldSubstitutionChildNames: [],
             };
 
-            return { replacementChanges, nComponents };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let currentNumIterates = await component.stateValues.numIterates;
@@ -618,8 +629,7 @@ export default class Repeat extends CompositeComponent {
                         workspace,
                     });
                     replacements.push(...res.replacements);
-                    errors.push(...res.errors);
-                    warnings.push(...res.warnings);
+                    diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                 }
 
@@ -641,7 +651,7 @@ export default class Repeat extends CompositeComponent {
             withheldSubstitutionChildNames,
         };
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({
@@ -660,6 +670,7 @@ export default class Repeat extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -681,6 +692,7 @@ export default class Repeat extends CompositeComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };

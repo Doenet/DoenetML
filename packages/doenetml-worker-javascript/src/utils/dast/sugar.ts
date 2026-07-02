@@ -1,4 +1,4 @@
-import { deepClone, ErrorRecord, WarningRecord } from "@doenet/utils";
+import { deepClone, DiagnosticRecord } from "@doenet/utils";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     isSerializedAttribute,
@@ -39,12 +39,10 @@ export function applySugar({
     stateIdInfo?: { prefix: string; num: number };
 }): {
     components: (string | SerializedComponent)[];
-    errors: ErrorRecord[];
-    warnings: WarningRecord[];
+    diagnostics: DiagnosticRecord[];
     nComponents: number;
 } {
-    let errors: ErrorRecord[] = [];
-    let warnings: WarningRecord[] = [];
+    let diagnostics: DiagnosticRecord[] = [];
 
     const newComponents: (string | SerializedComponent)[] = [];
 
@@ -120,15 +118,14 @@ export function applySugar({
                         stateIdInfo,
                     });
 
-                    if (sugarResults.warnings) {
-                        warnings.push(
-                            ...sugarResults.warnings.map((w: WarningRecord) => {
-                                const w2 = { ...w };
-                                w2.position = component.position;
-                                w2.sourceDoc = component.sourceDoc;
-                                return w2;
-                            }),
-                        );
+                    if (sugarResults.diagnostics) {
+                        for (const d of sugarResults.diagnostics) {
+                            diagnostics.push({
+                                ...d,
+                                position: component.position,
+                                sourceDoc: component.sourceDoc,
+                            });
+                        }
                     }
 
                     if (sugarResults.success) {
@@ -215,8 +212,7 @@ export function applySugar({
                                         stateIdInfo,
                                     });
                                 newComponent.children = expandResult.components;
-                                errors.push(...expandResult.errors);
-                                warnings.push(...expandResult.warnings);
+                                diagnostics.push(...expandResult.diagnostics);
                                 nComponents = expandResult.nComponents;
                             } else {
                                 console.log(
@@ -263,8 +259,7 @@ export function applySugar({
                                     newComponent.attributes,
                                     expandResult.attributes,
                                 );
-                                errors.push(...expandResult.errors);
-                                warnings.push(...expandResult.warnings);
+                                diagnostics.push(...expandResult.diagnostics);
                                 nComponents = expandResult.nComponents;
                             } else {
                                 console.log(
@@ -298,8 +293,7 @@ export function applySugar({
                 stateIdInfo,
             });
             newComponent.children = res.components;
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
+            diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
 
             for (const attrName in newComponent.attributes) {
@@ -316,8 +310,7 @@ export function applySugar({
                     });
                     attribute.component = res
                         .components[0] as SerializedComponent;
-                    errors.push(...res.errors);
-                    warnings.push(...res.warnings);
+                    diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                 }
             }
@@ -328,7 +321,7 @@ export function applySugar({
             const convertResult = convertToErrorComponent(component, e);
             newComponents.push(convertResult.component);
 
-            errors.push({
+            diagnostics.push({
                 type: "error",
                 message: convertResult.message,
                 position: component.position,
@@ -337,7 +330,7 @@ export function applySugar({
         }
     }
 
-    return { errors, warnings, components: newComponents, nComponents };
+    return { diagnostics, components: newComponents, nComponents };
 }
 
 /**

@@ -1,10 +1,7 @@
 import {
     DastElement,
-    DastElementV6,
-    DastFunctionMacroV6,
-    DastMacroV6,
-    DastNodesV6,
-    DastRootV6,
+    DastNodes,
+    DastRoot,
     LezerSyntaxNodeName,
     Position,
     toXml,
@@ -13,12 +10,13 @@ import {
     initDast,
     initLezer,
     initLezerCursor,
-    initDescendentNamesMap,
+    initDescendantNamesMap,
     initOffsetToNodeMapRight,
     initOffsetToRowCache,
     initParentMap,
     initRowToOffsetCache,
     initOffsetToNodeMapLeft,
+    initOffsetToNodeIndexMap,
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
 import { elementAtOffsetWithContext } from "./methods/element-at-offset";
@@ -26,12 +24,19 @@ import {
     getAddressableNamesAtOffset,
     getMacroReferentAtOffset,
 } from "./methods/macro-resolvers";
-import { DastMacro } from "@doenet/parser";
 import type {
     Position as LSPPosition,
     Range as LSPRange,
 } from "vscode-languageserver";
+import type { SyntaxNode } from "@lezer/common";
 import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
+import {
+    findAttributeContainingOffset,
+    findPrecedingEqualsForBareValue,
+    identifierAtOffset,
+    identifierPrecedingOffset,
+    synthesizeStrippedAttribute,
+} from "./methods/attribute-helpers";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -67,7 +72,8 @@ export class DoenetSourceObject extends LazyDataObject {
     _parentMap = this._lazyDataGetter(initParentMap);
     _offsetToNodeMapRight = this._lazyDataGetter(initOffsetToNodeMapRight);
     _offsetToNodeMapLeft = this._lazyDataGetter(initOffsetToNodeMapLeft);
-    _descendentNamesMap = this._lazyDataGetter(initDescendentNamesMap);
+    _offsetToNodeIndexMap = this._lazyDataGetter(initOffsetToNodeIndexMap);
+    _descendantNamesMap = this._lazyDataGetter(initDescendantNamesMap);
 
     constructor(source?: string) {
         super();
@@ -134,6 +140,36 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get a Rust-compatible root/element index at the given offset.
+     * Returns the index of the nearest containing element (or root),
+     * or `null` if no node exists at that position.
+     *
+     * Offsets are cursor positions, so `offset === source.length` is valid
+     * (cursor at end-of-file). For that case we use left-of-cursor semantics
+     * and return the same index as `source.length - 1` when the source is
+     * non-empty.
+     *
+     * This mapping is used for Rust resolver integration to identify nodes by stable indices
+     * rather than object references.
+     *
+     * @param offset The 0-based character offset into the source string
+     * @returns The root/element index, or null if no node at offset
+     */
+    getNodeIndexAtOffset(offset: number): number | null {
+        const offsetToIndexMap = this._offsetToNodeIndexMap();
+        if (offset < 0 || offset > this.source.length) {
+            return null;
+        }
+        if (offset === this.source.length) {
+            if (this.source.length === 0) {
+                return null;
+            }
+            return offsetToIndexMap[this.source.length - 1] ?? null;
+        }
+        return offsetToIndexMap[offset] ?? null;
+    }
+
+    /**
      * Return the node that contains the current offset and is furthest down the tree.
      * E.g. `<a><b>x</b></a>` at offset equal to the position of `x` return a text node.
      *
@@ -157,6 +193,41 @@ export class DoenetSourceObject extends LazyDataObject {
 
     /**
      * Get the element attribute at `offset`, if it exists.
+     *
+     * Accepts cursors reported as `attributeName` or `attributeValue` as well
+     * as the boundary cases `openTag` (e.g. cursor right after the opening
+     * quote of a value) and `unknown` (e.g. cursor right after `=` on a
+     * partial attribute, before the value is opened). In all cases the result
+     * is restricted to a real attribute range, so cursors that aren't inside
+     * any attribute (between attrs, on the tag name, on body text) return
+     * `null`.
+     *
+     * Also applies an unquoted-value spillover heuristic: when the cursor
+     * lands in a bogus attribute that the parser produced for the unquoted
+     * value of a preceding attribute (e.g. the `full` in `<math simplify=full`
+     * or `<math simplify= full`), returns the preceding attribute so callers
+     * follow the user's intent rather than the parser's tokenization.
+     *
+     * Finally, when no attribute range contains the cursor at all, a
+     * bare-value-after-`=` fallback walks back over value chars and
+     * whitespace; if `=` precedes them, the attribute whose range contains
+     * that `=` is returned. This mirrors the fallback in
+     * `AutoCompleter.getCompletionItems` for parser states where typed
+     * value chars don't yet land inside any attribute's range.
+     *
+     * Caveat — synthesized return values: when `lezer-to-dast` stripped
+     * a bare-value pair from `node.attributes` (`<math simplify=full>` —
+     * #1197), the fallback synthesizes a virtual `DastAttribute` from
+     * the identifier in the source via `synthesizeStrippedAttribute`.
+     * Such returns carry `name` and `position` but always
+     * `children: []` — the value half was stripped along with the
+     * assign half and is not reconstructed.  Callers that need the
+     * typed value (`toXml(attr.children)` on a synthesized return
+     * yields `""`) should slice `this.source` around `attr.position`
+     * themselves.  Today's only consumers (`computeContextHelp`,
+     * autocomplete) read only `attr.name`, so this is transparent;
+     * future consumers reading `attr.children` need to handle the
+     * synthesized case explicitly.
      */
     attributeAtOffset(offset: number | RowCol) {
         if (typeof offset !== "number") {
@@ -167,19 +238,106 @@ export class DoenetSourceObject extends LazyDataObject {
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
-                containingElm.cursorPosition !== "attributeValue")
+                containingElm.cursorPosition !== "attributeValue" &&
+                // `openTag` is reported once the cursor sits past an attribute
+                // name on the equals/quote boundary in some cases, and
+                // `unknown` is reported in others (e.g. cursor right after `=`
+                // on a partial attribute, before the value is opened). The
+                // position-containment check below still restricts the result
+                // to a real attribute range, so cursors between attrs
+                // (`<math foo |bar`) or on the tag name return null naturally.
+                containingElm.cursorPosition !== "openTag" &&
+                containingElm.cursorPosition !== "unknown")
         ) {
             return null;
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = Object.values(containingElm.node.attributes).find(
-            (a) =>
-                a.position &&
-                a.position.start.offset! <= _offset &&
-                a.position.end.offset! >= _offset,
-        );
-        return attribute || null;
+        const attributes = Object.values(containingElm.node.attributes);
+        const attribute = findAttributeContainingOffset(attributes, _offset);
+        if (!attribute) {
+            // Bare-value-after-`=` fallback: in some parser states the typed
+            // value chars don't fall inside any attribute's position range
+            // (mirrored in `AutoCompleter.getCompletionItems`). Walk back
+            // over value chars + whitespace; if we land on `=`, return the
+            // attribute whose range contains the `=`.
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                _offset,
+            );
+            if (equalsOffset != null) {
+                const containing = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false },
+                );
+                if (containing) return containing;
+                // Stripped unquoted-pair fallback (#1197): the bare-value
+                // half of `<math simplify=full>` is removed from
+                // `node.attributes` by the parser, so the `=` lookup above
+                // misses on the value side.  Walk back over the assign
+                // half's identifier token (skipping any whitespace between
+                // it and `=`, so `<math simplify = full>` still resolves)
+                // and synthesize a virtual `DastAttribute` so context-help
+                // / autocomplete still resolve the attribute the cursor is
+                // conceptually on.
+                const ident = identifierPrecedingOffset(
+                    this.source,
+                    equalsOffset,
+                );
+                if (ident) {
+                    return synthesizeStrippedAttribute(
+                        this.source,
+                        ident.start,
+                        ident.end,
+                        (o) => this.offsetToRowCol(o),
+                    );
+                }
+                return null;
+            }
+            // Same stripping case, viewed from the assign-half side:
+            // the cursor sits inside the now-removed identifier (e.g.
+            // mid-`bad` in `<math bad=foo`).  If the cursor straddles an
+            // attribute-name token in the source, synthesize from that
+            // token so the panel keeps something useful on screen.
+            const ident = identifierAtOffset(this.source, _offset);
+            if (ident) {
+                return synthesizeStrippedAttribute(
+                    this.source,
+                    ident.start,
+                    ident.end,
+                    (o) => this.offsetToRowCol(o),
+                );
+            }
+            return null;
+        }
+
+        // Unquoted value spillover: `<math simplify=full>` parses as TWO
+        // attributes — `simplify` (with the `=` baked into its range) and
+        // `full` (a bogus attribute with no value). When the cursor lands
+        // in the bogus one and the chars between it and the preceding
+        // attribute are just `=` plus optional whitespace, the user is
+        // mid-typing a value for the preceding attribute. Walk back over
+        // whitespace to also catch `<math simplify= full>` (space after `=`)
+        // — the parser absorbs the whitespace into `simplify`'s range, so
+        // the preceding attribute is the one whose source range *contains*
+        // the `=` position.
+        const startOffset = attribute.position?.start.offset;
+        if (startOffset != null && startOffset > 0) {
+            const equalsOffset = findPrecedingEqualsForBareValue(
+                this.source,
+                startOffset,
+            );
+            if (equalsOffset != null) {
+                const preceding = findAttributeContainingOffset(
+                    attributes,
+                    equalsOffset,
+                    { endInclusive: false, exclude: attribute },
+                );
+                if (preceding) return preceding;
+            }
+        }
+        return attribute;
     }
 
     /**
@@ -187,7 +345,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * partially complete (`false`). Complete elements are valid xml.
      * Incomplete elements are `<abc` or `<abc>`.
      */
-    isCompleteElement(node: DastElementV6): {
+    isCompleteElement(node: DastElement): {
         tagComplete: boolean;
         closed: boolean;
     } {
@@ -220,6 +378,15 @@ export class DoenetSourceObject extends LazyDataObject {
                 }
                 if (!lezerNodeParent?.getChild("CloseTag")) {
                     closed = false;
+                } else if (
+                    this._isCloseTagStolenFromAncestor(lezerNodeParent)
+                ) {
+                    // The parser found a CloseTag for us, but its stack-based
+                    // matching has likely "stolen" what the user intended as
+                    // an ancestor's close tag for this inner element
+                    // (issue #1117). Treat as unclosed so callers (auto-close
+                    // and `</` completion) insert / suggest a fresh close tag.
+                    closed = false;
                 }
                 break;
             }
@@ -241,15 +408,66 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Walk up the contiguous chain of same-name ancestor `Element` nodes
+     * starting from `elementNode`'s parent. Returns true if any of those
+     * same-name ancestors is missing its `CloseTag` — meaning the parser's
+     * stack-based matching has shifted close tags down a level and the
+     * close tag the parser attributed to `elementNode` was, from the user's
+     * perspective, "stolen" from an ancestor (issue #1117).
+     *
+     * Stops at the first ancestor with a different tag name (or at the
+     * root): the stealing pattern only happens through a same-name chain,
+     * because that's the only configuration where the parser stack can
+     * shuffle close tags. For example, `<p><div><p></p></div>` does NOT
+     * trigger — `<div>` breaks the chain and the inner `</p>` is
+     * genuinely the inner `<p>`'s own.
+     *
+     * Comparison is case-sensitive to match XML/DoenetML semantics.
+     */
+    _isCloseTagStolenFromAncestor(elementNode: SyntaxNode): boolean {
+        const openTag = elementNode.getChild("OpenTag");
+        const tagNameNode = openTag?.getChild("TagName");
+        if (!tagNameNode) {
+            return false;
+        }
+        const tagName = this.source.slice(tagNameNode.from, tagNameNode.to);
+        if (!tagName) {
+            return false;
+        }
+
+        let ancestor = elementNode.parent;
+        while (ancestor) {
+            if (ancestor.type.name !== "Element") {
+                return false;
+            }
+            const ancestorOpenTag = ancestor.getChild("OpenTag");
+            const ancestorTagNameNode = ancestorOpenTag?.getChild("TagName");
+            if (!ancestorTagNameNode) {
+                return false;
+            }
+            const ancestorName = this.source.slice(
+                ancestorTagNameNode.from,
+                ancestorTagNameNode.to,
+            );
+            if (ancestorName !== tagName) {
+                return false;
+            }
+            if (!ancestor.getChild("CloseTag")) {
+                return true;
+            }
+            ancestor = ancestor.parent;
+        }
+        return false;
+    }
+
+    /**
      * Get the offset ranges for the tag(s) of `node`. (I.e., just the part
      * in the angle brackets without the children.) If the tag is incomplete or
      * is a self-closing tag, only one range will be returned.
      *
      * Note: these values are given as **offsets**.
      */
-    getElementTagRanges(
-        node: DastElementV6 | DastElement,
-    ): { start: number; end: number }[] {
+    getElementTagRanges(node: DastElement): { start: number; end: number }[] {
         const start = node.position?.start?.offset || 0;
         const end = node.position?.end?.offset || 0;
         const childrenStart = node.children[0]?.position?.start?.offset;
@@ -267,9 +485,22 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
-    getParent(node: DastNodesV6): DastElementV6 | DastRootV6 | null {
+    getParent(node: DastNodes): DastElement | DastRoot | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
+    }
+
+    /**
+     * Get the tag name of the parent element of `node`, or `undefined` when
+     * the parent is the document root (no `name` field) or `node` has no
+     * parent at all. Convenience over `getParent` that's used wherever the
+     * alias-aware schema lookups need the grandparent/parent name string —
+     * keeping the `parent && "name" in parent ? parent.name : undefined`
+     * dance in one place so callsites don't drift.
+     */
+    getParentElementName(node: DastNodes): string | undefined {
+        const parent = this.getParent(node);
+        return parent && "name" in parent ? parent.name : undefined;
     }
 
     /**
@@ -278,8 +509,8 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Node must be in `this.dast`.
      */
-    getParents(node: DastNodesV6): (DastElementV6 | DastRootV6)[] {
-        const ret: (DastElementV6 | DastRootV6)[] = [];
+    getParents(node: DastNodes): (DastElement | DastRoot)[] {
+        const ret: (DastElement | DastRoot)[] = [];
 
         let parent = this.getParent(node);
         while (parent && parent.type !== "root") {
@@ -291,17 +522,17 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
-     * Get the unique descendent of `node` with name `name`.
+     * Get the unique descendant of `node` with name `name`.
      */
-    getNamedDescendent(
-        node: DastElementV6 | DastRootV6 | undefined | null,
+    getNamedDescendant(
+        node: DastElement | DastRoot | undefined | null,
         name: string,
     ) {
         if (!node) {
             return null;
         }
-        const descendentNamesMap = this._descendentNamesMap();
-        const accessibleNames = (descendentNamesMap.get(node) || []).filter(
+        const descendantNamesMap = this._descendantNamesMap();
+        const accessibleNames = (descendantNamesMap.get(node) || []).filter(
             (e) => e.name === name,
         );
         if (accessibleNames.length === 1) {
@@ -311,19 +542,50 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get all descendant names directly addressable from `node`.
+     */
+    getDescendantNamesForNode(
+        node: DastElement | DastRoot | undefined | null,
+    ): string[] {
+        if (!node) {
+            return [];
+        }
+        return (this._descendantNamesMap().get(node) || []).map(
+            ({ name }) => name,
+        );
+    }
+
+    /**
+     * Get descendant names that are uniquely addressable from `node`.
+     *
+     * This mirrors `getNamedDescendant` semantics: names that occur more than
+     * once under the same node are excluded.
+     */
+    getUniqueDescendantNamesForNode(
+        node: DastElement | DastRoot | undefined | null,
+    ): string[] {
+        const names = this.getDescendantNamesForNode(node);
+        const counts = new Map<string, number>();
+        for (const name of names) {
+            counts.set(name, (counts.get(name) || 0) + 1);
+        }
+        return names.filter((name) => counts.get(name) === 1);
+    }
+
+    /**
      * Get the unique item with name `name` resolved from position `offset`.
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffsetWithContext(offset);
-        let parent: DastElementV6 | DastRootV6 | undefined | null = node;
-        let referent = this.getNamedDescendent(parent, name);
+        let parent: DastElement | DastRoot | undefined | null = node;
+        let referent = this.getNamedDescendant(parent, name);
         while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
-            referent = this.getNamedDescendent(parent, name);
+            referent = this.getNamedDescendant(parent, name);
         }
         if (!parent && !referent) {
             // We need to search the root!
-            referent = this.getNamedDescendent(this.dast, name);
+            referent = this.getNamedDescendant(this.dast, name);
         }
         return referent || null;
     }
@@ -346,7 +608,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Return the smallest range that contains all of the nodes in `nodes`.
      */
     getNodeRange<Style extends "default" | "lsp">(
-        nodes: DastNodesV6 | DastNodesV6[],
+        nodes: DastNodes | DastNodes[],
         style?: Style,
     ): Style extends "lsp" ? LSPRange : Position {
         if (!Array.isArray(nodes)) {
@@ -380,7 +642,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * The DAST representation of `source`.
      */
-    get dast(): DastRootV6 {
+    get dast(): DastRoot {
         return this._dast();
     }
 
@@ -396,29 +658,3 @@ export type OffsetToPositionMap = {
     rowMap: Uint32Array;
     columnMap: Uint32Array;
 };
-
-/**
- * Returns `true` if the macro is an "old-style" macro with slashes
- * in its path.
- */
-export function isOldMacro(
-    macro: DastMacro | DastFunctionMacroV6 | DastMacroV6 | DastFunctionMacroV6,
-): boolean {
-    if (!("version" in macro) || macro.version !== "0.6") {
-        return false;
-    }
-    switch (macro.type) {
-        case "macro": {
-            if (macro.path.length !== 1) {
-                return true;
-            }
-            if ("accessedProp" in macro && macro.accessedProp) {
-                return isOldMacro(macro.accessedProp);
-            }
-            return false;
-        }
-        case "function": {
-            return "macro" in macro && isOldMacro(macro.macro);
-        }
-    }
-}

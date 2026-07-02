@@ -1,0 +1,49 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/pre-commit-prettier.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
+                        "timeout": 30
+                    },
+                    {
+                        "type": "command",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/gh-footer-check.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/gh-pr-title-check.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "jq -r '.tool_response.filePath // .tool_input.file_path' 2>/dev/null | { read -r f; [ -n \"$f\" ] || exit 0; repo_root=\"${CLAUDE_PROJECT_DIR:-$(git -C \"$(dirname \"$f\")\" rev-parse --show-toplevel 2>/dev/null)}\"; [ -n \"$repo_root\" ] || exit 0; repo_root=$(realpath \"$repo_root\"); target=$(realpath \"$f\"); case \"$target\" in \"$repo_root\"|\"$repo_root\"/*) (cd \"$repo_root\" && npx --no-install prettier --write --ignore-unknown \"$target\") ;; esac; }",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "UserPromptExpansion": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "msg=$(jq -r '.userMessage'); if echo \"$msg\" | grep -qE '^/review'; then repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo \"$msg\" && echo \"\" && cat \"$repo_root/docs/PR_REVIEW_GUIDELINES.md\" 2>/dev/null; else echo \"$msg\"; fi | jq -Rs '{userMessage: .}'"
+                    }
+                ]
+            }
+        ]
+    }
+}

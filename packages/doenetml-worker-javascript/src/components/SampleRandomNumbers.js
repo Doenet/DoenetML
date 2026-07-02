@@ -1,5 +1,5 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
@@ -12,6 +12,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
         });
     }
     static componentType = "sampleRandomNumbers";
+
+    static componentDocs = {
+        summary: "Samples random numbers from a distribution",
+    };
+    static takesIndex = true;
 
     static allowInSchemaAsComponent = ["number"];
 
@@ -26,6 +31,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.numSamples = {
+            description: "Number of samples to draw.",
             createComponentOfType: "number",
             createStateVariable: "numSamples",
             defaultValue: 1,
@@ -38,63 +44,93 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // gaussian: gaussian with prescribed mean and standard deviation
 
         attributes.type = {
+            description: "Distribution from which to sample.",
             createComponentOfType: "text",
             createStateVariable: "type",
             defaultValue: "uniform",
             public: true,
             toLowerCase: true,
-            validValues: ["uniform", "discreteuniform", "gaussian"],
+            validValues: [
+                {
+                    value: "uniform",
+                    description:
+                        "Continuous uniform distribution over `[from, to]`.",
+                },
+                {
+                    value: "discreteUniform",
+                    description:
+                        "Discrete uniform distribution over integers in `[from, to]`.",
+                },
+                {
+                    value: "gaussian",
+                    description:
+                        "Normal (Gaussian) distribution with the specified mean and standard deviation.",
+                },
+            ],
         };
 
         attributes.mean = {
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
             defaultValue: 0,
+            description: "Mean of the sampling distribution (Gaussian).",
         };
 
         attributes.standardDeviation = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStandardDeviation",
             defaultValue: 1,
+            description:
+                "Standard deviation of the sampling distribution (Gaussian).",
         };
 
         attributes.variance = {
             createComponentOfType: "number",
             createStateVariable: "specifiedVariance",
             defaultValue: 1,
+            description: "Variance of the sampling distribution (Gaussian).",
         };
 
         attributes.from = {
             createComponentOfType: "number",
             createStateVariable: "specifiedFrom",
             defaultValue: null,
+            description: "Lower bound of the sampling range.",
         };
 
         attributes.to = {
             createComponentOfType: "number",
             createStateVariable: "specifiedTo",
             defaultValue: null,
+            description: "Upper bound of the sampling range.",
         };
 
         attributes.step = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStep",
             defaultValue: 1,
+            description:
+                "Step size between samples for the discrete-uniform distribution.",
         };
 
         attributes.exclude = {
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
+            description: "Values to exclude from the sample space.",
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
         attributes.variantDeterminesSeed = {
+            description:
+                "Whether the document's variant index determines the random seed.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
             defaultPrimitiveValue: false,
@@ -105,6 +141,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -114,6 +152,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.step = {
+            description:
+                "Step size between sample values (for discrete distributions).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -140,6 +180,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.from = {
+            description: "Lower bound of the sampling range.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -151,6 +192,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description: "Upper bound of the sampling range.",
                 },
                 {
                     variableName: "numDiscreteValues",
@@ -279,6 +321,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.mean = {
+            description: "Mean of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -354,6 +397,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.variance = {
+            description: "Variance of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -452,6 +496,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.standardDeviation = {
+            description: "Standard deviation of the sampling distribution.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -631,11 +676,10 @@ export default class SampleRandomNumbers extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let attributesToConvert = {};
-        for (let attr of Object.keys(returnRoundingAttributes())) {
+        for (let attr of Object.keys(returnNumberDisplayAttributes())) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
             }
@@ -677,8 +721,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -689,9 +732,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -727,8 +768,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     nComponents,
                     workspace,
                 });
-                errors.push(...result.errors);
-                warnings.push(...result.warnings);
+                diagnostics.push(...result.diagnostics);
                 nComponents = result.nComponents;
 
                 let replacementInstruction = {
@@ -757,7 +797,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({
@@ -782,6 +822,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let variantDeterminesSeed =
             serializedComponent.attributes.variantDeterminesSeed.primitive
@@ -793,6 +834,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
     }

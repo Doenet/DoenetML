@@ -6,37 +6,31 @@ import {
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
+import {
+    defineSubmitAnswerExternalAction,
+    inputUpdateImmediateValue,
+    inputUpdateValue,
+    returnImmediateValueStateVariableDefinition,
+    returnInputValueChangedStateVariableDefinitions,
+} from "../utils/input";
 
 export default class Textinput extends Input {
     constructor(args) {
         super(args);
 
         Object.assign(this.actions, {
-            updateImmediateValue: this.updateImmediateValue.bind(this),
-            updateValue: this.updateValue.bind(this),
+            updateImmediateValue: inputUpdateImmediateValue.bind(this),
+            updateValue: inputUpdateValue.bind(this),
             moveInput: this.moveInput.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "textInput";
 
+    static componentDocs = {
+        summary: "An interactive text input",
+    };
     static variableForImplicitProp = "value";
 
     static processWhenJustUpdatedForNewComponent = true;
@@ -44,6 +38,8 @@ export default class Textinput extends Input {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.prefill = {
+            description:
+                "Initial text shown in the input before the user types.",
             createComponentOfType: "text",
             createStateVariable: "prefill",
             defaultValue: "",
@@ -51,8 +47,10 @@ export default class Textinput extends Input {
         };
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.expanded = {
+            description: "Whether the input renders as a multi-line text area.",
             createComponentOfType: "boolean",
             createStateVariable: "expanded",
             defaultValue: false,
@@ -62,8 +60,10 @@ export default class Textinput extends Input {
         };
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Display width of the input.",
         };
         attributes.height = {
+            description: "Display height of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: { size: 120, isAbsolute: true },
@@ -71,6 +71,7 @@ export default class Textinput extends Input {
             public: true,
         };
         attributes.draggable = {
+            description: "Whether the input can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -123,10 +124,21 @@ export default class Textinput extends Input {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnInputValueChangedStateVariableDefinitions({
+                valueChangedDescription:
+                    "Whether the value has been changed from its initial state.",
+                immediateValueChangedDescription:
+                    "Whether the value, including in-progress edits, has been changed from its initial state.",
+            }),
+        );
+
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.width = {
+            description: "Display width of the input.",
             forRenderer: true,
             hasEssential: true,
             public: true,
@@ -193,33 +205,8 @@ export default class Textinput extends Input {
             },
         };
 
-        stateVariableDefinitions.valueChanged = {
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return { useEssentialOrDefaultValue: { valueChanged: true } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "valueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.valueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.value = {
+            description: "The text value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -317,119 +304,17 @@ export default class Textinput extends Input {
             },
         };
 
-        stateVariableDefinitions.immediateValueChanged = {
-            public: true,
-            hasEssential: true,
-            defaultValue: false,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({}),
-            definition() {
-                return {
-                    useEssentialOrDefaultValue: { immediateValueChanged: true },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "immediateValueChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged,
-                            ),
-                        },
-                    ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.immediateValue = {
-            public: true,
-            shadowingInstructions: {
+        Object.assign(
+            stateVariableDefinitions,
+            returnImmediateValueStateVariableDefinition({
+                description:
+                    "The text value reflecting the user's in-progress edits.",
                 createComponentOfType: "text",
-            },
-            forRenderer: true,
-            hasEssential: true,
-            shadowVariable: true,
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-                immediateValueChanged: {
-                    dependencyType: "stateVariable",
-                    variableName: "immediateValueChanged",
-                    onlyToSetInInverseDefinition: true,
-                },
             }),
-            definition: function ({
-                dependencyValues,
-                changes,
-                justUpdatedForNewComponent,
-                usedDefault,
-            }) {
-                // console.log(`definition of immediateValue`)
-                // console.log(dependencyValues)
-                // console.log(changes);
-
-                if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
-                ) {
-                    // only update to value when it changes
-                    // (otherwise, let its essential value change)
-                    return {
-                        setValue: { immediateValue: dependencyValues.value },
-                        setEssentialValue: {
-                            immediateValue: dependencyValues.value,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            immediateValue: {
-                                defaultValue: dependencyValues.value,
-                            },
-                        },
-                    };
-                }
-            },
-            inverseDefinition: function ({
-                desiredStateVariableValues,
-                initialChange,
-                shadowedVariable,
-            }) {
-                // value is essential; give it the desired value
-                let instructions = [
-                    {
-                        setEssentialValue: "immediateValue",
-                        value: desiredStateVariableValues.immediateValue,
-                    },
-                    {
-                        setDependency: "immediateValueChanged",
-                        desiredValue: true,
-                    },
-                ];
-
-                // if from outside sources, also set value
-                if (!(initialChange || shadowedVariable)) {
-                    instructions.push({
-                        setDependency: "value",
-                        desiredValue: desiredStateVariableValues.immediateValue,
-                    });
-                }
-
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.text = {
+            description: "The current text as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -454,106 +339,6 @@ export default class Textinput extends Input {
         Object.assign(stateVariableDefinitions, pieceDefs);
 
         return stateVariableDefinitions;
-    }
-
-    async updateImmediateValue({
-        text,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.disabled)) {
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "immediateValue",
-                        value: text,
-                    },
-                    {
-                        updateType: "setComponentNeedingUpdateValue",
-                        componentIdx: this.componentIdx,
-                    },
-                ],
-                transient: true,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
-    }
-
-    async updateValue({
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.disabled)) {
-            let immediateValue = await this.stateValues.immediateValue;
-
-            if ((await this.stateValues.value) !== immediateValue) {
-                let updateInstructions = [
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "value",
-                        value: immediateValue,
-                    },
-                    // in case value ended up being a different value than requested
-                    // we set immediate value to whatever was the result
-                    // (hence the need to execute update first)
-                    // Also, this makes sure immediateValue is saved to the database,
-                    // since in updateImmediateValue, immediateValue is not saved to database
-                    {
-                        updateType: "executeUpdate",
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "immediateValue",
-                        valueOfStateVariable: "value",
-                    },
-                    {
-                        updateType: "unsetComponentNeedingUpdateValue",
-                    },
-                ];
-
-                let event = {
-                    verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue,
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
-
-                await this.coreFunctions.performUpdate({
-                    updateInstructions,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate: true,
-                    event,
-                });
-
-                return await this.coreFunctions.triggerChainedActions({
-                    componentIdx: this.componentIdx,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
-            }
-        }
     }
 
     async moveInput({

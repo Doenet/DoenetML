@@ -1,19 +1,19 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <sort>{:dn}`
+# `<sort>{:dn}`
 
-` <sort>{:dn}` is an [General Operator](../document/essentialConcepts/#componentTypes) component that reorders a list of components based on given criteria.
+<ComponentDisplay name='sort'/>
 
-## Attributes and Properties 
- <AttrDisplay name='sort'/> 
- <PropDisplay name='sort'/>
+`<sort>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) component that reorders a list of components based on given criteria.
 
----
+<AttrPropDisplay name='sort'/>
 
-### Example: ` <sort>{:dn}` a list of numbers
+## Examples
+
+### Example: `<sort>{:dn}` a list of numbers
 
 
 ```doenet-editor-horiz
@@ -29,14 +29,14 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-In this example, ` <number>{:dn}` components are sorted in increasing order using 
-the ` <sort>{:dn}` component.
+In this example, `<number>{:dn}` components are sorted in increasing order using 
+the `<sort>{:dn}` component.
 
 
 
 ---
 
-### Example: ` <sort>{:dn}` numbers from a random selection
+### Example: `<sort>{:dn}` numbers from a random selection
 
 
 ```doenet-editor-horiz
@@ -50,21 +50,21 @@ the ` <sort>{:dn}` component.
 
 
 
-In this example, randomly selected numbers generated with a ` <selectRandomNumbers>{:dn}` component 
-are sorted in increasing order using the ` <sort>{:dn}` component.
+In this example, randomly selected numbers generated with a `<selectRandomNumbers>{:dn}` component 
+are sorted in increasing order using the `<sort>{:dn}` component.
 
 
 
 ---
 
-### Example: ` <sort>{:dn}` numbers from user-input
+### Example: `<sort>{:dn}` numbers from user-input
 
 
 ```doenet-editor-horiz
 <p>Enter three numbers, not in increasing order:
-  <mathInput name="n1"/>, 
-  <mathInput name="n2"/>, 
-  <mathInput name="n3"/>
+  <mathInput name="n1"><shortDescription>first number</shortDescription></mathInput>, 
+  <mathInput name="n2"><shortDescription>second number</shortDescription></mathInput>, 
+  <mathInput name="n3"><shortDescription>third number</shortDescription></mathInput>
 </p>
 <p>Your sorted list is: 
   <sort>$n1 $n2 $n3</sort>
@@ -73,8 +73,8 @@ are sorted in increasing order using the ` <sort>{:dn}` component.
 
 
 
-In this example, numbers entered by the user with a ` <mathInput>{:dn}` component are 
-referenced by name and are sorted in increasing order using the ` <sort>{:dn}` component.
+In this example, numbers entered by the user with a `<mathInput>{:dn}` component are 
+referenced by name and are sorted in increasing order using the `<sort>{:dn}` component.
 
 
 
@@ -85,9 +85,9 @@ referenced by name and are sorted in increasing order using the ` <sort>{:dn}` c
 
 ```doenet-editor-horiz
 <p>Enter three names, not in alphabetical order:
-  <textInput name="n1"/>, 
-  <textInput name="n2"/>, 
-  <textInput name="n3"/>
+  <textInput name="n1"><shortDescription>first name</shortDescription></textInput>, 
+  <textInput name="n2"><shortDescription>second name</shortDescription></textInput>, 
+  <textInput name="n3"><shortDescription>third name</shortDescription></textInput>
 </p>
 <p>Your sorted list is: 
   <sort>$n1 $n2 $n3</sort>
@@ -96,14 +96,13 @@ referenced by name and are sorted in increasing order using the ` <sort>{:dn}` c
 
 
 
-In this example, names entered by the user with a ` <textInput>{:dn}` component 
+In this example, names entered by the user with a `<textInput>{:dn}` component 
 are referenced by name and are sorted in alphabetical order 
-using the ` <sort>{:dn}` component.
+using the `<sort>{:dn}` component.
 
 
 
----
-
+## Attribute Examples
 
 ### Attribute Example: sortByComponent
 
@@ -111,8 +110,9 @@ using the ` <sort>{:dn}` component.
 ```doenet-editor-horiz
 <p>Drag the points!</p>
 
-<p>Choose component number to sort by (1 or 2):
-  <mathInput name="i" prefill="1"/></p>
+<p><mathInput name="i" prefill="1">
+  <label>Choose component number to sort by (1 or 2)</label>
+</mathInput></p>
 <p>
   <sort sortByComponent="$i">
     $A $B $C $D
@@ -120,6 +120,7 @@ using the ` <sort>{:dn}` component.
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
   <point name="A">(0,5)</point>
   <point name="B" styleNumber="2">(-2,6)</point>
   <point name="C" styleNumber="3">(7,-3)</point>
@@ -147,6 +148,7 @@ for a two-dimensional object, will result in no sorting.
 ```doenet-editor-horiz
 Drag the points!
 <graph size="small">
+  <shortDescription>A graph of four draggable points</shortDescription>
   <point name="A">(0,5)</point>
   <point name="B" styleNumber="2">(-2,6)</point>
   <point name="C" styleNumber="3">(7,-3)</point>
@@ -179,6 +181,7 @@ Components with numerical properties can be sorted based on an individual proper
 ```doenet-editor-horiz
 Drag the vectors!
 <graph size="small">
+  <shortDescription>A graph of four draggable vectors</shortDescription>
   <vector name="v1" styleNumber="1">(0,6)</vector>
   <vector name="v2" tail="(2,2)" displacement="(3,7)" styleNumber="2"/>
   <vector name="v3" tail="(7,1)" displacement="(-1,-3)" styleNumber="3"/>

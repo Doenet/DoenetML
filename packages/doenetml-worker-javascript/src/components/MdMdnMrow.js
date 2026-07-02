@@ -23,6 +23,10 @@ export class Md extends InlineComponent {
         });
     }
     static componentType = "md";
+
+    static componentDocs = {
+        summary: "Display math with multiple aligned rows",
+    };
     static rendererType = "math";
 
     static canBeInList = false;
@@ -34,6 +38,7 @@ export class Md extends InlineComponent {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the math display can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -42,6 +47,7 @@ export class Md extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -128,6 +134,7 @@ export class Md extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The math content rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -164,6 +171,7 @@ export class Md extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The math content rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -284,6 +292,9 @@ export class Md extends InlineComponent {
 export class Mdn extends Md {
     static componentType = "mdn";
 
+    static componentDocs = {
+        summary: "Numbered display math with multiple aligned rows",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -299,12 +310,16 @@ export class Mdn extends Md {
 export class Mrow extends M {
     static componentType = "mrow";
 
+    static componentDocs = {
+        summary: "A row of math within an aligned display",
+    };
     static canBeInList = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.number = {
             createComponentOfType: "boolean",
+            description: "Whether to attach an equation number to this row.",
         };
         return attributes;
     }
@@ -344,6 +359,7 @@ export class Mrow extends M {
         };
 
         stateVariableDefinitions.equationTag = {
+            description: "The equation number (when numbered).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

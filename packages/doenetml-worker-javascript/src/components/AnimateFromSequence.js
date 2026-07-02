@@ -5,6 +5,7 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import me from "math-expressions";
+const { mod } = me.math;
 import { nanoid } from "nanoid";
 
 export default class AnimateFromSequence extends BaseComponent {
@@ -21,6 +22,10 @@ export default class AnimateFromSequence extends BaseComponent {
     }
 
     static componentType = "animateFromSequence";
+
+    static componentDocs = {
+        summary: "Animates a value through a sequence over time",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
@@ -31,6 +36,8 @@ export default class AnimateFromSequence extends BaseComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the state variable that will be animated.",
         };
 
         attributes.animationOn = {
@@ -39,6 +46,7 @@ export default class AnimateFromSequence extends BaseComponent {
             defaultValue: false,
             public: true,
             triggerActionOnChange: "changedAnimationOn",
+            description: "Whether the animation is currently playing.",
         };
 
         attributes.animationMode = {
@@ -46,14 +54,35 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "animationMode",
             defaultValue: "increase",
             validValues: [
-                "increase",
-                "decrease",
-                "increase once",
-                "decrease once",
-                "oscillate",
+                {
+                    value: "increase",
+                    description:
+                        "Step through values from first to last, looping back to the start.",
+                },
+                {
+                    value: "decrease",
+                    description:
+                        "Step through values from last to first, looping back to the end.",
+                },
+                {
+                    value: "increase once",
+                    description:
+                        "Step from first to last and stop without looping.",
+                },
+                {
+                    value: "decrease once",
+                    description:
+                        "Step from last to first and stop without looping.",
+                },
+                {
+                    value: "oscillate",
+                    description:
+                        "Step from first to last, then reverse direction at each end.",
+                },
             ],
             toLowerCase: true,
             public: true,
+            description: "How the animation steps through the sequence.",
         };
 
         attributes.animationInterval = {
@@ -61,6 +90,8 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "animationInterval",
             defaultValue: 1000,
             public: true,
+            description:
+                "Time in milliseconds between successive animation steps.",
         };
 
         attributes.allowAdjustmentsWhileRunning = {
@@ -68,6 +99,8 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "allowAdjustmentsWhileRunning",
             defaultValue: false,
             public: true,
+            description:
+                "Whether sequence parameters can be adjusted while the animation is running.",
         };
 
         return attributes;
@@ -120,6 +153,8 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.selectedIndex = {
+            description:
+                "Index of the currently selected value in the sequence (1-based).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -144,7 +179,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         {
                             setEssentialValue: "selectedIndex",
                             value:
-                                me.math.mod(
+                                mod(
                                     desiredStateVariableValues.selectedIndex -
                                         1,
                                     await stateValues.numValues,
@@ -156,6 +191,7 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "The currently selected value of the animation.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -264,6 +300,8 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.currentAnimationDirection = {
+            description:
+                'Current direction of the animation ("increase" or "decrease"; flips during oscillation).',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -407,21 +445,21 @@ export default class AnimateFromSequence extends BaseComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
-                let warnings = [];
+                let diagnostics = [];
                 if (
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
-                            "Invalid target for <animateFromSequence>: cannot find target.",
-                        level: 1,
+                            "Invalid target for `<animateFromSequence>`: cannot find target.",
+                        type: "warning",
                     });
                 }
 
                 return {
                     setValue: { targetIdentities },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -488,7 +526,7 @@ export default class AnimateFromSequence extends BaseComponent {
             },
             definition({ dependencyValues }) {
                 let targets = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -497,11 +535,11 @@ export default class AnimateFromSequence extends BaseComponent {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
                             let message =
-                                "Invalid target for <animateFromSequence>: cannot find target.";
+                                "Invalid target for `<animateFromSequence>`: cannot find target.";
 
-                            warnings.push({
+                            diagnostics.push({
                                 message,
-                                level: 1,
+                                type: "warning",
                             });
                             continue;
                         }
@@ -519,23 +557,23 @@ export default class AnimateFromSequence extends BaseComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
-                                warnings.push({
+                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             } else {
-                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <${target.componentType}>.`;
-                                warnings.push({
+                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             }
                         }
                     }
                 }
 
-                return { setValue: { targets }, sendWarnings: warnings };
+                return { setValue: { targets }, sendDiagnostics: diagnostics };
             },
         };
 
@@ -632,7 +670,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 let additionalInstructions =
                     await this.getUpdateInstructionsToSetTargetsToValue(
                         (await this.stateValues.possibleValues)[
-                            me.math.mod(startIndex - 1, numValues)
+                            mod(startIndex - 1, numValues)
                         ],
                     );
                 updateInstructions.push(...additionalInstructions);
@@ -840,10 +878,7 @@ export default class AnimateFromSequence extends BaseComponent {
         let additionalInstructions =
             await this.getUpdateInstructionsToSetTargetsToValue(
                 (await this.stateValues.possibleValues)[
-                    me.math.mod(
-                        newSelectedIndex - 1,
-                        await this.stateValues.numValues,
-                    )
+                    mod(newSelectedIndex - 1, await this.stateValues.numValues)
                 ],
             );
         updateInstructions.push(...additionalInstructions);

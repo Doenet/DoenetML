@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 /**
  * Note: Many of these tests are closely mirrored in the <ray> tests.
@@ -6288,42 +6289,42 @@ describe("Vector Tag Tests @group4", function () {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(4);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Vector is prescribed by head, tail, and displacement.  Ignoring specified head",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(13);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(25);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(13);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(25);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(4);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(4);
-        expect(errorWarnings.warnings[1].position.end.column).eq(58);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(58);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(5);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(5);
-        expect(errorWarnings.warnings[2].position.end.column).eq(66);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(66);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(6);
-        expect(errorWarnings.warnings[3].position.start.column).eq(5);
-        expect(errorWarnings.warnings[3].position.end.line).eq(6);
-        expect(errorWarnings.warnings[3].position.end.column).eq(66);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(66);
     });
 
     it("handle bad head/tail", async () => {
@@ -6388,5 +6389,29 @@ describe("Vector Tag Tests @group4", function () {
 
         await test_items("light");
         await test_items("dark");
+    });
+
+    it("avoidScientificNotation in vector latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <vector name="v1" displacement="(0.000000000007,2000000000000000000000)" />
+  <vector
+    name="v2"
+    displacement="(0.000000000007,2000000000000000000000)"
+    avoidScientificNotation
+  />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const v1Latex =
+            stateVariables[await resolvePathToNodeIdx("v1")].stateValues.latex;
+        const v2Latex =
+            stateVariables[await resolvePathToNodeIdx("v2")].stateValues.latex;
+
+        expect(v1Latex).match(/10\^{-12}|10\^\{21\}|10\^21/);
+        expect(v2Latex).contain("0.000000000007");
+        expect(v2Latex).contain("2000000000000000000000");
     });
 });

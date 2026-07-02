@@ -77,7 +77,10 @@ function App() {
                 </VSCodeButton>
             </div>
             <div className="doenet-preview">
-                <DoenetViewer doenetML={source} darkMode={darkMode} />
+                <DoenetViewer
+                    doenetML={source}
+                    darkMode={darkMode ? "dark" : "light"}
+                />
             </div>
         </div>
     );

@@ -1,9 +1,14 @@
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Line from "./Line";
 import me from "math-expressions";
+const { matrix, transpose, multiply, lusolve, subset, index } = me.math;
 
 export default class BestFitLine extends Line {
     static componentType = "bestFitLine";
+
+    static componentDocs = {
+        summary: "The best-fit line for a set of points",
+    };
     static rendererType = "line";
 
     static createAttributesObject() {
@@ -16,6 +21,7 @@ export default class BestFitLine extends Line {
 
         attributes.data = {
             createComponentOfType: "pointList",
+            description: "The data points to fit a line to.",
         };
 
         return attributes;
@@ -32,6 +38,8 @@ export default class BestFitLine extends Line {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.draggable = {
+            description:
+                "Whether the line can be dragged (always false for a best-fit line).",
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
@@ -42,6 +50,8 @@ export default class BestFitLine extends Line {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description:
+                "Number of dimensions of the line (always 2 for a best-fit line).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -118,18 +128,18 @@ export default class BestFitLine extends Line {
                 };
             }
 
-            X = me.math.matrix(X);
-            Y = me.math.matrix(Y);
-            let Xt = me.math.transpose(X);
+            X = matrix(X);
+            Y = matrix(Y);
+            let Xt = transpose(X);
 
-            let b = me.math.multiply(Xt, Y);
+            let b = multiply(Xt, Y);
 
-            let A = me.math.multiply(Xt, X);
+            let A = multiply(Xt, X);
 
-            let s = me.math.lusolve(A, b);
+            let s = lusolve(A, b);
 
-            let coeff0 = me.fromAst(me.math.subset(s, me.math.index(0, 0)));
-            let coeffvar1 = me.fromAst(me.math.subset(s, me.math.index(1, 0)));
+            let coeff0 = me.fromAst(subset(s, index(0, 0)));
+            let coeffvar1 = me.fromAst(subset(s, index(1, 0)));
             let coeffvar2 = me.fromAst(-1);
 
             let variables = dependencyValues.variables;
@@ -192,12 +202,13 @@ export default class BestFitLine extends Line {
             };
 
         stateVariableDefinitions.data = {
+            description: "The data points used to compute the best-fit line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "datumX") {
                         return [];

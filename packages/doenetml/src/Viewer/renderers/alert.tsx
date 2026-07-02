@@ -4,8 +4,14 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
+interface AlertSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+}
+
 export default React.memo(function Alert(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<AlertSVs>(props);
 
     if (SVs.hidden) {
         return null;

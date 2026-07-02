@@ -14,5 +14,11 @@ export default defineConfig({
             },
             formats: ["es"],
         },
+        rollupOptions: {
+            // `@doenet/doenetml-worker-javascript` is also pulled in by `doenetml-worker`;
+            // bundling a second copy here would duplicate component classes (e.g. `Section`
+            // becomes `Section$1`) and break runtime lookups by class name.
+            external: ["@doenet/doenetml-worker-javascript"],
+        },
     },
 });

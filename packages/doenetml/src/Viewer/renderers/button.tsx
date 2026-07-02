@@ -1,22 +1,40 @@
 import React, { useContext, useEffect, useRef } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
-// @ts-ignore
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
-import { cesc } from "@doenet/utils";
+import { cesc, type ResolvedStyleDefinition } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+
+interface ButtonSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    label: string;
+    labelHasLatex: boolean;
+    clickAction: any;
+    selectedStyle: ResolvedStyleDefinition;
+}
 
 export default React.memo(function ButtonComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
+    let { id, SVs, actions, callAction } = useDoenetRenderer<ButtonSVs>(
+        props,
+        false,
+    );
 
     // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>

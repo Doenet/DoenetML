@@ -1,0 +1,75 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<blockQuote>{:dn}`
+
+<ComponentDisplay name='blockQuote'/>
+
+`<blockQuote>{:dn}` is a block-level container that renders a quotation
+set off from the surrounding flow, typically with indentation. Inline
+components such as `<p>{:dn}` and other components can be nested
+within a `<blockQuote>{:dn}`.
+
+
+<AttrPropDisplay name='blockQuote'/>
+
+
+## Examples
+
+### Example: simple `<blockQuote>{:dn}`
+
+
+```doenet-editor-horiz
+<p>As the saying goes:</p>
+<blockQuote>
+  <p>A journey of a thousand miles begins with a single step.</p>
+</blockQuote>
+<p>This is a good reminder.</p>
+```
+
+
+
+A `<blockQuote>{:dn}` is rendered as a block, typically indented from
+the main flow of text.
+
+
+
+---
+
+### Example: multi-paragraph quotation
+
+
+```doenet-editor-horiz
+<blockQuote>
+  <p><lorem generateSentences="2"/></p>
+  <p><lorem generateSentences="1"/></p>
+</blockQuote>
+```
+
+
+
+Multiple `<p>{:dn}` components can be nested within a single
+`<blockQuote>{:dn}`.
+
+
+
+## Attribute Examples
+
+### Attribute Example: hide
+
+
+```doenet-editor-horiz
+<booleanInput name="hideQuote">
+  <label>Click here to hide the quotation</label>
+</booleanInput>
+
+<blockQuote hide="$hideQuote">
+  <p><lorem generateSentences="1"/></p>
+</blockQuote>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

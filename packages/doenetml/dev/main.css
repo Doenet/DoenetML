@@ -1,0 +1,39 @@
+.dev-app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.dev-toolbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ccc;
+    background: #f5f5f5;
+}
+
+.dev-toolbar-status {
+    margin-left: auto;
+    color: #666;
+}
+
+.dev-theme-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85em;
+    color: #333;
+}
+
+.dev-reset-button {
+    padding: 2px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+.dev-viewer {
+    flex: 1 1 auto;
+    overflow: hidden;
+}

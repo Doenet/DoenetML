@@ -1,0 +1,114 @@
+// limit rules targeting basic elements to just content area
+.ptx-content {
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+
+  td {
+    padding: 2px 5px;
+    font-size: 90%;
+
+    img {
+      max-width: 200px;
+      margin-right: 30px;
+    }
+  }
+
+  th {
+    padding: 2px 5px;
+  }
+
+  // generate alignment/border mixin classes for both th and td
+  @each $cell-type in (th, td) {
+    #{$cell-type} {
+      .lines {
+        white-space: nowrap;
+      }
+
+      // horizontal alignment options
+      @each $class, $align in (l: left, c: center, r: right, j: justify) {
+        &.#{$class} {
+          text-align: $align;
+        }
+      }
+
+      // vertical alignment options
+      @each $class, $align in (t: top, b: bottom, m: middle) {
+        &.#{$class} {
+          vertical-align: $align;
+        }
+      }
+
+      // border options
+      @each $side, $side-symbol in (left: l, right: r, top: t, bottom: b) {
+        @for $i from 0 through 3 {
+          &.#{$side-symbol}#{$i} {
+            @if $i ==0 {
+              border-#{$side}: none;
+            }
+
+            @else {
+              border-#{$side}: #{$i}px solid var(--body-text-color);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  // when cells do not have a border on left and right, add padding
+  th.r0.l0,
+  td.r0.l0  {
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+  }
+
+  tr.header-vertical {
+    th {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);  // match LaTeX's vertical header orientation
+      padding-top: 5px;  // bottom after rotation
+    }
+  }
+
+  .center {
+    table {
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+// Rules with non-generic targeting
+
+.tabular-box {
+  margin-top: 0.5em;  //minimum space above to separate from figcaption
+  overflow-x: auto;
+}
+
+.tabular-box.natural-width table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// More specific types of tables
+
+table.notation-list {
+  tr {
+    th {
+      text-align: left;
+      margin-left: 1em;
+    }
+
+    td {
+      text-align: left;
+      vertical-align: top;
+    }
+  }
+}
+
+
+

@@ -5,10 +5,17 @@ export default class ElectronConfiguration extends MathComponent {
     static componentType = "electronConfiguration";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary:
+            "Renders an electron configuration with sublevel labels and superscripted electron counts",
+    };
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.latex = {
+            description:
+                "The electron configuration rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -34,6 +41,8 @@ export default class ElectronConfiguration extends MathComponent {
         };
 
         stateVariableDefinitions.text = {
+            description:
+                "The electron configuration rendered as a unicode text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

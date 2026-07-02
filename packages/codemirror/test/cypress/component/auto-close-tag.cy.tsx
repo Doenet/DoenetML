@@ -159,6 +159,43 @@ describe("CodeMirror Auto-Close Tag Extension", () => {
             cy.get(".cm-line").should("have.text", "<tag><tag></tag>");
         });
 
+        it("inserts closing tag for nested same-name when parent has pre-existing close (#1117)", () => {
+            // Parser stack-matches the only </p> to the inner <p>; without
+            // the stolen-close-tag heuristic, no auto-close would fire.
+            cy.mount(
+                <div style={{ height: "400px", width: "600px" }}>
+                    <CodeMirror value="<p></p>" />
+                </div>,
+            );
+
+            // Place cursor between `<p>` and `</p>` (after offset 3), then type `<p>`.
+            cy.get(".cm-content")
+                .click()
+                .type("{home}{rightArrow}{rightArrow}{rightArrow}<p>", {
+                    force: true,
+                });
+            cy.get(".cm-line").should("have.text", "<p><p></p></p>");
+        });
+
+        it("inserts closing tag for deeply nested same-name domino (#1117)", () => {
+            // <p><p></p></p> -> nest a third <p> inside the inner one.
+            // Without the heuristic, parser would treat the new innermost as
+            // closed by the first </p>.
+            cy.mount(
+                <div style={{ height: "400px", width: "600px" }}>
+                    <CodeMirror value="<p><p></p></p>" />
+                </div>,
+            );
+
+            // Cursor between the inner <p> (offset 6) and inner </p>; type `<p>`.
+            cy.get(".cm-content")
+                .click()
+                .type("{home}" + "{rightArrow}".repeat(6) + "<p>", {
+                    force: true,
+                });
+            cy.get(".cm-line").should("have.text", "<p><p><p></p></p></p>");
+        });
+
         it("preserves exact case", () => {
             cy.mount(
                 <div style={{ height: "400px", width: "600px" }}>

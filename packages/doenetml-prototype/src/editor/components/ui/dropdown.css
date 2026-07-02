@@ -1,0 +1,27 @@
+.ui-dropdown-toggle {
+    @apply gap-1;
+}
+
+.ui-dropdown-arrow {
+    @apply ml-1;
+}
+
+.ui-dropdown-menu {
+    @apply bg-white border border-slate-200 rounded shadow-md py-1 z-50 min-w-36;
+    @apply flex flex-col;
+}
+
+.ui-dropdown-item {
+    @apply w-full text-left px-4 py-1.5 text-sm cursor-pointer;
+    @apply flex items-center gap-2;
+    @apply hover:bg-slate-100;
+    @apply data-[active-item]:bg-slate-100;
+    background: none;
+    border: none;
+}
+
+.ui-dropdown-item--active {
+    @apply bg-blue-600 text-white;
+    @apply hover:bg-blue-700;
+    @apply data-[active-item]:bg-blue-700;
+}

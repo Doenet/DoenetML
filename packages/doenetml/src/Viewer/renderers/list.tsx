@@ -8,9 +8,22 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+
+interface ListSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    item?: any;
+    justSubmitted: boolean;
+    level: number;
+    marker: string;
+    numbered: boolean;
+}
 
 export default React.memo(function List(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<ListSVs>(props);
 
     const ref = useRef(null);
 
@@ -21,20 +34,23 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
     }
 
     let checkWorkComponent = null;
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAllAnswers",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     if (actions.submitAllAnswers) {
-        const submitAllAnswers = () =>
-            callAction({
-                action: actions.submitAllAnswers,
-            });
-
-        const validationState = calculateValidationState(SVs);
         checkWorkComponent = createCheckWorkComponent(
             SVs,
             id,
             validationState,
-            submitAllAnswers,
+            submitActionWithPending,
             true,
+            isPending,
         );
     }
 
@@ -78,9 +94,12 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 ];
         }
         return (
-            <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
-                {children}
-            </ol>
+            <>
+                <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
+                    {children}
+                </ol>
+                {checkWorkComponent}
+            </>
         );
     } else {
         let list_style;
@@ -97,9 +116,12 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 ];
         }
         return (
-            <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
-                {children}
-            </ul>
+            <>
+                <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
+                    {children}
+                </ul>
+                {checkWorkComponent}
+            </>
         );
     }
 });

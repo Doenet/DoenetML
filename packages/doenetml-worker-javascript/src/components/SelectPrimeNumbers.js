@@ -1,5 +1,9 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
 import {
+    extractConstantSortAttribute,
+    pushVariantInfo,
+} from "../utils/variants";
+import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
     estimateNumberOfNumberCombinationsExcluded,
@@ -12,6 +16,12 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
+    static componentDocs = {
+        summary:
+            "Randomly selects prime numbers from a range to create document variants",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["integer"];
 
     static createsVariants = true;
@@ -19,20 +29,25 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.minValue = {
+        attributes.from = {
+            description:
+                "Lower bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
-            createStateVariable: "minValue",
+            createStateVariable: "from",
             defaultValue: 2,
             public: true,
         };
-        attributes.maxValue = {
+        attributes.to = {
+            description:
+                "Upper bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
-            createStateVariable: "maxValue",
+            createStateVariable: "to",
             defaultValue: 100,
             public: true,
         };
 
         attributes.exclude = {
+            description: "Primes to exclude from the selection.",
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
@@ -40,31 +55,58 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
 
         attributes.numToSelect = {
+            description: "How many prime numbers to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
             defaultValue: 1,
             public: true,
         };
         attributes.withReplacement = {
+            description:
+                "Whether the same prime can be selected more than once.",
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
             defaultValue: false,
             public: true,
         };
-        attributes.sortResults = {
-            createComponentOfType: "boolean",
-            createStateVariable: "sortResults",
-            defaultValue: false,
+        attributes.sort = {
+            description: "Sort order applied to the selected primes.",
+            createComponentOfType: "text",
+            createStateVariable: "sort",
+            defaultValue: "unsorted",
             public: true,
+            toLowerCase: true,
+            valueForTrue: "increasing",
+            valueForFalse: "unsorted",
+            validValues: [
+                {
+                    value: "unsorted",
+                    description: "Preserve the random selection order.",
+                },
+                {
+                    value: "increasing",
+                    description:
+                        "Sort the selected primes in increasing order.",
+                },
+                {
+                    value: "decreasing",
+                    description:
+                        "Sort the selected primes in decreasing order.",
+                },
+            ],
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
+            description:
+                "Combinations of values that should not be selected together.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -131,13 +173,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         stateVariableDefinitions.possibleValues = {
             returnDependencies: () => ({
-                minValue: {
+                from: {
                     dependencyType: "stateVariable",
-                    variableName: "minValue",
+                    variableName: "from",
                 },
-                maxValue: {
+                to: {
                     dependencyType: "stateVariable",
-                    variableName: "maxValue",
+                    variableName: "to",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -146,8 +188,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let primes = createPrimesList({
-                    minValue: dependencyValues.minValue,
-                    maxValue: dependencyValues.maxValue,
+                    from: dependencyValues.from,
+                    to: dependencyValues.to,
                     exclude: dependencyValues.exclude,
                 });
 
@@ -184,9 +226,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "excludedCombinations",
                 },
-                sortResults: {
+                sort: {
                     dependencyType: "stateVariable",
-                    variableName: "sortResults",
+                    variableName: "sort",
                 },
                 variants: {
                     dependencyType: "stateVariable",
@@ -252,8 +294,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
@@ -269,8 +310,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                         children: [],
                     },
                 ],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -294,17 +334,21 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
 
-    static calculateReplacementChanges() {
-        return { replacementChanges: [] };
+    static calculateReplacementChanges({ nComponents }) {
+        return { replacementChanges: [], nComponents };
     }
 
-    static determineNumberOfUniqueVariants({ serializedComponent }) {
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        infoDiagnostics,
+    }) {
+        const info = (message) =>
+            pushVariantInfo(infoDiagnostics, message, serializedComponent);
         let numToSelect = 1,
             withReplacement = false;
 
@@ -320,13 +364,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't constant number.`,
                 );
                 return { success: false };
@@ -352,13 +396,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    console.log(
+                    info(
                         `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
-                console.log(
+                info(
                     `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
@@ -367,56 +411,54 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         let primePars = {};
 
-        let minValueComponent =
-            serializedComponent.attributes.minValue?.component;
-        if (minValueComponent) {
+        let fromComponent = serializedComponent.attributes.from?.component;
+        if (fromComponent) {
             // only implemented if have a single string child
             if (
-                minValueComponent.children?.length === 1 &&
-                typeof minValueComponent.children[0] === "string"
+                fromComponent.children?.length === 1 &&
+                typeof fromComponent.children[0] === "string"
             ) {
-                let minValue = Number(minValueComponent.children[0]);
-                if (!Number.isFinite(minValue)) {
-                    console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as minValue isn't a number.`,
+                let from = Number(fromComponent.children[0]);
+                if (!Number.isFinite(from)) {
+                    info(
+                        `cannot determine unique variants of selectPrimeNumbers as from isn't a number.`,
                     );
                     return { success: false };
                 }
-                primePars.minValue = minValue;
+                primePars.from = from;
             } else {
-                console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as minValue isn't a constant.`,
+                info(
+                    `cannot determine unique variants of selectPrimeNumbers as from isn't a constant.`,
                 );
                 return { success: false };
             }
         }
 
-        let maxValueComponent =
-            serializedComponent.attributes.maxValue?.component;
-        if (maxValueComponent) {
+        let toComponent = serializedComponent.attributes.to?.component;
+        if (toComponent) {
             // only implemented if have a single string child
             if (
-                maxValueComponent.children?.length === 1 &&
-                typeof maxValueComponent.children[0] === "string"
+                toComponent.children?.length === 1 &&
+                typeof toComponent.children[0] === "string"
             ) {
-                let maxValue = Number(maxValueComponent.children[0]);
-                if (!Number.isFinite(maxValue)) {
-                    console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a number.`,
+                let to = Number(toComponent.children[0]);
+                if (!Number.isFinite(to)) {
+                    info(
+                        `cannot determine unique variants of selectPrimeNumbers as to isn't a number.`,
                     );
                     return { success: false };
                 }
-                primePars.maxValue = maxValue;
+                primePars.to = to;
             } else {
-                console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a constant.`,
+                info(
+                    `cannot determine unique variants of selectPrimeNumbers as to isn't a constant.`,
                 );
                 return { success: false };
             }
         }
 
         if (serializedComponent.attributes.excludeCombinations) {
-            console.log(
+            info(
                 "have not implemented unique variants of a selectPrimeNumbers with excludeCombinations",
             );
             return { success: false };
@@ -432,7 +474,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                         typeof x.children[0] === "string",
                 )
             ) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
@@ -442,7 +484,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             );
 
             if (!exclude.every(Number.isFinite)) {
-                console.log(
+                info(
                     "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
@@ -450,37 +492,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             primePars.exclude = exclude;
         }
 
-        let sortResults;
-
-        let sortResultsComponent =
-            serializedComponent.attributes.sortResults?.component;
-        if (sortResultsComponent) {
-            // only implemented if have a single string child
-
-            if (
-                sortResultsComponent.children?.length === 1 &&
-                typeof sortResultsComponent.children[0] === "string"
-            ) {
-                sortResults =
-                    sortResultsComponent.children[0].toLowerCase() === "true";
-            } else if (
-                (!sortResultsComponent.children ||
-                    sortResultsComponent.children?.length === 0) &&
-                typeof sortResultsComponent.state?.value === "boolean"
-            ) {
-                sortResults = sortResultsComponent.state.value;
-            } else {
-                console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as sortResults isn't a constant.`,
-                );
-                return { success: false };
-            }
-        }
-
-        if (sortResults && numToSelect > 1) {
-            console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with sortResults",
-            );
+        let sortResult = extractConstantSortAttribute(
+            serializedComponent,
+            "selectPrimeNumbers",
+            numToSelect,
+            infoDiagnostics,
+        );
+        if (!sortResult.success) {
             return { success: false };
         }
 
@@ -793,8 +811,10 @@ function makeSelection({ dependencyValues }) {
         }
     }
 
-    if (dependencyValues.sortResults) {
+    if (dependencyValues.sort === "increasing") {
         selectedValues.sort((a, b) => a - b);
+    } else if (dependencyValues.sort === "decreasing") {
+        selectedValues.sort((a, b) => b - a);
     }
 
     return {

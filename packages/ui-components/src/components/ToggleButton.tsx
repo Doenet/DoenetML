@@ -6,6 +6,8 @@ import classNames from "classnames";
 export function ToggleButton(
     props: React.PropsWithChildren<{
         onClick?: (index?: number | null) => void;
+        onFocus?: React.FocusEventHandler;
+        onBlur?: React.FocusEventHandler;
         id?: string;
         /**
          * If `ToggleButton` is used inside a `ToggleButtonGroup`, `index` is its position in the group.
@@ -80,6 +82,8 @@ export function ToggleButton(
                         );
                     }
                 }}
+                onFocus={props.onFocus}
+                onBlur={props.onBlur}
                 className="doenet-toggle-button"
                 aria-label={props.ariaLabel}
             />

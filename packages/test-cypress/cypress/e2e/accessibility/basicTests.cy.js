@@ -5,6 +5,9 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         cy.injectAxe();
     });
 
+    const getOpenInlineChoiceMenu = () =>
+        cy.get('[id^="react-select-"][id$="-listbox"]:visible').last();
+
     it("Virtual keyboard passes accessibility tests", () => {
         // Makes sure keyboard passes basic tests, like color contrast
         cy.window().then(async (win) => {
@@ -513,6 +516,78 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("answers with external labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <p name="p"><label for="$a1">1+1=</label></p>
+        <p><answer name="a1">2</answer></p>
+
+        <p><label for="$a2">1+1=</label></p>
+        <p><answer name="a2" forceFullCheckWorkButton>2</answer></p>
+
+        <p><label for="$a3">hello:</label></p>
+        <p><answer name="a3" type="text">hello</answer></p>
+
+        <p><label for="$a4">bye:</label></p>
+        <p><answer name="a4" type="text" forceFullCheckWorkButton>bye</answer></p>
+
+        <p><label for="$a5">now:</label></p>
+        <p><answer name="a5" type="text" expanded forceFullCheckWorkButton>now</answer></p>
+
+        <p><label for="$a6">Favorite animal:</label></p>
+        <p>
+            <answer name="a6">
+                <choice credit="1">dog</choice>
+                <choice>cat</choice>
+                <choice>monkey</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a7">Favorite animals:</label></p>
+        <p>
+            <answer name="a7" selectMultiple>
+                <choice credit="1">dog</choice>
+                <choice>cat</choice>
+                <choice>monkey</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a8">Favorite fruit:</label></p>
+        <p>
+            <answer name="a8" inline>
+                <choice credit="1">apple</choice>
+                <choice>banana</choice>
+                <choice>grape</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a9">Favorite fruits:</label></p>
+        <p>
+            <answer name="a9" inline selectMultiple>
+                <choice credit="1">apple</choice>
+                <choice>banana</choice>
+                <choice>grape</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a10">yes</label></p>
+        <p><answer name="a10" type="boolean">true</answer></p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
     it("inputs with labels", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -555,8 +630,66 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     </p>
     <p><booleanInput><label>yes</label></booleanInput></p>
     <p><matrixInput><label>A:</label></matrixInput></p>
+    <p><fractionInput><label>A fraction:</label></fractionInput></p>
 
   `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("inputs with external labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <p name="p"><label for="$mi">1+1=</label></p>
+        <p><mathInput name="mi"/></p>
+
+        <p><label for="$ti">hello:</label></p>
+        <p><textInput name="ti"/></p>
+
+        <p><label for="$ci">Favorite animal:</label></p>
+        <p>
+            <choiceInput name="ci">
+                <choice>dog</choice>
+                <choice>cat</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$cim">Favorite animals:</label></p>
+        <p>
+            <choiceInput name="cim" selectMultiple>
+                <choice>dog</choice>
+                <choice>cat</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$cii">Favorite fruit:</label></p>
+        <p>
+            <choiceInput name="cii" inline>
+                <choice>apple</choice>
+                <choice>banana</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$b">yes</label></p>
+        <p><booleanInput name="b"/></p>
+
+        <p><label for="$mat">A:</label></p>
+        <p><matrixInput name="mat"/></p>
+
+        <p><label for="$frac">A fraction:</label></p>
+        <p><fractionInput name="frac"/></p>
+
+    `,
                 },
                 "*",
             );
@@ -607,6 +740,7 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     </p>
     <p><booleanInput><shortDescription>yes</shortDescription></booleanInput></p>
     <p><matrixInput><shortDescription>A</shortDescription></matrixInput></p>
+    <p><fractionInput><shortDescription>A fraction</shortDescription></fractionInput></p>
 
   `,
                 },
@@ -669,13 +803,13 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
 
         cy.get(`#ci1`).click();
-        cy.get('#ci1 [class*="menu"]').within(() => {
+        getOpenInlineChoiceMenu().within(() => {
             cy.contains("apple").click({ force: true });
         });
         cy.get(`#ci1`).click();
 
         // Hover over the banana option
-        cy.get('#ci1 [class*="menu"]')
+        getOpenInlineChoiceMenu()
             .contains("banana")
             .parent()
             .parent()
@@ -1336,6 +1470,88 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
 
         cy.checkAccessibility(null, {
             // onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("Inputs with labelPosition pass accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+    <textInput name="ti" labelPosition="right"><label>Text</label></textInput>
+    </p>
+    <p>
+    <mathInput name="mi" labelPosition="left"><label>Math</label></mathInput>
+    </p>
+    <p>
+    <booleanInput name="bi" labelPosition="right"><label>Boolean</label></booleanInput>
+    </p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("MathInput preview open with valid math passes accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="mi" showPreview /></p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi textarea").focus().type("x+1", { force: true });
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview .MathJax").should("exist");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("MathInput preview open with error message passes accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="mi" showPreview /></p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi textarea").focus();
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "updateRawValue",
+                componentIdx: await win.resolvePath1("mi"),
+                args: {
+                    rawRendererValue: "\\frac{1",
+                },
+            });
+        });
+
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview .MathJax").should("not.exist");
+        cy.get("#mi-preview").should("contain.text", "Invalid expression:");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
         });
     });
 });

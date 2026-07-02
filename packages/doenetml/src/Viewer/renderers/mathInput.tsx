@@ -1,4 +1,5 @@
 import React, {
+    useMemo,
     useRef,
     useState,
     FocusEventHandler,
@@ -12,6 +13,7 @@ import useDoenetRenderer, {
 import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
+import { DEFAULT_MATH_INPUT_FUNCTION_NAMES } from "@doenet/utils";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
@@ -25,9 +27,29 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { addValidationStateToShortDescription } from "./utils/validationState";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
+const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
+
+/**
+ * MathQuill rejects an empty `autoOperatorNames` string (its validator
+ * requires at least one entry of >=2 letters/pipes/dashes), so when the
+ * effective list is empty \u2014 e.g., the author wrote
+ * `<mathInput resetFunctionNames="" />` to disable auto-formatting
+ * entirely \u2014 we hand MathQuill a single sentinel that satisfies the
+ * validator but can never match user input.
+ *
+ * `Letter.autoUnItalicize` (mathquill.js around line 7859) builds
+ * candidate match strings from runs of contiguous `Letter` nodes only,
+ * so a token containing a dash cannot match anything the author types.
+ * We use `"a-"` (length 2, the minimum) instead of a long descriptive
+ * string so MathQuill's computed `autoOperatorNames._maxLength` stays
+ * small \u2014 that value drives the inner loop in `autoUnItalicize`, and a
+ * smaller `_maxLength` means less work on every keystroke.
+ */
+const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
 
 /**
  * Encapsulates math input preview popover state and interaction behavior.
@@ -44,6 +66,7 @@ function useMathInputPreview({
     showPreview,
     rawRendererValue,
     immediateValueLatex,
+    errorMessageRawRenderer,
     focused,
     previewUpdateDelayMs,
     onEscapeFromPreview,
@@ -52,6 +75,7 @@ function useMathInputPreview({
     showPreview: boolean;
     rawRendererValue: string;
     immediateValueLatex: string;
+    errorMessageRawRenderer: string | null;
     focused: boolean;
     previewUpdateDelayMs: number;
     onEscapeFromPreview: () => void;
@@ -63,6 +87,7 @@ function useMathInputPreview({
     const [debouncedPreview, setDebouncedPreview] = useState({
         rawRendererValue,
         immediateValueLatex,
+        errorMessageRawRenderer,
     });
 
     const previewRef = useRef<HTMLDivElement | null>(null);
@@ -107,7 +132,9 @@ function useMathInputPreview({
 
         const hasPendingPreviewUpdate =
             debouncedPreview.rawRendererValue !== rawRendererValue ||
-            debouncedPreview.immediateValueLatex !== immediateValueLatex;
+            debouncedPreview.immediateValueLatex !== immediateValueLatex ||
+            debouncedPreview.errorMessageRawRenderer !==
+                errorMessageRawRenderer;
 
         if (!focused) {
             setEscapeDismissed(false);
@@ -118,6 +145,7 @@ function useMathInputPreview({
                 setDebouncedPreview({
                     rawRendererValue,
                     immediateValueLatex,
+                    errorMessageRawRenderer,
                 });
             }
         } else {
@@ -131,6 +159,7 @@ function useMathInputPreview({
                 setDebouncedPreview({
                     rawRendererValue,
                     immediateValueLatex,
+                    errorMessageRawRenderer,
                 });
                 previewUpdateTimeout.current = null;
             }, previewUpdateDelayMs);
@@ -138,6 +167,7 @@ function useMathInputPreview({
     }, [
         rawRendererValue,
         immediateValueLatex,
+        errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs,
         debouncedPreview,
@@ -222,6 +252,8 @@ function useMathInputPreview({
         handlePreviewKeyDown,
         dismissPreview,
         debouncedImmediateValueLatex: debouncedPreview.immediateValueLatex,
+        debouncedErrorMessageRawRenderer:
+            debouncedPreview.errorMessageRawRenderer,
     };
 }
 
@@ -238,19 +270,26 @@ function MathInputPreviewPopover({
     preview,
     showPreview,
     immediateValueLatex,
+    errorMessageRawRenderer,
 }: {
     preview: MathInputPreviewState;
     showPreview: boolean;
     immediateValueLatex: string;
+    errorMessageRawRenderer: string | null;
 }) {
     if (!showPreview) {
         return null;
     }
 
+    const showParseErrorMessage =
+        immediateValueLatex === PARSE_ERROR_PLACEHOLDER_LATEX &&
+        errorMessageRawRenderer !== null;
+
     return (
         <Ariakit.Popover
             store={preview.previewPopover}
             className="description-popover mathInputPreviewPopover"
+            aria-label="math expression preview"
             gutter={8}
             flip="top bottom left"
             fitViewport
@@ -273,9 +312,16 @@ function MathInputPreviewPopover({
                 onBlur={() => preview.setInteractingWithPreview(false)}
                 onKeyDown={preview.handlePreviewKeyDown}
             >
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {`\\(${immediateValueLatex}\\)`}
-                </MathJax>
+                {showParseErrorMessage ? (
+                    <div className="mathInputPreviewErrorMessage">
+                        <strong>Invalid expression:</strong>{" "}
+                        {errorMessageRawRenderer}
+                    </div>
+                ) : (
+                    <MathJax hideUntilTypeset={"first"} inline dynamic>
+                        {`\\(${immediateValueLatex}\\)`}
+                    </MathJax>
+                )}
             </div>
         </Ariakit.Popover>
     );
@@ -316,9 +362,34 @@ function getBlurTransitionContext({
     };
 }
 
+interface MathInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition: string;
+    justSubmitted: boolean;
+    forceFullCheckWorkButton: boolean;
+    colorCorrectness: boolean;
+    errorMessageRawRenderer: any;
+    externalLabelRendererIds: any;
+    immediateValueLatex: string;
+    minWidth: any;
+    rawRendererValue: any;
+    shortDescription: string;
+    showCheckWork: boolean;
+    showPreview: boolean;
+    includeValidationStateInShortDescription?: boolean;
+    // Optional because `_matrixComponentInput` reuses this renderer
+    // (`rendererType = "mathInput"`) without defining the SV; the
+    // `??` fallback below handles the absent case.
+    effectiveFunctionNames?: string[];
+}
+
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<MathInputSVs>(props);
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -350,6 +421,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         showPreview: SVs.showPreview,
         rawRendererValue: SVs.rawRendererValue,
         immediateValueLatex: SVs.immediateValueLatex,
+        errorMessageRawRenderer: SVs.errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs: PREVIEW_UPDATE_DELAY_MS,
         onEscapeFromPreview: () => {
@@ -361,19 +433,47 @@ export default function MathInput(props: UseDoenetRendererProps) {
         rendererValue.current = SVs.rawRendererValue;
     }
 
+    // The worker resolves the effective list (defaults +/- deltas, or
+    // `resetFunctionNames` verbatim) and emits a `warning` diagnostic if
+    // any tokens were dropped for failing MathQuill's validator. All
+    // the renderer has to do here is join the deduped/validated list
+    // and substitute a sentinel for the empty case (MathQuill rejects
+    // an empty `autoOperatorNames` string outright; see the sentinel's
+    // doc comment).
+    //
+    // `_matrixComponentInput` also mounts this renderer (it sets
+    // `rendererType = "mathInput"`) but does not author the three
+    // function-name attributes, so its SVs map omits
+    // `effectiveFunctionNames`. Fall back to the shared default list
+    // in that case so matrix cells still auto-format the same names a
+    // bare `<mathInput/>` would.
+    const autoOperatorNames = useMemo(() => {
+        const names =
+            SVs.effectiveFunctionNames ?? DEFAULT_MATH_INPUT_FUNCTION_NAMES;
+        return names.length > 0
+            ? names.join(" ")
+            : EMPTY_AUTO_OPERATOR_NAMES_SENTINEL;
+    }, [SVs.effectiveFunctionNames]);
+
     // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
         "unvalidated" | "correct" | "incorrect" | "partialcorrect"
     >("unvalidated");
 
-    const updateValidationState = () => {
-        validationState.current = calculateValidationState(SVs);
-    };
+    validationState.current = calculateValidationState(SVs);
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState: validationState.current,
+        justSubmitted: SVs.justSubmitted,
+    });
+
+    // `EditableMathField` can invoke an older enter handler capture.
+    // Read submit callback from a ref so Enter always uses current guard state.
+    const submitActionWithPendingRef = useRef(submitActionWithPending);
+    submitActionWithPendingRef.current = submitActionWithPending;
 
     const handlePressEnter = React.useCallback(() => {
         if (!mathFieldRef.current) {
@@ -389,9 +489,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             showCheckWork.current &&
             validationState.current === "unvalidated"
         ) {
-            submitAnswer();
+            submitActionWithPendingRef.current();
         }
-    }, [callAction, mathField]);
+    }, [callAction]);
 
     React.useEffect(() => {
         if (!mathField || focusedMathInput.current !== mathField.el()) {
@@ -410,7 +510,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     showCheckWork.current &&
                     validationState.current === "unvalidated"
                 ) {
-                    submitAnswer();
+                    submitActionWithPendingRef.current();
                 }
                 continue;
             }
@@ -460,11 +560,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     }, [virtualKeyboardEvents]);
 
+    function onFocusChanged(focused: boolean) {
+        setFocused(focused);
+        callAction({
+            action: actions.focusChanged,
+            args: { focused },
+        });
+    }
+
     const handleFocus = (e: React.FocusEvent) => {
         if (mathField) {
             focusedMathInput.current = mathField.el();
         }
-        setFocused(true);
+        onFocusChanged(true);
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
@@ -488,7 +596,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 action: actions.updateValue,
                 baseVariableValue: rendererValue.current,
             });
-            setFocused(false);
+            onFocusChanged(false);
 
             // Keep preview open when keyboard focus tabs from the input into the
             // preview region.
@@ -523,8 +631,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
         return null;
     }
 
-    updateValidationState();
-
     let mathInputStyle: React.CSSProperties = {
         /* Set border properties individually because border color is updated
            during rerender (e.g., disabled/validation state). */
@@ -547,11 +653,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     let mathInputWrapperCursor = "allowed";
     if (SVs.disabled) {
-        // Disable the mathInput
-        mathInputStyle.borderColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        mathInputStyle.backgroundColor = "rgba(239, 239, 239, 0.3)";
+        // Disabled state: border and background both use --revealButtonSurface
+        // so the border blends into the background (muted, flat appearance).
+        // In light mode --revealButtonSurface is #e3e3e3, same as --mainGray,
+        // which already produced this effect.  Setting the border explicitly
+        // here makes dark mode match: #3a3a3a border on #3a3a3a background.
+        mathInputStyle.borderColor = "var(--revealButtonSurface)";
+        mathInputStyle.backgroundColor = "var(--revealButtonSurface)";
         mathInputStyle.pointerEvents = "none";
         mathInputWrapperCursor = "not-allowed";
     }
@@ -565,11 +673,16 @@ export default function MathInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState.current,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
+    const inputKey = `${id}_input`;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-input-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -579,6 +692,17 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+
+    // ACCESSIBILITY: Get external labels that reference this input via `for` attribute
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const hasExplicitLabel = hasLabel || externalLabelRendererIds.length > 0;
+
+    // ACCESSIBILITY: Create ID for shortDescription span so it can be
+    // referenced by textarea's aria-labelledby via EditableMathField
+    const shortDescriptionId =
+        !hasExplicitLabel && shortDescription
+            ? `${id}-short-description`
+            : undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -613,84 +737,149 @@ export default function MathInput(props: UseDoenetRendererProps) {
             mathInputStyle.borderColor = "var(--mainOrange)";
             mathInputStyle.outlineColor = "var(--mainOrange)";
         }
-        shortDescription = addValidationStateToShortDescription(
-            validationState.current,
-            shortDescription,
-        );
+        if (SVs.includeValidationStateInShortDescription !== false) {
+            shortDescription = addValidationStateToShortDescription(
+                validationState.current,
+                shortDescription,
+            );
+        }
     }
+
+    const ariaDescription =
+        hasExplicitLabel && shortDescription ? shortDescription : undefined;
+
+    const labelComponent = hasLabel ? (
+        <label
+            id={labelId}
+            htmlFor={inputKey}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
+    ) : null;
+
+    const inputRow = (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line, keeping a single tall-math label
+                // aligned with the input (#945).
+                verticalAlign: "baseline",
+            }}
+        >
+            {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
+            {shortDescriptionId && (
+                <span id={shortDescriptionId} className="visually-hidden">
+                    {shortDescription}
+                </span>
+            )}
+            <Ariakit.PopoverAnchor
+                store={preview.previewPopover}
+                className="mathInputWrapper"
+                style={{
+                    cursor: mathInputWrapperCursor,
+                    display: "block",
+                }}
+            >
+                <EditableMathField
+                    style={mathInputStyle}
+                    latex={rendererValue.current}
+                    // ACCESSIBILITY: Pass label IDs (internal + external) so they are prepended
+                    // to the textarea's aria-labelledby (which includes MathQuill's auto-generated
+                    // math speech ID). This ensures explicit labels are announced before math descriptions.
+                    labelIds={
+                        hasLabel
+                            ? [labelId, ...externalLabelRendererIds]
+                            : externalLabelRendererIds
+                    }
+                    shortDescriptionId={shortDescriptionId}
+                    // Supplementary annotations (not primary labels)
+                    aria-description={ariaDescription}
+                    aria-details={ariaDetailsIds || undefined}
+                    config={{
+                        autoCommands:
+                            "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
+                        autoOperatorNames,
+                        handlers: {
+                            enter: handlePressEnter,
+                        },
+                        substituteTextarea: function () {
+                            textareaRef.current =
+                                document.createElement("textarea");
+                            textareaRef.current.id = inputKey;
+                            textareaRef.current.disabled = SVs.disabled;
+                            textareaRef.current.addEventListener(
+                                "keydown",
+                                (event) => {
+                                    if (event.key === "Escape") {
+                                        // Match preview Escape behavior: dismiss the
+                                        // popover until the next user interaction.
+                                        preview.dismissPreview();
+                                    }
+                                },
+                            );
+                            return textareaRef.current;
+                        },
+                    }}
+                    onChange={(mField: any) => {
+                        onChangeHandler(mField.latex());
+                    }}
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    mathquillDidMount={(mf: any) => {
+                        setMathField(mf);
+                    }}
+                />
+            </Ariakit.PopoverAnchor>
+            <MathInputPreviewPopover
+                preview={preview}
+                showPreview={SVs.showPreview}
+                immediateValueLatex={preview.debouncedImmediateValueLatex}
+                errorMessageRawRenderer={
+                    preview.debouncedErrorMessageRawRenderer
+                }
+            />
+            {checkWorkComponent}
+            {description}
+        </span>
+    );
 
     return (
         <React.Fragment>
             <span
                 id={id}
-                style={{ display: "inline-flex", alignItems: "start" }}
+                // `display: inline` keeps the label and input row as ordinary
+                // inline content so the whole input flows with its paragraph:
+                // text before and after the input wraps together with the label
+                // and input box, and a long label wraps across lines with the
+                // input following its end rather than baseline-aligning to the
+                // label's *first* line, where it looked embedded in the label
+                // text (#1245). (inline-block would instead make the label and
+                // input an atomic box that surrounding paragraph text cannot
+                // wrap together with.) A single tall label (e.g. tall math)
+                // still aligns with the input via the input row's
+                // `vertical-align: baseline` (preserving #945).
+                style={{
+                    display: "inline",
+                }}
             >
-                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                    {label}
-                    <Ariakit.PopoverAnchor
-                        store={preview.previewPopover}
-                        className="mathInputWrapper"
-                        style={{
-                            cursor: mathInputWrapperCursor,
-                            display: "block",
-                        }}
-                    >
-                        <EditableMathField
-                            style={mathInputStyle}
-                            latex={rendererValue.current}
-                            ariaLabel={shortDescription}
-                            aria-details={ariaDetailsIds || undefined}
-                            config={{
-                                autoCommands:
-                                    "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
-                                autoOperatorNames:
-                                    "arg deg det dim exp gcd hom ker lg lim ln log max min" +
-                                    " Pr" +
-                                    " cos cosh acos acosh arccos arccosh" +
-                                    " cot coth acot acoth arccot arccoth" +
-                                    " csc csch acsc acsch arccsc arccsch" +
-                                    " sec sech asec asech arcsec arcsech" +
-                                    " sin sinh asin asinh arcsin arcsinh" +
-                                    " tan tanh atan atanh arctan arctanh" +
-                                    " nPr nCr",
-                                handlers: {
-                                    enter: handlePressEnter,
-                                },
-                                substituteTextarea: function () {
-                                    textareaRef.current =
-                                        document.createElement("textarea");
-                                    textareaRef.current.disabled = SVs.disabled;
-                                    textareaRef.current.addEventListener(
-                                        "keydown",
-                                        (event) => {
-                                            if (event.key === "Escape") {
-                                                // Match preview Escape behavior: dismiss the
-                                                // popover until the next user interaction.
-                                                preview.dismissPreview();
-                                            }
-                                        },
-                                    );
-                                    return textareaRef.current;
-                                },
-                            }}
-                            onChange={(mField: any) => {
-                                onChangeHandler(mField.latex());
-                            }}
-                            onBlur={handleBlur}
-                            onFocus={handleFocus}
-                            mathquillDidMount={(mf: any) => {
-                                setMathField(mf);
-                            }}
-                        />
-                    </Ariakit.PopoverAnchor>
-                </label>
-                <MathInputPreviewPopover
-                    preview={preview}
-                    showPreview={SVs.showPreview}
-                    immediateValueLatex={preview.debouncedImmediateValueLatex}
-                />
-                {checkWorkComponent}
-                {description}
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {inputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {inputRow}
+                    </>
+                )}
             </span>
         </React.Fragment>
     );

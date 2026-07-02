@@ -6,8 +6,8 @@ const destUrl = new URL("../src/generated/doenet-schema.json", import.meta.url);
 const schema = getSchema();
 console.log(
     "Writing",
-    Object.keys(schema.elements).length,
+    schema.elements.length,
     "schema items to",
     destUrl.pathname,
 );
-await fs.writeFile(destUrl.pathname, JSON.stringify(schema, null, 4));
+await fs.writeFile(destUrl.pathname, JSON.stringify(schema, null, 4) + "\n");

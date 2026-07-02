@@ -1,7 +1,15 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import {
+    buildClosedShapeStyleDescription,
+    buildFillStyleDescription,
+    getBorderDescription,
+    getFillColorWord,
+    getLineColorWord,
+} from "../utils/graphicalStyleDescriptions";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 
@@ -13,11 +21,17 @@ export default class Circle extends Curve {
 
         Object.assign(this.actions, {
             moveCircle: this.moveCircle.bind(this),
+            changeRadius: this.changeRadius.bind(this),
             circleClicked: this.circleClicked.bind(this),
             circleFocused: this.circleFocused.bind(this),
         });
     }
     static componentType = "circle";
+
+    static componentDocs = {
+        summary:
+            "A circle, potentially defined by center, radius, and/or points on the circle",
+    };
     static rendererType = "circle";
     static representsClosedPath = true;
 
@@ -26,15 +40,53 @@ export default class Circle extends Curve {
 
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the circle passes through.",
         };
         attributes.center = {
             createComponentOfType: "point",
+            description: "The circle's center point.",
         };
         attributes.radius = {
             createComponentOfType: "math",
+            description: "The circle's radius.",
+        };
+
+        attributes.addControls = {
+            description:
+                "Whether to render interactive control handles on the circle.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerAndRadius",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a control handle for moving the circle's center.",
+                },
+                {
+                    value: "radius",
+                    description:
+                        "Show a control handle for resizing the circle's radius.",
+                },
+                {
+                    value: "centerAndRadius",
+                    description:
+                        "Show control handles for both moving the center and resizing the radius.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
+            valueForTrue: "centerAndRadius",
+            valueForFalse: "none",
         };
 
         attributes.filled = {
+            description: "Whether to fill the interior of the circle.",
             createComponentOfType: "boolean",
             createStateVariable: "filled",
             defaultValue: false,
@@ -44,7 +96,11 @@ export default class Circle extends Curve {
 
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the component is off-screen.",
         };
+
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         delete attributes.parMin;
         delete attributes.parMax;
@@ -58,15 +114,25 @@ export default class Circle extends Curve {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Borrow GraphicalComponent's definitions to skip Curve's
+        // parametric-curve state variables. Must use `.call(this)`: the
+        // borrowed code resolves style-override groups off `this`'s prototype
+        // chain, so an unbound call would pick up GraphicalComponent's empty
+        // default instead of Curve's ["line", "fill"], dropping overrides like
+        // fillOpacity.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions.call(
+                this,
+                numerics,
+            );
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the circle's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -87,66 +153,32 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescription;
-                if (!dependencyValues.filled) {
-                    styleDescription = borderDescription + lineColorWord;
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescription = "filled " + fillColorWord;
-                        if (borderDescription) {
-                            styleDescription +=
-                                " with " + borderDescription + "border";
-                        }
-                    } else {
-                        styleDescription =
-                            "filled " +
-                            fillColorWord +
-                            " with " +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescription = buildClosedShapeStyleDescription({
+                    filled: dependencyValues.filled,
+                    lineColorWord,
+                    fillColorWord,
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                    borderDescription,
+                });
 
                 return { setValue: { styleDescription } };
             },
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "circle".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -167,68 +199,36 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescriptionWithNoun;
-                if (!dependencyValues.filled) {
-                    styleDescriptionWithNoun =
-                        borderDescription + lineColorWord + " circle";
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescriptionWithNoun =
-                            "filled " + fillColorWord + " circle";
-                        if (borderDescription) {
-                            styleDescriptionWithNoun +=
-                                " with a " + borderDescription + "border";
-                        }
-                    } else {
-                        styleDescriptionWithNoun =
-                            "filled " +
-                            fillColorWord +
-                            " circle with a " +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescriptionWithNoun =
+                    buildClosedShapeStyleDescription({
+                        filled: dependencyValues.filled,
+                        lineColorWord,
+                        fillColorWord,
+                        fillStyleWord:
+                            dependencyValues.selectedStyle.fillStyleWord,
+                        borderDescription,
+                        noun: " circle",
+                        includeBorderArticle: true,
+                    });
 
                 return { setValue: { styleDescriptionWithNoun } };
             },
         };
 
         stateVariableDefinitions.borderStyleDescription = {
+            description: "A textual description of the circle's border style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -245,36 +245,19 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderStyleDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderStyleDescription) {
-                        borderStyleDescription += " ";
-                    }
-                    borderStyleDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-
-                if (borderStyleDescription) {
-                    borderStyleDescription += " ";
-                }
-
-                borderStyleDescription += lineColorWord;
+                const borderStyleDescription =
+                    getBorderDescription(dependencyValues.selectedStyle) +
+                    getLineColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    );
 
                 return { setValue: { borderStyleDescription } };
             },
         };
 
         stateVariableDefinitions.fillStyleDescription = {
+            description: "A textual description of the circle's fill style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -295,27 +278,22 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let fillColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWordDarkMode;
-                } else {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWord;
-                }
-
-                let fillStyleDescription;
-                if (!dependencyValues.filled) {
-                    fillStyleDescription = "unfilled";
-                } else {
-                    fillStyleDescription = fillColorWord;
-                }
+                const fillStyleDescription = buildFillStyleDescription({
+                    filled: dependencyValues.filled,
+                    fillColorWord: getFillColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    ),
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                });
 
                 return { setValue: { fillStyleDescription } };
             },
         };
 
         stateVariableDefinitions.hideOffGraphIndicator = {
+            description:
+                "Whether to suppress the off-graph indicator when the circle is outside the visible area.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -365,6 +343,8 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.parMax = {
+            description:
+                "Maximum value of the curve parameter (always 2π for a circle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -375,6 +355,8 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.parMin = {
+            description:
+                "Minimum value of the curve parameter (always 0 for a circle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -419,11 +401,12 @@ export default class Circle extends Curve {
 
         stateVariableDefinitions.throughPoints = {
             public: true,
+            description: "Points the circle is constrained to pass through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "throughPointX") {
                         return [];
@@ -1101,18 +1084,18 @@ export default class Circle extends Curve {
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.haveNonNumericalThroughPoints) {
                     let message =
-                        "Haven't implemented <circle> through " +
+                        "Haven't implemented `<circle>` through " +
                         dependencyValues.numThroughPoints +
                         " points";
                     message +=
                         " in case where the points don't have numerical values.";
-                    let warning = { message, level: 1 };
+                    let warning = { message, type: "warning" };
                     return {
                         setValue: {
                             numericalRadiusCalculatedWithCenter: null,
                             numericalCenterCalculatedWithRadius: null,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -1214,14 +1197,14 @@ export default class Circle extends Curve {
                     let warning = {
                         message:
                             "Cannot calculate circle through more than 3 points.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
                             numericalRadiusCalculatedWithCenter: null,
                             numericalCenterCalculatedWithRadius: null,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 } else {
                     // these variables aren't used with fewer than 2 points
@@ -1259,11 +1242,11 @@ export default class Circle extends Curve {
                     let warning = {
                         message:
                             "Cannot calculate circle with specified radius, center and through points.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { haveCenterRadiusPoints: true },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 } else {
                     return { setValue: { haveCenterRadiusPoints: false } };
@@ -1435,12 +1418,12 @@ export default class Circle extends Curve {
                         let warning = {
                             message:
                                 "Cannot calculate circle with specified center through more than 1 point.",
-                            level: 1,
+                            type: "warning",
                         };
 
                         return {
                             setValue: { numericalRadius: NaN },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -1837,11 +1820,11 @@ export default class Circle extends Curve {
                             let dist = Math.round(Math.sqrt(dist2) * 100) / 100;
                             let warning = {
                                 message: `Cannot calculate circle: given that the distance between the two points is ${dist}, the specified radius ${r} is too small.`,
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numericalCenter: [NaN, NaN] },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
 
@@ -1873,11 +1856,11 @@ export default class Circle extends Curve {
                         let warning = {
                             message:
                                 "Cannot create circle through more than two points with a specified radius.",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: { numericalCenter: [NaN, NaN] },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -2105,11 +2088,12 @@ export default class Circle extends Curve {
 
         stateVariableDefinitions.radius = {
             public: true,
+            description: "The radius of the circle.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             stateVariablesDeterminingDependencies: [
                 "numThroughPoints",
@@ -2222,22 +2206,22 @@ export default class Circle extends Curve {
                             let warning = {
                                 message:
                                     "Invalid center or through points of circle.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { radius: me.fromAst("\uff3f") },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     } else {
                         let warning = {
                             message:
                                 "Cannot calculate radius of circle with specified center through more than 1 point.",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: { radius: me.fromAst("\uff3f") },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -2323,20 +2307,21 @@ export default class Circle extends Curve {
                     let warning = {
                         message:
                             "Cannot change radius of circle with non-numerical through points",
-                        level: 1,
+                        type: "warning",
                     };
-                    return { success: false, sendWarnings: [warning] };
+                    return { success: false, sendDiagnostics: [warning] };
                 }
             },
         };
 
         stateVariableDefinitions.diameter = {
+            description: "The diameter of the circle.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 radius: {
@@ -2372,11 +2357,12 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.circumference = {
+            description: "The circumference of the circle.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 radius: {
@@ -2396,11 +2382,12 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the circle.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 radius: {
@@ -2424,10 +2411,11 @@ export default class Circle extends Curve {
             forRenderer: true,
             isLocation: true,
             public: true,
+            description: "The center coordinates of the circle.",
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "centerX") {
                         return [];
@@ -2666,16 +2654,16 @@ export default class Circle extends Curve {
 
                         return { setValue: { center } };
                     } else {
-                        let warnings = [];
+                        let diagnostics = [];
 
                         if (
                             globalDependencyValues.haveNonNumericalPrescribedRadius ||
                             globalDependencyValues.haveNonNumericalThroughPoints
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Cannot create circle through more than one point with specified radius when don't have numerical values.",
-                                level: 1,
+                                type: "warning",
                             });
                         }
                         return {
@@ -2685,7 +2673,7 @@ export default class Circle extends Curve {
                                     me.fromAst("\uff3f"),
                                 ],
                             },
-                            sendWarnings: warnings,
+                            sendDiagnostics: diagnostics,
                         };
                     }
                 }
@@ -2833,9 +2821,9 @@ export default class Circle extends Curve {
                     let warning = {
                         message:
                             "Haven't implemented changing center of circle through points with non numerical values.",
-                        level: 1,
+                        type: "warning",
                     };
-                    return { success: false, sendWarnings: [warning] };
+                    return { success: false, sendDiagnostics: [warning] };
                 }
             },
         };
@@ -2938,10 +2926,34 @@ export default class Circle extends Curve {
         radius,
         throughAngles,
         transient,
+        skippable,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "center",
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "center") {
+            console.warn(`Invalid pointRole for circle: ${pointRole}`);
+            return;
+        }
+
+        // Center must be 2D for circle
+        if (!Array.isArray(center) || center.length !== 2) {
+            return;
+        }
+
+        if (!Number.isFinite(center[0]) || !Number.isFinite(center[1])) {
+            console.warn(
+                `Invalid center coordinates for circle move: x=${center[0]}, y=${center[1]}`,
+            );
+            return;
+        }
+
         let instructions = [];
 
         let numThroughPoints = await this.stateValues.numThroughPoints;
@@ -2954,6 +2966,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalCenter",
                 value: center,
+                sourceDetails,
             });
         }
 
@@ -2988,6 +3001,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalThroughPoints",
                 value: numericalThroughPoints,
+                sourceDetails,
             });
         }
 
@@ -2997,6 +3011,7 @@ export default class Circle extends Curve {
             await this.coreFunctions.performUpdate({
                 updateInstructions: instructions,
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
@@ -3064,6 +3079,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3088,6 +3104,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3181,6 +3198,7 @@ export default class Circle extends Curve {
                     return await this.coreFunctions.performUpdate({
                         updateInstructions: newInstructions,
                         transient,
+                        skippable,
                         actionId,
                         sourceInformation,
                         skipRendererUpdate,
@@ -3191,6 +3209,68 @@ export default class Circle extends Curve {
 
         // if no modifications were made, still need to update renderers
         // as original update was performed with skipping renderer update
+        return await this.coreFunctions.updateRenderers({
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+
+    async changeRadius({
+        radius,
+        transient,
+        skippable,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(radius)) {
+            console.warn(`Invalid radius for circle change: radius=${radius}`);
+            return;
+        }
+
+        // Radius slider/input values are numeric, so update numericalRadius directly.
+        const updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numericalRadius",
+                value: Math.max(0, radius),
+            },
+        ];
+
+        if (transient) {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        } else {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+                event: {
+                    verb: "interacted",
+                    object: {
+                        componentIdx: this.componentIdx,
+                        componentType: this.componentType,
+                    },
+                    result: {
+                        radius,
+                    },
+                },
+            });
+        }
+
         return await this.coreFunctions.updateRenderers({
             actionId,
             sourceInformation,

@@ -1,4 +1,12 @@
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import {
+    buildClosedShapeStyleDescription,
+    buildFillStyleDescription,
+    getBorderDescription,
+    getFillColorWord,
+    getLineColorWord,
+} from "../utils/graphicalStyleDescriptions";
 import Polyline from "./Polyline";
 
 export default class Polygon extends Polyline {
@@ -7,16 +15,31 @@ export default class Polygon extends Polyline {
 
         Object.assign(this.actions, {
             movePolygon: this.movePolygon.bind(this),
+            movePolygonCenter: this.movePolygonCenter.bind(this),
             reflectPolygon: this.reflectPolygon.bind(this),
             polygonClicked: this.polygonClicked.bind(this),
             polygonFocused: this.polygonFocused.bind(this),
         });
     }
     static componentType = "polygon";
+    // Overrides Polyline's ["line"]: polygons are closed and can be filled.
+    static styleOverrideCategories = ["line", "fill"];
+
+    static componentDocs = {
+        summary: "A polygon defined by a list of vertices",
+    };
     static representsClosedPath = true;
 
     get movePolygon() {
         return this.movePolyline;
+    }
+
+    /**
+     * Delegates to parent Polyline's movePolylineCenter action.
+     * Provides polygon-specific naming for semantic clarity.
+     */
+    get movePolygonCenter() {
+        return this.movePolylineCenter;
     }
 
     get reflectPolygon() {
@@ -34,13 +57,40 @@ export default class Polygon extends Polyline {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.addControls = {
+            description:
+                "Whether to render interactive vertex control handles.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "center",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a control handle for moving the polygon's center.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
+            valueForTrue: "center",
+            valueForFalse: "none",
+        };
+
         attributes.filled = {
+            description: "Whether to fill the interior of the polygon.",
             createComponentOfType: "boolean",
             createStateVariable: "filled",
             defaultValue: false,
             public: true,
             forRenderer: true,
         };
+
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }
@@ -49,6 +99,7 @@ export default class Polygon extends Polyline {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the polygon's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -69,66 +120,32 @@ export default class Polygon extends Polyline {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescription;
-                if (!dependencyValues.filled) {
-                    styleDescription = borderDescription + lineColorWord;
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescription = "filled " + fillColorWord;
-                        if (borderDescription) {
-                            styleDescription +=
-                                " with " + borderDescription + "border";
-                        }
-                    } else {
-                        styleDescription =
-                            "filled " +
-                            fillColorWord +
-                            " with " +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescription = buildClosedShapeStyleDescription({
+                    filled: dependencyValues.filled,
+                    lineColorWord,
+                    fillColorWord,
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                    borderDescription,
+                });
 
                 return { setValue: { styleDescription } };
             },
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "polygon".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -149,68 +166,36 @@ export default class Polygon extends Polyline {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderDescription) {
-                        borderDescription += " ";
-                    }
-                    borderDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-                if (borderDescription) {
-                    borderDescription += " ";
-                }
-
-                let styleDescriptionWithNoun;
-                if (!dependencyValues.filled) {
-                    styleDescriptionWithNoun =
-                        borderDescription + lineColorWord + " polygon";
-                } else {
-                    let fillColorWord;
-                    if (
-                        dependencyValues.document?.stateValues.theme === "dark"
-                    ) {
-                        fillColorWord =
-                            dependencyValues.selectedStyle
-                                .fillColorWordDarkMode;
-                    } else {
-                        fillColorWord =
-                            dependencyValues.selectedStyle.fillColorWord;
-                    }
-
-                    if (fillColorWord === lineColorWord) {
-                        styleDescriptionWithNoun =
-                            "filled " + fillColorWord + " polygon";
-                        if (borderDescription) {
-                            styleDescriptionWithNoun +=
-                                " with a " + borderDescription + "border";
-                        }
-                    } else {
-                        styleDescriptionWithNoun =
-                            "filled " +
-                            fillColorWord +
-                            " polygon with a " +
-                            borderDescription +
-                            lineColorWord +
-                            " border";
-                    }
-                }
+                const theme = dependencyValues.document?.stateValues.theme;
+                const lineColorWord = getLineColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const fillColorWord = getFillColorWord(
+                    dependencyValues.selectedStyle,
+                    theme,
+                );
+                const borderDescription = getBorderDescription(
+                    dependencyValues.selectedStyle,
+                );
+                const styleDescriptionWithNoun =
+                    buildClosedShapeStyleDescription({
+                        filled: dependencyValues.filled,
+                        lineColorWord,
+                        fillColorWord,
+                        fillStyleWord:
+                            dependencyValues.selectedStyle.fillStyleWord,
+                        borderDescription,
+                        noun: " polygon",
+                        includeBorderArticle: true,
+                    });
 
                 return { setValue: { styleDescriptionWithNoun } };
             },
         };
 
         stateVariableDefinitions.borderStyleDescription = {
+            description: "A textual description of the polygon's border style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -227,36 +212,19 @@ export default class Polygon extends Polyline {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let borderStyleDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (borderStyleDescription) {
-                        borderStyleDescription += " ";
-                    }
-                    borderStyleDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-
-                if (borderStyleDescription) {
-                    borderStyleDescription += " ";
-                }
-
-                borderStyleDescription += lineColorWord;
+                const borderStyleDescription =
+                    getBorderDescription(dependencyValues.selectedStyle) +
+                    getLineColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    );
 
                 return { setValue: { borderStyleDescription } };
             },
         };
 
         stateVariableDefinitions.fillStyleDescription = {
+            description: "A textual description of the polygon's fill style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -277,21 +245,14 @@ export default class Polygon extends Polyline {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let fillColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWordDarkMode;
-                } else {
-                    fillColorWord =
-                        dependencyValues.selectedStyle.fillColorWord;
-                }
-
-                let fillStyleDescription;
-                if (!dependencyValues.filled) {
-                    fillStyleDescription = "unfilled";
-                } else {
-                    fillStyleDescription = fillColorWord;
-                }
+                const fillStyleDescription = buildFillStyleDescription({
+                    filled: dependencyValues.filled,
+                    fillColorWord: getFillColorWord(
+                        dependencyValues.selectedStyle,
+                        dependencyValues.document?.stateValues.theme,
+                    ),
+                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
+                });
 
                 return { setValue: { fillStyleDescription } };
             },
@@ -300,16 +261,18 @@ export default class Polygon extends Polyline {
         stateVariableDefinitions.numSides = {
             isAlias: true,
             targetVariableName: "numVertices",
+            description: "The number of sides of the polygon.",
         };
 
         delete stateVariableDefinitions.length;
 
         stateVariableDefinitions.perimeter = {
+            description: "The perimeter of the polygon.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numericalVertices: {
@@ -332,11 +295,12 @@ export default class Polygon extends Polyline {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the polygon.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numericalVertices: {

@@ -34,7 +34,7 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     --tw-scale-y: 1;
     --tw-scroll-snap-strictness: proximity;
     --tw-ring-offset-width: 0px;
-    --tw-ring-offset-color: #fff;
+    --tw-ring-offset-color: var(--kb-ring-offset, #fff);
     --tw-ring-color: rgb(59 130 246 / 0.5);
     --tw-ring-offset-shadow: 0 0 #0000;
     --tw-ring-shadow: 0 0 #0000;
@@ -42,15 +42,21 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     --tw-shadow-colored: 0 0 #0000;
     --tw-border-opacity: 1;
 
+    /* Theme tokens — light-mode defaults */
+    --kb-tray-bg: white;
+    --kb-tray-border-top: black;
+    --kb-ring-offset: #fff;
+    --kb-key-bg: #fff;
+
     --keyboard-tray-height: 280px;
 
-    border-top: 1px solid black;
+    border-top: 1px solid var(--kb-tray-border-top);
     @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
     @apply transition-transform ease-in-out duration-300 translate-y-[100%];
     min-height: var(--keyboard-tray-height);
     max-height: calc(100vh - 1.5rem);
     z-index: 10000;
-    background-color: white;
+    background-color: var(--kb-tray-bg);
 
     .close-keyboard-button {
         @apply absolute top-0 right-0 m-2 rounded;
@@ -58,8 +64,15 @@ Tailwind base is purposely not included because we want all styles to be prefixe
         @apply w-6 h-6 flex items-center justify-center text-2xl;
     }
 
+    /*
+     * Right-edge footprint of this button (w-12 + me-4 = 4rem) is mirrored
+     * by `--keyboard-tab-reserve-width` in
+     * `packages/doenetml/src/EditorViewer/editor-viewer.css` so the editor
+     * footer can shift its rightmost element inward to clear it. Keep the
+     * two values in sync.
+     */
     .open-keyboard-button {
-        @apply absolute top-[-1.5rem] left-0 rounded-t ms-4;
+        @apply absolute top-[-1.5rem] right-0 rounded-t me-4;
         @apply border-b-black border-b;
         @apply hover:bg-slate-300 active:bg-slate-400;
         @apply w-12 h-[1.5rem] flex items-center justify-center;
@@ -71,6 +84,118 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     }
     .virtual-keyboard {
         @apply mx-auto;
+    }
+}
+
+/* Dark-mode overrides — applied when data-theme="dark" is written to #virtual-keyboard-tray */
+#virtual-keyboard-tray[data-theme="dark"] {
+    --kb-tray-bg: #1e1e1e;
+    --kb-tray-border-top: #555;
+    --kb-ring-offset: #1e1e1e;
+    --kb-key-bg: #2d2d2d;
+
+    color: white;
+
+    /*
+     * Browsers have a UA stylesheet rule `button { color: ButtonText }` which
+     * is an explicit UA-level declaration and beats an *inherited* `color:
+     * white` from a parent. We must set color explicitly on button elements
+     * so the author rule overrides UA. This also makes MathJax SVG paths
+     * (which use fill:currentColor) render white rather than the UA button
+     * color.
+     */
+    button {
+        color: white;
+    }
+
+    /* Close (×) button */
+    .close-keyboard-button:hover {
+        background-color: #3a3a3a;
+    }
+    .close-keyboard-button:active {
+        background-color: #4a4a4a;
+    }
+
+    /* Open-keyboard tab that peeks above the tray */
+    .open-keyboard-button {
+        background-color: #2d2d2d;
+        border-color: #555;
+        border-bottom-color: transparent;
+    }
+    .open-keyboard-button:hover {
+        background-color: #3a3a3a;
+    }
+    .open-keyboard-button:active {
+        background-color: #4a4a4a;
+    }
+
+    /*
+     * Key faces — target via .virtual-keyboard button because @apply in
+     * keyboard.css inlines styles without adding the class to the HTML element.
+     * These override the light-mode .virtual-keyboard button:hover / :active
+     * rules (light grey slate-100/slate-300) that become invisible with white text.
+     */
+    .virtual-keyboard button {
+        background-color: #2d2d2d;
+        border-color: #4a4a4a;
+    }
+    .virtual-keyboard button:hover {
+        background-color: #3a3a3a;
+    }
+    .virtual-keyboard button:active {
+        background-color: #4a4a4a;
+    }
+
+    /*
+     * Special keys (backspace, shift, space, arrows, enter).
+     * These use @apply special-button in keyboard.css which compiles to
+     * .virtual-keyboard .key-space, .virtual-keyboard .key-backspace etc.
+     * — the HTML elements have .key-space/.key-backspace class, not .special-button.
+     * Specificity must beat .virtual-keyboard .key-* at (0, 2, 0).
+     */
+    .virtual-keyboard .key-space,
+    .virtual-keyboard .key-backspace,
+    .virtual-keyboard .key-left,
+    .virtual-keyboard .key-right,
+    .virtual-keyboard .key-shift,
+    .virtual-keyboard .key-enter {
+        background-color: #383838;
+        border-color: #383838;
+    }
+    .virtual-keyboard .key-space:hover,
+    .virtual-keyboard .key-backspace:hover,
+    .virtual-keyboard .key-left:hover,
+    .virtual-keyboard .key-right:hover,
+    .virtual-keyboard .key-shift:hover,
+    .virtual-keyboard .key-enter:hover {
+        background-color: #454545;
+        border-color: #454545;
+    }
+    .virtual-keyboard .key-space:active,
+    .virtual-keyboard .key-backspace:active,
+    .virtual-keyboard .key-left:active,
+    .virtual-keyboard .key-right:active,
+    .virtual-keyboard .key-shift:active,
+    .virtual-keyboard .key-enter:active {
+        background-color: #555555;
+        border-color: #555555;
+        color: white;
+    }
+
+    /*
+     * Selected tab indicator.
+     * blue-400 (#60a5fa) on #1e1e1e ≈ 6.9:1 — WCAG AA ✓
+     * blue-300 (#93c5fd) on #1e1e1e ≈ 8.6:1 — WCAG AA ✓
+     */
+    .virtual-keyboard-tab-list button[aria-selected="true"] {
+        border-color: #60a5fa;
+        color: #93c5fd;
+    }
+
+    /* Non-selected tab borders: use a dim separator instead of transparent
+       so the tab strip has a subtle anchor line in dark mode. */
+    .virtual-keyboard-tab-list button:not([aria-selected="true"]) {
+        border-color: #444;
     }
 }
 

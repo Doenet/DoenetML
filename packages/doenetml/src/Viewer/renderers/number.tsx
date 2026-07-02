@@ -1,69 +1,74 @@
-// @ts-nocheck
 import { MathJax } from "better-react-mathjax";
 
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
-import {
-    getPositionFromAnchorByCoordinate,
-    POINTER_DRAG_THRESHOLD,
-} from "./utils/graph";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
+import type { ResolvedStyleDefinition } from "@doenet/utils";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import {
+    attachAnchoredGraphDragHandlers,
+    detachAnchoredGraphElement,
+} from "./utils/useAnchoredGraphDragHandler";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
-export default React.memo(function NumberComponent(props) {
-    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+interface NumberSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    text: string;
+    renderAsMath: boolean;
+    selectedStyle: ResolvedStyleDefinition;
+}
 
+export default React.memo(function NumberComponent(
+    props: UseDoenetRendererProps,
+) {
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer<NumberSVs>(props);
+
+    // @ts-ignore
     NumberComponent.ignoreActionsWithoutCore = () => true;
 
-    let numberJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    const numberJXG = useRef<JXGText | null>(null);
+    const anchorPointJXG = useRef<JXGPoint | null>(null);
+    const anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointerAtDown = useRef(false);
-    let pointAtDown = useRef(false);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    const pointerState = usePointerDragState();
+    const pointAtDown = useRef<number[] | null>(null);
+    const calculatedX = useRef<number | null>(null);
+    const calculatedY = useRef<number | null>(null);
+    const previousPositionFromAnchor = useRef<any>(null);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    const { fixed, fixLocation, lastPositionFromCore } = useDraggableRefs<
+        number[] | null
+    >(SVs, null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
+    useBoardPointerTracking(board, pointerState);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
-
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    useJSXGraphCleanup({
+        objectRef: numberJXG,
+        destroy: () => detachAnchoredGraphElement(numberJXG, board),
+    });
 
     const { darkMode } = useContext(DocContext) || {};
-
-    useEffect(() => {
-        //On unmount
-        return () => {
-            if (numberJXG.current !== null) {
-                deleteNumberJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createNumberJXG() {
         if (board === null) {
@@ -85,7 +90,7 @@ export default React.memo(function NumberComponent(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxNumberAttributes = {
+        let jsxNumberAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
@@ -99,7 +104,7 @@ export default React.memo(function NumberComponent(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -118,12 +123,12 @@ export default React.memo(function NumberComponent(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxNumberAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxNumberAttributes.anchor = newAnchorPointJXG;
@@ -133,191 +138,34 @@ export default React.memo(function NumberComponent(props) {
         );
         jsxNumberAttributes.anchorx = anchorx;
         jsxNumberAttributes.anchory = anchory;
-        anchorRel.current = [anchorx, anchory];
+        anchorRel.current = [anchorx as string, anchory as string];
 
         let newNumberJXG = board.create(
             "text",
             [0, 0, SVs.text],
             jsxNumberAttributes,
-        );
-        newNumberJXG.isDraggable = !fixLocation.current;
+        ) as JXGText;
 
-        newNumberJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.numberFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newNumberJXG.on("hit", function (e) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            callAction({
-                action: actions.numberFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newNumberJXG.on("up", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveNumber,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.numberClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newNumberJXG.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveNumber,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newNumberJXG.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                dragged.current = true;
-            }
-
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let width = newNumberJXG.size[0] / board.unitX;
-            let height = newNumberJXG.size[1] / board.unitY;
-
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
-
-            let offsetx = 0;
-            if (anchorx === "middle") {
-                offsetx = -width / 2;
-            } else if (anchorx === "right") {
-                offsetx = -width;
-            }
-            let offsety = 0;
-            if (anchory === "middle") {
-                offsety = -height / 2;
-            } else if (anchory === "top") {
-                offsety = -height;
-            }
-
-            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
-            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
-            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
-            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
-
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is that attributes .X() and .Y() are affected by the
-                // .setCoordinates function called in update().
-                // Due to this dependence, the location of .X() and .Y()
-                // can be affected by constraints of objects that the points depends on,
-                // leading to a different location on up than on drag
-                // (as dragging uses the mouse location)
-                // TODO: find an example where need this this additional complexity
-                var o = board.origin.scrCoords;
-
-                calculatedX.current =
-                    (pointAtDown.current[1] +
-                        e.x -
-                        pointerAtDown.current[0] -
-                        o[1]) /
-                    board.unitX;
-
-                calculatedY.current =
-                    (o[2] -
-                        (pointAtDown.current[2] +
-                            e.y -
-                            pointerAtDown.current[1])) /
-                    board.unitY;
-            } else {
-                calculatedX.current =
-                    newAnchorPointJXG.X() +
-                    newNumberJXG.relativeCoords.usrCoords[1];
-                calculatedY.current =
-                    newAnchorPointJXG.Y() +
-                    newNumberJXG.relativeCoords.usrCoords[2];
-            }
-
-            calculatedX.current = Math.min(
-                xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
-            );
-            calculatedY.current = Math.min(
-                ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
-            );
-
-            callAction({
-                action: actions.moveNumber,
-                args: {
-                    x: calculatedX.current,
-                    y: calculatedY.current,
-                    transient: true,
-                    skippable: true,
-                },
-            });
-
-            newNumberJXG.relativeCoords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                [0, 0],
-            );
-            newAnchorPointJXG.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionFromCore.current,
-            );
-        });
-
-        newNumberJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveNumber,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.numberClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
+        attachAnchoredGraphDragHandlers({
+            board,
+            newJXG: newNumberJXG,
+            newAnchorPoint: newAnchorPointJXG,
+            anchorRel,
+            pointerState,
+            pointAtDown,
+            calculatedX,
+            calculatedY,
+            fixed,
+            fixLocation,
+            lastPositionFromCore,
+            componentIdx,
+            actions,
+            callAction,
+            actionNames: {
+                move: "moveNumber",
+                focused: "numberFocused",
+                clicked: "numberClicked",
+            },
         });
 
         numberJXG.current = newNumberJXG;
@@ -325,38 +173,13 @@ export default React.memo(function NumberComponent(props) {
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
-    function deleteNumberJXG() {
-        numberJXG.current.off("drag");
-        numberJXG.current.off("down");
-        numberJXG.current.off("hit");
-        numberJXG.current.off("up");
-        numberJXG.current.off("keyfocusout");
-        numberJXG.current.off("keydown");
-        board?.removeObject(numberJXG.current);
-        numberJXG.current = null;
-    }
-
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -371,7 +194,7 @@ export default React.memo(function NumberComponent(props) {
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -422,8 +245,8 @@ export default React.memo(function NumberComponent(props) {
             }
 
             if (numberJXG.current.visProp.strokecolor !== textColor) {
-                numberJXG.current.visProp.strokecolor = textColor;
-                numberJXG.current.visProp.highlightstrokecolor = textColor;
+                numberJXG.current.visProp.strokecolor = textColor!;
+                numberJXG.current.visProp.highlightstrokecolor = textColor!;
             }
             if (numberJXG.current.visProp.cssstyle !== cssStyle) {
                 numberJXG.current.visProp.cssstyle = cssStyle;
@@ -442,15 +265,17 @@ export default React.memo(function NumberComponent(props) {
                 );
                 numberJXG.current.visProp.anchorx = anchorx;
                 numberJXG.current.visProp.anchory = anchory;
-                anchorRel.current = [anchorx, anchory];
+                anchorRel.current = [anchorx as string, anchory as string];
                 previousPositionFromAnchor.current = SVs.positionFromAnchor;
                 numberJXG.current.fullUpdate();
             } else {
                 numberJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
@@ -469,7 +294,7 @@ export default React.memo(function NumberComponent(props) {
     }
 
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
     return (

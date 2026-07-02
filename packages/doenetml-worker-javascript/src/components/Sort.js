@@ -6,6 +6,11 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
+    static componentDocs = {
+        summary: "Sorts a list according to a comparison function",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =
@@ -15,15 +20,30 @@ export default class Sort extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.sortVectorsBy = {
+            description:
+                "Whether to sort vectors by component or by magnitude.",
             createComponentOfType: "text",
             createStateVariable: "sortVectorsBy",
             defaultValue: "displacement",
             public: true,
             toLowerCase: true,
-            validValues: ["displacement", "tail"],
+            validValues: [
+                {
+                    value: "displacement",
+                    description:
+                        "Sort vectors by their displacement components.",
+                },
+                {
+                    value: "tail",
+                    description:
+                        "Sort vectors by the position of their tail point.",
+                },
+            ],
         };
 
         attributes.sortByComponent = {
+            description:
+                "Index of the component to sort by (when sorting vectors).",
             createComponentOfType: "integer",
             createStateVariable: "sortByComponent",
             defaultValue: "1",
@@ -32,16 +52,21 @@ export default class Sort extends CompositeComponent {
 
         attributes.sortByProp = {
             createPrimitiveOfType: "string",
+            description:
+                'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to sort children as.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -56,6 +81,7 @@ export default class Sort extends CompositeComponent {
             componentInfoObjects,
             nComponents,
         }) {
+            const diagnostics = [];
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -71,12 +97,24 @@ export default class Sort extends CompositeComponent {
             if (componentAttributes.type?.value) {
                 type = componentAttributes.type.value;
             } else {
-                return { success: false };
+                if (
+                    matchedChildren.some((child) => typeof child === "string")
+                ) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: `For \`<sort>\` to work with string children, a \`type\` attribute must be specified.`,
+                    });
+                }
+                return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                return { success: false };
+                diagnostics.push({
+                    type: "warning",
+                    message: `Invalid type ${type} for sort component. Must be one of math, text, number, or boolean. Defaulting to math.`,
+                });
+                type = "math";
             }
 
             // break any string by white space and wrap pieces with type
@@ -98,6 +136,7 @@ export default class Sort extends CompositeComponent {
                     success: true,
                     newChildren,
                     nComponents: result.nComponents,
+                    diagnostics,
                 };
             } else {
                 return { success: false };
@@ -146,7 +185,15 @@ export default class Sort extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let componentIndicesForValues = [];
+                const diagnostics = [];
                 for (let child of dependencyValues.children) {
+                    if (typeof child === "string") {
+                        diagnostics.push({
+                            type: "warning",
+                            message: `String "${child}" is not a valid component to sort. Ignoring.`,
+                        });
+                        continue;
+                    }
                     if (child.stateValues.componentIndicesInList) {
                         componentIndicesForValues.push(
                             ...child.stateValues.componentIndicesInList,
@@ -156,7 +203,10 @@ export default class Sort extends CompositeComponent {
                     }
                 }
 
-                return { setValue: { componentIndicesForValues } };
+                return {
+                    setValue: { componentIndicesForValues },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -381,8 +431,7 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -424,8 +473,7 @@ export default class Sort extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -437,9 +485,7 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let componentsToCopy = [];
 
@@ -465,7 +511,7 @@ export default class Sort extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // for now, just recreated
@@ -478,9 +524,8 @@ export default class Sort extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
-        nComponents = replacements.nComponents;
+        diagnostics.push(...replacementResults.diagnostics);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -492,6 +537,6 @@ export default class Sort extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

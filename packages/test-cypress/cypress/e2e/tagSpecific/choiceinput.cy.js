@@ -4,6 +4,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.visit("/");
     });
 
+    const getOpenInlineChoiceMenu = () =>
+        cy.get('[id^="react-select-"][id$="-listbox"]:visible').last();
+
     it("disabled choice with inline choiceInput", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -91,7 +94,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             if (i === 2) {
                 cy.get(`#choiceInput1`).click();
 
-                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                getOpenInlineChoiceMenu().within(() => {
                     cy.contains(choices[i])
                         .parent()
                         .parent()
@@ -100,7 +103,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(`#choiceInput1`).click();
             } else {
                 cy.get(`#choiceInput1`).click();
-                cy.get('#choiceInput1 [class*="menu"]')
+                getOpenInlineChoiceMenu()
                     .within(() => {
                         cy.contains(choices[i]).click({ force: true });
                     })
@@ -240,13 +243,13 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             if (i === 2) {
                 cy.get(`#choiceInput1`).click();
 
-                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                getOpenInlineChoiceMenu().within(() => {
                     cy.contains(choices[i]).should("not.exist");
                 });
                 cy.get(`#choiceInput1`).click();
             } else {
                 cy.get(`#choiceInput1`).click();
-                cy.get('#choiceInput1 [class*="menu"]')
+                getOpenInlineChoiceMenu()
                     .within(() => {
                         cy.contains(choices[i]).click({ force: true });
                     })
@@ -424,6 +427,335 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                     });
             }
         }
+    });
+
+    it("embedded textInputs stay visible inside non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><textInput name="radioTi" prefill="alpha" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><textInput name="checkboxTi" prefill="beta" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioTi_input")
+            .should("be.visible")
+            .should("have.value", "alpha");
+        cy.get("#checkboxTi_input")
+            .should("be.visible")
+            .should("have.value", "beta");
+
+        cy.get("#radioTi_input").click();
+        cy.get("#radioTi_input").should("be.focused");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#checkboxTi_input").click();
+        cy.get("#checkboxTi_input").should("be.focused");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#radioTi_input").type("{end}1");
+        cy.get("#checkboxTi_input").type("{end}2");
+
+        cy.get("#radioTi_input").should("have.value", "alpha1");
+        cy.get("#checkboxTi_input").should("have.value", "beta2");
+    });
+
+    it("clicking embedded mathInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><mathInput name="radioMi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><mathInput name="checkboxMi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioMi .mq-editable-field").click();
+        cy.get("#radioMi textarea").should("be.focused").type("x", {
+            force: true,
+        });
+        cy.get("#radioMi .mq-editable-field").should("contain.text", "x");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#checkboxMi .mq-editable-field").click();
+        cy.get("#checkboxMi textarea").should("be.focused").type("y", {
+            force: true,
+        });
+        cy.get("#checkboxMi .mq-editable-field").should("contain.text", "y");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
+    });
+
+    it("clicking embedded booleanInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><booleanInput name="radioBi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><booleanInput name="checkboxBi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioBi-container").click();
+        cy.get("#radioBi_input").should("be.checked");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#checkboxBi-container").click();
+        cy.get("#checkboxBi_input").should("be.checked");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+    });
+
+    it("clicking embedded inline choiceInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice>
+        <choiceInput inline name="radioInlineCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice>
+        <choiceInput inline name="checkboxInlineCi">
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioInlineCi").click();
+        getOpenInlineChoiceMenu().contains("red").click({ force: true });
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("radioInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["red"]);
+        });
+
+        cy.get("#checkboxInlineCi").click();
+        getOpenInlineChoiceMenu().contains("mouse").click({ force: true });
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("checkboxInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["mouse"]);
+        });
+    });
+
+    it("clicking embedded non-inline choiceInput controls does not activate outer choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="outerRadioCi">
+      <choice>
+        <choiceInput name="innerRadioCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="outerCheckboxCi" selectMultiple>
+      <choice>
+        <choiceInput name="innerCheckboxCi" selectMultiple>
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#innerRadioCi").contains("red").click();
+        cy.get("#innerRadioCi_choice1_input").should("be.checked");
+        cy.get("#outerRadioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#innerCheckboxCi").contains("mouse").click();
+        cy.get("#innerCheckboxCi_choice2_input").should("be.checked");
+        cy.get("#outerCheckboxCi_choice1_input").should("not.be.checked");
+    });
+
+    it("inline choiceInput menu stays within viewport near bottom", () => {
+        cy.viewport(900, 420);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputBottom" placeholder="Choose letter">
+        <choice>a</choice>
+        <choice>b</choice>
+        <choice>c</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputBottom").scrollIntoView({ block: "end" }).click();
+
+        getOpenInlineChoiceMenu().should("exist");
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu().then(($menu) => {
+                const rect = $menu[0].getBoundingClientRect();
+                expect(rect.top).to.be.at.least(0);
+                expect(rect.bottom).to.be.at.most(win.innerHeight);
+            });
+        });
+    });
+
+    it("inline choiceInput menu escapes a scroll-clipped viewer container", () => {
+        cy.viewport(900, 700);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputClipped" placeholder="Choose letter">
+        <choice>a</choice>
+        <choice>b</choice>
+        <choice>c</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".doenet-viewer").then(($viewer) => {
+            $viewer[0].style.height = "180px";
+            $viewer[0].style.overflow = "auto";
+            $viewer[0].style.position = "relative";
+        });
+
+        cy.get(".doenet-viewer").scrollTo("bottom");
+        cy.get("#choiceInputClipped").click();
+        getOpenInlineChoiceMenu()
+            .parents(".doenet-viewer")
+            .should("have.length", 0);
+
+        cy.get(".doenet-viewer").then(($viewer) => {
+            const viewerRect = $viewer[0].getBoundingClientRect();
+
+            cy.get("#choiceInputClipped").then(($control) => {
+                const controlRect = $control[0].getBoundingClientRect();
+
+                getOpenInlineChoiceMenu().then(($menu) => {
+                    const menuRect = $menu[0].getBoundingClientRect();
+                    expect($viewer[0].contains($menu[0])).to.equal(false);
+
+                    expect(controlRect.bottom).to.be.greaterThan(
+                        viewerRect.bottom - 60,
+                    );
+                    expect(menuRect.top).to.be.at.least(controlRect.bottom - 2);
+                    expect(menuRect.bottom).to.be.greaterThan(
+                        viewerRect.bottom + 10,
+                    );
+
+                    const sampleX = Math.min(
+                        menuRect.left + 20,
+                        menuRect.right - 10,
+                    );
+                    const sampleY = viewerRect.bottom + 10;
+
+                    cy.document().then((doc) => {
+                        const hit = doc.elementFromPoint(sampleX, sampleY);
+                        expect(hit).to.not.equal(null);
+                        expect($menu[0].contains(hit)).to.equal(true);
+                    });
+                });
+            });
+        });
     });
 
     it("hidden choice with block choiceInput", () => {
@@ -876,7 +1208,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 .find('svg[aria-hidden="true"]')
                 .last() // Gets the dropdown arrow, not the X
                 .click();
-            cy.get('#choiceInput1 [class*="menu"]')
+            getOpenInlineChoiceMenu()
                 .within(() => {
                     cy.contains(choices[i]).click({ force: true });
                 })
@@ -990,7 +1322,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 .find('svg[aria-hidden="true"]')
                 .last() // Gets the dropdown arrow, not the X
                 .click();
-            cy.get('#choiceInput1 [class*="menu"]')
+            getOpenInlineChoiceMenu()
                 .within(() => {
                     cy.contains(choices[i]).click({ force: true });
                 })
@@ -1043,6 +1375,47 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         }
     });
 
+    it("block choiceInput uses external labels for fieldset labelling", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><label name="animalLabel" for="$ci1">Favorite animal:</label></p>
+    <p>
+        <choiceInput name="ci1">
+            <choice>dog</choice>
+            <choice>cat</choice>
+        </choiceInput>
+    </p>
+
+    <p><label name="animalsLabel" for="$ci2">Favorite animals:</label></p>
+    <p>
+        <choiceInput name="ci2" selectMultiple>
+            <choice>dog</choice>
+            <choice>cat</choice>
+        </choiceInput>
+    </p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#animalLabel").should("contain.text", "Favorite animal:");
+        cy.get("#animalsLabel").should("contain.text", "Favorite animals:");
+
+        cy.get("#ci1")
+            .should("have.prop", "tagName", "FIELDSET")
+            .should("have.attr", "aria-labelledby", "animalLabel")
+            .and("not.have.attr", "aria-label");
+
+        cy.get("#ci2")
+            .should("have.prop", "tagName", "FIELDSET")
+            .should("have.attr", "aria-labelledby", "animalsLabel")
+            .and("not.have.attr", "aria-label");
+    });
+
     it("with description", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1063,10 +1436,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "be.visible",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description Button']").should("be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
         cy.get("#ci").should("have.attr", "aria-label", `Select`);
         cy.get("#ci").should(
             "have.attr",
@@ -1078,15 +1449,15 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             "Select what you like.",
         );
 
-        cy.get("#ci-label [data-test='Description Button']").click();
+        cy.get("#ci [data-test='Description Button']").click();
 
-        cy.get("#ci-label [data-test='Description']").should(
+        cy.get("#ci [data-test='Description']").should(
             "contain.text",
             "Select what you like.",
         );
 
         cy.get("#ci input").eq(0).focus();
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
     });
 
     it("with description, inline", () => {
@@ -1158,10 +1529,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci").should("not.have.attr", "aria-details");
     });
 
@@ -1183,10 +1552,158 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci input").should("not.have.attr", "aria-details");
+    });
+
+    it("inline labelPosition left and right", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>Left label:
+    <choiceInput name="cil" inline labelPosition="left">
+      <label>left</label>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    </p>
+
+    <p>Right label:
+    <choiceInput name="cir" inline labelPosition="right">
+      <label>right</label>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Left inline choiceInput: label before input row");
+        cy.get("#cil-container")
+            .children()
+            .eq(0)
+            .should("have.attr", "id", "cil-label");
+
+        cy.log("Right inline choiceInput: label after input row");
+        cy.get("#cir-container")
+            .children()
+            .last()
+            .should("have.attr", "id", "cir-label");
+    });
+
+    it("focused state variable updates on focus and blur (inline)", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><choiceInput name="ci" inline>
+      <label>pick one</label>
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </choiceInput></p>
+    <p name="fv">focused: <boolean extend="$ci.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the select input: focused becomes true");
+        cy.get("#ci_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the select input: focused becomes false");
+        cy.get("#ci_input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("focused state variable updates on focus and blur (non-inline radio)", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci">
+      <label>pick one</label>
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </choiceInput>
+    <p name="fv">focused: <boolean extend="$ci.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the first radio input: focused becomes true");
+        cy.get("#ci_choice1_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Tab to second radio: focused stays true");
+        cy.get("#ci_choice1_input").tab();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the second radio input: focused becomes false");
+        cy.get("#ci_choice2_input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("inline choiceInput options use their style text color", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <setup>
+        <styleDefinition styleNumber="2" textColor="green" />
+        <styleDefinition styleNumber="3" textColor="red" />
+    </setup>
+
+    <choiceInput name="ci" inline placeholder="Choose fruit">
+      <choice><text styleNumber="2">apple</text></choice>
+      <choice><text styleNumber="3">banana</text></choice>
+      <choice><text>cherry</text></choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        const green = "rgb(0, 128, 0)";
+        const red = "rgb(255, 0, 0)";
+        const black = "rgb(0, 0, 0)";
+        const white = "rgb(255, 255, 255)";
+
+        cy.log("Open the menu: unselected options show their style color");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", green);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
+
+        cy.log("Select the green option; the displayed value keeps its color");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").click({ force: true });
+        });
+        cy.get("#ci").contains("apple").should("have.css", "color", green);
+
+        cy.log(
+            "Reopen the menu: the selected option uses white text for contrast",
+        );
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", white);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
     });
 });

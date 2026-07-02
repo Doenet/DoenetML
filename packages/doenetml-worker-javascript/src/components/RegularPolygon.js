@@ -1,9 +1,23 @@
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class RegularPolygon extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            movePolygonCenter: this.movePolygonCenter.bind(this),
+            changeRadius: this.changeRadius.bind(this),
+            movePolygon: this.movePolygon.bind(this),
+        });
+    }
+
     static componentType = "regularPolygon";
+
+    static componentDocs = {
+        summary: "A regular polygon with a given number of sides",
+    };
     static rendererType = "polygon";
 
     static createAttributesObject() {
@@ -14,16 +28,20 @@ export default class RegularPolygon extends Polygon {
 
         attributes.numVertices = {
             createComponentOfType: "integer",
+            description: "Number of vertices in the regular polygon.",
         };
 
         attributes.numSides = {
             createComponentOfType: "integer",
+            description:
+                "Number of sides in the regular polygon (alias for numVertices).",
         };
 
         // Note: vertices is already an attribute from polygon
 
         attributes.center = {
             createComponentOfType: "point",
+            description: "Center of the regular polygon.",
         };
 
         // if center and vertex or two vertices are specified
@@ -33,9 +51,12 @@ export default class RegularPolygon extends Polygon {
         // If both specified, circumradius is used
         attributes.circumradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to a vertex (circumscribed-circle radius).",
         };
         attributes.radius = {
             createComponentOfType: "number",
+            description: "Alias for circumradius.",
         };
 
         // inradius and apothem are the same thing and either attribute can be used
@@ -43,24 +64,63 @@ export default class RegularPolygon extends Polygon {
         // If circumradius is specified, inradius is ignored
         attributes.inradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to the midpoint of a side (inscribed-circle radius).",
         };
         attributes.apothem = {
             createComponentOfType: "number",
+            description: "Alias for inradius.",
         };
 
         // if circumradius or inradius is specified, sideLength is ignored
         attributes.sideLength = {
             createComponentOfType: "number",
+            description: "Length of each side of the regular polygon.",
         };
 
         // if circumradius, inradius, or sideLength is specified, perimeter is ignored
         attributes.perimeter = {
             createComponentOfType: "number",
+            description: "Total perimeter of the regular polygon.",
         };
 
         // if circumradius, inradius, sideLength, or perimeter is specified, area is ignored
         attributes.area = {
             createComponentOfType: "number",
+            description: "Total area enclosed by the regular polygon.",
+        };
+
+        attributes.addControls = {
+            description: "Whether to render interactive control handles.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerAndRadius",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "center",
+                    description:
+                        "Show a control handle for moving the polygon's center.",
+                },
+                {
+                    value: "radius",
+                    description:
+                        "Show a control handle for resizing the polygon's radius.",
+                },
+                {
+                    value: "centerAndRadius",
+                    description:
+                        "Show control handles for both moving the center and resizing the radius.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
+            valueForTrue: "centerAndRadius",
+            valueForFalse: "none",
         };
 
         return attributes;
@@ -98,6 +158,7 @@ export default class RegularPolygon extends Polygon {
 
         // preserveSimilarity is always true for regular polygons
         stateVariableDefinitions.preserveSimilarity = {
+            description: "Whether to preserve similarity when dragging.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -107,6 +168,8 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.numVertices = {
+            description:
+                "The number of vertices (sides) of the regular polygon.",
             isLocation: true,
             hasEssential: true,
             defaultValue: 3,
@@ -194,6 +257,7 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.numSides = {
             isAlias: true,
             targetVariableName: "numVertices",
+            description: "The number of sides of the regular polygon.",
         };
 
         stateVariableDefinitions.numVerticesSpecified = {
@@ -1600,6 +1664,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.center = {
+            description: "The center coordinates of the regular polygon.",
             isLocation: true,
             public: true,
             isArray: true,
@@ -1607,7 +1672,7 @@ export default class RegularPolygon extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "centerX") {
                         return [];
@@ -1715,12 +1780,13 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.circumradius = {
+            description: "The radius of the circumscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 center: {
@@ -1795,15 +1861,18 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.radius = {
             isAlias: true,
             targetVariableName: "circumradius",
+            description:
+                "Distance from center to a vertex (alias for circumradius).",
         };
 
         stateVariableDefinitions.inradius = {
+            description: "The radius of the inscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 circumradius: {
@@ -1848,15 +1917,18 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.apothem = {
             isAlias: true,
             targetVariableName: "inradius",
+            description:
+                "Distance from center to the midpoint of a side (alias for inradius).",
         };
 
         stateVariableDefinitions.sideLength = {
+            description: "The length of each side.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 circumradius: {
@@ -1900,12 +1972,13 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.perimeter = {
+            description: "The perimeter of the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 circumradius: {
@@ -1951,12 +2024,13 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 circumradius: {
@@ -2006,14 +2080,149 @@ export default class RegularPolygon extends Polygon {
         return stateVariableDefinitions;
     }
 
+    async movePolygonCenter({
+        center,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+        pointRole = "regularPolygon",
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "regularPolygon") {
+            console.warn(`Invalid pointRole for regular polygon: ${pointRole}`);
+            return;
+        }
+
+        // Center must be 2D for regular polygon
+        if (!Array.isArray(center) || center.length !== 2) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.draggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "center",
+                value: center.map((x) => me.fromAst(x)),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    center,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeRadius({
+        radius,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(radius)) {
+            console.warn(
+                `Invalid radius for regular polygon change: radius=${radius}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "circumradius",
+                value: Math.max(1e-15, radius),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    radius,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
     async movePolygon({
         pointCoords,
         transient,
+        skippable,
         sourceDetails,
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
         let numVerticesMoved = Object.keys(pointCoords).length;
 
         if (numVerticesMoved === 1) {
@@ -2048,6 +2257,7 @@ export default class RegularPolygon extends Polygon {
                     },
                 ],
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,

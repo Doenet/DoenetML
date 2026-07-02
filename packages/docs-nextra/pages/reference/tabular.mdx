@@ -1,24 +1,23 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <tabular>{:dn}`
+# `<tabular>{:dn}`
 
+<ComponentDisplay name='tabular'/>
 
-` <tabular>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
-component that contains the data and style specifications for a [` <table>{:dn}`](table.mdx). Nested 
-inside a ` <tabular>{:dn}` component are the [` <row>{:dn}`](row.mdx) and [` <cell>{:dn}`](cell.mdx) 
+`<tabular>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that contains the data and style specifications for a [`<table>{:dn}`](table.mdx). Nested 
+inside a `<tabular>{:dn}` component are the [`<row>{:dn}`](row.mdx) and [`<cell>{:dn}`](cell.mdx) 
 components. 
 
 
-## Attributes and Properties 
- <AttrDisplay name='tabular'/> 
- <PropDisplay name='tabular'/>
+<AttrPropDisplay name='tabular'/>
 
----
+## Examples
 
-### Example: Default ` <tabular>{:dn}` without attributes
+### Example: Default `<tabular>{:dn}` without attributes
 
 
 ```doenet-editor-horiz
@@ -38,7 +37,7 @@ components.
 
 
 
-A ` <tabular>{:dn}` can be used alone, without attributes, simply to organize content in a regular structure.
+A `<tabular>{:dn}` can be used alone, without attributes, simply to organize content in a regular structure.
 
 
 
@@ -66,13 +65,13 @@ A ` <tabular>{:dn}` can be used alone, without attributes, simply to organize co
 
 
 
-Borders and dividing lines within a ` <table>{:dn}` can be specified within the ` <tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent ` <row>{:dn}` or ` <cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
+Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
 
 
 
 ---
 
-### Example: Specifying vertical alignment with ` <tabular>{:dn}`
+### Example: Specifying vertical alignment with `<tabular>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -94,13 +93,13 @@ Borders and dividing lines within a ` <table>{:dn}` can be specified within the 
 
 
 
-The `height` and `vAlign` attributes within a ` <tabular>{:dn}` can control the height and vertical alignment of individual rows for the entire table.
+The `height` and `vAlign` attributes within a `<tabular>{:dn}` can control the height and vertical alignment of individual rows for the entire table.
 
 
 
 ---
 
-### Example: Specifying horizontal alignment with ` <tabular>{:dn}`
+### Example: Specifying horizontal alignment with `<tabular>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -122,11 +121,11 @@ The `height` and `vAlign` attributes within a ` <tabular>{:dn}` can control the 
 
 
 
-The `width` and `hAlign` attributes within a ` <tabular>{:dn}` can control the width and horizontal alignment of individual rows for the entire table.
+The `width` and `hAlign` attributes within a `<tabular>{:dn}` can control the width and horizontal alignment of individual rows for the entire table.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: width/height
 
@@ -150,7 +149,7 @@ The `width` and `hAlign` attributes within a ` <tabular>{:dn}` can control the w
 
 
 
-The `width` and `height` attributes for the ` <tabular>{:dn}` component accept measurements for the extents of the ` <tabular>{:dn}`. Width is specified as a percentage of screen width, and height is specified in absolute measurements. Individual rows and cells are then scaled in proportion to these extents.
+The `width` and `height` attributes for the `<tabular>{:dn}` component accept measurements for the extents of the `<tabular>{:dn}`. Width is specified as a percentage of screen width, and height is specified in absolute measurements. Individual rows and cells are then scaled in proportion to these extents.
 
 
 
@@ -178,7 +177,7 @@ The `width` and `height` attributes for the ` <tabular>{:dn}` component accept m
 
 
 
-The `hAlign` attribute within a ` <tabular>{:dn}` controls the horizontal alignment of individual rows for the entire table. Valid values are `left` (default), `center`, `right`, and `justify`.
+The `hAlign` attribute within a `<tabular>{:dn}` controls the horizontal alignment of individual rows for the entire table. Valid values are `left` (default), `center`, `right`, and `justify`.
 
 
 
@@ -206,7 +205,7 @@ The `hAlign` attribute within a ` <tabular>{:dn}` controls the horizontal alignm
 
 
 
-The `vAlign` attribute within a ` <tabular>{:dn}` controls the vertical alignment of individual rows for the entire table. Valid values are `top`, `middle` (default) and `bottom`.
+The `vAlign` attribute within a `<tabular>{:dn}` controls the vertical alignment of individual rows for the entire table. Valid values are `top`, `middle` (default) and `bottom`.
 
 
 
@@ -234,11 +233,11 @@ The `vAlign` attribute within a ` <tabular>{:dn}` controls the vertical alignmen
 
 
 
-Borders and dividing lines within a ` <table>{:dn}` can be specified within the ` <tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent ` <row>{:dn}` or ` <cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
+Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
 
 
 
----
+## Property Examples
 
 ### Property Example: Attributes as properties
 
@@ -266,6 +265,6 @@ Borders and dividing lines within a ` <table>{:dn}` can be specified within the 
 
 
 
-The above-listed attributes of the ` <tabular>{:dn}` component are also accessible as properties.
+The above-listed attributes of the `<tabular>{:dn}` component are also accessible as properties.
 
 

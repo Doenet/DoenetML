@@ -1,19 +1,44 @@
-// @ts-nocheck
-import React, { useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
-import { HotTable } from "@handsontable/react";
+import React, { useContext, useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
+import { HotTable } from "@handsontable/react-wrapper";
 import { HyperFormula } from "hyperformula";
-import "handsontable/dist/handsontable.full.css";
+import "handsontable/styles/handsontable.min.css";
+import "handsontable/styles/ht-theme-classic.min.css";
 import { sizeToCSS } from "./utils/css";
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+import { DocContext } from "../DocViewer";
+
+interface SpreadsheetSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    cells: any[][];
+    columnHeaders: string[] | boolean;
+    rowHeaders: string[] | boolean;
+    width: { size: string; isAbsolute: boolean };
+    height: { size: string; isAbsolute: boolean };
+    fixedRowsTop: number;
+    fixedColumnsLeft: number;
+    hiddenColumns: number[];
+    hiddenRows: number[];
+    renderInlineForListItem?: boolean;
+}
 
 registerAllModules();
 
-export default React.memo(function SpreadsheetRenderer(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
+export default React.memo(function SpreadsheetRenderer(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<SpreadsheetSVs>(props);
 
-    const ref = useRef(null);
+    const { darkMode } = useContext(DocContext) || {};
+
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -22,17 +47,33 @@ export default React.memo(function SpreadsheetRenderer(props) {
     }
 
     return (
-        <div id={id} style={{ margin: "12px 0" }} ref={ref}>
+        <div
+            id={id}
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: !!SVs.renderInlineForListItem,
+                }),
+            }}
+            ref={ref}
+        >
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"
+                theme={
+                    darkMode === "dark"
+                        ? "ht-theme-classic-dark"
+                        : "ht-theme-classic"
+                }
+                // Handsontable 18's ARIA treegrid roles currently violate
+                // aria-required-children; preserve native table semantics.
+                ariaTags={false}
                 data={SVs.cells.map((x) => [...x])}
-                colHeaders={SVs.columnHeaders}
-                rowHeaders={SVs.rowHeaders}
+                colHeaders={SVs.columnHeaders as any}
+                rowHeaders={SVs.rowHeaders as any}
                 width={sizeToCSS(SVs.width)}
                 height={sizeToCSS(SVs.height)}
                 // beforeChange={this.actions.onChange}
-                afterChange={(changes, source) =>
+                afterChange={(changes: any, source: any) =>
                     callAction({
                         action: actions.onChange,
                         args: { changes, source },

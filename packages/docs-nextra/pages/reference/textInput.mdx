@@ -1,26 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <textInput/>{:dn}`
+# `<textInput/>{:dn}`
 
+<ComponentDisplay name='textInput'/>
 
-` <textInput/>{:dn}` is an [Input](../document_structure/essentialConcepts/#componentTypes)
+`<textInput/>{:dn}` is an [Input](../concepts/essentialConcepts#component-types)
 component that renders a form input field for text responses from the user.
 
-## Attributes and Properties 
- <AttrDisplay name='textInput'/> 
- <PropDisplay name='textInput'/>
+<AttrPropDisplay name='textInput'/>
 
 
----
+## Examples
 
-### Example: Default ` <textInput/>{:dn}`
+### Example: Default `<textInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Type anything: 
-  <textInput name="userText"/>
+<p>
+  <textInput name="userText">
+    <label>Type anything</label>
+  </textInput>
 </p>
 
 <p>You typed: $userText</p>
@@ -28,18 +29,20 @@ component that renders a form input field for text responses from the user.
 
 
 
-The default ` <textInput/>{:dn}` blank is wide enough for approximately 2-4 words to be visible at a time.
+The default `<textInput/>{:dn}` blank is wide enough for approximately 2-4 words to be visible at a time.
 
 
 
 ---
 
-### Example: Large ` <textInput/>{:dn}`
+### Example: Large `<textInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Type some longer things: 
-  <textInput name="longText" expanded/>
+<p>
+  <textInput name="longText" expanded>
+    <label>Type some longer things</label>
+  </textInput>
 </p>
 
 <p>You typed: $longText</p>
@@ -47,12 +50,12 @@ The default ` <textInput/>{:dn}` blank is wide enough for approximately 2-4 word
 
 
 
-The expanded ` <textInput/>{:dn}` blank is approximately large enough for 4-6 sentences to be visible at a time.
+The expanded `<textInput/>{:dn}` blank is approximately large enough for 4-6 sentences to be visible at a time.
 
 
 ---
 
-### Example: ` <textInput/>{:dn}` with `<label>{:dn}` child
+### Example: `<textInput/>{:dn}` with `<label>{:dn}` child
 
 
 ```doenet-editor-horiz
@@ -67,37 +70,41 @@ The expanded ` <textInput/>{:dn}` blank is approximately large enough for 4-6 se
 
 
 
-The ` <textInput/>{:dn}` component can take a nested `<label>{:dn}` child.
+The `<textInput/>{:dn}` component can take a nested `<label>{:dn}` child.
 
 
 
 ---
 
-### Example: ` <textInput/>{:dn}` for graded free-response
+### Example: `<textInput/>{:dn}` for graded free-response
 
 
 ```doenet-editor-horiz
-<p>Explain how you solved the problem: 
+<p>
   <answer name="ans" type="text" handGraded>
-    <textInput expanded/>
+    <textInput expanded>
+      <label>Explain how you solved the problem</label>
+    </textInput>
   </answer>
 </p>
 ```
 
 
 
-The ` <textInput/>{:dn}` can be nested in an ` <answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
+The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
 
 
 
 ---
 
-### Example: ` <textInput/>{:dn}` for graded closed-form text response
+### Example: `<textInput/>{:dn}` for graded closed-form text response
 
 
 ```doenet-editor-horiz
-<p>What color is the complement of purple? 
-  <textInput name="userColor"/>
+<p>
+  <textInput name="userColor">
+    <label>What color is the complement of purple?</label>
+  </textInput>
   <answer 
     name="ans" 
     type="text"
@@ -114,45 +121,53 @@ The ` <textInput/>{:dn}` can be nested in an ` <answer>{:dn}` with the `handGrad
 
 
 
-The ` <textInput/>{:dn}` can be nested in an ` <answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
+The `<textInput/>{:dn}` can be nested in an `<answer>{:dn}` that checks the entered text against an expected value, automatically grading a closed-form text response.
 
 
 
 ---
 
-### Example: ` <textInput/>{:dn}` on a ` <graph>{:dn}`
+### Example: `<textInput/>{:dn}` on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Where should we put the <tage>textInput</tage>? 
-  <mathInput name="userAnchor" prefill="(0,0)"/>
+<p>
+  <mathInput name="userAnchor" prefill="(0,0)">
+    <label>Where should we put the <tage>textInput</tage>?</label>
+  </mathInput>
 </p>
 
 <graph size="small"> 
-  <textInput name="shape" anchor="$userAnchor"/>
+  <shortDescription>A regular pentagon with a draggable text input.</shortDescription>
+  <textInput name="shape" anchor="$userAnchor">
+    <shortDescription>text input anchored at $userAnchor</shortDescription>
+  </textInput>
   <regularPolygon numSides="5" sideLength="6" filled center="(-2,0)"/>
 </graph>
 ```
 
 
 
-A ` <textInput/>{:dn}` can be placed on a ` <graph>{:dn}`. Use the `anchor` attribute to adjust its starting location. Click on the border of the ` <textInput/>{:dn}` to drag it around.
+A `<textInput/>{:dn}` can be placed on a `<graph>{:dn}`. Use the `anchor` attribute to adjust its starting location. Click on the border of the `<textInput/>{:dn}` to drag it around.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: prefill
 
 
 ```doenet-example
-<p>Enter your favorite vacation place: 
-  <textInput prefill="my cabin"/></p>
+<p>
+  <textInput prefill="my cabin">
+    <label>Enter your favorite vacation place</label>
+  </textInput>
+</p>
 ```
 
 
 
-The `prefill` attribute specifies initial text for the ` <textInput/>{:dn}`.
+The `prefill` attribute specifies initial text for the `<textInput/>{:dn}`.
 
 
 
@@ -162,12 +177,16 @@ The `prefill` attribute specifies initial text for the ` <textInput/>{:dn}`.
 
 
 ```doenet-example
-<p>Type some longer things: <textInput expanded/></p>
+<p>
+  <textInput expanded>
+    <label>Type some longer things</label>
+  </textInput>
+</p>
 ```
 
 
 
-The `expanded` attribute renders a larger ` <textInput/>{:dn}` space. The dimensions of the input space can be further customized with the `height` and `width` attributes.
+The `expanded` attribute renders a larger `<textInput/>{:dn}` space. The dimensions of the input space can be further customized with the `height` and `width` attributes.
 
 ---
 
@@ -185,7 +204,6 @@ The `expanded` attribute renders a larger ` <textInput/>{:dn}` space. The dimens
     <shortDescription>second color</shortDescription>
   </textInput>
   <answer name="ans" matchPartial caseInsensitiveMatch>
-    <shortDescription>Enter two colors of ROYGBIV</shortDescription>
     <award><when>$c1 elementof $validColors and $c2 elementof $validColors</when></award>
   </answer>
 </p>
@@ -205,10 +223,16 @@ Specifying the attribute `forAnswer` of a `<textInput>` does two things:
 
 
 ```doenet-example
-<p>A wider input: 
-  <textInput width="600px"/></p>
-<p>A narrower input: 
-  <textInput width="10px"/></p>
+<p>
+  <textInput width="600px">
+    <label>A wider input</label>
+  </textInput>
+</p>
+<p>
+  <textInput width="10px">
+    <label>A narrower input</label>
+  </textInput>
+</p>
 ```
 
 
@@ -223,8 +247,11 @@ The default width of the input space can be customized with the `width` attribut
 
 
 ```doenet-example
-<p>A taller input: 
-  <textInput height="600px" expanded/></p>
+<p>
+  <textInput height="600px" expanded>
+    <label>A taller input</label>
+  </textInput>
+</p>
 ```
 
 
@@ -242,16 +269,21 @@ The default height of the input space can be customized with the `height` attrib
 <p>Enter the shape that is shown.</p>
 
 <graph size="small" displayXAxis="false" displayYAxis="false"> 
-  <textInput name="shape" labelIsName/>
+  <shortDescription>A triangle with a text input labeled "shape" for entering its name.</shortDescription>
+  <textInput name="shape" labelIsName>
+    <shortDescription>input for the name of the shape shown</shortDescription>
+  </textInput>
   <regularPolygon numSides="3" sideLength="18" filled center="(-2,0)"/>
 </graph>
 
-<textInput name="Hi" labelIsName/>
+<textInput name="Hi" labelIsName>
+  <shortDescription>text input demonstrating labelIsName</shortDescription>
+</textInput>
 ```
 
 
 
-The `labelIsName` attribute can be used to assign an automatic label to a ` <textInput/>{:dn}`.
+The `labelIsName` attribute can be used to assign an automatic label to a `<textInput/>{:dn}`.
 
 
 
@@ -264,29 +296,36 @@ The `labelIsName` attribute can be used to assign an automatic label to a ` <tex
 <p>Play with moving the boxes around.</p>
 
 <graph size="small"> 
+  <shortDescription>A circle with two text inputs, one fixed and one draggable.</shortDescription>
   <textInput 
     draggable="false" 
     prefill="cannot drag" 
     anchor="(-3,-5)"
-  />
-  <textInput prefill="drag me" anchor="(3,5)"/>
+  >
+    <shortDescription>fixed text box</shortDescription>
+  </textInput>
+  <textInput prefill="drag me" anchor="(3,5)">
+    <shortDescription>draggable text box</shortDescription>
+  </textInput>
   <circle radius="8" filled/>
 </graph>
 ```
 
 
 
-The `draggable` attribute can be set to false to prevent users from moving the ` <textInput/>{:dn}` on a ` <graph>{:dn}`.
+The `draggable` attribute can be set to false to prevent users from moving the `<textInput/>{:dn}` on a `<graph>{:dn}`.
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 
 
 ```doenet-editor-horiz
-<textInput name="ti"/>
+<textInput name="ti">
+  <shortDescription>any text</shortDescription>
+</textInput>
 
 <p><c>value</c> = $ti.value</p>
 ```
@@ -303,7 +342,9 @@ The `value` property contains the finalized value the user entered into the inpu
 
 
 ```doenet-editor-horiz
-<textInput name="ti"/>
+<textInput name="ti">
+  <shortDescription>any text</shortDescription>
+</textInput>
 
 <p><c>immediateValue</c> = $ti.immediateValue</p>
 ```
@@ -320,6 +361,7 @@ The `immediateValue` property contains the value the user enters into the input 
 
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" displayYAxis="false">
+<shortDescription>A text input on a graph demonstrating attributes used as properties.</shortDescription>
 <textInput 
   name="ti" 
   width="50" 
@@ -339,6 +381,6 @@ The `immediateValue` property contains the value the user enters into the input 
 
 
 
-The attributes illustrated in the example are also accessible as properties. The value stored in a ` <label>{:dn}` child can also be rendered using the `label` property.
+The attributes illustrated in the example are also accessible as properties. The value stored in a `<label>{:dn}` child can also be rendered using the `label` property.
 
 

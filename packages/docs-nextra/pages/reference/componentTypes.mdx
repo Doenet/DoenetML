@@ -1,98 +1,112 @@
 # Index by Component Type
 
 ## Paragraph markup components
-These components can be placed within a `<p>` tag to change the rendered appearance of the enclosed text. 
-| Component                                                                     | Description                                                                                          |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [`<alert>`](alert)    | bold text                                                                                            |
-| [`<attr>`](attr)     | renders default font for an attribute                                                                |
-| [`<c>`](c.mdx)        | renders default font for a code example                                                              |
-| [`<ellipsis>`](ellipsis) | renders an ellipsis symbol                                                                           |
-| [`<em>`](em)       | renders italicized text                                                                              |
-| [`<footnote>`](footnote) | renders a numbered footnote above and to the right of the preceeding text which expands when clicked |
-| [`<lorem />`](lorem)  | generates random lorem-ipsum filler text                                                             |
-| `<lq>`                                                                        | paragraph markup component for a left-quote mark                                                     |
-| `<lsq>`                                                                       | paragraph markup component for a left-single-quote mark                                              |
-| [`<nbsp/>`](nbsp)    | renders a blank space                                                                                |
-| `<pluralize>`                                                                 | change text from singular to plural based on context                                                 |
-| [`<pre>`](pre)      | preserves verbatim text; renders text as input into the editor                                       |
-| [`<q>`](q)        | paragraph markup component for a quotation                                                           |
-| `<rq>`                                                                        | paragraph markup component for a right-quote mark                                                    |
-| `<rsq>`                                                                       | paragraph markup component for a right-single-quote mark                                             |
-| [`<sq>`](sq)       | renders the enclosed text in single quotation marks                                              |
-| [`<tag>`](tag)      | render enclosed text within a pair of tags, `< >` `</ >`                                        |
-| `<tage>`    | render enclosed text within a self-closing tag, `< />`                                          |
-| [`<term>`](term)     | emphasized styling associated with a defined vocabulary word                                   |
+These components can be placed within a `<p>` tag to change the rendered appearance of the enclosed text.
+
+<ComponentTable components={[
+    "alert",
+    "attr",
+    "c",
+    "ellipsis",
+    "em",
+    "footnote",
+    "lorem",
+    "lq",
+    "lsq",
+    "mdash",
+    "nbsp",
+    "ndash",
+    "pluralize",
+    "pre",
+    "q",
+    "rq",
+    "rsq",
+    "sq",
+    "tag",
+    "tagc",
+    "tage",
+    "term",
+]} />
 
 <a id="sectionalComponents"></a>
 ## Sectional components
-Sectional components are blocks of content that serve as containers for other components. Some of these have auto-numbering and/or a default title. General content that is not typically included inside a paragraph are also included here.
+Sectional components are blocks of content that serve as containers for other components. Some of these accept a custom `<title>` and/or auto-generate a title with a number when no `<title>` is supplied. General content that is not typically included inside a paragraph is also included here.
 
-| Component                                                                              | Description                                                                           |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `<activity>`                   | a sectional component with auto-numbering and auto-title, see [`<exercise>`](exercise) for similar examples               |
-| [`<aside>`](aside)             | renders a collapsible section of content                                              |
-| [`<caption>`](caption.mdx)           | renders a caption inside a `<figure>`                                                 |
-| [`<cell>`](cell)              | smallest data element in a `<table>`                                                  |
-| `<cellBlock>`                                                                          | a container element for specifying data in a `<spreadsheet>`                          |
-| [`<choice>`](choice.mdx)            | defines a multiple-choice response                                                    |
-| [`<choiceInput>`](choiceInput)       | defines a multiple-choice block                                                       |
-| `<codeEditor>`                                                                         | renders an embedded doenetML code editor                                              |
-| `<column>`                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
-| `<conclusion>`                          | container element included for PreTeXt compatibility                         |
-| `<definition>`                          | container element included for PreTeXt compatibility                              |
-| [`<div>`](div)               | groups doenetML content into an unformatted container that can be named               |
-| [`<document>`](document)          | largest hierarchical sectional component                                              |
-| [`<example>`](example)           | sectional component with default numbering that defines an example                    |
-| [`<exercise>`](exercise)          | sectional component with default numbering that defines an exercise                   |
-| `<exercises>`                                                                          | a container element for multiple `<exercise>` components                              |
-| [`<figure>`](figure)            | container element for images, videos, and captions                                    |
-| [`<hint>`](hint)              | hidden content triggered by clicking on a banner or by specific user interactions     |
-| [`<image />`](image)           | inserts an image                                                                      |
-| `<introduction>`               | container element included for PreTeXt compatibility                     |
-| [`<li>`](li)                | list item                                                                             |
-| `<note>`                          | container element included for PreTeXt compatibility                                   |
-| `<objectives>`                    | container element included for PreTeXt compatibility                         |
-| [`<ol>`](ol.mdx)                | ordered list                                                                          |
-| [`<p>`](p)                 | create a paragraph or drop down a line                                                |
-| [`<paginator>`](paginator)                 | define a paginated section of content within a larger `<document>`                        |
-| [`<paginatorControls>`](paginatorControls)     | render navigation buttons for progression through content in a `<paginator>`        |
-| `<paragraphs>`                                                                         | a container element for `<p>` components                                              |
-| [`<problem>`](problem)           | sectional component with default numbering that defines a problem                     |
-| `<problems>`                                                                           | a container element for `<problem>` components                                        |
-| [`<proof>`](proof)             | container element included for PreTeXt compatibility                                                  |
-| [`<question>`](question)          | a sectional component; similar to a `<problem>`                                       |
-| [`<row> (in a table)`](row_table)  | container element for one or more `<cell>`components within a `<tabular>`             |
-| [`<sbsGroup>`](sBsGroup)          | a container element for `<sideBySide>` components                                     |
-| [`<section>`](section)           | sectional component that renders an auto-numbered block of content                    |
-| [`<setup>`](setup.mdx)             | defines a block for defining or initializing named content; does not render to viewer |
-| [`<sidebySide>`](sideBySide.mdx)        | renders components in a side-by-side horizontal format                                |
-| [`<solution>`](solution.mdx)          | expandable block component which displays a problem solution                          |
-| [`<stack>`](stack)             | vertical container element for organizing content within a `<sideBySide>`             |
-| `<statement>`        | container element included for PreTeXt compatibility                     |
-| `<subsection>`         | container element included for PreTeXt compatibility                        |
-| [`<table>`](table.mdx)             | container element for a `<tabular>`                                                   |
-| [`<tabular>`](tabular.mdx)           | define data arranged in a tabular format                                              |
-| `<theorem>`                          | container element included for PreTeXt compatibility                            |
-| [`<title>`](title.mdx)             | creates a title within a document, section, or other block component                  |
-| `<topic>`                          | container element included for PreTeXt compatibility                      |
-| [`<ul>`](ul.mdx)                   | unordered, or bulleted, list                                                          |
+<ComponentTable components={[
+    "activity",
+    "aside",
+    "blockQuote",
+    "br",
+    "caption",
+    "cascade",
+    "cascadeMessage",
+    "cell",
+    "cellBlock",
+    "codeEditor",
+    "column (in a table)",
+    "conclusion",
+    "definition",
+    "displayDoenetML",
+    "div",
+    "document",
+    "example",
+    "exercise",
+    "exercises",
+    "figure",
+    "givenAnswer",
+    "hint",
+    "hr",
+    "image",
+    "introduction",
+    "li",
+    "note",
+    "objectives",
+    "ol",
+    "p",
+    "paginator",
+    "paragraphs",
+    "part",
+    "pretzel",
+    "problem",
+    "problems",
+    "proof",
+    "question",
+    "row (in a table)",
+    "sbsGroup",
+    "section",
+    "setup",
+    "sideBySide",
+    "solution",
+    "span",
+    "stack",
+    "statement",
+    "subsection",
+    "subsubsection",
+    "table",
+    "tabular",
+    "task",
+    "theorem",
+    "title",
+    "ul",
+]} />
 
 <a id="inputComponents"></a>
 ## Input components
-Input components collect responses from students or users of your DoenetML activity. Response values are stored for author/instructor retrieval if the activity is assigned. 
-| Component                                                                                 | Description                                                   |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [`<booleanInput>`](booleanInput.mdx)         | renders a checkbox                                            |
-| [`<choice>`](choice.mdx)               | defines a multiple-choice response                            |
-| [`<choiceInput>`](choiceInput)          | defines a multiple-choice block                               |
-| [`<mathInput />`](mathInput)          | renders a user-input field that stores mathematical content   |
-| [`<matrixInput />`](matrixInput)        | renders an empty matrix with blanks for user-input of entries |
-| [`<orbitalDiagramInput>`](orbitalDiagramInput)  | renders an interactive table for input of orbital diagrams    |
-| [`<slider>`](slider)               | renders a sliding bar for interactively adjusting values      |
-| [`<spreadsheet>`](spreadsheet)          | renders a basic spreadsheet tool                              |
-| [`<textInput />`](textInput)          | renders an input field for text responses                     |
+Input components collect responses from students or users of your DoenetML activity. Response values are stored for author/instructor retrieval if the activity is assigned.
 
+<ComponentTable components={[
+    "booleanInput",
+    "choice",
+    "choiceInput",
+    "fractionInput",
+    "mathInput",
+    "matrixInput",
+    "orbitalDiagramInput",
+    "slider",
+    "spreadsheet",
+    "subsetOfRealsInput",
+    "textInput",
+]} />
 
 <a id="graphicalComponents"></a>
 ## Graphical components
@@ -103,204 +117,221 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 * `<image/>`
 * `<booleanInput/>`
 
-
-| Component                                                                                    | Description                                                                                      |
-| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [`<angle>`](angle.mdx)                   | angle graphical component                                                                        |
-| [`<attractTo>`](attractTo.mdx)               | attracts a point to a named graphical component                                                  |
-| [`<attractToGrid>`](attractToGrid.mdx)           | defines snapping behavior of GraphicalComponents to gridlines in a `<graph>`                     |
-| [`<bestFitLine>`](bestFitLine.mdx)             | computes a linear regression on a set of points, renders a line when nested inside a `<graph>`   |
-| [`<bezierControls>`](bezierControls)          | container element for control vectors of a spline curve                                          |
-| [`<circle>`](circle.mdx)                  | circle Graphical Component                                                                       |
-| [`<constrainTo>`](constrainTo)             | constrain a `<point>` to a named component                                                       |
-| [`<constrainToGraph>`](constrainToGraph)       | keep a referenced `<point>` within the graphing window                                                                             |
-| [`<constrainToGrid>`](constrainToGrid)         | snap points to a specified grid                                                                  |
-| [`<constraintUnion>`](constraintUnion)         | container element for a union of constraint components                                           |
-| [`<controlVectors>`](controlVectors)          | define individual control vectors for a spline curve within a `<bezierControls>` block component |
-| [`<curve>`](curve)                  | spline graphical component                                                                       |
-| [`<endpoint>`](endpoint)                | an extension of the `<point>` component which allows open and toggle-open style points           |
-| [`<function>`](function)                | mathematical function                                                                            |
-| [`<graph>`](graph)                   | renders a 2D cartesian graph                                                                     |
-| [`<intersection>`](intersection)            | render intersections between graphical objects                                                   |
-| [`<label>`](label)                   | adds a label to its parent component                                                             |
-| [`<legend>`](legend)                  | renders a legend when nested within a `<graph>`                                                  |
-| [`<line>`](line)                    | renders a line when nested inside a `<graph>`                                                    |
-| [`<lineSegment>`](lineSegment)             | renders a line segment when nested inside a `<graph>`                                            |
-| [`<parabola>`](parabola)                | parabola Graphical Component                                                                     |
-| `<pegboard>`                                                                                 | a Graphical Component that renders dots at grid intersections                                    |
-| [`<piecewiseFunction>`](piecewiseFunction)       | define piecewise functions for graphing and evaluation                                           |
-| [`<point>`](point.mdx)                   | point Graphical Component                                                                        |
-| [`<polygon/>`](polygon)                | polygon Graphical Component                                                                      |
-| [`<polyline/>`](polyline)               | polyline Graphical Component                                                                     |
-| [`<ray>`](ray)                     | ray Graphical Component                                                                          |
-| [`<rectangle>`](rectangle)               | rectangle Graphical Component                                                                    |
-| [`<regionBetweenCurves>`](regionBetweenCurves) | shade a region on a graph between two specified functions                            |
-| [`<regionBetweenCurveXAxis>`](regionBetweenCurveXAxis) | shade a region on a graph between a specified function and the x-axis                            |
-| [`<regularPolygon>`](regularPolygon)          | regular polygon graphical component                                                              |
-| [`<triangle>`](triangle)                | triangle Graphical Component                                                                     |
-| [`<vector>`](vector)                  | renders a vector inside a `<graph>`                                                              |
-| [`<xLabel>`](xLabel)                  | labels the horizontal axis on a `<graph>`                                                        |
-| [`<yLabel>`](yLabel)                  | labels the vertical axis on a `<graph>`                                                          |
+<ComponentTable components={[
+    "angle",
+    "annotation",
+    "annotations",
+    "attractTo",
+    "attractToConstraint",
+    "attractToGrid",
+    "bestFitLine",
+    "bezierControls",
+    "circle",
+    "cobwebPolyline",
+    "constrainTo",
+    "constrainToGraph",
+    "constrainToGrid",
+    "constrainToInterior",
+    "constraintUnion",
+    "controlVectors",
+    "curve",
+    "endpoint",
+    "equilibriumCurve",
+    "equilibriumLine",
+    "equilibriumPoint",
+    "function",
+    "graph",
+    "intersection",
+    "label",
+    "legend",
+    "line",
+    "lineSegment",
+    "parabola",
+    "pegboard",
+    "piecewiseFunction",
+    "point",
+    "pointList",
+    "polygon",
+    "polyline",
+    "ray",
+    "rectangle",
+    "regionBetweenCurves",
+    "regionBetweenCurveXAxis",
+    "regionHalfPlane",
+    "regularPolygon",
+    "stickyGroup",
+    "triangle",
+    "vector",
+    "vectorList",
+    "xLabel",
+    "yLabel",
+]} />
 
 <a id="displayMathComponents"></a>
 ## Display Math components
-Display math components take arguments written in LaTeX. No computations or simplifications can be performed with these components, as they do not have access to the CAS. 
+Display math components take arguments written in LaTeX. No computations or simplifications can be performed with these components, as they do not have access to the CAS.
 
 Additionaly, Evaluation Components (such as `<answer>`) and Input Components (such as `<mathInput>`) cannot be embedded or nested within Display Math Components.
 
-| Component                                                                 | Description                                                                           |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [`<m>`](m)    | inline mathematical display text                                                      |
-| [`<md>`](md)   | block component for centered, aligned equations; container for `<mrow>`               |
-| [`<mdn>`](mdn)  | block component for centered, numbered, and aligned equations; container for `<mrow>` |
-| [`<me>`](me)   | centered mathematical display text                                                    |
-| [`<men>`](men)  | centered, numbered mathematical display text                                          |
-| [`<mrow>`](mrow) | defines individual row content when nested within an `<md>` or `<mdn>`                |
-
+<ComponentTable components={["m", "md", "mdn", "me", "men", "mrow"]} />
 
 <a id="mathComponents"></a>
 ## Math components
 Mathematical content can be defined and rendered with Math Components. These components can be simplified and used in computations.
-| Component                                                                                 | Description                                                                                  |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [`<coords>`](coords)               | math component that renders a set of coordinates                                             |
-| [`<derivative>`](derivative)           | renders or graphs the derivative of basic elementary functions                               |
-| [`<function>`](function)             | mathematical function                                                                        |
-| [`<integer>`](integer)              | defines an integer                                                                           |
-| [`<interval>`](interval)              | defines an interval                                                                           |
-| [`<intervalList>`](intervalList)              | list of `<interval>` values separated by commas                                                                          |
-| [`<math>`](math)                 | defines a mathematical expression for computations                                           |
-| [`<mathList>`](mathList)             | list of `<math>` values separated by commas                                                  |
-| [`<matrix>`](matrix)               | defines a matrix for use in computations                                                     |
-| [`<number>`](number)               | calculates a floating point value from its contents                                                  |
-| [`<numberList>`](numberList)           | defines a list of `<number>` components                                                      |
-| [`<odeSystem>`](odeSystem)            | computes a numerical solution to a system of ordinary differential equations                 |
-| `<periodicSet />`                                                                         | a set of numbers defined by their periodicity                                                |
-| `<rightHandSide>`                                                                         | used with `<odeSystem>` to define the right-hand side of a differential equation             |
-| [`<row> (in a matrix)`](row_matrix) | container element for horizontal entries in a single row of a `<matrix>`              |
-| [`<samplePrimeNumbers/>`](samplePrimeNumbers)  | generates randomly sampled prime numbers within a specified range                            |
-| [`<sampleRandomNumbers/>`](sampleRandomNumbers) | generates randomly sampled numbers from a specified distribution                             |
-| [`<selectFromSequence>`](selectFromSequence.mdx)   | generates immutable random values within a predefined range to create document variants      |
-| [`<selectPrimeNumbers/>`](selectPrimeNumbers)  | generates immutable random prime numbers to create document variants                         |
-| [`<selectRandomNumbers>`](selectRandomNumbers)  | generates immutable random numbers from a specified distribution to create document variants |
-| [`<sequence />`](sequence)           | generate a sequence with predefined parameters                                               |
-| [`<setSmallToZero>`](setSmallToZero)       | replaces small numerical values with a precise zero value                                    |
-| [`<sign>`](sign)                 | returns the result of the sign function of the enclosed argument                             |
-| [`<subsetOfReals>`](subsetOfReals.mdx)        | defines an interval or a subset on the number line                                           |
-| `<tupleList>`                                                                             | a list of tuples (points or intervals)                                                       |
 
-
+<ComponentTable components={[
+    "column (in a matrix)",
+    "coords",
+    "derivative",
+    "function",
+    "integer",
+    "interval",
+    "intervalList",
+    "math",
+    "mathList",
+    "matrix",
+    "number",
+    "numberList",
+    "odeSystem",
+    "periodicSet",
+    "rightHandSide",
+    "row (in a matrix)",
+    "samplePrimeNumbers",
+    "sampleRandomNumbers",
+    "selectFromSequence",
+    "selectPrimeNumbers",
+    "selectRandomNumbers",
+    "sequence",
+    "setSmallToZero",
+    "sign",
+    "subsetOfReals",
+    "tupleList",
+]} />
 
 <a id="mathOperatorComponents"></a>
 ## Math operator components
 Math Operator components perform computations or take actions on the math components they reference or the values they enclose.
 
-| Component                                                                               | Description                                                                                    |
-| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`<abs>`](abs.mdx)                | absolute value                                                                                 |
-| [`<ceil>`](ceil)               | ceiling function                                                                               |
-| `<clampFunction>`                                                                       |                                                                                                |
-| [`<clampNumber>`](clampNumber.mdx)        | rounds a number to within a specified interval                                                 |
-| [`<convertSetToList>`](convertSetToList)   | renders an unformatted set of values as a list enclosed in parentheses and separated by commas |
-| [`<count>`](count)              | renders the length of its list of arguments                                                    |
-| [`<evaluate/>`](evaluate)           | evaluate a function                                                                            |
-| [`<floor>`](floor)              | renders the result of the floor function applied to the enclosed argument                      |
-| [`<functionIterates>`](functionIterates)     | evaluate a function over a specified number of iterations of its argument                    |
-| [`<gcd>`](gcd)                | renders the greatest common divisor of its arguments                                           |
-| [`<intComma>`](intComma)           | inserts commas into a large integer when rendering                                             |
-| [`<max>`](max)                | renders the maximum value of its arguments                                                     |
-| [`<mean>`](mean)               | renders the arithmetic mean of a list of numerical values                                      |
-| [`<median>`](median)             | renders the median of the enclosed argument                                                    |
-| [`<min>`](min)                | renders the minimum value of its arguments                                                     |
-| [`<mod>`](mod)                | renders the value of $a \mod b$, where $a$ and $b$ are the two listed arguments                |
-| [`<product>`](product)            | renders the product of its arguments                                                           |
-| [`<round>`](round)              | round a number to a specified place value                                                      |
-| [`<standardDeviation>`](standardDeviation)  | renders the standard deviation of its arguments                                                |
-| [`<sum>`](sum)                | renders the sum of its arguments                                                               |
-| [`<variance>`](variance)           | renders the variance of its arguments                                                          |
-| [`<wrapNumberPeriodic>`](wrapNumberPeriodic) | wraps a number line around a circle                                                            |
-
+<ComponentTable components={[
+    "abs",
+    "ceil",
+    "clampFunction",
+    "clampNumber",
+    "convertSetToList",
+    "count",
+    "eigenDecomposition",
+    "evaluate",
+    "floor",
+    "functionIterates",
+    "gcd",
+    "intComma",
+    "lcm",
+    "max",
+    "mean",
+    "median",
+    "min",
+    "mod",
+    "product",
+    "round",
+    "solveEquations",
+    "standardDeviation",
+    "sum",
+    "variance",
+    "wrapFunctionPeriodic",
+    "wrapNumberPeriodic",
+]} />
 
 <a id="generalOperatorComponents"></a>
 ## General operator components
 These components perform actions on Math components as well as other component types.
-| Component                                                                                | Description                                                                                                    |
-| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`<animateFromSequence>`](animateFromSequence) | renders an animation of a changing component or component property                                             |
-| [`<callAction>`](callAction.mdx)          | triggers an action when clicked or in response to a specified user interaction                                 |
-| [`<case>`](case)                | defines the condition within a `<conditionalContent>` block                                                    |
-| [`<collect />`](collect.mdx)         | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list |
-| [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                |
-| [`<extractMath>`](extractMath)         | extract data (such as number of operands, or individual operands) from mathematical expressions                |
-| [`<group>`](group)               | groups multiple components into one component which can be referenced with a single name                       |
-| [`<repeat>`](repeat)                 | iterate an action or a group of actions                                 |
-| [`<repeatForSequence>`](repeatForSequence)          | iterate an action or a group of actions over a sequence                               |
-| `<module>`                                                                               | define a local template for a custom doenetML component or widget for re-use within the document               |
-| [`<option>`](option)              | specifies selection items within a `<select>` block                                                            |
-| `<paginator>`                                                                            | define a paginated section of content within a larger `<document>`                                             |
-| `<paginatorControls />`                                                                  | render navigation buttons for progression through content in a `<paginator>`                                   |
-| [`<ref>`](ref)                 | creates a link to another document, or a referenced component's location within the same document              |
-| [`<select>`](select)               | select values from a list or set of `<option>`s to create document variants                  |
-| [`<shuffle>`](shuffle)             | shuffle a list, or a listing of referenced components                                                          |
-| [`<sort>`](sort.mdx)                | sort components based on their values in numerical or alphabetical order                                       |
-| [`<split>`](split.mdx)               | splits multi-digit numbers or text strings into individual characters                                          |
-| [`<spreadsheet>`](spreadsheet.mdx)         | renders a basic spreadsheet tool                                                                               |
-| [`<styleDefinition>`](styleDefinition.mdx)     | defines custom styling for graphical elements outside the default styleNumbers (1-6)                           |
-| [`<substitute>`](substitute.mdx)          | replace a math, character or string with a user-specified alternative                                          |
-| [`<triggerSet>`](triggerSet)          | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition            |
-| [`<updateValue>`](updateValue)         | changes the value or property of a named component                                                             |
-| `<variantControl>`                                     |                                                                                                                |
-| `<variantNames>`                                       |                                                                                                                |
-| [`<video />`](video)             | embeds a video                                                                                                 |
+
+<ComponentTable components={[
+    "animateFromSequence",
+    "asList",
+    "callAction",
+    "case",
+    "collect",
+    "conditionalContent",
+    "extractMath",
+    "extractMathOperator",
+    "feedbackDefinition",
+    "group",
+    "module",
+    "moduleAttributes",
+    "option",
+    "paginator",
+    "paginatorControls",
+    "ref",
+    "repeat",
+    "repeatForSequence",
+    "select",
+    "shuffle",
+    "sort",
+    "split",
+    "styleDefinition",
+    "substitute",
+    "triggerSet",
+    "updateValue",
+    "variantControl",
+    "video",
+]} />
 
 <a id="logicComponents"></a>
 ## Logic components
 Logic components define boolean conditions or are used in logical expressions.
-| Component                                                                         | Description                                                            |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [`<and>`](and.mdx)          | functions as the boolean operator `and` or `&`                            |
-| [`<boolean>`](boolean.mdx)      | renders the boolean true or false value of the enclosed expression     |
-| [`<booleanInput>`](booleanInput.mdx) | renders a checkbox                                                     |
-| [`<booleanList>`](booleanList.mdx)  | list of `<boolean>` values separated by commas                         |
-| [`<else>`](else)         | defines a logical else condition within a `<conditionalContent>` block |
-| [`<isBetween>`](isBetween)    | returns whether a value is within a specified interval                 |
-| [`<isInteger>`](isInteger)    | returns whether a value is an integer                                  |
-| [`<isNumber>`](isNumber)     | returns whether a value is a real number                                    |
-| [`<not>`](not)          | used in the construction of boolean conditions                         |
-| [`<or>`](or)           | functions as the boolean operator `or`                                 |
-| [`<xor>`](xor)          | functions as the exclusive or boolean operator                         |
+
+<ComponentTable components={[
+    "and",
+    "boolean",
+    "booleanInput",
+    "booleanList",
+    "else",
+    "iff",
+    "implies",
+    "isBetween",
+    "isInteger",
+    "isNumber",
+    "not",
+    "or",
+    "xor",
+]} />
 
 <a id="evaluationComponents"></a>
 ## Evaluation components
 These components are used in answer validation, evaluation, or the awarding of credit.
 
-| Component                                                                                | Description                                                                                                     |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| [`<answer>`](answer1.mdx)              | defines an answer block for response validation                                                                 |
-| [`<award>`](award.mdx)               | specifies conditions for awarding credit where multiple user responses are considered                           |
-| [`<considerAsResponses>`](considerAsResponses.mdx) | specifies components involved in response data collection when the component occurs outside an `<answer>` block |
-| [`<feedback>`](feedback)            | hidden content triggered in response to specific user interactions                                              |
-| [`<hasSameFactoring>`](hasSameFactoring)    | check to see if two expressions are factored in the same way                                                    |
-| [`<matchesPattern>`](matchesPattern)      | evaluate whether an expression matches the pattern of a defined mathematical template                           |
-| [`<when>`](when)                | defines logical conditions within an `<award>`                                                                  |
-
+<ComponentTable components={[
+    "answer",
+    "award",
+    "considerAsResponses",
+    "feedback",
+    "hasSameFactoring",
+    "matchesPattern",
+    "when",
+]} />
 
 <a id="textComponents"></a>
 ## Text components
 Text components are values containing strings that are not necessarily embedded in paragraphs.
 
-| Component                                                                     | Description                                 |
-| ----------------------------------------------------------------------------- | ------------------------------------------- |
-| [`<text>`](text)     | a stored text value, or string              |
-| [`<textList>`](textList) | list of `<text>` values separated by commas |
+<ComponentTable components={[
+    "description",
+    "latex",
+    "pluralize",
+    "shortDescription",
+    "text",
+    "textList",
+]} />
 
 <a id="subjectSpecificComponents"></a>
 ## Subject-specific components
 These components are classified based on their relevance to a particular subject.
 
-| Component                                                                     | Description                                 |
-| ----------------------------------------------------------------------------- | ------------------------------------------- |
-| [`<atom>`](atom.mdx)     | Chemistry: used for rendering a chemical symbol and retrieving chemical properties              |
-| [`<orbitalDiagramInput>`](orbitalDiagramInput.mdx) | Chemistry: an input widget for entering orbital diagrams |
-
-
+<ComponentTable components={[
+    "atom",
+    "electronConfiguration",
+    "ion",
+    "ionicCompound",
+    "orbitalDiagram",
+    "orbitalDiagramInput",
+]} />

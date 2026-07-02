@@ -2,6 +2,11 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -11,27 +16,15 @@ export default class Choiceinput extends Input {
             updateSelectedIndices: this.updateSelectedIndices.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
 
     static componentType = "choiceInput";
 
+    static componentDocs = {
+        summary:
+            "A multiple-choice input, allowing selection from a list of choices",
+    };
     static renderChildren = true;
 
     static variableForImplicitProp = "selectedValues";
@@ -48,6 +41,7 @@ export default class Choiceinput extends Input {
             public: true,
             forRenderer: true,
             fallBackToParentStateVariable: "selectMultiple",
+            description: "Whether multiple choices may be selected.",
         };
         attributes.matchPartial = {
             createComponentOfType: "boolean",
@@ -55,31 +49,40 @@ export default class Choiceinput extends Input {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "matchPartial",
+            description:
+                "Whether to award partial credit when only some correct choices are selected.",
         };
         attributes.inline = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to render the input inline (as a dropdown) rather than as a list of choices.",
         };
         attributes.shuffleOrder = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "shuffleOrder",
             defaultValue: false,
             public: true,
+            description: "Whether to display the choices in randomized order.",
         };
         attributes.preserveLastChoice = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "preserveLastChoice",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the last-rendered choice keeps its position when shuffling.",
         };
 
         attributes.preselectChoice = {
             createComponentOfType: "number",
             createStateVariable: "preselectChoice",
             defaultValue: null,
+            description: "Index of a choice to pre-select on initial render.",
         };
 
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
 
         attributes.placeHolder = {
@@ -87,6 +90,7 @@ export default class Choiceinput extends Input {
             createStateVariable: "placeHolder",
             defaultValue: "",
             forRenderer: true,
+            description: "Placeholder text shown when no choice is selected.",
         };
 
         return attributes;
@@ -116,7 +120,17 @@ export default class Choiceinput extends Input {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                checkInlineVariable: true,
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
+
         stateVariableDefinitions.inline = {
+            description:
+                "Whether the input is rendered inline (as a dropdown).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -124,6 +138,7 @@ export default class Choiceinput extends Input {
             forRenderer: true,
             defaultValue: false,
             hasEssential: true,
+            provideEssentialValuesInDefinition: true,
             returnDependencies: () => ({
                 inlineAttr: {
                     dependencyType: "attributeComponent",
@@ -134,26 +149,52 @@ export default class Choiceinput extends Input {
                     dependencyType: "parentStateVariable",
                     variableName: "inline",
                 },
+                labelPositionAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "labelPosition",
+                    variableNames: ["value"],
+                },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, essentialValues }) {
+                const setValue = {};
+                const useEssentialOrDefaultValue = {};
+                let isInline = false;
+
                 if (dependencyValues.inlineAttr) {
-                    return {
-                        setValue: {
-                            inline: dependencyValues.inlineAttr.stateValues
-                                .value,
-                        },
-                    };
+                    isInline = Boolean(
+                        dependencyValues.inlineAttr.stateValues.value,
+                    );
+                    setValue.inline = isInline;
                 } else if (dependencyValues.parentInline !== null) {
-                    return {
-                        setValue: { inline: dependencyValues.parentInline },
-                    };
+                    isInline = Boolean(dependencyValues.parentInline);
+                    setValue.inline = isInline;
                 } else {
-                    return { useEssentialOrDefaultValue: { inline: {} } };
+                    // since defaultValue for inline is false, isInline will be false if the essential value is undefined.
+                    isInline = Boolean(essentialValues.inline);
+                    useEssentialOrDefaultValue.inline = {};
                 }
+
+                const diagnostics = [];
+
+                if (dependencyValues.labelPositionAttr && !isInline) {
+                    diagnostics.push({
+                        message:
+                            "labelPosition is ignored for non-inline choiceInput",
+                        type: "warning",
+                        position: dependencyValues.labelPositionAttr.position,
+                    });
+                }
+
+                return {
+                    setValue,
+                    useEssentialOrDefaultValue,
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
         stateVariableDefinitions.numChoices = {
+            description: "The total number of available choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -204,7 +245,7 @@ export default class Choiceinput extends Input {
             }),
             definition: function ({ dependencyValues }) {
                 let numChoices = dependencyValues.choiceChildren.length;
-                let warnings = [];
+                let diagnostics = [];
                 let choiceOrder;
                 if (!dependencyValues.shuffleOrder) {
                     choiceOrder = [...Array(numChoices).keys()].map(
@@ -216,10 +257,10 @@ export default class Choiceinput extends Input {
                         dependencyValues.variants?.desiredVariant?.indices;
                     if (desiredChoiceOrder !== undefined) {
                         if (desiredChoiceOrder.length !== numChoices) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for choiceInput as number of indices doesn't match number of choice children.",
-                                level: 2,
+                                type: "info",
                             });
                         } else {
                             desiredChoiceOrder = desiredChoiceOrder.map(Number);
@@ -233,10 +274,10 @@ export default class Choiceinput extends Input {
                                     (x) => x >= 1 && x <= numChoices,
                                 )
                             ) {
-                                warnings.push({
+                                diagnostics.push({
                                     message:
                                         "Ignoring indices specified for choiceInput as some indices out of range.",
-                                    level: 2,
+                                    type: "info",
                                 });
                             } else {
                                 return {
@@ -269,7 +310,10 @@ export default class Choiceinput extends Input {
                         ];
                     }
                 }
-                return { setValue: { choiceOrder }, sendWarnings: warnings };
+                return {
+                    setValue: { choiceOrder },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -348,6 +392,8 @@ export default class Choiceinput extends Input {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of choices available in the input.",
                 },
             ],
             returnDependencies: () => ({
@@ -376,6 +422,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.choiceTexts = {
+            description: "The text contents of all choices in displayed order.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -424,6 +471,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.choiceMaths = {
+            description:
+                "The math expressions of all choices in displayed order.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -641,33 +690,69 @@ export default class Choiceinput extends Input {
             },
         };
 
-        stateVariableDefinitions.indicesMatchedByBoundValue = {
+        // hasBoundValue is used by indicesMatchedByBoundValue to avoid
+        // depending on choiceChildren.text when bindValueTo is absent.
+        // Without this guard, $choice.selected inside a <choice> creates a
+        // circular resolve-blocker:
+        //   allSelectedIndices → indicesMatchedByBoundValue → c1.text
+        //   → ($c1.selected composite) → c1.selected → childIndicesSelected
+        //   → selectedIndices → allSelectedIndices
+        stateVariableDefinitions.hasBoundValue = {
             returnDependencies: () => ({
-                choiceOrder: {
-                    dependencyType: "stateVariable",
-                    variableName: "choiceOrder",
-                },
-                choiceChildren: {
-                    dependencyType: "child",
-                    childGroups: ["choices"],
-                    variableNames: ["text"],
-                },
                 bindValueTo: {
                     dependencyType: "attributeComponent",
                     attributeName: "bindValueTo",
-                    variableNames: ["value"],
-                },
-                selectMultiple: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectMultiple",
                 },
             }),
             definition({ dependencyValues }) {
-                let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1],
-                );
+                return {
+                    setValue: {
+                        hasBoundValue: dependencyValues.bindValueTo !== null,
+                    },
+                };
+            },
+        };
 
+        stateVariableDefinitions.indicesMatchedByBoundValue = {
+            // Only pull in bound-value-specific dependencies when
+            // bindValueTo is present. When bindValueTo is absent this
+            // variable always returns [], so those dependencies are
+            // unnecessary and the choiceChildren.text dependency causes the
+            // cycle described on hasBoundValue above.
+            stateVariablesDeterminingDependencies: ["hasBoundValue"],
+            returnDependencies: ({ stateValues }) => {
+                const deps = {
+                    bindValueTo: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "bindValueTo",
+                        variableNames: ["value"],
+                    },
+                };
+
+                if (stateValues.hasBoundValue) {
+                    deps.choiceOrder = {
+                        dependencyType: "stateVariable",
+                        variableName: "choiceOrder",
+                    };
+                    deps.selectMultiple = {
+                        dependencyType: "stateVariable",
+                        variableName: "selectMultiple",
+                    };
+                    deps.choiceChildren = {
+                        dependencyType: "child",
+                        childGroups: ["choices"],
+                        variableNames: ["text"],
+                    };
+                }
+
+                return deps;
+            },
+            definition({ dependencyValues }) {
                 if (dependencyValues.bindValueTo !== null) {
+                    const choiceChildrenOrdered =
+                        dependencyValues.choiceOrder.map(
+                            (i) => dependencyValues.choiceChildren[i - 1],
+                        );
                     let choiceTexts = choiceChildrenOrdered.map((x) =>
                         x.stateValues.text.toLowerCase().trim(),
                     );
@@ -714,6 +799,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the input's selection has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -865,6 +952,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.selectedIndices = {
+            description: "Indices (1-based) of the currently selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -973,9 +1061,12 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedIndex = {
             isAlias: true,
             targetVariableName: "selectedIndex1",
+            description:
+                "The 1-based index of the first currently selected choice.",
         };
 
         stateVariableDefinitions.selectedValues = {
+            description: "Text values of the currently selected choices.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -1146,16 +1237,20 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedValue = {
             isAlias: true,
             targetVariableName: "selectedValue1",
+            description:
+                "The text value of the first currently selected choice.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "selectedValues",
+            description: "The text values of the currently selected choices.",
         };
 
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numSelectedIndices",
+            description: "The number of currently selected choices.",
         };
 
         stateVariableDefinitions.childIndicesSelected = {
@@ -1249,6 +1344,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueToRecordOnSubmit = {
             isAlias: true,
             targetVariableName: "selectedIndices",
+            description:
+                "Indices of the currently selected choices (recorded when the answer is submitted).",
         };
 
         stateVariableDefinitions.submittedIndices = {
@@ -1311,6 +1408,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueRecordedAtSubmit = {
             isAlias: true,
             targetVariableName: "submittedIndices",
+            description:
+                "Indices of the choices selected at the most recent submission.",
         };
 
         stateVariableDefinitions.allFeedbacks = {
@@ -1344,6 +1443,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.numFeedbacks = {
+            description:
+                "The number of feedback messages produced by selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1365,6 +1466,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.feedbacks = {
+            description: "Feedback messages produced by selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "feedback",
@@ -1519,26 +1621,14 @@ export default class Choiceinput extends Input {
             ];
 
             let choiceTexts = await this.stateValues.choiceTexts;
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "selected",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: effectiveSelectedIndices,
-                    responseText: effectiveSelectedIndices.map(
-                        (i) => choiceTexts[i - 1],
-                    ),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: effectiveSelectedIndices,
+                responseText: effectiveSelectedIndices.map(
+                    (i) => choiceTexts[i - 1],
+                ),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,
@@ -1572,11 +1662,13 @@ export default class Choiceinput extends Input {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         if (!serializedComponent.attributes?.shuffleOrder?.primitive.value) {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
 
@@ -1628,6 +1720,7 @@ export default class Choiceinput extends Input {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

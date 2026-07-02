@@ -1,24 +1,54 @@
 import "./DoenetML.css";
 import seedrandom from "seedrandom";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "@doenet/utils";
-import type { ErrorRecord, WarningRecord } from "@doenet/utils";
+import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
+import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
+import type {
+    DiagnosticRecord,
+    ErrorRecord,
+    WarningRecord,
+} from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
+import type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+import type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
+export type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
-import { setVariantsFromCallback } from "./utils/variants";
+import {
+    setVariantIndex,
+    setVariantsFromCallback,
+    type VariantsState,
+} from "./utils/variants";
+import { useResolvedTheme } from "./utils/theme";
+import type { ThemeSetting } from "./utils/theme";
+export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
 export { defaultFlags } from "./flags";
+
+let warnedShowErrorsWarningsDeprecation = false;
+let warnedInitialErrorsWarningsDeprecation = false;
+
+// Module-level constant so the default for `initialDiagnostics` is referentially
+// stable across renders (a parameter default `= []` would create a fresh array
+// each render, refiring every memo/effect downstream that depends on it).
+const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 
 export const version: string = DOENETML_VERSION;
 
@@ -29,7 +59,7 @@ type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
  * for processing events from the virtual keyboard.
  */
 export const FocusedMathInputContext = React.createContext<
-    React.MutableRefObject<HTMLElement | null>
+    React.RefObject<HTMLElement | null>
 >({ current: null });
 
 /**
@@ -54,6 +84,7 @@ export function DoenetViewer({
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     documentStructureCallback,
     initializedCallback,
+    setDiagnosticsCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -62,7 +93,8 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
-    darkMode = "light",
+    doenetMediaUrl,
+    darkMode = "system",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
@@ -91,7 +123,17 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setErrorsAndWarningsCallback?: (errorsAndWarnings: unknown) => void;
+    setDiagnosticsCallback?: (
+        diagnostics: DiagnosticRecord[],
+        source: string,
+    ) => void;
+    /**
+     * @deprecated Use `setDiagnosticsCallback` instead.
+     */
+    setErrorsAndWarningsCallback?: (errorsAndWarnings: {
+        errors: ErrorRecord[];
+        warnings: WarningRecord[];
+    }) => void;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
@@ -99,7 +141,13 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetMediaUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
+    darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
@@ -112,20 +160,7 @@ export function DoenetViewer({
      */
     onInit?: (elm: HTMLElement) => void;
 }) {
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
-
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
@@ -135,6 +170,8 @@ export function DoenetViewer({
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
+
+    const resolvedTheme = useResolvedTheme(darkMode);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -149,6 +186,24 @@ export function DoenetViewer({
             setHidden(false);
         }
     }, [isOnPage]);
+
+    useEffect(() => {
+        if (setErrorsAndWarningsCallback) {
+            console.warn(
+                "DoenetViewer: setErrorsAndWarningsCallback is deprecated. Use setDiagnosticsCallback instead.",
+            );
+        }
+    }, []);
+
+    const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
+        ? (diagnostics: DiagnosticRecord[], source: string) => {
+              setDiagnosticsCallback?.(diagnostics, source);
+              setErrorsAndWarningsCallback({
+                  errors: diagnostics.filter(isErrorRecord),
+                  warnings: diagnostics.filter(isWarningRecord),
+              });
+          }
+        : setDiagnosticsCallback;
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -181,16 +236,11 @@ export function DoenetViewer({
         if (variants.numVariants > 1) {
             variantSelector = (
                 <VariantSelect
-                    size="sm"
-                    menuWidth="140px"
+                    darkMode={resolvedTheme}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}
                     onChange={(index: number) =>
-                        setVariants((prev) => {
-                            let next = { ...prev };
-                            next.index = index + 1;
-                            return next;
-                        })
+                        setVariantIndex(setVariants, index)
                     }
                 />
             );
@@ -231,13 +281,14 @@ export function DoenetViewer({
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
             initializedCallback={initializedCallback}
-            setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
+            setDiagnosticsCallback={effectiveDiagnosticsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
-            darkMode={darkMode}
+            doenetMediaUrl={doenetMediaUrl}
+            darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
@@ -250,6 +301,7 @@ export function DoenetViewer({
         <ReduxProvider store={store}>
             <MathJaxContext config={mathjaxConfig} version={4}>
                 <div
+                    data-theme={resolvedTheme}
                     ref={(r) => {
                         ref.current = r;
                         if (onInit && r) {
@@ -262,6 +314,7 @@ export function DoenetViewer({
                         externalVirtualKeyboardProvided={
                             externalVirtualKeyboardProvided
                         }
+                        theme={resolvedTheme}
                     >
                         {variantSelector}
                         {viewer}
@@ -272,42 +325,20 @@ export function DoenetViewer({
     );
 }
 
-export function DoenetEditor({
-    doenetML,
-    activityId = "a",
-    prefixForIds = "",
-    addVirtualKeyboard = true,
-    externalVirtualKeyboardProvided = false,
-    doenetViewerUrl,
-    darkMode = "light",
-    showAnswerResponseButton = false,
-    answerResponseCounts = {},
-    width,
-    height,
-    viewerLocation,
-    backgroundColor,
-    showViewer,
-    doenetmlChangeCallback,
-    immediateDoenetmlChangeCallback,
-    documentStructureCallback,
-    id,
-    readOnly = false,
-    showFormatter = true,
-    showErrorsWarnings = true,
-    showResponses = true,
-    border = "1px solid",
-    initialErrors = [],
-    initialWarnings = [],
-    fetchExternalDoenetML,
-    upgradeAccessibilityWarningsToErrors = false,
-}: {
+type DoenetEditorProps = {
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetMediaUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
+    darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -318,37 +349,126 @@ export function DoenetEditor({
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
+    diagnosticsSummaryCallback?: (
+        diagnosticsSummary: DiagnosticsSummary,
+        doenetML: string,
+    ) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
+    showDiagnostics?: boolean;
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
+    showHelp?: boolean;
     border?: string;
+    initialDiagnostics?: DiagnosticRecord[];
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
-    upgradeAccessibilityWarningsToErrors?: boolean;
-}) {
-    useEffect(() => {
-        // Add a YouTube iframe api to the document header if it doesn't exist
-        if (
-            !document.querySelector(
-                'script[src="https://www.youtube.com/iframe_api"]',
-            )
-        ) {
-            const script = document.createElement("script");
-            script.src = "https://www.youtube.com/iframe_api";
-            document.head.appendChild(script);
-        }
-    }, []);
+    docsURL?: string;
+    /**
+     * Controls which tab the diagnostics/responses/help panel opens to at
+     * mount. Three forms:
+     *  - prop omitted (`undefined`): default — panel opens on the help tab
+     *    (or the first available tab if `showHelp` is false).
+     *  - a specific tab id: panel opens on that tab. If the tab is disabled,
+     *    falls back to the default with a `console.warn`.
+     *  - `null`: panel mounts closed.
+     * Reactive changes after mount are ignored — use the imperative ref handle
+     * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
+     */
+    initialOpenTab?: DiagnosticsTabId | null;
+};
+
+export const DoenetEditor = React.forwardRef<
+    DoenetEditorHandle,
+    DoenetEditorProps
+>(function DoenetEditor(
+    {
+        doenetML,
+        activityId = "a",
+        prefixForIds = "",
+        addVirtualKeyboard = true,
+        externalVirtualKeyboardProvided = false,
+        doenetViewerUrl,
+        doenetMediaUrl,
+        darkMode = "system",
+        showAnswerResponseButton = false,
+        answerResponseCounts = {},
+        width,
+        height,
+        viewerLocation,
+        backgroundColor,
+        showViewer,
+        doenetmlChangeCallback,
+        immediateDoenetmlChangeCallback,
+        documentStructureCallback,
+        diagnosticsSummaryCallback,
+        id,
+        readOnly = false,
+        showFormatter = true,
+        showDiagnostics,
+        showErrorsWarnings,
+        showResponses = true,
+        showHelp = true,
+        border = "1px solid",
+        initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
+        initialErrors,
+        initialWarnings,
+        fetchExternalDoenetML,
+        docsURL,
+        initialOpenTab,
+    },
+    ref,
+) {
+    const resolvedTheme = useResolvedTheme(darkMode);
+
+    const normalizedShowDiagnostics =
+        showDiagnostics ?? showErrorsWarnings ?? true;
+
+    if (
+        showDiagnostics === undefined &&
+        showErrorsWarnings !== undefined &&
+        !warnedShowErrorsWarningsDeprecation
+    ) {
+        warnedShowErrorsWarningsDeprecation = true;
+        console.warn(
+            "DoenetEditor: showErrorsWarnings is deprecated. Use showDiagnostics instead.",
+        );
+    }
+
+    if (
+        (initialErrors !== undefined || initialWarnings !== undefined) &&
+        !warnedInitialErrorsWarningsDeprecation
+    ) {
+        warnedInitialErrorsWarningsDeprecation = true;
+        console.warn(
+            "DoenetEditor: initialErrors and initialWarnings are deprecated. Use initialDiagnostics instead.",
+        );
+    }
+
+    // Memoized so the array reference is stable across re-renders unless one
+    // of the inputs actually changes. Without this, every re-render of
+    // `DoenetEditor` would hand `EditorViewer` a fresh array, refiring its
+    // diagnostics-summary effect on every parent render.
+    const normalizedInitialDiagnostics = useMemo(
+        () => [
+            ...initialDiagnostics,
+            ...(initialErrors ?? []),
+            ...(initialWarnings ?? []),
+        ],
+        [initialDiagnostics, initialErrors, initialWarnings],
+    );
 
     const editor = (
         <EditorViewer
+            ref={ref}
             doenetML={doenetML}
             activityId={activityId}
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
-            darkMode={darkMode}
+            doenetMediaUrl={doenetMediaUrl}
+            darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             width={width}
@@ -358,36 +478,40 @@ export function DoenetEditor({
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
             documentStructureCallback={documentStructureCallback}
+            diagnosticsSummaryCallback={diagnosticsSummaryCallback}
             id={id}
             readOnly={readOnly}
             showFormatter={showFormatter}
-            showErrorsWarnings={showErrorsWarnings}
+            showDiagnostics={normalizedShowDiagnostics}
             showResponses={showResponses}
+            showHelp={showHelp}
+            addVirtualKeyboard={addVirtualKeyboard}
             border={border}
-            initialErrors={initialErrors}
-            initialWarnings={initialWarnings}
+            initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}
-            upgradeAccessibilityWarningsToErrors={
-                upgradeAccessibilityWarningsToErrors
-            }
+            docsURL={docsURL}
+            initialOpenTab={initialOpenTab}
         />
     );
 
     return (
         <ReduxProvider store={store}>
             <MathJaxContext config={mathjaxConfig} version={4}>
-                <WrapWithKeyboard
-                    addVirtualKeyboard={addVirtualKeyboard}
-                    externalVirtualKeyboardProvided={
-                        externalVirtualKeyboardProvided
-                    }
-                >
-                    {editor}
-                </WrapWithKeyboard>
+                <div data-theme={resolvedTheme} style={{ display: "contents" }}>
+                    <WrapWithKeyboard
+                        addVirtualKeyboard={addVirtualKeyboard}
+                        externalVirtualKeyboardProvided={
+                            externalVirtualKeyboardProvided
+                        }
+                        theme={resolvedTheme}
+                    >
+                        {editor}
+                    </WrapWithKeyboard>
+                </div>
             </MathJaxContext>
         </ReduxProvider>
     );
-}
+});
 
 /**
  * Component that wraps its children and provides a VirtualKeyboard
@@ -395,16 +519,20 @@ export function DoenetEditor({
 function WrapWithKeyboard({
     addVirtualKeyboard,
     externalVirtualKeyboardProvided,
+    theme,
     children,
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
+    theme?: "dark" | "light";
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            ownerRef={focusedMathInput}
+            theme={theme}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
             }}

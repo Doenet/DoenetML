@@ -4,6 +4,7 @@ import BlockComponent from "./abstract/BlockComponent";
 import { vectorOperators } from "@doenet/utils";
 import me from "math-expressions";
 import { HyperFormula } from "hyperformula";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Spreadsheet extends BlockComponent {
     constructor(args) {
@@ -16,9 +17,13 @@ export default class Spreadsheet extends BlockComponent {
     }
     static componentType = "spreadsheet";
 
+    static componentDocs = {
+        summary: "An interactive spreadsheet",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
+            description: "Display width of the spreadsheet.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
@@ -26,6 +31,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumRows = {
+            description: "Minimum number of rows displayed.",
             createComponentOfType: "number",
             createStateVariable: "minNumRows",
             // defaultValue: 1,
@@ -34,6 +40,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumColumns = {
+            description: "Minimum number of columns displayed.",
             createComponentOfType: "number",
             createStateVariable: "minNumColumns",
             // defaultValue: 1,
@@ -43,9 +50,11 @@ export default class Spreadsheet extends BlockComponent {
         };
         attributes.height = {
             createComponentOfType: "componentSize",
+            description: "Display height of the spreadsheet.",
         };
 
         attributes.columnHeaders = {
+            description: "Header labels for the columns.",
             createComponentOfType: "boolean",
             createStateVariable: "columnHeaders",
             defaultValue: true,
@@ -53,6 +62,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.rowHeaders = {
+            description: "Header labels for the rows.",
             createComponentOfType: "boolean",
             createStateVariable: "rowHeaders",
             defaultValue: true,
@@ -60,6 +70,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedRowsTop = {
+            description: "Number of top rows fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedRowsTop",
             defaultValue: 0,
@@ -68,6 +79,8 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedColumnsLeft = {
+            description:
+                "Number of left columns fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedColumnsLeft",
             defaultValue: 0,
@@ -76,6 +89,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenColumns = {
+            description: "Indices of columns to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenColumns",
             defaultValue: [],
@@ -83,6 +97,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenRows = {
+            description: "Indices of rows to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenRows",
             defaultValue: [],
@@ -120,6 +135,13 @@ export default class Spreadsheet extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
+
         stateVariableDefinitions.cellIdxToRowCol = {
             additionalStateVariablesDefined: ["cellIndicesByRowCol"],
             returnDependencies: () => ({
@@ -152,6 +174,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.numRows = {
+            description: "The number of rows.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -196,6 +219,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.numColumns = {
+            description: "The number of columns.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -242,6 +266,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.height = {
+            description: "Display height of the spreadsheet.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "componentSize",
@@ -289,6 +314,7 @@ export default class Spreadsheet extends BlockComponent {
 
         stateVariableDefinitions.cells = {
             public: true,
+            description: "The raw text contents of all cells.",
             shadowingInstructions: {
                 createComponentOfType: "cell",
                 returnWrappingComponents(prefix) {
@@ -314,6 +340,16 @@ export default class Spreadsheet extends BlockComponent {
                 "rows",
                 "columns",
             ],
+            schemaSubarrays: {
+                rows: {
+                    numDimensions: 2,
+                    description: "The cells grouped by row.",
+                },
+                columns: {
+                    numDimensions: 2,
+                    description: "The cells grouped by column.",
+                },
+            },
             numDimensions: 2,
             defaultValueByArrayKey: () => "",
             hasEssential: true,
@@ -712,6 +748,7 @@ export default class Spreadsheet extends BlockComponent {
         stateVariableDefinitions.evaluatedCells = {
             isArray: true,
             public: true,
+            description: "The evaluated values of all cells.",
             shadowingInstructions: {
                 createComponentOfType: "cell",
                 returnWrappingComponents(prefix) {
@@ -735,6 +772,16 @@ export default class Spreadsheet extends BlockComponent {
                 "evaluatedRows",
                 "evaluatedColumns",
             ],
+            schemaSubarrays: {
+                evaluatedRows: {
+                    numDimensions: 2,
+                    description: "The evaluated cell values grouped by row.",
+                },
+                evaluatedColumns: {
+                    numDimensions: 2,
+                    description: "The evaluated cell values grouped by column.",
+                },
+            },
             numDimensions: 2,
             stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({
@@ -1072,6 +1119,7 @@ export default class Spreadsheet extends BlockComponent {
             isArray: true,
             numDimensions: 2,
             public: true,
+            description: "Cells whose values are interpreted as points.",
             shadowingInstructions: {
                 createComponentOfType: "point",
             },
@@ -1083,6 +1131,17 @@ export default class Spreadsheet extends BlockComponent {
                 "pointsInRows",
                 "pointsInColumns",
             ],
+            schemaSubarrays: {
+                pointsInRows: {
+                    numDimensions: 2,
+                    description: "Cell-derived points grouped by row.",
+                },
+                pointsInColumns: {
+                    numDimensions: 2,
+                    description: "Cell-derived points grouped by column.",
+                },
+            },
+            stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({
                 numRows: {
                     dependencyType: "stateVariable",

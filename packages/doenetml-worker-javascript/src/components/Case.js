@@ -2,6 +2,10 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class Case extends BaseComponent {
     static componentType = "case";
+
+    static componentDocs = {
+        summary: "A single conditional branch within `<conditionalContent>`",
+    };
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
@@ -24,6 +28,8 @@ export default class Case extends BaseComponent {
 
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Boolean expression; this case is selected when the condition is true.",
         };
 
         return attributes;
@@ -49,6 +55,8 @@ export default class Case extends BaseComponent {
         };
 
         stateVariableDefinitions.conditionSatisfied = {
+            description:
+                "Whether this case's condition is currently satisfied.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

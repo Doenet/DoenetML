@@ -6,7 +6,10 @@ import {
     find_effective_domains_piecewise_children,
 } from "@doenet/utils";
 import me from "math-expressions";
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import {
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+} from "../utils/numberDisplay";
 import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
@@ -16,6 +19,9 @@ import { roundForDisplay } from "../utils/math";
 export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";
 
+    static componentDocs = {
+        summary: "A function defined piecewise from sub-functions on intervals",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -63,6 +69,7 @@ export default class PiecewiseFunction extends Function {
         };
 
         stateVariableDefinitions.numInputs = {
+            description: "Number of input variables.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -74,6 +81,7 @@ export default class PiecewiseFunction extends Function {
         };
 
         stateVariableDefinitions.numOutputs = {
+            description: "Number of output values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -264,11 +272,12 @@ export default class PiecewiseFunction extends Function {
         // until we build in support for piecewise functions into math-expressions,
         // we cannot represent the formula in a math component
         stateVariableDefinitions.formula = {
+            description: "The piecewise formula of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { formula: me.fromAst("\uff3f") } }),
@@ -521,6 +530,7 @@ export default class PiecewiseFunction extends Function {
 
         stateVariableDefinitions.latex = {
             public: true,
+            description: "The piecewise function rendered as a LaTeX string.",
             forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
@@ -559,21 +569,21 @@ export default class PiecewiseFunction extends Function {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let functionVariable = dependencyValues.variable;
 
-                let toLatexParams = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        toLatexParams.padToDecimals =
-                            dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        toLatexParams.padToDigits =
-                            dependencyValues.displayDigits;
-                    }
-                }
+                let toLatexParams = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
 
                 // Latex display ignores domain of the function itself
                 // (to be consistent with other cases of displaying latex of a function)

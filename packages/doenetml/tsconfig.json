@@ -5,9 +5,17 @@
         "rootDir": "./src",
         "lib": ["ES2021.String", "WebWorker", "DOM"]
     },
-    "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
+    "include": [
+        "./**/*.ts",
+        "./**/*.tsx",
+        "./**/*.js",
+        "./**/*.jsx",
+        "./**/*.d.ts"
+    ],
     "exclude": [
         "vite.config.ts",
+        "cypress.config.ts",
+        "test/cypress/**",
         "node_modules",
         "runner-results",
         ".wireit",

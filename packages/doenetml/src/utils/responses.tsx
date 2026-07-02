@@ -1,5 +1,4 @@
 import React from "react";
-//@ts-ignore
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
 
@@ -16,9 +15,9 @@ export function formatResponse(
             {response.map((v, i) => {
                 const componentType = componentTypes[i];
                 if (
-                    ["math", "point", "matrix", "vector"].includes(
+                    ["math", "point", "matrix", "vector"].indexOf(
                         componentType,
-                    )
+                    ) !== -1
                 ) {
                     const expr = me
                         .fromAst(v as any)

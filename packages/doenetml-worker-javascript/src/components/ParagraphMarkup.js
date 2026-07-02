@@ -2,35 +2,63 @@ import InlineRenderInlineChildren from "./abstract/InlineRenderInlineChildren";
 
 export class Em extends InlineRenderInlineChildren {
     static componentType = "em";
+
+    static componentDocs = {
+        summary: "Emphasized inline text (italic by default)",
+    };
 }
 
 export class Alert extends InlineRenderInlineChildren {
     static componentType = "alert";
+
+    static componentDocs = {
+        summary: "Bold text",
+    };
 }
 
 export class Q extends InlineRenderInlineChildren {
     static componentType = "q";
+
+    static componentDocs = {
+        summary: "Inline double-quoted text",
+    };
     static beginTextDelimiter = '"';
     static endTextDelimiter = '"';
 }
 
 export class SQ extends InlineRenderInlineChildren {
     static componentType = "sq";
+
+    static componentDocs = {
+        summary: "Inline single-quoted text",
+    };
     static beginTextDelimiter = "'";
     static endTextDelimiter = "'";
 }
 
 export class Term extends InlineRenderInlineChildren {
     static componentType = "term";
+
+    static componentDocs = {
+        summary: "An inline term, styled distinctively",
+    };
     static rendererType = "alert";
 }
 
 export class C extends InlineRenderInlineChildren {
     static componentType = "c";
+
+    static componentDocs = {
+        summary: "Inline code text",
+    };
 }
 
 export class Tag extends InlineRenderInlineChildren {
     static componentType = "tag";
+
+    static componentDocs = {
+        summary: "Renders enclosed text as an opening tag, `< >`",
+    };
     static rendererType = "tag";
     static beginTextDelimiter = "<";
     static endTextDelimiter = ">";
@@ -38,6 +66,10 @@ export class Tag extends InlineRenderInlineChildren {
 
 export class Tage extends InlineRenderInlineChildren {
     static componentType = "tage";
+
+    static componentDocs = {
+        summary: "Renders enclosed text as a self-closing tag, `< />`",
+    };
     static rendererType = "tag";
     static beginTextDelimiter = "<";
     static endTextDelimiter = "/>";
@@ -55,6 +87,10 @@ export class Tage extends InlineRenderInlineChildren {
 
 export class Tagc extends InlineRenderInlineChildren {
     static componentType = "tagc";
+
+    static componentDocs = {
+        summary: "Renders enclosed text as a closing tag, `</ >`",
+    };
     static rendererType = "tag";
     static beginTextDelimiter = "</";
     static endTextDelimiter = ">";
@@ -72,5 +108,9 @@ export class Tagc extends InlineRenderInlineChildren {
 
 export class Attr extends InlineRenderInlineChildren {
     static componentType = "attr";
+
+    static componentDocs = {
+        summary: "Renders a styled attribute name",
+    };
     static rendererType = "c";
 }

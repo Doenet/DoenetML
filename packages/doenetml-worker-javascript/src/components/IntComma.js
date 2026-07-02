@@ -7,6 +7,11 @@ export default class IntComma extends Text {
     static componentType = "intComma";
     static rendererType = "text";
 
+    static componentDocs = {
+        summary:
+            "Renders a numeric value with thousands separators (e.g. 1,000,000)",
+    };
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -18,6 +23,7 @@ export default class IntComma extends Text {
         });
 
         stateVariableDefinitions.value = {
+            description: "The numeric value with thousands separators.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
@@ -43,6 +49,7 @@ export default class IntComma extends Text {
         };
 
         stateVariableDefinitions.text = {
+            description: "The formatted value rendered as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

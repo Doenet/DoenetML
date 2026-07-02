@@ -1,0 +1,22 @@
+
+// columns are arranged in row-major order to match print output in LaTeX
+:is(.cols2, .cols3, .cols4, .cols5, .cols6) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: start;
+}
+
+// see lists and exercises for sample use
+@mixin allow-cols($el, $col-gap: 2em) {
+  @for $i from 2 through 6 {
+    .cols#{$i} > #{$el} {
+      // columns are a suggestion enforced by a minimum size
+      // content that needs to be wider can reduce number of columns
+      // in its row
+      min-width: calc(100% / $i - #{$col-gap});
+      width: min-content;
+      margin-right: $col-gap;
+    }
+  }
+}
+

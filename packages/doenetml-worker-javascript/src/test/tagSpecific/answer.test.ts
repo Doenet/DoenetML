@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
@@ -13,6 +14,7 @@ import {
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { Expression } from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1465,20 +1467,18 @@ describe("Answer tag tests @group4", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.filter((w) => w.level !== 2).length).eq(
-            1,
-        );
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid type for answer: bad",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(6);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(95);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(6);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(95);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -1530,18 +1530,18 @@ describe("Answer tag tests @group4", async () => {
             resolvePathToNodeIdx: ResolvePathToNodeIdx,
             eventually_correct = true,
         ) {
-            let errorWarnings = core.core!.errorWarnings;
+            let diagnosticsByType = getDiagnosticsByType(core);
 
-            expect(errorWarnings.errors.length).eq(0);
-            expect(errorWarnings.warnings.length).eq(1);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(1);
 
-            expect(errorWarnings.warnings[0].message).contain(
+            expect(diagnosticsByType.warnings[0].message).contain(
                 "An award for this answer is based on the answer tag's own submitted response",
             );
-            expect(errorWarnings.warnings[0].position.start.line).eq(2);
-            expect(errorWarnings.warnings[0].position.start.column).eq(5);
-            expect(errorWarnings.warnings[0].position.end.line).eq(5);
-            expect(errorWarnings.warnings[0].position.end.column).eq(14);
+            expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+            expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+            expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
+            expect(diagnosticsByType.warnings[0].position.end.column).eq(14);
 
             let stateVariables = await core.returnAllStateVariables(
                 false,
@@ -4059,6 +4059,51 @@ Enter any letter:
         });
     });
 
+    it("numAttemptsLeft does not go negative when maxNumAttempts is reduced", async () => {
+        const doenetML = `
+    <p>Attempt limit: <mathInput name="limit" prefill="3" /></p>
+    <answer name="answer1" maxNumAttempts="$limit">x</answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+        const limitIdx = await resolvePathToNodeIdx("limit");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(3);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(1);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: limitIdx,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(0);
+    });
+
     it("disable after correct", async () => {
         const doenetML = `<answer name="answer1" disableAfterCorrect>x</answer>`;
 
@@ -4127,6 +4172,46 @@ Enter any letter:
                 { latex: "", credit: 0 },
                 { latex: "x^", credit: 0 },
                 { latex: "x^2", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer-level symbolicEquality propagates to an explicit award", async () => {
+        // symbolicEquality is set on the <answer>, not on the <award>.
+        // The award's symbolicEquality falls back to the answer's value,
+        // so a numerically-equal but syntactically-different response
+        // (commuted terms, or the factored form) is rejected. Without the
+        // fall-back, the default numerical checker would give full credit
+        // to all three responses below.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" symbolicEquality>
+    <award>x^2 + 2x + 1</award>
+</answer>
+  `,
+            answers: [
+                { latex: "x^2+2x+1", credit: 1 },
+                { latex: "1+2x+x^2", credit: 0 },
+                { latex: "(x+1)^2", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer-level allowedErrorInNumbers propagates to an explicit award", async () => {
+        // allowedErrorInNumbers is set on the <answer>, not on the <award>.
+        // The default tolerance is 0 (exact match), so 100.5 earns credit
+        // only because the award inherits the answer's 1% tolerance; 102 is
+        // outside that tolerance and earns nothing.
+        await test_math_answer({
+            doenetML: `
+<answer name="answer1" allowedErrorInNumbers="0.01">
+    <award>100</award>
+</answer>
+  `,
+            answers: [
+                { latex: "100", credit: 1 },
+                { latex: "100.5", credit: 1 },
+                { latex: "102", credit: 0 },
             ],
         });
     });
@@ -4963,7 +5048,7 @@ Enter any letter:
     it("copy answer with no link", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
-  <answer extend="$ans1" name="ans2" link="false" />
+  <answer copy="$ans1" name="ans2" />
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
@@ -7558,7 +7643,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq("enterZ label: enter z");
     });
 
-    it("warning if no short description or label when generates input", async () => {
+    it("accessibility diagnostics if no short description or label when generates input", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <answer>x</answer>
@@ -7579,176 +7664,101 @@ What is the derivative of <function name="f">x^2</function>?
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(9);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(9);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(3);
-        expect(errorWarnings.warnings[1].position.end.line).eq(3);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(3);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(3);
 
-        expect(errorWarnings.warnings[2].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[2].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(4);
-        expect(errorWarnings.warnings[2].position.end.line).eq(4);
+        expect(diagnosticsByType.accessibility[2].position.start.line).eq(4);
+        expect(diagnosticsByType.accessibility[2].position.end.line).eq(4);
 
-        expect(errorWarnings.warnings[3].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[3].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(5);
-        expect(errorWarnings.warnings[3].position.end.line).eq(9);
+        expect(diagnosticsByType.accessibility[3].position.start.line).eq(5);
+        expect(diagnosticsByType.accessibility[3].position.end.line).eq(5);
 
-        expect(errorWarnings.warnings[4].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[4].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[4].position.start.line).eq(11);
-        expect(errorWarnings.warnings[4].position.end.line).eq(11);
+        expect(diagnosticsByType.accessibility[4].position.start.line).eq(11);
+        expect(diagnosticsByType.accessibility[4].position.end.line).eq(11);
 
-        expect(errorWarnings.warnings[5].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[5].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[5].position.start.line).eq(12);
-        expect(errorWarnings.warnings[5].position.end.line).eq(12);
+        expect(diagnosticsByType.accessibility[5].position.start.line).eq(12);
+        expect(diagnosticsByType.accessibility[5].position.end.line).eq(12);
 
-        expect(errorWarnings.warnings[6].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[6].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[6].position.start.line).eq(13);
-        expect(errorWarnings.warnings[6].position.end.line).eq(13);
+        expect(diagnosticsByType.accessibility[6].position.start.line).eq(13);
+        expect(diagnosticsByType.accessibility[6].position.end.line).eq(13);
 
-        expect(errorWarnings.warnings[7].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[7].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[7].position.start.line).eq(15);
-        expect(errorWarnings.warnings[7].position.end.line).eq(15);
+        expect(diagnosticsByType.accessibility[7].position.start.line).eq(15);
+        expect(diagnosticsByType.accessibility[7].position.end.line).eq(15);
 
-        expect(errorWarnings.warnings[8].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[8].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[8].position.start.line).eq(16);
-        expect(errorWarnings.warnings[8].position.end.line).eq(16);
+        expect(diagnosticsByType.accessibility[8].position.start.line).eq(16);
+        expect(diagnosticsByType.accessibility[8].position.end.line).eq(16);
     });
 
-    it("upgrade warning to error if no short description or label when generates input", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <answer>x</answer>
-                <answer type="text">hello</answer>
-                <answer type="boolean">true</answer>
-                <answer>
-                    <choice credit="1">cat</choice>
-                    <choice>dog</choice>
-                    <choice>monkey</choice>
-                </answer>
-                <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
-                <answer><math>x</math></answer>
-                <answer><award>x</award></answer>
-                <answer><award><math>x</math></award></answer>
-                <answer name="enterX" labelIsName>x</answer>
-                <answer name="myAnswer">x</answer>
-                <answer labelIsName>x</answer>
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(9);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-
-        expect(errorWarnings.errors[1].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[1].position.start.line).eq(3);
-        expect(errorWarnings.errors[1].position.end.line).eq(3);
-
-        expect(errorWarnings.errors[2].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[2].position.start.line).eq(4);
-        expect(errorWarnings.errors[2].position.end.line).eq(4);
-
-        expect(errorWarnings.errors[3].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[3].position.start.line).eq(5);
-        expect(errorWarnings.errors[3].position.end.line).eq(9);
-
-        expect(errorWarnings.errors[4].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[4].position.start.line).eq(11);
-        expect(errorWarnings.errors[4].position.end.line).eq(11);
-
-        expect(errorWarnings.errors[5].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[5].position.start.line).eq(12);
-        expect(errorWarnings.errors[5].position.end.line).eq(12);
-
-        expect(errorWarnings.errors[6].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[6].position.start.line).eq(13);
-        expect(errorWarnings.errors[6].position.end.line).eq(13);
-
-        expect(errorWarnings.errors[7].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[7].position.start.line).eq(15);
-        expect(errorWarnings.errors[7].position.end.line).eq(15);
-
-        expect(errorWarnings.errors[8].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[8].position.start.line).eq(16);
-        expect(errorWarnings.errors[8].position.end.line).eq(16);
-    });
-
-    it("regression: upgraded input accessibility error climbs to displayable ancestor", async () => {
+    it("regression: input accessibility diagnostic climbs to displayable ancestor", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
                 <p name="container">
                     <answer name="ans">x</answer>
                 </p>
             `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const answerIdx = await resolvePathToNodeIdx("ans");
 
-        const errorWarnings = core.core!.errorWarnings;
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-        expect(errorWarnings.errors[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
 
         const renderedError = Object.values(stateVariables).find(
             (component: any) =>
                 component.componentType === "_error" &&
                 component.stateValues?.message?.includes(
-                    `an <answer> creating an input must have a short description or a label`,
+                    `an \`<answer>\` creating an input must have a short description or a label`,
                 ),
         );
-        expect(renderedError).not.eq(undefined);
+        expect(renderedError).eq(undefined);
 
         const answerChildComponentTypes = stateVariables[
             answerIdx
@@ -7770,10 +7780,10 @@ What is the derivative of <function name="f">x^2</function>?
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
     });
 
     it("ignore initial blank string in answer sugar", async () => {
@@ -8820,7 +8830,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("answer coloring based on document-wide check work by default", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork>
+    <document name="doc" sectionWideCheckWork>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8889,7 +8899,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("force individual answer coloring  with document-wide check work", async () => {
         const doenetML = `
-    <document name="doc" documentWideCheckWork forceIndividualAnswerColoring>
+    <document name="doc" sectionWideCheckWork forceIndividualAnswerColoring>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8950,5 +8960,177 @@ What is the derivative of <function name="f">x^2</function>?
             true,
         );
         expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    it("focused state variable: implicit math input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">x+y</answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit mathInput child
+        const implicitMathInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitMathInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitMathInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: implicit text input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans" type="text">hello</answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit textInput child
+        const implicitTextInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitTextInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitTextInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: explicit inputs via forAnswer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" forAnswer="$ans" />
+    <textInput name="ti" forAnswer="$ans" />
+    <answer name="ans"><award><when>$mi = x and $ti = hello</when></award></answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const tiIdx = await resolvePathToNodeIdx("ti");
+
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Focus mathInput: answer should be focused
+        await focusChanged({
+            focused: true,
+            componentIdx: miIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur mathInput; focus textInput: answer should still be focused
+        await focusChanged({
+            focused: false,
+            componentIdx: miIdx,
+            core,
+        });
+        await focusChanged({
+            focused: true,
+            componentIdx: tiIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur textInput: answer should be unfocused
+        await focusChanged({
+            focused: false,
+            componentIdx: tiIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: implicit choice input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit choiceInput child
+        const implicitChoiceInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitChoiceInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitChoiceInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: answer with no inputs", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans"><award><when>true</when></award></answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        // Should be false since there are no inputs
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
     });
 });

@@ -1,5 +1,6 @@
-// @ts-ignore
 import me from "math-expressions";
+import type { gcd as GcdType, lcm as LcmType } from "mathjs";
+const { gcd, lcm } = me.math as { gcd: typeof GcdType; lcm: typeof LcmType };
 
 // Enumerates the unique combinations of repeeated selecting an index
 // from the same set of options, with or without replacement
@@ -89,10 +90,7 @@ export function enumerateCombinations({
         let g = [];
         for (let ind2 = 0; ind2 < ind1; ind2++) {
             g.push(
-                me.math.gcd(
-                    numberOfOptionsByIndex[ind1],
-                    numberOfOptionsByIndex[ind2],
-                ),
+                gcd(numberOfOptionsByIndex[ind1], numberOfOptionsByIndex[ind2]),
             );
         }
         gcds.push(g);
@@ -121,13 +119,13 @@ export function enumerateCombinations({
     // then shift second index and run sequentially for another lcm
     // if continue gcd times, will have all combinations
     if (numberOfIndices === 2) {
-        let gcd = maxGCD;
-        let lcm = me.math.lcm(...numberOfOptionsByIndex);
+        const gcdValue = maxGCD;
+        let computedLcm = lcm(...numberOfOptionsByIndex);
 
         let results = [];
         let numberSoFar = 0;
-        for (let offset = 0; offset < gcd; offset++) {
-            for (let ind = 0; ind < lcm; ind++) {
+        for (let offset = 0; offset < gcdValue; offset++) {
+            for (let ind = 0; ind < computedLcm; ind++) {
                 let r = [
                     ind % numberOfOptionsByIndex[0],
                     (ind + offset) % numberOfOptionsByIndex[1],
@@ -155,7 +153,7 @@ export function enumerateCombinations({
         for (let ind2 = 0; ind2 < ind1; ind2++) {
             if (gcds[ind1][ind2] > 1) {
                 m.push(
-                    me.math.lcm(
+                    lcm(
                         numberOfOptionsByIndex[ind1],
                         numberOfOptionsByIndex[ind2],
                     ),

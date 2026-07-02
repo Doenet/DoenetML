@@ -5,6 +5,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1453,18 +1454,18 @@ describe("Select tag tests @group2", async () => {
 
         // let { core } = await createTestCore({ doenetML });
 
-        // let errorWarnings = core.core!.errorWarnings;
+        // let diagnosticsByType = getDiagnosticsByType(core);
 
-        // expect(errorWarnings.errors.length).eq(0);
-        // expect(errorWarnings.warnings.length).eq(1);
+        // expect(diagnosticsByType.errors.length).eq(0);
+        // expect(diagnosticsByType.warnings.length).eq(1);
 
-        // expect(errorWarnings.warnings[0].message).contain(
+        // expect(diagnosticsByType.warnings[0].message).contain(
         //     "Invalid type for select: nothing",
         // );
-        // expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        // expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        // expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        // expect(errorWarnings.warnings[0].position.end.column).eq(13);
+        // expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        // expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        // expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        // expect(diagnosticsByType.warnings[0].position.end.column).eq(13);
     });
 
     it("select weighted", async () => {
@@ -2674,18 +2675,18 @@ describe("Select tag tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Some variants are specified for select but no options are specified for possible variant name: banana",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(24);
-        expect(errorWarnings.errors[0].position.end.line).eq(7);
-        expect(errorWarnings.errors[0].position.end.column).eq(14);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(24);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(7);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(14);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside p", async () => {
@@ -2700,18 +2701,18 @@ describe("Select tag tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Invalid variant name for select.  Variant name apple appears in 2 options but number to select is 1",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(18);
-        expect(errorWarnings.errors[0].position.end.line).eq(7);
-        expect(errorWarnings.errors[0].position.end.column).eq(14);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(18);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(7);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(14);
     });
 
     it("display error when repeat name in selectForVariants more times than numToSelect, inside document", async () => {
@@ -2727,18 +2728,18 @@ describe("Select tag tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Variant name donut that is specified for select is not a possible variant name",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(15);
-        expect(errorWarnings.errors[0].position.end.line).eq(8);
-        expect(errorWarnings.errors[0].position.end.column).eq(14);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(15);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(14);
     });
 
     it("display error when numToSelect is larger than number of options, inside graph", async () => {
@@ -2753,18 +2754,18 @@ describe("Select tag tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Cannot select 3 components from only 2",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(56);
-        expect(errorWarnings.errors[0].position.end.line).eq(7);
-        expect(errorWarnings.errors[0].position.end.column).eq(14);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(56);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(7);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(14);
     });
 
     it("numToSelect from selectFromSequence", async () => {

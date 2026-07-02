@@ -1,11 +1,12 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+const { mean, std, variance, median, quantileSeq } = me.math;
 import { roundForDisplay } from "../utils/math";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class SummaryStatistics extends BlockComponent {
     constructor(args) {
@@ -17,34 +18,49 @@ export default class SummaryStatistics extends BlockComponent {
     }
     static componentType = "summaryStatistics";
 
+    // Experimental — not surfaced via the schema/autocomplete/reference
+    // docs until the data-source story is implemented.
+    static excludeFromSchema = true;
+
+    static componentDocs = {
+        summary:
+            "Summary statistics (mean, median, etc.) for a list of numbers.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.source = {
             createTargetComponentNames: true,
+            description: "Reference to the data frame to summarize.",
         };
 
         attributes.column = {
             createComponentOfType: "text",
             createStateVariable: "desiredColumn",
             defaultValue: null,
+            description:
+                "Name of the column from the source data frame to summarize.",
         };
 
         attributes.statisticsToDisplay = {
             createComponentOfType: "textList",
             createStateVariable: "statisticsToDisplayPrelim",
             defaultValue: ["default"],
+            description:
+                'Which summary statistics to display (or "default" / "all").',
         };
 
         // TODO: enable feature where compute summary statistics for each value of a column
         attributes.byCategoryColumn = {
+            description:
+                "Column used to group data when computing per-category statistics.",
             createComponentOfType: "text",
             createStateVariable: "byCategoryColumn",
             defaultValue: null,
             public: true,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -54,10 +70,11 @@ export default class SummaryStatistics extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.statisticsToDisplay = {
+            description: "Which summary statistics to display.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "textList",
@@ -136,6 +153,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.dataColumn = {
+            description: "The numeric column being summarized.",
             stateVariablesDeterminingDependencies: ["sourceName"],
             additionalStateVariablesDefined: [
                 {
@@ -145,6 +163,8 @@ export default class SummaryStatistics extends BlockComponent {
                         createComponentOfType: "text",
                     },
                     forRenderer: true,
+                    description:
+                        "The name of the data column being summarized.",
                 },
             ],
             returnDependencies({ stateValues }) {
@@ -187,6 +207,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.count = {
+            description: "The number of values in the data column.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -208,11 +229,12 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.sum = {
+            description: "The sum of the values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -231,11 +253,12 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.mean = {
+            description: "The arithmetic mean of the values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -244,20 +267,21 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let mean = null;
+                let computedMean = null;
                 if (dependencyValues.dataColumn !== null) {
-                    mean = me.math.mean(dependencyValues.dataColumn);
+                    computedMean = mean(dependencyValues.dataColumn);
                 }
-                return { setValue: { mean } };
+                return { setValue: { mean: computedMean } };
             },
         };
 
         stateVariableDefinitions.stdev = {
+            description: "The sample standard deviation.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -266,21 +290,22 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let stdev = null;
+                let computedStdev = null;
                 if (dependencyValues.dataColumn) {
-                    stdev = me.math.std(dependencyValues.dataColumn);
+                    computedStdev = std(dependencyValues.dataColumn);
                 }
 
-                return { setValue: { stdev } };
+                return { setValue: { stdev: computedStdev } };
             },
         };
 
         stateVariableDefinitions.variance = {
+            description: "The sample variance.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -289,21 +314,22 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let variance = null;
+                let computedVariance = null;
                 if (dependencyValues.dataColumn) {
-                    variance = me.math.variance(dependencyValues.dataColumn);
+                    computedVariance = variance(dependencyValues.dataColumn);
                 }
 
-                return { setValue: { variance } };
+                return { setValue: { variance: computedVariance } };
             },
         };
 
         stateVariableDefinitions.stderr = {
+            description: "The standard error of the mean.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 stdev: {
@@ -328,11 +354,12 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.minimum = {
+            description: "The minimum value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -350,11 +377,12 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.maximum = {
+            description: "The maximum value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -372,11 +400,12 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.median = {
+            description: "The median value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -385,20 +414,21 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let median = null;
+                let computedMedian = null;
                 if (dependencyValues.dataColumn) {
-                    median = me.math.median(dependencyValues.dataColumn);
+                    computedMedian = median(dependencyValues.dataColumn);
                 }
-                return { setValue: { median } };
+                return { setValue: { median: computedMedian } };
             },
         };
 
         stateVariableDefinitions.quartile1 = {
+            description: "The first quartile (25th percentile).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -409,21 +439,19 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let quartile1 = null;
                 if (dependencyValues.dataColumn) {
-                    quartile1 = me.math.quantileSeq(
-                        dependencyValues.dataColumn,
-                        0.25,
-                    );
+                    quartile1 = quantileSeq(dependencyValues.dataColumn, 0.25);
                 }
                 return { setValue: { quartile1 } };
             },
         };
 
         stateVariableDefinitions.quartile3 = {
+            description: "The third quartile (75th percentile).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataColumn: {
@@ -434,21 +462,19 @@ export default class SummaryStatistics extends BlockComponent {
             definition({ dependencyValues }) {
                 let quartile3 = null;
                 if (dependencyValues.dataColumn) {
-                    quartile3 = me.math.quantileSeq(
-                        dependencyValues.dataColumn,
-                        0.75,
-                    );
+                    quartile3 = quantileSeq(dependencyValues.dataColumn, 0.75);
                 }
                 return { setValue: { quartile3 } };
             },
         };
 
         stateVariableDefinitions.range = {
+            description: "The range (maximum − minimum).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 minimum: {

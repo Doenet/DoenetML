@@ -1,20 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <math>{:dn}`
+# `<math>{:dn}`
 
-` <math>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='math'/>
+
+`<math>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that defines a symbolic or numerical math expression that can be rendered and used in computations.
 
-## Attributes and Properties 
- <AttrDisplay name='math'/> 
- <PropDisplay name='math'/>
+<AttrPropDisplay name='math'/>
 
 ## Examples Page 1
 
-### Example: Named ` <math>{:dn}` for computations
+### Example: Named `<math>{:dn}` for computations
 
 
 ```doenet-editor-horiz
@@ -29,13 +29,13 @@ component that defines a symbolic or numerical math expression that can be rende
 
 
 
-The ` <math>{:dn}` component can be used to name and store symbolic math expressions for computations.
+The `<math>{:dn}` component can be used to name and store symbolic math expressions for computations.
 
 
 
 ---
 
-### Example: How spaces are interpreted in a ` <math>{:dn}`
+### Example: How spaces are interpreted in a `<math>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -45,13 +45,13 @@ The ` <math>{:dn}` component can be used to name and store symbolic math express
 
 
 
-Spaces between terms in a ` <math>{:dn}` component are interpreted as multiplication.
+Spaces between terms in a `<math>{:dn}` component are interpreted as multiplication.
 
 
 
 ---
 
-### Example: Some common ` <math>{:dn}` functions and their syntax
+### Example: Some common `<math>{:dn}` functions and their syntax
 
 
 ```doenet-example
@@ -117,14 +117,14 @@ Spaces between terms in a ` <math>{:dn}` component are interpreted as multiplica
 
 
 Many mathematical functions such as $\sin(x)$ and $\log(x)$ are interpreted by 
-Doenet when nested within a ` <math>{:dn}` component. In this example, several built-in ` <math>{:dn}` functions 
+Doenet when nested within a `<math>{:dn}` component. In this example, several built-in `<math>{:dn}` functions 
 that Doenet will simplify are illustrated with their syntax. Note that the default base when 
 using $\log(x)$ is $e$. For a complete updated listing of supported functions, 
 see the <ref uri="https://www.doenet.org/course?tool=assignment&doenetId=__pXorGnWFwZn2kTil3HHw#page1">DoenetML Manual</ref>.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: format
 
@@ -173,8 +173,8 @@ expression in `latex` format and then evaluate it with the `simplify` attribute.
 
 
 
-The first ` <math>{:dn}` component defines an unsimplified expression, 
-while the second ` <math>{:dn}` component references the first expression by name, 
+The first `<math>{:dn}` component defines an unsimplified expression, 
+while the second `<math>{:dn}` component references the first expression by name, 
 adds two additional terms, and simplifies the resulting expression.
 
 
@@ -193,7 +193,7 @@ The `simplify` attribute has five options:
 To include expansion of factored expressions, you can add the `expand` attribute.
 
 
-If the `simplify` attribute is not specified within the ` <math>{:dn}` component, 
+If the `simplify` attribute is not specified within the `<math>{:dn}` component, 
 no simplification occurs (i.e. this is equivalent to specifying `simplify="none"`).
 
 
@@ -215,7 +215,7 @@ no simplification occurs (i.e. this is equivalent to specifying `simplify="none"
 
 
 When only numerical terms are to be combined, use the  `simplify="numbers"` 
-specification inside the ` <math>{:dn}` component. Some rearrangement of terms 
+specification inside the `<math>{:dn}` component. Some rearrangement of terms 
 may occur during simplification.
 
 
@@ -238,7 +238,7 @@ may occur during simplification.
 
 When only numerical terms are to be combined and terms must 
 remain in their original ordering, use the  `simplify="numbersPreserveOrder"` specification 
-inside the ` <math>{:dn}` component.
+inside the `<math>{:dn}` component.
 
 
 
@@ -259,7 +259,7 @@ inside the ` <math>{:dn}` component.
 
 
 To make all terms and factors appear in a standardized order without any further simplifications, use the `simplify="normalizeOrder"` specification 
-inside the ` <math>{:dn}` component.
+inside the `<math>{:dn}` component.
 
 
 
@@ -288,7 +288,7 @@ inside the ` <math>{:dn}` component.
 
 
 
-By default, a ` <math>{:dn}` will not expand factored expressions.  
+By default, a `<math>{:dn}` will not expand factored expressions.  
 Specifying the `expand` attribute will expand the result.
 
 
@@ -299,8 +299,7 @@ Specifying the `expand` attribute will expand the result.
 
 
 ```doenet-editor-horiz
-<p>Type the expression <m>3,2,1</m>: 
-  <mathInput name="userTest"/>
+<p><mathInput name="userTest"><label>Type the expression <m>3,2,1</m></label></mathInput>
 </p>
 
 <p>Is this equivalent to <m>1,2,3</m> ?</p>
@@ -330,13 +329,13 @@ Specifying the `expand` attribute will expand the result.
 
 
 
-The `unordered` attribute determines how the whether or not comparisons with the ` <math>{:dn}` 
-require the same order of its subparts.  The first ` <math>{:dn}` is defined without 
-the `unordered` attribute, so it defaults to `unordered="false"`. The second ` <math>{:dn}` 
+The `unordered` attribute determines how the whether or not comparisons with the `<math>{:dn}` 
+require the same order of its subparts.  The first `<math>{:dn}` is defined without 
+the `unordered` attribute, so it defaults to `unordered="false"`. The second `<math>{:dn}` 
 has `unordered="true"` specified, so it will match expressions independent of the ordering. 
 The `unordered` affects both lists, suchs $1,2,3$ or tuples such as $(1,2,3)$.
 
 
 An alternative way to specify that ordering doesn't matter is 
-with the `unorderedCompare` attribute of ` <answer>{:dn}`, ` <award>{:dn}`, ` <when>{:dn}`, or ` <boolean>{:dn}`.
+with the `unorderedCompare` attribute of `<answer>{:dn}`, `<award>{:dn}`, `<when>{:dn}`, or `<boolean>{:dn}`.
 

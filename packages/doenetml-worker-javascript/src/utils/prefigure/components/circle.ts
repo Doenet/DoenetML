@@ -1,0 +1,19 @@
+import { escapeXml, formatNumber, formatPoint } from "../common";
+import type { ConverterArgs } from "../types";
+
+/**
+ * Converts a circle (center + radius) to a PreFigure `<circle>` element.
+ */
+export function convertCircleToPrefigure({
+    sv,
+    handle,
+    styleAttrs,
+}: ConverterArgs): string | null {
+    const center = formatPoint(sv.numericalCenter);
+    const radius = formatNumber(sv.numericalRadius);
+    if (center === null || radius === null) {
+        return null;
+    }
+
+    return `<circle at="${escapeXml(handle)}" center="${escapeXml(center)}" radius="${escapeXml(radius)}" ${styleAttrs.join(" ")} />`;
+}

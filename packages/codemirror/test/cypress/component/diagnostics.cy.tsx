@@ -245,6 +245,37 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         expectTooltipForLintRange(".cm-lintRange-warning", "wrong-attr");
     });
 
+    it("renders an error squiggle for an unquoted attribute value (#1104, #1197)", () => {
+        // `<math name=foo />` — the lezer parser splits the unquoted
+        // assignment into two value-less attributes; `lezer-to-dast`
+        // detects that pair, strips both halves from `node.attributes`,
+        // and emits a single unified DAST error naming the corrected
+        // form (`name="foo"`) so the author can fix it from the hover
+        // without opening the autocomplete menu.  The unified error
+        // replaces the four redundant diagnostics this shape used to
+        // surface (#1197).  `error_type` is left undefined (= error)
+        // so the viewer also shows an orange `_error` block, matching
+        // the severity of sibling shapes like `<math name>` and
+        // `<math name="4" />` that the normalize step already treats
+        // as errors.
+        mountEditor(`<math name=foo />`);
+
+        waitForDiagnosticDom();
+
+        // The red squiggle covers the bare token `foo`; with both
+        // pair halves stripped, no other squiggle fires for this shape.
+        cy.get(".cm-lintRange-error").should("have.text", "foo");
+        cy.get(".cm-lintRange").should("have.length", 1);
+
+        // The tooltip renders the diagnostic's markdown — backticks
+        // become inline code styling and drop out of `.text`. Assert on
+        // the rendered substring.
+        expectTooltipForLintRange(
+            ".cm-lintRange-error",
+            'Attribute values must be enclosed in quotes: name="foo"',
+        );
+    });
+
     it("clearing additional diagnostics preserves existing base diagnostics", () => {
         // Start with invalid markup so we have a base warning diagnostic.
         mountEditor("<graph wrong='x' />");
@@ -286,5 +317,36 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         cy.get(".cm-lintRange-error").should("not.exist");
 
         expectTooltipForLintRange(".cm-lintRange-warning", "wrong");
+    });
+
+    it("renders the diagnostic tooltip legibly in dark mode", () => {
+        // In dark mode the editor text color goes white; without dark-mode
+        // tooltip styling the tooltip would render white-on-white (its default
+        // light surface). The editor root carries `[data-theme="dark"]` in the
+        // real app, so reproduce that here and assert the tooltip uses the
+        // elevated dark surface with a recolored, legible heading.
+        cy.mount(
+            <div data-theme="dark">
+                <DiagnosticsTestHarness initialValue="<graph invalid-attr='x' />" />
+            </div>,
+        );
+        cy.get(".cm-line").should("exist");
+
+        waitForDiagnosticDom();
+        hoverLintRange(".cm-lintRange-warning");
+
+        cy.get(".cm-tooltip-lint").should("be.visible");
+        // Elevated dark surface (#2a2a2a), not CodeMirror's light default.
+        cy.get(".cm-tooltip").should(
+            "have.css",
+            "background-color",
+            "rgb(42, 42, 42)",
+        );
+        // Heading recolored to the bright dark-mode warning variant (#ffb454).
+        cy.get(".cm-lint-tooltip .heading.warning").should(
+            "have.css",
+            "color",
+            "rgb(255, 180, 84)",
+        );
     });
 });

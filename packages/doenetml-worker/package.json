@@ -5,7 +5,7 @@
     "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -26,21 +26,23 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "echo 'tests complete (keep this message at the end of the tests)'",
+        "test": "vitest run && echo 'tests complete (keep this message at the end of the tests)'",
         "build": "wireit"
     },
     "wireit": {
         "build": {
-            "command": "vite build",
+            "command": "vite build && vite build --config vite.esm.config.ts",
             "files": [
                 "src/**/*.ts",
                 "src/**/*.js",
                 "tsconfig.json",
                 "tsconfig.json",
-                "vite.config.ts"
+                "vite.config.ts",
+                "vite.esm.config.ts"
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.wasm*"

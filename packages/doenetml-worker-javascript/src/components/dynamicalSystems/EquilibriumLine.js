@@ -4,14 +4,32 @@ export default class EquilibriumLine extends Line {
     static componentType = "equilibriumLine";
     static rendererType = "line";
 
+    static componentDocs = {
+        summary:
+            "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        // The semantic intent on an equilibrium line is `stable` — the
+        // renderer derives `dashed = !stable` and forces dashed rendering for
+        // unstable lines regardless of `selectedStyle.lineStyle` (see
+        // `styleToDash` in the line renderer). Drop the per-component
+        // `lineStyle` attribute so authors can't write a confusing
+        // `<equilibriumLine lineStyle="dotted">` whose effect depends on
+        // whether the line happens to be stable. A styleDefinition can still
+        // populate `selectedStyle.lineStyle`; it takes effect only when the
+        // line is stable.
+        delete attributes.lineStyle;
 
         attributes.stable = {
             createComponentOfType: "boolean",
             createStateVariable: "stable",
             defaultValue: true,
             public: true,
+            description:
+                "Whether the equilibrium is stable (rendered solid) or unstable (rendered dashed).",
         };
 
         attributes.switchable = {
@@ -20,6 +38,8 @@ export default class EquilibriumLine extends Line {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the user can toggle the stability of this equilibrium by clicking it.",
         };
 
         return attributes;

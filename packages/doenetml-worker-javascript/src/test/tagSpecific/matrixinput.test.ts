@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
+    focusChanged,
     updateMathInputValue,
     updateMatrixInputImmediateValue,
     updateMatrixInputNumColumns,
@@ -9,6 +10,8 @@ import {
     updateMatrixInputValueToImmediateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { cleanLatex } from "../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -301,6 +304,95 @@ describe("MathInput tag tests @group3", async () => {
             ["tuple", ["tuple", "g", "h"], ["tuple", "i", "j"]],
         ];
         await check_items(matrixValue);
+    });
+
+    it("matrixInput text and references use number-display formatting; rawRendererValue preserves typed text", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <matrixInput name="mi1" />
+    <matrixInput name="mi2" avoidScientificNotation padZeros />
+
+    <math name="mi1v">$mi1.value</math>
+    <math name="mi1iv">$mi1.immediateValue</math>
+    <math name="mi2v">$mi2.value</math>
+    <math name="mi2iv">$mi2.immediateValue</math>
+    `,
+        });
+
+        await updateMatrixInputImmediateValue({
+            latex: "0.0000000007",
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMatrixInputImmediateValue({
+            latex: "0.0000000007",
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        // Commit so value references and immediateValue references coincide.
+        await updateMatrixInputValueToImmediateValue({
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMatrixInputValueToImmediateValue({
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Input cell values are the same in both components; differences below
+        // come only from number-display formatting when values are referenced.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", 7e-10]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", 7e-10]]]);
+
+        let mi1vLatex =
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues
+                .latex;
+        let mi1ivLatex =
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .latex;
+        let mi2vLatex =
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues
+                .latex;
+        let mi2ivLatex =
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .latex;
+        expect(mi1vLatex).toBeDefined();
+        expect(mi1ivLatex).toBeDefined();
+        expect(mi2vLatex).toBeDefined();
+        expect(mi2ivLatex).toBeDefined();
+
+        // References for mi1 use default number-display behavior.
+        expect(cleanLatex(mi1vLatex)).match(/10\^{-10}|10\^\{-10\}/);
+        expect(cleanLatex(mi1ivLatex)).match(/10\^{-10}|10\^\{-10\}/);
+
+        // References for mi2 honor avoidScientificNotation + padZeros.
+        expect(cleanLatex(mi2vLatex)).contain("0.0000000007000000000");
+        expect(cleanLatex(mi2ivLatex)).contain("0.0000000007000000000");
+
+        // `.text` follows number-display formatting as well.
+        let mi1Text =
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text;
+        let mi2Text =
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text;
+        expect(mi1Text).match(/10\^\(-10\)/);
+        expect(mi2Text).contain("0.0000000007000000000");
     });
 
     async function test_matrix_input({
@@ -2394,7 +2486,7 @@ describe("MathInput tag tests @group3", async () => {
         );
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <matrixInput />
@@ -2405,51 +2497,139 @@ describe("MathInput tag tests @group3", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<matrixInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `\`<matrixInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `<matrixInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `\`<matrixInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-                <matrixInput />
-                <matrixInput><shortDescription>hello</shortDescription></matrixInput>
-                <matrixInput><label>hello</label></matrixInput>
-                <matrixInput name="enterSomething" labelIsName />
-                <matrixInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
+    <matrixInput name="mi" numRows="1" numColumns="2">
+      <label>hello</label>
+    </matrixInput>
+    <boolean extend="$mi.focused" name="f" />
+    `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        // Get the first matrix cell input component index
+        const miStateVars = stateVariables[await resolvePathToNodeIdx("mi")];
+        const cellIdx = miStateVars.activeChildren[0].componentIdx;
 
-        expect(errorWarnings.errors[0].message).contain(
-            `<matrixInput> must have a short description or a label`,
+        // Focus the first cell
+        await focusChanged({
+            focused: true,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the first cell
+        await focusChanged({
+            focused: false,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+    });
+
+    it("focused state variable still updates when readOnly", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <matrixInput name="mi" numRows="1" numColumns="2">
+      <label>hello</label>
+    </matrixInput>
+    <boolean extend="$mi.focused" name="f" />
+    `,
+            flags: { readOnly: true },
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // MatrixInput sugars in MatrixComponentInput children.
+        const miStateVars = stateVariables[await resolvePathToNodeIdx("mi")];
+        expect(miStateVars.activeChildren[0].componentType).eq(
+            "_matrixComponentInput",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        const cellIdx = miStateVars.activeChildren[0].componentIdx;
 
-        expect(errorWarnings.errors[1].message).contain(
-            `<matrixInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[1].position.start.line).eq(6);
-        expect(errorWarnings.errors[1].position.end.line).eq(6);
+        // Focus the first cell
+        await focusChanged({
+            focused: true,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the first cell
+        await focusChanged({
+            focused: false,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
     });
 });

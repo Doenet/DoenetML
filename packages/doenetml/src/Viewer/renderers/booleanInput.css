@@ -1,6 +1,7 @@
 /* Customize the label (the container) */
 .doenet-viewer .boolean-container {
-    /* display: inline-block; */
+    /* `display: inline-block` and `vertical-align` are set inline in
+       booleanInput.tsx so the checkbox flows beside a wrapping label (#1245). */
     position: relative;
     padding-left: 24px;
     margin-bottom: 4px;
@@ -58,9 +59,9 @@
     border-color: var(--mainGray);
 }
 
-/* On mouse-over, add a light blue background color */
+/* On mouse-over, use the theme-aware indicator hover color */
 .doenet-viewer .boolean-container:hover input[type="checkbox"] ~ .checkmark {
-    background-color: var(--lightBlue);
+    background-color: var(--indicatorHoverBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */

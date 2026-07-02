@@ -26,6 +26,8 @@ export default class InlineRenderInlineChildren extends InlineComponent {
         let componentClass = this;
 
         stateVariableDefinitions.text = {
+            description:
+                "The combined text content of this component's children, with optional begin/end delimiters.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

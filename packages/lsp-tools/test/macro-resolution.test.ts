@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
 
-import { DastMacro, DastElement, DastMacroV6 } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DastMacro, DastElement } from "@doenet/parser";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import {
     getPrefixes,
     mergeLeftUniquePrefixes,
@@ -46,7 +46,7 @@ describe("DoenetSourceObject", () => {
     it("Can find named referents from macros", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
-        let macro: DastMacroV6;
+        let macro: DastMacro;
 
         source = `<a name="x">
             <b name="y">
@@ -58,48 +58,26 @@ describe("DoenetSourceObject", () => {
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
         }
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y.w").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
-            expect(elm?.accessedProp).toMatchObject(
-                macro.accessedProp!.accessedProp!,
-            );
+            expect(elm?.unresolvedPath.map((p) => p.name)).toEqual(["w"]);
         }
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y.z").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "c" });
+            expect(elm?.unresolvedPath).toEqual([]);
         }
-    });
-
-    it("Can determine if a macro is an old-style macro with slashes in the path", () => {
-        let source: string;
-        let sourceObj: DoenetSourceObject;
-        let macro: DastMacro;
-
-        source = `$foo.bar[2].baz`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo/x.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(true);
     });
 
     it("Can uniquely merge prefixes", () => {
@@ -144,8 +122,22 @@ describe("DoenetSourceObject", () => {
             ["z"],
             ["x", "z"],
         ]);
+        // The cursor on `<a>`'s opening `<` sits *before* `<a>` in the
+        // top-level body (#1327), so it resolves names from the top-level
+        // scope — the same as offset 0 — rather than from inside `<a>`.
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<a")),
+        ).toEqual([["x"], ["z"], ["x", "z"]]);
+        // A cursor *inside* `<a>`'s opening tag (past the `<`, e.g. in the
+        // tag's whitespace/attributes) is within `<a>`, so it resolves from
+        // `<a>`'s scope, closest first.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([["z"], ["x"], ["x", "z"]]);
+        // A cursor inside `<a>`'s body (here on child `<b>`'s boundary, which
+        // resolves to its container `<a>`) likewise sees `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<b")),
         ).toEqual([["z"], ["x"], ["x", "z"]]);
 
         source = ` <a name="x">
@@ -167,8 +159,35 @@ describe("DoenetSourceObject", () => {
             ["x", "w"],
             ["x", "y", "z"],
         ]);
+        // Cursor on `<a>`'s opening `<`: top-level scope (#1327).
         expect(
             sourceObj.getAddressableNamesAtOffset(source.indexOf("<a")),
+        ).toEqual([
+            ["x"],
+            ["z"],
+            ["w"],
+            ["x", "y"],
+            ["x", "z"],
+            ["x", "w"],
+            ["x", "y", "z"],
+        ]);
+        // Cursor *inside* `<a>`'s opening tag (past the `<`): `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<a") + 2),
+        ).toEqual([
+            ["y"],
+            ["z"],
+            ["w"],
+            ["y", "z"],
+            ["x"],
+            ["x", "y"],
+            ["x", "z"],
+            ["x", "w"],
+            ["x", "y", "z"],
+        ]);
+        // Cursor inside `<a>`'s body (on child `<b>`'s boundary): `<a>`'s scope.
+        expect(
+            sourceObj.getAddressableNamesAtOffset(source.indexOf("<b")),
         ).toEqual([
             ["y"],
             ["z"],

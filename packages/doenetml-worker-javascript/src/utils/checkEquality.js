@@ -82,7 +82,7 @@ export default function checkEquality({
         }
     }
 
-    let normalize = function (x, forNumeric = false) {
+    let normalize = function (x) {
         if (!(x instanceof me.class)) {
             x = me.fromAst(x);
         }
@@ -95,10 +95,6 @@ export default function checkEquality({
 
         let effectiveSimplify = simplify,
             effectiveExpand = expand;
-        if (forNumeric) {
-            effectiveSimplify = "full";
-            effectiveExpand = true;
-        }
 
         if (
             effectiveSimplify === "none" ||
@@ -284,9 +280,17 @@ export default function checkEquality({
     let matchByExactPositionsOnRecursion = false;
 
     if (haveMathExpressions) {
-        // normalize at the beginning so that expand vectors, etc.
-        object1 = normalize(object1, !symbolicEquality);
-        object2 = normalize(object2, !symbolicEquality);
+        if (symbolicEquality) {
+            object1 = normalize(object1);
+            object2 = normalize(object2);
+        } else {
+            // For numeric, we need to expand vectors, etc.
+            // We no longer do a full normalization due to speed issues
+            object1 =
+                object1.perform_vector_matrix_additions_scalar_multiplications();
+            object2 =
+                object2.perform_vector_matrix_additions_scalar_multiplications();
+        }
 
         // if can convert same type of math-expression
         // change object1 and object2 to array of asts

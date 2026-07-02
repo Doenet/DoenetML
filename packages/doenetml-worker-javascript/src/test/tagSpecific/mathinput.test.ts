@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     movePoint,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
@@ -9,6 +10,7 @@ import {
     updateMathInputValueToImmediateValue,
 } from "../utils/actions";
 import me, { Expression, Tree } from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3334,6 +3336,94 @@ describe("MathInput tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
                 .tree,
         ).eqls(["apply", "q", "z"]);
+    });
+
+    it("mathInput text and references use number-display formatting; rawRendererValue preserves typed text", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi1" />
+    <mathInput name="mi2" avoidScientificNotation padZeros />
+
+    <math name="mi1v">$mi1.value</math>
+    <math name="mi1iv">$mi1.immediateValue</math>
+    <math name="mi2v">$mi2.value</math>
+    <math name="mi2iv">$mi2.immediateValue</math>
+    `,
+        });
+
+        await updateMathInputImmediateValue({
+            latex: "0.0000000007",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputImmediateValue({
+            latex: "0.0000000007",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        // Commit so value references and immediateValue references coincide.
+        await updateMathInputValueToImmediateValue({
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValueToImmediateValue({
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Editor text preserves what the user typed for both inputs.
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                    .rawRendererValue,
+            ),
+        ).eq("0.0000000007");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                    .rawRendererValue,
+            ),
+        ).eq("0.0000000007");
+
+        // References for mi1 use default number-display behavior
+        // (scientific notation for small numbers, no zero padding).
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues
+                    .latex,
+            ),
+        ).match(/10\^{-10}|10\^\{-10\}/);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                    .latex,
+            ),
+        ).match(/10\^{-10}|10\^\{-10\}/);
+
+        // References for mi2 honor avoidScientificNotation + padZeros.
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues
+                    .latex,
+            ),
+        ).eq("0.0000000007000000000");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                    .latex,
+            ),
+        ).eq("0.0000000007000000000");
+
+        // `.text` follows number-display formatting as well.
+        let mi1Text =
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text;
+        let mi2Text =
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text;
+        expect(mi1Text).match(/10\^\(-10\)/);
+        expect(mi2Text).eq("0.0000000007000000000");
     });
 
     it("display digits", async () => {
@@ -8068,8 +8158,8 @@ describe("MathInput tag tests @group2", async () => {
     <p name="pv2">Value: <math extend="$input2" name="iv2" /></p>
     <p name="pr2">Raw value: $input2.rawRendererValue</p>
 
-    <p>Prefill with a \\text</p>
-    <p>Result: <mathInput prefillLatex="\\text{hello there} (a)(b)" name="input3" /></p>
+    <p>Prefill with a \\bad</p>
+    <p>Result: <mathInput prefillLatex="\\bad{hello there} (a)(b)" name="input3" /></p>
     <p name="pv3">Value: <math extend="$input3" name="iv3" /></p>
     <p name="pr3">Raw value: $input3.rawRendererValue</p>
 
@@ -8140,7 +8230,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
-        ).eq("\\text{hello there} (a)(b)");
+        ).eq("\\bad{hello there} (a)(b)");
 
         await updateMathInputValue({
             latex: "\\frac{a}{b} \\int_a^b f(x) dx",
@@ -8199,7 +8289,7 @@ describe("MathInput tag tests @group2", async () => {
         ).eq("hello(a)(b)");
 
         await updateMathInputValue({
-            latex: "\\text{h}(a)(b)",
+            latex: "\\bad{h}(a)(b)",
             componentIdx: await resolvePathToNodeIdx("input3"),
             core,
         });
@@ -8213,7 +8303,7 @@ describe("MathInput tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("pr3")].stateValues.text,
-        ).eq("Raw value: \\text{h}(a)(b)");
+        ).eq("Raw value: \\bad{h}(a)(b)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
@@ -8226,7 +8316,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
-        ).eq("\\text{h}(a)(b)");
+        ).eq("\\bad{h}(a)(b)");
 
         await updateMathInputValue({
             latex: "(a)(b)",
@@ -12040,7 +12130,7 @@ describe("MathInput tag tests @group2", async () => {
         await check_items(math, i);
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <mathInput />
@@ -12051,52 +12141,28 @@ describe("MathInput tag tests @group2", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<mathInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `\`<mathInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `<mathInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `\`<mathInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-    });
-
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <mathInput />
-                <mathInput><shortDescription>hello</shortDescription></mathInput>
-                <mathInput><label>hello</label></mathInput>
-                <mathInput name="enterSomething" labelIsName />
-                <mathInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<mathInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-
-        expect(errorWarnings.errors[1].message).contain(
-            `<mathInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[1].position.start.line).eq(6);
-        expect(errorWarnings.errors[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {
@@ -12178,5 +12244,136 @@ describe("MathInput tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eqls(me.fromLatex("y_3").tree);
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi">
+      <label>hello</label>
+    </mathInput>
+    <boolean extend="$mi.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus the input
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the input
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+    });
+
+    it("invalid additionalFunctionNames entries emit a warning positioned on that attribute", async () => {
+        // MathQuill's `autoOperatorNames` validator throws on any
+        // per-entry token shorter than 2 chars or containing anything
+        // outside letters/pipes/dashes. The `effectiveFunctionNames`
+        // state variable filters those tokens via the shared helper
+        // and emits a per-attribute `warning` diagnostic so the
+        // editor's squiggle covers just the offending attribute.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" additionalFunctionNames="erf e f1" />`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const effective =
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .effectiveFunctionNames;
+        expect(effective).toContain("erf");
+        expect(effective).not.toContain("e");
+        expect(effective).not.toContain("f1");
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        const warning = diagnosticsByType.warnings[0];
+        expect(warning.message).toContain("additionalFunctionNames");
+        expect(warning.message).toContain("'e'");
+        expect(warning.message).toContain("'f1'");
+        // Position spans the `additionalFunctionNames="..."` attribute,
+        // not the entire `<mathInput ... />` element.
+        const attrStart = `<mathInput name="mi" `.length;
+        expect(warning.position.start.column).eq(attrStart + 1);
+        expect(warning.position.end.column).eq(
+            attrStart + `additionalFunctionNames="erf e f1"`.length + 1,
+        );
+    });
+
+    it("invalid resetFunctionNames entries emit a warning positioned on that attribute", async () => {
+        let { core } = await createTestCore({
+            doenetML: `<mathInput name="mi" resetFunctionNames="abc a x1" />`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        const warning = diagnosticsByType.warnings[0];
+        expect(warning.message).toContain("resetFunctionNames");
+        expect(warning.message).toContain("'a'");
+        expect(warning.message).toContain("'x1'");
+        const attrStart = `<mathInput name="mi" `.length;
+        expect(warning.position.start.column).eq(attrStart + 1);
+        expect(warning.position.end.column).eq(
+            attrStart + `resetFunctionNames="abc a x1"`.length + 1,
+        );
+    });
+
+    it("only `resetFunctionNames` warns when both it and `additionalFunctionNames` carry invalid entries — `additional` is inactive", async () => {
+        // When `resetFunctionNames` is authored alongside
+        // `additionalFunctionNames`, the helper makes `additional`
+        // inactive — its invalid tokens are *not* surfaced because
+        // a warning on an attribute whose contents weren't actually
+        // used would be misleading.
+        let { core } = await createTestCore({
+            doenetML: `<mathInput additionalFunctionNames="b" resetFunctionNames="abc a x1" />`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).toContain(
+            "resetFunctionNames",
+        );
+        expect(diagnosticsByType.warnings[0].message).not.toContain(
+            "additionalFunctionNames",
+        );
+    });
+
+    it("emits no warning diagnostic when all authored function names are valid", async () => {
+        let { core } = await createTestCore({
+            doenetML: `<mathInput additionalFunctionNames="erf" removedFunctionNames="min" />`,
+        });
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
     });
 });

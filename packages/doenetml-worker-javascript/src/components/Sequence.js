@@ -5,11 +5,18 @@ import {
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
+
+    static componentDocs = {
+        summary:
+            "Generates a sequence of numbers, math expressions, or letters",
+    };
+
+    static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -21,11 +28,15 @@ export default class Sequence extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -36,6 +47,8 @@ export default class Sequence extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -102,8 +115,7 @@ export default class Sequence extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (!(await component.stateValues.validSequence)) {
             workspace.lastReplacementParameters = {
@@ -113,7 +125,7 @@ export default class Sequence extends CompositeComponent {
                 type: null,
                 exclude: null,
             };
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -153,7 +165,7 @@ export default class Sequence extends CompositeComponent {
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
-            ...Object.keys(returnRoundingAttributes()),
+            ...Object.keys(returnNumberDisplayAttributes()),
         ]) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
@@ -199,8 +211,7 @@ export default class Sequence extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -213,9 +224,7 @@ export default class Sequence extends CompositeComponent {
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`);
 
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let lrp = { ...workspace.lastReplacementParameters };
 
@@ -247,7 +256,7 @@ export default class Sequence extends CompositeComponent {
             lrp.length = 0;
             workspace.lastReplacementParameters = lrp;
 
-            return { replacementChanges };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -270,8 +279,7 @@ export default class Sequence extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
@@ -389,7 +397,7 @@ export default class Sequence extends CompositeComponent {
                 let attributesToConvert = {};
                 for (let attr of [
                     "fixed",
-                    ...Object.keys(returnRoundingAttributes()),
+                    ...Object.keys(returnNumberDisplayAttributes()),
                 ]) {
                     if (attr in component.attributes) {
                         attributesToConvert[attr] = component.attributes[attr];
@@ -470,7 +478,7 @@ export default class Sequence extends CompositeComponent {
 
         workspace.lastReplacementParameters = lrp;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     get allPotentialRendererTypes() {

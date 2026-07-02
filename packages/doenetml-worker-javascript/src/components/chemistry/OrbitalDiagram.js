@@ -11,6 +11,11 @@ export default class OrbitalDiagram extends BlockComponent {
 
     static componentType = "orbitalDiagram";
 
+    static componentDocs = {
+        summary:
+            "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes",
+    };
+
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
@@ -20,6 +25,7 @@ export default class OrbitalDiagram extends BlockComponent {
             createComponentOfType: "textList",
             createStateVariable: "labels",
             defaultValue: [],
+            description: "Text labels for each orbital row.",
         };
         return attributes;
     }
@@ -84,6 +90,8 @@ export default class OrbitalDiagram extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.value = {
+            description:
+                "The orbital diagram value as a list of rows, each with a label and boxes containing up/down arrows.",
             defaultValue: [{ orbitalText: "", boxes: [] }],
             public: true,
             shadowingInstructions: {

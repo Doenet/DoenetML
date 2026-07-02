@@ -1,44 +1,44 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <when>{:dn}`
+# `<when>{:dn}`
 
+<ComponentDisplay name='when'/>
 
-` <when>{:dn}` is an [Evaluation](../document_structure/essentialConcepts/#componentTypes)
-component that is used for creating boolean conditions within an [` <award>{:dn}`](award.mdx).
+`<when>{:dn}` is an [Evaluation](../concepts/essentialConcepts#component-types)
+component that is used for creating boolean conditions within an [`<award>{:dn}`](award.mdx).
 
-## Attributes and Properties 
- <AttrDisplay name='when'/> 
- <PropDisplay name='when'/>
+<AttrPropDisplay name='when'/>
 
----
+## Examples
 
-### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <mathInput/>{:dn}`
+### Example: `<when>{:dn}` in an `<award>{:dn}` with `<mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>1. Enter  <m>a</m> or <m>b</m>:
-  <answer><mathInput name="ans1"/>
-    <award>
-      <when>
-        $ans1 = a or $ans1 = b
-      </when>
-    </award>
-  </answer>
-</p>
+<p><answer>
+  <mathInput name="ans1">
+    <label>1. Enter <m>a</m> or <m>b</m></label>
+  </mathInput>
+  <award>
+    <when>
+      $ans1 = a or $ans1 = b
+    </when>
+  </award>
+</answer></p>
 ```
 
 
 
-` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`.
+`<when>{:dn}` is used to specify the boolean condition within an `<award>{:dn}`.
 
 
 
 ---
 
-### Example: ` <when>{:dn}` in an ` <award>{:dn}` with graphical input
+### Example: `<when>{:dn}` in an `<award>{:dn}` with graphical input
 
 
 ```doenet-editor-horiz
@@ -62,19 +62,20 @@ component that is used for creating boolean conditions within an [` <award>{:dn}
 
 
 
-` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
-this case, the boolean is based on graphical interactions performed by the user to update the radius of the named ` <circle/>{:dn}`.
+`<when>{:dn}` is used to specify the boolean condition within an `<award>{:dn}`. In 
+this case, the boolean is based on graphical interactions performed by the user to update the radius of the named `<circle/>{:dn}`.
 
 
 
 ---
 
-### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <textInput/>{:dn}`
+### Example: `<when>{:dn}` in an `<award>{:dn}` with `<textInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>What color is the complement of purple? 
-<textInput name="userColor"/>
+<p><textInput name="userColor">
+  <label>What color is the complement of purple?</label>
+</textInput>
   <answer name="ans" type="text">
     <award caseInsensitiveMatch>
       <when>
@@ -87,19 +88,20 @@ this case, the boolean is based on graphical interactions performed by the user 
 
 
 
-` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
-this case, the boolean is based on the value of a ` <textInput/>{:dn}`.
+`<when>{:dn}` is used to specify the boolean condition within an `<award>{:dn}`. In 
+this case, the boolean is based on the value of a `<textInput/>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: matchPartial
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when matchPartial="true">
@@ -116,14 +118,15 @@ enclosed boolean condition is true.
 
 
 
----
+## Property Examples
 
 ### Property Example: value
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>
@@ -137,7 +140,7 @@ enclosed boolean condition is true.
 
 
 
-The `value` property renders the value of the boolean condition enclosed by the ` <when>{:dn}` component.
+The `value` property renders the value of the boolean condition enclosed by the `<when>{:dn}` component.
 
 
 
@@ -147,8 +150,9 @@ The `value` property renders the value of the boolean condition enclosed by the 
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial="true">
@@ -163,7 +167,7 @@ The `value` property renders the value of the boolean condition enclosed by the 
 
 
 The `fractionSatisfied` property renders the fractional value corresponding to 
-which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates to `true`.
+which portion of the boolean condition enclosed by the `<when>{:dn}` evaluates to `true`.
 
 
 
@@ -173,8 +177,9 @@ which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates 
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>
@@ -189,7 +194,7 @@ which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates 
 
 
 The `conditionSatisfied` property renders the boolean value corresponding to 
-whether the ` <when>{:dn}` condition has been satisfied.
+whether the `<when>{:dn}` condition has been satisfied.
 
 
 
@@ -199,8 +204,9 @@ whether the ` <when>{:dn}` condition has been satisfied.
 
 
 ```doenet-editor-horiz
-<p>List all prime numbers less than <m>10</m>: 
-  <mathInput name="primeList"/>.</p>
+<p><mathInput name="primeList">
+  <label>List all prime numbers less than <m>10</m></label>
+</mathInput></p>
 <answer>
   <award unOrderedCompare>
     <when name="w1" matchPartial>
@@ -214,6 +220,6 @@ whether the ` <when>{:dn}` condition has been satisfied.
 
 
 
-The `matchPartial` attribute of the ` <when>{:dn}` component is also accessible as a property.
+The `matchPartial` attribute of the `<when>{:dn}` component is also accessible as a property.
 
 

@@ -4,6 +4,10 @@ import { findFiniteNumericalValue } from "../utils/math";
 export default class AttractToGrid extends ConstraintComponent {
     static componentType = "attractToGrid";
 
+    static componentDocs = {
+        summary:
+            "Attracts a graphical component's position to grid lines when nearby",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.dx = {
@@ -11,60 +15,74 @@ export default class AttractToGrid extends ConstraintComponent {
             createStateVariable: "dx",
             defaultValue: 1,
             public: true,
+            description: "Horizontal grid spacing.",
         };
         attributes.dy = {
             createComponentOfType: "number",
             createStateVariable: "dy",
             defaultValue: 1,
             public: true,
+            description: "Vertical grid spacing.",
         };
         attributes.dz = {
             createComponentOfType: "number",
             createStateVariable: "dz",
             defaultValue: 1,
             public: true,
+            description: "Depth-wise grid spacing.",
         };
         attributes.xoffset = {
             createComponentOfType: "number",
             createStateVariable: "xoffset",
             defaultValue: 0,
             public: true,
+            description: "Horizontal offset of the grid origin.",
         };
         attributes.yoffset = {
             createComponentOfType: "number",
             createStateVariable: "yoffset",
             defaultValue: 0,
             public: true,
+            description: "Vertical offset of the grid origin.",
         };
         attributes.zoffset = {
             createComponentOfType: "number",
             createStateVariable: "zoffset",
             defaultValue: 0,
             public: true,
+            description: "Depth-wise offset of the grid origin.",
         };
         attributes.xthreshold = {
             createComponentOfType: "number",
             createStateVariable: "xthreshold",
             defaultValue: 0.2,
             public: true,
+            description:
+                "Horizontal distance within which the position attracts to a grid line.",
         };
         attributes.ythreshold = {
             createComponentOfType: "number",
             createStateVariable: "ythreshold",
             defaultValue: 0.2,
             public: true,
+            description:
+                "Vertical distance within which the position attracts to a grid line.",
         };
         attributes.zthreshold = {
             createComponentOfType: "number",
             createStateVariable: "zthreshold",
             defaultValue: 0.2,
             public: true,
+            description:
+                "Depth-wise distance within which the position attracts to a grid line.",
         };
         attributes.includeGridlines = {
             createComponentOfType: "boolean",
             createStateVariable: "includeGridlines",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to attract to entire grid lines (in addition to grid intersection points).",
         };
         return attributes;
     }

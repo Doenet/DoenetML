@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
-// @ts-ignore
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
@@ -18,11 +18,35 @@ import {
 } from "./utils/checkWork";
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { addValidationStateToShortDescription } from "./utils/validationState";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+
+interface TextInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    immediateValue: string;
+    expanded: boolean;
+    width: { size: string; isAbsolute: boolean };
+    height?: { size: string; isAbsolute: boolean };
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    showCheckWork: boolean;
+    colorCorrectness: boolean;
+    shortDescription?: string;
+}
 
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<TextInputSVs>(props);
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
@@ -36,13 +60,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
     const [rendererValue, setRendererValue] = useState(SVs.immediateValue);
 
     // add ref, because event handler called from jsxgraph doesn't get new value
-    let rendererValueRef = useRef(null);
+    let rendererValueRef = useRef<string | null>(null);
     rendererValueRef.current = rendererValue;
 
-    let valueToRevertTo = useRef(SVs.immediateValue);
+    let valueToRevertTo = useRef<string | null>(SVs.immediateValue);
     let focused = useRef<boolean | null>(null);
 
-    let immediateValueWhenSetState = useRef(null);
+    let immediateValueWhenSetState = useRef<string | null>(null);
 
     let inputJXG = useRef<JXGObject | null>(null);
     let anchorPointJXG = useRef<JXGObject | null>(null);
@@ -89,10 +113,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const validationState = calculateValidationState(SVs);
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     function handleKeyPress(e: React.KeyboardEvent) {
         if (e.key === "Enter") {
@@ -108,7 +135,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 !SVs.expanded &&
                 validationState === "unvalidated"
             ) {
-                submitAnswer();
+                submitActionWithPending();
             }
         }
     }
@@ -118,7 +145,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
             let oldValue = valueToRevertTo.current;
 
             if (oldValue !== rendererValueRef.current) {
-                setRendererValue(oldValue);
+                setRendererValue(oldValue ?? "");
                 immediateValueWhenSetState.current = SVs.immediateValue;
 
                 callAction({
@@ -132,19 +159,26 @@ export default function TextInput(props: UseDoenetRendererProps) {
         }
     }
 
+    function onFocusChanged(isFocused: boolean) {
+        focused.current = isFocused;
+        callAction({
+            action: actions.focusChanged,
+            args: { focused: isFocused },
+        });
+    }
+
     function handleFocus() {
-        focused.current = true;
+        onFocusChanged(true);
     }
 
     function handleBlur() {
-        focused.current = false;
-
         valueToRevertTo.current = rendererValueRef.current;
 
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValueRef.current,
         });
+        onFocusChanged(false);
     }
 
     function onChangeHandler(
@@ -558,12 +592,16 @@ export default function TextInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let input;
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-input-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -602,70 +640,109 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     if (SVs.expanded) {
         input = (
-            <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                {label}
-                <textarea
-                    key={inputKey}
-                    id={inputKey}
-                    value={rendererValue}
-                    disabled={disabled}
-                    onChange={onChangeHandler}
-                    onKeyPress={handleKeyPress}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    className={inputClass}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                    style={{
-                        margin: "0px 4px 4px 4px",
-                        color: "var(--canvasText)",
-                        background: "var(--canvas)",
-                    }}
-                />
-            </label>
+            <textarea
+                key={inputKey}
+                id={inputKey}
+                value={rendererValue}
+                disabled={disabled}
+                onChange={onChangeHandler}
+                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+                className={inputClass}
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
+                aria-details={descriptionId}
+                style={{
+                    margin: "0px 4px 4px 4px",
+                    color: "var(--canvasText)",
+                    background: "var(--canvas)",
+                }}
+            />
         );
     } else {
         input = (
-            <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                {label}
-                <input
-                    key={inputKey}
-                    id={inputKey}
-                    value={rendererValue}
-                    disabled={disabled}
-                    onChange={onChangeHandler}
-                    onKeyPress={handleKeyPress}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    className={inputClass}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                    style={{
-                        margin: "0px 4px 4px 4px",
-                        color: "var(--canvasText)",
-                        background: "var(--canvas)",
-                        width,
-                        height: "20px",
-                    }}
-                />
-            </label>
+            <input
+                key={inputKey}
+                id={inputKey}
+                value={rendererValue}
+                disabled={disabled}
+                onChange={onChangeHandler}
+                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+                className={inputClass}
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
+                aria-details={descriptionId}
+                style={{
+                    margin: "0px 4px 4px 4px",
+                    color: "var(--canvasText)",
+                    background: "var(--canvas)",
+                    width,
+                    height: "20px",
+                }}
+            />
         );
     }
 
-    return (
+    const inputRow = (
         <span
-            id={id}
             style={{
                 display: "inline-flex",
-                maxWidth: "100%",
-                alignItems: "start",
+                alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line.
+                verticalAlign: "baseline",
             }}
         >
             {input}
             {checkWorkComponent}
             {description}
+        </span>
+    );
+
+    const labelComponent = hasLabel ? (
+        <label
+            id={labelId}
+            htmlFor={inputKey}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
+    ) : null;
+
+    return (
+        <span
+            id={id}
+            // `display: inline` so the label and input flow with the
+            // surrounding paragraph text: text before and after the input wraps
+            // together with it, and a wrapping label keeps the input after its
+            // end rather than beside its first line (#1245). See mathInput.tsx
+            // for the full rationale.
+            style={{
+                display: "inline",
+            }}
+        >
+            {SVs.labelPosition === "right" ? (
+                <>
+                    {inputRow}
+                    {labelComponent}
+                </>
+            ) : (
+                <>
+                    {labelComponent}
+                    {inputRow}
+                </>
+            )}
         </span>
     );
 }

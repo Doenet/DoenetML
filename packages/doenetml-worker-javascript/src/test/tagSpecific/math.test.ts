@@ -134,6 +134,36 @@ describe("Math tag tests @group3", async () => {
         ).eqls(["/", "x", "z"]);
     });
 
+    it("parse plus-minus", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math format="latex" name="latexUnary">\\pm \\sqrt{x}</math>
+    <math format="latex" name="latexBinary">a \\pm b</math>
+    <math name="textUnary">±sqrt(x)</math>
+    <math name="textBinary">a ± b</math>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("latexUnary")].stateValues
+                .value.tree,
+        ).eqls(["pm", ["apply", "sqrt", "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("latexBinary")]
+                .stateValues.value.tree,
+        ).eqls(["+", "a", ["pm", "b"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("textUnary")].stateValues
+                .value.tree,
+        ).eqls(["pm", ["apply", "sqrt", "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("textBinary")].stateValues
+                .value.tree,
+        ).eqls(["+", "a", ["pm", "b"]]);
+    });
+
     it("copy latex property", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -4465,7 +4495,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m12")].stateValues
                     .latex,
             ),
-        ).eq("\\frac{-6}{-0}");
+        ).eq("-\\frac{6}{-0}");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
@@ -13257,6 +13287,9 @@ describe("Math tag tests @group3", async () => {
     <math name="m3a" simplify extend="$m3" />
     <math name="m3b" simplify extend="$m3" assumptions="x > 0 and y > 0" />
     <math name="m3c" simplify extend="$m3" assumptions="x > 0, y > 0" />
+
+    <math name="m4">nthroot(a^(7) b^(6) c^(28), 5)</math>
+    <math name="m4b" simplify extend="$m4" assumptions="a > 0 and b > 0 and c > 0" />
     `,
         });
 
@@ -13342,5 +13375,147 @@ describe("Math tag tests @group3", async () => {
             "y",
             ["apply", "nthroot", ["tuple", ["*", 2, ["^", "x", 2], "y"], 4]],
         ]);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
+                .tree,
+        ).eqls([
+            "apply",
+            "nthroot",
+            ["tuple", ["*", ["^", "a", 7], ["^", "b", 6], ["^", "c", 28]], 5],
+        ]);
+        // a^7 = a^5 * a^2, b^6 = b^5 * b, c^28 = c^25 * c^3,
+        // so a, b, and c^5 should all be pulled out of the fifth root.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4b")].stateValues.value
+                .tree,
+        ).eqls([
+            "*",
+            "a",
+            "b",
+            ["^", "c", 5],
+            [
+                "apply",
+                "nthroot",
+                ["tuple", ["*", ["^", "a", 2], "b", ["^", "c", 3]], 5],
+            ],
+        ]);
+    });
+
+    it("display fraction with negative out front", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="a">-3</number>
+
+<p name="p"><math name="m">2/3 + $a x/4</math></p>
+<p name="p2a"><math name="m2a">$a/4</math></p>
+<p name="p2b"><math name="m2b">-3/4</math></p>
+<p name="p2c"><math name="m2c">(-3)/4</math></p>
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["+", ["/", 2, 3], ["/", ["*", -3, "x"], 4]]);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eqls("\\frac{2}{3} - \\frac{3 x}{4}");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("2/3 - (3 x)/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
+        ).eqls(["/", -3, 4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2a")].stateValues.text,
+        ).eq("-3/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
+                .tree,
+        ).eqls(["-", ["/", 3, 4]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2b")].stateValues.text,
+        ).eq("-3/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.value
+                .tree,
+        ).eqls(["/", -3, 4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2c")].stateValues.text,
+        ).eq("-3/4");
+    });
+
+    it("avoidScientificNotation", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <math name="m1">0.000000000007 x^2</math>
+      <math name="m2" avoidScientificNotation>0.000000000007 x^2</math>
+      <math name="m3">2000000000000000000000 x^2</math>
+      <math name="m4" avoidScientificNotation>2000000000000000000000 x^2</math>
+      <math name="m5" avoidScientificNotation>0.000000000007 x^2</math>
+      <math extend="$m5" avoidScientificNotation="false" name="m5b" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
+            ),
+        ).eq("7\\cdot10^{-12}x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
+            ),
+        ).eq("0.000000000007x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
+            ),
+        ).eq("2\\cdot10^{21}x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
+            ),
+        ).eq("2000000000000000000000x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
+            ),
+        ).eq("0.000000000007x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m5b")].stateValues
+                    .latex,
+            ),
+        ).eq("7\\cdot10^{-12}x^{2}");
     });
 });

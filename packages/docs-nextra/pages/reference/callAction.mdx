@@ -1,16 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <callAction>{:dn}`
+# `<callAction>{:dn}`
 
+<ComponentDisplay name='callAction'/>
 
-` <callAction>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+`<callAction>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that triggers an action based on a click interaction or a specified boolean condition. The 
 available actions are:
-- `addChildren`: Adds one or more children to the target component.
-- `deleteChildren`: Deletes one or more children from the target component.
+- `addChildren`: Adds one or more children to the target component. Supported on
+  `<graph>{:dn}`, `<stickyGroup>{:dn}`, and the sectioning components (such as
+  `<section>{:dn}`, `<subsection>{:dn}`, `<paragraphs>{:dn}`, `<problem>{:dn}`,
+  `<exercise>{:dn}`, `<example>{:dn}`, and `<aside>{:dn}`).
+- `deleteChildren`: Deletes one or more children from the target component. Supported on the
+  same components as `addChildren`.
 - `submitAnswer`: Submits the target answer component.
 - `resample`: Resamples the target component.
 - `startAnimation`: Starts the animation of the target component.
@@ -21,13 +26,11 @@ available actions are:
 - `navigateToTarget`: Navigates to a specified target, such as a reference link.
 - `copyDoenetMLToClipboard`: Copies the DoenetML of the target component to the clipboard.
 
-## Attributes and Properties 
- <AttrDisplay name='callAction'/> 
- <PropDisplay name='callAction'/>
+<AttrPropDisplay name='callAction'/>
 
----
+## Examples
 
-### Example: Add a ` <point>{:dn}` child to a ` <graph>{:dn}`
+### Example: Add a `<point>{:dn}` child to a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -36,19 +39,21 @@ available actions are:
   <label>Add point</label>
 </callAction>
 
-<graph name="g" size="small"/> 
+<graph name="g" size="small">
+  <shortDescription>An empty graph to which points can be added</shortDescription>
+</graph>
 ```
 
 
 
-Each time the ` <callAction>{:dn}` button is clicked, a new ` <point>{:dn}` child 
+Each time the `<callAction>{:dn}` button is clicked, a new `<point>{:dn}` child 
 is added to the graph at $(2,3)$.
 
 
 
 ---
 
-### Example: Delete a ` <point>{:dn}` child from a ` <graph>{:dn}`
+### Example: Delete a `<point>{:dn}` child from a `<graph>{:dn}`
 
 
 ```doenet-example
@@ -61,13 +66,15 @@ is added to the graph at $(2,3)$.
   <label>Delete point</label>
 </callAction>
 
-<graph name="g" size="small"/>
+<graph name="g" size="small">
+  <shortDescription>An empty graph to which points can be added or deleted</shortDescription>
+</graph>
 ```
 
 
 
-Each time the second ` <callAction>{:dn}` button is clicked, a  ` <point>{:dn}` 
-child that was added previously is deleted from the ` <graph>{:dn}`.
+Each time the second `<callAction>{:dn}` button is clicked, a  `<point>{:dn}` 
+child that was added previously is deleted from the `<graph>{:dn}`.
 
 
 
@@ -91,14 +98,15 @@ child that was added previously is deleted from the ` <graph>{:dn}`.
 </p>
 
 <graph size="small">
+  <shortDescription>A graph of a point at random coordinates</shortDescription>
   <point>($x, $y)</point>
 </graph>
 ```
 
 
 
-Multiple ` <callActions>{:dn}` can be performed with the action of one 
-button click when grouped together inside a ` <triggerSet>{:dn}` component.
+Multiple `<callActions>{:dn}` can be performed with the action of one 
+button click when grouped together inside a `<triggerSet>{:dn}` component.
 
 
 
@@ -119,18 +127,19 @@ button click when grouped together inside a ` <triggerSet>{:dn}` component.
 
 
 
-Each time the ` <callAction>{:dn}` button is clicked, the ` <sampleRandomNumbers/>{:dn}` component 
+Each time the `<callAction>{:dn}` button is clicked, the `<sampleRandomNumbers/>{:dn}` component 
 is resampled.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: labelIsName
 
 
 ```doenet-example
 <graph name="g" size="small">
+  <shortDescription>A graph with a callAction button to add a point</shortDescription>
   <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
     <point>(5,2)</point>
   </callAction>
@@ -140,7 +149,7 @@ is resampled.
 
 
 Using the `labelIsName` attribute is a shortcut to adding a 
-separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
+separate `<label>{:dn}` child to the `<callAction>{:dn}` component.
 
 
 
@@ -151,6 +160,7 @@ separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
 
 ```doenet-example
 <graph name="g" size="small">
+  <shortDescription>A graph with a callAction button to add a point</shortDescription>
   <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
     <point>(5,2)</point>
   </callAction>
@@ -159,8 +169,8 @@ separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
 
 
 
-The `anchor` attribute specifies the position of the ` <callAction>{:dn}` button 
-when the ` <callAction>{:dn}` is used inside a ` <graph>{:dn}`.
+The `anchor` attribute specifies the position of the `<callAction>{:dn}` button 
+when the `<callAction>{:dn}` is used inside a `<graph>{:dn}`.
 
 
 
@@ -171,13 +181,14 @@ when the ` <callAction>{:dn}` is used inside a ` <graph>{:dn}`.
 
 ```doenet-example
 <graph name="g" size="small">
+  <shortDescription>A graph with a callAction button to add a point</shortDescription>
   <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
     <point>(5,2)</point>
   </callAction>
 </graph>
 ```
 
-The `actionName` attribute specifies the action to be performed by the ` <callAction>{:dn}` component. 
+The `actionName` attribute specifies the action to be performed by the `<callAction>{:dn}` component. 
 
 ---
 
@@ -197,7 +208,7 @@ The `actionName` attribute specifies the action to be performed by the ` <callAc
 
 
 The `resample` specification for the `actionName` acts on 
-the ` <sampleRandomNumbers>{:dn}` component to generate a new set of random numbers.
+the `<sampleRandomNumbers>{:dn}` component to generate a new set of random numbers.
 
 
 
@@ -208,6 +219,7 @@ the ` <sampleRandomNumbers>{:dn}` component to generate a new set of random numb
 
 ```doenet-editor-horiz
 <graph name="g">
+  <shortDescription>Graph with a button to add a circle and point</shortDescription>
   <callAction actionName="addChildren" target="$g" anchor="(-5,6)" >
     <circle/>
     <point/>
@@ -238,14 +250,16 @@ one or more children of the target component.
   <label>Delete point</label>
 </callAction>
 
-<graph name="g" size="small"/>
+<graph name="g" size="small">
+  <shortDescription>An empty graph to which points can be added or deleted</shortDescription>
+</graph>
 ```
 
 
 
 The `deleteChildren` specification for the `actionName` attribute deletes 
 one or more children of the target component that have been added to 
-the ` <graph>{:dn}` with a ` <callAction>{:dn}`.
+the `<graph>{:dn}` with a `<callAction>{:dn}`.
 
 
 
@@ -260,6 +274,7 @@ When you're done, click the red circle.</p>
 <p>Credit = $ans.creditAchieved</p>
 
 <graph grid size="small">
+  <shortDescription>A graph of a line with a draggable point and a circle that submits the answer when clicked</shortDescription>
   <point name="p1" fixed/>
   <point name="p2" coords="(3,1)" styleNumber="2"/>
   <line name="line1" through="$p1 $p2"/>
@@ -286,8 +301,8 @@ When you're done, click the red circle.</p>
 
 
 The `submitAnswer` specification for the `actionName` attribute triggers 
-automatic submission of the target ` <answer>{:dn}` when the condition 
-for the ` <callAction>{:dn}` is satisfied.
+automatic submission of the target `<answer>{:dn}` when the condition 
+for the `<callAction>{:dn}` is satisfied.
 
 
 
@@ -317,7 +332,7 @@ for the ` <callAction>{:dn}` is satisfied.
 
 
 The `startAnimation` specification for the `actionName` attribute acts on a 
-target ` <animateFromSequence/>{:dn}` component.
+target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -351,7 +366,7 @@ target ` <animateFromSequence/>{:dn}` component.
 
 
 The `stopAnimation` specification for the `actionName` attribute acts on a 
-target ` <animateFromSequence/>{:dn}` component.
+target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -381,7 +396,7 @@ target ` <animateFromSequence/>{:dn}` component.
 
 
 The `toggleAnimation` specification for the `actionName` attribute 
-acts on a target ` <animateFromSequence/>{:dn}` component.
+acts on a target `<animateFromSequence/>{:dn}` component.
 
 
 
@@ -395,13 +410,15 @@ acts on a target ` <animateFromSequence/>{:dn}` component.
   <label>Play</label>
 </callAction>
 
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>A video</shortDescription>
+</video>
 ```
 
 
 
 The `playVideo` specification for the `actionName` attribute acts on a 
-target ` <video/>{:dn}` component.
+target `<video/>{:dn}` component.
 
 
 
@@ -419,13 +436,15 @@ target ` <video/>{:dn}` component.
   <label>Pause</label>
 </callAction>
 
-<video name="v1" youtube="B7UmUX68KtE" />
+<video name="v1" youtube="B7UmUX68KtE">
+  <shortDescription>A video</shortDescription>
+</video>
 ```
 
 
 
 The `pauseVideo` specification for the `actionName` attribute 
-acts on a target ` <video/>{:dn}` component.
+acts on a target `<video/>{:dn}` component.
 
 
 
@@ -435,8 +454,8 @@ acts on a target ` <video/>{:dn}` component.
 
 
 ```doenet-editor-horiz
-<p>What mythological creature can only be befriended by gentle maidens?</p>
 <answer name="ans">
+  <label>What mythological creature can only be befriended by gentle maidens?</label>
   <choice>Basilisk</choice>
   <choice>Siren</choice>
   <choice credit="1">Unicorn</choice>
@@ -453,8 +472,8 @@ acts on a target ` <video/>{:dn}` component.
 
 
 The `navigateToTarget` specification for the `actionName` attribute 
-acts on a target ` <ref/>{:dn}` component. The user is automatically 
-taken to the referenced link when the condition for the ` <callAction>{:dn}` becomes `true`.
+acts on a target `<ref/>{:dn}` component. The user is automatically 
+taken to the referenced link when the condition for the `<callAction>{:dn}` becomes `true`.
 
 
 
@@ -469,9 +488,14 @@ taken to the referenced link when the condition for the ` <callAction>{:dn}` bec
 </callAction>
 
 <div name="exampleDoenetML">
-  <graph size="tiny"/>
+  <graph size="tiny">
+    <shortDescription>An empty graph</shortDescription>
+  </graph>
   <slider/>
-  <answer>42</answer>
+  <answer>
+    <label>Enter the answer</label>
+    42
+  </answer>
 </div>
 ```
 
@@ -494,6 +518,7 @@ acts on a target sectional component.
 </callAction>
 
 <graph name="g" size="small">
+  <shortDescription>A graph with a draggable point that triggers adding another point</shortDescription>
   <point name="p" styleNumber="2">(8,0)</point>
 </graph>
 ```
@@ -506,8 +531,8 @@ the action to occur when the condition is `true`.
 
 Note that this process is repeated each time the boolean is newly `true`. 
 To observe this behavior, drag the point back and forth 
-into the negative $x$ region several times. Also, move the blue ` <point>{:dn}` child each 
-time so that you can clearly see the new ` <point>{:dn}` child that appears.
+into the negative $x$ region several times. Also, move the blue `<point>{:dn}` child each 
+time so that you can clearly see the new `<point>{:dn}` child that appears.
 
 
 
@@ -518,6 +543,7 @@ time so that you can clearly see the new ` <point>{:dn}` child that appears.
 
 ```doenet-editor-horiz
 <graph name="g" size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
   <circle name="circ" radius="4" filled/>
 </graph>
 
@@ -538,8 +564,7 @@ time so that you can clearly see the new ` <point>{:dn}` child that appears.
     <point/>
 </callAction>
 
-<p>Trigger a rectangle:</p>
-<booleanInput name="bool"/>
+<booleanInput name="bool"><label>Trigger a rectangle</label></booleanInput>
 <callAction 
   triggerWith="$bool" 
   actionName="addChildren" 
@@ -548,7 +573,7 @@ time so that you can clearly see the new ` <point>{:dn}` child that appears.
 </callAction>
 
 <p>Trigger a line:</p>
-<p>Type <m>x</m><answer name="ans">x</answer></p>
+<p><answer name="ans"><label>Type <m>x</m></label>x</answer></p>
 <callAction 
   triggerWith="$ans" 
   actionName="addChildren" 
@@ -559,13 +584,13 @@ time so that you can clearly see the new ` <point>{:dn}` child that appears.
 
 
 
-The `triggerWith` attribute references a named ` <callAction>{:dn}`, ` <updateValue>{:dn}`, 
-` <triggerSet>{:dn}`, ` <booleanInput>{:dn}`, or an ` <answer>{:dn}`.
+The `triggerWith` attribute references a named `<callAction>{:dn}`, `<updateValue>{:dn}`, 
+`<triggerSet>{:dn}`, `<booleanInput>{:dn}`, or an `<answer>{:dn}`.
 
 
 When the user perfoms any interaction with the referenced 
 component (including submitting an incorrect answer or unchecking a checkbox), 
-the ` <callAction>{:dn}` is performed.
+the `<callAction>{:dn}` is performed.
 
 
 
@@ -584,6 +609,7 @@ the ` <callAction>{:dn}` is performed.
 </callAction>
 
 <graph name="g" size="small">
+  <shortDescription>A graph with a clickable point that triggers adding a circle</shortDescription>
   <point name="p" styleNumber="2">(-6,6)</point>
 </graph>
 ```

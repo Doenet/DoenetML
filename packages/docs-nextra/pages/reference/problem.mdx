@@ -1,28 +1,29 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <problem>{:dn}`
+# `<problem>{:dn}`
 
+<ComponentDisplay name='problem'/>
 
-` <problem>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
-component that renders an auto-numbered block of content. Inline components such as paragraphs 
-(`<p>{:dn}`) and other components can be nested within an ` <problem>{:dn}` to group and order 
-content. Some examples are: another ` <problem>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or 
-an ` <example>{:dn}`.
+`<problem>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that renders a scored, titled block of content. If no
+`<title>{:dn}` is provided, an auto-generated title (e.g. `Problem 1`)
+is rendered. Inline components such as paragraphs (`<p>{:dn}`) and
+other components can be nested within a `<problem>{:dn}` to group and
+order content. Some examples are: another `<problem>{:dn}`, a
+`<section>{:dn}`, a `<figure>{:dn}`, or an `<example>{:dn}`.
 
-## Attributes and Properties 
- <AttrDisplay name='problem'/> 
- <PropDisplay name='problem'/>
+<AttrPropDisplay name='problem'/>
 
----
+## Examples
 
-### Example: ` <problem>{:dn}` with default title
+### Example: `<problem>{:dn}` with default title
 
 
 ```doenet-editor-horiz
 <problem>
-  <p><answer>42</answer></p>
+  <p><answer><label>The answer to life, the universe, and everything</label>42</answer></p>
 </problem>
 
 <section>
@@ -43,15 +44,15 @@ Each sectional component is on the same counter.
 
 ---
 
-### Example: ` <problem>{:dn}` with custom title
+### Example: `<problem>{:dn}` with custom title
 
 
 ```doenet-editor-horiz
 <problem>
   <title>Factor the trinomial</title>
-    <p><m>x^2 + 3x + 2 = </m>
+    <p>
       <answer symbolicEquality>
-        <mathInput name="userInput"/>
+        <mathInput name="userInput"><label><m>x^2 + 3x + 2 = </m></label></mathInput>
         <award>
           <when>
             <hasSameFactoring>
@@ -67,8 +68,8 @@ Each sectional component is on the same counter.
 
 
 
-A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
-within the ` <problem>{:dn}`.
+A custom `<problem>{:dn}` title is creating by providing a `<title>{:dn}` tag 
+within the `<problem>{:dn}`.
 
 
 
@@ -96,10 +97,10 @@ within the ` <problem>{:dn}`.
 
 
 
-A hierarchy is created by nesting one or more sectional components within an ` <problem>{:dn}`.
+A hierarchy is created by nesting one or more sectional components within an `<problem>{:dn}`.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: includeParentNumber
 
@@ -120,7 +121,7 @@ A hierarchy is created by nesting one or more sectional components within an ` <
 
 
 
-The `includeParentNumber` attribute is `false` by default for the ` <problem>{:dn}` component (and `true` by default for the ` <section>{:dn}` component).
+The `includeParentNumber` attribute is `false` by default for the `<problem>{:dn}` component (and `true` by default for the `<section>{:dn}` component).
 
 
 In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
@@ -146,10 +147,10 @@ In order to include the number of the parent sectional component, set `includePa
 
 
 
-The `includeAutoNumber` attribute is `false` by default for the ` <problem>{:dn}` component. This means that if a problem contains a nested ` <title>{:dn}`, it will not render the default numbering (although it will still be counted in the numbering scheme behind the scenes).
+The `includeAutoNumber` attribute is `false` by default for the `<problem>{:dn}` component. This means that if a problem contains a nested `<title>{:dn}`, it will not render the default numbering (although it will still be counted in the numbering scheme behind the scenes).
 
 
-In order to display the problem number in addition to the custom ` <title>{:dn}`, set the `includeAutoNumber` attribute to `true`.
+In order to display the problem number in addition to the custom `<title>{:dn}`, set the `includeAutoNumber` attribute to `true`.
 
 
 
@@ -161,15 +162,15 @@ In order to display the problem number in addition to the custom ` <title>{:dn}`
 ```doenet-example
 <problem sectionWideCheckWork>
   <title>Multiple questions</title>
-    <p>Enter <m>x</m>: <answer>x</answer></p>
-    <p>Enter <m>y</m>: <answer>y</answer></p>
-    <p>Enter <m>z</m>: <answer>z</answer></p>
+    <p><answer><label>Enter <m>x</m></label>x</answer></p>
+    <p><answer><label>Enter <m>y</m></label>y</answer></p>
+    <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </problem>
 ```
 
 
 
-The `sectionWideCheckWork` attribute combines validation for all ` <answer>{:dn}` components within the ` <problem>{:dn}` under a single "Check Work" button.
+The `sectionWideCheckWork` attribute combines validation for all `<answer>{:dn}` components within the `<problem>{:dn}` under a single "Check Work" button.
 
 ---
 
@@ -178,9 +179,9 @@ The `sectionWideCheckWork` attribute combines validation for all ` <answer>{:dn}
 
 ```doenet-example
 <problem sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </problem>
 ```
 
@@ -219,18 +220,42 @@ The `boxed` attribute changes the default formatting for a sectional component t
 
 ---
 
-### Attribute Example: hide
+### Attribute Example: collapsible
 
 
 ```doenet-example
+<problem collapsible>
+  <title>Challenge problem</title>
+  <p><answer><label>What is <m>6 \times 7</m>?</label>42</answer></p>
+</problem>
+
+<problem collapsible startOpen="false">
+  <title>Start collapsed</title>
+  <p><answer><label>What is <m>3 \times 3</m>?</label>9</answer></p>
+</problem>
+```
+
+
+
+The `collapsible` attribute makes a `<problem>{:dn}` collapsible — clicking the title
+banner toggles it open or closed. A collapsible problem starts expanded by default;
+set `startOpen="false"` to have it start collapsed.
+
+
+
+---
+
+### Attribute Example: hide
+
+```doenet-editor-horiz
 <booleanInput name="hideProblem">
   <label>Click here to hide the problem</label>
 </booleanInput>
 
 <problem hide="$hideProblem">
   <title>Now you see me...</title>
-    <p>Type "sassafras" 
-      <answer type="text">sassafras</answer>.
+    <p>
+      <answer type="text"><label>Type "sassafras"</label>sassafras</answer>.
     </p>
 </problem>
 ```
@@ -238,4 +263,3 @@ The `boxed` attribute changes the default formatting for a sectional component t
 
 
 The `hide` attribute takes a boolean as input and can be used with any rendered component.
-

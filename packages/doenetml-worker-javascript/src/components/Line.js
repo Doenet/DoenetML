@@ -5,10 +5,12 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
 
@@ -24,12 +26,18 @@ export default class Line extends GraphicalComponent {
         });
     }
     static componentType = "line";
+    static styleOverrideCategories = ["line"];
+
+    static componentDocs = {
+        summary: "A line through two points or defined by an equation",
+    };
     static canBeInList = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the line can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -39,35 +47,35 @@ export default class Line extends GraphicalComponent {
 
         attributes.equation = {
             createComponentOfType: "math",
+            description: "Implicit equation defining the line.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the line passes through.",
         };
         attributes.slope = {
             createComponentOfType: "number",
+            description: "Slope of the line.",
         };
         attributes.perpendicularTo = {
             createComponentOfType: "_directionComponent",
+            description:
+                "Direction the line should be perpendicular to (e.g. another line or vector).",
         };
         attributes.parallelTo = {
             createComponentOfType: "_directionComponent",
+            description:
+                "Direction the line should be parallel to (e.g. another line or vector).",
         };
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the variables used in the line equation.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
-        attributes.labelPosition = {
-            createComponentOfType: "text",
-            createStateVariable: "labelPosition",
-            defaultValue: "upperright",
-            public: true,
-            forRenderer: true,
-            toLowerCase: true,
-            validValues: ["upperright", "upperleft", "lowerright", "lowerleft"],
-        };
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         return attributes;
     }
@@ -92,7 +100,7 @@ export default class Line extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -100,6 +108,7 @@ export default class Line extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the line's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -146,6 +155,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "line".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -165,6 +175,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the line lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -398,6 +409,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description: "Variable names used in the line's equation.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -573,11 +585,12 @@ export default class Line extends GraphicalComponent {
 
         stateVariableDefinitions.points = {
             public: true,
+            description: "Two points the line passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "pointX") {
                         return [];
@@ -833,7 +846,7 @@ export default class Line extends GraphicalComponent {
                         }
                         return {
                             setValue: { points },
-                            sendWarnings: result.sendWarnings,
+                            sendDiagnostics: result.sendDiagnostics,
                         };
                     } else {
                         return { setValue: { points: result.points } };
@@ -1347,11 +1360,12 @@ export default class Line extends GraphicalComponent {
 
         stateVariableDefinitions.equation = {
             public: true,
+            description: "The line's equation as a math expression.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             stateVariablesDeterminingDependencies: ["equationIdentity"],
             additionalStateVariablesDefined: [
@@ -1361,8 +1375,10 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
                 {
                     variableName: "coeffvar1",
@@ -1370,8 +1386,10 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
                 {
                     variableName: "coeffvar2",
@@ -1379,8 +1397,10 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
             ],
             returnDependencies: function ({ stateValues }) {
@@ -1432,7 +1452,7 @@ export default class Line extends GraphicalComponent {
                                 coeffvar1: blankMath,
                                 coeffvar2: blankMath,
                             },
-                            sendWarnings: result.sendWarnings,
+                            sendDiagnostics: result.sendDiagnostics,
                         };
                     }
 
@@ -1454,7 +1474,7 @@ export default class Line extends GraphicalComponent {
                     let warning = {
                         message:
                             "Line through points of undetermined dimensions.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -1463,7 +1483,7 @@ export default class Line extends GraphicalComponent {
                             coeffvar1: blankMath,
                             coeffvar2: blankMath,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -1471,7 +1491,7 @@ export default class Line extends GraphicalComponent {
                     let warning = {
                         message:
                             "Line must be through points of at least two dimensions.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -1480,7 +1500,7 @@ export default class Line extends GraphicalComponent {
                             coeffvar1: blankMath,
                             coeffvar2: blankMath,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -1503,7 +1523,7 @@ export default class Line extends GraphicalComponent {
                                 "Line is through points that depend on variables: " +
                                 varStrings.join(", ") +
                                 ".",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: {
@@ -1512,7 +1532,7 @@ export default class Line extends GraphicalComponent {
                                 coeffvar1: blankMath,
                                 coeffvar2: blankMath,
                             },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -1817,12 +1837,13 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
+            description: "The slope of the line (2D only).",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeffvar1: {
@@ -1848,12 +1869,13 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.xintercept = {
+            description: "The x-intercept of the line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeff0: {
@@ -1879,12 +1901,13 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.yintercept = {
+            description: "The y-intercept of the line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeff0: {
@@ -1930,6 +1953,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The line's equation rendered as LaTeX.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -1956,17 +1980,19 @@ export default class Line extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.equation,
                     dependencyValues,
@@ -1977,6 +2003,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The line's equation rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -2002,17 +2029,19 @@ export default class Line extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let text = roundForDisplay({
                     value: dependencyValues.equation,
                     dependencyValues,
@@ -2117,14 +2146,14 @@ export default class Line extends GraphicalComponent {
         {
             stateVariable: "equation",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "parallelCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];
@@ -2396,9 +2425,9 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                     " and " +
                     var2 +
                     ".",
-                level: 1,
+                type: "warning",
             };
-            return { success: false, sendWarnings: [warning] };
+            return { success: false, sendDiagnostics: [warning] };
         } else {
             let operator = term[0];
             let operands = term.slice(1);
@@ -2418,9 +2447,9 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                         " and " +
                         var2 +
                         ".",
-                    level: 1,
+                    type: "warning",
                 };
-                return { success: false, sendWarnings: [warning] };
+                return { success: false, sendDiagnostics: [warning] };
             } else if (operator === "*") {
                 let var1ind = -1,
                     var2ind = -1;
@@ -2507,9 +2536,9 @@ function calculatePointsFromCoeffs({
                 " and " +
                 var2String +
                 ".",
-            level: 1,
+            type: "warning",
         };
-        return { success: false, sendWarnings: [warning] };
+        return { success: false, sendDiagnostics: [warning] };
     }
     let zero = me.fromAst(0);
     if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
@@ -2520,9 +2549,9 @@ function calculatePointsFromCoeffs({
                 " and " +
                 var2String +
                 ".",
-            level: 1,
+            type: "warning",
         };
-        return { success: false, sendWarnings: [warning] };
+        return { success: false, sendDiagnostics: [warning] };
     }
 
     // console.log("coefficient of " + var1 + " is " + coeffvar1);

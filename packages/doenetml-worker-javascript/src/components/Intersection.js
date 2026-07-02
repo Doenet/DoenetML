@@ -4,6 +4,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
+    static componentDocs = {
+        summary: "Renders intersections between graphical objects",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =
@@ -14,12 +17,16 @@ export default class Intersection extends CompositeComponent {
 
         attributes.styleNumber = {
             leaveRaw: true,
+            description:
+                "Style number applied to the resulting intersection components.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -141,8 +148,7 @@ export default class Intersection extends CompositeComponent {
             workspace.replacementsCreated = 0;
         }
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let lines = (await component.stateValues.lineChildren).map(
             (x) => x.stateValues,
@@ -162,14 +168,14 @@ export default class Intersection extends CompositeComponent {
         let totNums = numLines + numCircles + numPolys;
 
         if (totNums < 2) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         } else if (totNums > 2) {
-            warnings.push({
+            diagnostics.push({
                 message:
                     "Haven't implemented intersection for more than two items",
-                level: 1,
+                type: "warning",
             });
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let points = [];
@@ -193,7 +199,7 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (points.length === 0) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         const stateIdInfo = {
@@ -245,8 +251,7 @@ export default class Intersection extends CompositeComponent {
 
         return {
             replacements: serializedReplacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -258,9 +263,7 @@ export default class Intersection extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -278,8 +281,7 @@ export default class Intersection extends CompositeComponent {
         });
 
         let serializedIntersections = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         const newNComponents = replacementResults.nComponents;
 
         let nNewIntersections = serializedIntersections.length;
@@ -324,7 +326,7 @@ export default class Intersection extends CompositeComponent {
         if (recreateReplacements === false) {
             // reset replacementsCreated to overwrite any changes made in createSerializedReplacements
             workspace.replacementsCreated = stateIdInfo.num;
-            return { replacementChanges, nComponents };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         // replace with new intersection
@@ -339,7 +341,11 @@ export default class Intersection extends CompositeComponent {
 
         // keep the new value of replacementsCreated that was set in createSerializedReplacements
 
-        return { replacementChanges: [replacementInstruction], nComponents };
+        return {
+            replacementChanges: [replacementInstruction],
+            diagnostics,
+            nComponents,
+        };
     }
 }
 

@@ -1,15 +1,19 @@
 import { Plugin } from "unified";
 import { DastRoot } from "../../types";
-import {
-    BREAK_AROUND_ELEMENTS,
-    PAR_ELEMENTS,
-    PRE_ELEMENTS,
-} from "./special-nodes";
+import { isBlock } from "./layout-categories";
+import { PRE_ELEMENTS } from "./special-nodes";
 import { replaceNode } from "./utils/replace-node";
 import { isElement, isText } from "./utils/testers";
 
 /**
- * Unifiedjs plugin that converts sequences of whitespace to a single space character.
+ * Unifiedjs plugin that drops pure-whitespace text nodes between two
+ * block siblings. The printer emits its own hardlines between blocks, so
+ * this whitespace would otherwise produce stray spaces in the output.
+ *
+ * Blank-line semantics aren't lost: `plugin-mark-blank-lines` runs first
+ * and records a `prettyBlankLineBefore` marker on the next sibling for
+ * any whitespace text node that contained a blank line. The whitespace
+ * text node itself is then dropped here.
  */
 export const removeInternodeWhitespacePlugin: Plugin<
     void[],
@@ -22,8 +26,6 @@ export const removeInternodeWhitespacePlugin: Plugin<
             if (
                 !isText(node) ||
                 node.value.trim().length > 0 ||
-                node.value.endsWith("\n\n") ||
-                node.value.startsWith("\n\n") ||
                 PRE_ELEMENTS.has(parent?.name)
             ) {
                 return;
@@ -37,14 +39,11 @@ export const removeInternodeWhitespacePlugin: Plugin<
             const prevNode = containingArray[index - 1];
             const nextNode = containingArray[index + 1];
             if (
-                (isElement(prevNode) &&
-                    (PAR_ELEMENTS.has(prevNode.name) ||
-                        BREAK_AROUND_ELEMENTS.has(prevNode.name))) ||
-                (isElement(nextNode) &&
-                    (PAR_ELEMENTS.has(nextNode.name) ||
-                        BREAK_AROUND_ELEMENTS.has(nextNode.name)))
+                (isElement(prevNode) && isBlock(prevNode.name)) ||
+                (isElement(nextNode) && isBlock(nextNode.name))
             ) {
-                // If we are between two paragraphs, we should be removed
+                // Whitespace between block siblings is redundant — the
+                // printer will insert hardlines.
                 return null;
             }
         });

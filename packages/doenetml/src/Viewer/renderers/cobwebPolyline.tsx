@@ -1,39 +1,49 @@
-// TODO: remove this when revising components
-// @ts-nocheck
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { createFunctionFromDefinition } from "@doenet/utils";
+import { JXGCurve, JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
+import { GraphicalSVs } from "./utils/graphicalSVs";
+import { styleToDash } from "./utils/styleToDash";
+
+interface CobwebPolylineSVs extends GraphicalSVs {
+    numPoints: number;
+    numericalVertices: [number, number][];
+    fDefinition: any;
+    variable: any;
+    draggable: boolean;
+    fixed: boolean;
+}
 
 export default React.memo(function CobwebPolyline(
     props: UseDoenetRendererProps,
 ) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<CobwebPolylineSVs>(props);
 
+    // @ts-ignore
     CobwebPolyline.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let curveJXG = useRef(null);
-    let diagonalJXG = useRef(null);
-    let polylineJXG = useRef(null);
-    let pointsJXG = useRef(null);
+    let curveJXG = useRef<JXGCurve | null>(null);
+    let diagonalJXG = useRef<JXGLine | null>(null);
+    let polylineJXG = useRef<JXGCurve | null>(null);
+    let pointsJXG = useRef<JXGPoint[] | null>(null);
 
-    let pointCoords = useRef(null);
-    let draggedPoint = useRef(null);
-    let previousNPoints = useRef(null);
-    let jsxPointAttributes = useRef(null);
+    let pointCoords = useRef<any>(null);
+    let draggedPoint = useRef<number | null>(null);
+    let previousNPoints = useRef<number | null>(null);
+    let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
-    let lastPositionsFromCore = useRef(null);
+    let lastPositionsFromCore = useRef<[number, number][] | null>(null);
     lastPositionsFromCore.current = SVs.numericalVertices;
 
-    useEffect(() => {
-        //On unmount
+    React.useEffect(() => {
         return () => {
-            // if point is defined
             if (polylineJXG.current) {
                 deleteCobwebPolylineJXG();
             }
@@ -44,12 +54,6 @@ export default React.memo(function CobwebPolyline(
         if (board === null) {
             return null;
         }
-
-        // if (SVs.numericalVertices.length !== SVs.numVertices ||
-        //   SVs.numericalVertices.some(x => x.length !== 2)
-        // ) {
-        //   return null;
-        // }
 
         let functionAttributes = {
             visible: !SVs.hidden,
@@ -89,7 +93,7 @@ export default React.memo(function CobwebPolyline(
             diagonalAttributes,
         );
 
-        let jsxPolylineAttributes = {
+        let jsxPolylineAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -161,14 +165,14 @@ export default React.memo(function CobwebPolyline(
             );
         }
 
-        let x = [],
-            y = [];
+        let x: number[] = [];
+        let y: number[] = [];
         SVs.numericalVertices.forEach((z) => {
             x.push(z[0]);
             y.push(z[1]);
         });
 
-        let newPolylineJXG = board.create(
+        let newPolylineJXG: JXGCurve = board.create(
             "curve",
             [x, y],
             jsxPolylineAttributes,
@@ -176,13 +180,12 @@ export default React.memo(function CobwebPolyline(
 
         for (let i = 0; i < SVs.numPoints; i++) {
             pointsJXG.current[i].on("drag", (e) => dragHandler(i, e));
-            pointsJXG.current[i].on("up", (x) => upHandler(i));
+            pointsJXG.current[i].on("up", () => upHandler(i));
             pointsJXG.current[i].on("keyfocusout", () => keyFocusOutHandler(i));
             pointsJXG.current[i].on("keydown", (e) => keyDownHandler(i, e));
-            pointsJXG.current[i].on(
-                "down",
-                (x) => (draggedPoint.current = null),
-            );
+            pointsJXG.current[i].on("down", () => {
+                draggedPoint.current = null;
+            });
         }
 
         previousNPoints.current = SVs.numPoints;
@@ -191,30 +194,38 @@ export default React.memo(function CobwebPolyline(
     }
 
     function deleteCobwebPolylineJXG() {
-        board?.removeObject(polylineJXG.current);
-        polylineJXG.current = null;
+        if (polylineJXG.current) {
+            board?.removeObject(polylineJXG.current);
+            polylineJXG.current = null;
+        }
+        if (curveJXG.current) {
+            board?.removeObject(curveJXG.current);
+            curveJXG.current = null;
+        }
+        if (diagonalJXG.current) {
+            board?.removeObject(diagonalJXG.current);
+            diagonalJXG.current = null;
+        }
 
-        board?.removeObject(curveJXG.current);
-        curveJXG.current = null;
-
-        board?.removeObject(diagonalJXG.current);
-        diagonalJXG.current = null;
-
-        for (let i = 0; i < SVs.numPoints; i++) {
-            if (pointsJXG.current[i]) {
-                pointsJXG.current[i].off("drag");
-                pointsJXG.current[i].off("up");
-                pointsJXG.current[i].off("keyfocusout");
-                pointsJXG.current[i].off("keydown");
-                pointsJXG.current[i].off("down");
-                board?.removeObject(pointsJXG.current[i]);
-                delete pointsJXG.current[i];
+        if (pointsJXG.current) {
+            for (let i = 0; i < SVs.numPoints; i++) {
+                if (pointsJXG.current[i]) {
+                    pointsJXG.current[i].off("drag");
+                    pointsJXG.current[i].off("up");
+                    pointsJXG.current[i].off("keyfocusout");
+                    pointsJXG.current[i].off("keydown");
+                    pointsJXG.current[i].off("down");
+                    board?.removeObject(pointsJXG.current[i]);
+                    delete pointsJXG.current[i];
+                }
             }
         }
     }
 
-    function dragHandler(i, e) {
-        let viaPointer = e.type === "pointermove";
+    function dragHandler(i: number, e: { x: number; y: number; type: string }) {
+        if (!pointsJXG.current || !board) {
+            return;
+        }
 
         draggedPoint.current = i;
 
@@ -234,12 +245,12 @@ export default React.memo(function CobwebPolyline(
         });
 
         pointsJXG.current[i].coords.setCoordinates(JXG.COORDS_BY_USER, [
-            ...lastPositionsFromCore.current[i],
+            ...lastPositionsFromCore.current![i],
         ]);
         board.updateInfobox(pointsJXG.current[i]);
     }
 
-    function upHandler(i) {
+    function upHandler(i: number) {
         if (draggedPoint.current !== i) {
             return;
         }
@@ -253,7 +264,7 @@ export default React.memo(function CobwebPolyline(
         });
     }
 
-    function keyFocusOutHandler(i) {
+    function keyFocusOutHandler(i: number) {
         if (draggedPoint.current !== i) {
             draggedPoint.current = null;
             return;
@@ -269,7 +280,7 @@ export default React.memo(function CobwebPolyline(
         });
     }
 
-    function keyDownHandler(i, e) {
+    function keyDownHandler(i: number, e: { key: string }) {
         if (e.key === "Enter") {
             if (draggedPoint.current === i) {
                 callAction({
@@ -287,21 +298,20 @@ export default React.memo(function CobwebPolyline(
     if (board) {
         if (!polylineJXG.current) {
             polylineJXG.current = createCobwebPolylineJXG();
-            // } else if (SVs.numericalVertices.length !== SVs.numVertices ||
-            //   SVs.numericalVertices.some(x => x.length !== 2)
-            // ) {
-            //   deleteCobwebPolylineJXG();
-        } else {
+        } else if (pointsJXG.current && curveJXG.current) {
             let f = createFunctionFromDefinition(SVs.fDefinition);
 
-            curveJXG.current.Y = f;
+            (curveJXG.current as any).Y = f;
             curveJXG.current.needsUpdate = true;
-            curveJXG.current.updateCurve();
+            (curveJXG.current as any).updateCurve();
 
             let varName = SVs.variable.toString();
 
             // add or delete points as required and change data array size
-            if (SVs.numPoints > previousNPoints.current) {
+            if (
+                previousNPoints.current !== null &&
+                SVs.numPoints > previousNPoints.current
+            ) {
                 for (let i = previousNPoints.current; i < SVs.numPoints; i++) {
                     let pointAttributes = Object.assign(
                         {},
@@ -330,36 +340,40 @@ export default React.memo(function CobwebPolyline(
                     );
 
                     pointsJXG.current[i].on("drag", (e) => dragHandler(i, e));
-                    pointsJXG.current[i].on("up", (x) => upHandler(i));
+                    pointsJXG.current[i].on("up", () => upHandler(i));
                     pointsJXG.current[i].on("keyfocusout", () =>
                         keyFocusOutHandler(i),
                     );
                     pointsJXG.current[i].on("keydown", (e) =>
                         keyDownHandler(i, e),
                     );
-                    pointsJXG.current[i].on(
-                        "down",
-                        (x) => (draggedPoint.current = null),
-                    );
+                    pointsJXG.current[i].on("down", () => {
+                        draggedPoint.current = null;
+                    });
                 }
-            } else if (SVs.numPoints < previousNPoints.current) {
+            } else if (
+                previousNPoints.current !== null &&
+                SVs.numPoints < previousNPoints.current
+            ) {
                 for (let i = SVs.numPoints; i < previousNPoints.current; i++) {
                     let pt = pointsJXG.current.pop();
-                    pt.off("drag");
-                    pt.off("up");
-                    pt.off("keyfocusout");
-                    pt.off("keydown");
-                    pt.off("down");
-                    board?.removeObject(pt);
-                    board.update();
+                    if (pt) {
+                        pt.off("drag");
+                        pt.off("up");
+                        pt.off("keyfocusout");
+                        pt.off("keydown");
+                        pt.off("down");
+                        board?.removeObject(pt);
+                        board.update();
+                    }
                 }
                 polylineJXG.current.dataX.length = SVs.numPoints;
             }
 
             previousNPoints.current = SVs.numPoints;
 
-            let shiftX = polylineJXG.current.transformMat[1][0];
-            let shiftY = polylineJXG.current.transformMat[2][0];
+            let shiftX = polylineJXG.current.transformMat![1][0];
+            let shiftY = polylineJXG.current.transformMat![2][0];
 
             for (let i = 0; i < SVs.numPoints; i++) {
                 pointsJXG.current[i].coords.setCoordinates(JXG.COORDS_BY_USER, [
@@ -375,7 +389,6 @@ export default React.memo(function CobwebPolyline(
 
             polylineJXG.current.visProp["visible"] = visible;
             polylineJXG.current.visPropCalc["visible"] = visible;
-            // polylineJXG.current.setAttribute({visible: visible})
 
             for (let i = 0; i < SVs.numPoints - 1; i++) {
                 pointsJXG.current[i].visProp["visible"] = false;
@@ -395,8 +408,11 @@ export default React.memo(function CobwebPolyline(
                 sourceOfUpdate.sourceInformation &&
                 componentIdx in sourceOfUpdate.sourceInformation
             ) {
+                let sourceInfo = sourceOfUpdate.sourceInformation[componentIdx];
                 let vertexUpdated =
-                    sourceOfUpdate.sourceInformation[componentIdx].vertex;
+                    typeof sourceInfo === "object" && sourceInfo
+                        ? (sourceInfo as any).vertex
+                        : undefined;
 
                 if (Number.isFinite(vertexUpdated)) {
                     board.updateInfobox(pointsJXG.current[vertexUpdated]);
@@ -404,17 +420,21 @@ export default React.memo(function CobwebPolyline(
             }
 
             polylineJXG.current.needsUpdate = true;
-            polylineJXG.current.update().updateVisibility();
+            polylineJXG.current.update();
+            polylineJXG.current.updateVisibility?.();
             for (let i = 0; i < SVs.numPoints; i++) {
                 pointsJXG.current[i].needsUpdate = true;
                 pointsJXG.current[i].update();
             }
             if (SVs.numPoints > 0) {
-                pointsJXG.current[SVs.numPoints - 1].setAttribute({
+                const lastPoint = pointsJXG.current[SVs.numPoints - 1];
+                lastPoint.setAttribute({
                     withlabel: true,
                 });
-                pointsJXG.current[SVs.numPoints - 1].label.needsUpdate = true;
-                pointsJXG.current[SVs.numPoints - 1].label.update();
+                if (lastPoint.label) {
+                    lastPoint.label.needsUpdate = true;
+                    lastPoint.label.update();
+                }
             }
 
             board.updateRenderer();
@@ -433,22 +453,9 @@ export default React.memo(function CobwebPolyline(
     );
 });
 
-function styleToDash(style) {
-    if (style === "solid") {
-        return 0;
-    } else if (style === "dashed") {
-        return 2;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-function normalizeStyle(style) {
+function normalizeStyle(style: string) {
     if (style === "triangle") {
         return "triangleup";
-    } else {
-        return style;
     }
+    return style;
 }

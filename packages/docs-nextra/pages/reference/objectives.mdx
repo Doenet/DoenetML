@@ -1,0 +1,113 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<objectives>{:dn}`
+
+<ComponentDisplay name='objectives'/>
+
+`<objectives>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that renders a block of learning objectives — the
+intended outcomes of a section, lesson, or activity. It behaves like
+[`<section>{:dn}`](section) (with auto-generated or custom title and
+sectional counter), but is rendered as a boxed block by default to
+help it stand out.
+
+
+<AttrPropDisplay name='objectives'/>
+
+
+## Examples
+
+### Example: `<objectives>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<section>
+  <title>Linear equations</title>
+  <objectives>
+    <p>After this section, students should be able to:</p>
+    <ul>
+      <li>Identify a linear equation in one variable.</li>
+      <li>Solve a linear equation in one variable.</li>
+      <li>Interpret a linear equation in context.</li>
+    </ul>
+  </objectives>
+
+  <p><lorem generateSentences="2"/></p>
+</section>
+```
+
+
+
+When `<objectives>{:dn}` has no `<title>{:dn}`, an auto-generated title
+(e.g. `Objectives 1`) is rendered. The block is boxed by default.
+
+
+
+---
+
+### Example: `<objectives>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<objectives>
+  <title>Learning outcomes</title>
+  <ul>
+    <li>Outcome 1</li>
+    <li>Outcome 2</li>
+  </ul>
+</objectives>
+```
+
+
+
+A custom `<objectives>{:dn}` title is provided by nesting a
+`<title>{:dn}` component.
+
+
+
+## Attribute Examples
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<objectives>
+  <title>Boxed (default)</title>
+  <p>This is the default styling.</p>
+</objectives>
+
+<objectives boxed="false">
+  <title>Not boxed</title>
+  <p>The box has been suppressed.</p>
+</objectives>
+```
+
+
+
+Unlike most other sectional components, `<objectives>{:dn}` has
+`boxed` set to `true` by default. Set `boxed="false"` to render it as
+a plain section without a border or shaded banner.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideObj">
+  <label>Click here to hide the objectives</label>
+</booleanInput>
+
+<objectives hide="$hideObj">
+  <p>Hidden when the boolean input is checked.</p>
+</objectives>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.

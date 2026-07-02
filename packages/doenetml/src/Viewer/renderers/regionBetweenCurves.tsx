@@ -1,22 +1,38 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useContext, useEffect, useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { GraphicalSVs } from "./utils/graphicalSVs";
+import { JXGCurve } from "./jsxgraph-distrib/types";
+import { styleToDash } from "./utils/styleToDash";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 
-export default React.memo(function RegionBetweenCurves(props) {
-    let { id, SVs } = useDoenetRenderer(props);
+interface RegionBetweenCurvesSVs extends GraphicalSVs {
+    haveFunctions: boolean;
+    boundaryValues: number[];
+    fDefinitions: any[];
+    dashed: boolean;
+    flipFunctions: boolean;
+}
 
+export default React.memo(function RegionBetweenCurves(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs } = useDoenetRenderer<RegionBetweenCurvesSVs>(props);
+
+    // @ts-ignore
     RegionBetweenCurves.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let curve1JXG = useRef(null);
-    let curve2JXG = useRef(null);
-    let regionJXG = useRef(null);
-    let left = useRef(null);
-    let right = useRef(null);
+    let curve1JXG = useRef<JXGCurve | null>(null);
+    let curve2JXG = useRef<JXGCurve | null>(null);
+    let regionJXG = useRef<JXGCurve | null>(null);
+    let left = useRef<number | null>(null);
+    let right = useRef<number | null>(null);
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -27,7 +43,10 @@ export default React.memo(function RegionBetweenCurves(props) {
         };
     }, []);
 
-    function createRegion() {
+    function createRegion(): JXGCurve | null {
+        if (board === null) {
+            return null;
+        }
         if (
             !SVs.haveFunctions ||
             SVs.boundaryValues.length !== 2 ||
@@ -36,7 +55,7 @@ export default React.memo(function RegionBetweenCurves(props) {
             return null;
         }
 
-        [left.current, right.current] = SVs.boundaryValues.toSorted(
+        [left.current, right.current] = [...SVs.boundaryValues].sort(
             (a, b) => a - b,
         );
 
@@ -45,12 +64,19 @@ export default React.memo(function RegionBetweenCurves(props) {
                 ? SVs.selectedStyle.lineColorDarkMode
                 : SVs.selectedStyle.lineColor;
 
-        let fillColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.fillColorDarkMode
-                : SVs.selectedStyle.fillColor;
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor:
+                darkMode === "dark"
+                    ? SVs.selectedStyle.fillColorDarkMode
+                    : SVs.selectedStyle.fillColor,
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+        });
 
-        let jsxAttributes = {
+        let jsxAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -62,8 +88,8 @@ export default React.memo(function RegionBetweenCurves(props) {
             strokeWidth: SVs.selectedStyle.lineWidth,
             dash: styleToDash(SVs.selectedStyle.lineStyle, SVs.dashed),
 
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
             highlight: false,
         };
 
@@ -75,58 +101,54 @@ export default React.memo(function RegionBetweenCurves(props) {
         let f2 = createFunctionFromDefinition(SVs.fDefinitions[1]);
         curve1JXG.current = board.create("functiongraph", f1, {
             visible: false,
-        });
+        }) as JXGCurve;
         curve2JXG.current = board.create("functiongraph", f2, {
             visible: false,
-        });
+        }) as JXGCurve;
 
         // based on https://jsfiddle.net/migerh/u95pL/
         // as described in https://groups.google.com/g/jsxgraph/c/umlhu6CkGD0
-        var region = board.create("curve", [[], []], jsxAttributes);
+        var region = board.create("curve", [[], []], jsxAttributes) as JXGCurve;
 
-        region.updateDataArray = function () {
+        (region as any).updateDataArray = function (this: JXGCurve) {
             // start and end
-            var x, y;
+            var x: number[], y: number[];
 
-            const c1 = curve1JXG.current;
-            const c2 = curve2JXG.current;
+            const c1 = curve1JXG.current!;
+            const c2 = curve2JXG.current!;
+            const leftVal = left.current!;
+            const rightVal = right.current!;
 
-            x = [left.current];
-            y = [c1.Y(left.current)];
+            x = [leftVal];
+            y = [c1.Y!(leftVal)];
 
             // go through c1 forwards, push all of c1's data points into the data array for region
-            for (let pt of c1.points) {
-                if (
-                    left.current <= pt.usrCoords[1] &&
-                    pt.usrCoords[1] <= right.current
-                ) {
+            for (let pt of c1.points!) {
+                if (leftVal <= pt.usrCoords[1] && pt.usrCoords[1] <= rightVal) {
                     x.push(pt.usrCoords[1]);
                     y.push(pt.usrCoords[2]);
                 }
             }
-            x.push(right.current);
-            y.push(c1.Y(right.current));
+            x.push(rightVal);
+            y.push(c1.Y!(rightVal));
 
-            x.push(right.current);
-            y.push(c2.Y(right.current));
+            x.push(rightVal);
+            y.push(c2.Y!(rightVal));
 
             // walk backwards through c2
-            for (let pt of c2.points.toReversed()) {
-                if (
-                    left.current <= pt.usrCoords[1] &&
-                    pt.usrCoords[1] <= right.current
-                ) {
+            for (let pt of [...c2.points!].reverse()) {
+                if (leftVal <= pt.usrCoords[1] && pt.usrCoords[1] <= rightVal) {
                     x.push(pt.usrCoords[1]);
                     y.push(pt.usrCoords[2]);
                 }
             }
 
-            x.push(left.current);
-            y.push(c2.Y(left.current));
+            x.push(leftVal);
+            y.push(c2.Y!(leftVal));
 
             // close the curve
-            x.push(left.current);
-            y.push(c1.Y(left.current));
+            x.push(leftVal);
+            y.push(c1.Y!(leftVal));
 
             if (SVs.flipFunctions) {
                 this.dataX = y;
@@ -145,10 +167,14 @@ export default React.memo(function RegionBetweenCurves(props) {
             board?.removeObject(regionJXG.current);
             regionJXG.current = null;
 
-            board?.removeObject(curve1JXG.current);
-            curve1JXG.current = null;
-            board?.removeObject(curve2JXG.current);
-            curve2JXG.current = null;
+            if (curve1JXG.current) {
+                board?.removeObject(curve1JXG.current);
+                curve1JXG.current = null;
+            }
+            if (curve2JXG.current) {
+                board?.removeObject(curve2JXG.current);
+                curve2JXG.current = null;
+            }
         }
     }
 
@@ -165,13 +191,17 @@ export default React.memo(function RegionBetweenCurves(props) {
             let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
             let f2 = createFunctionFromDefinition(SVs.fDefinitions[1]);
 
-            curve1JXG.current.Y = f1;
-            curve2JXG.current.Y = f2;
+            if (curve1JXG.current) {
+                (curve1JXG.current as any).Y = f1;
+            }
+            if (curve2JXG.current) {
+                (curve2JXG.current as any).Y = f2;
+            }
 
             regionJXG.current.visProp["visible"] = !SVs.hidden;
             regionJXG.current.visPropCalc["visible"] = !SVs.hidden;
 
-            [left.current, right.current] = SVs.boundaryValues.toSorted(
+            [left.current, right.current] = [...SVs.boundaryValues].sort(
                 (a, b) => a - b,
             );
 
@@ -210,21 +240,30 @@ export default React.memo(function RegionBetweenCurves(props) {
                     SVs.selectedStyle.lineWidth;
             }
 
-            let fillColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.fillColorDarkMode
-                    : SVs.selectedStyle.fillColor;
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor:
+                    darkMode === "dark"
+                        ? SVs.selectedStyle.fillColorDarkMode
+                        : SVs.selectedStyle.fillColor,
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+            });
 
-            if (regionJXG.current.visProp.fillcolor !== fillColor) {
-                regionJXG.current.visProp.fillcolor = fillColor;
+            if (
+                regionJXG.current.visProp.fillcolor !== fillAttributes.fillColor
+            ) {
+                regionJXG.current.visProp.fillcolor = fillAttributes.fillColor;
             }
 
             if (
                 regionJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 regionJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
             }
 
             regionJXG.current.needsUpdate = true;
@@ -247,22 +286,10 @@ export default React.memo(function RegionBetweenCurves(props) {
         return null;
     }
 
-    // don't think we want to return anything if not in board
+    // don't return anything if not in board
     return (
         <>
             <span id={id} />
         </>
     );
 });
-
-function styleToDash(style, dash) {
-    if (style === "dashed" || dash) {
-        return 2;
-    } else if (style === "solid") {
-        return 0;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}

@@ -1,4 +1,5 @@
 import { numberToLetters, enumerateCombinations } from "@doenet/utils";
+import type { DiagnosticRecord } from "@doenet/utils";
 import seedrandom from "seedrandom";
 
 // getVariantsForDescendantsForUniqueVariants: only needed in worker
@@ -199,7 +200,12 @@ export function gatherVariantComponents({
 export function getNumVariants({
     serializedComponent,
     componentInfoObjects,
-}: any): any {
+    infoDiagnostics,
+}: {
+    serializedComponent: any;
+    componentInfoObjects: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}): any {
     // get number of variants from document (or other sectioning component)
 
     if (!serializedComponent.variants) {
@@ -240,6 +246,7 @@ export function getNumVariants({
             let results = getNumVariants({
                 serializedComponent: sectionChild,
                 componentInfoObjects,
+                infoDiagnostics,
             });
 
             if (results.success) {
@@ -272,6 +279,7 @@ export function getNumVariants({
         serializedComponent,
         componentInfoObjects,
         isDocument,
+        infoDiagnostics,
     });
 }
 
@@ -284,10 +292,12 @@ export function determineVariantsForSection({
     serializedComponent,
     componentInfoObjects,
     isDocument = false,
+    infoDiagnostics,
 }: {
     serializedComponent: any;
     componentInfoObjects: any;
-    isDocument: boolean;
+    isDocument?: boolean;
+    infoDiagnostics?: DiagnosticRecord[];
 }) {
     if (serializedComponent.variants === undefined) {
         serializedComponent.variants = {};
@@ -319,6 +329,7 @@ export function determineVariantsForSection({
         return BaseComponent.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
     }
 
@@ -459,6 +470,7 @@ export function determineVariantsForSection({
         uniqueResult = BaseComponent.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         }) as { success: boolean; numVariants: number };
 
         if (
@@ -555,4 +567,82 @@ export function determineVariantsForSection({
 
 function indexToLowercaseLetters(index: number) {
     return numberToLetters(index, true);
+}
+
+/**
+ * Extract and validate a constant sort attribute from a serialized component.
+ * Used by selection components (selectFromSequence, selectPrimeNumbers) to ensure
+ * the sort attribute is a constant string value during variant determination.
+ *
+ * @param serializedComponent - The component to extract sort from
+ * @param componentName - The component type name (for error messages)
+ * @param numToSelect - The number of items being selected (determines if sort is valid)
+ * @returns Object with success flag and extracted sort value ("unsorted", "increasing", "decreasing")
+ */
+export function extractConstantSortAttribute(
+    serializedComponent: any,
+    componentName: string,
+    numToSelect: number,
+    infoDiagnostics?: DiagnosticRecord[],
+): { success: boolean; sort?: string } {
+    let sort;
+
+    let sortComponent = serializedComponent.attributes.sort?.component;
+    if (sortComponent) {
+        // only implemented if have a single string child
+
+        if (
+            sortComponent.children?.length === 1 &&
+            typeof sortComponent.children[0] === "string"
+        ) {
+            sort = sortComponent.children[0].trim().toLowerCase();
+        } else if (
+            (!sortComponent.children || sortComponent.children?.length === 0) &&
+            typeof sortComponent.state?.value === "string"
+        ) {
+            sort = sortComponent.state.value.trim().toLowerCase();
+        } else {
+            pushVariantInfo(
+                infoDiagnostics,
+                `cannot determine unique variants of ${componentName} as sort isn't a constant.`,
+                serializedComponent,
+            );
+            return { success: false };
+        }
+    } else {
+        sort = "unsorted";
+    }
+
+    if (sort !== "unsorted" && numToSelect > 1) {
+        pushVariantInfo(
+            infoDiagnostics,
+            `have not implemented unique variants of a ${componentName} with sort`,
+            serializedComponent,
+        );
+        return { success: false };
+    }
+
+    return { success: true, sort };
+}
+
+/**
+ * Append an info-typed diagnostic record describing a reason that unique
+ * variant determination failed. Variant code runs during DAST serialization,
+ * before Core exists, so the caller chains pass this buffer down and Core
+ * drains it into `preliminaryDiagnostics` when it's constructed.
+ */
+export function pushVariantInfo(
+    infoDiagnostics: DiagnosticRecord[] | undefined,
+    message: string,
+    serializedComponent: any,
+) {
+    if (!infoDiagnostics) {
+        return;
+    }
+    infoDiagnostics.push({
+        type: "info",
+        message,
+        position: serializedComponent?.position,
+        sourceDoc: serializedComponent?.sourceDoc,
+    });
 }

@@ -17,8 +17,13 @@ import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
-import { graphSugar } from "./component-sugar/graph";
+import { fractionInputSugar } from "./component-sugar/fractionInput";
+import {
+    nodeSupportsDynamicChildren,
+    addDynamicChildrenSugar,
+} from "./component-sugar/dynamicChildren";
 import { answerSugar } from "./component-sugar/answer";
+import { pluginApplyDeprecations } from "./deprecations";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -34,7 +39,8 @@ export function normalizeDocumentDast(
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
         .use(pluginEnforceValidNames)
-        .use(pluginExpandAliasedElements);
+        .use(pluginExpandAliasedElements)
+        .use(pluginApplyDeprecations);
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
     }
@@ -216,7 +222,6 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     pretzelSugar(node);
                     break;
                 case "graph":
-                    graphSugar(node);
                     descriptionAttributeSugar(node);
                     break;
                 case "answer":
@@ -232,6 +237,14 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                 case "matrixInput":
                     descriptionAttributeSugar(node);
                     break;
+                case "fractionInput":
+                    descriptionAttributeSugar(node);
+                    fractionInputSugar(node);
+                    break;
+            }
+
+            if (nodeSupportsDynamicChildren(node)) {
+                addDynamicChildrenSugar(node);
             }
         });
     };

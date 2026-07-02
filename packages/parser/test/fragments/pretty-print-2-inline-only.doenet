@@ -1,0 +1,4 @@
+<p>Plain text with <em>emphasis</em> and <m>x^2</m> inline.</p>
+<p>A short sentence with one ref: $myRef.</p>
+<p><text>Wrapped <em>inline</em> content stays on the same line if it fits.</text></p>
+<p>This paragraph is intentionally long enough to exceed the print width so we can verify that prose wrapping uses fill() and breaks at word boundaries cleanly.</p>

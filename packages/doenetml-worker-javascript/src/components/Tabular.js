@@ -1,4 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Tabular extends BlockComponent {
     constructor(args) {
@@ -9,12 +10,17 @@ export default class Tabular extends BlockComponent {
         });
     }
     static componentType = "tabular";
+
+    static componentDocs = {
+        summary: "A simple tabular layout of cells",
+    };
     static rendererType = "tabular";
     static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
+            description: "Display width of the tabular layout.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
@@ -22,6 +28,7 @@ export default class Tabular extends BlockComponent {
             forRenderer: true,
         };
         attributes.height = {
+            description: "Display height of the tabular layout.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: null,
@@ -43,47 +50,158 @@ export default class Tabular extends BlockComponent {
         //   forRenderer: true,
         // };
         attributes.halign = {
+            description: "Default horizontal alignment for cells.",
             createComponentOfType: "text",
             createStateVariable: "halign",
             defaultValue: "left",
             public: true,
-            validValues: ["left", "center", "right", "justify"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "left",
+                    description: "Left-align cell content.",
+                },
+                {
+                    value: "center",
+                    description: "Center cell content horizontally.",
+                },
+                {
+                    value: "right",
+                    description: "Right-align cell content.",
+                },
+                {
+                    value: "justify",
+                    description:
+                        "Justify cell content across the full cell width.",
+                },
+            ],
         };
         attributes.valign = {
+            description: "Default vertical alignment for cells.",
             createComponentOfType: "text",
             createStateVariable: "valign",
             defaultValue: "middle",
             public: true,
-            validValues: ["top", "middle", "bottom"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "top",
+                    description: "Align cell content to the top.",
+                },
+                {
+                    value: "middle",
+                    description: "Center cell content vertically.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align cell content to the bottom.",
+                },
+            ],
         };
         attributes.top = {
+            description: "Border style for the top edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "top",
             defaultValue: "none",
             public: true,
-            validValues: ["none", "minor", "medium", "major"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Do not render a border.",
+                },
+                {
+                    value: "minor",
+                    description: "Render a thin border line.",
+                },
+                {
+                    value: "medium",
+                    description: "Render a medium-weight border line.",
+                },
+                {
+                    value: "major",
+                    description: "Render a thick border line.",
+                },
+            ],
             forRenderer: true,
         };
         attributes.left = {
+            description: "Border style for the left edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "left",
             defaultValue: "none",
             public: true,
-            validValues: ["none", "minor", "medium", "major"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Do not render a border.",
+                },
+                {
+                    value: "minor",
+                    description: "Render a thin border line.",
+                },
+                {
+                    value: "medium",
+                    description: "Render a medium-weight border line.",
+                },
+                {
+                    value: "major",
+                    description: "Render a thick border line.",
+                },
+            ],
         };
         attributes.bottom = {
+            description: "Border style for the bottom edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "bottom",
             defaultValue: "none",
             public: true,
-            validValues: ["none", "minor", "medium", "major"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Do not render a border.",
+                },
+                {
+                    value: "minor",
+                    description: "Render a thin border line.",
+                },
+                {
+                    value: "medium",
+                    description: "Render a medium-weight border line.",
+                },
+                {
+                    value: "major",
+                    description: "Render a thick border line.",
+                },
+            ],
         };
         attributes.right = {
+            description: "Border style for the right edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "right",
             defaultValue: "none",
             public: true,
-            validValues: ["none", "minor", "medium", "major"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "none",
+                    description: "Do not render a border.",
+                },
+                {
+                    value: "minor",
+                    description: "Render a thin border line.",
+                },
+                {
+                    value: "medium",
+                    description: "Render a medium-weight border line.",
+                },
+                {
+                    value: "major",
+                    description: "Render a thick border line.",
+                },
+            ],
         };
         return attributes;
     }
@@ -99,6 +217,13 @@ export default class Tabular extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         // stateVariableDefinitions.numRows = {
         //   public: true,

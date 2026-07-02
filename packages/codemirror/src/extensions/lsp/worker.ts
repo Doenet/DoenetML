@@ -1,11 +1,38 @@
-// @ts-ignore
-import LSPWorker from "@doenet/lsp/language-server.js?worker";
+// @ts-ignore — ?raw loads the pre-built IIFE as a string so we can create
+// a blob: URL Worker.  This avoids the double-base64 encoding that Vite's
+// ?worker inline produces (data: URL of the entire IIFE), which increased
+// downstream bundles and broke WASM loading inside the worker.
+import lspSource from "@doenet/lsp/language-server.js?raw";
+
+function createLspWorkerBlobUrl() {
+    return URL.createObjectURL(
+        new Blob([lspSource], { type: "application/javascript" }),
+    );
+}
 import { initWorker } from "./utils/init-message-connection";
 import {
     Diagnostic,
     Position,
     CompletionContext,
 } from "vscode-languageserver-protocol/browser";
+import {
+    DOENET_LSP_METHODS,
+    type ContextHelpCompletion,
+    type HelpContent,
+} from "@doenet/lsp-tools";
+
+// Re-export the help-payload types so editor code that already depends on
+// `@doenet/codemirror` for the LSP integration can pick up the types from
+// the same place as `class LSP` (without growing a separate `@doenet/lsp-tools`
+// import for the help feature).
+export type { ContextHelpCompletion, HelpContent };
+
+/**
+ * Inert default payload returned to callers when the LSP can't be reached
+ * (e.g. init hasn't completed and `workerConn` is unavailable).  Matches the
+ * shape the server returns for the same fallback cases.
+ */
+const HELP_NONE: HelpContent = { kind: "none" };
 
 /**
  * Create a promise with its resolver.
@@ -35,6 +62,36 @@ export class LSP {
     initStatus: "uninitialized" | "initializing" | "initialized" =
         "uninitialized";
     completionTriggers: string[] = [];
+    /**
+     * URL of the inlined core webworker JS bundle.  Captured before the
+     * server initializes; the value sent in the LSP `initialize` request
+     * tells the server how to spawn the rust core sub-worker.
+     * Once init runs, later assignments are ignored (see `setDoenetWorkerUrl`).
+     */
+    doenetWorkerUrl?: string;
+
+    /**
+     * Set the doenet worker URL used during LSP initialization.  Only takes
+     * effect before `init()` runs — once the LSP is initialized the URL is
+     * locked in for the rest of the session.  If a later `<CodeMirror>`
+     * instance passes a *different* URL, it is ignored and a warning is
+     * emitted so the conflict is visible to developers.
+     */
+    setDoenetWorkerUrl(doenetWorkerUrl: string | undefined) {
+        if (this.initStatus !== "uninitialized") {
+            if (doenetWorkerUrl && doenetWorkerUrl !== this.doenetWorkerUrl) {
+                console.warn(
+                    "DoenetML LSP: doenetWorkerUrl is a process-wide singleton; " +
+                        "the URL passed by a later <CodeMirror> instance is being ignored. " +
+                        `Using "${this.doenetWorkerUrl}", ignoring "${doenetWorkerUrl}".`,
+                );
+            }
+            return;
+        }
+        if (doenetWorkerUrl) {
+            this.doenetWorkerUrl = doenetWorkerUrl;
+        }
+    }
 
     ensureDiagnosticsHandlerRegistered() {
         if (!this.lspConn || this.diagnosticsHandlerRegistered) {
@@ -60,8 +117,22 @@ export class LSP {
         }
         if (this.initStatus === "uninitialized") {
             this.initStatus = "initializing";
-            this.worker = new LSPWorker();
-            const { lspConn, workerConn } = await initWorker(this.worker!);
+            let workerBlobUrl: string | null = null;
+            try {
+                workerBlobUrl = createLspWorkerBlobUrl();
+                this.worker = new Worker(workerBlobUrl);
+            } finally {
+                if (workerBlobUrl) {
+                    const urlToRevoke = workerBlobUrl;
+                    // Revoke after construction to avoid accumulating blob URLs
+                    // across long sessions and hot-reload cycles.
+                    queueMicrotask(() => URL.revokeObjectURL(urlToRevoke));
+                }
+            }
+            const { lspConn, workerConn } = await initWorker(
+                this.worker!,
+                this.doenetWorkerUrl,
+            );
             this.lspConn = lspConn;
             this.workerConn = workerConn;
             this.completionTriggers = this.lspConn.completionTriggers;
@@ -170,7 +241,11 @@ export class LSP {
     async getCompletionItems(
         uri: string,
         position: Position,
-        context: CompletionContext,
+        // `explicit` is a non-standard extension to the LSP completion
+        // context: the plugin sets it when the user pressed Ctrl+Space (vs.
+        // the popup opening from typing). It rides along the JSON-RPC params
+        // and is read back on the server in `completions.ts`.
+        context: CompletionContext & { explicit?: boolean },
     ) {
         await this.initPromise.promise;
         if (!this.lspConn) {
@@ -196,12 +271,69 @@ export class LSP {
     ): Promise<void> {
         await this.initPromise.promise;
         if (!this.workerConn) {
-            console.warn("Cannot send additional diagnostics without lspConn");
+            console.warn(
+                "Cannot send additional diagnostics without workerConn",
+            );
             return;
         }
-        await this.workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
-            uri,
-            additionalDiagnostics,
-        });
+        await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.setAdditionalDiagnostics,
+            {
+                uri,
+                additionalDiagnostics,
+            },
+        );
+    }
+
+    /**
+     * Ask the LSP server for the context-sensitive help payload at the given
+     * cursor `offset`.  Implements the editor side of issue #1086 / Option 4:
+     * help derivation runs in the LSP worker (which already holds a Rust
+     * resolver adapter), so multi-segment refs like `$rep[1].point1.x`
+     * resolve correctly here even though the editor itself has no resolver.
+     *
+     * Returns `{ kind: "none" }` if the LSP hasn't been wired up yet — the
+     * editor renders an empty help panel rather than throwing.
+     */
+    async requestContextHelp(
+        uri: string,
+        offset: number,
+    ): Promise<HelpContent> {
+        await this.initPromise.promise;
+        if (!this.workerConn) {
+            console.warn("Cannot request context help without workerConn");
+            return HELP_NONE;
+        }
+        return await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.contextHelp,
+            {
+                uri,
+                offset,
+            },
+        );
+    }
+
+    /**
+     * Ask the LSP server for the context-sensitive help payload for the
+     * currently-highlighted autocomplete row.  Used while the popup is open:
+     * the help panel mirrors the highlighted entry so arrow-key navigation
+     * surfaces its docs immediately.
+     */
+    async requestContextHelpForCompletion(
+        uri: string,
+        offset: number,
+        completion: ContextHelpCompletion,
+    ): Promise<HelpContent> {
+        await this.initPromise.promise;
+        if (!this.workerConn) {
+            console.warn(
+                "Cannot request context help for completion without workerConn",
+            );
+            return HELP_NONE;
+        }
+        return await this.workerConn.sendRequest(
+            DOENET_LSP_METHODS.contextHelpForCompletion,
+            { uri, offset, completion },
+        );
     }
 }

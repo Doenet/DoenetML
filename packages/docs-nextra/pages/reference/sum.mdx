@@ -1,22 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <sum>{:dn}`
+# `<sum>{:dn}`
 
 
-` <sum>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+<ComponentDisplay name='sum'/>
+
+`<sum>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types) 
 component that renders the sum of its arguments.
 
 
-## Attributes and Properties 
- <AttrDisplay name='sum'/> 
- <PropDisplay name='sum'/>
+<AttrPropDisplay name='sum'/>
  
 
----
+## Examples
 
-### Example: ` <sum>{:dn}` of a nested list of numbers
+### Example: `<sum>{:dn}` of a list of numbers
 
 
 ```doenet-editor-horiz
@@ -25,13 +25,13 @@ component that renders the sum of its arguments.
 
 
 
-` <sum>{:dn}` renders the sum of values in a list of numbers separated by spaces.
+`<sum>{:dn}` renders the sum of values in a list of numbers separated by spaces.
 
 
 
 ---
 
-### Example: ` <sum>{:dn}` of a named list
+### Example: `<sum>{:dn}` of a named list
 
 
 ```doenet-editor-horiz
@@ -42,13 +42,13 @@ component that renders the sum of its arguments.
 
 
 
-` <sum>{:dn}` renders the sum of values in a named ` <numberList>{:dn}`.
+`<sum>{:dn}` renders the sum of values in a named `<numberList>{:dn}`.
 
 
 
 ---
 
-### Example: ` <sum>{:dn}` of a randomly selected set of numbers
+### Example: `<sum>{:dn}` of a randomly selected set of numbers
 
 
 ```doenet-editor-horiz
@@ -68,14 +68,14 @@ component that renders the sum of its arguments.
 
 
 
-` <sum>{:dn}` renders the sum of values in a list of numbers that are generated with 
-the ` <selectRandomNumbers/>{:dn}` component. 
+`<sum>{:dn}` renders the sum of values in a list of numbers that are generated with 
+the `<selectRandomNumbers/>{:dn}` component. 
 
 
 
 ---
 
-### Example: ` <sum>{:dn}` of symbolic maths
+### Example: `<sum>{:dn}` of symbolic maths
 
 
 ```doenet-editor-horiz
@@ -93,5 +93,5 @@ the ` <selectRandomNumbers/>{:dn}` component.
 
 
 
-` <sum>{:dn}` renders the sum of values in a named ` <mathList>{:dn}`. Since ` <sum>{:dn}` is a math component, ` <math>{:dn}` attributes like `simplify` are also available.
+`<sum>{:dn}` renders the sum of values in a named `<mathList>{:dn}`. Since `<sum>{:dn}` is a math component, `<math>{:dn}` attributes like `simplify` are also available.
 

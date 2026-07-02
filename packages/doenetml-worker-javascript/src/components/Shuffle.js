@@ -8,6 +8,11 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
 
+    static componentDocs = {
+        summary: "Randomly shuffles its children",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;
@@ -20,12 +25,15 @@ export default class Shuffle extends CompositeComponent {
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to shuffle children as.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -40,6 +48,7 @@ export default class Shuffle extends CompositeComponent {
             componentInfoObjects,
             nComponents,
         }) {
+            const diagnostics = [];
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -55,12 +64,24 @@ export default class Shuffle extends CompositeComponent {
             if (componentAttributes.type?.value) {
                 type = componentAttributes.type.value;
             } else {
-                return { success: false };
+                if (
+                    matchedChildren.some((child) => typeof child === "string")
+                ) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: `For \`<shuffle>\` to work with string children, a \`type\` attribute must be specified.`,
+                    });
+                }
+                return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                return { success: false };
+                diagnostics.push({
+                    type: "warning",
+                    message: `Invalid type ${type} for shuffle component. Must be one of math, text, number, or boolean. Defaulting to math.`,
+                });
+                type = "math";
             }
 
             // break any string by white space and wrap pieces with type
@@ -82,6 +103,7 @@ export default class Shuffle extends CompositeComponent {
                     success: true,
                     newChildren,
                     nComponents: result.nComponents,
+                    diagnostics,
                 };
             } else {
                 return { success: false };
@@ -119,7 +141,14 @@ export default class Shuffle extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let originalComponentIndices = [];
+                const diagnostics = [];
                 for (let child of dependencyValues.children) {
+                    if (typeof child === "string") {
+                        diagnostics.push({
+                            type: "warning",
+                            message: `String "${child}" is not a valid component to shuffle. Ignoring.`,
+                        });
+                    }
                     if (child.stateValues?.componentIndicesInList) {
                         originalComponentIndices.push(
                             ...child.stateValues.componentIndicesInList,
@@ -134,6 +163,7 @@ export default class Shuffle extends CompositeComponent {
                         originalComponentIndices,
                         numComponents: originalComponentIndices.length,
                     },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -161,19 +191,19 @@ export default class Shuffle extends CompositeComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let numComponents = dependencyValues.numComponents;
 
-                // if desiredIndices is specfied, use those
+                // if desiredIndices is specified, use those
                 let desiredComponentOrder =
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredComponentOrder !== undefined) {
                     if (desiredComponentOrder.length !== numComponents) {
-                        warnings.push({
+                        diagnostics.push({
                             message:
                                 "Ignoring indices specified for shuffle as number of indices doesn't match number of components.",
-                            level: 2,
+                            type: "info",
                         });
                     } else {
                         desiredComponentOrder =
@@ -188,15 +218,18 @@ export default class Shuffle extends CompositeComponent {
                                 (x) => x >= 1 && x <= numComponents,
                             )
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for shuffle as some indices out of range.",
-                                level: 2,
+                                type: "info",
                             });
                         } else {
                             return {
                                 setValue: {
-                                    componentOrder: desiredComponentOrder,
+                                    componentOrder:
+                                        desiredComponentOrder.filter(
+                                            (x) => x !== undefined,
+                                        ),
                                 },
                             };
                         }
@@ -224,7 +257,7 @@ export default class Shuffle extends CompositeComponent {
                     setValue: {
                         componentOrder,
                     },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -324,8 +357,7 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -364,8 +396,7 @@ export default class Shuffle extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -377,9 +408,7 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let componentsToCopy = [];
 
@@ -401,7 +430,7 @@ export default class Shuffle extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // for now, just recreate
@@ -414,9 +443,8 @@ export default class Shuffle extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
-        nComponents = replacements.nComponents;
+        diagnostics.push(...replacementResults.diagnostics);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -428,12 +456,13 @@ export default class Shuffle extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numComponents = 0;
 
@@ -478,6 +507,7 @@ export default class Shuffle extends CompositeComponent {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
+            infoDiagnostics,
         });
 
         if (!result.success) {

@@ -16,6 +16,7 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -6491,30 +6492,30 @@ describe("Extend and references tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Cannot extend or copy an unrecognized component type: invalidName`,
         );
 
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(8);
-        expect(errorWarnings.warnings[0].position.start.column).eq(13);
-        expect(errorWarnings.warnings[0].position.end.line).eq(8);
-        expect(errorWarnings.warnings[0].position.end.column).eq(50);
+        expect(diagnosticsByType.warnings[0].type).eq("warning");
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(8);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(13);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(8);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(50);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Cannot extend or copy an unrecognized component type: anotherInvalidName`,
         );
 
-        expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(8);
-        expect(errorWarnings.warnings[1].position.start.column).eq(50);
-        expect(errorWarnings.warnings[1].position.end.line).eq(8);
-        expect(errorWarnings.warnings[1].position.end.column).eq(92);
+        expect(diagnosticsByType.warnings[1].type).eq("warning");
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(8);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(50);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(8);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(92);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(

@@ -1,0 +1,7 @@
+Some bare top-level text with <em>inline</em> emphasis.
+<p>Then a paragraph.</p>
+More bare text, with $ref macro.
+<section>
+    <title>A section</title>
+    <p>Section content.</p>
+</section>

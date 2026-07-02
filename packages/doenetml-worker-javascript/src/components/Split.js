@@ -3,6 +3,9 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class Split extends CompositeComponent {
     static componentType = "split";
 
+    static componentDocs = {
+        summary: "Splits a string or list into pieces",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =
@@ -17,7 +20,13 @@ export default class Split extends CompositeComponent {
             createStateVariable: "type",
             defaultPrimitiveValue: "text",
             toLowerCase: true,
-            validValues: ["text"],
+            validValues: [
+                {
+                    value: "text",
+                    description: "Split text values.",
+                },
+            ],
+            description: "Type of value being split.",
         };
 
         attributes.splitBy = {
@@ -25,13 +34,29 @@ export default class Split extends CompositeComponent {
             createStateVariable: "splitBy",
             defaultValue: "letter",
             toLowerCase: true,
-            validValues: ["letter", "word", "comma"],
+            validValues: [
+                {
+                    value: "letter",
+                    description: "Split into individual characters.",
+                },
+                {
+                    value: "word",
+                    description: "Split into whitespace-separated words.",
+                },
+                {
+                    value: "comma",
+                    description: "Split on comma boundaries.",
+                },
+            ],
+            description: "How to break the input string into pieces.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -261,8 +286,7 @@ export default class Split extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        const errors = [];
-        const warnings = [];
+        const diagnostics = [];
 
         const values = await component.stateValues.values;
 
@@ -292,8 +316,7 @@ export default class Split extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -304,9 +327,7 @@ export default class Split extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         const values = await component.stateValues.values;
 
@@ -314,7 +335,7 @@ export default class Split extends CompositeComponent {
             values.length === workspace.values.length &&
             workspace.values.every((s, i) => s === values[i])
         ) {
-            return { replacementChanges: [] };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // recreate if something changed
@@ -326,8 +347,7 @@ export default class Split extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -340,6 +360,6 @@ export default class Split extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

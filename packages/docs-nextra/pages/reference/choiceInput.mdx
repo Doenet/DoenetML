@@ -1,27 +1,28 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <choiceInput>{:dn}`
+# `<choiceInput>{:dn}`
 
-` <choiceInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types) 
+<ComponentDisplay name='choiceInput'/>
+
+`<choiceInput>{:dn}` is an [Input](../concepts/essentialConcepts#component-types) 
 component that defines a block of code for multiple choice questions.
 It serves as a container element for the individual 
-` <choice>{:dn}` components that are nested within.
+`<choice>{:dn}` components that are nested within.
 
-## Attributes and Properties 
- <AttrDisplay name='choiceInput'/> 
- <PropDisplay name='choiceInput'/>
+<AttrPropDisplay name='choiceInput'/>
 
 
----
+## Examples
 
-### Example: ` <choiceInput>{:dn}` for survey question
+### Example: `<choiceInput>{:dn}` for survey question
 
 
 ```doenet-example
 <choiceInput>
+  <label>I agree with the statement.</label>
   <choice>Agree</choice>
   <choice>Neutral</choice>
   <choice>Disagree</choice>
@@ -30,18 +31,20 @@ It serves as a container element for the individual
 
 
 
-A ` <choiceInput>{:dn}` is used to collect user responses that do not require validation.
+A `<choiceInput>{:dn}` is used to collect user responses that do not require
+validation. A nested `<label>{:dn}` child supplies the prompt for the choices.
 
 
 
 ---
 
-### Example: ` <choiceInput>{:dn}` in ` <answer>{:dn}`
+### Example: `<choiceInput>{:dn}` in `<answer>{:dn}`
 
 
 ```doenet-example
 <answer>
   <choiceInput>
+    <label>Pick the correct statement</label>
     <choice credit="1">This is correct.</choice>
     <choice credit="0.5">This is partially correct.</choice>
     <choice>This is all the way wrong.</choice>
@@ -51,18 +54,19 @@ A ` <choiceInput>{:dn}` is used to collect user responses that do not require va
 
 
 
-A ` <choiceInput>{:dn}` can be nested within an ` <answer>{:dn}` to 
+A `<choiceInput>{:dn}` can be nested within an `<answer>{:dn}` to 
 collect user responses with validation.
 
 
 
 ---
 
-### Example: ` <choiceInput>{:dn}` as a menu
+### Example: `<choiceInput>{:dn}` as a menu
 
 
 ```doenet-editor-horiz
 <choiceInput name="menu" inline>
+  <label>Pick a shape</label>
   <choice>Line</choice>
   <choice>Rectangle</choice>
   <choice>Circle</choice>
@@ -88,29 +92,30 @@ collect user responses with validation.
 
 
 
-A ` <choiceInput>{:dn}` can be used in combination 
-with ` <conditionalContent>{:dn}` to create a simple menu.
+A `<choiceInput>{:dn}` can be used in combination 
+with `<conditionalContent>{:dn}` to create a simple menu.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: selectMultiple
 
 
 ```doenet-example
 <choiceInput selectMultiple>
-    <choice>Red</choice>
-    <choice>Purple</choice>
-    <choice>Blue</choice>
-    <choice>Yellow</choice>
-  </choiceInput>
+  <label>Pick the colors you like</label>
+  <choice>Red</choice>
+  <choice>Purple</choice>
+  <choice>Blue</choice>
+  <choice>Yellow</choice>
+</choiceInput>
 ```
 
 
 
-The `selectMultiple` allows users to select multiple ` <choice>{:dn}` 
-components in a ` <choiceInput>{:dn}`. 
+The `selectMultiple` allows users to select multiple `<choice>{:dn}` 
+components in a `<choiceInput>{:dn}`. 
 
 
 
@@ -120,23 +125,23 @@ components in a ` <choiceInput>{:dn}`.
 
 
 ```doenet-example
-<p>What colors combine to make green?</p>
-  <answer>
+<answer>
   <choiceInput selectMultiple matchPartial>
+    <label>What colors combine to make green?</label>
     <choice>Red</choice>
     <choice>Purple</choice>
     <choice credit="1">Blue</choice>
     <choice credit="1">Yellow</choice>
   </choiceInput>
-  </answer>
+</answer>
 ```
 
 
 
-If an ` <answer>{:dn}` requires more than one ` <choice>{:dn}` selection 
+If an `<answer>{:dn}` requires more than one `<choice>{:dn}` selection 
 for full credit, the `matchPartial` attribute can be used to 
 assign partial credit if one or more of the total number of correct 
-choices are selected within a ` <choiceInput>{:dn}`.
+choices are selected within a `<choiceInput>{:dn}`.
 
 
 
@@ -147,13 +152,14 @@ choices are selected within a ` <choiceInput>{:dn}`.
 
 ```doenet-example
 <choiceInput inline>
+  <label>Pick a letter</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
 </choiceInput>
 ```
 
-The `inline` attribute provides a pull-down menu for ` <choice>{:dn}` 
+The `inline` attribute provides a pull-down menu for `<choice>{:dn}` 
 selection rather than the default radio buttons.
 
 
@@ -164,6 +170,7 @@ selection rather than the default radio buttons.
 
 ```doenet-example
 <choiceInput shuffleOrder>
+  <label>Pick a letter (shuffled)</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
@@ -182,6 +189,7 @@ different for each page variant.
 
 ```doenet-example
 <choiceInput preselectChoice="2">
+  <label>Pick a letter (B is preselected)</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
@@ -196,8 +204,11 @@ The `preselectChoice` attributes takes the index of the choice to preselect.
 
 
 ```doenet-example
-<slider name="m" from="1" to="4"/>
+<slider name="m" from="1" to="4">
+  <label>Slider bound to choice</label>
+</slider>
 <choiceInput bindValueTo="$m">
+  <label>Number bound to slider</label>
   <choice>1</choice>
   <choice>2</choice>
   <choice>3</choice>
@@ -205,56 +216,19 @@ The `preselectChoice` attributes takes the index of the choice to preselect.
 </choiceInput>
 ```
 
-The ` <bindValueTo>{:dn}` takes a named component as input. The 
-value of the ` <choiceInput>{:dn}` then becomes linked to that component's value.
-
----
-
-### Attribute Example: submitLabel
-
-
-```doenet-example
-Guess my age: <answer>
-<choiceInput submitLabel="Enter guess">
-  <choice>0 - 10 years</choice>
-  <choice>10 - 20 years</choice>
-  <choice credit="1">20 - 200 years</choice>
-</choiceInput>
-</answer>      
-```
-
-The `submitLabel` attribute can be used to create a custom label for the "Check Work" button.
-
----
-
-### Attribute Example: submitLabelNoCorrectness
-
-
-```doenet-example
-<p>What's the magic number?</p>
-<answer showCorrectness="false">
-<choiceInput submitLabelNoCorrectness="Guess Magic Number">
-  <choice><m>\pi</m></choice>
-  <choice>100</choice>
-  <choice credit="1">42</choice>
-</choiceInput>
-</answer> 
-```
+The `<bindValueTo>{:dn}` takes a named component as input. The 
+value of the `<choiceInput>{:dn}` then becomes linked to that component's value.
 
 
 
-The `submitLabelNoCorrectness` attribute modifies the standard 
-"Submit Response" button label for answers where it is not desired to show correctness.
-
-
-
----
+## Property Examples
 
 ### Property Example: numChoices
 
 
 ```doenet-editor-horiz
 <choiceInput name="question1">
+  <label>Pick a letter</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
@@ -267,8 +241,8 @@ The `submitLabelNoCorrectness` attribute modifies the standard
 
 
 
-The `numChoices` property returns the number of nested ` <choice>{:dn}` 
-children in the named ` <choiceInput>{:dn}`.
+The `numChoices` property returns the number of nested `<choice>{:dn}` 
+children in the named `<choiceInput>{:dn}`.
 
 
 
@@ -279,6 +253,7 @@ children in the named ` <choiceInput>{:dn}`.
 
 ```doenet-editor-horiz
 <choiceInput name="question1">
+  <label>Pick a letter</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
@@ -295,7 +270,7 @@ children in the named ` <choiceInput>{:dn}`.
 
 
 
-The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:dn}` in an array.
+The `choiceTexts` property renders the texts contained in the `<choiceInput>{:dn}` in an array.
 
 
 
@@ -306,6 +281,7 @@ The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:d
 
 ```doenet-editor-horiz
 <choiceInput name="question1">
+  <label>Pick an expression</label>
   <choice><math>x^2</math></choice>
   <choice><math>2x</math></choice>
   <choice><math>sqrt(x)</math></choice>
@@ -322,7 +298,7 @@ The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:d
 
 
 
-The `choiceMaths` property renders the maths contained in the ` <choiceInput>{:dn}` in an array.
+The `choiceMaths` property renders the maths contained in the `<choiceInput>{:dn}` in an array.
 
 
 
@@ -332,8 +308,8 @@ The `choiceMaths` property renders the maths contained in the ` <choiceInput>{:d
 
 
 ```doenet-editor-horiz
-<p>Choose 2:</p>
 <choiceInput name="question1" selectMultiple>
+  <label>Choose 2</label>
   <choice><math>x^2</math></choice>
   <choice><math>2x</math></choice>
   <choice><math>sqrt(x)</math></choice>
@@ -360,8 +336,8 @@ The `selectedIndices` property renders an array of the indices of all choices se
 
 
 ```doenet-editor-horiz
-<p>Choose 2:</p>
 <choiceInput name="question1" selectMultiple>
+  <label>Choose 2</label>
   <choice>A</choice>
   <choice>B</choice>
   <choice>C</choice>
@@ -389,20 +365,19 @@ in all of the choices selected by the user.
 
 
 ```doenet-editor-horiz
-<p>Choose 2:</p>
-
 <answer numAwardsCredited="2" matchPartial>
-<choiceInput name="question1" selectMultiple>
-  <choice feedbackText="A is a bad choice">
-    A
-  </choice>
-  <choice feedbackText="B is a good choice" credit="1">
-    B
-  </choice>
-  <choice feedbackText="C is a good choice" credit="1">
-    C
-  </choice>
-</choiceInput>
+  <choiceInput name="question1" selectMultiple>
+    <label>Choose 2</label>
+    <choice feedbackText="A is a bad choice">
+      A
+    </choice>
+    <choice feedbackText="B is a good choice" credit="1">
+      B
+    </choice>
+    <choice feedbackText="C is a good choice" credit="1">
+      C
+    </choice>
+  </choiceInput>
 </answer>
 
 <p><c>feedbacks</c> = 

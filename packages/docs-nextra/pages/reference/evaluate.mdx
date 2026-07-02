@@ -1,24 +1,24 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <evaluate/>{:dn}`
+# `<evaluate/>{:dn}`
 
-` <evaluate/>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
-component which renders the result of a ` <function>{:dn}`evaluated at a specified `input` parameter or parameters.
+<ComponentDisplay name='evaluate'/>
+
+`<evaluate/>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types) 
+component which renders the result of a `<function>{:dn}` evaluated at a specified `input` parameter or parameters.
 This is a self-closing tag; it's tempting to try to nest the function within opening and closing tags, but this is 
 incorrect -- the function to be evaluated 
 must instead be specified within the `function` attribute directly.
 
-## Attributes and Properties 
- <AttrDisplay name='evaluate'/> 
- <PropDisplay name='evaluate'/>
+<AttrPropDisplay name='evaluate'/>
 
 
----
+## Examples
 
-### Example: ` <evaluate/>{:dn}` a function at a user-input
+### Example: `<evaluate/>{:dn}` a function at a user-input
 
 
 ```doenet-editor-horiz
@@ -26,8 +26,8 @@ must instead be specified within the `function` attribute directly.
   <function name="f">x^2 + 1</function>
 </p>
 
-<p>Enter an input value: 
-  <mathInput name="xUser"/>
+<p>
+  <mathInput name="xUser"><label>Enter an input value</label></mathInput>
 </p>
 
 <p><m>f($xUser) = </m>
@@ -36,13 +36,13 @@ must instead be specified within the `function` attribute directly.
 
 
 
-The two required attributes for the ` <evaluate/>{:dn}` component are `function` and `input`.
+The two required attributes for the `<evaluate/>{:dn}` component are `function` and `input`.
 
 
 
 ---
 
-### Example: ` <evaluate/>{:dn}`  - the shortcut
+### Example: `<evaluate/>{:dn}`  - the shortcut
 
 
 ```doenet-editor-horiz
@@ -50,8 +50,8 @@ The two required attributes for the ` <evaluate/>{:dn}` component are `function`
   <function name="f">x^2 + 1</function>
 </p>
 
-<p>Enter an input value: 
-  <mathInput name="xUser"/>
+<p>
+  <mathInput name="xUser"><label>Enter an input value</label></mathInput>
 </p>
 
 <p><m>f($xUser) = </m>
@@ -61,11 +61,11 @@ The two required attributes for the ` <evaluate/>{:dn}` component are `function`
 
 
 
-The shortcut macro for the evaluate component is `$$function(input)`.
+The shortcut reference for the evaluate component is `$$function(input)`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: function
 

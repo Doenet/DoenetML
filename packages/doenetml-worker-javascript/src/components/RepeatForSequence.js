@@ -15,6 +15,12 @@ import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
+    static componentDocs = {
+        summary:
+            "Repeats template content for each value in an arithmetic sequence",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;
@@ -45,16 +51,22 @@ export default class RepeatForSequence extends CompositeComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "valueName",
             defaultValue: null,
+            description:
+                "Name to bind the current item to inside the repeat template.",
         };
 
         attributes.indexName = {
             createPrimitiveOfType: "string",
             createStateVariable: "indexName",
             defaultValue: null,
+            description:
+                "Name to bind the current 1-based index to inside the repeat template.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether the generated repeats should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -65,6 +77,8 @@ export default class RepeatForSequence extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -270,8 +284,7 @@ export default class RepeatForSequence extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -285,7 +298,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 type: null,
                 exclude: null,
             };
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -318,13 +331,12 @@ export default class RepeatForSequence extends CompositeComponent {
                 workspace,
             });
             replacements.push(...res.replacements);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
+            diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
             workspace.valueComponentIndices.push(res.valueComponentIdx);
         }
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async replacementForIter({
@@ -336,8 +348,7 @@ export default class RepeatForSequence extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [
             {
@@ -410,8 +421,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
             valueComponentIdx,
         };
@@ -424,8 +434,7 @@ export default class RepeatForSequence extends CompositeComponent {
         componentInfoObjects,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -458,7 +467,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
             workspace.lastReplacementParameters = lrp;
 
-            return { replacementChanges };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -480,8 +489,7 @@ export default class RepeatForSequence extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
@@ -607,8 +615,7 @@ export default class RepeatForSequence extends CompositeComponent {
                         workspace,
                     });
                     newSerializedReplacements.push(...res.replacements);
-                    errors.push(...res.errors);
-                    warnings.push(...res.warnings);
+                    diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                     workspace.valueComponentIndices[ind] =
                         res.valueComponentIdx;
@@ -633,7 +640,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
         workspace.lastReplacementParameters = lrp;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({
@@ -652,6 +659,7 @@ export default class RepeatForSequence extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let numVariants = serializedComponent.variants?.numVariants;
 
@@ -673,6 +681,7 @@ export default class RepeatForSequence extends CompositeComponent {
             let result = descendantClass.determineNumberOfUniqueVariants({
                 serializedComponent: descendant,
                 componentInfoObjects,
+                infoDiagnostics,
             });
             if (!result.success) {
                 return { success: false };

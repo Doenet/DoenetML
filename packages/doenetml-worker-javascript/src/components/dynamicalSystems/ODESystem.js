@@ -1,19 +1,26 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
+const { dopri } = me.math;
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import { returnNVariables, roundForDisplay } from "../../utils/math";
 
 export default class ODESystem extends InlineComponent {
     static componentType = "odeSystem";
     static rendererType = "math";
+
+    static componentDocs = {
+        summary:
+            "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable",
+    };
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -23,6 +30,7 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "independentVariable",
             defaultValue: me.fromAst("t"),
             public: true,
+            description: "The independent variable of the ODE system.",
         };
 
         attributes.initialIndependentVariableValue = {
@@ -30,9 +38,11 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "initialIndependentVariableValue",
             defaultValue: me.fromAst(0),
             public: true,
+            description:
+                "The value of the independent variable at which the initial conditions are specified.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderMode = {
             createComponentOfType: "text",
@@ -40,6 +50,8 @@ export default class ODESystem extends InlineComponent {
             defaultValue: "align",
             public: true,
             forRenderer: true,
+            description:
+                'How to format the rendered system of equations (e.g. "align").',
         };
 
         attributes.chunkSize = {
@@ -47,6 +59,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "chunkSize",
             defaultValue: 10,
             public: true,
+            description:
+                "Step-size chunk used when numerically integrating the system.",
         };
 
         attributes.tolerance = {
@@ -54,6 +68,7 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "tolerance",
             defaultValue: 1e-6,
             public: true,
+            description: "Numerical tolerance used by the integrator.",
         };
 
         attributes.maxIterations = {
@@ -61,6 +76,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "maxIterations",
             defaultValue: 1000,
             public: true,
+            description:
+                "Maximum number of iterations the integrator may perform.",
         };
 
         attributes.hideInitialCondition = {
@@ -68,14 +85,20 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "hideInitialCondition",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to hide the initial condition from the rendered output.",
         };
 
         attributes.initialConditions = {
             createComponentOfType: "mathList",
+            description:
+                "The initial values of each dependent variable, in order.",
         };
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description:
+                "The dependent variables of the system, in the same order as the right-hand sides.",
         };
 
         attributes.number = {
@@ -83,6 +106,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "number",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to display equation numbers next to each equation.",
         };
 
         return attributes;
@@ -102,7 +127,7 @@ export default class ODESystem extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let selectedStyleDefinition =
@@ -153,6 +178,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description:
+                "The dependent variables of the system, in order matching the right-hand sides.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "validVariables",
@@ -195,7 +222,7 @@ export default class ODESystem extends InlineComponent {
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let variablesSpecified = [];
                 let validVariables = [];
@@ -219,14 +246,14 @@ export default class ODESystem extends InlineComponent {
                     const warning = {
                         type: "warning",
                         message:
-                            "Variables of <odeSystem> must be different than independent variable.",
+                            "Variables of `<odeSystem>` must be different than independent variable.",
                     };
                     if (globalDependencyValues.variables?.position) {
                         warning.position =
                             globalDependencyValues.variables.position;
                     }
 
-                    warnings.push(warning);
+                    diagnostics.push(warning);
                 }
 
                 if (validVariables.length < numDims) {
@@ -237,18 +264,20 @@ export default class ODESystem extends InlineComponent {
 
                 return {
                     setValue: { variables, validVariables },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
 
         stateVariableDefinitions.rhss = {
+            description:
+                "The right-hand-side expressions of each ODE in the system.",
             isArray: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["rhs", "righthandside"],
             returnArraySizeDependencies: () => ({
@@ -295,24 +324,32 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.rhs = {
             isAlias: true,
             targetVariableName: "rhs1",
+            description:
+                "The right-hand-side expression of the first ODE in the system.",
         };
         stateVariableDefinitions.righthandside = {
             isAlias: true,
             targetVariableName: "rhs1",
+            description:
+                "The right-hand-side expression of the first ODE in the system.",
         };
         stateVariableDefinitions.righthandsides = {
             isAlias: true,
             targetVariableName: "rhss",
+            description:
+                "The right-hand-side expressions of each ODE in the system.",
         };
 
         stateVariableDefinitions.initialConditions = {
+            description:
+                "The initial values of each dependent variable at the initial independent variable value.",
             isArray: true,
             public: true,
             hasEssential: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["initialCondition"],
             defaultValueByArrayKey: () => me.fromAst(0),
@@ -378,9 +415,13 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.initialCondition = {
             isAlias: true,
             targetVariableName: "initialCondition1",
+            description:
+                "The initial value of the first dependent variable at the initial independent-variable value.",
         };
 
         stateVariableDefinitions.equationTag = {
+            description:
+                "The displayed equation number tag (when equation numbering is enabled).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -416,6 +457,7 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The full ODE system rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -456,6 +498,10 @@ export default class ODESystem extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "padZeros",
                     },
+                    avoidScientificNotation: {
+                        dependencyType: "stateVariable",
+                        variableName: "avoidScientificNotation",
+                    },
                     independentVariable: {
                         dependencyType: "stateVariable",
                         variableName: "independentVariable",
@@ -479,15 +525,13 @@ export default class ODESystem extends InlineComponent {
                 };
             },
             definition({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
 
                 let systemDisplay = [];
                 let indVar = dependencyValues.independentVariable.toLatex();
@@ -565,7 +609,7 @@ export default class ODESystem extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 // console.log(dependencyValues);
-                let warnings = [];
+                let diagnostics = [];
 
                 let valid = true;
                 if (!dependencyValues.validIndependentVariable) {
@@ -587,10 +631,10 @@ export default class ODESystem extends InlineComponent {
                 }
 
                 if ([...new Set(varNames)].length !== varNames.length) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Can't define ODE RHS functions with duplicate dependent variable names.",
-                        level: 1,
+                        type: "warning",
                     });
                     valid = false;
                 }
@@ -601,10 +645,10 @@ export default class ODESystem extends InlineComponent {
                         x.subscripts_to_strings().f(),
                     );
                 } catch (e) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Cannot define ODE RHS function.  Error creating mathjs function.",
-                        level: 1,
+                        type: "warning",
                     });
                     valid = false;
                 }
@@ -616,7 +660,7 @@ export default class ODESystem extends InlineComponent {
                             numericalRHSf: () => NaN,
                             numericalRHSfDefinitions: Array(n).fill({}),
                         },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -677,6 +721,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.numericalSolutions = {
+            description:
+                "Numerical solution functions for each dependent variable, as functions of the independent variable.",
             isArray: true,
             entryPrefixes: ["numericalSolution"],
             public: true,
@@ -688,7 +734,7 @@ export default class ODESystem extends InlineComponent {
                     },
                 },
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             createWorkspace: true,
             returnArraySizeDependencies: () => ({
@@ -818,7 +864,7 @@ export default class ODESystem extends InlineComponent {
                                     x0 = x0s;
                                 }
                                 let t0shifted = t0 + tind * chunkSize;
-                                let result = me.math.dopri(
+                                let result = dopri(
                                     t0shifted,
                                     t0shifted + chunkSize,
                                     x0,
@@ -879,6 +925,8 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.numericalSolution = {
             isAlias: true,
             targetVariableName: "numericalSolution1",
+            description:
+                "Numerical solution function for the first dependent variable, as a function of the independent variable.",
         };
 
         stateVariableDefinitions.numericalSolutionFDefinitions = {

@@ -30,3 +30,17 @@ import { clear as idb_clear } from "idb-keyval";
 Cypress.Commands.add("clearIndexedDB", () => {
     return idb_clear();
 });
+
+/**
+ * Sets the viewer/editor theme in the Cypress harness by posting a `darkMode`
+ * message (handled in `CypressTest.tsx`). Use `"dark"` / `"light"`. This lets
+ * accessibility specs re-run the same DoenetML under dark mode and assert it
+ * stays WCAG AA compliant.
+ */
+Cypress.Commands.add("setDarkMode", (mode) => {
+    cy.window().then((win) => {
+        win.postMessage({ darkMode: mode }, "*");
+    });
+    // The theme is applied via a `data-theme` attribute on the viewer wrapper.
+    cy.get(`[data-theme="${mode}"]`, { timeout: 10000 }).should("exist");
+});

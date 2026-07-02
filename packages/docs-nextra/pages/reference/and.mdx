@@ -1,27 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <and>{:dn}`
+# `<and>{:dn}`
+
+<ComponentDisplay name='and'/>
+
+`<and>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) component
+which checks to see whether all enclosed `<boolean>{:dn}` references are `true`.
+
+<AttrPropDisplay name='and'/>
 
 
-` <and>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) component
-which checks to see whether all enclosed ` <boolean>{:dn}` references are `true`.
-
-## Attributes and Properties 
-The `<and>{:dn}` component has no attributes or properties.
-
-
----
+## Examples
 
 <a id="boolean-ex"></a>
 
 ### Example: `<and>{:dn}` in a `<boolean>{:dn}`
 ```doenet-editor-horiz
-<p>Enter a number between 5 and 10, excluding 7:
-  <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a number between 5 and 10, excluding 7</label></mathInput></p>
       
 <boolean name="check1">$n > 5</boolean>
 <boolean name="check2">$n < 10</boolean>
@@ -81,8 +80,7 @@ within an `<award>{:dn}`.
 <a id="alternative-ex"></a>
 ### Example: An alternative to `<and>{:dn}`
 ```doenet-editor-horiz
-<p>Enter a number between 5 and 10, excluding 7:
-  <mathInput name="n"/></p>
+<p><mathInput name="n"><label>Enter a number between 5 and 10, excluding 7</label></mathInput></p>
       
 <boolean name="check1">$n > 5</boolean>
 <boolean name="check2">$n < 10</boolean>

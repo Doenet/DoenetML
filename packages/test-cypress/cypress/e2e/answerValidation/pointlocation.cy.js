@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Point location validation tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -35,7 +33,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); // to wait for page to load
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
 
         cy.log("Move point to correct quadrant and move again");
         // for some reason, have to move point twice to trigger bug
@@ -54,11 +52,11 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             });
         });
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
+        cy.get("#answer1_button").should("contain.text", "Check Work");
 
         cy.log("Submit answer");
-        cy.get(cesc("#answer1_button")).click();
-        cy.get(cesc("#answer1_button")).should("contain.text", "Correct");
+        cy.get("#answer1_button").click();
+        cy.get("#answer1_button").should("contain.text", "Correct");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -85,7 +83,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -95,7 +93,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             }),
         );
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Correct");
+        cy.get("#answer1_button").should("contain.text", "Correct");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -122,10 +120,10 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             ).eq(1);
         });
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
+        cy.get("#answer1_button").should("contain.text", "Check Work");
 
-        cy.get(cesc("#answer1_button")).click();
-        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
+        cy.get("#answer1_button").click();
+        cy.get("#answer1_button").should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -152,7 +150,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -162,7 +160,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             }),
         );
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
+        cy.get("#answer1_button").should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -194,10 +192,10 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             ).eq(0);
         });
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
+        cy.get("#answer1_button").should("contain.text", "Check Work");
 
-        cy.get(cesc("#answer1_button")).click();
-        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
+        cy.get("#answer1_button").click();
+        cy.get("#answer1_button").should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -224,7 +222,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -234,7 +232,7 @@ describe("Point location validation tests", { tags: ["@group5"] }, function () {
             }),
         );
 
-        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
+        cy.get("#answer1_button").should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

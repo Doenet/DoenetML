@@ -1,15 +1,31 @@
+/**
+ * Attributes implementing a "scored section": score aggregation plus the
+ * "section-wide check work" feature.
+ *
+ * This is shared by all containers that can host section-wide check work
+ * (sections, `<p>`, `<ol>`, `<ul>`, `<li>`, `<div>`, `<span>`, and the
+ * document), so the feature is defined in exactly one place. The document
+ * reuses this set but removes the score-aggregation attributes it does not
+ * expose; see `Document.js`.
+ */
 export function returnScoredSectionAttributes() {
     return {
         aggregateScores: {
             createComponentOfType: "boolean",
             createStateVariable: "aggregateScoresPreliminary",
             defaultValue: false,
+            groupName: "scoring",
+            description:
+                "Whether to aggregate scores of scored descendants into a section credit-achieved value.",
         },
         weight: {
             createComponentOfType: "number",
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            groupName: "scoring",
+            description:
+                "Relative weight of this section when aggregated by an enclosing scored section.",
         },
 
         sectionWideCheckWork: {
@@ -17,21 +33,51 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "sectionWideCheckWork",
             defaultValue: false,
             public: true,
+            groupName: "scoring",
+            description:
+                "Whether to show a single section-wide check-work button instead of per-answer buttons.",
+        },
+        maxNumAttempts: {
+            createComponentOfType: "integer",
+            createStateVariable: "maxNumAttempts",
+            defaultValue: Infinity,
+            public: true,
+            groupName: "scoring",
+            description:
+                "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
         },
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: false,
+            // This default is shown to authors but is not used to resolve the
+            // value: when the attribute is unspecified, the `showCorrectness`
+            // state variable ignores this (defaulted) value and falls back to
+            // the enclosing ancestor and then the `showCorrectness` flag (which
+            // defaults to `true`). It is set to `true` to reflect that effective
+            // default.
+            defaultValue: true,
+            groupName: "scoring",
+            description:
+                "Whether to display correctness indicators for the answers it contains.",
         },
         colorCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
-            defaultValue: false,
+            // See the note on `showCorrectness`: this default is shown to
+            // authors but the resolved value falls back to the ancestor and
+            // then to whether correctness is shown.
+            defaultValue: true,
+            groupName: "scoring",
+            description:
+                "Whether to color-code the answers it contains based on correctness.",
         },
         forceIndividualAnswerColoring: {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
             defaultValue: false,
+            groupName: "scoring",
+            description:
+                "Whether to force per-answer color-correctness even when section-wide check work is enabled.",
         },
         submitLabel: {
             createComponentOfType: "text",
@@ -39,6 +85,9 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            groupName: "scoring",
+            description:
+                "Label for the section-wide submit button when correctness is shown.",
         },
         submitLabelNoCorrectness: {
             createComponentOfType: "text",
@@ -46,6 +95,9 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            groupName: "scoring",
+            description:
+                "Label for the section-wide submit button when correctness is not shown.",
         },
 
         displayDigitsForCreditAchieved: {
@@ -53,10 +105,28 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            groupName: "scoring",
+            description:
+                "Number of significant digits to display for the credit achieved value.",
         },
     };
 }
 
+/**
+ * State variables implementing a "scored section": the section-wide check work
+ * feature plus score aggregation, shared by containers (sections, `<p>`,
+ * `<ol>`, `<ul>`, `<li>`, `<div>`, `<span>`, and the document). Pairs with
+ * {@link returnScoredSectionAttributes}.
+ *
+ * The section-wide check work portion includes the section-wide submit button
+ * (`createSubmitAllButton`), the suppression of per-answer submit buttons
+ * (`suppressAnswerSubmitButtons`), and the attempt cap (`numSubmissions`,
+ * `numAttemptsLeft`) — which, when exhausted, disables the enclosed answers via
+ * their own propagated `numAttemptsLeft`. The aggregation portion includes
+ * `scoredDescendants`, `aggregateScores`, `creditAchieved`, and related
+ * variables. The document reuses this set but deletes `aggregateScores` and
+ * overrides `creditAchieved`; see `Document.js`.
+ */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
 
@@ -70,6 +140,8 @@ export function returnScoredSectionStateVariableDefinition() {
                     "setup",
                     "_blockScoredComponent",
                     "p",
+                    "ol",
+                    "ul",
                     "li",
                     "div",
                     "span",
@@ -139,6 +211,119 @@ export function returnScoredSectionStateVariableDefinition() {
                         (x) => x.stateValues.justSubmitted,
                     ),
                 },
+            };
+        },
+    };
+
+    stateVariableDefinitions.numSubmissions = {
+        description:
+            "Number of times the section-wide check-work button has been submitted.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        defaultValue: 0,
+        hasEssential: true,
+        returnDependencies: () => ({}),
+        definition: () => ({
+            useEssentialOrDefaultValue: {
+                numSubmissions: true,
+            },
+        }),
+        inverseDefinition: ({ desiredStateVariableValues }) => ({
+            success: true,
+            instructions: [
+                {
+                    setEssentialValue: "numSubmissions",
+                    value: desiredStateVariableValues.numSubmissions,
+                },
+            ],
+        }),
+    };
+
+    stateVariableDefinitions.numAttemptsLeft = {
+        description:
+            "Remaining number of section-wide submissions before the maximum is reached.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        forRenderer: true,
+        returnDependencies: () => ({
+            numSubmissions: {
+                dependencyType: "stateVariable",
+                variableName: "numSubmissions",
+            },
+            maxNumAttempts: {
+                dependencyType: "stateVariable",
+                variableName: "maxNumAttempts",
+            },
+            sectionWideCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "sectionWideCheckWork",
+            },
+            // The nearest enclosing scored container. If it suppresses answer
+            // submit buttons, then this container is itself inside a
+            // section-wide check work, so its own section-wide button (and thus
+            // its `maxNumAttempts`) is not shown — the enclosing container
+            // controls the number of attempts.
+            ancestorSuppressingAnswerSubmitButtons: {
+                dependencyType: "ancestor",
+                variableNames: [
+                    "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
+                ],
+            },
+            // Used to target the ignored-`maxNumAttempts` warning at the
+            // attribute itself rather than the whole container.
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
+
+            if (
+                !usedDefault.maxNumAttempts &&
+                dependencyValues.sectionWideCheckWork &&
+                insideSectionWideCheckWork
+            ) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.",
+                    position: dependencyValues.maxNumAttemptsAttr?.position,
+                });
+            }
+
+            let numAttemptsLeft;
+            if (insideSectionWideCheckWork) {
+                // Inside an enclosing section-wide check work, this container's
+                // own `maxNumAttempts` is ignored; report the enclosing
+                // container's remaining attempts so the value is accurate.
+                numAttemptsLeft =
+                    dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                        .stateValues.numAttemptsLeft;
+            } else {
+                // Clamp at 0: a public "remaining attempts" value should never
+                // go negative, even if `maxNumAttempts` is lowered below the
+                // number of submissions already made (or a persisted
+                // `numSubmissions` exceeds it).
+                numAttemptsLeft = Math.max(
+                    0,
+                    dependencyValues.maxNumAttempts -
+                        dependencyValues.numSubmissions,
+                );
+            }
+
+            return {
+                setValue: { numAttemptsLeft },
+                sendDiagnostics,
             };
         },
     };
@@ -215,6 +400,8 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.aggregateScores = {
+        description:
+            "Whether scores of scored descendants are aggregated into this section's credit value.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -246,6 +433,8 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.creditAchieved = {
+        description:
+            "Aggregate credit achieved (between 0 and 1) for scored descendants of this section.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "number",
@@ -264,6 +453,8 @@ export function returnScoredSectionStateVariableDefinition() {
         additionalStateVariablesDefined: [
             {
                 variableName: "percentCreditAchieved",
+                description:
+                    "Aggregate credit achieved as a percentage (between 0 and 100).",
                 public: true,
                 shadowingInstructions: {
                     createComponentOfType: "number",
@@ -507,6 +698,13 @@ export async function submitAllAnswers({
     sourceInformation = {},
     skipRendererUpdate = false,
 }) {
+    // Each press of the section-wide check-work button counts as one attempt.
+    // Once attempts are exhausted, do nothing (the answers are already disabled).
+    const numAttemptsLeft = await component.stateValues.numAttemptsLeft;
+    if (numAttemptsLeft < 1) {
+        return;
+    }
+
     component.coreFunctions.requestRecordEvent({
         verb: "submitted",
         object: {
@@ -518,6 +716,9 @@ export async function submitAllAnswers({
         },
     });
 
+    // Submit the answers before counting the attempt. If counting the attempt
+    // exhausts the limit, the answers become disabled, so they must be
+    // submitted (and graded) while still enabled.
     let answersToSubmit = [];
     for (let answer of await component.stateValues.answerDescendants) {
         if (!(await answer.stateValues.justSubmitted)) {
@@ -525,17 +726,30 @@ export async function submitAllAnswers({
         }
     }
 
-    let numAnswers = answersToSubmit.length;
-
-    for (let [ind, answer] of answersToSubmit.entries()) {
+    for (let answer of answersToSubmit) {
         await component.coreFunctions.performAction({
             componentIdx: answer.componentIdx,
             actionName: "submitAnswer",
             args: {
                 actionId,
                 sourceInformation,
-                skipRendererUpdate: skipRendererUpdate || ind < numAnswers - 1,
+                // Defer renderer updates to the numSubmissions update below so
+                // the rendered answer validation state and attempts message
+                // update together.
+                skipRendererUpdate: true,
             },
         });
     }
+
+    await component.coreFunctions.performUpdate({
+        updateInstructions: [
+            {
+                updateType: "updateValue",
+                componentIdx: component.componentIdx,
+                stateVariable: "numSubmissions",
+                value: (await component.stateValues.numSubmissions) + 1,
+            },
+        ],
+        skipRendererUpdate,
+    });
 }

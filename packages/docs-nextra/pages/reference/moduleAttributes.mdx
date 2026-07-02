@@ -1,23 +1,23 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <moduleAttributes>{:dn}`
+# `<moduleAttributes>{:dn}`
 
-` <moduleAttributes>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
-component that is used to describe custom user-defined attributes when nested in a ` <module>{:dn}` component. 
-Similar to the attributes of a built-in DoenetML component, the user-defined attributes defined with a ` <moduleAttributes>{:dn}` block
-are then listed in the opening tag of the custom ` <module>{:dn}` component.
+<ComponentDisplay name='module'/>
+
+`<moduleAttributes>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that is used to describe custom user-defined attributes when nested in a `<module>{:dn}` component. 
+Similar to the attributes of a built-in DoenetML component, the user-defined attributes defined with a `<moduleAttributes>{:dn}` block
+are then listed in the opening tag of the custom `<module>{:dn}` component.
 
 
-## Attributes and Properties 
- <AttrDisplay name='module'/> 
- <PropDisplay name='module'/>
+<AttrPropDisplay name='module'/>
 
----
+## Examples
 
-### Example: ` <module>{:dn}` for repeated geometry
+### Example: `<module>{:dn}` for repeated geometry
 
 
 ```doenet-editor-horiz
@@ -63,16 +63,12 @@ are then listed in the opening tag of the custom ` <module>{:dn}` component.
 </graph>
 ```
 
-In this example, a ` <module>{:dn}` named `drawBalloon` is defined within a `<setup>{:dn}` block. Nested 
+In this example, a `<module>{:dn}` named `drawBalloon` is defined within a `<setup>{:dn}` block. Nested 
 `<moduleAttributes>{:dn}` components define the center point, color, and radius of a default balloon. 
 
-Geometry defined within the ` <module>{:dn}` (the `<lineSegment>{:dn}` and `<circle>{:dn}` components) 
+Geometry defined within the `<module>{:dn}` (the `<lineSegment>{:dn}` and `<circle>{:dn}` components) 
 are copied into the graph when the module is referenced.
 
 Referencing the module multiple times within the `<graph>{:dn}` and varying the
 attribute values has the effect of creating a "bunch" of balloons.
 Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy.
-
-
-
----

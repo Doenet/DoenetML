@@ -1,9 +1,14 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import type { Action, CoreWorker } from "@doenet/doenetml-worker";
+import type {
+    Action,
+    ActionResponse,
+    CoreWorker,
+} from "@doenet/doenetml-worker";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
+import type { CoreType } from "./slice";
 import { _dastReducerActions } from "../dast";
 import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
 
@@ -18,7 +23,10 @@ export function createWrappedCoreWorker() {
     return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
 }
 
-export const workerCache: { worker: Comlink.Remote<CoreWorker> }[] = [];
+export const workerCache: {
+    worker: Comlink.Remote<CoreWorker>;
+    coreType: CoreType;
+}[] = [];
 // XXX: temporary for debugging
 (window as any).wc = workerCache;
 
@@ -29,17 +37,37 @@ export const coreThunks = {
     _loadWorker: createLoggingAsyncThunk(
         "core/loadWorker",
         async (_: void, { dispatch, getState }) => {
-            const { workerCacheKey } = selfSelector(getState());
-            if (workerCacheKey != null && workerCache[workerCacheKey]?.worker) {
-                // There's already a worker loaded
+            const { workerCacheKey, coreType } = selfSelector(getState());
+            const cachedWorker =
+                workerCacheKey != null
+                    ? workerCache[workerCacheKey]
+                    : undefined;
+            // Reuse the cached worker only if it is running the requested core.
+            // `setCoreType` is applied once at creation, so a worker created for
+            // a different core cannot be reused after `coreType` changes.
+            if (cachedWorker?.worker && cachedWorker.coreType === coreType) {
+                // There's already a worker loaded for this core
                 return;
             }
+
+            // The selected worker runs a different core. Before allocating a new
+            // one, reuse any previously-created worker for the requested core
+            // (e.g. after switching cores back and forth) so the cache doesn't
+            // grow and leave duplicate workers running.
+            const existingKey = workerCache.findIndex(
+                (entry) => entry?.worker && entry.coreType === coreType,
+            );
+            if (existingKey !== -1) {
+                dispatch(_coreReducerActions._setWorkerCacheKey(existingKey));
+                return;
+            }
+
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
-            await worker.setCoreType("rust");
+            await worker.setCoreType(coreType);
             const key = workerCache.length;
-            workerCache[key] = { worker };
+            workerCache[key] = { worker, coreType };
             dispatch(_coreReducerActions._setWorkerCacheKey(key));
         },
     ),
@@ -99,11 +127,38 @@ export const coreThunks = {
                 throw new Error("No worker loaded");
             }
 
+            const { coreType } = selfSelector(getState());
+
             try {
-                const updates = await worker.dispatchAction(action);
-                dispatch(
-                    _dastReducerActions.processElementUpdates(updates.payload),
-                );
+                if (coreType === "javascript") {
+                    // The JavaScript core does not return renderer updates from
+                    // an action; instead it pushes them through a callback.
+                    // `dispatchActionJavascriptFlat` collects those pushed
+                    // updates and returns them as the same
+                    // `Record<componentIdx, update>` map the rust core returns
+                    // in `ActionResponse["payload"]`.
+                    const updates = await worker.dispatchActionJavascriptFlat({
+                        actionName: action.actionName,
+                        componentIdx: action.componentIdx,
+                        args: action.args ?? {},
+                    });
+                    // XXX (June 2026): dispatchActionJavascriptFlat returns
+                    // `Record<number, FlatDastElementUpdateFromJS>`, which is
+                    // shaped like ActionResponse["payload"] but is a distinct
+                    // (JS-side) type. Remove this cast once the two share a type.
+                    dispatch(
+                        _dastReducerActions.processElementUpdates(
+                            updates as unknown as ActionResponse["payload"],
+                        ),
+                    );
+                } else {
+                    const updates = await worker.dispatchAction(action);
+                    dispatch(
+                        _dastReducerActions.processElementUpdates(
+                            updates.payload,
+                        ),
+                    );
+                }
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
                 console.warn("Error while dispatching action", e);
@@ -116,6 +171,9 @@ export function getWorker(
     state: RootState,
 ): ReturnType<typeof createWrappedCoreWorker> | undefined {
     const { workerCacheKey } = selfSelector(state);
-    const { worker } = workerCache[workerCacheKey ?? -1] || {};
+    if (workerCacheKey == null) {
+        return undefined;
+    }
+    const { worker } = workerCache[workerCacheKey] ?? {};
     return worker;
 }

@@ -4,6 +4,9 @@ export function returnAnchorAttributes() {
     return {
         anchor: {
             createComponentOfType: "point",
+            groupName: "positioning",
+            description:
+                "Coordinates of the anchor point used to position this component on a graph.",
         },
         positionFromAnchor: {
             createComponentOfType: "text",
@@ -13,29 +16,93 @@ export function returnAnchorAttributes() {
             forRenderer: true,
             toLowerCase: true,
             isLocation: true,
+            groupName: "positioning",
             validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
-                "top",
-                "bottom",
-                "left",
-                "right",
-                "center",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the component above and to the right of the anchor point.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the component above and to the left of the anchor point.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the component below and to the right of the anchor point.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the component below and to the left of the anchor point.",
+                },
+                {
+                    value: "top",
+                    description:
+                        "Place the component directly above the anchor point.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the component directly below the anchor point.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the component directly to the left of the anchor point.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the component directly to the right of the anchor point.",
+                },
+                {
+                    value: "center",
+                    description: "Center the component on the anchor point.",
+                },
             ],
+            description:
+                "Where this component sits relative to its anchor point.",
         },
+    };
+}
+
+/**
+ * Shared control ordering attribute for graph-control-capable components.
+ *
+ * `controlOrder` uses 1-indexed slot semantics: the renderer fills slots 1, 2, 3, ...
+ * with controls in order preference. A value of `0` (default) means no explicit slot
+ * request: such controls are used to fill gaps between positive-order controls, and
+ * their relative position may change based on what other controls request. Do not rely
+ * on `controlOrder=0` to preserve authored position relative to controls with positive
+ * orders; use matching positive orders to fix relative positions.
+ */
+export function returnGraphControlOrderAttribute() {
+    return {
+        createComponentOfType: "integer",
+        createStateVariable: "controlOrder",
+        defaultValue: 0,
+        clamp: [0, Infinity],
+        public: true,
+        forRenderer: true,
+        description:
+            "Slot order for graph controls (1-indexed; 0 means no explicit slot request).",
     };
 }
 
 export function returnAnchorStateVariableDefinition() {
     return {
         anchor: {
+            description:
+                "The coordinates where this component is anchored on the graph.",
             defaultValue: me.fromText("(0,0)").tuples_to_vectors(),
             public: true,
             forRenderer: true,
             hasEssential: true,
             isLocation: true,
+            groupName: "positioning",
             shadowingInstructions: {
                 createComponentOfType: "point",
             },

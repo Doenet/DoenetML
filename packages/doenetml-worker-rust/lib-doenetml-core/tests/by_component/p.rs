@@ -168,7 +168,8 @@ fn p_extending_section() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let p_idx = 2;
+    // the section's normalization-added `<_dynamicChildren>` is index 2
+    let p_idx = 3;
 
     let flat_dast = core.to_flat_dast();
 

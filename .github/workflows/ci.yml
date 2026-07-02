@@ -1,0 +1,611 @@
+name: CI
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["*"]
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+
+jobs:
+    changes:
+        name: Detect Changed Paths
+        runs-on: ubuntu-latest
+        outputs:
+            prefigure: ${{ steps.filter.outputs.prefigure }}
+        steps:
+            - uses: actions/checkout@v6
+            - uses: dorny/paths-filter@v4
+              id: filter
+              with:
+                  filters: |
+                      prefigure:
+                        - 'packages/prefigure/**'
+
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Build
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:all-no-docs
+              # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+                  du -sh ./packages/*/.wireit/*/
+
+            # upload all the .wireit directories so that the test job can use them.
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: build-artifacts
+                  include-hidden-files: true
+                  # Include package.json from the root so the file tree matches the full file tree of the repo
+                  # (otherwise everything is normalized to the closest common ancestor folder)
+                  path: |
+                      ./packages/*/.wireit/**/*
+                      ./package.json
+
+    test-main:
+        name: Test Main
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:all-no-docs
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Test
+              run: npm run test:all-no-worker-js
+
+    test-worker-js:
+        name: Test Worker JS
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+                test-group: [group1, group2, group3, group4]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml-worker
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Test doenetml-worker-javascript
+              run: npm run test:${{ matrix.test-group }} -w packages/doenetml-worker-javascript
+
+    test-cypress:
+        name: Cypress Tests
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+                test-group:
+                    [
+                        e2e-group1,
+                        e2e-group2,
+                        e2e-group3,
+                        e2e-group4,
+                        e2e-group5,
+                        codemirror-cypress,
+                        doenetml-cypress,
+                        doenetml-iframe-cypress,
+                    ]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build --workspace packages/test-cypress
+              env:
+                  WIREIT_CACHE: "local"
+
+            # doenetml-iframe-cypress reads @doenet/standalone's dist via a
+            # `?raw` import in its harness, and uses the iframe-iife bundles
+            # built by the iframe package itself. Wireit cache restores both
+            # quickly here since the upstream Build job already produced them.
+            - name: Build doenetml-iframe deps (cached)
+              if: matrix.test-group == 'doenetml-iframe-cypress'
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build --workspace packages/standalone --workspace packages/doenetml-iframe
+              env:
+                  WIREIT_CACHE: "local"
+
+            # Cypress *component* test groups (codemirror-cypress, doenetml-cypress, ...)
+            # spin up their own Vite dev server. Only the e2e groups need the
+            # shared preview server below.
+            - name: Start preview server
+              if: ${{ !endsWith(matrix.test-group, '-cypress') }}
+              run: |
+                  npm run preview --workspace packages/test-cypress > /tmp/preview-server.log 2>&1 &
+                  echo $! > /tmp/preview-server.pid
+
+            - name: Wait for server
+              if: ${{ !endsWith(matrix.test-group, '-cypress') }}
+              run: npx wait-on http://localhost:4173 --timeout 60000
+
+            - name: Check server logs if wait-on fails
+              if: ${{ failure() && !endsWith(matrix.test-group, '-cypress') }}
+              run: |
+                  echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
+                  echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
+
+            - name: Cypress run ${{ matrix.test-group }}
+              run: npm run test:${{ matrix.test-group }}
+              env:
+                  CYPRESS_SKIP_YOUTUBE_TESTS: true
+
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: cypress-screenshots-${{ matrix.test-group }}
+                  # e2e screenshots land under test-cypress; component-test
+                  # screenshots land under the package whose harness ran them.
+                  path: |
+                      ./packages/test-cypress/cypress/screenshots
+                      ./packages/codemirror/cypress/screenshots
+                      ./packages/doenetml/cypress/screenshots
+                      ./packages/doenetml-iframe/cypress/screenshots
+                  if-no-files-found: ignore
+
+    test-prefigure-browser-runtime:
+        name: Prefigure Browser Runtime Check
+        runs-on: ubuntu-latest
+        needs: [build, changes]
+        if: needs.changes.outputs.prefigure == 'true'
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/prefigure
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Run browser runtime check
+              run: npm run test:browser-runtime -w @doenet/prefigure
+
+    test-doenetml-to-pretext-devcontainer:
+        name: Devcontainer Runs Tests
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Build and test in devcontainer
+              uses: devcontainers/ci@v0.3
+              with:
+                  runCmd: |
+                      set -eu
+                      bash .devcontainer/npm-install-with-rollup-check.sh npm ci
+                      # This package runs tests in a headless browser. If it can run, the other tests should too.
+                      npm run build -w packages/doenetml-to-pretext
+                      npm run test -w packages/doenetml-to-pretext
+
+    test-doenetml-to-pretext-full-devcontainer:
+        name: DoenetML to PreTeXt Tests
+        runs-on: ubuntu-latest
+        needs: build
+        timeout-minutes: 25
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Build and test in devcontainer
+              uses: devcontainers/ci@v0.3
+              with:
+                  runCmd: |
+                      set -eu
+                      bash .devcontainer/npm-install-with-rollup-check.sh npm ci
+                      npm run build -w packages/doenetml-to-pretext
+                      npm run test -w packages/doenetml-to-pretext
+                      npm run build -w packages/doenetml-to-pretext-python
+                      npm run test -w packages/doenetml-to-pretext-python
+
+    lint:
+        name: Lint Rust Code
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
+
+            - name: Install toolchain
+              run: |
+                  rustup set profile minimal
+                  rustup toolchain install stable --component rustfmt --component clippy
+                  rustup default stable
+
+            - name: Cargo fmt
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo fmt --all -- --check
+
+            - name: Cargo clippy
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo clippy -- -D warnings
+
+    build-docs:
+        runs-on: ubuntu-latest
+        needs: build
+        name: Build Docs
+
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+                  du -sh ./packages/*/.wireit/*/ || echo "No .wireit cache entries found"
+
+            # Rebuild only the docs prerequisites first so docs doesn't depend on a perfect artifact restore.
+            # With the wireit cache saved, this should usually be a fast cache hit.
+            - name: Build (cached prerequisites)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:docs-prereqs
+              env:
+                  WIREIT_CACHE: "local"
+
+            # With the wireit cache saved, this build step should be fast.
+            - name: Build Docs
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:docs
+              env:
+                  WIREIT_CACHE: "local"
+
+            # Upload the static export so the accessibility test job can serve it.
+            - name: Upload docs static export
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+    test-docs-cypress:
+        name: Docs Accessibility (Cypress + axe)
+        runs-on: ubuntu-latest
+        needs: build-docs
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download docs static export
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+            - name: Start docs server
+              run: |
+                  npm exec serve -- --no-port-switching -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
+                  echo $! > /tmp/docs-serve.pid
+
+            - name: Wait for docs server
+              run: npm exec wait-on -- http://localhost:3000 --timeout 30000
+
+            - name: Run docs accessibility tests
+              run: npm run test-cypress-docs-all -w packages/docs-cypress
+
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-cypress-screenshots
+                  path: ./packages/docs-cypress/cypress/screenshots
+                  if-no-files-found: ignore
+
+    lint-ts:
+        name: Lint Typescript Code
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Prettier Check
+              run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
+
+            # Two TypeScript/JavaScript source paths that differ only by letter
+            # case and/or extension are ambiguous on case-insensitive file
+            # systems (macOS, Windows) and to the module resolver: an import
+            # like "./utils/Description" can resolve to "description.ts" instead
+            # of "Description.tsx". Detect tracked source files whose paths are
+            # equal after lowercasing and stripping the extension, so such pairs
+            # are caught before they break checkouts or imports on those
+            # platforms. Relies on GNU sed (the `s///i` flag is non-POSIX),
+            # which the ubuntu runner provides.
+            - name: Check for case-insensitive filename collisions
+              run: |
+                  COLLISIONS=$(git ls-files | grep -Ei '\.(ts|tsx|js|jsx)$' | sed -E 's/\.(ts|tsx|js|jsx)$//i' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+
+                  if [ -n "$COLLISIONS" ]; then
+                    echo "❌ Error: Found source files whose paths differ only by case and/or extension."
+                    echo "   These are ambiguous on case-insensitive file systems (macOS, Windows) and to the module resolver:"
+                    echo ""
+                    while IFS= read -r collision; do
+                      echo "Ambiguous base path: $collision"
+                      # Escape regex metacharacters so the base path matches literally.
+                      # Backslashes are doubled first so the second pass doesn't re-escape them.
+                      escaped=$(printf '%s' "$collision" | sed -e 's/\\/\\\\/g' -e 's/[].^$*+?(){}|[]/\\&/g')
+                      # Print the actual files that are conflicting.
+                      git ls-files | grep -iE "^${escaped}\.(ts|tsx|js|jsx)$" | sed 's/^/  - /'
+                    done <<< "$COLLISIONS"
+                    exit 1
+                  else
+                    echo "✅ No case-insensitive collisions found."
+                  fi
+
+    schema-freshness:
+        name: Verify schema regenerated
+        runs-on: ubuntu-latest
+        needs: build
+
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            # build:schema imports componentInfoObjects from source, which
+            # transitively requires @doenet/utils (and friends) to be built.
+            # Matches the check-docs-coverage cached-build pattern.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:all-no-docs
+              env:
+                  WIREIT_CACHE: "local"
+
+            # Regenerates packages/static-assets/src/generated/* from
+            # componentInfoObjects (read by vite-node). build:schema is
+            # not wireit-wrapped, so a fresh run always executes.
+            # The runtime guards in get-schema.ts also throw here if any
+            # component/attribute/property/attribute-value description is
+            # missing.
+            - name: Regenerate schema
+              run: npm run build:schema -w packages/static-assets
+
+            - name: Assert committed schema is up to date
+              run: git diff --exit-code -- packages/static-assets/src/generated/
+
+            # `git diff` only catches tracked-file drift. If build:schema
+            # ever starts emitting a new generated artifact, it'd land
+            # here as untracked and silently pass the diff above.
+            - name: Assert no untracked generated files
+              run: |
+                  untracked=$(git ls-files --others --exclude-standard -- packages/static-assets/src/generated/)
+                  if [ -n "$untracked" ]; then
+                      echo "Untracked generated files:"
+                      echo "$untracked"
+                      exit 1
+                  fi
+
+    check-docs-coverage:
+        name: Check Reference Docs Coverage
+        runs-on: ubuntu-latest
+        needs: build
+
+        strategy:
+            matrix:
+                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
+                # (https://github.com/nodejs/node/issues/63487) that hangs
+                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
+                # Revisit once a fixed 24.x release is available in setup-node.
+                node-version: [24.15.0]
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            # The docs-coverage script imports componentInfoObjects from
+            # source, which transitively requires @doenet/utils and
+            # @doenet/parser to be built. Matches test-main's cached-build
+            # pattern (fast on a wireit cache hit).
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:all-no-docs
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Verify schema components map to /reference/<slug> pages
+              run: npm run check:docs-coverage -w packages/static-assets

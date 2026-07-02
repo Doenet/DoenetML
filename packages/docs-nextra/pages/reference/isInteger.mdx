@@ -1,30 +1,29 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <isInteger>{:dn}`
+# `<isInteger>{:dn}`
 
+<ComponentDisplay name='isInteger'/>
 
-` <isInteger>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+`<isInteger>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) 
 component that returns the boolean value of `true` or `false` depending on whether the value enclosed is an integer.
 
-## Attributes and Properties 
- <AttrDisplay name='isInteger'/> 
- <PropDisplay name='isInteger'/>
+<AttrPropDisplay name='isInteger'/>
 
----
+## Examples
 
 ### Example: Basic use
 
 
 ```doenet-editor-horiz
-<p>Enter an integer (or not): <mathInput name="mi" prefill="4/2"/></p>
+<p><mathInput name="mi" prefill="4/2"><label>Enter an integer (or not)</label></mathInput></p>
 <p>This value is an integer: </p>
 <isInteger>$mi</isInteger>
 ```
 
 
 
-Tne ` <isInteger>{:dn}` component checks to see whether the enclosed value is an integer.
+The `<isInteger>{:dn}` component checks to see whether the enclosed value is an integer.
 

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -11,6 +12,7 @@ import {
     updateTextInputValueToImmediateValue,
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1791,7 +1793,7 @@ describe("TextInput tag tests @group1", async () => {
         await check_items(string);
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <textInput />
@@ -1802,52 +1804,28 @@ describe("TextInput tag tests @group1", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<textInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `\`<textInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `<textInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `\`<textInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-    });
-
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <textInput />
-                <textInput><shortDescription>hello</shortDescription></textInput>
-                <textInput><label>hello</label></textInput>
-                <textInput name="hello" labelIsName />
-                <textInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<textInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-
-        expect(errorWarnings.errors[1].message).contain(
-            `<textInput> must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[1].position.start.line).eq(6);
-        expect(errorWarnings.errors[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {
@@ -1878,5 +1856,106 @@ describe("TextInput tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("ti")].activeChildren[1]
                 .componentType,
         ).eq("description");
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="ti">
+      <label>hello</label>
+    </textInput>
+    <boolean extend="$ti.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus the input
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the input
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+    });
+
+    it("focused state variable still updates when readOnly", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="ti">
+      <label>hello</label>
+    </textInput>
+    <boolean extend="$ti.focused" name="f" />
+    `,
+            flags: { readOnly: true },
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus should still update focused, even when readOnly is set.
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur should also update focused.
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
     });
 });

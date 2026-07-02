@@ -4,7 +4,7 @@ import {
     returnNumericalFunctionFromFormula,
     returnSymbolicFunctionFromFormula,
 } from "@doenet/utils";
-import { returnRoundingAttributeComponentShadowing } from "../../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../../utils/label";
 
 export default class FunctionOperator extends Function {
@@ -104,11 +104,13 @@ export default class FunctionOperator extends Function {
         };
 
         stateVariableDefinitions.formula = {
+            description:
+                "The symbolic formula of the function produced by this operator.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: ["operatorBasedOnFormula"],
             // stateVariablesDeterminingDependencies: ["operatorBasedOnFormulaIfAvailable"],

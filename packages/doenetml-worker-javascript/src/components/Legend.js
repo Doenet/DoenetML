@@ -3,20 +3,43 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 export default class Legend extends GraphicalComponent {
     static componentType = "legend";
 
+    static componentDocs = {
+        summary: "A legend describing the contents of a graph",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.position = {
+            description: "Position of the legend on the graph.",
             createComponentOfType: "text",
             createStateVariable: "position",
-            defaultValue: "upperright",
+            defaultValue: "upperRight",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["upperright", "upperleft", "lowerright", "lowerleft"],
+            validValues: [
+                {
+                    value: "upperRight",
+                    description: "Place the legend in the upper-right corner.",
+                },
+                {
+                    value: "upperLeft",
+                    description: "Place the legend in the upper-left corner.",
+                },
+                {
+                    value: "lowerRight",
+                    description: "Place the legend in the lower-right corner.",
+                },
+                {
+                    value: "lowerLeft",
+                    description: "Place the legend in the lower-left corner.",
+                },
+            ],
         };
 
         attributes.displayClosedSwatches = {
+            description:
+                "Whether to render closed/filled swatches in the legend.",
             createComponentOfType: "boolean",
             createStateVariable: "displayClosedSwatches",
             defaultValue: false,

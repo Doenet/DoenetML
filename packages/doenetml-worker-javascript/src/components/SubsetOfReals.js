@@ -9,6 +9,11 @@ import me from "math-expressions";
 
 export default class SubsetOfReals extends MathComponent {
     static componentType = "subsetOfReals";
+
+    static componentDocs = {
+        summary:
+            "A subset of the real numbers, defined by intervals and points",
+    };
     static rendererType = "math";
 
     // used when creating new component via adapter or copy prop
@@ -23,15 +28,29 @@ export default class SubsetOfReals extends MathComponent {
             createComponentOfType: "_variableName",
             createStateVariable: "variable",
             defaultValue: me.fromAst("x"),
+            description:
+                "Name of the variable used when expressing the subset.",
         };
 
         attributes.displayMode = {
+            description: "How the subset is displayed.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             defaultValue: "intervals",
             public: true,
             toLowerCase: true,
-            validValues: ["intervals", "inequalities"],
+            validValues: [
+                {
+                    value: "intervals",
+                    description:
+                        "Display the subset using interval notation (e.g., `(0, 1]`).",
+                },
+                {
+                    value: "inequalities",
+                    description:
+                        "Display the subset using inequalities (e.g., `0 < x ≤ 1`).",
+                },
+            ],
         };
 
         return attributes;
@@ -236,8 +255,11 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                 shadowingInstructions: {
                     createComponentOfType: "boolean",
                 },
+                description:
+                    "Whether each boundary point of the subset is a closed (included) endpoint.",
             },
         ],
+        description: "The boundary points that delimit the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {
@@ -345,6 +367,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.intervals = {
+        description: "The intervals (non-degenerate components) of the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {
@@ -378,6 +401,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.isolatedPoints = {
+        description: "The isolated (non-interval) points of the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {

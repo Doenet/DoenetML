@@ -1,21 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <atom>{:dn}`
+# `<atom>{:dn}`
 
+<ComponentDisplay name='atom'/>
 
-` <atom>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types) 
+`<atom>{:dn}` is a [Subject-specific](../concepts/essentialConcepts#component-types) 
 component that renders the atomic symbol for an element, and contains numerous built-in chemical properties.
 
-## Attributes and Properties 
- <AttrDisplay name='atom'/> 
- <PropDisplay name='atom'/>
+<AttrPropDisplay name='atom'/>
 
----
+## Examples
 
-### Example: Define an ` <atom>{:dn}` with atomic number
+### Example: Define an `<atom>{:dn}` with atomic number
 
 
 ```doenet-example
@@ -32,15 +31,15 @@ component that renders the atomic symbol for an element, and contains numerous b
 
 
 
-An ` <atom>{:dn}` component may defined by specifying either its atomic number or 
-its symbol. Once defined, there are many built-in properties of ` <atom>{:dn}` that 
+An `<atom>{:dn}` component may defined by specifying either its atomic number or 
+its symbol. Once defined, there are many built-in properties of `<atom>{:dn}` that 
 can be accessed.
 
 
 
 ---
 
-### Example: Define an ` <atom>{:dn}` with its symbol
+### Example: Define an `<atom>{:dn}` with its symbol
 
 
 ```doenet-example
@@ -57,45 +56,9 @@ can be accessed.
 
 
 
-An ` <atom>{:dn}` component may defined by specifying either its atomic number 
-or its symbol. Once defined, there are many built-in properties of ` <atom>{:dn}` that 
+An `<atom>{:dn}` component may defined by specifying either its atomic number 
+or its symbol. Once defined, there are many built-in properties of `<atom>{:dn}` that 
 can be accessed.
-
-
-
----
-
-### Attribute Example: symbol
-
-
-```doenet-editor-horiz
-<p>Type in the symbol for gold: <textInput name="ti" prefill=""/></p>
-
-<atom symbol="$ti"/>
-<boolean>$ti = Au</boolean>
-```
-
-
-
-The `symbol` attribute takes the atom's chemical symbol as input.
-
-
-
----
-
-### Attribute Example: atomicNumber
-
-
-```doenet-editor-horiz
-<p>Type in the atomic number for carbon: <mathInput name="mi"/></p>
-
-<atom atomicNumber="$mi"/>
-<boolean>$mi = 6</boolean>
-```
-
-
-
-The `atomicNumber` attribute takes the atom's atomic number as input.
 
 
 
@@ -133,5 +96,41 @@ The `atomicNumber` attribute takes the atom's atomic number as input.
 
 
 The listing above includes all of the chemical properties currently 
-available to the ` <atom>{:dn}` component.
+available to the `<atom>{:dn}` component.
+
+
+
+## Attribute Examples
+
+### Attribute Example: symbol
+
+
+```doenet-editor-horiz
+<p><textInput name="ti" prefill=""><label>Type in the symbol for gold</label></textInput></p>
+
+<atom symbol="$ti"/>
+<boolean>$ti = Au</boolean>
+```
+
+
+
+The `symbol` attribute takes the atom's chemical symbol as input.
+
+
+
+---
+
+### Attribute Example: atomicNumber
+
+
+```doenet-editor-horiz
+<p><mathInput name="mi"><label>Type in the atomic number for carbon</label></mathInput></p>
+
+<atom atomicNumber="$mi"/>
+<boolean>$mi = 6</boolean>
+```
+
+
+
+The `atomicNumber` attribute takes the atom's atomic number as input.
 

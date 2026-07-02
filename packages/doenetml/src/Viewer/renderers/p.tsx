@@ -9,9 +9,19 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+
+interface PSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    justSubmitted: boolean;
+    renderInlineForListItem: boolean;
+}
 
 export default React.memo(function P(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<PSVs>(props);
 
     const ref = useRef(null);
 
@@ -22,20 +32,23 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
     }
 
     let checkWorkComponent = null;
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAllAnswers",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     if (actions.submitAllAnswers) {
-        const submitAllAnswers = () =>
-            callAction({
-                action: actions.submitAllAnswers,
-            });
-
-        const validationState = calculateValidationState(SVs);
         checkWorkComponent = createCheckWorkComponent(
             SVs,
             id,
             validationState,
-            submitAllAnswers,
+            submitActionWithPending,
             true,
+            isPending,
         );
     }
 
@@ -50,7 +63,14 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
     }
 
     return (
-        <div id={id} ref={ref} className="para">
+        <div
+            id={id}
+            ref={ref}
+            className="para"
+            // Keep paragraph spacing contract intact and only collapse the top
+            // margin when this paragraph is first in a list-item container.
+            style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
+        >
             {children}
             {checkWorkComponent}
         </div>

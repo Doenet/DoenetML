@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("SubsetOfRealsInput Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -26,16 +24,13 @@ describe("SubsetOfRealsInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#sor")).should("contain.text", "∅");
+        cy.get("#sor").should("contain.text", "∅");
 
-        cy.get(cesc("#sormi") + " textarea").type(
-            "{end}{backspace}{{}3}{enter}",
-            {
-                force: true,
-            },
-        );
+        cy.get("#sormi" + " textarea").type("{end}{backspace}{{}3}{enter}", {
+            force: true,
+        });
 
-        cy.get(cesc("#sor")).should("contain.text", "{3}");
+        cy.get("#sor").should("contain.text", "{3}");
         cy.wait(2000); // wait for 1 second debounce
 
         cy.reload();
@@ -48,6 +43,6 @@ describe("SubsetOfRealsInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#sor")).should("contain.text", "{3}");
+        cy.get("#sor").should("contain.text", "{3}");
     });
 });

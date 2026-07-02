@@ -5,15 +5,20 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import { getDataForAtom } from "../../utils/chemistry";
 
 export default class Atom extends InlineComponent {
     static componentType = "atom";
     static rendererType = "math";
+
+    static componentDocs = {
+        summary:
+            "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties",
+    };
 
     static primaryStateVariableForDefinition = "atomicNumberShadow";
 
@@ -22,13 +27,16 @@ export default class Atom extends InlineComponent {
 
         attributes.symbol = {
             createComponentOfType: "text",
+            description:
+                'The chemical symbol of the atom (e.g. "H", "He", "Li").',
         };
 
         attributes.atomicNumber = {
             createComponentOfType: "integer",
+            description: "The atomic number of the atom (number of protons).",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -38,7 +46,7 @@ export default class Atom extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let selectedStyleDefinition =
@@ -117,6 +125,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.atomicNumber = {
+            description: "The atomic number of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -142,6 +151,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.symbol = {
+            description: "The chemical symbol of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -166,6 +176,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.name = {
+            description: "The full name of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -190,6 +201,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.group = {
+            description:
+                "The group number of the element in the periodic table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -214,11 +227,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.atomicMass = {
+            description: "The atomic mass of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -240,6 +254,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.phaseAtSTP = {
+            description:
+                "The phase (solid, liquid, or gas) of the element at standard temperature and pressure.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -264,6 +280,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.chargeOfCommonIon = {
+            description: "The charge of the most common ion of this element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -289,6 +306,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.metalCategory = {
+            description:
+                "The metal category of the element (e.g. alkali metal, transition metal, nonmetal).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -316,6 +335,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.groupName = {
+            description:
+                'The descriptive name of the element\'s periodic group (e.g. "Alkali metals").',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -340,6 +361,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.period = {
+            description:
+                "The period number of the element in the periodic table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -364,11 +387,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.ionizationEnergy = {
+            description: "The first ionization energy of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -391,11 +415,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.meltingPoint = {
+            description: "The melting point of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -418,11 +443,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.boilingPoint = {
+            description: "The boiling point of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -445,6 +471,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.atomicRadius = {
+            description: "The atomic radius of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -470,11 +497,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.density = {
+            description: "The density of the element at standard conditions.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -496,11 +524,12 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.electronegativity = {
+            description: "The Pauling electronegativity of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 dataForAtom: {
@@ -523,6 +552,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.electronConfiguration = {
+            description:
+                "The electron configuration of the element as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "electronConfiguration",
@@ -548,6 +579,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.orbitalDiagram = {
+            description: "The orbital diagram of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "orbitalDiagram",
@@ -574,6 +606,8 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description:
+                "The atom rendered as a math expression with the element symbol.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -600,6 +634,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The atom rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -625,6 +660,7 @@ export default class Atom extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The atom rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

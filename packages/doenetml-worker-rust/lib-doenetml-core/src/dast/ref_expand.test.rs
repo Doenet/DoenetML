@@ -537,7 +537,7 @@ fn initial_ref_skips_unqualified_option_children() {
                   },
                   {
                     "type": "error",
-                    "message": "No referent found for reference: $n2",
+                    "message": "No referent found for reference: `$n2`",
                     "errorType": "warning",
                     "parent": 0,
                     "idx": 3,

@@ -4,6 +4,10 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
+    static componentDocs = {
+        summary:
+            "Renders content conditionally based on its `<case>` or `<else>` children",
+    };
     static allowInSchemaAnywhere = true;
 
     static createsVariants = true;
@@ -19,6 +23,8 @@ export default class ConditionalContent extends CompositeComponent {
         // then its condition attribute will be moved via sugar to a case child.
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Convenience for a single-case form: the boolean condition for which the children are rendered.",
         };
 
         return attributes;
@@ -49,7 +55,7 @@ export default class ConditionalContent extends CompositeComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.conditionAttribute) {
                     // If the condition attribute was not moved to a case child via sugar,
                     // then warn that it is not used on conditionalContent
@@ -57,18 +63,18 @@ export default class ConditionalContent extends CompositeComponent {
                     const warning = {
                         type: "warning",
                         message:
-                            "Attribute `condition` is ignored on a <conditionalContent> component with case or else children.",
+                            "Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.",
                     };
                     if (dependencyValues.conditionAttribute.position) {
                         warning.position =
                             dependencyValues.conditionAttribute.position;
                     }
 
-                    warnings.push(warning);
+                    diagnostics.push(warning);
                 }
 
                 return {
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                     setValue: { warnIfCondition: null },
                 };
             },
@@ -224,8 +230,7 @@ export default class ConditionalContent extends CompositeComponent {
     }
 
     static async getReplacements(component, components) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -265,8 +270,7 @@ export default class ConditionalContent extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
         };
     }
 
@@ -280,14 +284,12 @@ export default class ConditionalContent extends CompositeComponent {
         // console.log(workspace.previousSelectedIndex);
         // console.log(component.stateValues.selectedIndex);
 
-        // TODO: don't yet have a way to return errors and warnings!
-        const errors = [];
-        const warnings = [];
+        const diagnostics = [];
 
         const selectedIndex = await component.stateValues.selectedIndex;
 
         if (workspace.previousSelectedIndex === selectedIndex) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         const numCases = await component.stateValues.numCases;
@@ -308,6 +310,7 @@ export default class ConditionalContent extends CompositeComponent {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             } else {
@@ -333,6 +336,7 @@ export default class ConditionalContent extends CompositeComponent {
 
                     return {
                         replacementChanges: [replacementInstruction],
+                        diagnostics,
                         nComponents,
                     };
                 }
@@ -349,8 +353,7 @@ export default class ConditionalContent extends CompositeComponent {
             component,
             components,
         );
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
 
         const replacementInstruction = {
             changeType: "add",
@@ -365,7 +368,7 @@ export default class ConditionalContent extends CompositeComponent {
 
         workspace.previousSelectedIndex = selectedIndex;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

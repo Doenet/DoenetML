@@ -3,6 +3,13 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 
+function returnScoredContainerAncestorDependency(...variableNames) {
+    return {
+        dependencyType: "ancestor",
+        variableNames,
+    };
+}
+
 export function returnStandardAnswerAttributes() {
     return {
         weight: {
@@ -10,35 +17,60 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Relative weight of this answer when aggregating credit across multiple answers.",
         },
         handGraded: {
             createPrimitiveOfType: "boolean",
             createStateVariable: "handGraded",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Whether this answer is graded by hand rather than automatically.",
         },
         matchPartial: {
             createComponentOfType: "boolean",
             createStateVariable: "matchPartial",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Whether to award partial credit when the response is partially correct.",
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
             createStateVariable: "maxNumAttempts",
             defaultValue: Infinity,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Maximum number of times the response can be submitted.",
         },
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: true,
+            groupName: "answer-grading",
+            description:
+                "Whether to display whether the submitted response is correct.",
         },
         colorCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
             public: true,
+            groupName: "answer-grading",
+            // The runtime stores the raw attribute value under
+            // `colorCorrectnessPreliminary` so a derived `colorCorrectness`
+            // state def can combine it with the ancestor's setting. Authors
+            // should see only the derived `colorCorrectness` property, so
+            // hide the plumbing-named state var from the schema while
+            // keeping the attribute itself author-facing. See #1089.
+            stateVarExcludeFromSchema: true,
+            description:
+                "Whether to color-code the response based on its correctness.",
         },
 
         disableAfterCorrect: {
@@ -46,6 +78,9 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "disableAfterCorrect",
             defaultValue: false,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Whether to disable the answer after a fully correct response has been submitted.",
         },
 
         submitLabel: {
@@ -54,6 +89,9 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            groupName: "answer-grading",
+            description:
+                "Label for the submit button when correctness is shown.",
         },
 
         submitLabelNoCorrectness: {
@@ -62,6 +100,9 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            groupName: "answer-grading",
+            description:
+                "Label for the submit button when correctness is not shown.",
         },
 
         displayDigitsForResponses: {
@@ -69,6 +110,9 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForResponses",
             defaultValue: 10,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Number of significant digits to display when rendering numeric responses.",
         },
 
         displayDigitsForCreditAchieved: {
@@ -76,6 +120,9 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            groupName: "answer-grading",
+            description:
+                "Number of significant digits to display for the credit achieved value.",
         },
     };
 }
@@ -179,6 +226,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.creditAchieved = {
+        description:
+            "The fraction of credit achieved on the most recent submission (between 0 and 1).",
         defaultValue: 0,
         public: true,
         shadowingInstructions: {
@@ -214,6 +263,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.responseHasBeenSubmitted = {
+        description:
+            "Whether a response has ever been submitted for this answer.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -273,7 +324,7 @@ export function returnStandardAnswerStateVariableDefinition() {
             // even if the object was built in a different order
             // (as can happen when reloading from a database)
 
-            let warnings = [];
+            let diagnostics = [];
 
             let selfDependencies =
                 dependencyValues.currentCreditAchievedDependencies.find(
@@ -287,10 +338,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                         (x) => x.substring(0, 17) === "submittedResponse",
                     )
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
-                        level: 1,
+                        type: "warning",
                     });
                 }
             }
@@ -306,7 +357,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                         sha1(stringified),
                     ),
                 },
-                sendWarnings: warnings,
+                sendDiagnostics: diagnostics,
             };
         },
         markStale: () => ({ answerCreditPotentiallyChanged: true }),
@@ -335,6 +386,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.justSubmitted = {
+        description:
+            "Whether the most recent submission for this answer has not yet been changed.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -407,6 +460,7 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.numSubmissions = {
+        description: "Total number of times a response has been submitted.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -452,6 +506,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.numAttemptsLeft = {
+        description:
+            "Remaining number of submission attempts before the maximum is reached.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -466,14 +522,52 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            ancestorSuppressingAnswerSubmitButtons:
+                returnScoredContainerAncestorDependency(
+                    "suppressAnswerSubmitButtons",
+                    "numAttemptsLeft",
+                ),
+            // Used to target the ignored-`maxNumAttempts` warning at the
+            // attribute itself rather than the whole `<answer>`.
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+            },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
+            let sendDiagnostics = [];
+
+            let insideSectionWideCheckWork =
+                dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                    ?.stateValues.suppressAnswerSubmitButtons;
+
+            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+                sendDiagnostics.push({
+                    type: "warning",
+                    message:
+                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
+                    position: dependencyValues.maxNumAttemptsAttr?.position,
+                });
+            }
+
+            // Inside a section-wide check work, the answer's own
+            // `maxNumAttempts` is ignored: the enclosing container controls the
+            // number of attempts. Report that container's remaining attempts so
+            // the public `numAttemptsLeft` is accurate. This matches how a
+            // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
+            // ignored.
+            const numAttemptsLeft = insideSectionWideCheckWork
+                ? dependencyValues.ancestorSuppressingAnswerSubmitButtons
+                      .stateValues.numAttemptsLeft
+                : Math.max(
+                      0,
+                      dependencyValues.maxNumAttempts -
+                          dependencyValues.numSubmissions,
+                  );
+
             return {
-                setValue: {
-                    numAttemptsLeft:
-                        dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
-                },
+                setValue: { numAttemptsLeft },
+                sendDiagnostics,
             };
         },
     };
@@ -515,6 +609,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.disabled = {
+        description:
+            "Whether this answer is disabled and is no longer accepting submissions.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -598,7 +694,7 @@ export function returnSimplifyExpandOnCompareWarning() {
             },
         }),
         definition({ dependencyValues }) {
-            const sendWarnings = [];
+            const sendDiagnostics = [];
             if (!dependencyValues.symbolicEquality) {
                 const attributesSpecified = [];
 
@@ -611,19 +707,19 @@ export function returnSimplifyExpandOnCompareWarning() {
                 }
 
                 if (attributesSpecified.length > 0) {
-                    sendWarnings.push({
+                    sendDiagnostics.push({
                         message: `The ${attributesSpecified.join(
                             " and ",
                         )} attribute${
                             attributesSpecified.length > 1 ? "s" : ""
                         } will have no effect without symbolicEquality set.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
             }
 
             return {
-                sendWarnings,
+                sendDiagnostics,
                 setValue: {
                     simplifyExpandOnCompareWarning: null,
                 },
@@ -632,4 +728,39 @@ export function returnSimplifyExpandOnCompareWarning() {
     };
 
     return stateVariableDefinitions;
+}
+
+/**
+ * Walk a serialized-component tree and stamp each answer (and any
+ * `_blockScoredComponent` descendant) with a sequential `answerNumber`
+ * starting from `numSoFar + 1`. Answers and block-scored components
+ * are leaves for the purpose of numbering: their children are not
+ * descended into.
+ *
+ * Returns the running count so recursive calls can resume.
+ */
+export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (
+            comp.componentType === "answer" ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: comp.componentType,
+                baseComponentType: "_blockScoredComponent",
+            })
+        ) {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(
+                comp.children,
+                componentInfoObjects,
+                count,
+            );
+            count = result.count;
+        }
+    }
+
+    return { count };
 }

@@ -2619,7 +2619,7 @@ describe("Unique variant tests @group1", async () => {
         // just get 10 variants from select
         ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <samplePrimeNumbers minValue="1" maxValue="10000" name="n" />
+        <samplePrimeNumbers from="1" to="10000" name="n" />
         <selectFromSequence from="1" to="10" />
         `,
         }));
@@ -2655,7 +2655,7 @@ describe("Unique variant tests @group1", async () => {
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-                <samplePrimeNumbers minValue="1" maxValue="10000" variantDeterminesSeed name="n" />
+                <samplePrimeNumbers from="1" to="10000" variantDeterminesSeed name="n" />
                 `,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);

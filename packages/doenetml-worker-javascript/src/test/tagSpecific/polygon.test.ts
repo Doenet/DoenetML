@@ -4837,15 +4837,15 @@ describe("Polygon tag tests @group2", async () => {
     <text>a</text>
     <setup>
         <styleDefinition styleNumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
-        <styleDefinition styleNumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" />
+        <styleDefinition styleNumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
 
         <styleDefinition styleNumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
-        <styleDefinition styleNumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" />
+        <styleDefinition styleNumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="backDiagonal" />
     </setup>
 
     <graph>
       <polygon vertices="(0,0) (0,2) (2,0)" name="p1" />
-      <polygon vertices="(3,0) (3,2) (5,0)" name="p2" filled />
+      <polygon vertices="(3,0) (3,2) (5,0)" name="p2" filled fillStyle="dots" />
       <polygon vertices="(0,3) (0,5) (2,3)" name="p3" styleNumber="2" />
       <polygon vertices="(3,3) (3,5) (5,3)" name="p4" styleNumber="2" filled />
 
@@ -4903,16 +4903,16 @@ describe("Polygon tag tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st2")].stateValues.text,
-        ).eq("filled blue");
+        ).eq("filled blue with dots");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn2")].stateValues.text,
-        ).eq("filled blue polygon");
+        ).eq("filled blue polygon with dots");
         expect(
             stateVariables[await resolvePathToNodeIdx("bst2")].stateValues.text,
         ).eq("blue");
         expect(
             stateVariables[await resolvePathToNodeIdx("fst2")].stateValues.text,
-        ).eq("blue");
+        ).eq("blue dots");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st3")].stateValues.text,
@@ -4929,16 +4929,16 @@ describe("Polygon tag tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st4")].stateValues.text,
-        ).eq("filled green with red border");
+        ).eq("filled green with horizontal lines and red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn4")].stateValues.text,
-        ).eq("filled green polygon with a red border");
+        ).eq("filled green polygon with horizontal lines and a red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("bst4")].stateValues.text,
         ).eq("red");
         expect(
             stateVariables[await resolvePathToNodeIdx("fst4")].stateValues.text,
-        ).eq("green");
+        ).eq("green horizontal lines");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st5")].stateValues.text,
@@ -4981,16 +4981,20 @@ describe("Polygon tag tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st8")].stateValues.text,
-        ).eq("filled green with thin dotted red border");
+        ).eq(
+            "filled green with reverse diagonal lines and thin dotted red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("stn8")].stateValues.text,
-        ).eq("filled green polygon with a thin dotted red border");
+        ).eq(
+            "filled green polygon with reverse diagonal lines and a thin dotted red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst8")].stateValues.text,
         ).eq("thin dotted red");
         expect(
             stateVariables[await resolvePathToNodeIdx("fst8")].stateValues.text,
-        ).eq("green");
+        ).eq("green reverse diagonal lines");
     });
 
     it("draggable, vertices draggable", async () => {

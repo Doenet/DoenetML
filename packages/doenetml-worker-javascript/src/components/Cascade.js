@@ -2,6 +2,10 @@ import { SectioningComponent } from "./abstract/SectioningComponent";
 
 export default class Cascade extends SectioningComponent {
     static componentType = "cascade";
+
+    static componentDocs = {
+        summary: "Sectional component that reveals its children step-by-step",
+    };
     static rendererType = "section";
 
     static includeBlankStringChildren = false;
@@ -14,6 +18,8 @@ export default class Cascade extends SectioningComponent {
             createStateVariable: "hideFutureSections",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to hide later cascade sections until previous ones are completed.",
         };
 
         attributes.noAutoTitle.defaultValue = true;
@@ -22,12 +28,16 @@ export default class Cascade extends SectioningComponent {
             createComponentOfType: "boolean",
             createStateVariable: "revealAllPreliminary",
             defaultValue: false,
+            description:
+                "Whether all cascade entries should be revealed regardless of progress.",
         };
 
         attributes.boxAll = {
             createComponentOfType: "boolean",
             createStateVariable: "boxAll",
             defaultValue: false,
+            description:
+                "Whether to draw boxes around all cascade entries regardless of progress.",
         };
 
         return attributes;
@@ -60,6 +70,7 @@ export default class Cascade extends SectioningComponent {
         };
 
         stateVariableDefinitions.numCompleted = {
+            description: "The number of cascade sections currently completed.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",

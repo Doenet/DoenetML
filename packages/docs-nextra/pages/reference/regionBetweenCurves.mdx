@@ -1,26 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-# ` <regionBetweenCurves>{:dn}`
+# `<regionBetweenCurves>{:dn}`
 
+<ComponentDisplay name='regionBetweenCurves'/>
 
- ` <regionBetweenCurves>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
- component that renders a shaded region on a graph between a specified function and the $x$-axis.
-
-
-## Attributes and Properties 
- <AttrDisplay name='regionBetweenCurves'/> 
- <PropDisplay name='regionBetweenCurves'/>
+ `<regionBetweenCurves>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) 
+ component that renders a shaded region on a graph between two specified curves.
 
 
----
+<AttrPropDisplay name='regionBetweenCurves'/>
+
+
+## Examples
 
 ### Example: Render shading between two functions
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph of the region between two functions</shortDescription>
   <function name="f">x</function>
   <function name="g">
     1/4(x - 4)^2 - 4
@@ -34,13 +34,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The ` <regionBetweenCurves>{:dn}` component shades in the region between two functions
+The `<regionBetweenCurves>{:dn}` component shades in the region between two functions
 $f$ and $g$ over a specified interval.
 
 
 
----
-
+## Attribute Examples
 
 ### Attribute Example: flipFunctions
 
@@ -48,6 +47,7 @@ $f$ and $g$ over a specified interval.
 ```doenet-editor
 <p>Graph the function and flip the region.</p>
 <graph size="small" xmin="-6" xmax="14" ymin="-6" ymax="14">
+  <shortDescription>A graph of the region between two functions with flipFunctions</shortDescription>
   <function name="f">x</function>
   <function name="g">
     1/4(x - 4)^2 - 4
@@ -61,6 +61,7 @@ $f$ and $g$ over a specified interval.
 
 <p>Graph the flipped function as a curve, and flip the region.</p>
 <graph size="small" xmin="-6" xmax="14" ymin="-6" ymax="14">
+  <shortDescription>A graph of the flipped curve and the flipped region</shortDescription>
   <curve flipFunction styleNumber="2">
     $g
   </curve>
@@ -83,9 +84,10 @@ component with the `flipFunction` attribute, as shown in the second graph.
 
 
 ```doenet-example
-<slider name="upperLimit" from="-2pi" to="2pi" step="pi/8"/>
+<slider name="upperLimit" from="-2pi" to="2pi" step="pi/8"><label>upper limit</label></slider>
 
 <graph size="small" xmin="-2pi" xmax="2pi" ymin="-2" ymax="2" xTickScaleFactor="pi">
+  <shortDescription>A graph of the region between sin(t) and -sin(t)</shortDescription>
   <function name="f" variable="t">sin(t)</function>
   <function name="g" variable="t">-sin(t)</function>
   <regionBetweenCurves 
@@ -111,9 +113,10 @@ define the endpoints of the shaded interval.
 
 
 ```doenet-editor-horiz
-<slider name="styleNum" from="1" to="6" step="1"/>
+<slider name="styleNum" from="1" to="6" step="1"><label>style number</label></slider>
 
 <graph size="small" xmin="-1" ymin="-1">
+  <shortDescription>A graph of a styled region between two functions</shortDescription>
   <function name="f" styleNumber="$styleNum">
     -1/8(x-4)^2 + 6
   </function>
@@ -130,19 +133,20 @@ define the endpoints of the shaded interval.
 
 
 
-The ` <regionBetweenCurves>{:dn}` component accepts the `styleNumber` attribute. Default styleNumbers range from $1$ to $6$.
+The `<regionBetweenCurves>{:dn}` component accepts the `styleNumber` attribute. Default styleNumbers range from $1$ to $6$.
 
 
 
----
+## Property Examples
 
 ### Property Example: styleDescription/ styleDescriptionWithNoun
 
 
 ```doenet-editor-horiz
-<slider name="styleNum" from="1" to="6" step="1"/>
+<slider name="styleNum" from="1" to="6" step="1"><label>style number</label></slider>
 
 <graph size="small" xmin="-1" ymin="-1">
+  <shortDescription>A graph of a styled region between two functions</shortDescription>
   <function name="f" styleNumber="$styleNum">
     -1/8(x-4)^2 + 6
   </function>

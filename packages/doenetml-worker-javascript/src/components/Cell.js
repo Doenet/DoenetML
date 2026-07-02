@@ -5,6 +5,10 @@ import { textFromChildren } from "../utils/text";
 
 export default class Cell extends BaseComponent {
     static componentType = "cell";
+
+    static componentDocs = {
+        summary: "A single cell within a tabular layout or spreadsheet",
+    };
     static rendererType = "cell";
     static renderChildren = true;
 
@@ -19,12 +23,14 @@ export default class Cell extends BaseComponent {
             createStateVariable: "rowNum",
             defaultValue: null,
             public: true,
+            description: "Row number where this cell is placed (1-based).",
         };
         attributes.colNum = {
             createComponentOfType: "text",
             createStateVariable: "colNum",
             defaultValue: null,
             public: true,
+            description: "Column number where this cell is placed (1-based).",
         };
         attributes.colSpan = {
             createComponentOfType: "integer",
@@ -32,21 +38,27 @@ export default class Cell extends BaseComponent {
             defaultValue: 1,
             public: true,
             forRenderer: true,
+            description: "Number of columns this cell spans.",
         };
         attributes.halign = {
             createComponentOfType: "text",
+            description:
+                "Horizontal alignment for the cell's content (left, center, or right).",
         };
         attributes.bottom = {
             createComponentOfType: "text",
+            description: "Border style for the bottom edge of the cell.",
         };
         attributes.right = {
             createComponentOfType: "text",
+            description: "Border style for the right edge of the cell.",
         };
         attributes.prefill = {
             createComponentOfType: "text",
             createStateVariable: "prefill",
             defaultValue: "",
             public: true,
+            description: "Initial text content of the cell.",
         };
 
         return attributes;
@@ -69,6 +81,8 @@ export default class Cell extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.halign = {
+            description:
+                "Horizontal alignment of the cell's content (left, center, or right).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -126,6 +140,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.bottom = {
+            description: "Border style for the bottom edge of the cell.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -182,6 +197,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.right = {
+            description: "Border style for the right edge of the cell.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -226,6 +242,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.inHeader = {
+            description: "Whether this cell is in a header row of the table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -268,6 +285,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The cell's content as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -352,6 +370,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.math = {
+            description: "The cell's content interpreted as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -436,6 +455,7 @@ export default class Cell extends BaseComponent {
         };
 
         stateVariableDefinitions.number = {
+            description: "The cell's content interpreted as a number.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

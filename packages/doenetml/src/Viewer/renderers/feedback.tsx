@@ -8,8 +8,16 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import "./feedback.css";
 
+interface FeedbackSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    feedbackText: string;
+}
+
 export default React.memo(function Feedback(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<FeedbackSVs>(props);
 
     const ref = useRef(null);
 

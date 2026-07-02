@@ -4,10 +4,16 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class ConstrainTo extends ConstraintComponent {
     static componentType = "constrainTo";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to be within another component or components",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.relativeToGraphScales = {
+            description:
+                "Whether the constraint is interpreted relative to the enclosing graph's scales.",
             createComponentOfType: "boolean",
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,
@@ -40,19 +46,19 @@ export default class ConstrainTo extends ConstraintComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let nearestPointFunctions = [];
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
                         const warning = {
                             type: "warning",
-                            message: `Cannot constrain to a <${child.componentType}> as it doesn't have a nearestPoint state variable.`,
+                            message: `Cannot constrain to a \`<${child.componentType}>\` as it doesn't have a nearestPoint state variable.`,
                         };
                         if (child.position) {
                             warning.position = child.position;
                         }
 
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);
@@ -60,7 +66,7 @@ export default class ConstrainTo extends ConstraintComponent {
 
                 return {
                     setValue: { nearestPointFunctions },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

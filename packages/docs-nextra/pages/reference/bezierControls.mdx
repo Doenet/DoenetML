@@ -1,27 +1,28 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <bezierControls>{:dn}`
+# `<bezierControls>{:dn}`
 
-` <bezierControls>{:dn}`is a [Graphical](../document_structure/essentialConcepts#component-types) 
-component. It is always the child of a ` <curve>{:dn}` component and provides a means to 
+<ComponentDisplay name='bezierControls'/>
+
+`<bezierControls>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) 
+component. It is always the child of a `<curve>{:dn}` component and provides a means to 
 specify the control vectors at each bezier curve control point.
 
-## Attributes and Properties 
- <AttrDisplay name='bezierControls'/> 
- <PropDisplay name='bezierControls'/>
+<AttrPropDisplay name='bezierControls'/>
 
 
----
+## Examples
 
-### Example: ` <bezierControls>{:dn}` with nested control vectors
+### Example: `<bezierControls>{:dn}` with nested control vectors
 
 
 ```doenet-editor-horiz
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
     <graph>
+      <shortDescription>A graph of a bezier curve with control vectors specified in list form</shortDescription>
       <curve through="(1,2) (3,4) (-5,6) (2,-4)">
         <bezierControls>(3,1) (-1,5) (5,3) (0,-5)</bezierControls>
       </curve>
@@ -30,19 +31,20 @@ specify the control vectors at each bezier curve control point.
 
 
 
-Assuming all control points have symmetric control vectors, the vectors may be specified directly in list form inside a ` <bezierControls>{:dn}` component, in the same order as the control points are specified in the parent ` <curve>{:dn}` component.
+Assuming all control points have symmetric control vectors, the vectors may be specified directly in list form inside a `<bezierControls>{:dn}` component, in the same order as the control points are specified in the parent `<curve>{:dn}` component.
 
 
 
 ---
 
-### Example: ` <bezierControls>{:dn}` with ` <controlVectors>{:dn}` children
+### Example: `<bezierControls>{:dn}` with `<controlVectors>{:dn}` children
 
 
 ```doenet-editor-horiz
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
 
 <graph>
+  <shortDescription>A graph of a bezier curve with individual control vectors</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,-4)">
     <bezierControls>
       <controlVectors>(3,1)</controlVectors>
@@ -56,19 +58,20 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 
 
 
- Control vectors for a bezier ` <curve>{:dn}` can also be specified as individual ` <controlVectors>{:dn}` nested within a ` <bezierControls>{:dn}` block.
+ Control vectors for a bezier `<curve>{:dn}` can also be specified as individual `<controlVectors>{:dn}` nested within a `<bezierControls>{:dn}` block.
 
 
 
 ---
 
-### Example: ` <bezierControls>{:dn}` with asymmetric control vectors
+### Example: `<bezierControls>{:dn}` with asymmetric control vectors
 
 
 ```doenet-editor-horiz
 <p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
 
 <graph>
+  <shortDescription>A graph of a bezier curve with asymmetric control vectors</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,1)">
     <bezierControls>
       <controlVectors>(3,1)</controlVectors>
@@ -88,11 +91,11 @@ Assuming all control points have symmetric control vectors, the vectors may be s
 
 
 
-When a single control point has distinct control vectors in each direction, two ` <vector>{:dn}` components may be listed within the ` <controlVectors>{:dn}` component in a ` <bezierControls>{:dn}` block. In this case, specify `direction="both"` within the ` <controlVectors>{:dn}` block.
+When a single control point has distinct control vectors in each direction, two `<vector>{:dn}` components may be listed within the `<controlVectors>{:dn}` component in a `<bezierControls>{:dn}` block. In this case, specify `direction="both"` within the `<controlVectors>{:dn}` block.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: alwaysVisible
 
@@ -101,6 +104,7 @@ When a single control point has distinct control vectors in each direction, two 
 <p>Use the light grey handles to adjust the shape of the curve.</p>
     
 <graph>
+  <shortDescription>A graph of a bezier curve with always-visible control handles</shortDescription>
   <curve through="(1,2) (3,4) (-5,6) (2,1)">
     <bezierControls alwaysVisible>
       <controlVectors>(3,1)</controlVectors>
@@ -114,5 +118,5 @@ When a single control point has distinct control vectors in each direction, two 
 
 
 
- The `alwaysVisible` attribute can be used with ` <bezierControls>{:dn}` to make handles permanently visible.
+ The `alwaysVisible` attribute can be used with `<bezierControls>{:dn}` to make handles permanently visible.
 

@@ -1,21 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <text>{:dn}`
+# `<text>{:dn}`
 
+<ComponentDisplay name='text'/>
 
-` <text>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
+`<text>{:dn}` is a [Text](../concepts/essentialConcepts#component-types)
 component that defines a string variable for use in evaluations and boolean expressions, or to store a value for future rendering.
 
-## Attributes and Properties 
- <AttrDisplay name='text'/> 
- <PropDisplay name='text'/>
+<AttrPropDisplay name='text'/>
 
----
+## Examples
 
-### Example: Store a ` <text>{:dn}` for future rendering
+### Example: Store a `<text>{:dn}` for future rendering
 
 
 ```doenet-editor-horiz
@@ -32,13 +31,13 @@ component that defines a string variable for use in evaluations and boolean expr
 
 
 
-` <text>{:dn}` values are defined in a ` <setup>{:dn}` and referenced by name later for rendering.
+`<text>{:dn}` values are defined in a `<setup>{:dn}` and referenced by name later for rendering.
 
 
 
 ---
 
-### Example: ` <text>{:dn}` used in a ` <boolean>{:dn}`
+### Example: `<text>{:dn}` used in a `<boolean>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -46,24 +45,26 @@ component that defines a string variable for use in evaluations and boolean expr
 <text name="color">green</text>
 </setup>
 
-<p>Enter the complement of red: 
-  <textInput name="userColor"/></p>
+<p><textInput name="userColor">
+  <label>Enter the complement of red</label>
+</textInput></p>
 <boolean>$userColor = $color</boolean>
 ```
 
 
 
-A ` <text>{:dn}` values is defined in a ` <setup>{:dn}` and referenced by name later in a ` <boolean>{:dn}`.
+A `<text>{:dn}` values is defined in a `<setup>{:dn}` and referenced by name later in a `<boolean>{:dn}`.
 
 
 
 ---
 
-### Example: ` <text>{:dn}` used on a ` <graph>{:dn}`
+### Example: `<text>{:dn}` used on a `<graph>{:dn}`
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with a Hello World text label and a circle</shortDescription>
   <text anchor="(-6,6)">Hello World!</text>
   <circle radius="5"/>
 </graph>
@@ -71,13 +72,13 @@ A ` <text>{:dn}` values is defined in a ` <setup>{:dn}` and referenced by name l
 
 
 
-A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <text>{:dn}` can be adjusted with the `anchor` attribute.
+A `<text>{:dn}` values is defined on a `<graph>{:dn}`. The position of the `<text>{:dn}` can be adjusted with the `anchor` attribute.
 
 
 
 ---
 
-### Example: ` <text>{:dn}` adaptable to ` <math>{:dn}` contexts
+### Example: `<text>{:dn}` adaptable to `<math>{:dn}` contexts
 
 
 ```doenet-editor-horiz
@@ -90,17 +91,18 @@ A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <
 
 
 
-` <text>{:dn}` values inserted into a ` <math>{:dn}` will be parsed as a ` <math>{:dn}` where possible.
+`<text>{:dn}` values inserted into a `<math>{:dn}` will be parsed as a `<math>{:dn}` where possible.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: anchor
 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with a Hello World text label and a circle</shortDescription>
   <text name="a" anchor="(-6,6)">Hello World!</text>
   <circle radius="5"/>
 </graph>
@@ -110,7 +112,7 @@ A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <
 
 
 
-The `anchor` attribute determines the initial position of a ` <text>{:dn}` on a ` <graph>{:dn}`.
+The `anchor` attribute determines the initial position of a `<text>{:dn}` on a `<graph>{:dn}`.
 
 
 
@@ -121,6 +123,7 @@ The `anchor` attribute determines the initial position of a ` <text>{:dn}` on a 
 
 ```doenet-editor-horiz
 <graph size="small">
+  <shortDescription>A graph with two text labels</shortDescription>
   <text name="a" anchor="(-6,3)">
     I'm free!
   </text>
@@ -139,5 +142,5 @@ The `anchor` attribute determines the initial position of a ` <text>{:dn}` on a 
 
 
 
-The `draggable` attribute determines whether the ` <text>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the `<text>{:dn}` can be dragged around the `<graph>{:dn}`. All graphical objects are draggable by default.
 

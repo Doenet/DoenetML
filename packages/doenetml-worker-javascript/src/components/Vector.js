@@ -11,10 +11,13 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -22,12 +25,17 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(this.actions, {
             moveVector: this.moveVector.bind(this),
+            moveVectorSinglePoint: this.moveVectorSinglePoint.bind(this),
             vectorClicked: this.vectorClicked.bind(this),
             vectorFocused: this.vectorFocused.bind(this),
         });
     }
     static componentType = "vector";
+    static styleOverrideCategories = ["line"];
 
+    static componentDocs = {
+        summary: "A geometric vector with tail and head",
+    };
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
@@ -37,6 +45,7 @@ export default class Vector extends GraphicalComponent {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the vector can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -45,36 +54,88 @@ export default class Vector extends GraphicalComponent {
         };
         attributes.headDraggable = {
             createComponentOfType: "boolean",
+            description: "Whether the vector's head can be dragged.",
         };
         attributes.tailDraggable = {
             createComponentOfType: "boolean",
+            description: "Whether the vector's tail can be dragged.",
         };
 
         attributes.x = {
             createComponentOfType: "math",
+            description:
+                "The first component (x) of the vector's displacement.",
         };
         attributes.y = {
             createComponentOfType: "math",
+            description:
+                "The second component (y) of the vector's displacement.",
         };
         attributes.z = {
             createComponentOfType: "math",
+            description:
+                "The third component (z) of the vector's displacement.",
         };
         attributes.xs = {
             createComponentOfType: "mathList",
+            description: "The vector's displacement components as a list.",
         };
         attributes.displacement = {
             createComponentOfType: "coords",
+            description: "The vector's displacement (head minus tail).",
         };
         attributes.head = {
             createComponentOfType: "point",
+            description: "The head (tip) point of the vector.",
         };
         attributes.tail = {
             createComponentOfType: "point",
+            description: "The tail (base) point of the vector.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        attributes.addControls = {
+            description: "Whether to render interactive control handles.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "displacement",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "displacement",
+                    description:
+                        "Show a control handle for translating the whole vector.",
+                },
+                {
+                    value: "headAndTail",
+                    description:
+                        "Show control handles for both the head and the tail.",
+                },
+                {
+                    value: "headOnly",
+                    description: "Show a control handle only at the head.",
+                },
+                {
+                    value: "tailOnly",
+                    description: "Show a control handle only at the tail.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
+            valueForTrue: "displacement",
+            valueForFalse: "none",
+        };
+
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
+
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.displayWithAngleBrackets = {
+            description:
+                "Whether to display the vector with angle brackets (e.g. ⟨1,2⟩).",
             createComponentOfType: "boolean",
             createStateVariable: "displayWithAngleBrackets",
             defaultValue: false,
@@ -82,12 +143,15 @@ export default class Vector extends GraphicalComponent {
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
             public: true,
             forRenderer: true,
         };
+
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }
@@ -277,7 +341,7 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -285,6 +349,7 @@ export default class Vector extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the vector's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -331,6 +396,7 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "vector".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -380,6 +446,8 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.tailDraggable = {
+            description:
+                "Whether the vector's tail can be dragged independently.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -419,6 +487,8 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.headDraggable = {
+            description:
+                "Whether the vector's head can be dragged independently.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -624,7 +694,7 @@ export default class Vector extends GraphicalComponent {
                     dependencyValues.tailAttr !== null &&
                     dependencyValues.sourceOfDisplacement !== null
                 ) {
-                    let warnings = [];
+                    let diagnostics = [];
                     if (dependencyValues.headAttr !== null) {
                         // if overprescribed by specifying head, tail, and displacement
                         // we ignore head
@@ -637,12 +707,12 @@ export default class Vector extends GraphicalComponent {
                             warning.position =
                                 dependencyValues.headAttr.position;
                         }
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                     }
                     return {
                         setValue: { basedOnHead: false },
                         checkForActualChange: { basedOnHead: true },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -1066,6 +1136,7 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of the vector.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1110,11 +1181,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnHead) {
@@ -1124,11 +1195,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -1141,11 +1212,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -1175,12 +1246,13 @@ export default class Vector extends GraphicalComponent {
 
         stateVariableDefinitions.displacement = {
             public: true,
+            description: "The displacement (head − tail) of the vector.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 attributesToShadow: ["displayWithAngleBrackets"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "x") {
                         return [];
@@ -1611,25 +1683,32 @@ export default class Vector extends GraphicalComponent {
         stateVariableDefinitions.x = {
             isAlias: true,
             targetVariableName: "x1",
+            description:
+                "The first component (x) of the vector's displacement.",
         };
 
         stateVariableDefinitions.y = {
             isAlias: true,
             targetVariableName: "x2",
+            description:
+                "The second component (y) of the vector's displacement.",
         };
 
         stateVariableDefinitions.z = {
             isAlias: true,
             targetVariableName: "x3",
+            description:
+                "The third component (z) of the vector's displacement.",
         };
 
         stateVariableDefinitions.head = {
             public: true,
+            description: "Coordinates of the vector's head.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "headX") {
                         return [];
@@ -1832,11 +1911,12 @@ export default class Vector extends GraphicalComponent {
 
         stateVariableDefinitions.tail = {
             public: true,
+            description: "Coordinates of the vector's tail.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "tailX") {
                         return [];
@@ -2087,12 +2167,13 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.magnitude = {
+            description: "The magnitude (length) of the vector.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numDimensions: {
@@ -2313,6 +2394,7 @@ export default class Vector extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The vector rendered as a LaTeX string.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -2339,17 +2421,19 @@ export default class Vector extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.displacementCoords,
                     dependencyValues,
@@ -2363,6 +2447,8 @@ export default class Vector extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "displacementCoords",
+            description:
+                "The vector's displacement as a single math expression.",
         };
 
         stateVariableDefinitions.nearestPoint = {
@@ -2448,14 +2534,14 @@ export default class Vector extends GraphicalComponent {
             stateVariable: "displacementCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "displacementCoords",
             componentType: "coords",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },
@@ -2463,15 +2549,70 @@ export default class Vector extends GraphicalComponent {
             stateVariable: "displacementCoords",
             componentType: "point",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },
     ];
 
+    async moveVectorSinglePoint({
+        x,
+        y,
+        pointRole,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid vector point coordinates: x=${x}, y=${y}, role=${pointRole}`,
+            );
+            return;
+        }
+
+        if (pointRole === "head") {
+            return await this.moveVector({
+                headcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "tail") {
+            return await this.moveVector({
+                tailcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "displacement") {
+            return await this.moveVector({
+                displacement: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else {
+            console.warn(`Invalid pointRole for vector: ${pointRole}`);
+            return;
+        }
+    }
+
     async moveVector({
         tailcoords,
         headcoords,
+        displacement,
         transient,
         skippable,
         sourceDetails,
@@ -2479,6 +2620,63 @@ export default class Vector extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+        if (
+            displacement !== undefined &&
+            tailcoords === undefined &&
+            headcoords === undefined
+        ) {
+            if (!(await this.stateValues.headDraggable)) {
+                return;
+            }
+
+            const updateInstructions = [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "displacement",
+                    value: displacement.map((x) => me.fromAst(x)),
+                    sourceDetails,
+                },
+            ];
+
+            if (transient) {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    transient,
+                    skippable,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                });
+            } else {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                    event: {
+                        verb: "interacted",
+                        object: {
+                            componentIdx: this.componentIdx,
+                            componentType: this.componentType,
+                        },
+                        result: {
+                            displacement,
+                        },
+                    },
+                });
+            }
+
+            return await this.coreFunctions.updateRenderers({
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+
         if (tailcoords !== undefined) {
             if (headcoords !== undefined) {
                 // dragged entire vector
@@ -2708,6 +2906,7 @@ export default class Vector extends GraphicalComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,

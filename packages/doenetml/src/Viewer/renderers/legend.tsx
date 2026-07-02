@@ -1,20 +1,63 @@
-// @ts-nocheck
 import React, { useContext, useEffect, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import JXG from "jsxgraph";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext } from "./graph";
 import { deepCompare } from "@doenet/utils";
+import {
+    JXGElement,
+    JXGLine,
+    JXGPoint,
+    JXGPolygon,
+    JXGText,
+} from "./jsxgraph-distrib/types";
+import { styleToDash } from "./utils/styleToDash";
 
-export default React.memo(function Legend(props) {
-    let { id, SVs } = useDoenetRenderer(props);
+declare const MathJax: any;
+
+interface LegendElement {
+    label?: { hasLatex: boolean; value: string };
+    swatchType: "marker" | "rectangle" | "line";
+    markerColor?: string;
+    markerStyle?: string;
+    markerSize?: number;
+    lineColor?: string;
+    lineWidth?: number;
+    lineStyle?: string;
+    lineOpacity?: number;
+    fillColor?: string;
+    fillOpacity?: number;
+    filled?: boolean;
+}
+
+interface GraphLimits {
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+}
+
+interface LegendSVs {
+    hidden: boolean;
+    graphLimits: GraphLimits;
+    position: string;
+    legendElements: LegendElement[];
+}
+
+type Swatch = JXGPoint | JXGPolygon | JXGLine | JXGElement;
+
+export default React.memo(function Legend(props: UseDoenetRendererProps) {
+    let { id, SVs } = useDoenetRenderer<LegendSVs>(props);
 
     const board = useContext(BoardContext);
 
-    let swatches = useRef([]);
-    let labels = useRef([]);
+    let swatches = useRef<Swatch[]>([]);
+    let labels = useRef<JXGText[]>([]);
 
-    let previousElements = useRef(null);
-    let previousPosition = useRef(null);
-    let previousLimits = useRef(null);
+    let previousElements = useRef<LegendElement[] | null>(null);
+    let previousPosition = useRef<string | null>(null);
+    let previousLimits = useRef<GraphLimits | null>(null);
 
     useEffect(() => {
         //On unmount
@@ -24,6 +67,9 @@ export default React.memo(function Legend(props) {
     }, []);
 
     function createLegend() {
+        if (board === null) {
+            return;
+        }
         let { xMin, xMax, yMin, yMax } = SVs.graphLimits;
 
         let legendDy = (yMax - yMin) * 0.06;
@@ -32,7 +78,7 @@ export default React.memo(function Legend(props) {
 
         let legendX = xMin + (xMax - xMin) * 0.05;
 
-        let legendY;
+        let legendY: number;
 
         if (SVs.position.slice(0, 5) === "upper") {
             legendY = yMin + (yMax - yMin) * 0.95;
@@ -58,7 +104,7 @@ export default React.memo(function Legend(props) {
             if (element.label) {
                 let y = legendY - ind * legendDy;
 
-                let textAttrs = {
+                let textAttrs: Record<string, any> = {
                     fixed: true,
                     highlight: false,
                 };
@@ -77,7 +123,7 @@ export default React.memo(function Legend(props) {
                         element.label.value,
                     ],
                     textAttrs,
-                );
+                ) as JXGText;
 
                 labels.current.push(txt);
 
@@ -97,7 +143,7 @@ export default React.memo(function Legend(props) {
         for (let [ind, element] of SVs.legendElements.entries()) {
             let y = legendY - ind * legendDy;
             if (element.swatchType === "marker") {
-                let pointStyle = {
+                let pointStyle: Record<string, any> = {
                     fillColor: element.markerColor,
                     fillOpacity: element.lineOpacity,
                     strokeColor: "none",
@@ -112,10 +158,10 @@ export default React.memo(function Legend(props) {
                     "point",
                     [legendX + legendLineLength / 2, y],
                     pointStyle,
-                );
+                ) as JXGPoint;
                 swatches.current.push(point);
             } else if (element.swatchType === "rectangle") {
-                let rectangleStyle = {
+                let rectangleStyle: Record<string, any> = {
                     fillColor: element.filled ? element.fillColor : "none",
                     fillOpacity: element.fillOpacity,
                     fixed: true,
@@ -140,10 +186,10 @@ export default React.memo(function Legend(props) {
                         [legendX, y - legendDy / 4],
                     ],
                     rectangleStyle,
-                );
+                ) as JXGPolygon;
                 swatches.current.push(seg);
             } else {
-                let lineStyle = {
+                let lineStyle: Record<string, any> = {
                     strokeColor: element.lineColor,
                     strokeWidth: element.lineWidth,
                     strokeOpacity: element.lineOpacity,
@@ -158,7 +204,7 @@ export default React.memo(function Legend(props) {
                         [legendX + legendLineLength, y],
                     ],
                     lineStyle,
-                );
+                ) as JXGLine;
                 swatches.current.push(seg);
             }
             if (atRight && element.label) {
@@ -179,7 +225,7 @@ export default React.memo(function Legend(props) {
                     );
                 }
 
-                maxTextWidth /= board.unitX;
+                maxTextWidth /= board!.unitX;
 
                 legendX = Math.max(
                     legendX,
@@ -189,49 +235,51 @@ export default React.memo(function Legend(props) {
                 for (let [ind, swatch] of swatches.current.entries()) {
                     let y = legendY - ind * legendDy;
                     if (swatch.elType === "point") {
-                        swatch.coords.setCoordinates(JXG.COORDS_BY_USER, [
-                            legendX + legendLineLength / 2,
-                            y,
-                        ]);
+                        (swatch as JXGPoint).coords.setCoordinates(
+                            JXG.COORDS_BY_USER,
+                            [legendX + legendLineLength / 2, y],
+                        );
                         swatch.needsUpdate = true;
                         swatch.update();
                     } else if (swatch.elType === "polygon") {
-                        swatch.vertices[0].coords.setCoordinates(
+                        const polygon = swatch as JXGPolygon;
+                        polygon.vertices[0].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
                             [legendX, y + legendDy / 4],
                         );
-                        swatch.vertices[1].coords.setCoordinates(
+                        polygon.vertices[1].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
                             [legendX + legendLineLength, y + legendDy / 4],
                         );
-                        swatch.vertices[2].coords.setCoordinates(
+                        polygon.vertices[2].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
                             [legendX + legendLineLength, y - legendDy / 4],
                         );
-                        swatch.vertices[3].coords.setCoordinates(
+                        polygon.vertices[3].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
                             [legendX, y - legendDy / 4],
                         );
 
                         for (let i = 0; i < 4; i++) {
-                            swatch.vertices[i].needsUpdate = true;
-                            swatch.vertices[i].update();
-                            swatch.borders[i].needsUpdate = true;
-                            swatch.borders[i].update();
+                            polygon.vertices[i].needsUpdate = true;
+                            polygon.vertices[i].update();
+                            polygon.borders[i].needsUpdate = true;
+                            polygon.borders[i].update();
                         }
-                        swatch.needsUpdate = true;
-                        swatch.update();
+                        polygon.needsUpdate = true;
+                        polygon.update();
                     } else {
-                        swatch.point1.coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX, y],
-                        );
-                        swatch.point2.coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y],
-                        );
-                        swatch.needsUpdate = true;
-                        swatch.update();
+                        const line = swatch as JXGLine;
+                        line.point1.coords.setCoordinates(JXG.COORDS_BY_USER, [
+                            legendX,
+                            y,
+                        ]);
+                        line.point2.coords.setCoordinates(JXG.COORDS_BY_USER, [
+                            legendX + legendLineLength,
+                            y,
+                        ]);
+                        line.needsUpdate = true;
+                        line.update();
                     }
 
                     if (labels.current[ind]) {
@@ -244,7 +292,7 @@ export default React.memo(function Legend(props) {
                     }
                 }
 
-                board.updateRenderer();
+                board!.updateRenderer();
             });
         }
     }
@@ -295,19 +343,7 @@ export default React.memo(function Legend(props) {
     );
 });
 
-function styleToDash(style) {
-    if (style === "dashed") {
-        return 2;
-    } else if (style === "solid") {
-        return 0;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-function normalizeStyle(style) {
+function normalizeStyle(style: string | undefined): string | undefined {
     if (style === "triangle") {
         return "triangleup";
     } else {

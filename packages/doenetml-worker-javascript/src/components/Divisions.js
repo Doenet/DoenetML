@@ -3,6 +3,7 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
 
@@ -16,6 +17,10 @@ export class Div extends BlockComponent {
         });
     }
     static componentType = "div";
+
+    static componentDocs = {
+        summary: "A generic block-level container",
+    };
     static rendererType = "containerBlock";
     static renderChildren = true;
 
@@ -46,6 +51,11 @@ export class Div extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnScoredSectionStateVariableDefinition(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
         );
 
         return stateVariableDefinitions;
@@ -87,6 +97,10 @@ export class Span extends InlineComponent {
     static componentType = "span";
     static rendererType = "containerInline";
     static renderChildren = true;
+
+    static componentDocs = {
+        summary: "A generic inline container",
+    };
 
     static canDisplayChildErrors = true;
 

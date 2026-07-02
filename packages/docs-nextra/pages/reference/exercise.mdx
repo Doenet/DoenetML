@@ -1,25 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <exercise>{:dn}`
+# `<exercise>{:dn}`
+
+<ComponentDisplay name='exercise'/>
+
+`<exercise>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types) 
+component that renders a scored, titled block of content. If no
+`<title>{:dn}` is provided, an auto-generated title (e.g. `Exercise 1`)
+is rendered. Inline components such as paragraphs (`<p>{:dn}`) and
+other components can be nested within an `<exercise>{:dn}` to group
+and order content. Some examples are: another `<exercise>{:dn}`, a
+`<section>{:dn}`, a `<figure>{:dn}`, or a `<problem>{:dn}`.
 
 
-` <exercise>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
-component that renders an auto-numbered block of content. Inline components such as 
-paragraphs (` <p>{:dn}`) and other components can be nested within an ` <exercise>{:dn}` to group 
-and order content. Some examples are: another ` <exercise>{:dn}`, a ` <section>{:dn}`, 
-a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
+<AttrPropDisplay name='exercise'/>
 
+## Examples
 
-## Attributes and Properties 
- <AttrDisplay name='exercise'/> 
- <PropDisplay name='exercise'/>
-
----
-
-### Example: ` <exercise>{:dn}` with default title
+### Example: `<exercise>{:dn}` with default title
 
 
 ```doenet-editor-horiz
@@ -32,7 +33,7 @@ a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
 </section>
 
 <problem>
-  <p><answer>42</answer></p>
+  <p><answer><label>What is the answer?</label>42</answer></p>
 </problem>
 ```
 
@@ -45,7 +46,7 @@ Each sectional component is on the same counter.
 
 ---
 
-### Example: ` <exercise>{:dn}` with custom title
+### Example: `<exercise>{:dn}` with custom title
 
 
 ```doenet-example
@@ -56,8 +57,8 @@ Each sectional component is on the same counter.
 
 
 
-A custom ` <exercise>{:dn}` title is creating by 
-providing a ` <title>{:dn}` tag within the ` <exercise>{:dn}`.
+A custom `<exercise>{:dn}` title is creating by 
+providing a `<title>{:dn}` tag within the `<exercise>{:dn}`.
 
 
 
@@ -79,13 +80,13 @@ providing a ` <title>{:dn}` tag within the ` <exercise>{:dn}`.
 
 
 
-A hierarchy is created by nesting one or more sectional components within an ` <exercise>{:dn}`.
+A hierarchy is created by nesting one or more sectional components within an `<exercise>{:dn}`.
 
 
 
 ---
 
-### Example: Named ` <exercise>{:dn}` as a parent reference
+### Example: Named `<exercise>{:dn}` as a parent reference
 
 
 ```doenet-editor-horiz
@@ -109,13 +110,13 @@ When reference names are used more than once in the same document,
 they can be distinguished (when outside their parent component) by 
 attaching the name of the parent component to the reference.
 
-Above, the ` <exercise>{:dn}` named `ex1` is the
+Above, the `<exercise>{:dn}` named `ex1` is the
 parent of the `<number>{:dn}` named `x`. Therefore, when 
 referencing this specific instance of the component with that name, 
 you should use `$ex1.x` as shown.
 
 
----
+## Attribute Examples
 
 ### Attribute Example: includeParentNumber
 
@@ -136,8 +137,8 @@ you should use `$ex1.x` as shown.
 
 
 
-The `includeParentNumber` attribute is `false` by default for the ` <exercise>{:dn}` component 
-(and `true` by default for the ` <section>{:dn}` component).
+The `includeParentNumber` attribute is `false` by default for the `<exercise>{:dn}` component 
+(and `true` by default for the `<section>{:dn}` component).
 
 
 In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
@@ -161,11 +162,11 @@ In order to include the number of the parent sectional component, set `includePa
 
 
 
-The `includeAutoNumber` attribute is `false` by default for the ` <exercise>{:dn}` component. 
-This means that if an exercise contains a nested ` <title>{:dn}`, it will not render the default 
+The `includeAutoNumber` attribute is `false` by default for the `<exercise>{:dn}` component. 
+This means that if an exercise contains a nested `<title>{:dn}`, it will not render the default 
 numbering (although it will still be counted in the numbering scheme behind the scenes).
 
-In order to display the exercise number in addition to the custom ` <title>{:dn}`, set 
+In order to display the exercise number in addition to the custom `<title>{:dn}`, set 
 the `includeAutoNumber` attribute to `true`.
 
 
@@ -177,16 +178,16 @@ the `includeAutoNumber` attribute to `true`.
 
 ```doenet-example
 <exercise sectionWideCheckWork><title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </exercise>
 ```
 
 
 
 The `sectionWideCheckWork` attribute combines validation 
-for all ` <answer>{:dn}` components within the ` <exercise>{:dn}` under a single "Check Work" button.
+for all `<answer>{:dn}` components within the `<exercise>{:dn}` under a single "Check Work" button.
 
 
 ---
@@ -196,9 +197,9 @@ for all ` <answer>{:dn}` components within the ` <exercise>{:dn}` under a single
 
 ```doenet-example
 <exercise sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+  <p><answer><label>Enter <m>x</m></label>x</answer></p>
+  <p><answer><label>Enter <m>y</m></label>y</answer></p>
+  <p><answer><label>Enter <m>z</m></label>z</answer></p>
 </exercise>
 ```
 
@@ -230,8 +231,32 @@ component to one that has a border and a shaded banner for the title.
 
 ---
 
-### Attribute Example: hide
+### Attribute Example: collapsible
 
+
+```doenet-example
+<exercise collapsible>
+  <title>Optional exercise</title>
+  <p><answer><label>What is <m>6 \times 7</m>?</label>42</answer></p>
+</exercise>
+
+<exercise collapsible startOpen="false">
+  <title>Start collapsed</title>
+  <p><answer><label>What is <m>3 \times 3</m>?</label>9</answer></p>
+</exercise>
+```
+
+
+
+The `collapsible` attribute makes an `<exercise>{:dn}` collapsible — clicking the title
+banner toggles it open or closed. A collapsible exercise starts expanded by default;
+set `startOpen="false"` to have it start collapsed.
+
+
+
+---
+
+### Attribute Example: hide
 
 ```doenet-editor-horiz
 <booleanInput name="hideExercise">
@@ -246,4 +271,3 @@ component to one that has a border and a shaded banner for the title.
 
 
 The `hide` attribute takes a boolean as input and can be used with any rendered component.
-

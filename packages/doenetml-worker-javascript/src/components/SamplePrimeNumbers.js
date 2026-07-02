@@ -13,6 +13,11 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     }
     static componentType = "samplePrimeNumbers";
 
+    static componentDocs = {
+        summary: "Samples random prime numbers",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["integer"];
 
     static createsVariants = true;
@@ -26,26 +31,32 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.numSamples = {
+            description: "Number of prime samples to draw.",
             createComponentOfType: "number",
             createStateVariable: "numSamples",
             defaultValue: 1,
             public: true,
         };
 
-        attributes.minValue = {
+        attributes.from = {
+            description:
+                "Lower bound (inclusive) of the prime range to sample from.",
             createComponentOfType: "integer",
-            createStateVariable: "minValue",
+            createStateVariable: "from",
             defaultValue: 2,
             public: true,
         };
-        attributes.maxValue = {
+        attributes.to = {
+            description:
+                "Upper bound (inclusive) of the prime range to sample from.",
             createComponentOfType: "integer",
-            createStateVariable: "maxValue",
+            createStateVariable: "to",
             defaultValue: 100,
             public: true,
         };
 
         attributes.exclude = {
+            description: "Primes to exclude from the sample.",
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
@@ -53,6 +64,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         };
 
         attributes.variantDeterminesSeed = {
+            description:
+                "Whether the document's variant index determines the random seed.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
             defaultPrimitiveValue: false,
@@ -63,6 +76,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -73,13 +88,13 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
         stateVariableDefinitions.possibleValues = {
             returnDependencies: () => ({
-                minValue: {
+                from: {
                     dependencyType: "stateVariable",
-                    variableName: "minValue",
+                    variableName: "from",
                 },
-                maxValue: {
+                to: {
                     dependencyType: "stateVariable",
-                    variableName: "maxValue",
+                    variableName: "to",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -88,8 +103,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let primes = createPrimesList({
-                    minValue: dependencyValues.minValue,
-                    maxValue: dependencyValues.maxValue,
+                    from: dependencyValues.from,
+                    to: dependencyValues.to,
                     exclude: dependencyValues.exclude,
                 });
 
@@ -234,8 +249,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -258,8 +272,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -271,9 +284,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -310,8 +321,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     nComponents,
                     workspace,
                 });
-                errors.push(...result.errors);
-                warnings.push(...result.warnings);
+                diagnostics.push(...result.diagnostics);
                 nComponents = result.nComponents;
 
                 let replacementInstruction = {
@@ -340,7 +350,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({
@@ -364,6 +374,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
+        infoDiagnostics,
     }) {
         let variantDeterminesSeed =
             serializedComponent.attributes.variantDeterminesSeed.primitive
@@ -375,6 +386,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
+                infoDiagnostics,
             });
         }
     }

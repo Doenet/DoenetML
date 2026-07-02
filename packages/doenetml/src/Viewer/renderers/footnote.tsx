@@ -9,8 +9,15 @@ import {
     Button,
 } from "@ariakit/react";
 
+interface FootnoteSVs {
+    [key: string]: any;
+    hidden: boolean;
+    footnoteTag: string;
+    text: string;
+}
+
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
-    let { id, SVs } = useDoenetRenderer(props, false);
+    let { id, SVs } = useDoenetRenderer<FootnoteSVs>(props, false);
     let [isVisible, setIsVisible] = useState(false);
 
     if (SVs.hidden) {
@@ -20,7 +27,8 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     const footnoteMessageStyle: React.CSSProperties = {
         padding: "10px",
         borderRadius: "5px",
-        backgroundColor: "#e2e2e2",
+        backgroundColor: "var(--revealButtonSurface)",
+        color: "var(--canvasText)",
         display: "block",
     };
     let footnoteMessage: React.ReactNode = "";
@@ -30,9 +38,9 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     }
 
     const buttonStyle = {
-        backgroundColor: "white",
+        backgroundColor: "var(--canvas)",
         border: "none",
-        color: "#1A5A99",
+        color: "var(--whiteBlankLink)",
         padding: "0",
     };
 
@@ -54,7 +62,9 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
                     </TooltipAnchor>
                     <Tooltip
                         style={{
-                            backgroundColor: "var(--mainGray)",
+                            backgroundColor: "var(--canvas)",
+                            color: "var(--canvasText)",
+                            border: "1px solid var(--canvasText)",
                             padding: "0.2em 0.5em",
                         }}
                     >

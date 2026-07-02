@@ -1,9 +1,15 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
+
+    static componentDocs = {
+        summary:
+            "Selects a fixed set of random numbers to create document variants",
+    };
+    static takesIndex = true;
 
     static allowInSchemaAsComponent = ["number"];
 
@@ -16,6 +22,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         delete attributes.variantDeterminesSeed;
 
         attributes.numToSelect = {
+            description: "How many random numbers to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
             defaultValue: 1,
@@ -195,11 +202,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let attributesToConvert = {};
-        for (let attr of Object.keys(returnRoundingAttributes())) {
+        for (let attr of Object.keys(returnNumberDisplayAttributes())) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
             }
@@ -238,8 +244,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

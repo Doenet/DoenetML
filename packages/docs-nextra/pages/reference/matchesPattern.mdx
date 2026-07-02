@@ -1,29 +1,27 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <matchesPattern>{:dn}`
+# `<matchesPattern>{:dn}`
 
-` <matchesPattern>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='matchesPattern'/>
+
+`<matchesPattern>{:dn}` is an [Evaluation](../concepts/essentialConcepts#component-types)
 component that returns the boolean value of `true` or `false` depending on whether the enclosed 
-math (often a referenced ` <mathInput/>{:dn}`) conforms to the specified `pattern` template.
+math (often a referenced `<mathInput/>{:dn}`) conforms to the specified `pattern` template.
 
-## Attributes and Properties 
- <AttrDisplay name='matchesPattern'/> 
- <PropDisplay name='matchesPattern'/>
+<AttrPropDisplay name='matchesPattern'/>
 
----
+## Examples
 
 ### Example: Default case
 
 
 ```doenet-editor-horiz
-<p>Write an equation where <m>y</m> is the
+<p><mathInput name="mi"><label>Write an equation where <m>y</m> is the
   <term>sum</term> of three terms. (For example, 
-  <m>y = ax^2 + bx + c</m>)</p>
-  
-<p><mathInput name="mi"/></p>
+  <m>y = ax^2 + bx + c</m>)</label></mathInput></p>
 
 <p>Format correct: </p>
 <matchesPattern pattern="y = () + () + ()" >
@@ -33,7 +31,7 @@ math (often a referenced ` <mathInput/>{:dn}`) conforms to the specified `patter
 
 
 
-The ` <matchesPattern>{:dn}` component is used to check that the user has supplied an 
+The `<matchesPattern>{:dn}` component is used to check that the user has supplied an 
 equation in the requested format. The `pattern` attribute is required. If used without 
 additional attributes as shown above, a rather liberal comparison occurs. 
 
@@ -44,17 +42,15 @@ additional attributes as shown above, a rather liberal comparison occurs.
 
 
 These requirements may be tightened, if desired, by applying additional 
-attributes to ` <matchesPattern>{:dn}`.
+attributes to `<matchesPattern>{:dn}`.
 
 
 ### Example: Match a specific form of linear equation
 
 
 ```doenet-editor-horiz
-<p>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m>:</p> 
-
 <answer name="ans1">
-<mathInput name="mi"/>
+<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m></label></mathInput>
   <award>
       <when>
         <matchesPattern 

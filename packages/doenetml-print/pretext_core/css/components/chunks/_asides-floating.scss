@@ -1,0 +1,33 @@
+$float-width: 200px !default;
+$float-offset: -248px !default;
+$min-float-width: 1280px !default;
+
+@use 'asides-basic';
+
+@media screen and (min-width: $min-float-width) {
+  details.aside-like {
+    position: relative;
+    margin-left: $float-offset;
+    width: $float-width;
+    right: $float-offset;
+    float: right;
+    clear: right;
+  }
+
+  /* disable in any multicolumn list/exercisegroup */
+  .multicolumn details.aside-like {
+    position: relative;
+    margin-left: inherit;
+    width: auto;
+    right: 0;
+    float: none;
+    clear: none;
+  }
+
+  details.aside-like > .knowl__content {
+    margin-left:0;
+    margin-right:0;
+    background-color: var(--aside-like-body-background);
+    z-index: 100;
+  }
+}

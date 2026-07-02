@@ -1,7 +1,9 @@
 import Core from "./Core";
+import { handleNavigatingToComponent } from "./core/NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 export { createComponentInfoObjects } from "./utils/componentInfoObjects";
+export { expandCompositeComponent } from "./core/CompositeExpander";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import {
     FlatFragment,
@@ -14,12 +16,13 @@ import {
     RootNames,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
     updateInstructions: Record<string, any>[];
     actionId?: string;
-    errorWarnings?: { errors: any[]; warnings: any[] };
+    diagnostics?: any[];
     init?: boolean;
 }) => void;
 export type ReportScoreAndStateCallback = (data: {
@@ -63,8 +66,7 @@ export class PublicDoenetMLCore {
         serializedDocument: any;
         nComponentsInit: number;
         allDoenetMLs: any;
-        preliminaryErrors: any;
-        preliminaryWarnings: any;
+        preliminaryDiagnostics: any;
         componentInfoObjects: any;
     };
     initialized = false;
@@ -139,8 +141,7 @@ export class PublicDoenetMLCore {
         const {
             document: root,
             nComponents: nComponentsInit,
-            errors,
-            warnings,
+            diagnostics,
             sources,
         } = await normalizedDastToSerializedComponents(
             normalizedRoot,
@@ -158,16 +159,20 @@ export class PublicDoenetMLCore {
             serializedDocument: root,
             nComponentsInit,
             allDoenetMLs: sources,
-            preliminaryErrors: errors,
-            preliminaryWarnings: warnings,
+            preliminaryDiagnostics: diagnostics,
             componentInfoObjects,
         };
 
         this.initialized = true;
 
+        // `returnAllPossibleVariants` walks the variant tree before Core
+        // exists, so any info-typed diagnostics emitted along the way are
+        // appended to the same `diagnostics` array that becomes
+        // `preliminaryDiagnostics` when Core is constructed.
         let allPossibleVariants = await returnAllPossibleVariants(
             this.coreBaseArgs.serializedDocument,
             this.coreBaseArgs.componentInfoObjects,
+            diagnostics,
         );
 
         // count the number of occurrences of each component type from the document's immediate children
@@ -233,7 +238,6 @@ export class PublicDoenetMLCore {
         };
 
         if (this.initialized) {
-            //@ts-ignore
             this.core = new Core(coreArgs);
             try {
                 const result = await this.core.generateDast();
@@ -425,8 +429,18 @@ export class PublicDoenetMLCore {
     // TODO: restore functionality that opens collapsible sections
     // when navigating to them or to items inside them
     navigatingToComponent(componentIdx: number, hash: string) {
-        // This function no longer works
-        this.core?.handleNavigatingToComponent({ componentIdx, hash });
+        // Currently a no-op (see TODO above), but the call is wired
+        // fire-and-forget through a synchronous message handler. The
+        // `.catch` ensures any future implementation's rejections surface
+        // through the centralized timer-error logger instead of slipping
+        // past `unhandledRejection`.
+        if (this.core) {
+            handleNavigatingToComponent({
+                core: this.core,
+                componentIdx,
+                hash,
+            }).catch(reportTimerError(TimerLabels.navigateToComponent));
+        }
     }
 
     /**

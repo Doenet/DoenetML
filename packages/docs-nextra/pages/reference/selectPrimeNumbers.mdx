@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <selectPrimeNumbers/>{:dn}`
+# `<selectPrimeNumbers/>{:dn}`
 
 
-` <selectPrimeNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
-component that selects a prime number at random from a specified range. Selections generate variants of the document.
+<ComponentDisplay name='selectPrimeNumbers'/>
 
-## Attributes and Properties 
- <AttrDisplay name='selectPrimeNumbers'/> 
- <PropDisplay name='selectPrimeNumbers'/>
+`<selectPrimeNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types) 
+component that selects prime numbers at random from a specified range. Selections generate variants of the document.
 
----
+<AttrPropDisplay name='selectPrimeNumbers'/>
 
-### Example: Default ` <selectPrimeNumbers/>{:dn}`
+## Examples
+
+### Example: Default `<selectPrimeNumbers/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -26,7 +26,7 @@ component that selects a prime number at random from a specified range. Selectio
 
 
 
-The default ` <selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
+The default `<selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -39,8 +39,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="x"
-  minValue="2" 
-  maxValue="50" 
+  from="2" 
+  to="50" 
   numToSelect="3"
 />
 
@@ -65,8 +65,8 @@ selections can be accessed using array notation.
 <setup>
   <selectPrimeNumbers 
     name="s" 
-    minValue="4" 
-    maxValue="50" 
+    from="4" 
+    to="50" 
     numToSelect="4"
   />
   <number name="a" extend="$s[1]"/>
@@ -80,7 +80,7 @@ selections can be accessed using array notation.
 
 
 
-The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectPrimeNumbers/>{:dn}` 
+The `numToSelect` attribute allows for selection of multiple values within the range of a single `<selectPrimeNumbers/>{:dn}` 
 component. Multiple selections are made without replacement. Selections can be assigned more descriptive names by defining individual components
 which reference the selected values.
 
@@ -89,17 +89,17 @@ editor to see different variants of the document.
 
 
 
----
+## Attribute Examples
 
-### Attribute Example: sortResults
+### Attribute Example: sort
 
 
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="s" 
-  sortResults 
-  minValue="2" 
-  maxValue="50" 
+  sort="increasing" 
+  from="2" 
+  to="50" 
   numToSelect="5"
 />
 
@@ -112,21 +112,26 @@ editor to see different variants of the document.
 
 
 
-The `sortResults` attribute sorts the selected results in increasing order.
+The `sort` attribute determines how selected results are sorted. It accepts three values:
+- `"unsorted"` (default) - results are in the order they were selected
+- `"increasing"` - results are sorted in increasing order
+- `"decreasing"` - results are sorted in decreasing order
+
+Alternatively, `sort` and `sort="true"` are equivalent to `sort="increasing"`, and `sort="false"` is equivalent to `sort="unsorted"`.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: minValue, maxValue
+### Attribute Example: from, to
 
 
 ```doenet-editor-horiz
 <selectPrimeNumbers
   name="s" 
-  minValue="10" 
-  maxValue="30" 
+  from="10" 
+  to="30" 
   numToSelect="4"
 />
 
@@ -135,7 +140,7 @@ editor to see different variants of the document.
 
 
 
-The `minValue` and `maxValue` attributes specify the endpoints of the selection interval. These endpoints are not required to be prime numbers.
+The `from` and `to` attributes specify the endpoints of the selection interval. These endpoints are not required to be prime numbers.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -148,8 +153,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="s" 
-  minValue="2" 
-  maxValue="10" 
+  from="2" 
+  to="10" 
   exclude="3"
   numToSelect="5"
   withReplacement
@@ -176,8 +181,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers
   name="s" 
-  minValue="2" 
-  maxValue="13" 
+  from="2" 
+  to="13" 
   withReplacement
   numToSelect="10"
 />
@@ -193,15 +198,15 @@ editor to see different variants of the document.
 
 ---
 
-### Example: excludeCombinations
+### Attribute Example: excludeCombinations
 
 
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="s" 
   numToSelect="2"  
-  minValue="3" 
-  maxValue="7"
+  from="3" 
+  to="7"
   excludecombinations="(3 7) (7 3)" 
 />
 

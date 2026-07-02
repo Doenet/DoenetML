@@ -10,6 +10,10 @@ export default class Feedback extends BlockComponent {
         });
     }
     static componentType = "feedback";
+
+    static componentDocs = {
+        summary: "Targeted feedback shown when conditions are met",
+    };
     static renderChildren = true;
 
     static primaryStateVariableForDefinition = "feedbackText";
@@ -19,9 +23,13 @@ export default class Feedback extends BlockComponent {
         delete attributes.hide;
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Boolean expression; the feedback is shown when the condition is true.",
         };
         attributes.updateWith = {
             createReferences: true,
+            description:
+                "References whose changes trigger re-evaluation of the feedback.",
         };
 
         return attributes;

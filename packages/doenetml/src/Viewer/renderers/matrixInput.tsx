@@ -1,9 +1,11 @@
-// @ts-nocheck
 import React, { useContext, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 // import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
+import { MathJax } from "better-react-mathjax";
 
 import "./matrixInput.css";
 import "./mathInput.css";
@@ -12,9 +14,28 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
-export default React.memo(function MatrixInput(props) {
-    let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
+interface MatrixInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    showSizeControls: boolean;
+    numRows: number;
+    numColumns: number;
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    shortDescription?: string;
+    descriptionChildInd?: number;
+    externalLabelRendererIds?: string[];
+}
+
+export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
+    let { id, SVs, actions, children, callAction } =
+        useDoenetRenderer<MatrixInputSVs>(props);
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
@@ -22,15 +43,11 @@ export default React.memo(function MatrixInput(props) {
         "unvalidated" | "correct" | "incorrect" | "partialcorrect"
     >("unvalidated");
 
-    const updateValidationState = () => {
-        validationState.current = calculateValidationState(SVs);
-    };
-
     if (SVs.hidden) {
         return null;
     }
 
-    updateValidationState();
+    validationState.current = calculateValidationState(SVs);
 
     const disabled = SVs.disabled;
 
@@ -43,17 +60,21 @@ export default React.memo(function MatrixInput(props) {
     //   surroundingBorderColor = "#82a5ff";
     // }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState: validationState.current,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState.current,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let matrixInputs = [];
@@ -143,7 +164,10 @@ export default React.memo(function MatrixInput(props) {
         );
     }
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -151,23 +175,20 @@ export default React.memo(function MatrixInput(props) {
             </MathJax>
         );
     }
-    if (label) {
-        label = (
-            <div
-                style={{
-                    marginRight: "5px",
-                    alignContent: "center",
-                }}
-            >
-                {label}
-            </div>
-        );
-    }
 
     const shortDescription = SVs.shortDescription || undefined;
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const groupLabelledByIds = [
+        hasLabel ? labelId : null,
+        ...externalLabelRendererIds,
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     const descriptionChild =
-        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+        SVs.descriptionChildInd !== undefined &&
+        SVs.descriptionChildInd !== -1 &&
+        children[SVs.descriptionChildInd];
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;
@@ -181,32 +202,77 @@ export default React.memo(function MatrixInput(props) {
         );
     }
 
+    const labelComponent = hasLabel ? (
+        <span
+            id={labelId}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "5px",
+                marginLeft: SVs.labelPosition === "right" ? "5px" : undefined,
+            }}
+        >
+            {label}
+        </span>
+    ) : null;
+
+    const matrixInputRow = (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+                // The input row flows as inline content (see the container
+                // comment). `vertical-align: baseline` aligns it with the text
+                // baseline of its line.
+                verticalAlign: "baseline",
+            }}
+        >
+            <div className="matrix-input" id={id}>
+                <table
+                    aria-labelledby={groupLabelledByIds || undefined}
+                    aria-label={
+                        !groupLabelledByIds ? shortDescription : undefined
+                    }
+                    aria-description={
+                        groupLabelledByIds ? shortDescription : undefined
+                    }
+                    aria-details={descriptionId}
+                >
+                    <tbody>{matrixInputs}</tbody>
+                </table>
+            </div>
+            <div style={{ marginRight: "4px" }}></div>
+            {rowNumControls}
+            {colNumControls}
+            {checkWorkComponent}
+            {description}
+        </span>
+    );
+
     return (
         <React.Fragment>
             <div
+                // `display: inline` so the label and matrix flow with the
+                // surrounding paragraph text and a wrapping label keeps the
+                // matrix after its end rather than beside its first line
+                // (#1245). See mathInput.tsx for the full rationale.
                 style={{
-                    display: "inline-flex",
-                    margin: "0px 4px 4px 4px",
-                    alignItems: "start",
+                    display: "inline",
+                    // Only the horizontal gutters take effect; the container is
+                    // inline, which ignores vertical margins.
+                    margin: "0 4px",
                 }}
                 id={`${id}-container`}
             >
-                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                    {label}
-                    <div className="matrix-input" id={id}>
-                        <table
-                            aria-label={shortDescription}
-                            aria-details={descriptionId}
-                        >
-                            <tbody>{matrixInputs}</tbody>
-                        </table>
-                    </div>
-                </label>
-                <div style={{ marginRight: "4px" }}></div>
-                {rowNumControls}
-                {colNumControls}
-                {checkWorkComponent}
-                {description}
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {matrixInputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {matrixInputRow}
+                    </>
+                )}
             </div>
         </React.Fragment>
     );

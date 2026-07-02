@@ -2,6 +2,10 @@ import TextComponent from "./Text";
 
 export default class Latex extends TextComponent {
     static componentType = "latex";
+
+    static componentDocs = {
+        summary: "A snippet of LaTeX that can be rendered as math",
+    };
     static rendererType = "text";
 
     static createAttributesObject() {
@@ -28,6 +32,7 @@ export default class Latex extends TextComponent {
                 dependencyType: "child",
                 childGroups: ["textLike"],
                 variableNames: ["text", "latex"],
+                variablesOptional: true,
             },
         });
 
@@ -108,6 +113,7 @@ export default class Latex extends TextComponent {
         stateVariableDefinitions.latex = {
             isAlias: true,
             targetVariableName: "value",
+            description: "The LaTeX content as a string.",
         };
 
         return stateVariableDefinitions;

@@ -671,4 +671,103 @@ describe("Code Editor tag tests @group2", async () => {
                 .sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
     });
+
+    it("initialOpenTab attribute", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+          <codeEditor name="ce1" />
+          <codeEditor name="ce2" initialOpenTab="none" />
+          <codeEditor name="ce3" initialOpenTab="first" />
+          <codeEditor name="ce4" initialOpenTab="errors" />
+          <codeEditor name="ce5" initialOpenTab="warnings" />
+          <codeEditor name="ce6" initialOpenTab="info" />
+          <codeEditor name="ce7" initialOpenTab="accessibility" />
+          <codeEditor name="ce8" initialOpenTab="responses" />
+          <codeEditor name="ce9" initialOpenTab="help" />
+          `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Default value is "first"
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce1")].stateValues
+                .initialOpenTab,
+        ).eq("first");
+
+        // Test all valid values
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce2")].stateValues
+                .initialOpenTab,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce3")].stateValues
+                .initialOpenTab,
+        ).eq("first");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce4")].stateValues
+                .initialOpenTab,
+        ).eq("errors");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce5")].stateValues
+                .initialOpenTab,
+        ).eq("warnings");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce6")].stateValues
+                .initialOpenTab,
+        ).eq("info");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce7")].stateValues
+                .initialOpenTab,
+        ).eq("accessibility");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce8")].stateValues
+                .initialOpenTab,
+        ).eq("responses");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce9")].stateValues
+                .initialOpenTab,
+        ).eq("help");
+    });
+
+    it("initialOpenTab case insensitive", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+          <codeEditor name="ce1" initialOpenTab="NONE" />
+          <codeEditor name="ce2" initialOpenTab="First" />
+          <codeEditor name="ce3" initialOpenTab="ERRORS" />
+          <codeEditor name="ce4" initialOpenTab="Warnings" />
+          `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Verify toLowerCase works
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce1")].stateValues
+                .initialOpenTab,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce2")].stateValues
+                .initialOpenTab,
+        ).eq("first");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce3")].stateValues
+                .initialOpenTab,
+        ).eq("errors");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce4")].stateValues
+                .initialOpenTab,
+        ).eq("warnings");
+    });
 });

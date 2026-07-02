@@ -1,12 +1,10 @@
 import React from "react";
-import DropdownItem from "react-bootstrap/DropdownItem";
+import { DropdownItem } from "./ui/dropdown";
 import { useAppSelector } from "../../state/hooks";
 import {
-    _dastReducerActions,
     errorsSelector,
     flatDastSelector,
 } from "../../state/redux-slices/dast";
-import { _globalReducerActions } from "../../state/redux-slices/global";
 import {
     renderFlatDastToPretext,
     extractImages,
@@ -23,7 +21,6 @@ export function DownloadPretextDropdownItem({
 }) {
     const { elements, ...rest } = useAppSelector(flatDastSelector);
     const errors = useAppSelector(errorsSelector);
-    // The flat dast may have errors in it. None of these errors should be shown when converting to PreTeXt.
     const flatDast = {
         ...rest,
         elements: elements.filter((e) => e.type === "element"),
@@ -39,7 +36,6 @@ export function DownloadPretextDropdownItem({
                 try {
                     const rendered = renderFlatDastToPretext(flatDast);
                     const fileList = extractImages(rendered);
-
                     setFiles(fileList);
                 } catch (e) {
                     setError("Could not convert to PreTeXt");

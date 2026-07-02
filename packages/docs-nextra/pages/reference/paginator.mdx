@@ -1,22 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <paginator>{:dn}`
+# `<paginator>{:dn}`
 
-` <paginator>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='paginator'/>
+
+`<paginator>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
 component that organizes content into discrete pages, allowing users to navigate through them one at a time.
 To create navigation buttons for the paginator, this component is typically used in conjunction with the 
 `<paginatorControls>{:dn}` component.
 
-## Attributes and Properties 
- <AttrDisplay name='paginator'/> 
- <PropDisplay name='paginator'/>
+<AttrPropDisplay name='paginator'/>
 
----
+## Examples
 
-### Example: A basic ` <paginator>{:dn}` with bottom navigation
+### Example: A basic `<paginator>{:dn}` with bottom navigation
 
 
 ```doenet-editor-horiz
@@ -46,7 +46,7 @@ by the `paginator` attribute of the `<paginatorControls>{:dn}` component.
 ---
 
 
-### Example: An image ` <paginator>{:dn}` with top navigation
+### Example: An image `<paginator>{:dn}` with top navigation
 
 
 ```doenet-example
@@ -54,17 +54,23 @@ by the `paginator` attribute of the `<paginatorControls>{:dn}` component.
 
 <paginator name="figures">
   <figure>
-    <image source="https://upload.wikimedia.org/wikipedia/commons/e/e8/Roystonea-2.jpg"/>
+    <image source="https://upload.wikimedia.org/wikipedia/commons/e/e8/Roystonea-2.jpg">
+      <shortDescription>Two Roystonea regia palms in summer</shortDescription>
+    </image>
     <description>Two <em>Roystonea regia</em> palms in summer</description>
     <caption>Roystonea regia</caption>
   </figure>
   <figure>
-    <image source="https://upload.wikimedia.org/wikipedia/commons/e/e6/Rosa_rubiginosa_1.jpg"/>
+    <image source="https://upload.wikimedia.org/wikipedia/commons/e/e6/Rosa_rubiginosa_1.jpg">
+      <shortDescription>Close up view of a bright pink Rosa rubiginosa rose with yellow center</shortDescription>
+    </image>
     <description><em>Rosa rubiginosa</em>; close up view of a bright pink rose with yellow center at the San Jose Heritage Rose Garden</description>
     <caption>Rosa rubiginosa</caption>
   </figure>
   <figure>
-    <image source="https://upload.wikimedia.org/wikipedia/commons/3/35/Brockwell_Oak_%289%29.jpg"/>
+    <image source="https://upload.wikimedia.org/wikipedia/commons/3/35/Brockwell_Oak_%289%29.jpg">
+      <shortDescription>Large oak tree in a grassy field</shortDescription>
+    </image>
     <description>Large oak tree in a grassy field</description>
     <caption>The Brockwell Oak</caption>
   </figure>
@@ -99,7 +105,7 @@ by the `paginator` attribute of the `<paginatorControls>{:dn}` component.
 
 ---
 
-### Example: A ` <paginator>{:dn}` that advances based on user interactions
+### Example: A `<paginator>{:dn}` that advances based on user interactions
 
 
 ```doenet-example
@@ -122,7 +128,7 @@ by the `paginator` attribute of the `<paginatorControls>{:dn}` component.
     </graph>
   </section>
   <section boxed><title>Enter <m>x</m> to see the next step</title>
-    <p>Enter x: <answer name="ans1">x</answer></p>
+    <p><answer name="ans1"><label>Enter x</label>x</answer></p>
   </section>
   <section boxed>
     <p>Nice job! You can now go back and look at your responses.</p>
@@ -143,8 +149,7 @@ define the condition that triggers the page change.
 
 
 
----
-
+## Attribute Examples
 
 ### Attribute Example: initialPage
 
@@ -163,8 +168,8 @@ define the condition that triggers the page change.
   <problem boxed>
     <p>What is the vertex of 
       <m>y = $f1</m> ?</p>
-    <p>Vertex = 
-      <answer>$f1.maxima</answer>
+    <p>
+      <answer><label>Vertex</label>$f1.maxima</answer>
     </p>
   </problem>
 </paginator>
@@ -176,7 +181,7 @@ define the condition that triggers the page change.
 The `initialPage` attribute specifies the page number value that the user will see when the 
 `<paginator>{:dn}` is first rendered. 
 
----
+## Property Examples
 
 ### Property Example: currentPage, numPages
 
@@ -201,8 +206,8 @@ The `initialPage` attribute specifies the page number value that the user will s
 
 
 
-The `currentPage` property returns the current page number being displayed by the ` <paginator>{:dn}` component, 
-while the  `numPages` property returns the number of total pages in the ` <paginator>{:dn}`.
+The `currentPage` property returns the current page number being displayed by the `<paginator>{:dn}` component, 
+while the  `numPages` property returns the number of total pages in the `<paginator>{:dn}`.
 
 
 

@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
+    focusChanged,
     updateMathInputValue,
     updateSelectedIndices,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3917,7 +3919,7 @@ describe("ChoiceInput tag tests @group4", async () => {
         ).eq(`Selected values: y`);
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <choiceInput>
@@ -3943,67 +3945,63 @@ describe("ChoiceInput tag tests @group4", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<choiceInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            `\`<choiceInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        // Diagnostic range is narrowed to the opening tag, so the end
+        // position now sits on the same line as the start.
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            `<choiceInput> must have a short description or a label`,
+        expect(diagnosticsByType.accessibility[1].message).contain(
+            `\`<choiceInput>\` must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(18);
-        expect(errorWarnings.warnings[1].position.end.line).eq(21);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(18);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(18);
     });
 
-    it("upgrade warning to error if no short description or label", async () => {
+    it("warning if labelPosition is used on non-inline choiceInput, with attribute-level position", async () => {
+        const tagLine = `    <choiceInput name="ci" labelPosition="left">`;
+
         let { core } = await createTestCore({
             doenetML: `
-                <choiceInput>
-                    <choice>apple</choice>
-                    <choice>banana</choice>
-                </choiceInput>
-                <choiceInput><shortDescription>hello</shortDescription>
-                    <choice>apple</choice>
-                    <choice>banana</choice>
-                </choiceInput>
-                <choiceInput><label>hello</label>
-                    <choice>apple</choice>
-                    <choice>banana</choice>
-                </choiceInput>
-                <choiceInput name="choose" labelIsName>
-                    <choice>apple</choice>
-                    <choice>banana</choice>
-                </choiceInput>
-                <choiceInput labelIsName>
-                    <choice>apple</choice>
-                    <choice>banana</choice>
-                </choiceInput>
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
+${tagLine}
+      <shortDescription>Choose one</shortDescription>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<choiceInput> must have a short description or a label`,
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).eq(
+            "labelPosition is ignored for non-inline choiceInput",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(5);
 
-        expect(errorWarnings.errors[1].message).contain(
-            `<choiceInput> must have a short description or a label`,
+        const expectedStartColumn = tagLine.indexOf("labelPosition") + 1;
+        const expectedEndColumn = tagLine.indexOf(">") + 1;
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(
+            expectedStartColumn,
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(18);
-        expect(errorWarnings.errors[1].position.end.line).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(
+            expectedEndColumn,
+        );
     });
 
     it("with description", async () => {
@@ -4068,5 +4066,152 @@ describe("ChoiceInput tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ci")].activeChildren[3]
                 .componentType,
         ).eq("description");
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <choiceInput name="ci">
+      <label>pick one</label>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    <boolean extend="$ci.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus the input
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the input
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+    });
+
+    it("$c1.selected inside c1 does not cause circular dependency (issue #1399)", async () => {
+        // Referencing a choice's own `selected` property inside its content
+        // used to cause a circular resolve-blocker cycle.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<choiceInput name="ci">
+  <choice name="c1">$c1.selected</choice>
+  <choice name="c2">cat</choice>
+</choiceInput>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const c1Idx = await resolvePathToNodeIdx("c1");
+        const c2Idx = await resolvePathToNodeIdx("c2");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        // Initially nothing selected
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        expect(sv[c2Idx].stateValues.selected).eq(false);
+        // c1's text renders $c1.selected = false
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("false");
+
+        // Select c1 (display index 1)
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [1],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(true);
+        expect(sv[c2Idx].stateValues.selected).eq(false);
+        // c1's text now renders $c1.selected = true
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("true");
+
+        // Deselect c1
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        expect(sv[ciIdx].stateValues.choiceTexts[0].trim()).eq("false");
+    });
+
+    it("conditionalContent depending on choice.selected inside choice does not cause circular dependency (issue #1399)", async () => {
+        // The discussion post linked from issue #1399 shows conditionalContent
+        // inside a choice whose condition references the choice's own `selected`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<choiceInput name="ci">
+  <choice name="c1">
+    The expression can be factored
+    <conditionalContent>
+      <case condition="$c1.selected">
+        and it factors further
+      </case>
+      <else>.</else>
+    </conditionalContent>
+  </choice>
+  <choice name="c2">Other choice</choice>
+</choiceInput>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const c1Idx = await resolvePathToNodeIdx("c1");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(false);
+        // When not selected the else branch renders "."
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).contain(".");
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).not.contain(
+            "factors further",
+        );
+
+        // Select c1
+        await updateSelectedIndices({
+            componentIdx: ciIdx,
+            selectedIndices: [1],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[c1Idx].stateValues.selected).eq(true);
+        // When selected the case branch renders "and it factors further"
+        expect(sv[ciIdx].stateValues.choiceTexts[0]).contain("factors further");
     });
 });

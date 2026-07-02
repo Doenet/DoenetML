@@ -3,6 +3,7 @@ import { PluginOption, defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 import * as path from "node:path";
+import * as fs from "node:fs/promises";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
 import { createRequire } from "module";
@@ -17,6 +18,21 @@ export default defineConfig({
     base: "./",
     plugins: [
         react(),
+        // Pre-create doenetml-worker/ before viteStaticCopy's closeBundle hook runs.
+        // Node's fs.cp for a directory calls mkdirAsync(dest) WITHOUT {recursive:true},
+        // so if the parent doesn't exist it races against sibling file copies that would
+        // have created it. Running mkdir here (in writeBundle, before closeBundle) breaks
+        // the race.
+        {
+            name: "pre-create-doenetml-worker-dir",
+            apply: "build",
+            async writeBundle(opts) {
+                await fs.mkdir(
+                    path.join(opts.dir ?? "dist", "doenetml-worker"),
+                    { recursive: true },
+                );
+            },
+        },
         viteStaticCopy({
             targets: [
                 {

@@ -6,6 +6,12 @@
 <section>
   <title>My other part</title>
   <p>Some content</p>
+  <theorem name="importantTheorem">
+    Realize what is true!
+  </theorem>
+
+  <p>Consider <ref to="$importantTheorem" /></p>
+
 
   <graph>
     <point x="3" y="1" />

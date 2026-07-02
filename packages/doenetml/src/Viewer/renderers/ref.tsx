@@ -5,8 +5,21 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import "./ref.css";
 
+interface RefSVs {
+    [key: string]: any;
+    hidden: boolean;
+    activityId: string;
+    activityUrlPostfix: string;
+    createButton: boolean;
+    disabled: boolean;
+    linkText: string;
+    targetRendererId?: number;
+    url: string;
+}
+
 export default React.memo(function Ref(props: UseDoenetRendererProps) {
-    const { id, SVs, children, requestScrollTo } = useDoenetRenderer(props);
+    const { id, SVs, children, requestScrollTo } =
+        useDoenetRenderer<RefSVs>(props);
 
     const { doenetViewerUrl } = useContext(DocContext) || {};
 
@@ -46,7 +59,7 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
         return null;
     }
 
-    let linkContent = children;
+    let linkContent: React.ReactNode[] | string = children;
     if (children.length === 0) {
         linkContent = SVs.linkText;
     }

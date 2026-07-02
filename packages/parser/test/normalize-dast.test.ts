@@ -4,6 +4,7 @@ import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 import { extractDastErrors } from "../src";
+import type { DastElement } from "../src/types";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -83,8 +84,39 @@ describe("Normalize dast", async () => {
         source = `<section><![CDATA[foo]]><p>hi</p></section>`;
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><division type="section">foo<p>hi</p></division></document>',
+            '<document><division type="section">foo<p>hi</p><_dynamicChildren /></division></document>',
         );
+    });
+    it("marks dynamic children that are postponed with their parent", () => {
+        function getDynamicChildrenAttributes(source: string) {
+            const dast = lezerToDast(source);
+            const normalized = normalizeDocumentDast(dast);
+            const document = normalized.children[0] as DastElement;
+            const section = document.children[0] as DastElement;
+            const dynamicChildren = section.children.find(
+                (child): child is DastElement =>
+                    child.type === "element" &&
+                    child.name === "_dynamicChildren",
+            );
+            expect(dynamicChildren).toBeDefined();
+            return dynamicChildren!.attributes;
+        }
+
+        expect(
+            getDynamicChildrenAttributes(
+                `<aside postponeRendering><title>Hint</title><p>Secret.</p></aside>`,
+            ).deferUntilParentRendered,
+        ).toMatchObject({
+            type: "attribute",
+            name: "deferUntilParentRendered",
+            children: [{ type: "text", value: "true" }],
+        });
+
+        expect(
+            getDynamicChildrenAttributes(
+                `<aside><title>Hint</title><p>Already created.</p></aside>`,
+            ),
+        ).not.toHaveProperty("deferUntilParentRendered");
     });
     it("preserves existing document tag", () => {
         let source: string;
@@ -121,6 +153,273 @@ describe("Normalize dast", async () => {
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             '<document><xref ref="$(foo-bar)" /></document>',
         );
+    });
+
+    it("migrates deprecated selectPrimeNumbers minValue/maxValue attributes", () => {
+        const source = `<selectPrimeNumbers minValue="5" maxValue="19" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="5" to="19" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated; use `from` instead.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+            },
+        ]);
+    });
+
+    it("prefers canonical selectPrimeNumbers attributes when deprecated and new names coexist", () => {
+        const source = `<selectPrimeNumbers minValue="5" from="7" maxValue="19" to="17" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="7" to="17" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated and ignored because `to` is also specified.",
+            },
+        ]);
+        expect(warnings?.[0].position).toBeDefined();
+    });
+
+    it("migrates deprecated samplePrimeNumbers minValue/maxValue attributes", () => {
+        const source = `<samplePrimeNumbers minValue="5" maxValue="19" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><samplePrimeNumbers from="5" to="19" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<samplePrimeNumbers>` is deprecated; use `from` instead.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated; use `to` instead.",
+            },
+        ]);
+    });
+
+    it("prefers canonical samplePrimeNumbers attributes when deprecated and new names coexist", () => {
+        const source = `<samplePrimeNumbers minValue="5" from="7" maxValue="19" to="17" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><samplePrimeNumbers from="7" to="17" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<samplePrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated and ignored because `to` is also specified.",
+            },
+        ]);
+        expect(warnings?.[0].position).toBeDefined();
+    });
+
+    it("drops deprecated description attributes", () => {
+        const source = `<description aggregateScores weight="2">hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><description>hello</description></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `weight` on `<description>` is deprecated and ignored.",
+            },
+        ]);
+        expect(warnings?.[0].position).toBeDefined();
+    });
+
+    it("drops deprecated shortDescription attributes", () => {
+        const source = `<shortDescription draggable layer="2">hi</shortDescription>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><shortDescription>hi</shortDescription></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `draggable` on `<shortDescription>` is deprecated and ignored.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `layer` on `<shortDescription>` is deprecated and ignored.",
+            },
+        ]);
+    });
+
+    it("keeps non-deprecated attributes when dropping deprecated ones", () => {
+        const source = `<description name="d" aggregateScores>hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><description name="d">hello</description></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0].message).toContain(
+            "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+        );
+    });
+
+    it("drops deprecated attributes regardless of case", () => {
+        // DoenetML matches attribute names case-insensitively; the deprecation
+        // pass must too, or `<description WeIgHt>` would slip through and
+        // hard-error after `weight` is removed from <description>.
+        const source = `<description WeIgHt="2" AGGREGATESCORES>hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><description>hello</description></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        // Warnings come out in registry-iteration order (aggregateScores
+        // listed before weight), not source order.
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `aggregateScores` on `<description>` is deprecated and ignored.",
+            },
+            {
+                message:
+                    "[deprecation] Attribute `weight` on `<description>` is deprecated and ignored.",
+            },
+        ]);
+    });
+
+    it("renames deprecated attributes regardless of case", () => {
+        const source = `<selectPrimeNumbers MINvalue="5" maxVALUE="19" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="5" to="19" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated; use `from` instead.",
+            },
+            {
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+            },
+        ]);
+    });
+
+    it("detects rename conflicts case-insensitively", () => {
+        // `MinValue` and `From` refer to the same canonical attribute; the
+        // deprecated form must be dropped with a conflict warning, not silently
+        // co-exist with the canonical form.
+        const source = `<selectPrimeNumbers MinValue="5" From="7" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers From="7" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+        ]);
     });
 
     it("Sugars in repeat template and _repeatSetup children", () => {

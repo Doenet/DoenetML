@@ -1,0 +1,113 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<electronConfiguration>{:dn}`
+
+<ComponentDisplay name='electronConfiguration'/>
+
+`<electronConfiguration>{:dn}` is a [Subject-specific](../concepts/essentialConcepts#component-types)
+component that extends [`<math>{:dn}`](math) with rendering
+tweaks that hide multiplication dots and thin spaces, so a configuration like
+`1s^2 2s^2 2p^4` displays as $1s^{2}\,2s^{2}\,2p^{4}$.
+
+In most documents you will not write `<electronConfiguration>{:dn}` directly —
+the [`<atom>{:dn}`](atom) component already exposes an
+`electronConfiguration` property that returns one. Use this page when you need
+to construct an electron configuration manually (for a student-entered guess,
+an expected answer, or a hand-written configuration).
+
+
+<AttrPropDisplay name='electronConfiguration'/>
+
+
+## Examples
+
+### Example: Built-in property of an `<atom>{:dn}`
+
+
+```doenet-example
+<atom name="phosphorus" symbol="P"/>
+
+<p>The electron configuration of phosphorus is $phosphorus.electronConfiguration.</p>
+```
+
+
+
+The `electronConfiguration` property of an [`<atom>{:dn}`](atom) returns an
+`<electronConfiguration>{:dn}` component. This is the recommended way to obtain
+the configuration of a specific element.
+
+
+
+---
+
+### Example: Construct an electron configuration manually
+
+
+```doenet-example
+<electronConfiguration name="carbon">1s^2 2s^2 2p^2</electronConfiguration>
+
+<p>Carbon has electron configuration $carbon.</p>
+```
+
+
+
+The contents of an `<electronConfiguration>{:dn}` are parsed as a math
+expression. Write each sublevel as `Ns^k`, `Np^k`, etc., separated by spaces.
+The rendered output suppresses multiplication symbols so the result reads as
+chemistry notation.
+
+
+
+---
+
+### Example: Compare a student response against an expected configuration
+
+
+```doenet-editor-horiz
+<atom name="oxygen" symbol="O"/>
+
+<answer>
+  <mathInput name="userConfig">
+    <label>Write the electron configuration for oxygen</label>
+  </mathInput>
+  <award>
+    <when>$userConfig = $oxygen.electronConfiguration</when>
+  </award>
+</answer>
+
+<solution>
+The electron configuration for oxygen is $oxygen.electronConfiguration.
+</solution>
+```
+
+
+
+Because `<electronConfiguration>{:dn}` is a math component, a student
+`<mathInput/>{:dn}` response can be compared to the expected configuration
+directly using `=`.
+
+
+
+## Property Examples
+
+### Property Example: latex and text
+
+
+```doenet-editor-horiz
+<atom name="iron" symbol="Fe"/>
+
+<electronConfiguration name="feConfig" extend="$iron.electronConfiguration"/>
+
+<p>The configuration is $feConfig.</p>
+<p><c>latex</c> = $feConfig.latex</p>
+<p><c>text</c> = $feConfig.text</p>
+```
+
+
+
+The `latex` property returns a LaTeX string with the multiplication and thin
+spaces stripped; the `text` property returns a Unicode rendering with proper
+superscript characters (e.g. `1s² 2s² 2p⁶ …`).

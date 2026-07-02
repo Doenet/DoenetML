@@ -1884,4 +1884,36 @@ describe("Piecewise Function Tag Tests @group2", async () => {
                 .globalInfimum[1],
         ).eq(0);
     });
+
+    it("avoidScientificNotation in piecewise function latex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <piecewiseFunction name="f1">
+        <function domain="(-Infinity,0)">0.000000000007</function>
+    <function>2000000000000000000000</function>
+  </piecewiseFunction>
+
+  <piecewiseFunction name="f2" avoidScientificNotation>
+        <function domain="(-Infinity,0)">0.000000000007</function>
+    <function>2000000000000000000000</function>
+  </piecewiseFunction>
+
+    <me name="mef1">f(x)=$f1</me>
+    <me name="mef2">f(x)=$f2</me>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let f1Latex =
+            stateVariables[await resolvePathToNodeIdx("mef1")].stateValues
+                .latex;
+        let f2Latex =
+            stateVariables[await resolvePathToNodeIdx("mef2")].stateValues
+                .latex;
+
+        expect(f1Latex).match(/10\^{-12}|10\^{21}/);
+        expect(f2Latex).contain("0.000000000007");
+        expect(f2Latex).contain("2000000000000000000000");
+    });
 });

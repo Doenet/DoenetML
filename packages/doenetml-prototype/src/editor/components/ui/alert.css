@@ -1,0 +1,33 @@
+.ui-alert {
+    @apply flex items-start gap-3 rounded border px-4 py-3 text-sm;
+}
+
+.ui-alert--danger {
+    @apply bg-red-50 border-red-300 text-red-800;
+}
+
+.ui-alert--warning {
+    @apply bg-yellow-50 border-yellow-300 text-yellow-800;
+}
+
+.ui-alert--info {
+    @apply bg-blue-50 border-blue-300 text-blue-800;
+}
+
+.ui-alert--success {
+    @apply bg-green-50 border-green-300 text-green-800;
+}
+
+.ui-alert-body {
+    @apply flex-1;
+}
+
+.ui-alert-heading {
+    @apply font-semibold mb-1;
+}
+
+.ui-alert-close {
+    @apply bg-transparent border-0 text-lg leading-none cursor-pointer opacity-60;
+    @apply hover:opacity-100;
+    padding: 0;
+}

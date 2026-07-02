@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -5784,74 +5785,74 @@ $c7.radius
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(8);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(8);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Cannot calculate radius of circle with specified center through more than 1 point",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(8);
-        expect(errorWarnings.warnings[0].position.start.column).eq(1);
-        expect(errorWarnings.warnings[0].position.end.line).eq(8);
-        expect(errorWarnings.warnings[0].position.end.column).eq(58);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(8);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(8);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(58);
 
-        expect(errorWarnings.warnings[1].message).contain(
-            "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
+        expect(diagnosticsByType.warnings[1].message).contain(
+            "Haven't implemented `<circle>` through 2 points in case where the points don't have numerical values",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(1);
-        expect(errorWarnings.warnings[1].position.end.line).eq(2);
-        expect(errorWarnings.warnings[1].position.end.column).eq(43);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(43);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Cannot calculate circle through more than 3 points",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(3);
-        expect(errorWarnings.warnings[2].position.start.column).eq(1);
-        expect(errorWarnings.warnings[2].position.end.line).eq(3);
-        expect(errorWarnings.warnings[2].position.end.column).eq(55);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(55);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             "Cannot calculate circle with specified radius, center and through points",
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(4);
-        expect(errorWarnings.warnings[3].position.start.column).eq(1);
-        expect(errorWarnings.warnings[3].position.end.line).eq(4);
-        expect(errorWarnings.warnings[3].position.end.column).eq(63);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(63);
 
-        expect(errorWarnings.warnings[4].message).contain(
+        expect(diagnosticsByType.warnings[4].message).contain(
             "Cannot calculate circle with specified center through more than 1 point",
         );
-        expect(errorWarnings.warnings[4].position.start.line).eq(5);
-        expect(errorWarnings.warnings[4].position.start.column).eq(1);
-        expect(errorWarnings.warnings[4].position.end.line).eq(5);
-        expect(errorWarnings.warnings[4].position.end.column).eq(58);
+        expect(diagnosticsByType.warnings[4].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[4].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[4].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[4].position.end.column).eq(58);
 
-        expect(errorWarnings.warnings[5].message).contain(
+        expect(diagnosticsByType.warnings[5].message).contain(
             "Cannot calculate circle: given that the distance between the two points is 8, the specified radius 1 is too small",
         );
-        expect(errorWarnings.warnings[5].position.start.line).eq(6);
-        expect(errorWarnings.warnings[5].position.start.column).eq(1);
-        expect(errorWarnings.warnings[5].position.end.line).eq(6);
-        expect(errorWarnings.warnings[5].position.end.column).eq(55);
+        expect(diagnosticsByType.warnings[5].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[5].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[5].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[5].position.end.column).eq(55);
 
-        expect(errorWarnings.warnings[6].message).contain(
+        expect(diagnosticsByType.warnings[6].message).contain(
             "Cannot create circle through more than two points with a specified radius",
         );
-        expect(errorWarnings.warnings[6].position.start.line).eq(7);
-        expect(errorWarnings.warnings[6].position.start.column).eq(1);
-        expect(errorWarnings.warnings[6].position.end.line).eq(7);
-        expect(errorWarnings.warnings[6].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[6].position.start.line).eq(7);
+        expect(diagnosticsByType.warnings[6].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[6].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[6].position.end.column).eq(61);
 
-        expect(errorWarnings.warnings[7].message).contain(
+        expect(diagnosticsByType.warnings[7].message).contain(
             "Cannot create circle through more than one point with specified radius when don't have numerical values",
         );
-        expect(errorWarnings.warnings[7].position.start.line).eq(9);
-        expect(errorWarnings.warnings[7].position.start.column).eq(1);
-        expect(errorWarnings.warnings[7].position.end.line).eq(9);
-        expect(errorWarnings.warnings[7].position.end.column).eq(54);
+        expect(diagnosticsByType.warnings[7].position.start.line).eq(9);
+        expect(diagnosticsByType.warnings[7].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[7].position.end.line).eq(9);
+        expect(diagnosticsByType.warnings[7].position.end.column).eq(54);
     });
 
     it("handle bad center/through", async () => {
@@ -6021,15 +6022,15 @@ $c7.radius
             doenetML: `
     <setup>
         <styleDefinition stylenumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
-        <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" />
+        <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
 
         <styleDefinition stylenumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
-        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" />
+        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="dots" />
     </setup>
 
     <graph>
       <circle center="(-8,0)" name="c1" />
-      <circle center="(-8,4)" name="c2" filled />
+      <circle center="(-8,4)" name="c2" filled fillStyle="vertical" />
       <circle center="(-4,0)" name="c3" stylenumber="2" />
       <circle center="(-4,4)" name="c4" stylenumber="2" filled />
 
@@ -6114,11 +6115,11 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st2")].stateValues.value,
-        ).toContain("filled blue");
+        ).toContain("filled blue with vertical lines");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn2")].stateValues
                 .value,
-        ).toContain("filled blue circle");
+        ).toContain("filled blue circle with vertical lines");
         expect(
             stateVariables[await resolvePathToNodeIdx("bst2")].stateValues
                 .value,
@@ -6126,7 +6127,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst2")].stateValues
                 .value,
-        ).toContain("blue");
+        ).toContain("blue vertical lines");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st3")].stateValues.value,
@@ -6146,11 +6147,13 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st4")].stateValues.value,
-        ).toContain("filled green with red border");
+        ).toContain("filled green with horizontal lines and red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn4")].stateValues
                 .value,
-        ).toContain("filled green circle with a red border");
+        ).toContain(
+            "filled green circle with horizontal lines and a red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst4")].stateValues
                 .value,
@@ -6158,7 +6161,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst4")].stateValues
                 .value,
-        ).toContain("green");
+        ).toContain("green horizontal lines");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st5")].stateValues.value,
@@ -6210,11 +6213,13 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st8")].stateValues.value,
-        ).toContain("filled green with thin dotted red border");
+        ).toContain("filled green with dots and thin dotted red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn8")].stateValues
                 .value,
-        ).toContain("filled green circle with a thin dotted red border");
+        ).toContain(
+            "filled green circle with dots and a thin dotted red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst8")].stateValues
                 .value,
@@ -6222,7 +6227,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst8")].stateValues
                 .value,
-        ).toContain("green");
+        ).toContain("green dots");
     });
 
     it("hideOffGraphIndicator", async () => {

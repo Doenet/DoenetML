@@ -3,24 +3,24 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# ` <award>{:dn}`
+# `<award>{:dn}`
 
 ## Attribute Examples Part 2
 
 
-The following examples illustrate use of the ` <award>{:dn}` tag attributes.  
+The following examples illustrate use of the `<award>{:dn}` tag attributes.  
 
 ---
 
 ### Attribute Example: matchByExactPositions
 ```doenet-example
-  <p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
   <answer>
+    <label>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct</label>
     <award matchPartial matchByExactPositions>(1,2,3,4)</award>
   </answer>
 
-  <p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
   <answer>
+    <label>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order</label>
     <award matchPartial>1,2,3,4</award>
   </answer>
 ```
@@ -48,20 +48,23 @@ and `unordered` are ignored.
 
 ### Attribute Example: allowedErrorInNumbers and allowedErrorIsAbsolute
 ```doenet-editor-horiz
-<p>Enter a number within about <m>1\%</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within about <m>1\%</m> of <m>100</m></label>
     <award allowedErrorInNumbers="0.01">100</award>
   </answer>
 </p>
 
-<p>Enter a number within 0.01 of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within 0.01 of <m>100</m></label>
     <award allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
 
-<p>Enter an expression close to <m>\sin(\pi x)</m>: 
+<p>
   <answer>
+    <label>Enter an expression close to <m>\sin(\pi x)</m></label>
     <award allowedErrorInNumbers="0.1" symbolicEquality>sin(pi x)</award>
   </answer>
 </p>
@@ -86,14 +89,16 @@ The `allowedErrorIsAbsolute` attribute will change the tolerance to be specified
 
 ### Attribute Example: allowedErrorIsAbsolute
 ```doenet-editor-horiz
-<p>Enter a number within <m>1</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within <m>1</m> of <m>100</m></label>
     <award allowedErrorInNumbers="1" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
 
-<p>Enter a number within <m>10</m> of <m>100</m>: 
+<p>
   <answer>
+    <label>Enter a number within <m>10</m> of <m>100</m></label>
     <award allowedErrorInNumbers="10" allowedErrorIsAbsolute>100</award>
   </answer>
 </p>
@@ -106,11 +111,17 @@ use the `allowedErrorIsAbsolute` attribute in combination with the `allowedError
 
 ### Attribute Example: includeErrorInNumberExponents
 ```doenet-example
-  <p>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4: 
-  <answer><award allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</award></answer>
+  <p>
+    <answer>
+      <label>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4</label>
+      <award allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</award>
+    </answer>
   </p>
-    <p>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers: 
-  <answer><award allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</award></answer>
+  <p>
+    <answer>
+      <label>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers</label>
+      <award allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</award>
+    </answer>
   </p>
 ```
 
@@ -127,20 +138,23 @@ the `includeErrorInNumberExponents` attribute, preferably with the `symbolicEqua
 
 ### Attribute Example: caseInsensitiveMatch
 ```doenet-editor-horiz
-<p>Enter tTkLp: 
+<p>
   <answer type="text">
+    <label>Enter tTkLp</label>
     <award>tTkLp</award>
   </answer>
 </p>
 
-<p>Enter tTkLp with any capitalization: 
+<p>
   <answer type="text">
+    <label>Enter tTkLp with any capitalization</label>
     <award caseInsensitiveMatch>ttklp</award>
   </answer>
 </p>
 
-<p>Either <m>x^2</m> or <m>X^2</m> is acceptable:
+<p>
   <answer>
+    <label>Either <m>x^2</m> or <m>X^2</m> is acceptable</label>
     <award caseInsensitiveMatch>x^2</award>
   </answer>
 </p>
@@ -152,8 +166,11 @@ Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for v
 
 ### Attribute Example: matchBlanks
 ```doenet-example
-    <p>Enter <m>f()</m> with no arguments.
-      <answer name="ans"><award matchBlanks>f()</award></answer>
+    <p>
+      <answer name="ans">
+        <label>Enter <m>f()</m> with no arguments.</label>
+        <award matchBlanks>f()</award>
+      </answer>
     </p>
 ```
 
@@ -163,7 +180,7 @@ If a mathematical expression is incomplete, such as <math>3+()</math>, it
 may contain <q>blanks</q> that are rendered by an underscore or a gray square.  
 Since such blanks typically indicate an error in a mathematical expression, any 
 expression with a blank will, by default, never match a correct answer.  To valid as 
-correct a response that includes a blank, add the `matchBlanks` attribute to the ` <answer>{:dn}`.
+correct a response that includes a blank, add the `matchBlanks` attribute to the `<answer>{:dn}`.
 
 
 
@@ -175,8 +192,9 @@ correct a response that includes a blank, add the `matchBlanks` attribute to the
 <p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
 then <m>\frac{1}{2}</m>.</em></p>
 
-<p>Question: Simplify <m>\frac{8}{16}</m>
+<p>
   <answer name="ans" symbolicEquality>
+    <label>Question: Simplify <m>\frac{8}{16}</m></label>
     <award>1/2</award>
     <award feedbackText="Simplify further." credit="0">4/8</award>
   </answer>
@@ -189,7 +207,43 @@ $ans.feedbacks
 
 The `feedbackText` attribute will assign a particular feedback message to the 
 answer when the award is matched.  To display feedbacks associate to the answer, 
-render the `feedbacks` property of the ` <answer>{:dn}`.
+render the `feedbacks` property of the `<answer>{:dn}`.
+
+
+`feedbackText` is limited to plain text and only appears where you render the
+`feedbacks` property.  When you want feedback that contains markup (emphasis, math
+with `<m>{:dn}`, or links), omit `feedbackText`,
+give the `<award>{:dn}` a `name`, and use a separate [`<feedback>{:dn}`](feedback)
+component with a matching `condition`.  See
+[`<feedback>{:dn}` tied to an `<award>{:dn}`](feedback#example-feedbackdn-tied-to-an-awarddn).
+
+
+
+---
+
+### Attribute Example: feedbackCodes
+```doenet-example
+<p>
+  <answer name="ans">
+    <label>Simplify <m>\frac{-8}{-16}</m></label>
+    <mathInput name="mi" />
+    <award>1/2</award>
+    <award credit="0.7" feedbackCodes="oneSignError">-1/2</award>
+  </answer>
+</p>
+
+$ans.feedbacks
+```
+
+
+
+The `feedbackCodes` attribute selects feedback by *code* rather than by
+literal string. Codes resolve through any
+[`<feedbackDefinition>{:dn}`](feedbackDefinition) in scope and fall back to
+the four [built-in codes](feedbackDefinition#built-in-feedback-codes)
+(`goodJob`, `numericalError`, `oneSignError`, `twoSignErrors`). The matched
+text is delivered through the answer's `feedbacks` property, so the
+`$ans.feedbacks` reference is what actually renders it.
 
 
 
@@ -219,22 +273,22 @@ $ans.submittedResponses
 </p>
 ```
 
-If an ` <answer>{:dn}` has an embedded input field, then Doenet knows that input is the user's response.  
+If an `<answer>{:dn}` has an embedded input field, then Doenet knows that input is the user's response.  
 Absent such input, Doenet will guess that any value copied into an award is the user's response.  
 One way to tell Doenet what is the user's response is by setting the `referencesAreResponses` to names of components. 
-Then any values copied into the ` <award>{:dn}` from those components will be considered the user's response.
+Then any values copied into the `<award>{:dn}` from those components will be considered the user's response.
 
 
 
 Properly annotating DoenetML to specify the user's response will help Doenet collect better data and 
 better understand how user's are learning.  
 Other ways to annotate user responses are:
-  1. Add the `isResponse` attribute to responses that are copied into the ` <award>{:dn}`.
-  2. Add a ` <considerAsResponses>{:dn}` child to the ` <answer>{:dn}` and copy anything that 
-  should be considered a reponse into the ` <considerAsResponses>{:dn}`.
+  1. Add the `isResponse` attribute to responses that are copied into the `<award>{:dn}`.
+  2. Add a `<considerAsResponses>{:dn}` child to the `<answer>{:dn}` and copy anything that 
+  should be considered a reponse into the `<considerAsResponses>{:dn}`.
 
 
 
 Specifying the user's response will also let you use the `submittedResponses` and `currentResponses` properties 
-of the ` <answer>{:dn}`.
+of the `<answer>{:dn}`.
 

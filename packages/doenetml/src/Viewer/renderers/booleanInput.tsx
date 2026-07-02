@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -6,7 +7,6 @@ import { ToggleButton } from "@doenet/ui-components";
 import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
-// @ts-ignore
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
@@ -18,11 +18,30 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+
+interface BooleanInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    value: boolean;
+    asToggleButton: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    shortDescription?: string;
+}
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<BooleanInputSVs>(props);
 
     // @ts-ignore
     BooleanInput.baseStateVariable = "value";
@@ -33,10 +52,10 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     const [rendererValue, setRendererValue] = useState(SVs.value);
 
     // add ref, because event handler called from jsxgraph doesn't get new value
-    let rendererValueRef = useRef(null);
+    let rendererValueRef = useRef<boolean | null>(null);
     rendererValueRef.current = rendererValue;
 
-    let valueWhenSetState = useRef(null);
+    let valueWhenSetState = useRef<boolean | null>(null);
 
     let inputJXG = useRef<JXGObject | null>(null);
     let anchorPointJXG = useRef<JXGObject | null>(null);
@@ -56,6 +75,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
 
     let fixed = useRef(false);
     let fixLocation = useRef(false);
+    let inputRef = useRef<HTMLInputElement>(null);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
@@ -89,6 +109,13 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 boolean: newValue,
             },
             baseVariableValue: newValue,
+        });
+    }
+
+    function onFocusChanged(focused: boolean) {
+        callAction({
+            action: actions.focusChanged,
+            args: { focused },
         });
     }
 
@@ -456,37 +483,25 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    let checkWorkStyle: React.CSSProperties = {
-        cursor: "pointer",
-        padding: "1px 6px 1px 6px",
-    };
-    let checkWorkTabIndex = "0";
-
-    if (disabled) {
-        // Disable the checkWorkButton
-        checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        checkWorkStyle.color = "black";
-        checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = "-1";
-    }
-
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
     const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let input;
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -496,6 +511,9 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -519,7 +537,9 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 key={inputKey}
                 isSelected={rendererValue}
                 onClick={onChangeHandler}
-                value={label}
+                onFocus={() => onFocusChanged(true)}
+                onBlur={() => onFocusChanged(false)}
+                value={label as any}
                 disabled={disabled}
                 ariaLabel={shortDescription}
             />
@@ -532,40 +552,84 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             checkmarkClass += " checkmark-disabled";
         }
 
-        input = (
-            <label className={containerClass} id={`${id}-label`}>
+        const checkboxControl = (
+            <span
+                className={containerClass}
+                // Inline-block so the checkbox flows as inline content beside a
+                // (possibly wrapping) label and baseline-aligns with it. As a
+                // former flex item it was blockified; this keeps its box model
+                // and alignment unchanged now that the container is
+                // `display: inline` (#1245).
+                style={{ display: "inline-block", verticalAlign: "baseline" }}
+                onMouseDown={(e) => {
+                    if (e.target instanceof HTMLInputElement) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onClick={(e) => {
+                    if (disabled || e.target instanceof HTMLInputElement) {
+                        return;
+                    }
+                    inputRef.current?.focus();
+                    onChangeHandler();
+                }}
+                id={`${id}-container`}
+            >
                 <input
+                    ref={inputRef}
                     type="checkbox"
                     key={inputKey}
                     id={inputKey}
                     checked={rendererValue}
                     onChange={onChangeHandler}
                     disabled={disabled}
-                    aria-label={shortDescription}
+                    onFocus={() => onFocusChanged(true)}
+                    onBlur={() => onFocusChanged(false)}
+                    aria-labelledby={hasLabel ? labelId : undefined}
+                    aria-label={!hasLabel ? shortDescription : undefined}
+                    aria-description={hasLabel ? shortDescription : undefined}
                     aria-details={descriptionId}
                 />
-                <span className={checkmarkClass}></span>
-                {label != "" ? (
-                    <span style={{ marginLeft: "2px" }}>{label}</span>
-                ) : (
-                    // Add a zero width space so that the vertical alignment is the same
-                    <span>&#8203;</span>
-                )}
-            </label>
+                <span className={checkmarkClass} aria-hidden="true"></span>
+                <span aria-hidden="true">&#8203;</span>
+            </span>
         );
+
+        input = checkboxControl;
     }
+
+    const labelComponent =
+        hasLabel && !SVs.asToggleButton ? (
+            <label
+                id={labelId}
+                htmlFor={inputKey}
+                style={
+                    SVs.labelPosition === "left"
+                        ? { marginRight: "2px" }
+                        : { marginLeft: "2px" }
+                }
+            >
+                {label}
+            </label>
+        ) : null;
 
     return (
         <span
             id={id}
+            // `display: inline` so the label and checkbox flow with the
+            // surrounding paragraph text and a wrapping label keeps the
+            // checkbox after its end rather than beside its first line (#1245).
+            // See mathInput.tsx for the full rationale.
             style={{
-                display: "inline-flex",
-                alignItems: "start",
+                display: "inline",
             }}
         >
+            {SVs.labelPosition === "left" ? labelComponent : null}
             {input}
             {checkWorkComponent}
             {description}
+            {SVs.labelPosition !== "left" ? labelComponent : null}
         </span>
     );
 });

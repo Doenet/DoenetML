@@ -1,25 +1,47 @@
-// @ts-nocheck
-import React, { createRef, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-// border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
+const ORBITAL_ARROW_STYLE: React.CSSProperties = {
+    fill: "none",
+    stroke: "var(--canvasText)",
+    strokeWidth: "2",
+};
 
-export default React.memo(function orbitalDiagramInput(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
-    // console.log("orbitalDiagramInput SVs ", SVs);
+interface OrbitalRowData {
+    orbitalText: string;
+    boxes: string[];
+}
+
+interface OrbitalDiagramInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    fixed: boolean;
+    rows: OrbitalRowData[];
+    selectedRowIndex: number;
+    selectedBoxIndex: number;
+}
+
+export default React.memo(function orbitalDiagramInput(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<OrbitalDiagramInputSVs>(props);
 
     let selectedRowIndex0 = SVs.selectedRowIndex - 1;
     let selectedBoxIndex0 = SVs.selectedBoxIndex - 1;
 
+    // @ts-ignore
     orbitalDiagramInput.ignoreActionsWithoutCore = () => true;
 
     // use ref for fixed so changed value appears in callbacks
-    let fixed = createRef(SVs.fixed);
+    let fixed = useRef<boolean>(SVs.fixed);
     fixed.current = SVs.fixed;
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -27,7 +49,7 @@ export default React.memo(function orbitalDiagramInput(props) {
         return null;
     }
 
-    function setSelectedRow(index) {
+    function setSelectedRow(index: number | string) {
         if (!fixed.current) {
             callAction({
                 action: actions.selectRow,
@@ -36,7 +58,7 @@ export default React.memo(function orbitalDiagramInput(props) {
         }
     }
 
-    function setSelectedBox(index, rowNum) {
+    function setSelectedBox(index: number | string, rowNum?: number | string) {
         if (!fixed.current) {
             if (rowNum !== undefined) {
                 callAction({
@@ -51,7 +73,7 @@ export default React.memo(function orbitalDiagramInput(props) {
         }
     }
 
-    function updateRowText(newValue) {
+    function updateRowText(newValue: string) {
         if (!fixed.current) {
             callAction({
                 action: actions.updateRowText,
@@ -60,22 +82,21 @@ export default React.memo(function orbitalDiagramInput(props) {
         }
     }
 
-    function deselect(e) {
+    function deselect(e: React.FocusEvent) {
+        const relatedId = (e.relatedTarget as HTMLElement | null)?.id;
         if (
-            e.relatedTarget?.id !== `orbitaladdrow${id}` &&
-            e.relatedTarget?.id !== `orbitalremoverow${id}` &&
-            e.relatedTarget?.id !== `orbitaladdbox${id}` &&
-            e.relatedTarget?.id !== `orbitaladduparrow${id}` &&
-            e.relatedTarget?.id !== `orbitaladddownarrow${id}` &&
-            e.relatedTarget?.id !== `orbitalremovearrow${id}` &&
-            e.relatedTarget?.id !== `orbitalremovebox${id}`
+            relatedId !== `orbitaladdrow${id}` &&
+            relatedId !== `orbitalremoverow${id}` &&
+            relatedId !== `orbitaladdbox${id}` &&
+            relatedId !== `orbitaladduparrow${id}` &&
+            relatedId !== `orbitaladddownarrow${id}` &&
+            relatedId !== `orbitalremovearrow${id}` &&
+            relatedId !== `orbitalremovebox${id}`
         ) {
             if (
-                e.relatedTarget?.id !==
-                    `OrbitalText${selectedRowIndex0}${id}` &&
-                e.relatedTarget?.id !== `OrbitalRow${selectedRowIndex0}${id}` &&
-                e.relatedTarget?.id.substring(0, 10 + id.length) !==
-                    `orbitalbox${id}`
+                relatedId !== `OrbitalText${selectedRowIndex0}${id}` &&
+                relatedId !== `OrbitalRow${selectedRowIndex0}${id}` &&
+                relatedId?.substring(0, 10 + id.length) !== `orbitalbox${id}`
             ) {
                 setSelectedRow(-1);
             }
@@ -85,7 +106,7 @@ export default React.memo(function orbitalDiagramInput(props) {
 
     let rowsJSX = [];
     for (let [index, row] of Object.entries(SVs.rows)) {
-        let rowNumber = SVs.rows.length - index - 1;
+        let rowNumber = SVs.rows.length - Number(index) - 1;
         rowsJSX.push(
             <OrbitalRow
                 key={`OrbitalRow${rowNumber}`}
@@ -111,7 +132,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitaladdrow${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -137,7 +158,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitaladdbox${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -152,7 +173,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitalremovebox${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -167,7 +188,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitaladduparrow${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -182,7 +203,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitaladddownarrow${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -197,7 +218,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
                     <Button
                         id={`orbitalremovearrow${id}`}
-                        onBlur={(e) => {
+                        onBlur={(e: React.FocusEvent) => {
                             deselect(e);
                         }}
                         onClick={() => {
@@ -230,20 +251,30 @@ const OrbitalRow = React.memo(function OrbitalRow({
     setSelectedBox,
     deselect,
     name,
+}: {
+    rowNumber: number;
+    updateRowText: (newValue: string) => void;
+    selectedRow: number;
+    setSelectedRow: (index: number | string) => void;
+    orbitalText: string;
+    boxes: string[];
+    selectedBox: number;
+    setSelectedBox: (index: number | string, rowNum?: number | string) => void;
+    deselect: (e: React.FocusEvent) => void;
+    name: string;
 }) {
-    let rowStyle = {
+    let rowStyle: React.CSSProperties = {
         width: "800px",
         height: "44px",
         display: "flex",
-        backgroundColor: "#E2E2E2",
+        backgroundColor: "var(--revealButtonSurface)",
         marginTop: "2px",
         marginBottom: "2px",
         padding: "2px",
-        border: "white solid 2px",
+        border: "var(--canvas) solid 2px",
     };
     if (selectedRow === rowNumber) {
-        rowStyle["border"] = "#1A5A99 solid 2px";
-        // rowStyle['backgroundColor'] = '#1A5A99';
+        rowStyle["border"] = "var(--mainBlue) solid 2px";
     }
 
     //Make boxes
@@ -251,7 +282,7 @@ const OrbitalRow = React.memo(function OrbitalRow({
     for (let [index, code] of Object.entries(boxes)) {
         let isSelected = false;
         // console.log("selectedBox === index",selectedBox,index,selectedBox === index,selectedBox == index)
-        if (selectedRow == rowNumber && selectedBox == index) {
+        if (selectedRow == rowNumber && String(selectedBox) === index) {
             isSelected = true;
         }
         boxesJSX.push(
@@ -271,13 +302,13 @@ const OrbitalRow = React.memo(function OrbitalRow({
         <div
             key={`OrbitalRow${rowNumber}`}
             id={`OrbitalRow${rowNumber}${name}`}
-            tabIndex="-1"
+            tabIndex={-1}
             onClick={() => {
                 if (selectedRow !== rowNumber) {
                     setSelectedRow(rowNumber);
                 }
             }}
-            onBlur={(e) => {
+            onBlur={(e: React.FocusEvent) => {
                 deselect(e);
             }}
             style={rowStyle}
@@ -299,13 +330,18 @@ const OrbitalText = React.memo(function OrbitalText({
     updateRowText,
     orbitalText,
     name,
+}: {
+    rowNumber: number;
+    updateRowText: (newValue: string) => void;
+    orbitalText: string;
+    name: string;
 }) {
     return (
         <input
             id={`OrbitalText${rowNumber}${name}`}
             style={{ marginRight: "4px", height: "14px" }}
             type="text"
-            size="4"
+            size={4}
             value={orbitalText}
             onChange={(e) => {
                 let newValue = e.target.value;
@@ -323,13 +359,20 @@ const OrbitalBox = React.memo(function OrbitalBox({
     isSelected,
     rowNumber,
     name,
+}: {
+    boxNum: string | number;
+    arrows?: string;
+    setSelectedBox: (index: number | string, rowNum?: number | string) => void;
+    isSelected: boolean;
+    rowNumber: number;
+    name: string;
 }) {
     const firstUp = (
         <polyline
             key={`orbitalboxfirstUp${boxNum}`}
             id={`firstUp${boxNum}`}
             points="6,14 12,6 18,14 12,6 12,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const firstDown = (
@@ -337,7 +380,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxfirstDown${boxNum}`}
             id={`firstDown${boxNum}`}
             points="6,26 12,34 18,26 12,34 12,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const secondUp = (
@@ -345,7 +388,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxsecondUp${boxNum}`}
             id={`secondUp${boxNum}`}
             points="22,14 28,6 34,14 28,6 28,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const secondDown = (
@@ -353,7 +396,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxsecondDown${boxNum}`}
             id={`secondDown${boxNum}`}
             points="22,26 28,34 34,26 28,34 28,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const thirdUp = (
@@ -361,7 +404,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxthirdUp${boxNum}`}
             id={`thirdUp${boxNum}`}
             points="38,14 44,6 50,14 44,6 44,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const thirdDown = (
@@ -369,7 +412,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxthirdDown${boxNum}`}
             id={`thirdDown${boxNum}`}
             points="38,26 44,34 50,26 44,34 44,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
 
@@ -400,10 +443,10 @@ const OrbitalBox = React.memo(function OrbitalBox({
         boxWidth = 56;
     }
 
-    let boxColor = "black";
+    let boxColor = "var(--canvasText)";
     let strokeWidth = "2px";
     if (isSelected) {
-        boxColor = "#1A5A99";
+        boxColor = "var(--mainBlue)";
         strokeWidth = "6px";
     }
 
@@ -411,7 +454,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
         <svg
             key={`orbitalbox${boxNum}`}
             id={`orbitalbox${name}${rowNumber}-${boxNum}`}
-            tabIndex="-1"
+            tabIndex={-1}
             onClick={(e) => {
                 setSelectedBox(boxNum, rowNumber);
                 e.stopPropagation();
@@ -428,7 +471,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
                 width={boxWidth}
                 height="40"
                 style={{
-                    fill: "white",
+                    fill: "var(--canvas)",
                     stroke: boxColor,
                     strokeWidth: strokeWidth,
                     fillOpacity: "1",

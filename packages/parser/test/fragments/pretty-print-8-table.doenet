@@ -1,0 +1,12 @@
+<table>
+    <row>
+        <cell>R1C1</cell>
+        <cell>R1C2</cell>
+        <cell>R1C3</cell>
+    </row>
+    <row>
+        <cell><m>x_1</m></cell>
+        <cell>middle cell</cell>
+        <cell>$ref</cell>
+    </row>
+</table>

@@ -10,6 +10,7 @@ export default class SingleCharacter extends InlineComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
         stateVariableDefinitions.text = {
+            description: "The unicode character rendered by this component.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

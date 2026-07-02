@@ -1,0 +1,168 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<feedbackDefinition>{:dn}`
+
+<ComponentDisplay name='feedbackDefinition'/>
+
+`<feedbackDefinition>{:dn}` defines a reusable feedback string keyed by a
+`code`. Authors place one or more `<feedbackDefinition>{:dn}` elements in a
+[`<setup>{:dn}`](setup) block, then reference them by code from `<award>{:dn}`
+elements (via the `feedbackCodes` attribute). When that award is achieved,
+the matching feedback text becomes available on the answer's `feedbacks`
+property (and on the award's own `feedback`).
+
+The author must then **render the feedback in the desired location** by
+referencing one of those properties — `<answer>{:dn}` is an inline component
+and DoenetML cannot infer where to place the block-level feedback on its
+own. Typical pattern: put `$ans.feedbacks` in a paragraph or block right
+after the `<answer>{:dn}`. Without that reference, the `feedbackCodes`
+match has no visible effect.
+
+This separates *what feedback is shown* from *what triggers it*. The same
+code can be reused across many problems, and per-section overrides are
+respected: a `<feedbackDefinition>{:dn}` inside a nested `<setup>{:dn}` shadows
+one defined further up the tree. Code matching is case-insensitive.
+
+
+<AttrPropDisplay name='feedbackDefinition'/>
+
+
+## Built-in feedback codes
+
+Four feedback codes are pre-defined and available without any
+`<feedbackDefinition>{:dn}`. Reference them from
+`<award feedbackCodes="…">{:dn}` (or `<choice feedbackCodes="…">{:dn}`)
+exactly like author-defined codes; the lookup is case-insensitive, so
+`goodJob`, `GOODJOB`, and `goodjob` all match the same entry.
+
+| Code | Default text |
+| --- | --- |
+| `goodJob` | Good job! |
+| `numericalError` | Credit reduced because numbers in your answer weren't quite right.  Did you round too much? |
+| `oneSignError` | Credit reduced because it appears that you made a sign error. |
+| `twoSignErrors` | Credit reduced because it appears that you made two sign errors. |
+
+A document- or section-scoped `<feedbackDefinition>{:dn}` may shadow any of
+these by reusing the same `code` — see "Override feedback per section"
+below. Scoping is by ancestor: a shadow inside one section affects only
+that section's descendants, so sibling sections still see the built-in
+defaults.
+
+
+## Examples
+
+### Example: Define and use feedback by code
+
+
+```doenet-editor-horiz
+<setup>
+  <feedbackDefinition code="wrongTrig"
+    text="Close, but wrong trigonometric function." />
+  <feedbackDefinition code="lostPi" text="You lost pi." />
+</setup>
+
+<p>
+  <answer name="ans">
+    <mathInput name="mi">
+      <label>Differentiate <m>\cos(\pi x)</m> with respect to <m>x</m></label>
+    </mathInput>
+    <award feedbackCodes="goodJob">
+      <math>-pi sin(pi x)</math>
+    </award>
+    <award credit="0.7" feedbackCodes="wrongTrig">
+      <math>pi cos(pi x)</math>
+    </award>
+    <award credit="0.3" feedbackCodes="lostPi">
+      <math>-sin(pi x)</math>
+    </award>
+  </answer>
+</p>
+
+$ans.feedbacks
+```
+
+
+Each [`<award>{:dn}`](award) names a feedback code via `feedbackCodes`. When
+that award is matched, the text from the matching `<feedbackDefinition>{:dn}`
+becomes available on `$ans.feedbacks`; rendering that reference (here in a
+paragraph below the answer) is what actually shows the feedback to the
+learner. (The code `goodJob` is one of the four built-in codes listed
+[above](#built-in-feedback-codes), so it does not need its own
+`<feedbackDefinition>{:dn}`.)
+
+
+
+---
+
+### Example: Override feedback per section
+
+
+```doenet-editor-horiz
+<setup>
+  <feedbackDefinition code="rounded" text="Don't round your answer." />
+</setup>
+
+<problem>
+  <p>What is <m>\sqrt{2}</m>?
+    <answer name="a1">
+      <mathInput name="mi1"><label>your answer</label></mathInput>
+      <award><math>sqrt(2)</math></award>
+      <award credit="0.5" feedbackCodes="rounded"><math>1.41</math></award>
+    </answer>
+  </p>
+  $a1.feedbacks
+</problem>
+
+<problem>
+  <setup>
+    <feedbackDefinition code="rounded"
+      text="Almost — give an exact answer this time." />
+  </setup>
+  <p>What is <m>\sqrt{3}</m>?
+    <answer name="a2">
+      <mathInput name="mi2"><label>your answer</label></mathInput>
+      <award><math>sqrt(3)</math></award>
+      <award credit="0.5" feedbackCodes="rounded"><math>1.73</math></award>
+    </answer>
+  </p>
+  $a2.feedbacks
+</problem>
+```
+
+
+The second problem's local `<feedbackDefinition>{:dn}` overrides the
+document-level one, so the same `rounded` code produces different feedback
+text in each problem. Each `<problem>{:dn}` renders its own answer's
+`feedbacks` reference so the correct text appears in context.
+
+
+
+## Attribute Examples
+
+### Attribute Example: code, text
+
+
+```doenet-editor-horiz
+<setup>
+  <feedbackDefinition code="signError" text="Check your signs." />
+</setup>
+
+<answer name="ans">
+  <mathInput name="mi">
+    <label>Evaluate <m>-3 \cdot (-4)</m></label>
+  </mathInput>
+  <award>12</award>
+  <award credit="0.5" feedbackCodes="signError">-12</award>
+</answer>
+
+$ans.feedbacks
+```
+
+
+`code` is the case-insensitive lookup key referenced from
+`<award feedbackCodes="...">{:dn}`; `text` is the feedback string the
+referenced answer's `feedbacks` property delivers (here rendered just below
+the answer).

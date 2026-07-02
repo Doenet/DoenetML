@@ -9,7 +9,42 @@ export type CompletionSnippetCursor =
 
 export type CompletionSnippetCompletionItemData = {
     snippetCursor?: CompletionSnippetCursor;
+    // Marker for "wrap the typed bare attribute value in quotes" completions.
+    // The CodeMirror plugin recognizes this, sets `filter: false` on the
+    // result, and provides an `update` callback that regenerates the
+    // completion's label/displayLabel from the live text on every keystroke
+    // -- otherwise CodeMirror filters the cached option out as the typed
+    // prefix grows beyond the cached label, closing the menu mid-type.
+    livePreviewQuoteWrap?: {
+        // 0-based document offset of the first bare-value character (e.g.
+        // the `h` in `name=hello`, or the `h` after the spaces in
+        // `name=   hello`). The CodeMirror plugin uses this to anchor the
+        // result's `from`. Relying on the plugin's default `prefixMatch`
+        // logic would put `from` at the cursor (one past the typed
+        // prefix's first character) because every option's apply text
+        // starts with a literal `"` the user has not actually typed,
+        // making `matchBefore` return null.
+        bareValueStartOffset: number;
+    };
 };
+
+export function getLivePreviewQuoteWrap(
+    data: unknown,
+): { bareValueStartOffset: number } | undefined {
+    if (!data || typeof data !== "object") {
+        return undefined;
+    }
+    const marker = (data as CompletionSnippetCompletionItemData)
+        .livePreviewQuoteWrap;
+    if (
+        !marker ||
+        typeof marker !== "object" ||
+        !isNonNegativeInteger(marker.bareValueStartOffset)
+    ) {
+        return undefined;
+    }
+    return marker;
+}
 
 function isNonNegativeInteger(value: unknown): value is number {
     return typeof value === "number" && Number.isInteger(value) && value >= 0;

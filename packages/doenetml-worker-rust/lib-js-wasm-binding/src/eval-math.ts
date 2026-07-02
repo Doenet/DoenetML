@@ -1,4 +1,3 @@
-// @ts-ignore
 import me from "math-expressions";
 import { globalThis } from "./global-this";
 import {
@@ -61,7 +60,7 @@ export function parseTextIntoMath(
         expression = fromText(text);
     } catch (e) {
         expression = me.fromAst("\uFF3F"); // long underscore
-        console.warn("Invalid value for a math of text format: " + text);
+        console.warn("Invalid value for a math of text format: `" + text + "`");
     }
 
     return JSON.stringify(expression.tree, serializedComponentsReplacer);
@@ -124,7 +123,9 @@ export function parseLatexIntoMath(
         expression = fromLatex(latex);
     } catch (e) {
         expression = me.fromAst("\uFF3F"); // long underscore
-        console.warn("Invalid value for a math of latex format: " + latex);
+        console.warn(
+            "Invalid value for a math of latex format: `" + latex + "`",
+        );
     }
 
     return JSON.stringify(expression.tree, serializedComponentsReplacer);
@@ -261,11 +262,11 @@ export function parseTextIntoNumber(text: string): number {
     try {
         expression = fromText(text);
     } catch (e) {
-        console.warn("Invalid value for a math of text format: " + text);
+        console.warn("Invalid value for a math of text format: `" + text + "`");
         return NaN;
     }
 
     let newNumber = expression.evaluate_to_constant();
 
-    return newNumber;
+    return newNumber ?? NaN;
 }

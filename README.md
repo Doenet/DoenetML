@@ -62,6 +62,10 @@ rustc --version
 In root directory, run `npm install && npm run build` to install
 dependencies and build packages.
 
+Note: `npm install` alone does not download generated PreFigure runtime assets.
+Those are fetched automatically during `npm run build` (via workspace build
+dependencies), including wheel/lib files needed by `@doenet/prefigure`.
+
 Note for Windows users: There are currently some
 [issues](https://github.com/Doenet/DoenetML/pull/326)
 with running a local development environment on Windows.

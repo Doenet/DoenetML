@@ -3,6 +3,11 @@ import VectorListComponent from "./VectorList";
 export default class ControlVectors extends VectorListComponent {
     static componentType = "controlVectors";
 
+    static componentDocs = {
+        summary:
+            "Bezier control vectors at points defining a curve (used inside `<bezierControls>`)",
+    };
+
     static inSchemaOnlyInheritAs = [];
 
     // don't let it appear in schema as a vector
@@ -17,14 +22,61 @@ export default class ControlVectors extends VectorListComponent {
             defaultValue: "symmetric",
             public: true,
             toLowerCase: true,
-            validValues: ["symmetric", "previous", "next", "both", "none"],
+            validValues: [
+                {
+                    value: "symmetric",
+                    description:
+                        "Mirror the control vector on both sides of the vertex.",
+                },
+                {
+                    value: "previous",
+                    description:
+                        "Apply the control vector toward the previous segment only.",
+                },
+                {
+                    value: "next",
+                    description:
+                        "Apply the control vector toward the next segment only.",
+                },
+                {
+                    value: "both",
+                    description:
+                        "Apply independent control vectors to both adjacent segments.",
+                },
+                {
+                    value: "none",
+                    description: "No control vector at this vertex.",
+                },
+            ],
+            description:
+                "Direction in which the control vectors apply at the vertex.",
         };
         attributes.pointNumber = {
             createComponentOfType: "number",
             createStateVariable: "pointNumber",
             defaultValue: null,
             public: true,
+            description:
+                "1-based index of the vertex these control vectors attach to.",
         };
         return attributes;
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Control vectors are interactive editing handles for jsxgraph and have
+        // no meaning in the prefigure (static) renderer. Overriding hidden to
+        // always be true ensures they propagate parentHidden=true to their
+        // vector children, causing the prefigure dispatcher to skip them.
+        // BezierControls reads controlVectors.hide (the raw attribute SV),
+        // not .hidden, for its hiddenControls array, so this override does
+        // not affect jsxgraph control handle visibility.
+        stateVariableDefinitions.hidden = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { hidden: true } }),
+        };
+
+        return stateVariableDefinitions;
     }
 }

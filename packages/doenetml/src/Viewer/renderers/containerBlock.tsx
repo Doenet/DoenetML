@@ -8,9 +8,19 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+
+interface ContainerBlockSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    justSubmitted: boolean;
+    renderInlineForListItem: boolean;
+}
 
 export default React.memo(function Container(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<ContainerBlockSVs>(props);
 
     const ref = useRef(null);
 
@@ -21,20 +31,23 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
     }
 
     let checkWorkComponent = null;
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAllAnswers",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     if (actions.submitAllAnswers) {
-        const submitAllAnswers = () =>
-            callAction({
-                action: actions.submitAllAnswers,
-            });
-
-        const validationState = calculateValidationState(SVs);
         checkWorkComponent = createCheckWorkComponent(
             SVs,
             id,
             validationState,
-            submitAllAnswers,
+            submitActionWithPending,
             true,
+            isPending,
         );
 
         if (checkWorkComponent) {
@@ -53,7 +66,13 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
     }
 
     return (
-        <div id={id} ref={ref}>
+        <div
+            id={id}
+            ref={ref}
+            // Suppress only top margin for list-item alignment while preserving
+            // any existing bottom/other spacing styles on container blocks.
+            style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
+        >
             {children}
             {checkWorkComponent}
         </div>

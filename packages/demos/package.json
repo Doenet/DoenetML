@@ -1,0 +1,34 @@
+{
+    "name": "@doenet/demos",
+    "type": "module",
+    "description": "Demo apps and debug examples for the DoenetML homepage",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite-node scripts/build-demos.ts",
+            "files": [
+                "scripts/**/*.ts",
+                "scripts/**/*.html",
+                "scripts/**/*.css",
+                "package.json"
+            ],
+            "output": [
+                "dist/**/*"
+            ],
+            "dependencies": [
+                "../doenetml:build:dev",
+                "../doenetml-print:build:dev",
+                "../doenetml-to-pretext:build:dev"
+            ]
+        }
+    },
+    "peerDependencies": {},
+    "devDependencies": {}
+}

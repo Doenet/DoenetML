@@ -1,32 +1,46 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useContext, useEffect, useRef } from "react";
+import JXG from "jsxgraph";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
 import me from "math-expressions";
+import type { round as RoundType } from "mathjs";
+const { round } = me.math as { round: RoundType };
+import { JXGPoint } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Pegboard(props) {
-    let { id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+interface PegboardSVs {
+    hidden: boolean;
+    layer: number;
+    dx: number;
+    dy: number;
+    xoffset: number;
+    yoffset: number;
+}
 
+export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
+    let { SVs } = useDoenetRenderer<PegboardSVs>(props);
+
+    // @ts-ignore
     Pegboard.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let pegboardJXG = useRef(null);
+    let pegboardJXG = useRef<JXGPoint[][] | null>(null);
 
-    let previousBounds = useRef(null);
+    let previousBounds = useRef<[number, number, number, number] | null>(null);
 
-    let dx = useRef(null);
-    let dy = useRef(null);
-    let xoffset = useRef(null);
-    let yoffset = useRef(null);
+    let dx = useRef<number>(SVs.dx);
+    let dy = useRef<number>(SVs.dy);
+    let xoffset = useRef<number>(SVs.xoffset);
+    let yoffset = useRef<number>(SVs.yoffset);
 
     dx.current = SVs.dx;
     dy.current = SVs.dy;
     xoffset.current = SVs.xoffset;
     yoffset.current = SVs.yoffset;
 
-    let jsxPointAttributes = useRef({
+    let jsxPointAttributes = useRef<Record<string, any>>({
         visible: !SVs.hidden,
         fixed: true,
         withlabel: false,
@@ -62,10 +76,10 @@ export default React.memo(function Pegboard(props) {
         let yind2 = (yMax - yoffset.current) / dy.current;
 
         // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-        let minXind = me.math.round(Math.min(xind1, xind2) + 1);
-        let maxXind = me.math.round(Math.max(xind1, xind2) - 1);
-        let minYind = me.math.round(Math.min(yind1, yind2) + 1);
-        let maxYind = me.math.round(Math.max(yind1, yind2) - 1);
+        let minXind = round(Math.min(xind1, xind2) + 1);
+        let maxXind = round(Math.max(xind1, xind2) - 1);
+        let minYind = round(Math.min(yind1, yind2) + 1);
+        let maxYind = round(Math.max(yind1, yind2) - 1);
 
         previousBounds.current = [minXind, maxXind, minYind, maxYind];
 
@@ -75,18 +89,18 @@ export default React.memo(function Pegboard(props) {
             Number.isFinite(minYind) &&
             Number.isFinite(maxYind)
         ) {
-            let pegs = [];
+            let pegs: JXGPoint[][] = [];
 
             for (let yind = minYind; yind <= maxYind; yind++) {
                 let y = yind * SVs.dy + SVs.yoffset;
-                let row = [];
+                let row: JXGPoint[] = [];
                 for (let xind = minXind; xind <= maxXind; xind++) {
                     row.push(
                         board.create(
                             "point",
                             [xind * SVs.dx + SVs.xoffset, y],
                             jsxPointAttributes.current,
-                        ),
+                        ) as JXGPoint,
                     );
                 }
                 pegs.push(row);
@@ -104,13 +118,13 @@ export default React.memo(function Pegboard(props) {
             let yind2 = (yMax - yoffset.current) / dy.current;
 
             // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-            let minXind = me.math.round(Math.min(xind1, xind2) + 1);
-            let maxXind = me.math.round(Math.max(xind1, xind2) - 1);
-            let minYind = me.math.round(Math.min(yind1, yind2) + 1);
-            let maxYind = me.math.round(Math.max(yind1, yind2) - 1);
+            let minXind = round(Math.min(xind1, xind2) + 1);
+            let maxXind = round(Math.max(xind1, xind2) - 1);
+            let minYind = round(Math.min(yind1, yind2) + 1);
+            let maxYind = round(Math.max(yind1, yind2) - 1);
 
             let [prevXmin, prevXmax, prevYmin, prevYmax] =
-                previousBounds.current;
+                previousBounds.current!;
 
             if (
                 minXind !== prevXmin ||
@@ -135,7 +149,12 @@ export default React.memo(function Pegboard(props) {
         pegboardJXG.current = null;
     }
 
-    function recalculatePegboard(minXind, maxXind, minYind, maxYind) {
+    function recalculatePegboard(
+        minXind: number,
+        maxXind: number,
+        minYind: number,
+        maxYind: number,
+    ) {
         if (pegboardJXG.current === null) {
             return createPegboardJXG();
         }
@@ -149,7 +168,7 @@ export default React.memo(function Pegboard(props) {
             return deletePegboardJXG();
         }
 
-        let [prevXmin, prevXmax, prevYmin, prevYmax] = previousBounds.current;
+        let [prevXmin, prevXmax, prevYmin, prevYmax] = previousBounds.current!;
 
         let numRows = maxYind - minYind + 1;
         let prevNrows = prevYmax - prevYmin + 1;
@@ -171,17 +190,19 @@ export default React.memo(function Pegboard(props) {
             if (prevNcols > numColumns) {
                 for (let j = numColumns; j < prevNcols; j++) {
                     let point = row.pop();
-                    board?.removeObject(point);
+                    if (point) {
+                        board?.removeObject(point);
+                    }
                 }
             } else if (prevNcols < numColumns) {
                 for (let j = prevNcols; j < numColumns; j++) {
                     let x = (j + minXind) * dx.current + xoffset.current;
                     row.push(
-                        board.create(
+                        board!.create(
                             "point",
                             [x, y],
                             jsxPointAttributes.current,
-                        ),
+                        ) as JXGPoint,
                     );
                 }
             }
@@ -190,23 +211,27 @@ export default React.memo(function Pegboard(props) {
         if (prevNrows > numRows) {
             for (let i = numRows; i < prevNrows; i++) {
                 let row = pegboardJXG.current.pop();
-                for (let j = 0; j < prevNcols; j++) {
-                    let point = row.pop();
-                    board?.removeObject(point);
+                if (row) {
+                    for (let j = 0; j < prevNcols; j++) {
+                        let point = row.pop();
+                        if (point) {
+                            board?.removeObject(point);
+                        }
+                    }
                 }
             }
         } else if (prevNrows < numRows) {
             for (let i = prevNrows; i < numRows; i++) {
-                let row = [];
+                let row: JXGPoint[] = [];
                 let y = (i + minYind) * dy.current + yoffset.current;
                 for (let j = 0; j < numColumns; j++) {
                     let x = (j + minXind) * dx.current + xoffset.current;
                     row.push(
-                        board.create(
+                        board!.create(
                             "point",
                             [x, y],
                             jsxPointAttributes.current,
-                        ),
+                        ) as JXGPoint,
                     );
                 }
                 pegboardJXG.current.push(row);
@@ -215,7 +240,7 @@ export default React.memo(function Pegboard(props) {
 
         previousBounds.current = [minXind, maxXind, minYind, maxYind];
 
-        board.updateRenderer();
+        board!.updateRenderer();
     }
 
     if (board) {
@@ -230,20 +255,20 @@ export default React.memo(function Pegboard(props) {
             let yind2 = (yMax - yoffset.current) / dy.current;
 
             // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-            let minXind = me.math.round(Math.min(xind1, xind2) + 1);
-            let maxXind = me.math.round(Math.max(xind1, xind2) - 1);
-            let minYind = me.math.round(Math.min(yind1, yind2) + 1);
-            let maxYind = me.math.round(Math.max(yind1, yind2) - 1);
+            let minXind = round(Math.min(xind1, xind2) + 1);
+            let maxXind = round(Math.max(xind1, xind2) - 1);
+            let minYind = round(Math.min(yind1, yind2) + 1);
+            let maxYind = round(Math.max(yind1, yind2) - 1);
 
             recalculatePegboard(minXind, maxXind, minYind, maxYind);
 
-            let firstPeg = pegboardJXG.current[0]?.[0];
+            let firstPeg = pegboardJXG.current?.[0]?.[0];
             if (firstPeg) {
                 let layer = 10 * SVs.layer + BASE_LAYER_OFFSET;
                 let layerChanged = firstPeg.visProp.layer !== layer;
 
                 if (layerChanged) {
-                    for (let row of pegboardJXG.current) {
+                    for (let row of pegboardJXG.current!) {
                         for (let peg of row) {
                             peg.setAttribute({ layer });
                         }

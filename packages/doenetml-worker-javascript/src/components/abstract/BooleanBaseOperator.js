@@ -76,6 +76,8 @@ export default class BooleanOperator extends BooleanComponent {
         let constructor = this;
 
         stateVariableDefinitions.value = {
+            description:
+                "The boolean result of applying this operator to its child boolean values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

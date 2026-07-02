@@ -2,6 +2,16 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class Row extends BaseComponent {
     static componentType = "row";
+
+    // `<row>` is also accepted inside `<matrix>`, where it sugars into
+    // `<matrixRow>`. Both entries appear in the docs index disambiguated by
+    // `displayContext`: this one is `<row> (in a table)`; the matrix-flavored
+    // alias (in `Aliases.js`) is `<row> (in a matrix)`.
+    static componentDocs = {
+        summary: "A row within a tabular layout",
+        docsSlug: "row_table",
+        displayContext: "in a table",
+    };
     static rendererType = "row";
     static renderChildren = true;
 
@@ -11,12 +21,14 @@ export default class Row extends BaseComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.rowNum = {
+            description: "Row number where this row is placed (1-based).",
             createComponentOfType: "text",
             createStateVariable: "rowNum",
             defaultValue: null,
             public: true,
         };
         attributes.header = {
+            description: "Whether this row is a header row.",
             createComponentOfType: "boolean",
             createStateVariable: "header",
             defaultValue: false,
@@ -25,33 +37,53 @@ export default class Row extends BaseComponent {
         };
         attributes.halign = {
             createComponentOfType: "text",
+            description: "Default horizontal alignment for cells in this row.",
         };
         attributes.valign = {
             createComponentOfType: "text",
+            description: "Default vertical alignment for cells in this row.",
         };
         attributes.left = {
             createComponentOfType: "text",
+            description: "Border style for the left edge of this row.",
         };
         attributes.bottom = {
             createComponentOfType: "text",
+            description: "Border style for the bottom edge of this row.",
         };
 
         // Workaround for <row> in matrix, which is sugared into <matrixRow>.
-        // Since we are currently validating attributes before the sugar changes it,
-        // we need to put these mathList attributes on <row> for now.
-        // TODO: find a better solution (e.g., validating attributes after sugar is applied),
-        // especially necessary when we have an editor that can autocomplete attributes.
+        // The runtime validates attributes in `convertNormalizedDast.ts`
+        // before sugar fires, so removing these here would make
+        // `<row functionSymbols="h">` inside `<matrix>` throw `Invalid
+        // attribute` (see matrix.test.ts:513 "functionSymbols"). #1174
+        // resolved the editor-side concern (the LSP now routes `<row>`
+        // inside `<matrix>` through the `matrixRow` alias for completion
+        // and validation), but the canonical schema still leaks these
+        // four attributes onto the tabular `<row>` entry. The remaining
+        // work — tracked in #1186 — is to move the matrix sugar to the
+        // parser's `pluginComponentSugar` so the rename happens before
+        // attribute validation; then these declarations can be removed
+        // here (they're already on `MatrixRow` via `MathList`
+        // inheritance).
         attributes.functionSymbols = {
             createComponentOfType: "textList",
+            description: "Symbols treated as function names when parsing.",
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
         };
         attributes.parseScientificNotation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
         return attributes;
     }
@@ -69,6 +101,7 @@ export default class Row extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.halign = {
+            description: "Default horizontal alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -109,6 +142,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.valign = {
+            description: "Default vertical alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -148,6 +182,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.left = {
+            description: "Border style for the left edge of the row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -185,6 +220,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.bottom = {
+            description: "Border style for the bottom edge of the row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

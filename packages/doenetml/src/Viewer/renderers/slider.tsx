@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-// @ts-ignore
 import me from "math-expressions";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { MathJax } from "better-react-mathjax";
 import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
+import { renderLabelWithLatex } from "./utils/labelWithLatex";
 
 let round_to_decimals = (x: number, n: number) => {
     try {
@@ -171,9 +170,31 @@ function generateTextLabels(
     }
 }
 
+interface SliderSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    firstItem: any;
+    from: any;
+    index: number;
+    items: any;
+    lastItem: any;
+    numItems: number;
+    rotateTickLabels: boolean;
+    showControls: boolean;
+    showTicks: boolean;
+    showValue: boolean;
+    step: any;
+    type: string;
+    valueForDisplay: any;
+    width: any;
+}
+
 export default React.memo(function Slider(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, rendererName, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<SliderSVs>(props);
 
     // @ts-ignore
     Slider.baseStateVariable = "index";
@@ -205,9 +226,14 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         };
     }, []);
 
+    // Sync local index to Core index when not dragging.
+    // During drag (transient=true), keep optimistic local index.
+    // When drag ends (transient=false), snap to Core-constrained index.
     useEffect(() => {
-        setIndex(SVs.index);
-    }, [SVs.index]);
+        if (!transient) {
+            setIndex(SVs.index);
+        }
+    }, [SVs.index, transient]);
 
     const changeValue = React.useCallback((v: string, isTransient: boolean) => {
         const index = Number(v);
@@ -305,14 +331,10 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // Conditional label and showValue attributes
     let myLabel = null;
     if (SVs.label) {
-        let label = SVs.label;
-        if (SVs.labelHasLatex) {
-            label = (
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {label}
-                </MathJax>
-            );
-        }
+        const label = renderLabelWithLatex({
+            label: SVs.label,
+            labelHasLatex: SVs.labelHasLatex,
+        });
         if (SVs.showValue) {
             myLabel = (
                 <>

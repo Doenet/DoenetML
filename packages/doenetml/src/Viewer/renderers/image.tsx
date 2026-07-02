@@ -1,81 +1,132 @@
-// @ts-nocheck
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useContext, useMemo, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
+import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
+import { JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import {
+    attachAnchoredGraphDragHandlers,
+    detachAnchoredGraphElement,
+} from "./utils/useAnchoredGraphDragHandler";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    getMediaLicenseDisplay,
+    type MediaLicenseKind,
+    type CreativeCommonsVersion,
+} from "@doenet/utils";
+import { DocContext } from "../DocViewer";
 
-export default React.memo(function Image(props) {
+interface ImageSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    imageId: string | null;
+    source: string;
+    widthForGraph?: { size: number };
+    aspectRatio?: number;
+    rotate: number;
+    width: { size: string; isAbsolute: boolean };
+    displayMode: string;
+    horizontalAlign?: string;
+    decorative?: boolean;
+    shortDescription?: string;
+    renderInlineForListItem?: boolean;
+    authorName?: string | null;
+    authorUrl?: string | null;
+    imageName?: string | null;
+    originalUrl?: string | null;
+    licenseCodes?: string[] | null;
+    licenseVersion?: string;
+    licenseNames?: string[];
+    licenseUrls?: string[];
+}
+
+type JXGImage = JXGElement & {
+    X(): number;
+    Y(): number;
+    W(): number;
+    H(): number;
+    relativeCoords: {
+        usrCoords: [number, number, number];
+        setCoordinates: Function;
+    };
+    setSize(width: number, height: number): void;
+};
+
+type JXGTransform = JXGElement & {
+    bindTo(target: JXGElement): void;
+    setMatrix(board: any, type: string, params: any[]): void;
+};
+
+export default React.memo(function Image(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props, false);
-    let [url, setUrl] = useState(null);
+        useDoenetRenderer<ImageSVs>(props, false);
 
+    // @ts-ignore
     Image.ignoreActionsWithoutCore = () => true;
 
-    let imageJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
+    const { doenetMediaUrl } = useContext(DocContext) || {};
+
+    let imageJXG = useRef<JXGImage | null>(null);
+    let anchorPointJXG = useRef<JXGPoint | null>(null);
+    // The `url` used to create the current JSXGraph image, so a later change
+    // (e.g. `source`/`imageId` becomes a different value, or resolves to the
+    // empty "missing" URL) can be detected and the graph image rebuilt/removed.
+    let lastUrl = useRef<string>("");
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(null);
-    let pointAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    const pointerState = usePointerDragState();
+    let pointAtDown = useRef<number[] | null>(null);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
-    let currentSize = useRef(null);
+    let previousPositionFromAnchor = useRef<any>(null);
+    let currentSize = useRef<[number, number]>([0, 0]);
+    let currentOffset = useRef<[number, number]>([0, 0]);
 
-    let currentOffset = useRef(null);
+    let rotationTransform = useRef<JXGTransform | null>(null);
+    let lastRotate = useRef<number>(SVs.rotate);
 
-    let rotationTransform = useRef(null);
-    let lastRotate = useRef(SVs.rotate);
+    const { fixed, fixLocation, lastPositionFromCore } = useDraggableRefs<
+        number[] | null
+    >(SVs, null);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    useBoardPointerTracking(board, pointerState);
 
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    useJSXGraphCleanup({
+        objectRef: imageJXG,
+        destroy: () => detachAnchoredGraphElement(imageJXG, board),
+    });
 
-    const urlOrSource = (SVs.cid ? url : SVs.source) || "";
+    const url = useMemo(
+        () =>
+            getUrlForImage({
+                source: SVs.source,
+                imageId: SVs.imageId,
+                doenetMediaUrl,
+            }),
+        [SVs.source, SVs.imageId, doenetMediaUrl],
+    );
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
-
-    useEffect(() => {
-        if (SVs.cid) {
-            // TODO: need new approach for getting media
-        }
-    }, []);
-
-    useEffect(() => {
-        //On unmount
-        return () => {
-            // if line is defined
-            if (imageJXG.current !== null) {
-                deleteImageJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createImageJXG() {
         if (board === null) {
@@ -83,20 +134,20 @@ export default React.memo(function Image(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxImageAttributes = {
+        let jsxImageAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + IMAGE_LAYER_OFFSET,
             highlight: !fixLocation.current,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -110,12 +161,12 @@ export default React.memo(function Image(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxImageAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxImageAttributes.anchor = newAnchorPointJXG;
@@ -127,7 +178,7 @@ export default React.memo(function Image(props) {
             height = 0;
         }
 
-        let offset;
+        let offset: [number, number];
         if (SVs.positionFromAnchor === "center") {
             offset = [-width / 2, -height / 2];
         } else if (SVs.positionFromAnchor === "lowerleft") {
@@ -152,11 +203,9 @@ export default React.memo(function Image(props) {
 
         let newImageJXG = board.create(
             "image",
-            [urlOrSource, offset, [width, height]],
+            [url, offset, [width, height]],
             jsxImageAttributes,
-        );
-
-        newImageJXG.isDraggable = !fixLocation.current;
+        ) as JXGImage;
 
         // tranformation code copied from jsxgraph documentation:
         // https://jsxgraph.uni-bayreuth.de/wiki/index.php?title=Images#The_JavaScript_code_5
@@ -171,7 +220,7 @@ export default React.memo(function Image(props) {
                 },
             ],
             { type: "translate" },
-        );
+        ) as JXGTransform;
         var tOffInverse = board.create(
             "transform",
             [
@@ -183,8 +232,10 @@ export default React.memo(function Image(props) {
                 },
             ],
             { type: "translate" },
-        );
-        var tRot = board.create("transform", [SVs.rotate], { type: "rotate" });
+        ) as JXGTransform;
+        var tRot = board.create("transform", [SVs.rotate], {
+            type: "rotate",
+        }) as JXGTransform;
 
         tOff.bindTo(newImageJXG); // Shift image to origin
         tRot.bindTo(newImageJXG); // Rotate
@@ -193,180 +244,34 @@ export default React.memo(function Image(props) {
         rotationTransform.current = tRot;
         lastRotate.current = SVs.rotate;
 
-        newImageJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.imageFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newImageJXG.on("hit", function (e) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            callAction({
-                action: actions.imageFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newImageJXG.on("up", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveImage,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.imageClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newImageJXG.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveImage,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newImageJXG.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                dragged.current = true;
-            }
-
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let xminAdjusted =
-                xMin +
-                0.01 * (xMax - xMin) -
-                currentOffset.current[0] -
-                currentSize.current[0];
-            let xmaxAdjusted =
-                xMax - 0.01 * (xMax - xMin) - currentOffset.current[0];
-            let yminAdjusted =
-                yMin +
-                0.01 * (yMax - yMin) -
-                currentOffset.current[1] -
-                currentSize.current[1];
-            let ymaxAdjusted =
-                yMax - 0.01 * (yMax - yMin) - currentOffset.current[1];
-
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is that attributes .X() and .Y() are affected by the
-                // .setCoordinates function called in update().
-                // Due to this dependence, the location of .X() and .Y()
-                // can be affected by constraints of objects that the points depends on,
-                // leading to a different location on up than on drag
-                // (as dragging uses the mouse location)
-                // TODO: find an example where need this this additional complexity
-
-                var o = board.origin.scrCoords;
-
-                calculatedX.current =
-                    (pointAtDown.current[1] +
-                        e.x -
-                        pointerAtDown.current[0] -
-                        o[1]) /
-                    board.unitX;
-
-                calculatedY.current =
-                    (o[2] -
-                        (pointAtDown.current[2] +
-                            e.y -
-                            pointerAtDown.current[1])) /
-                    board.unitY;
-            } else {
-                calculatedX.current =
-                    newAnchorPointJXG.X() +
-                    newImageJXG.relativeCoords.usrCoords[1] -
-                    currentOffset.current[0];
-                calculatedY.current =
-                    newAnchorPointJXG.Y() +
-                    newImageJXG.relativeCoords.usrCoords[2] -
-                    currentOffset.current[1];
-            }
-
-            calculatedX.current = Math.min(
-                xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
-            );
-            calculatedY.current = Math.min(
-                ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
-            );
-
-            callAction({
-                action: actions.moveImage,
-                args: {
-                    x: calculatedX.current,
-                    y: calculatedY.current,
-                    transient: true,
-                    skippable: true,
-                },
-            });
-
-            newImageJXG.relativeCoords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                currentOffset.current,
-            );
-            newAnchorPointJXG.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionFromCore.current,
-            );
-        });
-
-        newImageJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveImage,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.imageClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
+        attachAnchoredGraphDragHandlers({
+            board,
+            newJXG: newImageJXG,
+            newAnchorPoint: newAnchorPointJXG,
+            pointerState,
+            pointAtDown,
+            calculatedX,
+            calculatedY,
+            fixed,
+            fixLocation,
+            lastPositionFromCore,
+            componentIdx,
+            actions,
+            callAction,
+            actionNames: {
+                move: "moveImage",
+                focused: "imageFocused",
+                clicked: "imageClicked",
+            },
+            imageMode: {
+                getCurrentSize: () => currentSize.current,
+                getCurrentOffset: () => currentOffset.current,
+            },
         });
 
         imageJXG.current = newImageJXG;
         anchorPointJXG.current = newAnchorPointJXG;
+        lastUrl.current = url;
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
         currentSize.current = [width, height];
 
@@ -374,38 +279,13 @@ export default React.memo(function Image(props) {
         imageJXG.current.fullUpdate();
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
-    function deleteImageJXG() {
-        imageJXG.current.off("drag");
-        imageJXG.current.off("down");
-        imageJXG.current.off("hit");
-        imageJXG.current.off("up");
-        imageJXG.current.off("keyfocusout");
-        imageJXG.current.off("keydown");
-        board?.removeObject(imageJXG.current);
-        imageJXG.current = null;
-    }
-
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -414,12 +294,29 @@ export default React.memo(function Image(props) {
         lastPositionFromCore.current = anchorCoords;
 
         if (imageJXG.current === null) {
-            if (SVs.cid && !url) {
-                return null;
+            // Don't create the JSXGraph image until we have a non-empty URL.
+            // An empty `url` (e.g. an unsupported `doenet:` source mapped to
+            // "missing") would otherwise be handed to JSXGraph, which can
+            // request the current document like `<img src="">`.
+            if (url) {
+                createImageJXG();
             }
-            createImageJXG();
+        } else if (url !== lastUrl.current) {
+            // The resolved URL changed after the image was created. Remove the
+            // stale image (and its anchor point) and rebuild from the new URL,
+            // or leave it removed when the URL is now empty/unsupported so the
+            // graph doesn't keep showing an image that should be suppressed.
+            detachAnchoredGraphElement(imageJXG, board);
+            if (anchorPointJXG.current) {
+                board.removeObject(anchorPointJXG.current);
+                anchorPointJXG.current = null;
+            }
+            lastUrl.current = url;
+            if (url) {
+                createImageJXG();
+            }
         } else {
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -477,7 +374,7 @@ export default React.memo(function Image(props) {
             }
 
             if (SVs.rotate != lastRotate.current) {
-                rotationTransform.current.setMatrix(board, "rotate", [
+                rotationTransform.current?.setMatrix(board, "rotate", [
                     SVs.rotate,
                 ]);
                 lastRotate.current = SVs.rotate;
@@ -487,7 +384,7 @@ export default React.memo(function Image(props) {
                 SVs.positionFromAnchor !== previousPositionFromAnchor.current ||
                 sizeChanged
             ) {
-                let offset;
+                let offset: [number, number];
                 if (SVs.positionFromAnchor === "center") {
                     offset = [-width / 2, -height / 2];
                 } else if (SVs.positionFromAnchor === "lowerleft") {
@@ -525,8 +422,10 @@ export default React.memo(function Image(props) {
                 imageJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
@@ -537,10 +436,10 @@ export default React.memo(function Image(props) {
 
     if (SVs.hidden) return null;
 
-    let outerStyle = {};
-    let innerStyle = {};
-    let mediaContainerStyle = {};
-    let mediaColumnStyle = {};
+    let outerStyle: React.CSSProperties = {};
+    let innerStyle: React.CSSProperties = {};
+    let mediaContainerStyle: React.CSSProperties = {};
+    let mediaColumnStyle: React.CSSProperties = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -560,16 +459,16 @@ export default React.memo(function Image(props) {
             }));
     }
 
-    let imageStyle = {
+    let imageStyle: React.CSSProperties = {
         maxWidth: "100%",
         width: sizeToCSS(SVs.width),
     };
 
-    if (SVs.aspectRatio > 0) {
+    if ((SVs.aspectRatio ?? 0) > 0) {
         imageStyle.aspectRatio = String(SVs.aspectRatio);
     }
 
-    if (!urlOrSource) {
+    if (!url) {
         imageStyle.border = "var(--mainBorder)";
     }
 
@@ -583,65 +482,304 @@ export default React.memo(function Image(props) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
+    // The author/license attribution is shown at the bottom of the
+    // description content. Building it as a sibling of `descriptionChild`
+    // inside the description-content `<div>` (which this renderer owns) lets
+    // us append it without injecting a component into the `<description>` on
+    // the worker side. When there is no authored `<description>`, the
+    // attribution alone still produces the same description UI (info
+    // button/popover when inline, `<details>` otherwise).
+    const attribution = renderImageAttribution({
+        idPrefix: id,
+        imageName: SVs.imageName,
+        authorName: SVs.authorName,
+        authorUrl: SVs.authorUrl,
+        originalUrl: SVs.originalUrl,
+        licenseCodes: SVs.licenseCodes,
+        licenseVersion: SVs.licenseVersion,
+        licenseNames: SVs.licenseNames,
+        licenseUrls: SVs.licenseUrls,
+    });
+
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;
 
-    if (descriptionChild) {
+    if (descriptionChild || attribution) {
         descriptionId = `${id}-description-content`;
+        const descriptionContent = (
+            <div id={descriptionId}>
+                {descriptionChild}
+                {attribution}
+            </div>
+        );
         description =
             SVs.displayMode === "inline" ? (
-                <DescriptionPopover>
-                    <div id={descriptionId}>{descriptionChild}</div>
-                </DescriptionPopover>
+                <DescriptionPopover>{descriptionContent}</DescriptionPopover>
             ) : (
                 <DescriptionAsDetails>
-                    <div id={descriptionId}>{descriptionChild}</div>
+                    {descriptionContent}
                 </DescriptionAsDetails>
             );
     }
 
-    return (
-        <div style={outerStyle} ref={ref} id={`${id}-container`}>
-            <div style={innerStyle}>
-                {SVs.displayMode === "inline" ? (
-                    urlOrSource ? (
-                        <img
-                            id={id}
-                            src={urlOrSource}
-                            style={imageStyle}
-                            alt={shortDescription}
-                            aria-details={descriptionId}
-                        />
-                    ) : (
-                        <div id={id} style={imageStyle}>
-                            {SVs.shortDescription}
-                        </div>
-                    )
-                ) : (
-                    <div style={mediaContainerStyle}>
-                        {urlOrSource ? (
-                            <img
-                                id={id}
-                                src={urlOrSource}
-                                style={imageStyle}
-                                alt={shortDescription}
-                                aria-details={descriptionId}
-                            />
-                        ) : (
-                            <div id={id} style={imageStyle}>
-                                {SVs.shortDescription}
-                            </div>
-                        )}
-                    </div>
-                )}
-                {SVs.displayMode === "inline" || !description ? (
-                    description
-                ) : (
-                    <div style={mediaContainerStyle}>
-                        <div style={mediaColumnStyle}>{description}</div>
-                    </div>
-                )}
-            </div>
+    const media = url ? (
+        <img
+            id={id}
+            src={url}
+            style={imageStyle}
+            alt={shortDescription}
+            aria-details={descriptionId}
+        />
+    ) : (
+        <div id={id} style={imageStyle}>
+            {SVs.shortDescription}
         </div>
     );
+
+    return (
+        <NonInlineMediaWrapper
+            id={id}
+            displayMode={SVs.displayMode}
+            suppressTopMargin={Boolean(SVs.renderInlineForListItem)}
+            layoutStyles={{
+                outerStyle,
+                innerStyle,
+                mediaContainerStyle,
+                mediaColumnStyle,
+            }}
+            media={media}
+            description={description}
+            containerRef={ref}
+        />
+    );
 });
+
+/** A license resolved into the pieces the attribution sentence needs. */
+type AttributionLicense = {
+    /** Phrasing kind; `"generic"` covers the preliminary `licenseName` fallback. */
+    kind: MediaLicenseKind | "generic";
+    /** Display label (the linked text), including the CC version where relevant. */
+    label: string;
+    /** License URL, or `null` when none is known. */
+    url: string | null;
+};
+
+/**
+ * Whether `url` is safe to place in an `href`. Authors supply the attribution
+ * URLs (`originalUrl`, `authorUrl`, and the fallback `licenseUrl`), so guard
+ * against script-bearing schemes (`javascript:`, `data:`, `vbscript:`, …) that
+ * could run on click. Whitespace and ASCII control characters are stripped
+ * first so obfuscated schemes (e.g. `java\tscript:`) cannot slip through. A URL
+ * with no scheme (relative or protocol-relative) is treated as safe.
+ */
+function isSafeHref(url: string): boolean {
+    const stripped = url.replace(/[\u0000-\u001f\u007f\s]/g, "").toLowerCase();
+    const schemeMatch = stripped.match(/^([a-z][a-z0-9+.-]*):/);
+    if (!schemeMatch) {
+        return true;
+    }
+    const scheme = schemeMatch[1];
+    return scheme === "http" || scheme === "https" || scheme === "mailto";
+}
+
+/**
+ * Render `text` as an external link when `url` is given and safe, otherwise as
+ * a plain `<span>`. Shared by the attribution's subject, author, and license
+ * nodes so the link-or-span branching lives in one place. `key` is for use in
+ * lists.
+ */
+function maybeLink(
+    text: React.ReactNode,
+    url: string | null | undefined,
+    key?: number,
+): React.ReactNode {
+    return url && isSafeHref(url) ? (
+        <a key={key} href={url} target="_blank" rel="noopener noreferrer">
+            {text}
+        </a>
+    ) : (
+        <span key={key}>{text}</span>
+    );
+}
+
+/**
+ * Render the author/license attribution shown at the bottom of the image's
+ * description content (so it appears in the same info popover/`<details>` UI as
+ * an authored `<description>`), or `null` when there is nothing to attribute.
+ *
+ * The text follows Creative Commons' recommended practice of a single
+ * self-describing credit sentence (rather than a `label: value` line or a
+ * separate heading). Following the TASL convention (Title, Author, Source,
+ * License), the subject is the quoted `imageName` when supplied, otherwise the
+ * generic word "Image"; it links to the source (`originalUrl`), and the author
+ * name links to `authorUrl` (e.g. the author's profile). The two links are
+ * independent — each name carries its own URL — so there is no contention when
+ * both are supplied. The license clause is phrased by kind so each reads
+ * naturally:
+ *   - Creative Commons: "is licensed under a <name> <version> license"
+ *   - other licenses (MIT, Apache, GFDL, …): "is licensed under the <name>"
+ *     (their names already contain the word "License"/"Licence")
+ *   - public domain (CC0, PDM): "is in the public domain (<name>)"
+ * Dual licensing (two codes) joins the licenses with "or" since the reuser may
+ * choose either. License info is resolved from `licenseCodes` + `licenseVersion`
+ * via `@doenet/utils`; when no codes are given, the `licenseNames`/`licenseUrls`
+ * fallback is shown with generic phrasing.
+ */
+function renderImageAttribution({
+    idPrefix,
+    imageName,
+    authorName,
+    authorUrl,
+    originalUrl,
+    licenseCodes,
+    licenseVersion,
+    licenseNames,
+    licenseUrls,
+}: {
+    idPrefix: string;
+    imageName?: string | null;
+    authorName?: string | null;
+    authorUrl?: string | null;
+    originalUrl?: string | null;
+    licenseCodes?: string[] | null;
+    licenseVersion?: string;
+    licenseNames?: string[];
+    licenseUrls?: string[];
+}): React.ReactNode | null {
+    // Resolve each license into kind/label/url. Codes take precedence and carry
+    // full phrasing info; otherwise fall back to the preliminary name/url pair
+    // (rendered with generic phrasing since its kind is unknown).
+    let licenses: AttributionLicense[];
+    if (licenseCodes && licenseCodes.length > 0) {
+        licenses = [];
+        for (const code of licenseCodes) {
+            const display = getMediaLicenseDisplay(
+                code,
+                licenseVersion as CreativeCommonsVersion | undefined,
+            );
+            // Unknown codes are already dropped by the worker; guard anyway.
+            if (display) {
+                licenses.push({
+                    kind: display.kind,
+                    label: display.label,
+                    url: display.url,
+                });
+            }
+        }
+    } else {
+        const names = licenseNames ?? [];
+        const urls = licenseUrls ?? [];
+        licenses = names.map((name, i) => ({
+            kind: "generic" as const,
+            label: name,
+            url: urls[i] ?? null,
+        }));
+    }
+
+    const hasAuthor = Boolean(authorName);
+    const hasLicense = licenses.length > 0;
+
+    if (!hasAuthor && !hasLicense) {
+        return null;
+    }
+
+    // The subject of the sentence is the work itself: a quoted `imageName` when
+    // supplied (TASL "Title"), otherwise the generic word "Image". It carries
+    // the source link (`originalUrl`) since the title is where the work is
+    // found.
+    const subjectText = imageName ? `\u201C${imageName}\u201D` : "Image";
+    const subjectNode = maybeLink(subjectText, originalUrl);
+
+    const subjectAndAuthor = hasAuthor ? (
+        <>
+            {subjectNode} by {maybeLink(authorName, authorUrl)}
+        </>
+    ) : (
+        subjectNode
+    );
+
+    // Join an array of nodes with " or " (the dual-license connector).
+    function joinWithOr(nodes: React.ReactNode[]) {
+        return nodes.map((node, i) =>
+            i === 0 ? (
+                <React.Fragment key={i}>{node}</React.Fragment>
+            ) : (
+                <React.Fragment key={i}> or {node}</React.Fragment>
+            ),
+        );
+    }
+
+    let sentence: React.ReactNode;
+    if (!hasLicense) {
+        // Author only.
+        sentence = <>{subjectAndAuthor}.</>;
+    } else if (licenses.every((l) => l.kind === "public-domain")) {
+        // Public-domain works are dedicated/marked, not "licensed under".
+        const links = joinWithOr(
+            licenses.map((l, i) => maybeLink(l.label, l.url, i)),
+        );
+        sentence = (
+            <>
+                {subjectAndAuthor} is in the public domain ({links}).
+            </>
+        );
+    } else {
+        // Licensed works. Each license becomes a clause phrased by kind, joined
+        // with "or" for dual licensing. (A public-domain entry mixed into a
+        // license list — not a realistic combination — falls through to the
+        // "the <name>" form.)
+        const clauses = licenses.map((l, i) => {
+            const link = maybeLink(l.label, l.url, i);
+            if (l.kind === "creative-commons") {
+                return <>a {link} license</>;
+            } else if (l.kind === "generic") {
+                return <>{link}</>;
+            } else {
+                return <>the {link}</>;
+            }
+        });
+        sentence = (
+            <>
+                {subjectAndAuthor} is licensed under {joinWithOr(clauses)}.
+            </>
+        );
+    }
+
+    return (
+        <p id={`${idPrefix}-attribution`} className="image-attribution">
+            {sentence}
+        </p>
+    );
+}
+
+/**
+ * Resolve the URL to use for an image.
+ *
+ * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
+ * `imageId` holds the `<id>` and the URL is built from `doenetMediaUrl` and that
+ * id (avoiding a doubled slash when `doenetMediaUrl` already ends with `/`).
+ *
+ * A `doenet:` source that did not yield an `imageId` is an unsupported media
+ * reference (e.g. a legacy `doenet:cid=<hash>` form); rather than passing the
+ * `doenet:` URI through to `<img src>` (which would request an unknown scheme
+ * and show a broken-image icon), treat it as missing so the placeholder UI is
+ * used. Any other source is an ordinary URL/path and is returned unchanged.
+ */
+function getUrlForImage({
+    source,
+    imageId,
+    doenetMediaUrl = "https://doenet.org/api/media",
+}: {
+    source: string;
+    imageId: string | null;
+    doenetMediaUrl?: string;
+}) {
+    if (imageId) {
+        const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
+        return doenetMediaUrl + separator + imageId;
+    } else if (/^\s*doenet:/i.test(source)) {
+        return "";
+    } else {
+        return source;
+    }
+}

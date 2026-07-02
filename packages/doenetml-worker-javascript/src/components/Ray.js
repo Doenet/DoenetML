@@ -2,10 +2,11 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -18,11 +19,16 @@ export default class Ray extends GraphicalComponent {
         });
     }
     static componentType = "ray";
+    static styleOverrideCategories = ["line"];
 
+    static componentDocs = {
+        summary: "A ray starting at one point passing through another",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the ray can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -32,15 +38,21 @@ export default class Ray extends GraphicalComponent {
 
         attributes.endpoint = {
             createComponentOfType: "point",
+            description: "The starting point (endpoint) of the ray.",
         };
         attributes.through = {
             createComponentOfType: "point",
+            description:
+                "A point the ray passes through (used with endpoint or direction).",
         };
         attributes.direction = {
             createComponentOfType: "vector",
+            description: "The direction the ray points in.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
+
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -50,10 +62,11 @@ export default class Ray extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the ray's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -100,6 +113,7 @@ export default class Ray extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "ray".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -229,7 +243,7 @@ export default class Ray extends GraphicalComponent {
                     dependencyValues.endpointAttr !== null &&
                     dependencyValues.directionAttr !== null
                 ) {
-                    let warnings = [];
+                    let diagnostics = [];
                     if (dependencyValues.throughAttr !== null) {
                         // if overprescribed by specifying through, endpoint, and direction
                         // we ignore through
@@ -242,12 +256,12 @@ export default class Ray extends GraphicalComponent {
                             warning.position =
                                 dependencyValues.throughAttr.position;
                         }
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                     }
                     return {
                         setValue: { basedOnThrough: false },
                         checkForActualChange: { basedOnThrough: true },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -611,6 +625,7 @@ export default class Ray extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the ray lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -655,11 +670,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnThrough) {
@@ -669,11 +684,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -686,11 +701,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -720,11 +735,12 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.direction = {
             public: true,
+            description: "The direction vector of the ray.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "directionX") {
                         return [];
@@ -979,11 +995,12 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.through = {
             public: true,
+            description: "A point the ray passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "throughX") {
                         return [];
@@ -1004,6 +1021,7 @@ export default class Ray extends GraphicalComponent {
             },
             isArray: true,
             entryPrefixes: ["throughX"],
+            indexAliases: [["x", "y", "z"]],
             set: convertValueToMathExpression,
             stateVariablesDeterminingDependencies: ["basedOnThrough"],
             returnArraySizeDependencies: () => ({
@@ -1200,11 +1218,12 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.endpoint = {
             public: true,
+            description: "The starting endpoint of the ray.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "endpointX") {
                         return [];
@@ -1225,6 +1244,7 @@ export default class Ray extends GraphicalComponent {
             },
             isArray: true,
             entryPrefixes: ["endpointX"],
+            indexAliases: [["x", "y", "z"]],
             hasEssential: true,
             defaultValueByArrayKey: () => me.fromAst(0),
             essentialVarName: "endpoint2", // since endpointShadow uses "endpoint"
@@ -1660,7 +1680,7 @@ export default class Ray extends GraphicalComponent {
             stateVariable: "directionCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

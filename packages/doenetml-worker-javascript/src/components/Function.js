@@ -12,10 +12,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import {
     returnLabelAttributes,
     returnWrapNonLabelsDescriptionsSugarFunction,
@@ -33,7 +34,17 @@ import {
 
 export default class Function extends InlineComponent {
     static componentType = "function";
+
+    static componentDocs = {
+        summary: "A mathematical function, defined by formula or interpolation",
+    };
     static rendererType = "math";
+
+    // Opt into line style overrides (lineStyle, lineWidth) so that they are
+    // forwarded to the curve when this function is adapted into one inside a
+    // <graph>. Fill overrides are intentionally excluded: functions have no
+    // enclosed interior.
+    static styleOverrideCategories = ["line"];
 
     static primaryStateVariableForDefinition = "numericalfShadow";
 
@@ -51,26 +62,49 @@ export default class Function extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the function's formula.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
+            description:
+                "Level of simplification applied to the function's formula.",
         };
         attributes.expand = {
+            description: "Whether to expand the function's formula.",
             createComponentOfType: "boolean",
             createStateVariable: "expandSpecified",
             defaultValue: false,
             public: true,
         };
         attributes.xscale = {
+            description: "Scale factor used along the x-axis.",
             createComponentOfType: "number",
             createStateVariable: "xscale",
             defaultValue: 1,
             public: true,
         };
         attributes.yscale = {
+            description: "Scale factor used along the y-axis.",
             createComponentOfType: "number",
             createStateVariable: "yscale",
             defaultValue: 1,
@@ -78,12 +112,16 @@ export default class Function extends InlineComponent {
         };
         attributes.numInputs = {
             createComponentOfType: "integer",
+            description: "Number of input arguments the function accepts.",
         };
         attributes.numOutputs = {
             createComponentOfType: "integer",
+            description: "Number of output values the function produces.",
         };
         attributes.domain = {
             createComponentOfType: "intervalList",
+            description:
+                "Restriction of the function's domain to a list of intervals.",
         };
 
         // include attributes of graphical components
@@ -92,6 +130,7 @@ export default class Function extends InlineComponent {
         Object.assign(attributes, returnLabelAttributes());
 
         attributes.applyStyleToLabel = {
+            description: "Whether to apply the function's style to its label.",
             createComponentOfType: "boolean",
             createStateVariable: "applyStyleToLabel",
             defaultValue: false,
@@ -100,25 +139,60 @@ export default class Function extends InlineComponent {
         };
 
         attributes.labelPosition = {
+            description: "Position of the function's label.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "upperright",
+            defaultValue: "upperRight",
             public: true,
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
-                "top",
-                "bottom",
-                "left",
-                "right",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the label above and to the right of the function curve.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the label above and to the left of the function curve.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the label below and to the right of the function curve.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the label below and to the left of the function curve.",
+                },
+                {
+                    value: "top",
+                    description:
+                        "Place the label directly above the function curve.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the label directly below the function curve.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the label directly to the left of the function curve.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the label directly to the right of the function curve.",
+                },
             ],
         };
 
         attributes.layer = {
+            description:
+                "Z-order layer index for stacking the function on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -128,36 +202,56 @@ export default class Function extends InlineComponent {
 
         attributes.minima = {
             createComponentOfType: "extrema",
+            description: "Local minima of an interpolated function.",
         };
         attributes.maxima = {
             createComponentOfType: "extrema",
+            description: "Local maxima of an interpolated function.",
         };
         attributes.extrema = {
             createComponentOfType: "extrema",
+            description:
+                "Local extrema (combined minima and maxima) of an interpolated function.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description:
+                "Points the interpolated function should pass through.",
         };
         attributes.throughSlopes = {
             createComponentOfType: "mathList",
+            description:
+                "Slopes the interpolated function should have at each through-point.",
         };
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the function's input variables.",
         };
         attributes.variable = {
             createComponentOfType: "_variableName",
+            description: "Name of the function's single input variable.",
         };
         attributes.symbolic = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the function should be evaluated symbolically rather than numerically.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.nearestPointAsCurve = {
             createComponentOfType: "boolean",
             createStateVariable: "nearestPointAsCurve",
             defaultValue: false,
+            description:
+                "Whether nearest-point queries should treat the function as a curve in the plane rather than a graph y = f(x).",
         };
+
+        // Per-component line style overrides (lineStyle, lineWidth). These
+        // attributes mirror those on <curve> so that a bare <function> inside a
+        // <graph> behaves identically to <curve lineStyle="..." lineWidth="...">
+        // wrapping it.
+        GraphicalComponent.addStyleOverrideAttributes.call(this, attributes);
 
         return attributes;
     }
@@ -192,14 +286,18 @@ export default class Function extends InlineComponent {
     }
 
     static returnStateVariableDefinitions(numerics) {
+        // Must use `.call(this)` so that `resolveOverrideGroups` inside
+        // GraphicalComponent reads *this* class's `styleOverrideCategories`
+        // (["line"]) rather than GraphicalComponent's empty default.
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions();
+            GraphicalComponent.returnStateVariableDefinitions.call(this);
 
         let styleDescriptionDefinitions =
             returnTextStyleDescriptionDefinitions();
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the function's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -246,6 +344,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "function".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -264,7 +363,7 @@ export default class Function extends InlineComponent {
             },
         };
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["functions"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
@@ -303,6 +402,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numInputs = {
+            description: "Number of input variables of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -364,6 +464,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numOutputs = {
+            description: "Number of output values of the function.",
             defaultValue: 1,
             hasEssential: true,
             public: true,
@@ -422,6 +523,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.domain = {
+            description: "Domain interval(s) of the function.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -457,6 +559,11 @@ export default class Function extends InlineComponent {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
+                    // Function domains are stored as one interval per input
+                    // variable. For example, f(x,y) with
+                    // domain="(-1,2) (0,3)" becomes [(-1,2), (0,3)].
+                    // Multiple entries here represent different input
+                    // dimensions, not multiple pieces of a 1D domain.
                     let specifiedDomain =
                         globalDependencyValues.domainAttr.stateValues.intervals.slice(
                             0,
@@ -485,13 +592,16 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
 
                     if (
                         !specifiedDomain.every(
                             (interval) =>
+                                // At present, each input dimension must be a
+                                // single interval tree. Compound 1D domains
+                                // such as unions are not accepted here.
                                 Array.isArray(interval.tree) &&
                                 interval.tree[0] === "interval",
                         )
@@ -512,7 +622,7 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
 
@@ -539,6 +649,8 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.simplify = {
+            description:
+                "Level of simplification applied when displaying the formula.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -611,6 +723,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.expand = {
+            description: "Whether to expand the formula.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -700,6 +813,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.symbolic = {
+            description: "Whether the function is treated symbolically.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -753,6 +867,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description: "The names of the function's input variables.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -870,6 +985,7 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.variable = {
             isAlias: true,
             targetVariableName: "variable1",
+            description: "The function's first input variable name.",
         };
 
         stateVariableDefinitions.mathChildName = {
@@ -1076,11 +1192,12 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.formula = {
+            description: "The symbolic formula of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             defaultValue: me.fromAst(0),
             hasEssential: true,
@@ -1794,6 +1911,7 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.symbolicf = {
             isAlias: true,
             targetVariableName: "symbolicf1",
+            description: "The function's first symbolic output function.",
         };
 
         stateVariableDefinitions.numericalfs = {
@@ -2651,6 +2769,8 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.fDefinition = {
             isAlias: true,
             targetVariableName: "fDefinition1",
+            description:
+                "Renderer-side definition of the function's first output function.",
         };
 
         stateVariableDefinitions.fs = {
@@ -2714,9 +2834,11 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description: "The function's first output function.",
         };
 
         stateVariableDefinitions.latex = {
+            description: "The function rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -2748,6 +2870,10 @@ export default class Function extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (
@@ -2764,15 +2890,13 @@ export default class Function extends InlineComponent {
                         },
                     };
                 }
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.formula,
                     dependencyValues,
@@ -2782,6 +2906,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The function rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -2812,6 +2937,10 @@ export default class Function extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (
@@ -2828,15 +2957,13 @@ export default class Function extends InlineComponent {
                         },
                     };
                 }
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let text = roundForDisplay({
                     value: dependencyValues.formula,
                     dependencyValues,
@@ -2980,6 +3107,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numMinima = {
+            description: "Number of local minima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -2999,12 +3127,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.minima = {
+            description: "Local minima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "minimum" || prefix === undefined) {
                         // minimum or entire array
@@ -3035,6 +3164,17 @@ export default class Function extends InlineComponent {
                 "minimumValues",
                 "minimumValue",
             ],
+            schemaSubarrays: {
+                minimumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local minima.",
+                },
+                minimumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local minima.",
+                },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["minimumLocation", "minimumValue"].includes(prefix)) {
                     return 0;
@@ -3193,12 +3333,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalMinimum = {
+            description: "The global minimum of the function (if attained).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3284,12 +3425,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalInfimum = {
+            description: "The global infimum of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3476,6 +3618,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numMaxima = {
+            description: "Number of local maxima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3495,12 +3638,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.maxima = {
+            description: "Local maxima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "maximum" || prefix === undefined) {
                         // maximum or entire array
@@ -3531,6 +3675,17 @@ export default class Function extends InlineComponent {
                 "maximumValues",
                 "maximumValue",
             ],
+            schemaSubarrays: {
+                maximumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local maxima.",
+                },
+                maximumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local maxima.",
+                },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["maximumLocation", "maximumValue"].includes(prefix)) {
                     return 0;
@@ -3689,12 +3844,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalMaximum = {
+            description: "The global maximum of the function (if attained).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3780,12 +3936,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalSupremum = {
+            description: "The global supremum of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3871,6 +4028,8 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numExtrema = {
+            description:
+                "Number of local extrema (minima + maxima) of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3921,12 +4080,13 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.extrema = {
+            description: "Local extrema (minima + maxima) of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "extremum" || prefix === undefined) {
                         // extremum or entire array
@@ -3957,6 +4117,17 @@ export default class Function extends InlineComponent {
                 "extremumValues",
                 "extremumValue",
             ],
+            schemaSubarrays: {
+                extremumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local extrema.",
+                },
+                extremumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local extrema.",
+                },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["extremumLocation", "extremumValue"].includes(prefix)) {
                     return 0;
@@ -4387,13 +4558,15 @@ export default class Function extends InlineComponent {
         {
             stateVariable: "numericalfs",
             componentType: "curve",
-            stateVariablesToShadow: ["label", "labelHasLatex"],
+            // Shadow selectedStyle so the adapted curve inherits the
+            // function's per-component lineStyle/lineWidth overrides.
+            stateVariablesToShadow: ["label", "labelHasLatex", "selectedStyle"],
         },
         {
             stateVariable: "formula",
             componentType: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];
@@ -4402,7 +4575,7 @@ export default class Function extends InlineComponent {
 function calculateInterpolationPoints({ dependencyValues, numerics }) {
     let pointsWithX = [];
     let pointsWithoutX = [];
-    let warnings = [];
+    let diagnostics = [];
 
     let allPoints = {
         maximum: dependencyValues.prescribedMaxima,
@@ -4419,9 +4592,9 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.x !== null) {
                 x = point.x.evaluate_to_constant();
                 if (!Number.isFinite(x)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4429,9 +4602,9 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.y !== null) {
                 y = point.y.evaluate_to_constant();
                 if (!Number.isFinite(y)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4439,18 +4612,18 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.slope !== null && point.slope !== undefined) {
                 slope = point.slope.evaluate_to_constant();
                 if (!Number.isFinite(slope)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical slope of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     slope = null;
                 }
             }
             if (x === null) {
                 if (y === null) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring empty ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4479,13 +4652,13 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
     for (let ind = 0; ind < pointsWithX.length; ind++) {
         let p = pointsWithX[ind];
         if (p.x <= xPrev + eps) {
-            warnings.push({
+            diagnostics.push({
                 message: `Function contains two points with locations too close together. Can't define function.`,
-                level: 1,
+                type: "warning",
             });
             return {
                 setValue: { interpolationPoints: null },
-                sendWarnings: warnings,
+                sendDiagnostics: diagnostics,
             };
         }
         xPrev = p.x;
@@ -4781,7 +4954,7 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
         }
     }
 
-    return { setValue: { interpolationPoints }, sendWarnings: warnings };
+    return { setValue: { interpolationPoints }, sendDiagnostics: diagnostics };
 
     function monotonicSlope({ point, prevPoint, nextPoint }) {
         // monotonic cubic interpolation formula from

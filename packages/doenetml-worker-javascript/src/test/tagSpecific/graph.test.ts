@@ -7,13 +7,61 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
     updateValue,
+    movePolygonCenter,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+type GraphControlsClassificationTestItem =
+    | {
+          controlType: "triangle";
+          triangleNumber: number;
+      }
+    | {
+          controlType: "polygon";
+          polygonNumber: number;
+      }
+    | {
+          controlType: "rectangle";
+          addControls: string;
+      }
+    | {
+          controlType: "vector";
+          addControls: string;
+      };
+
+type GraphLimitsAndScales = {
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+    xScale: number;
+    yScale: number;
+};
+
+async function checkGraphLimitsAndScales(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    expected: GraphLimitsAndScales,
+    graphName = "g",
+) {
+    const stateVariables = await core.returnAllStateVariables(false, true);
+    const graph = stateVariables[await resolvePathToNodeIdx(graphName)];
+
+    expect({
+        xMin: graph.stateValues.xMin,
+        xMax: graph.stateValues.xMax,
+        yMin: graph.stateValues.yMin,
+        yMax: graph.stateValues.yMax,
+        xScale: graph.stateValues.xScale,
+        yScale: graph.stateValues.yScale,
+    }).eqls(expected);
+}
 
 describe("Graph tag tests @group2", async () => {
     it("functions adapted to curves in graph", async () => {
@@ -361,7 +409,12 @@ describe("Graph tag tests @group2", async () => {
     `,
         });
 
-        async function checkLimits(xmin, xmax, ymin, ymax) {
+        async function checkLimits(
+            xmin: number,
+            xmax: number,
+            ymin: number,
+            ymax: number,
+        ) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -406,6 +459,386 @@ describe("Graph tag tests @group2", async () => {
             core,
         });
         await checkLimits(-5, 10, -10, 0);
+    });
+
+    it("set xScale and yScale keeps midpoint, changes limits symmetrically", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        // defaults: xMin=-10, xMax=10 (midpoint 0, xScale 20); same for y
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xScale: 20,
+            yScale: 20,
+        });
+
+        // set xScale to 10: midpoint 0 preserved, limits become [-5, 5]
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -5,
+            xMax: 5,
+            yMin: -10,
+            yMax: 10,
+            xScale: 10,
+            yScale: 20,
+        });
+
+        // set yScale to 40: midpoint 0 preserved, limits become [-20, 20]
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -5,
+            xMax: 5,
+            yMin: -20,
+            yMax: 20,
+            xScale: 10,
+            yScale: 40,
+        });
+    });
+
+    it("set xScale and yScale keeps non-zero midpoint", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        // xMidpoint = 5, yMidpoint = 2
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xScale: 6,
+            yScale: 10,
+        });
+
+        // set xScale to 4: midpoint 5 preserved -> [3, 7]
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 3,
+            xMax: 7,
+            yMin: -3,
+            yMax: 7,
+            xScale: 4,
+            yScale: 10,
+        });
+
+        // set yScale to 20: midpoint 2 preserved -> [-8, 12]
+        await updateMathInputValue({
+            latex: "20",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 3,
+            xMax: 7,
+            yMin: -8,
+            yMax: 12,
+            xScale: 4,
+            yScale: 20,
+        });
+    });
+
+    it("set xScale and yScale with identicalAxisScales adjusts limits", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" identicalAxisScales />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xScale: 20,
+            yScale: 20,
+        });
+
+        // set xScale to 10: x midpoint 0 preserved -> [-5, 5]
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -5,
+            xMax: 5,
+            yMin: -10,
+            yMax: 10,
+            xScale: 10,
+            yScale: 20,
+        });
+
+        // set yScale to 8: y midpoint 0 preserved -> [-4, 4]
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -5,
+            xMax: 5,
+            yMin: -4,
+            yMax: 4,
+            xScale: 10,
+            yScale: 8,
+        });
+    });
+
+    it("set xScale and yScale respect fixAxes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" fixAxes />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xScale: 20,
+            yScale: 20,
+        });
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xScale: 20,
+            yScale: 20,
+        });
+
+        await updateMathInputValue({
+            latex: "30",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xScale: 20,
+            yScale: 20,
+        });
+    });
+
+    it("set xScale and yScale rejects non-finite values", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xScale: 6,
+            yScale: 10,
+        });
+
+        await updateMathInputValue({
+            latex: "\\infty",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xScale: 6,
+            yScale: 10,
+        });
+
+        await updateMathInputValue({
+            latex: "-\\infty",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(core, resolvePathToNodeIdx, {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xScale: 6,
+            yScale: 10,
+        });
+    });
+
+    it("set xScale and yScale rejects non-positive values", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+
+    <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
+    <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
+    `,
+        });
+
+        const initialValues = {
+            xMin: 2,
+            xMax: 8,
+            yMin: -3,
+            yMax: 7,
+            xScale: 6,
+            yScale: 10,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+
+        // zero scale is rejected (would make xMin === xMax)
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("xScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+
+        // negative scale is rejected (would make yMin > yMax)
+        await updateMathInputValue({
+            latex: "-4",
+            componentIdx: await resolvePathToNodeIdx("yScaleInput"),
+            core,
+        });
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+    });
+
+    it("set xScale and yScale through graph-parent limits", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xmin="1" xmax="7" ymin="-5" ymax="3">
+        <graph name="child" />
+    </graph>
+
+    <p>Change child xScale: <mathInput name="childXscaleInput" bindValueTo="$child.xScale" /></p>
+    <p>Change child yScale: <mathInput name="childYscaleInput" bindValueTo="$child.yScale" /></p>
+    `,
+        });
+
+        const initialValues = {
+            xMin: 1,
+            xMax: 7,
+            yMin: -5,
+            yMax: 3,
+            xScale: 6,
+            yScale: 8,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            initialValues,
+            "child",
+        );
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("childXscaleInput"),
+            core,
+        });
+        const afterXscale = {
+            xMin: -1,
+            xMax: 9,
+            yMin: -5,
+            yMax: 3,
+            xScale: 10,
+            yScale: 8,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterXscale,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterXscale,
+            "child",
+        );
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("childYscaleInput"),
+            core,
+        });
+        const afterYscale = {
+            xMin: -1,
+            xMax: 9,
+            yMin: -2,
+            yMax: 0,
+            xScale: 10,
+            yScale: 2,
+        };
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterYscale,
+        );
+        await checkGraphLimitsAndScales(
+            core,
+            resolvePathToNodeIdx,
+            afterYscale,
+            "child",
+        );
     });
 
     it("show grid", async () => {
@@ -534,6 +967,165 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
         ).eq("none");
+    });
+
+    it("graphicalDescendantsForControls is renderer-agnostic", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="gDefault" addControls>
+  <point>(3,4)</point>
+</graph>
+
+<graph name="gPrefigure" renderer="prefigure" addControls>
+  <point>(3,4)</point>
+</graph>
+
+<graph name="gFiltered" addControls>
+  <point addControls="none">(5,6)</point>
+  <point draggable="false">(7,8)</point>
+</graph>
+
+<graph name="gNone" addControls="none">
+  <point>(1,2)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const defaultControls =
+            stateVariables[await resolvePathToNodeIdx("gDefault")].stateValues
+                .graphicalDescendantsForControls;
+        const prefigureControls =
+            stateVariables[await resolvePathToNodeIdx("gPrefigure")].stateValues
+                .graphicalDescendantsForControls;
+        const filteredControls =
+            stateVariables[await resolvePathToNodeIdx("gFiltered")].stateValues
+                .graphicalDescendantsForControls;
+        const noneControls =
+            stateVariables[await resolvePathToNodeIdx("gNone")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(defaultControls).to.have.length(1);
+        expect(prefigureControls).to.have.length(1);
+
+        expect(defaultControls[0].x).eq(3);
+        expect(defaultControls[0].y).eq(4);
+        expect(defaultControls[0].controlType).eq("point");
+        expect(prefigureControls[0].x).eq(3);
+        expect(prefigureControls[0].y).eq(4);
+        expect(prefigureControls[0].controlType).eq("point");
+
+        expect(filteredControls).to.have.length(0);
+        expect(noneControls).to.have.length(0);
+    });
+
+    it("graphicalDescendantsForControls classifies shapes and normalizes modes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls>
+  <triangle vertices="(0,0) (3,0) (0,3)" addControls="center" />
+  <polygon vertices="(5,0) (6,0) (6,1)" addControls="center" />
+  <rectangle
+    vertices="(0,0) (4,2)"
+    addControls="centerwidthandheight"
+    draggable="false"
+    verticesDraggable="true"
+  />
+  <vector tail="(0,0)" addControls="headandtail" tailDraggable="false">(2,3)</vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: GraphControlsClassificationTestItem[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(controls).to.have.length(4);
+
+        const triangleControls = controls.filter(
+            (item) => item.controlType === "triangle",
+        );
+        const polygonControls = controls.filter(
+            (item) => item.controlType === "polygon",
+        );
+        const rectangleControls = controls.filter(
+            (item) => item.controlType === "rectangle",
+        );
+        const vectorControls = controls.filter(
+            (item) => item.controlType === "vector",
+        );
+
+        expect(triangleControls).to.have.length(1);
+        expect(triangleControls[0].triangleNumber).eq(1);
+
+        expect(polygonControls).to.have.length(1);
+        expect(polygonControls[0].polygonNumber).eq(1);
+
+        expect(rectangleControls).to.have.length(1);
+        expect(rectangleControls[0].addControls).eq("widthandheight");
+
+        expect(vectorControls).to.have.length(1);
+        expect(vectorControls[0].addControls).eq("headonly");
+    });
+
+    it("graphicalDescendantsForControls includes controlOrder with defaults and clamps", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls>
+  <point name="P2" labelIsName controlOrder="2">(1,1)</point>
+  <vector
+    name="V1"
+    labelIsName
+    tail="(0,0)"
+    displacement="(2,3)"
+    addControls="displacement"
+    controlOrder="1"
+  />
+  <point name="P0" labelIsName>(3,3)</point>
+  <point name="PNeg" labelIsName controlOrder="-5">(4,4)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: { controlOrder: number }[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(controls).to.have.length(4);
+        expect(controls.map((item) => item.controlOrder)).eqls([2, 1, 0, 0]);
+        expect(
+            controls.every((item) => Number.isInteger(item.controlOrder)),
+        ).eq(true);
+    });
+
+    it("graphicalDescendantsForControls includes avoidScientificNotation from descendants", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls="inputsOnly">
+  <point name="A" addControls="xOnly">(0.000000000007, 1)</point>
+  <point name="B" addControls="xOnly" avoidScientificNotation>(0.000000000007, 1)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: {
+            controlType: string;
+            avoidScientificNotation: boolean;
+        }[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        const pointControls = controls.filter(
+            (item) => item.controlType === "point",
+        );
+
+        expect(pointControls).to.have.length(2);
+        expect(pointControls[0].avoidScientificNotation).eq(false);
+        expect(pointControls[1].avoidScientificNotation).eq(true);
     });
 
     it("fixed grids", async () => {
@@ -893,6 +1485,185 @@ describe("Graph tag tests @group2", async () => {
         ).eq(true);
     });
 
+    it("display axis ticks defaults", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+    });
+
+    it("display ticks and tick fallback behavior", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1" displayXAxisTicks="$ticks1" displayYAxisTicks="$ticks1" />
+    <graph name="g2" displayXAxisTicks="$ticks2" displayYAxisTicks="$ticks2" displayXAxisTickLabels="$labels2" />
+    <booleanInput name="ticks1" prefill="true" />
+    <booleanInput name="ticks2" prefill="false" />
+    <booleanInput name="labels2" prefill="true" />
+    `,
+        });
+
+        // Test initial values for displayXAxisTicks and displayYAxisTicks
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+
+        // Test inheritance: when displayXAxisTickLabels is not specified, it inherits from displayXAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Test override: when displayXAxisTickLabels is explicitly set, it does not follow displayXAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels is not specified, so it inherits from displayYAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // Toggle ticks1 to false
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("ticks1"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // displayXAxisTickLabels and displayYAxisTickLabels should now follow displayXAxisTicks = false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // g2: displayXAxisTickLabels explicitly set to true should remain true even though displayXAxisTicks is false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels should follow displayYAxisTicks = false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // Toggle ticks2 to true - displayYAxisTickLabels should now inherit and become true
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("ticks2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+        // displayXAxisTickLabels still explicitly true
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels now inherits from displayYAxisTicks (true)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Toggle labels2 to false - displayXAxisTickLabels should now be false (explicit override applies)
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("labels2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        // displayYAxisTickLabels still true (inherits from displayYAxisTicks)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Toggle ticks2 back to false - displayYAxisTickLabels should now be false (inherited)
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("ticks2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+        // displayXAxisTickLabels still false (explicit)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        // displayYAxisTickLabels now false (inherited from displayYAxisTicks)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+    });
+
     it("graph sizes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -974,11 +1745,13 @@ describe("Graph tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .size,
-            ).eq(expectedSizes[name]);
+            ).eq(expectedSizes[name as keyof typeof expectedSizes]);
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .width.size,
-            ).eq(widthsBySize[expectedSizes[name]]);
+            ).eq(
+                widthsBySize[expectedSizes[name as keyof typeof expectedSizes]],
+            );
         }
     });
 
@@ -1379,47 +2152,29 @@ describe("Graph tag tests @group2", async () => {
         ).eq(true);
     });
 
-    it("warning if no short description specified and decorative is not set", async () => {
+    it("accessibility diagnostic if no short description specified and decorative is not set", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <graph name="graph1" />
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
-            `<graph> must either have a short description or be specified as decorative`,
+        expect(diagnosticsByType.accessibility[0].message).contain(
+            "`<graph>` must either have a short description or be specified as decorative",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(1);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(24);
-    });
-
-    it("upgrade warning to error if no short description specified and decorative is not set", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-<graph name="graph1" />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
-
-        expect(errorWarnings.errors[0].message).contain(
-            `<graph> must either have a short description or be specified as decorative`,
-        );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(24);
+        // Diagnostic range is narrowed to the opening tag (`<graph`) so the
+        // editor squiggle and hover only cover the tag name itself.
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(7);
     });
 
     it("with description", async () => {
@@ -1450,5 +2205,78 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("graph")]
                 .activeChildren[1].componentType,
         ).eq("description");
+    });
+
+    async function runConsecutiveRegularPolygonCenterMoves({
+        includeCenterParagraph,
+    }: {
+        includeCenterParagraph: boolean;
+    }) {
+        function evaluateCoordinatePair(
+            values: {
+                evaluate_to_constant: () => number;
+            }[],
+        ): [number, number] {
+            const [x, y] = values.map((value) => value.evaluate_to_constant());
+            return [x, y];
+        }
+
+        const centerParagraph = includeCenterParagraph
+            ? "\n    <p>Center: $rg.center</p>"
+            : "";
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" addControls>
+      <regularPolygon name="rg" vertices="(4,5) (-3,2)" numSides="3" />
+    </graph>
+    <p>Vertices: $rg.vertices</p>${centerParagraph}
+    `,
+        });
+
+        const rgIdx = await resolvePathToNodeIdx("rg");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let rgStateVars = stateVariables[rgIdx].stateValues;
+
+        // Read initial values once, then perform back-to-back actions.
+        let initialCenter = evaluateCoordinatePair(rgStateVars.center);
+        let initialCircumradius = rgStateVars.circumradius;
+
+        // Move center to (-1, initialCenter[1])
+        await movePolygonCenter({
+            componentIdx: rgIdx,
+            center: [-1, initialCenter[1]],
+            core,
+        });
+
+        // Now move center to (-2, initialCenter[1]) -- this is where the bug appeared
+        await movePolygonCenter({
+            componentIdx: rgIdx,
+            center: [-2, initialCenter[1]],
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        rgStateVars = stateVariables[rgIdx].stateValues;
+
+        let center2 = evaluateCoordinatePair(rgStateVars.center);
+        let circumradius2 = rgStateVars.circumradius;
+
+        expect(center2[0]).toBeCloseTo(-2, 5);
+        expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
+        expect(circumradius2).toBeCloseTo(initialCircumradius, 5);
+    }
+
+    it("regularPolygon center control with consecutive moves and no intermediate state read (with $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: true,
+        });
+    });
+
+    it("regularPolygon center control with consecutive moves and no intermediate state read (without $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: false,
+        });
     });
 });

@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Group extends CompositeComponent {
     static componentType = "group";
 
+    static componentDocs = {
+        summary: "A logical grouping of components",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static treatAsComponentForRecursiveReplacements = true;
@@ -37,6 +40,7 @@ export default class Group extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.rendered = {
+            description: "Whether the group's children are rendered.",
             createComponentOfType: "boolean",
             createStateVariable: "rendered",
             defaultValue: this.renderedDefault,
@@ -44,6 +48,8 @@ export default class Group extends CompositeComponent {
         };
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this group's children should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -51,15 +57,21 @@ export default class Group extends CompositeComponent {
         };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
+            description:
+                "Component type to wrap each child as when expanding the group.",
         };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
+            description:
+                "Number of components to create when expanding (used with createComponentOfType).",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: false,
+            description:
+                "Whether to render the group's children separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -223,14 +235,13 @@ export default class Group extends CompositeComponent {
         workspace,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
         await component.stateValues.numComponentsSpecified;
 
         if (!(await component.stateValues.rendered)) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         } else {
             let replacements = deepClone(
                 await component.state.serializedChildren.value,
@@ -296,8 +307,7 @@ export default class Group extends CompositeComponent {
                 },
             );
             nComponents = verificationResult.nComponents;
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
+            diagnostics.push(...verificationResult.diagnostics);
 
             // console.log(`serialized replacements for ${component.componentIdx}`)
             // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
@@ -306,8 +316,7 @@ export default class Group extends CompositeComponent {
 
             return {
                 replacements: verificationResult.replacements,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -319,9 +328,7 @@ export default class Group extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (!(await component.stateValues.rendered)) {
             if (
@@ -333,9 +340,13 @@ export default class Group extends CompositeComponent {
                     changeType: "changeReplacementsToWithhold",
                     replacementsToWithhold,
                 };
-                return { replacementChanges: [replacementInstruction] };
+                return {
+                    replacementChanges: [replacementInstruction],
+                    diagnostics,
+                    nComponents,
+                };
             } else {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         } else {
             if (component.replacements.length > 0) {
@@ -344,9 +355,13 @@ export default class Group extends CompositeComponent {
                         changeType: "changeReplacementsToWithhold",
                         replacementsToWithhold: 0,
                     };
-                    return { replacementChanges: [replacementInstruction] };
+                    return {
+                        replacementChanges: [replacementInstruction],
+                        diagnostics,
+                        nComponents,
+                    };
                 } else {
-                    return { replacementChanges: [] };
+                    return { replacementChanges: [], diagnostics, nComponents };
                 }
             } else {
                 let createResult = await this.createSerializedReplacements({
@@ -357,8 +372,7 @@ export default class Group extends CompositeComponent {
                 });
 
                 let replacements = createResult.replacements;
-                errors.push(...createResult.errors);
-                warnings.push(...createResult.warnings);
+                diagnostics.push(...createResult.diagnostics);
                 nComponents = createResult.nComponents;
 
                 let replacementInstruction = {
@@ -372,6 +386,7 @@ export default class Group extends CompositeComponent {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             }

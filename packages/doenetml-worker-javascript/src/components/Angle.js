@@ -2,15 +2,20 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { roundForDisplay } from "../utils/math";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
+    static styleOverrideCategories = ["fill"];
 
+    static componentDocs = {
+        summary: "An angle defined by three points or a measure",
+    };
     static canBeInList = true;
 
     static representsClosedPath = true;
@@ -25,6 +30,7 @@ export default class Angle extends GraphicalComponent {
             createStateVariable: "radius",
             defaultValue: me.fromAst(1),
             public: true,
+            description: "Radius of the rendered angle arc.",
         };
         attributes.chooseReflexAngle = {
             createComponentOfType: "text",
@@ -33,7 +39,23 @@ export default class Angle extends GraphicalComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["never", "allowed", "always"],
+            validValues: [
+                {
+                    value: "never",
+                    description:
+                        "Always normalize to the non-reflex angle (less than 180°).",
+                },
+                {
+                    value: "allowed",
+                    description:
+                        "Use a reflex angle (greater than 180°) if it matches the input.",
+                },
+                {
+                    value: "always",
+                    description: "Always render the angle as a reflex angle.",
+                },
+            ],
+            description: "How to handle reflex angles.",
         };
         attributes.inDegrees = {
             createComponentOfType: "boolean",
@@ -41,22 +63,29 @@ export default class Angle extends GraphicalComponent {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether to interpret and display the angle in degrees rather than radians.",
         };
 
         attributes.radians = {
             createComponentOfType: "math",
+            description: "The angle measure in radians.",
         };
         attributes.degrees = {
             createComponentOfType: "math",
+            description: "The angle measure in degrees.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description:
+                "Three points (vertex in the middle) defining the angle.",
         };
         attributes.betweenLines = {
             createComponentOfType: "_lineListComponent",
+            description: "Two lines whose intersection forms the angle.",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.emphasizeRightAngle = {
             createComponentOfType: "boolean",
@@ -64,6 +93,8 @@ export default class Angle extends GraphicalComponent {
             defaultValue: true,
             public: true,
             forRenderer: true,
+            description:
+                "Whether to render right angles with the conventional square symbol.",
         };
 
         return attributes;
@@ -87,7 +118,7 @@ export default class Angle extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         // set filled to true so a legend shows a filled swath when displayClosedSwatches is set
@@ -245,7 +276,7 @@ export default class Angle extends GraphicalComponent {
                     if (globalDependencyValues.lineChildren.length > 2) {
                         let warning = {
                             message: `Cannot define an angle between ${globalDependencyValues.lineChildren.length} lines`,
-                            level: 2,
+                            type: "info",
                         };
 
                         let points = {};
@@ -256,7 +287,7 @@ export default class Angle extends GraphicalComponent {
                         }
                         return {
                             setValue: { points },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     } else if (
                         globalDependencyValues.lineChildren.length === 1
@@ -423,14 +454,14 @@ export default class Angle extends GraphicalComponent {
                     }
                 }
 
-                const warnings = [];
+                const diagnostics = [];
                 if (foundBadThroughPoint) {
-                    warnings.push({
-                        message: "Invalid point in through of <angle>",
-                        level: 1,
+                    diagnostics.push({
+                        message: "Invalid point in through of `<angle>`",
+                        type: "warning",
                     });
                     if (globalDependencyValues.throughAttr.position) {
-                        warnings[warnings.length - 1].position =
+                        diagnostics[diagnostics.length - 1].position =
                             globalDependencyValues.throughAttr.position;
                     }
                 }
@@ -455,7 +486,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendWarnings: warnings,
+                                sendDiagnostics: diagnostics,
                             };
                         }
                     } else if (globalDependencyValues.degreesAttr) {
@@ -468,7 +499,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendWarnings: warnings,
+                                sendDiagnostics: diagnostics,
                             };
                         }
                     } else {
@@ -487,16 +518,20 @@ export default class Angle extends GraphicalComponent {
                     points["2,1"] = me.fromAst(b2 + Math.sin(desiredAngle));
                 }
 
-                return { setValue: { points }, sendWarnings: warnings };
+                return {
+                    setValue: { points },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
         stateVariableDefinitions.radians = {
+            description: "The angle measure in radians.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -599,19 +634,22 @@ export default class Angle extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.angle = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.degrees = {
+            description: "The angle measure in degrees.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 radians: {
@@ -673,17 +711,19 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
 
                 let value = dependencyValues.inDegrees
                     ? dependencyValues.degrees
@@ -761,7 +801,7 @@ export default class Angle extends GraphicalComponent {
         {
             stateVariable: "radians",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

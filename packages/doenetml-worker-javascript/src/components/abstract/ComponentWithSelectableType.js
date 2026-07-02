@@ -15,6 +15,8 @@ export class ComponentWithSelectableType extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the value: number, math, text, letters, or boolean.",
         };
         return attributes;
     }
@@ -29,7 +31,7 @@ export class ComponentWithSelectableType extends BaseComponent {
             nComponents,
             stateIdInfo,
         }) {
-            let warnings = [];
+            let diagnostics = [];
             let type = componentAttributes.type?.value;
             if (!type) {
                 type = parentAttributes.type?.value;
@@ -39,9 +41,9 @@ export class ComponentWithSelectableType extends BaseComponent {
             } else if (
                 !["number", "letters", "math", "text", "boolean"].includes(type)
             ) {
-                warnings.push({
+                diagnostics.push({
                     message: `Invalid type ${type}, setting type to number.`,
-                    level: 1,
+                    type: "warning",
                 });
                 type = "number";
             }
@@ -71,7 +73,7 @@ export class ComponentWithSelectableType extends BaseComponent {
                         state: {},
                     },
                 ],
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -108,7 +110,7 @@ export class ComponentWithSelectableType extends BaseComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
                 let type = dependencyValues.type;
                 if (!type) {
                     type = dependencyValues.parentType;
@@ -120,18 +122,20 @@ export class ComponentWithSelectableType extends BaseComponent {
                         type,
                     )
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Invalid type ${type}, setting type to number.`,
-                        level: 2,
+                        type: "info",
                     });
                     type = "number";
                 }
 
-                return { setValue: { type }, sendWarnings: warnings };
+                return { setValue: { type }, sendDiagnostics: diagnostics };
             },
         };
 
         stateVariableDefinitions.value = {
+            description:
+                "The selected value, with type determined by the type attribute.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -215,6 +219,8 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the values: number, math, text, letters, or boolean.",
         };
         return attributes;
     }
@@ -229,7 +235,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 parentAttributes,
                 nComponents,
             }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let type = componentAttributes.type?.value;
                 if (!type) {
@@ -242,9 +248,9 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                         type,
                     )
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Invalid type ${type}, setting type to number.`,
-                        level: 1,
+                        type: "warning",
                     });
                     type = "number";
                 }
@@ -260,7 +266,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                     matchedChildren,
                     nComponents,
                 });
-                result.warnings = warnings;
+                result.diagnostics = diagnostics;
                 return result;
             },
         });
@@ -305,6 +311,8 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
         };
 
         stateVariableDefinitions.values = {
+            description:
+                "The list of values, with type determined by the type attribute.",
             public: true,
             isArray: true,
             shadowingInstructions: {
@@ -411,6 +419,8 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the values: number, math, text, letters, or boolean.",
         };
         return attributes;
     }
@@ -434,7 +444,7 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                 return { success: false };
             }
 
-            let warnings = [];
+            let diagnostics = [];
             let type = componentAttributes.type?.value;
             if (!type) {
                 type = parentAttributes.type?.value;
@@ -444,9 +454,9 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             } else if (
                 !["number", "letters", "math", "text", "boolean"].includes(type)
             ) {
-                warnings.push({
+                diagnostics.push({
                     message: `Invalid type ${type}, setting type to number.`,
-                    level: 1,
+                    type: "warning",
                 });
                 type = "number";
             }
@@ -473,7 +483,7 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             return {
                 success: true,
                 newChildren,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         };

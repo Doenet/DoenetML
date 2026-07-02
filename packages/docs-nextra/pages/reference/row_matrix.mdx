@@ -1,20 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <row>{:dn}` (in a matrix)
+# `<row>{:dn}` (in a matrix)
 
-` <row>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that defines the individual row entries in a ` <matrix>{:dn}`.
+<ComponentDisplay name='row'/>
 
-## Attributes and Properties 
- <AttrDisplay name='row'/> 
- <PropDisplay name='row'/>
+`<row>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
+component that defines the individual row entries in a `<matrix>{:dn}`.
 
----
+<AttrPropDisplay name='row'/>
 
-### Example: Defining a ` <matrix>{:dn}` with ` <row>{:dn}` components
+## Examples
+
+### Example: Defining a `<matrix>{:dn}` with `<row>{:dn}` components
 
 
 ```doenet-editor-horiz
@@ -28,13 +28,13 @@ component that defines the individual row entries in a ` <matrix>{:dn}`.
 
 
 
-One of several methods for defining a ` <matrix>{:dn}` in Doenet is to nest ` <row>{:dn}` components inside the opening and closing tags. Individual rows can be accessed using index notation with the `rows` property of the ` <matrix>{:dn}`.
+One of several methods for defining a `<matrix>{:dn}` in Doenet is to nest `<row>{:dn}` components inside the opening and closing tags. Individual rows can be accessed using index notation with the `rows` property of the `<matrix>{:dn}`.
 
 
 
 ---
 
-### Example: A ` <row>{:dn}` with symbolic math
+### Example: A `<row>{:dn}` with symbolic math
 
 
 ```doenet-editor-horiz
@@ -51,13 +51,13 @@ One of several methods for defining a ` <matrix>{:dn}` in Doenet is to nest ` <r
 
 
 
-Since a ` <row>{:dn}` is a Math Component, some of the general attributes of a ` <math>{:dn}` 
-also work inside a ` <row>{:dn}`, such as `functionSymbols`. To use other ` <math>{:dn}` 
-attributes (such as `simplify`), you can nest individual ` <math>{:dn}` components within a ` <row>{:dn}`.
+Since a `<row>{:dn}` is a Math Component, some of the general attributes of a `<math>{:dn}` 
+also work inside a `<row>{:dn}`, such as `functionSymbols`. To use other `<math>{:dn}` 
+attributes (such as `simplify`), you can nest individual `<math>{:dn}` components within a `<row>{:dn}`.
 
 
 
----
+## Attribute Examples
 
 ### Attribute Example: functionSymbols
 
@@ -103,10 +103,10 @@ The `functionSymbols` attribute designates special characters or strings that ar
 
 
 
-By default, letters placed adjacent to one another in a ` <math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the splitSymbols attribute to false.
+By default, letters placed adjacent to one another in a `<math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the splitSymbols attribute to false.
 
 
-Since a ` <row>{:dn}` is a type of Math Component, it follows this convention, with the exception that spaces between individual entries in a ` <row>{:dn}` are considered distinct entries (similar to the entries in a ` <mathList>{:dn}`, while in a general ` <math>{:dn}`, a space represents implied multiplication.)
+Since a `<row>{:dn}` is a type of Math Component, it follows this convention, with the exception that spaces between individual entries in a `<row>{:dn}` are considered distinct entries (similar to the entries in a `<mathList>{:dn}`, while in a general `<math>{:dn}`, a space represents implied multiplication.)
 
 
 
@@ -151,7 +151,7 @@ represent functions.
 
 
 
----
+## Property Examples
 
 ### Property Example: rows
 
@@ -170,7 +170,7 @@ represent functions.
 
 
 
-Technically speaking, the `rows` property belongs to the parent ` <matrix>{:dn}`, rather than 
-the ` <row>{:dn}`. The information is repeated here, however, because it is a useful way 
+Technically speaking, the `rows` property belongs to the parent `<matrix>{:dn}`, rather than 
+the `<row>{:dn}`. The information is repeated here, however, because it is a useful way 
 of accessing individual rows and entries.
 

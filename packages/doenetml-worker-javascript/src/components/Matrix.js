@@ -1,9 +1,18 @@
-import { returnRoundingStateVariableDefinitions } from "../utils/rounding";
+import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathComponent from "./Math";
 import me from "math-expressions";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
+
+    static componentDocs = {
+        summary: "A matrix of math values",
+        // `<row>` and `<column>` children are sugared to `<matrixRow>` and
+        // `<matrixColumn>` at runtime. Editor help follows the same indirection
+        // so authors see the matrix-aware description rather than the tabular
+        // <row> / unrelated <column> ones.
+        childAliases: { row: "matrixRow", column: "matrixColumn" },
+    };
     static rendererType = "math";
 
     // Include children that can be added due to sugar
@@ -34,12 +43,16 @@ export default class Matrix extends MathComponent {
             createComponentOfType: "math",
             createStateVariable: "defaultEntry",
             defaultValue: me.fromAst(0),
+            description:
+                "Value used for entries that aren't explicitly specified.",
         };
         attributes.numRows = {
             createComponentOfType: "integer",
+            description: "Number of rows in the matrix.",
         };
         attributes.numColumns = {
             createComponentOfType: "integer",
+            description: "Number of columns in the matrix.",
         };
 
         return attributes;
@@ -152,10 +165,12 @@ export default class Matrix extends MathComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.unordered = {
+            description:
+                "Whether matrix entries should be treated as unordered.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

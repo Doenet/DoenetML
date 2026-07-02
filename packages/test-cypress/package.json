@@ -17,18 +17,22 @@
         "preview": "vite preview",
         "test-cypress": "cypress open",
         "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
+        "test-cypress-fast-fail": "cypress run -b 'chrome' --headless --config video=false,retries=0,defaultCommandTimeout=8000",
         "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters",
         "test:group1": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group1',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group2": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group2',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group3": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group3',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group4": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group4',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group5": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group5',grepFilterSpecs=true,grepOmitFiltered=true",
-        "test:mistagged": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='-@group1+-@group2+-@group3+-@group4+-@group5',grepFilterSpecs=true,grepOmitFiltered=true"
+        "test:mistagged": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='-@group1+-@group2+-@group3+-@group4+-@group5',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:prefigure-live-accessibility": "cypress open --env RUN_LIVE_PREFIGURE_ACCESSIBILITY=1 --config specPattern=cypress/e2e/prefigure/prefigureLiveAccessibility.cy.js"
     },
     "wireit": {
         "build": {
             "command": "vite build",
             "files": [
+                "index.html",
+                "public/**/*",
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
@@ -36,13 +40,12 @@
                 "vite.config.ts"
             ],
             "output": [
-                "dist/**/*.js",
-                "dist/**/*.d.ts",
-                "dist/**/*.json"
+                "dist/**"
             ],
             "dependencies": [
                 "../doenetml-prototype:build",
                 "../doenetml:build",
+                "../prefigure:build",
                 "../ui-components:build"
             ]
         }
@@ -52,6 +55,7 @@
         "react-dom": "^19.2.3"
     },
     "dependencies": {
+        "@doenet/doenetml-prototype": "*",
         "@doenet/utils": "^*",
         "vite": "^*"
     },

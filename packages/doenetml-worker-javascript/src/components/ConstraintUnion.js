@@ -5,6 +5,10 @@ import { applyConstraintFromComponentConstraints } from "../utils/constraints";
 export default class ConstraintUnion extends ConstraintComponent {
     static componentType = "constraintUnion";
 
+    static componentDocs = {
+        summary:
+            "A constraint that is satisfied if any of its child constraints are satisfied",
+    };
     static returnChildGroups() {
         return [
             {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -146,7 +147,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select single prime number from 2 to 6", async () => {
-        const doenetML = `<selectPrimeNumbers name="res" maxValue="6"/>`;
+        const doenetML = `<selectPrimeNumbers name="res" to="6"/>`;
         const valid_values = [[2, 3, 5]];
         const componentName = "res";
 
@@ -160,7 +161,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select single prime number from 9 to 39", async () => {
-        const doenetML = `<selectPrimeNumbers name="res" minValue="9" maxValue="39" />`;
+        const doenetML = `<selectPrimeNumbers name="res" from="9" to="39" />`;
         const valid_values = [[11, 13, 17, 19, 23, 29, 31, 37]];
         const componentName = "res";
 
@@ -174,7 +175,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select single prime number from 9 to 39, excluding 19", async () => {
-        const doenetML = `<selectPrimeNumbers name="res" minValue="9" maxValue="39" exclude="19" />`;
+        const doenetML = `<selectPrimeNumbers name="res" from="9" to="39" exclude="19" />`;
         const valid_values = [[11, 13, 17, 23, 29, 31, 37]];
         const componentName = "res";
 
@@ -188,7 +189,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" from="1020" to="1050" exclude="1031 1049" />`;
         const valid_values = [
             [1021, 1033, 1039],
             [1021, 1033, 1039],
@@ -206,7 +207,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049 and combinations", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" from="1020" to="1050" exclude="1031 1049"  excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
@@ -232,7 +233,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     <numberList name="ec2">1021 1033</numberList>
     <numberList name="ec3">1033 1039</numberList>
     <mathList name="ec4">1039 1021</mathList>
-    <selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="1031 1049"  excludeCombinations="$ec ($e1 1039) ($e2 $e3)"/>`;
+    <selectPrimeNumbers numToSelect="2" name="res" from="1020" to="1050" exclude="1031 1049"  excludeCombinations="$ec ($e1 1039) ($e2 $e3)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
@@ -250,7 +251,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select two prime numbers from 1020 to 1050, excluding 1031 and 1049 and combinations, exclude extras", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" minValue="1020" maxValue="1050" exclude="19 1031 1036 1037 1038 1049 1050 1061" excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
+        const doenetML = `<selectPrimeNumbers numToSelect="2" name="res" from="1020" to="1050" exclude="19 1031 1036 1037 1038 1049 1050 1061" excludeCombinations="(1021 1033) (1033 1039) (1039 1021)"/>`;
         const valid_combinations = [
             [1021, 1039],
             [1033, 1021],
@@ -268,7 +269,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select three prime numbers up to 5, exclude combinations with two 2s", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" to="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2)" />`;
         const valid_combinations = [
             [2, 3, 3],
             [2, 3, 5],
@@ -303,7 +304,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select three prime numbers up to 5, exclude combinations with two 2s, duplicate excludes", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" maxValue="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2) (5 2 2) (3 2 2) (2 2 2) (_ 2 2) (_ 2 2) (_ 2 2) (2 2 _) (2 _ 2) (2 2 _) (2 5 2) (2 3 2) (2 2 2)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" withReplacement name="res" to="5" excludeCombinations="(2 2 _) (2 _ 2) (_ 2 2) (5 2 2) (3 2 2) (2 2 2) (_ 2 2) (_ 2 2) (_ 2 2) (2 2 _) (2 _ 2) (2 2 _) (2 5 2) (2 3 2) (2 2 2)" />`;
         const valid_combinations = [
             [2, 3, 3],
             [2, 3, 5],
@@ -338,7 +339,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select four prime numbers from 3 to 11, exclude positions of each number", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="4" withReplacement name="res" minValue="3" maxValue="11" excludeCombinations="(3 _ _ _) (_ 5 _ _) (_ _ 7 _) (_ _ _ 11)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="4" withReplacement name="res" from="3" to="11" excludeCombinations="(3 _ _ _) (_ 5 _ _) (_ _ 7 _) (_ _ _ 11)" />`;
         const valid_values = [
             [5, 7, 11],
             [3, 7, 11],
@@ -358,7 +359,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select three prime numbers up to 5, without replacement exclude positions of each number", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="3" name="res" maxValue="5" excludeCombinations="(2 _ _) (_ 3 _) (_ _ 5)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="3" name="res" to="5" excludeCombinations="(2 _ _) (_ 3 _) (_ _ 5)" />`;
         const valid_values = [
             [3, 5],
             [2, 5],
@@ -380,26 +381,28 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     it("select three prime numbers up to 5, without replacement, exclude any place for 2", async () => {
         let { core } = await createTestCore({
             doenetML: `
-    <selectPrimeNumbers numToSelect="3" name="res" maxValue="5" excludeCombinations="(2 _ _) (_ 2 _) (_ _ 2)" />
+    <selectPrimeNumbers numToSelect="3" name="res" to="5" excludeCombinations="(2 _ _) (_ 2 _) (_ _ 2)" />
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(5);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(113);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "Excluded over 70%",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(5);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(107);
     });
 
     it("select 10 prime numbers from the first 10, without replacement, exclude positions of each number", async () => {
         // make sure that exclude combinations does not enumerate all combinations excluded
         // to count them
-        const doenetML = `<selectPrimeNumbers numToSelect="10" name="res" maxValue="30" excludeCombinations="(2 _ _ _ _ _ _ _ _ _) (_ 3 _ _ _ _ _ _ _ _) (_ _ 5 _ _ _ _ _ _ _) (_ _ _ 7 _ _ _ _ _ _) (_ _ _ _ 11 _ _ _ _ _) (_ _ _ _ _ 13 _ _ _ _) (_ _ _ _ _ _ 17 _ _ _) (_ _ _ _ _ _ _ 19 _ _) (_ _ _ _ _ _ _ _ 23 _) (_ _ _ _ _ _ _ _ _ 29)" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="10" name="res" to="30" excludeCombinations="(2 _ _ _ _ _ _ _ _ _) (_ 3 _ _ _ _ _ _ _ _) (_ _ 5 _ _ _ _ _ _ _) (_ _ _ 7 _ _ _ _ _ _) (_ _ _ _ 11 _ _ _ _ _) (_ _ _ _ _ 13 _ _ _ _) (_ _ _ _ _ _ 17 _ _ _) (_ _ _ _ _ _ _ 19 _ _) (_ _ _ _ _ _ _ _ 23 _) (_ _ _ _ _ _ _ _ _ 29)" />`;
 
         const allNumbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
         const valid_values: number[][] = [];
@@ -423,7 +426,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     });
 
     it("select five prime numbers with replacement from 1020 to 1050, excluding 1031 and 1049", async () => {
-        const doenetML = `<selectPrimeNumbers numToSelect="5" withReplacement name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />`;
+        const doenetML = `<selectPrimeNumbers numToSelect="5" withReplacement name="res" from="1020" to="1050" exclude="1031 1049" />`;
         const valid_values = [
             [1021, 1033, 1039, 1051],
             [1021, 1033, 1039, 1051],
@@ -445,7 +448,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
 
     it("select five (number initially unresolved) prime numbers with replacement from 1020 to 1050, excluding 1031 and 1049", async () => {
         const doenetML = `
-    <selectPrimeNumbers numToSelect="$n" withReplacement name="res" minValue="1020" maxValue="1050" exclude="1031 1049" />
+    <selectPrimeNumbers numToSelect="$n" withReplacement name="res" from="1020" to="1050" exclude="1031 1049" />
     <number extend="$n3" name="n2" />
     <math extend="$num1" name="n" />
     <math name="num1">$n2+$num2+2</math>
@@ -475,7 +478,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     it("select 100 large prime numbers, check that are prime", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <selectPrimeNumbers numToSelect="100" name="sample" maxValue="1000000" />
+    <selectPrimeNumbers numToSelect="100" name="sample" to="1000000" />
     `,
         });
 
@@ -504,7 +507,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     it("asList", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers name="s" minValue="175" maxValue="205" numToSelect="5" /></p>
+    <p name="p1"><selectPrimeNumbers name="s" from="175" to="205" numToSelect="5" /></p>
     <p name="p2"><selectPrimeNumbers extend="$s" name="s2" asList="false" /></p>
     `,
         });
@@ -549,8 +552,8 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
-    <selectPrimeNumbers name="sample1" maxValue="100" />
-    <selectPrimeNumbers name="sample2" maxValue="100" />
+    <selectPrimeNumbers name="sample1" to="100" />
+    <selectPrimeNumbers name="sample2" to="100" />
     </p>
 
 
@@ -642,13 +645,13 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="3" name="maxNum"/>
     <p>
-    <selectPrimeNumbers name="sample1" withReplacement maxValue="$maxNum" numToSelect="$numToSelect" />
+    <selectPrimeNumbers name="sample1" withReplacement to="$maxNum" numToSelect="$numToSelect" />
     </p>
 
     <mathInput prefill="2" name="numToSelect2"/>
     <mathInput prefill="10" name="maxNum2"/>
     <p>
-    <selectPrimeNumbers name="sample2" withReplacement maxValue="$maxNum2" numToSelect="$numToSelect2" />
+    <selectPrimeNumbers name="sample2" withReplacement to="$maxNum2" numToSelect="$numToSelect2" />
     </p>
     `,
         });
@@ -722,7 +725,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         <sequence name="seq" length="$mi1" />
     </setup>
     <p name="p1"><repeat for="$seq" name="repeat1">
-      <selectPrimeNumbers name="n" maxValue="100" />
+      <selectPrimeNumbers name="n" to="100" />
     </repeat></p>
     
     <p name="p2">$repeat1</p>
@@ -923,7 +926,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     it("select prime numbers and sort", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers numToSelect="20" sortResults="true" withReplacement="true" maxValue="100" /></p>
+    <p name="p1"><selectPrimeNumbers numToSelect="20" sort="increasing" withReplacement="true" to="100" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -956,7 +959,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
 
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers numToSelect="3" sortResults="true" withReplacement="true" maxValue="100" /></p>
+    <p name="p1"><selectPrimeNumbers numToSelect="3" sort="increasing" withReplacement="true" to="100" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -994,7 +997,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     <booleanInput name='h2' prefill="true" >
       <label>Hide second select</label>
     </booleanInput>
-    <p name="p1"><selectPrimeNumbers name="c" hide="$h1" maxValue="10" />, <selectPrimeNumbers name="d" hide="$h2" maxValue="10"/></p>
+    <p name="p1"><selectPrimeNumbers name="c" hide="$h1" to="10" />, <selectPrimeNumbers name="d" hide="$h2" to="10"/></p>
     <p name="p2">$c, $d</p>
     `,
         });
@@ -1060,23 +1063,23 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>n1 = <selectFromSequence from="1" to="5" name="n1" /></p>
-    <p>nums = <selectPrimeNumbers name="nums1" maxValue="30" numToSelect="$n1" /></p>
+    <p>nums = <selectPrimeNumbers name="nums1" to="30" numToSelect="$n1" /></p>
     <p name="p1">a1=$nums1[1], b1=$nums1[2], c1=$nums1[3], d1=$nums1[4], e1=$nums1[5]</p>
 
     <p>n2 = <selectFromSequence from="1" to="5" name="n2" /></p>
-    <p>nums = <selectPrimeNumbers name="nums2" maxValue="30" numToSelect="$n2" /></p>
+    <p>nums = <selectPrimeNumbers name="nums2" to="30" numToSelect="$n2" /></p>
     <p name="p2">a2=$nums2[1], b2=$nums2[2], c2=$nums2[3], d2=$nums2[4], e2=$nums2[5]</p>
 
     <p>n3 = <selectFromSequence from="1" to="5" name="n3" /></p>
-    <p>nums = <selectPrimeNumbers name="nums3" maxValue="30" numToSelect="$n3" /></p>
+    <p>nums = <selectPrimeNumbers name="nums3" to="30" numToSelect="$n3" /></p>
     <p name="p3">a3=$nums3[1], b3=$nums3[2], c3=$nums3[3], d3=$nums3[4], e3=$nums3[5]</p>
 
     <p>n4 = <selectFromSequence from="1" to="5" name="n4" /></p>
-    <p>nums = <selectPrimeNumbers name="nums4" maxValue="30" numToSelect="$n4" /></p>
+    <p>nums = <selectPrimeNumbers name="nums4" to="30" numToSelect="$n4" /></p>
     <p name="p4">a4=$nums4[1], b4=$nums4[2], c4=$nums4[3], d4=$nums4[4], e4=$nums4[5]</p>
 
     <p>n5 = <selectFromSequence from="1" to="5" name="n5" /></p>
-    <p>nums = <selectPrimeNumbers name="nums5" maxValue="30" numToSelect="$n5" /></p>
+    <p>nums = <selectPrimeNumbers name="nums5" to="30" numToSelect="$n5" /></p>
     <p name="p5">a5=$nums5[1], b5=$nums5[2], c5=$nums5[3], d5=$nums5[4], e5=$nums5[5]</p>
       `,
         });
@@ -1159,5 +1162,158 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq(nums5.map((v, i) => `${l[i]}5=${v}`).join(", "));
+    });
+
+    it("sort with decreasing value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers name="s" numToSelect="5" sort="decreasing" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("decreasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect([...originalNumbers].sort((a, b) => b - a)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with true value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers name="s" numToSelect="5" sort="true" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("increasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="true" should convert to "increasing"
+        expect([...originalNumbers].sort((a, b) => a - b)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with false value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers name="s" numToSelect="5" sort="false" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("unsorted");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="false" should convert to "unsorted"
+        // We just verify it doesn't crash and produces consistent results
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with whitespace and uppercase false value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers name="s" numToSelect="5" sort="  FALSE  " from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("unsorted");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with no value should be sorted increasing", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers name="s" numToSelect="5" sort from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("increasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort with no value should be increasing
+        expect([...originalNumbers].sort((a, b) => a - b)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
     });
 });

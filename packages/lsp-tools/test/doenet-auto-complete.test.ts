@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import util from "util";
+import { CompletionItemKind } from "vscode-languageserver/browser";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
-import { AutoCompleter } from "../src";
+import { AutoCompleter, RustResolverAdapter } from "../src";
+import type { ResolverCore } from "../src";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -25,7 +27,23 @@ const schema = {
             children: ["www"],
             attributes: [
                 { name: "foo", values: ["true", "false"] },
-                { name: "bar", values: ["more", "less"] },
+                {
+                    name: "bar",
+                    values: ["more", "less", "true", "false"],
+                    autocompleteValues: [
+                        { value: "more", description: "More." },
+                        { value: "less", description: "Less." },
+                    ],
+                },
+                {
+                    name: "modeOneSided",
+                    values: ["none", "full", "true"],
+                    autocompleteValues: [
+                        { value: "none", description: "None." },
+                        { value: "full", description: "Full." },
+                    ],
+                },
+                { name: "data-info", values: ["alpha", "beta"] },
             ],
             top: false,
             acceptsStringChildren: false,
@@ -41,7 +59,7 @@ const schema = {
 };
 
 describe("AutoCompleter", () => {
-    it("Can suggest completions", () => {
+    it("Can suggest completions", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -53,72 +71,80 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 3;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot("[]");
         }
         {
             let offset = source.indexOf("<a") + 6;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot("[]");
         }
         {
             let offset = source.indexOf("<b") + 3;
-            let elm = autoCompleter.getCompletionItems(offset);
-            expect(elm).toMatchInlineSnapshot(`
-              [
-                {
-                  "kind": 13,
-                  "label": "foo",
-                },
-                {
-                  "kind": 13,
-                  "label": "bar",
-                },
-              ]
-            `);
+            let elm = await autoCompleter.getCompletionItems(offset);
+            expect(elm.map((item) => item.label)).toEqual([
+                "foo",
+                "bar",
+                "modeOneSided",
+                "data-info",
+            ]);
         }
         {
             let offset = source.indexOf("<b") + 8;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "true",
                   "kind": 12,
-                  "label": ""true"",
+                  "label": "true",
                 },
                 {
+                  "filterText": "false",
                   "kind": 12,
-                  "label": ""false"",
+                  "label": "false",
                 },
               ]
             `);
         }
         {
             let offset = source.indexOf("<b") + 19;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "documentation": {
+                    "kind": "markdown",
+                    "value": "More.",
+                  },
+                  "filterText": "more",
                   "kind": 12,
-                  "label": ""more"",
+                  "label": "more",
                 },
                 {
+                  "documentation": {
+                    "kind": "markdown",
+                    "value": "Less.",
+                  },
+                  "filterText": "less",
                   "kind": 12,
-                  "label": ""less"",
+                  "label": "less",
                 },
               ]
             `);
         }
         {
             let offset = source.indexOf("<b") + 9;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
+                  "filterText": "true",
                   "kind": 12,
                   "label": "true",
                 },
                 {
+                  "filterText": "false",
                   "kind": 12,
                   "label": "false",
                 },
@@ -126,7 +152,523 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it("Can suggest closing tag completion when there is no closing tag", () => {
+
+    it("opens the element menu on explicit Ctrl+Space in a body and inserts the leading `<`", async () => {
+        const source = `<aa>\n  \n</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        // Cursor on the blank middle line, inside the <aa> body — no `<` typed.
+        const offset = source.indexOf("\n  \n") + 3;
+        // Without explicit invocation the menu stays closed (no preceding `<`).
+        expect(await autoCompleter.getCompletionItems(offset)).toEqual([]);
+        // Explicit Ctrl+Space opens it; each item inserts the `<` itself.
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
+        for (const item of items) {
+            expect(item.textEdit?.newText).toBe(`<${item.label}`);
+            // The dropdown shows the tag form even though matching/insertion
+            // is on the bare name, so it's clear these are elements.
+            expect(item.displayLabel).toBe(`<${item.label}>`);
+        }
+    });
+
+    it("inserts a full close tag on explicit Ctrl+Space in an unclosed body", async () => {
+        const source = `<aa>\n  `;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const items = await autoCompleter.getCompletionItems(
+            source.length,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+    });
+
+    it("opens the top-level element menu on explicit Ctrl+Space in an empty document", async () => {
+        const source = ``;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(await autoCompleter.getCompletionItems(0)).toEqual([]);
+        const items = await autoCompleter.getCompletionItems(
+            0,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toContain("aa");
+        const aa = items.find((i) => i.label === "aa");
+        expect(aa?.textEdit?.newText).toBe("<aa");
+    });
+
+    it("leaves the `<`-typed element menu insertion unchanged (no forced textEdit)", async () => {
+        // Regression guard: with a `<` already typed, element items keep the
+        // default apply (bare label), so the existing insertion path is
+        // untouched by the explicit-trigger changes.
+        const source = `<aa><\n</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa><") + 5; // right after the inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        const b = items.find((i) => i.label === "b");
+        expect(b).toBeDefined();
+        expect(b?.textEdit).toBeUndefined();
+        // The visible `<` already signals a tag, so no tag-form displayLabel.
+        expect(b?.displayLabel).toBeUndefined();
+    });
+
+    it("suggests element names (not a close tag) when typing a tag name immediately before another tag (#1328)", async () => {
+        // `<aa><b<c></c></aa>` — error recovery parses the half-typed `<b` as a
+        // complete element wrapping `<c>`. The cursor right after `<b` used to
+        // look like `<b>`'s body and offer a `/b>` close-tag completion. It
+        // should instead offer element names that can go here, filtered by the
+        // typed text.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("suggests element names on explicit Ctrl+Space when the cursor is on a tag name immediately before another tag (#1328)", async () => {
+        // Same `<aa><b<c></c></aa>` shape, but invoked explicitly (Ctrl+Space)
+        // on a static cursor rather than reached by typing. Explicit invocation
+        // sets `showElementMenu`, which used to route this position to the
+        // "insert a new element before this tag" branch and surface the
+        // half-typed element's close tag (`/b>`). The `openTagName` position
+        // must win and offer element names filtered by the typed text.
+        const source = `<aa><b<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 2; // right after `<b`
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["b"]);
+        expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("matches element names by substring, not only by prefix (#1328)", async () => {
+        // Typing part of a tag name that appears in the *middle* of other tag
+        // names should still surface those tags (e.g. `num` -> `isNumber`), so
+        // authors don't have to remember how a name begins.
+        const elements = [
+            {
+                name: "root",
+                children: ["number", "isNumber", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const labels = (await autoCompleter.getCompletionItems(offset)).map(
+            (i) => i.label,
+        );
+        expect(labels).toContain("number");
+        expect(labels).toContain("isNumber");
+        expect(labels).not.toContain("text");
+    });
+
+    it("assigns sortText that ranks prefix element-name matches before substring matches (#1328)", async () => {
+        const elements = [
+            {
+                name: "root",
+                children: ["isNumber", "number", "text"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "isNumber",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "number",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+            {
+                name: "text",
+                children: [],
+                attributes: [],
+                acceptsStringChildren: false,
+            },
+        ];
+        const source = `<root><num</root>`;
+        const autoCompleter = new AutoCompleter(source, elements);
+        const offset = source.indexOf("<num") + 4; // right after `<num`
+        const items = await autoCompleter.getCompletionItems(offset);
+        const number = items.find((i) => i.label === "number");
+        const isNumber = items.find((i) => i.label === "isNumber");
+        expect(number?.sortText).toBeDefined();
+        expect(isNumber?.sortText).toBeDefined();
+        expect(number!.sortText! < isNumber!.sortText!).toBe(true);
+    });
+
+    it("opens the element menu when `<` is typed immediately before another tag (#1328)", async () => {
+        // `<aa><<c></c></aa>` — the author types `<` to insert a new element in
+        // front of `<c>`. The menu should open with the container's allowed
+        // children rather than staying closed (which left the popup from never
+        // opening as the author kept typing).
+        const source = `<aa><<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["b", "c", "d"]);
+    });
+
+    it("preserves the parent close-tag option when `<` is typed before another tag in an unclosed parent (#1328)", async () => {
+        // Same recovered empty-placeholder shape as the previous test, but the
+        // surrounding <aa> is still open. Match the normal body completion
+        // behavior by keeping the close-tag option before allowed children.
+        const source = `<aa><<c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<aa>") + 5; // right after the first inner `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit).toBeUndefined();
+    });
+
+    it("inserts a full close tag when explicit completion is invoked before another tag in an unclosed parent (#1328)", async () => {
+        // Without a typed `<`, the close-tag item needs a textEdit that inserts
+        // the full close tag. Element items already do this via their
+        // insertLeadingBracket path.
+        const source = `<aa><c></c>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<c>");
+        const items = await autoCompleter.getCompletionItems(
+            offset,
+            undefined,
+            true,
+        );
+        expect(items.map((i) => i.label)).toEqual(["/aa>", "b", "c", "d"]);
+        expect(items[0].textEdit?.newText).toBe("</aa>");
+    });
+
+    it("opens the top-level element menu when `<` is typed before a top-level tag (#1328)", async () => {
+        // `<<aa></aa>` at the document start: the menu should offer top-level
+        // elements, climbing past the half-typed empty-named placeholder.
+        const source = `<<aa></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = 1; // right after the first `<`
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((i) => i.label)).toContain("aa");
+    });
+
+    it("Adds quotes via textEdit when completing right after `=`", async () => {
+        const source = `<aa><b foo=></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("=") + 1;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["true", "false"]);
+        const trueItem = items.find((item) => item.label === "true");
+        expect(trueItem?.textEdit).toMatchObject({ newText: `"true"` });
+        // Zero-length range right after the `=`
+        expect(trueItem?.textEdit).toMatchObject({
+            range: {
+                start: { line: 0, character: offset },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Filters and quotes a bare value typed after `=` without an opening quote", async () => {
+        const source = `<aa><b bar=mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: offset - 2 },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Resolves a hyphenated attribute name when typing a bare value after `=`", async () => {
+        // The bare-after-`=` branch walks back from the cursor over
+        // `[A-Za-z0-9_-]` to find the attribute name. A hyphen in the
+        // attribute name (e.g. `data-info`) is inside that character
+        // class, so the walk should land on the full `data-info` and
+        // resolve its enumerated values.
+        const source = `<aa><b data-info=al></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("al") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["alpha"]);
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"alpha"`,
+            range: {
+                start: { line: 0, character: source.indexOf("=") + 1 },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Swallows whitespace between `=` and a bare value into the quoted textEdit", async () => {
+        const source = `<aa><b bar=   mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        // Range starts right after `=` so the three spaces are replaced
+        // along with `mo` and the result is `bar="more"` (no leftover space).
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Quotes the displayLabel for enumerated values when anchored to `=`", async () => {
+        // Bare-after-`=`: dropdown should read `"more"` etc. while still
+        // matching/inserting via the bare `more` label.
+        const source = `<aa><b bar=mo></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        expect(items[0].displayLabel).toEqual(`"more"`);
+        expect(items[0].filterText).toEqual("more");
+    });
+
+    it('Omits displayLabel for enumerated values when cursor is already inside `"..."`', async () => {
+        // Inside `"..."`: no quotes added by the textEdit (the surrounding
+        // quotes already exist), so the dropdown should match what gets
+        // inserted -- bare `more`, no `displayLabel`.
+        const source = `<aa><b bar="mo"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toContain("more");
+        const moreItem = items.find((item) => item.label === "more");
+        expect(moreItem?.displayLabel).toBeUndefined();
+    });
+
+    it('Offers a `"foo"` wrap-in-quotes hint for a free-text attribute with a bare typed prefix', async () => {
+        // `aa.x` is free-text (no `values` / `autocompleteValues`). When the
+        // author types `<aa x=foo>`, the single completion previews the
+        // corrected form `"foo"` and accepting it replaces the bare run.
+        const source = `<aa x=foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toEqual("foo");
+        expect(items[0].displayLabel).toEqual(`"foo"`);
+        expect(items[0].filterText).toEqual("foo");
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+        // The CodeMirror plugin reads this sentinel to set `filter: false`
+        // on the result, attach a live-update callback, and anchor `from`
+        // at the bare-value start. Without the offset, `from` defaults to
+        // the cursor (one past the first typed character) because every
+        // option's apply text starts with `"` and the user has not typed
+        // one -- so the result would track "oo" instead of "foo".
+        const bareValueStart = source.indexOf("foo");
+        expect(items[0].data).toMatchObject({
+            livePreviewQuoteWrap: { bareValueStartOffset: bareValueStart },
+        });
+    });
+
+    it("Swallows whitespace between `=` and a bare free-text value into the quoted textEdit", async () => {
+        // Same swallow behaviour as the enumerated branch: any whitespace
+        // between `=` and the bare value is replaced along with the bare
+        // run, so `x=   foo` accepts to `x="foo"`.
+        const source = `<aa x=   foo></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"foo"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Returns no value completions when no enumerated value matches the bare prefix", async () => {
+        const source = `<aa><b foo=zz></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("zz") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items).toEqual([]);
+    });
+
+    it("Returns no completions for a free-text attribute when there is no bare typed prefix", async () => {
+        // `aa.x` has no `values` / `autocompleteValues`. The old fallback
+        // returned `[{ label: '""' }]`, which corrupted accepts (`x=foo""`
+        // when anchored at `=`, `""""` when inside `"..."`) and made the
+        // client flicker the menu on every keystroke. The B′ wrap-in-quotes
+        // hint only fires when the author has typed a bare value past `=`;
+        // these three contexts must stay empty so an expert who types `"`
+        // straight after `=` never sees a stray menu.
+        const justAfterEquals = `<aa x=></aa>`;
+        const acEmpty = new AutoCompleter(justAfterEquals, schema.elements);
+        expect(
+            await acEmpty.getCompletionItems(justAfterEquals.indexOf("=") + 1),
+        ).toEqual([]);
+
+        // Cursor between the quotes of `x=""`.
+        const emptyQuotes = `<aa x=""></aa>`;
+        const acQuotes = new AutoCompleter(emptyQuotes, schema.elements);
+        expect(
+            await acQuotes.getCompletionItems(emptyQuotes.indexOf(`""`) + 1),
+        ).toEqual([]);
+
+        // Cursor in the middle of a partially typed quoted value `x="foo"`.
+        const partialQuoted = `<aa x="foo"></aa>`;
+        const acPartial = new AutoCompleter(partialQuoted, schema.elements);
+        expect(
+            await acPartial.getCompletionItems(
+                partialQuoted.indexOf("foo") + 3,
+            ),
+        ).toEqual([]);
+    });
+
+    it("Offers a wrap-in-quotes hint on a bare value inside a parent element", async () => {
+        // Lezer's error recovery wraps `mo` in an `AttributeValue(⚠,⚠)`
+        // node when the partial element is followed by `</...>`. The
+        // wrap-in-quotes hint must still fire — it would have, were the
+        // cursor reported as `attributeName` (matching the EOF parse).
+        const source = `<aa><b bar=mo</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+        const equalsCharacter = source.indexOf("=") + 1;
+        expect(items[0].textEdit).toMatchObject({
+            newText: `"more"`,
+            range: {
+                start: { line: 0, character: equalsCharacter },
+                end: { line: 0, character: offset },
+            },
+        });
+    });
+
+    it("Offers a free-text wrap-in-quotes hint on a bare value inside a parent element", async () => {
+        // Same nested-context recovery as above, this time for a free-text
+        // attribute (`aa.x`). Expect a single `"foo"` hint anchored to the
+        // bare run.
+        const source = `<aa><c><aa x=foo</aa></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("foo") + 3;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toEqual("foo");
+        expect(items[0].displayLabel).toEqual(`"foo"`);
+    });
+
+    it("Offers wrap-in-quotes when whitespace precedes the closing tag of the bare-valued element", async () => {
+        const source = `<aa><b bar=mo </aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+    });
+
+    it("Offers wrap-in-quotes when a fresh `<` follows the bare-valued element", async () => {
+        const source = `<aa><b bar=mo\n<c></c></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("mo") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items.map((item) => item.label)).toEqual(["more"]);
+    });
+
+    it("Suppresses the wrap-in-quotes hint inside a real quoted value containing `=`", async () => {
+        // Regression guard: the `AttributeValue` node here starts with `"`,
+        // so the cursorPosition stays `attributeValue` and the wrap-hint
+        // guard at `:1021-1024` keeps suppressing the hint.
+        const source = `<aa x="abc=def"></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("def") + 3;
+        const items = await autoCompleter.getCompletionItems(offset);
+        expect(items).toEqual([]);
+    });
+
+    it("Does not offer attribute-value completions for a literal `=` in body text", async () => {
+        const source = `<aa>x=val</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        // After the `=`
+        expect(
+            await autoCompleter.getCompletionItems(source.indexOf("=") + 1),
+        ).toEqual([]);
+        // After `=val`
+        expect(
+            await autoCompleter.getCompletionItems(source.indexOf("val") + 3),
+        ).toEqual([]);
+    });
+
+    it("Prefers autocompleteValues for attribute value completions", async () => {
+        const source = `<aa><b foo="true" bar="less"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 19;
+
+        const values = (await autoCompleter.getCompletionItems(offset)).map(
+            (item) => String(item.label),
+        );
+
+        expect(values).toContain("more");
+        expect(values).toContain("less");
+        expect(values).not.toContain("true");
+        expect(values).not.toContain("false");
+    });
+
+    it("Prefers autocompleteValues for one-sided boolean aliases", async () => {
+        const source = `<aa><b modeOneSided="none"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("modeOneSided") + 15;
+
+        const values = (await autoCompleter.getCompletionItems(offset)).map(
+            (item) => String(item.label),
+        );
+
+        expect(values).toContain("none");
+        expect(values).toContain("full");
+        expect(values).not.toContain("true");
+        expect(values).not.toContain("false");
+    });
+
+    it("Can suggest closing tag completion when there is no closing tag", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -134,7 +676,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 5;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -148,7 +690,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 6;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -159,7 +701,7 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it("Can suggest closing tag completion when there is no closing tag at document end", () => {
+    it("Can suggest closing tag completion when there is no closing tag at document end", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -167,7 +709,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 5;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -181,7 +723,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 6;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -192,7 +734,7 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it("Can suggest completions after a top level `<`", () => {
+    it("Can suggest completions after a top level `<`", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -200,7 +742,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<") + 1;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -211,7 +753,7 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it("Can suggest completions after a `<` when it comes at the end of the string", () => {
+    it("Can suggest completions after a `<` when it comes at the end of the string", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -219,7 +761,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<") + 1;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -231,18 +773,20 @@ describe("AutoCompleter", () => {
         }
     });
 
-    it("Includes styleDefinition and feedbackDefinition in top-level completions from Doenet schema", () => {
+    it("Includes styleDefinition and feedbackDefinition in top-level completions from Doenet schema", async () => {
         const source = `<`;
         const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
 
-        const items = autoCompleter.getCompletionItems(source.indexOf("<") + 1);
+        const items = await autoCompleter.getCompletionItems(
+            source.indexOf("<") + 1,
+        );
         const labels = items.map((item) => item.label);
 
         expect(labels).toContain("styleDefinition");
         expect(labels).toContain("feedbackDefinition");
     });
 
-    it("Can suggest completions after a `<a` when a comes at the end of the string", () => {
+    it("Can suggest completions after a `<a` when a comes at the end of the string", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -250,18 +794,46 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("<a") + 2;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
                   "kind": 10,
                   "label": "aa",
+                  "sortText": "0:aa",
                 },
               ]
             `);
         }
     });
-    it("Can suggest completions for closing tags at the end of the string", () => {
+
+    it("Matches open-tag component completions case-insensitively and keeps canonical label case", async () => {
+        const source = `<MATHIN`;
+        const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+        const items = await autoCompleter.getCompletionItems(source.length);
+        const labels = items.map((item) => String(item.label));
+
+        expect(labels).toContain("mathInput");
+    });
+
+    it("Suggests child elements (not attributes) when < is typed inside a closed element", async () => {
+        // Regression: typing `<` inside `<aa>...</aa>` used to return
+        // aa's attributes instead of its allowed child elements.
+        const source = `<aa><</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("><") + 2;
+        const items = await autoCompleter.getCompletionItems(offset);
+        const labels = items.map((i) => i.label);
+        // Should contain child elements, not attribute names
+        expect(labels).toContain("b");
+        expect(labels).toContain("c");
+        expect(labels).toContain("d");
+        expect(labels).not.toContain("x");
+        expect(labels).not.toContain("y");
+        expect(labels).not.toContain("xyx");
+    });
+
+    it("Can suggest completions for closing tags at the end of the string", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -269,7 +841,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("><") + 2;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -279,20 +851,23 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 10,
                   "label": "b",
+                  "sortText": "1-999-1-999-0-b-0-999-b",
                 },
                 {
                   "kind": 10,
                   "label": "c",
+                  "sortText": "1-999-1-999-0-c-0-999-c",
                 },
                 {
                   "kind": 10,
                   "label": "d",
+                  "sortText": "1-999-1-999-0-d-0-999-d",
                 },
               ]
             `);
         }
     });
-    it("Closing tag suggestions are offered if there is whitespace after the `/` even if there is text", () => {
+    it("Closing tag suggestions are offered if there is whitespace after the `/` even if there is text", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -300,7 +875,7 @@ describe("AutoCompleter", () => {
         autoCompleter = new AutoCompleter(source, schema.elements);
         {
             let offset = source.indexOf("><") + 3;
-            let elm = autoCompleter.getCompletionItems(offset);
+            let elm = await autoCompleter.getCompletionItems(offset);
             expect(elm).toMatchInlineSnapshot(`
               [
                 {
@@ -311,7 +886,7 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it("Can get completion context", () => {
+    it("Can get completion context", async () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -327,22 +902,1030 @@ describe("AutoCompleter", () => {
             offset = source.indexOf("$foo") + 4;
             elm = autoCompleter.getCompletionContext(offset);
             expect(elm).toMatchObject({
-                complete: true,
-                cursorPos: "macro",
+                cursorPos: "refName",
+                typedPrefix: "foo",
             });
 
             // Matching at the . following the macro.
             offset = source.indexOf("bar") + 4;
             elm = autoCompleter.getCompletionContext(offset);
             expect(elm).toMatchObject({
-                complete: false,
-                cursorPos: "macro",
+                cursorPos: "refMember",
+                typedPrefix: "",
+            });
+        }
+
+        source = ` $foo . `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "body",
+            });
+        }
+
+        source = ` $foo[1]. `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "refMember",
+                typedPrefix: "",
+                replaceFromOffset: source.indexOf(".") + 1,
+                pathParts: ["foo", ""],
+                pathPartHasIndex: [true, false],
+                rawPathParts: ["foo[1]", ""],
             });
         }
     });
 
+    describe("Reference completions", () => {
+        const refSchema = {
+            elements: [
+                {
+                    name: "section",
+                    children: ["p"],
+                    attributes: [],
+                    properties: [{ name: "myP" }, { name: "sectionProp" }],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "p",
+                    children: [],
+                    attributes: [],
+                    properties: [{ name: "pProp" }],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "select",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
+            ],
+        };
+
+        function createRefAutoCompleter(
+            source: string,
+            createAdapter: (
+                sourceObj: DoenetSourceObject,
+            ) => RustResolverAdapter = (sourceObj) =>
+                ({
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        if (pathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+
+                        const lookupPathParts = pathParts.slice(0, -1);
+                        if (lookupPathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+
+                        let referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupPathParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupPathParts,
+                            };
+                        }
+
+                        let firstUnresolvedPartIndex = -1;
+                        for (let i = 1; i < lookupPathParts.length; i++) {
+                            const part = lookupPathParts[i];
+                            const child = sourceObj.getNamedDescendant(
+                                referent,
+                                part,
+                            );
+                            if (!child) {
+                                firstUnresolvedPartIndex = i;
+                                break;
+                            }
+                            referent = child;
+                        }
+
+                        const unresolvedPathParts =
+                            firstUnresolvedPartIndex === -1
+                                ? []
+                                : lookupPathParts.slice(
+                                      firstUnresolvedPartIndex,
+                                  );
+
+                        if (unresolvedPathParts.length > 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts,
+                            };
+                        }
+
+                        return {
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
+                        };
+                    },
+                }) as unknown as RustResolverAdapter,
+        ) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            return new AutoCompleter(undefined, refSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: createAdapter(sourceObj),
+            });
+        }
+
+        it("Suggests reference names after $ with prefix filtering", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section><p name="other" />\n$myS`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.length).toBeGreaterThan(0);
+            expect(
+                items.every(
+                    (item) => item.kind === CompletionItemKind.Reference,
+                ),
+            ).toBe(true);
+            expect(
+                items.every((item) =>
+                    item.label.toLowerCase().startsWith("mys"),
+                ),
+            ).toBe(true);
+            expect(items.some((item) => item.label === "mySection")).toBe(true);
+            expect(
+                items.every((item) => !String(item.label).includes(".")),
+            ).toBe(true);
+        });
+
+        it("Matches $ref prefix case-insensitively but keeps inserted canonical case", async () => {
+            const source = `<math name="myMath" />\n$MYM`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+            const match = items.find((item) => item.label === "myMath");
+
+            expect(match).toBeDefined();
+            expect(match?.textEdit).toBeDefined();
+            const textEdit = match?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("myMath");
+            }
+        });
+
+        it("Keeps names that differ only by case as separate $ref completion options", async () => {
+            const source = `<math name="myMath" /><math name="MyMath" />\n$myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
+            expect(labels.filter((label) => label === "myMath")).toHaveLength(
+                1,
+            );
+            expect(labels.filter((label) => label === "MyMath")).toHaveLength(
+                1,
+            );
+        });
+
+        it("Inserts parenthesized macro text for hyphenated names after $", async () => {
+            const source = `<math name="foo-bar" />\n$f`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const fooBarItem = items.find((item) => item.label === "foo-bar");
+
+            expect(fooBarItem).toBeDefined();
+            expect(fooBarItem?.textEdit).toBeDefined();
+            const textEdit = fooBarItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("(foo-bar)");
+            }
+        });
+
+        it("does not offer $name[] when local referent is non-takesIndex but a later duplicate name is takesIndex", async () => {
+            const source = `<section name="A"><math>$dup</math><p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = await autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
+            expect(labels).not.toContain("dup[]");
+        });
+
+        it("offers ref completions immediately before a following tag without requiring a space", async () => {
+            const source = `<section name="A">$dup<p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = await autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
+        });
+
+        it("Keeps plain macro text for simple names after $", async () => {
+            const source = `<math name="foo_bar" />\n$f`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const fooBarItem = items.find((item) => item.label === "foo_bar");
+
+            expect(fooBarItem).toBeDefined();
+            expect(fooBarItem?.textEdit).toBeDefined();
+            const textEdit = fooBarItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("foo_bar");
+            }
+        });
+
+        it("Suggests descendant names and properties after dot, with descendants winning collisions", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+
+            const myPItems = items.filter((item) => item.label === "myP");
+            expect(myPItems).toHaveLength(1);
+            expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
+        });
+
+        it("Does not suggest ref-member completions when there is whitespace before dot", async () => {
+            // `$mySection .` is not a valid reference path; do not offer
+            // descendant/property member completions.
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection .`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+            const labels = items.map((item) => item.label);
+
+            expect(labels).not.toContain("myP");
+            expect(labels).not.toContain("sectionProp");
+        });
+
+        it("Matches member prefix case-insensitively and preserves distinct-case labels", async () => {
+            const source = `<section name="mySection"><p name="myMath" /><p name="MyMath" /></section>\n$mySection.myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
+        });
+
+        it("Only suggests uniquely addressable descendant names after dot", async () => {
+            const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            // `dup` is ambiguous under `mySection` and should not be suggested.
+            expect(items.some((item) => item.label === "dup")).toBe(false);
+            // Unique descendant names remain valid suggestions.
+            expect(items.some((item) => item.label === "unique")).toBe(true);
+        });
+
+        it("Only suggests member names that resolve uniquely from the same context", async () => {
+            const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const section = autoCompleter.sourceObj.getReferentAtOffset(
+                offset,
+                "mySection",
+            );
+            expect(section).toBeTruthy();
+
+            const items = (
+                await autoCompleter.getCompletionItems(offset)
+            ).filter((item) => item.kind === CompletionItemKind.Reference);
+
+            for (const item of items) {
+                const resolved = autoCompleter.sourceObj.getNamedDescendant(
+                    section,
+                    String(item.label),
+                );
+                expect(resolved).toBeTruthy();
+            }
+        });
+
+        it("Excludes ambiguous names in top-level completions after $", async () => {
+            const source = `<section><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = (
+                await autoCompleter.getCompletionItems(source.length)
+            )
+                .filter((item) => item.kind === CompletionItemKind.Reference)
+                .map((item) => String(item.label));
+
+            expect(items).not.toContain("dup");
+            expect(items).toContain("unique");
+        });
+
+        it("Suggests descendant names and properties after dot at the start of the file", async () => {
+            const source = `$mySection.\n<section name="mySection"><p name="myP" /></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("\n");
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests members after chained descendant access", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.myP.`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "pProp")).toBe(true);
+            expect(items.every((item) => item.label !== "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests reference names inside attribute values after $", async () => {
+            const source = `<section name="mySection" /><line through="$myS" />`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$myS") + "$myS".length;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.length).toBeGreaterThan(0);
+            expect(
+                items.every(
+                    (item) => item.kind === CompletionItemKind.Reference,
+                ),
+            ).toBe(true);
+            expect(items.some((item) => item.label === "mySection")).toBe(true);
+        });
+
+        it("Suggests descendant members inside attribute values after dot with member prefix", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section><line through="$mySection.my" />`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset =
+                source.indexOf("$mySection.my") + "$mySection.my".length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({ cursorPos: "refMember" });
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.every((item) => item.label !== "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests reference names in parenthesized macros with hyphenated prefixes", async () => {
+            const source = `<math name="foo-bar" /><math name="foo-baz" />\n$(foo-ba`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refName",
+                typedPrefix: "foo-ba",
+            });
+
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "foo-bar")).toBe(true);
+            expect(items.some((item) => item.label === "foo-baz")).toBe(true);
+        });
+
+        it("Suggests member completions in parenthesized macros with hyphenated names", async () => {
+            const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar.my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "my",
+            });
+
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+        });
+
+        it("Suggests member completions after dot on completed parenthesized macros", async () => {
+            const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar).`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "",
+            });
+
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            // Descendant and property suggestions should both be present.
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Inserts parenthesized member text for hyphenated names after dot", async () => {
+            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$base.my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            const underscoreItem = items.find((item) => item.label === "my_p");
+
+            expect(hyphenItem).toBeDefined();
+            expect(underscoreItem).toBeDefined();
+
+            const hyphenTextEdit = hyphenItem?.textEdit;
+            if (hyphenTextEdit && "newText" in hyphenTextEdit) {
+                expect(hyphenTextEdit.newText).toBe("(my-p)");
+            }
+
+            const underscoreTextEdit = underscoreItem?.textEdit;
+            if (underscoreTextEdit && "newText" in underscoreTextEdit) {
+                expect(underscoreTextEdit.newText).toBe("my_p");
+            }
+        });
+
+        it("Applies same member insertion policy after dot in parenthesized refs", async () => {
+            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base).my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            const underscoreItem = items.find((item) => item.label === "my_p");
+
+            expect(hyphenItem).toBeDefined();
+            expect(underscoreItem).toBeDefined();
+
+            const hyphenTextEdit = hyphenItem?.textEdit;
+            if (hyphenTextEdit && "newText" in hyphenTextEdit) {
+                expect(hyphenTextEdit.newText).toBe("(my-p)");
+            }
+
+            const underscoreTextEdit = underscoreItem?.textEdit;
+            if (underscoreTextEdit && "newText" in underscoreTextEdit) {
+                expect(underscoreTextEdit.newText).toBe("my_p");
+            }
+        });
+
+        it("Classifies parenthesized member-segment syntax after dot as refMember", async () => {
+            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const completionContext = autoCompleter.getCompletionContext(
+                source.length,
+            );
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "my",
+            });
+        });
+
+        it("Does not double-parenthesize insertion in .(member) contexts", async () => {
+            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+
+            expect(hyphenItem).toBeDefined();
+            const textEdit = hyphenItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("my-p");
+            }
+        });
+
+        it("Returns no ref-member completion when no resolver is configured", async () => {
+            const pointSchema = {
+                elements: [
+                    {
+                        name: "point",
+                        children: ["math"],
+                        attributes: [{ name: "coords" }],
+                        top: true,
+                        acceptsStringChildren: true,
+                    },
+                    {
+                        name: "math",
+                        children: [],
+                        attributes: [],
+                        top: true,
+                        acceptsStringChildren: true,
+                    },
+                ],
+            };
+
+            const source = `<point name="P"><math name="coords">(3,4)</math></point><point name="Q">(3,2)</point>\n$P.coords`;
+            const autoCompleter = new AutoCompleter(
+                source,
+                pointSchema.elements,
+            );
+
+            const offset = source.length;
+            const items = await autoCompleter.getCompletionItems(offset);
+            expect(items).toEqual([]);
+        });
+
+        it("Returns no ref completions in invalid or unresolved contexts", async () => {
+            {
+                const source = `<section $`;
+                const autoCompleter = new AutoCompleter(
+                    source,
+                    refSchema.elements,
+                );
+                const items = await autoCompleter.getCompletionItems(
+                    source.length,
+                );
+                expect(
+                    items.some(
+                        (item) => item.kind === CompletionItemKind.Reference,
+                    ),
+                ).toBe(false);
+            }
+
+            {
+                const source = `<section name="mySection" />\n$missing.`;
+                const autoCompleter = new AutoCompleter(
+                    source,
+                    refSchema.elements,
+                );
+                const items = await autoCompleter.getCompletionItems(
+                    source.length,
+                );
+                expect(items).toEqual([]);
+            }
+        });
+
+        it("Uses adapter-provided member resolution for completions", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+
+            expect(resolver!).toHaveBeenCalledOnce();
+            expect(resolver!).toHaveBeenCalledWith(
+                source.length,
+                ["missing", ""],
+                [false, false],
+            );
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Allows providing a Rust resolver adapter during construction", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+
+            expect(resolver!).toHaveBeenCalledOnce();
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+        });
+
+        it("Reports unresolved path segments from default member resolution with null node", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.missing.`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const resolution =
+                await autoCompleter.resolveRefMemberContainerAtOffset(
+                    source.length,
+                    ["mySection", "missing", ""],
+                );
+
+            // Invalid path — node is null so no completions are offered.
+            expect(resolution.node).toBeNull();
+            expect(resolution.unresolvedPathParts).toEqual(["missing"]);
+        });
+
+        it("Passes node index to resolver for index-based resolution", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            const indexCapture: (number | null)[] = [];
+            let resolver!: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) =>
+                    ({
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: (resolver = vi.fn(
+                            (
+                                offset: number,
+                                _pathParts: string[],
+                                _pathPartHasIndex?: boolean[],
+                                _hasIndex?: boolean,
+                            ) => {
+                                indexCapture.push(
+                                    sourceObj.getNodeIndexAtOffset(offset),
+                                );
+                                return null;
+                            },
+                        )),
+                    }) as unknown as RustResolverAdapter,
+            );
+
+            await autoCompleter.getCompletionItems(source.length);
+
+            // Verify resolver was called with nodeIndex
+            expect(resolver).toHaveBeenCalledOnce();
+            expect(indexCapture[0]).not.toBeNull();
+            expect(typeof indexCapture[0]).toBe("number");
+        });
+
+        it("Allows Rust-backed resolver to use node index directly", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            let rustSimulator: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    rustSimulator = vi.fn(
+                        (offset: number, pathParts: string[]) => {
+                            const nodeIndex =
+                                sourceObj.getNodeIndexAtOffset(offset);
+                            // In real Rust implementation, adapter would call
+                            // resolve_path(origin_index, path_parts).
+                            // For this test, simulate successful resolution to the root element
+                            if (
+                                nodeIndex !== null &&
+                                nodeIndex !== undefined &&
+                                pathParts.length > 0
+                            ) {
+                                return {
+                                    node: {
+                                        name: "section",
+                                        attributes: {},
+                                        children: [],
+                                        type: "element",
+                                    } as DastElement,
+                                    unresolvedPathParts: [],
+                                };
+                            }
+                            return null;
+                        },
+                    );
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: rustSimulator,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+
+            // Verify the Rust-backed resolver was called with the source context.
+            expect(rustSimulator!).toHaveBeenCalledOnce();
+            expect(rustSimulator!).toHaveBeenCalledWith(
+                source.length,
+                expect.any(Array),
+                expect.any(Array),
+            );
+            // Since resolver provided a section node with properties, should have completion items
+            expect(items.length).toBeGreaterThan(0);
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+        });
+    });
+
+    describe("Schema-derived documentation on completions", () => {
+        const docSchema = {
+            elements: [
+                {
+                    name: "doc",
+                    summary: "Top-level document.",
+                    children: ["matrix", "math", "select"],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "math",
+                    summary: "A math expression.",
+                    children: [],
+                    attributes: [
+                        { name: "simplify", description: "Simplify form." },
+                        { name: "noDescAttr" },
+                    ],
+                    properties: [
+                        { name: "value", description: "Math value." },
+                        { name: "noDescProp" },
+                    ],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "matrix",
+                    summary: "A matrix container.",
+                    children: ["row"],
+                    attributes: [],
+                    top: false,
+                    acceptsStringChildren: false,
+                    childContextHelp: { row: "matrixRow" },
+                },
+                {
+                    name: "row",
+                    summary: "A generic row element.",
+                    children: [],
+                    attributes: [
+                        { name: "color", description: "Generic row color." },
+                    ],
+                    top: false,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "select",
+                    summary: "A composite that picks one of several options.",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
+            ],
+            aliasedElements: {
+                matrixRow: {
+                    name: "matrixRow",
+                    summary: "A row inside a matrix.",
+                    attributes: [
+                        {
+                            name: "color",
+                            description: "Color of the matrix row.",
+                        },
+                    ],
+                },
+            },
+        };
+
+        function createDocAutoCompleter(source: string) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            const ac = new AutoCompleter(undefined, docSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        const lookupParts = pathParts.slice(0, -1);
+                        if (lookupParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+                        const referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupParts,
+                            };
+                        }
+                        return {
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
+                        };
+                    },
+                } as unknown as RustResolverAdapter,
+            });
+            // Also expose the aliased entries for alias-aware help lookup.
+            ac.setSchema(docSchema.elements, docSchema.aliasedElements);
+            return ac;
+        }
+
+        it("Includes summary as documentation on top-level element completions", async () => {
+            const source = `<`;
+            const autoCompleter = new AutoCompleter(source, docSchema.elements);
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const doc = items.find((i) => i.label === "doc");
+            expect(doc?.documentation).toEqual({
+                kind: "markdown",
+                value: "Top-level document.",
+            });
+        });
+
+        it("Includes summary as documentation on child-element completions and applies childContextHelp aliases", async () => {
+            const source = `<doc><matrix><`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const row = items.find((i) => i.label === "row");
+            // Inside <matrix>, the `row` child should pull its summary from
+            // the `matrixRow` alias, not the generic `row` entry.
+            expect(row?.documentation).toEqual({
+                kind: "markdown",
+                value: "A row inside a matrix.",
+            });
+        });
+
+        it("Includes attribute description as documentation, alias-aware for child elements", async () => {
+            // Plain <math> attribute: own description.
+            {
+                const source = `<doc><math `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = await autoCompleter.getCompletionItems(
+                    source.length,
+                );
+                const simplify = items.find((i) => i.label === "simplify");
+                expect(simplify?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Simplify form.",
+                });
+                const noDesc = items.find((i) => i.label === "noDescAttr");
+                expect(noDesc?.documentation).toBeUndefined();
+            }
+            // <row> inside <matrix>: alias attribute description wins.
+            {
+                const source = `<doc><matrix><row `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = await autoCompleter.getCompletionItems(
+                    source.length,
+                );
+                const color = items.find((i) => i.label === "color");
+                expect(color?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Color of the matrix row.",
+                });
+            }
+        });
+
+        it("Includes property description as documentation on $ref.member completions", async () => {
+            const source = `<doc><math name="m">x</math></doc>\n$m.`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const value = items.find((i) => i.label === "value");
+            expect(value?.documentation).toEqual({
+                kind: "markdown",
+                value: "Math value.",
+            });
+            const noDescProp = items.find((i) => i.label === "noDescProp");
+            expect(noDescProp?.documentation).toBeUndefined();
+        });
+
+        it("Sets detail to '(<type>, line N)' and documentation to summary on $name completions", async () => {
+            // `<math>` opens on line 2 (line 1 is `<doc>`). The displayed line
+            // must be 1-indexed so it matches CodeMirror's gutter.
+            const source = `<doc>\n  <math name="m">x</math>\n</doc>\n$m`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const m = items.find((i) => i.label === "m");
+            expect(m).toBeDefined();
+            expect(m?.detail).toBe("(<math>, line 2)");
+            expect(m?.documentation).toEqual({
+                kind: "markdown",
+                value: "A math expression.",
+            });
+        });
+
+        it("Reuses detail/documentation on the $name[] takesIndex variant", async () => {
+            const source = `<doc><select name="s" /></doc>\n$s`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const indexed = items.find((i) => i.label === "s[]");
+            expect(indexed).toBeDefined();
+            // `<select>` is on the first (and only-content) line of the source.
+            expect(indexed?.detail).toBe("(<select>, line 1)");
+            expect(indexed?.documentation).toEqual({
+                kind: "markdown",
+                value: "A composite that picks one of several options.",
+            });
+        });
+
+        it("Auto-loads bundled aliased entries when setSchema is called later with the default schema", async () => {
+            // Regression for the constructor-vs-setSchema gap: a consumer
+            // that re-installs the bundled schema via `setSchema()` must
+            // still get alias-aware help without having to pass
+            // `doenetSchema.aliasedElements` explicitly. (Reported by the
+            // PR #1088 Copilot review.)
+            const autoCompleter = new AutoCompleter();
+            // Wipe and re-install the default schema with no alias map.
+            autoCompleter.setSchema(doenetSchema.elements);
+            const matrixRow =
+                autoCompleter.findAliasedSchemaElement("matrixRow");
+            expect(matrixRow?.summary).toBeTruthy();
+            // And alias-aware resolution should still walk the redirect:
+            // `<row>` inside `<matrix>` resolves to `matrixRow`'s entry.
+            const rowEntry = autoCompleter.findSchemaElement("row");
+            const effective = autoCompleter.resolveEffectiveSchemaElement(
+                rowEntry,
+                "matrix",
+            );
+            expect(effective?.name).toBe("matrixRow");
+        });
+
+        it("Falls back to no aliases when setSchema receives a custom schema", async () => {
+            // The auto-load is keyed on reference identity to `doenetSchema.
+            // elements`. A custom schema must NOT silently inherit doenet's
+            // alias map (which would graft unrelated docs onto the user's
+            // own elements).
+            const autoCompleter = new AutoCompleter();
+            autoCompleter.setSchema([
+                {
+                    name: "foo",
+                    summary: "A foo.",
+                    children: [],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+            ]);
+            expect(
+                autoCompleter.findAliasedSchemaElement("matrixRow"),
+            ).toBeUndefined();
+        });
+    });
+
     describe("Snippet completions", () => {
-        it("Includes snippets after top-level `<`", () => {
+        it("Includes snippets after top-level `<`", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -367,7 +1950,7 @@ describe("AutoCompleter", () => {
             );
 
             let offset = source.indexOf("<") + 1;
-            let items = autoCompleter.getCompletionItems(offset);
+            let items = await autoCompleter.getCompletionItems(offset);
 
             // Should have both schema items (aa) and snippet items
             // CompletionItemKind.Snippet = 15
@@ -379,7 +1962,7 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
-        it("Filters snippets by typed prefix", () => {
+        it("Filters snippets by typed text substring", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -403,23 +1986,23 @@ describe("AutoCompleter", () => {
             );
 
             let offset = source.indexOf("<ta") + 3;
-            let items = autoCompleter.getCompletionItems(offset);
+            let items = await autoCompleter.getCompletionItems(offset);
 
-            // The prefix "ta" doesn't match any snippet key, so no snippets should appear
+            // The text "ta" doesn't match any snippet key, so no snippets should appear
             // Even though "aa" is an allowed element
             const snippetItems = items.filter((item) => item.kind === 15); // CompletionItemKind.Snippet = 15
-            // Since no snippet key starts with "ta", expect empty results
+            // Since no snippet key contains "ta", expect empty results
             expect(snippetItems.length).toBe(0);
 
-            // Now test with a matching prefix
-            source = `<te`;
+            // Now test with a matching substring in the middle of the key
+            source = `<sni`;
             autoCompleter = new AutoCompleter(source, schema.elements);
             autoCompleter.snippetsByNormalizedElement = new Map(
                 Object.entries(testSnippets) as [string, any[]][],
             );
 
-            offset = source.indexOf("<te") + 3;
-            items = autoCompleter.getCompletionItems(offset);
+            offset = source.indexOf("<sni") + 4;
+            items = await autoCompleter.getCompletionItems(offset);
 
             const matchingSnippets = items.filter((item) => item.kind === 15);
             expect(matchingSnippets.length).toBeGreaterThan(0);
@@ -430,7 +2013,7 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
-        it("Snippet items include textEdit with proper range", () => {
+        it("Snippet items include textEdit with proper range", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -454,7 +2037,7 @@ describe("AutoCompleter", () => {
             );
 
             let offset = source.indexOf("<") + 1;
-            let items = autoCompleter.getCompletionItems(offset);
+            let items = await autoCompleter.getCompletionItems(offset);
 
             const snippetItem = items.find(
                 (item) => item.label === "test-snippet",
@@ -468,7 +2051,7 @@ describe("AutoCompleter", () => {
             expect(snippetItem?.filterText).toBe("test-snippet");
         });
 
-        it("Snippet items indent multiline text", () => {
+        it("Snippet items indent multiline text", async () => {
             let source: string;
             let autoCompleter: AutoCompleter;
 
@@ -491,7 +2074,7 @@ describe("AutoCompleter", () => {
             );
 
             const offset = source.indexOf("<") + 1;
-            const items = autoCompleter.getCompletionItems(offset);
+            const items = await autoCompleter.getCompletionItems(offset);
 
             const snippetItem = items.find(
                 (item) => item.label === "test-multiline",
@@ -499,6 +2082,977 @@ describe("AutoCompleter", () => {
             expect(snippetItem?.textEdit?.newText).toBe(
                 "<aa>\n  <bb></bb>\n  </aa>",
             );
+        });
+    });
+
+    describe("Offset-to-node-index mapping", () => {
+        it("Maps offsets to node indices in depth-first order", async () => {
+            const source = `<aa name="test"><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            // Offset at opening tag should map to aa element (earliest element)
+            const aaStartIndex = sourceObj.getNodeIndexAtOffset(1);
+            expect(aaStartIndex).not.toBeNull();
+            expect(aaStartIndex).toBeGreaterThan(0); // Not root
+        });
+
+        it("Maps multiple offsets to same node index for consecutive positions", async () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            // Consecutive offsets within the same element should map to same node
+            const idx1 = sourceObj.getNodeIndexAtOffset(1);
+            const idx2 = sourceObj.getNodeIndexAtOffset(2);
+            expect(idx1).toBe(idx2);
+        });
+
+        it("Returns null for offsets outside element ranges", async () => {
+            const source = `text<aa></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            // Offset in plain text before any element maps to root (index 0 or similar)
+            const rootIndex = sourceObj.getNodeIndexAtOffset(0);
+            expect(rootIndex).not.toBeNull(); // Plain text is in root
+
+            // Offset inside aa element should be different
+            const aaIndex = sourceObj.getNodeIndexAtOffset(6);
+            expect(aaIndex).not.toBe(rootIndex);
+        });
+
+        it("Provides consistent indices across multiple calls", async () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const offset = 5;
+            const index1 = sourceObj.getNodeIndexAtOffset(offset);
+            const index2 = sourceObj.getNodeIndexAtOffset(offset);
+
+            expect(index1).toBe(index2);
+        });
+
+        it("Uses left-of-cursor semantics at EOF", async () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const eofIndex = sourceObj.getNodeIndexAtOffset(source.length);
+            const lastCharIndex = sourceObj.getNodeIndexAtOffset(
+                source.length - 1,
+            );
+
+            expect(eofIndex).toBe(lastCharIndex);
+            expect(eofIndex).not.toBeNull();
+        });
+
+        it("Differentiates nested nodes with different indices", async () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            // Get indices for different parts of the structure
+            const aaIdx = sourceObj.getNodeIndexAtOffset(1); // Inside <aa>
+            const bIdx = sourceObj.getNodeIndexAtOffset(6); // Inside <b>
+
+            expect(aaIdx).not.toEqual(bIdx);
+            // In depth-first traversal, child comes after parent
+            expect(bIdx).toBeGreaterThan(aaIdx!);
+        });
+    });
+
+    describe("RustResolverAdapter contract", () => {
+        it("Creates a disabled resolver callback when no core is attached", async () => {
+            const source = `<section name="mySection"><p name="myP" /></section>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const adapter = new RustResolverAdapter(sourceObj);
+            expect(adapter.isEnabled()).toBe(false);
+
+            const resolver = adapter.createResolver();
+            expect(typeof resolver).toBe("function");
+
+            const result = await resolver({
+                offset: 10,
+                pathParts: ["foo", "bar"],
+                nodeIndex: 2,
+            });
+
+            // Without a core, the adapter exposes a disabled resolver.
+            expect(result).toBeNull();
+        });
+
+        it("Passes node index through resolver args", async () => {
+            const source = `<section name="root"><p name="child" /></section>\n$root.`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const offset = source.length - 1; // At the dot
+            const nodeIndex = sourceObj.getNodeIndexAtOffset(offset);
+
+            expect(typeof nodeIndex).toBe("number");
+
+            const testResolver = (args: any) => {
+                expect(args.nodeIndex).toBe(nodeIndex);
+                return null;
+            };
+
+            testResolver({
+                offset,
+                pathParts: ["root"],
+                nodeIndex,
+            });
+        });
+
+        it("Returns no ref completions when the adapter is disabled", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            // Define a minimal schema for this test
+            const testSchema = [
+                {
+                    name: "section",
+                    children: ["p"],
+                    attributes: [],
+                    properties: [{ name: "p1" }],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "p",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: false,
+                    acceptsStringChildren: true,
+                },
+            ];
+
+            const adapter = new RustResolverAdapter(sourceObj);
+            const autoCompleter = new AutoCompleter(source, testSchema, {
+                rustResolverAdapter: adapter,
+            });
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+
+            expect(items).toEqual([]);
+        });
+    });
+
+    describe("RustResolverAdapter with mock core", () => {
+        /**
+         * Helper: create a mock {@link ResolverCore} that records calls and
+         * returns a configurable response from `resolvePath`.
+         */
+        function createMockCore(
+            source: string,
+            sourceObj: DoenetSourceObject,
+            resolveResult?: {
+                nodeIdx: number;
+                nodesInResolvedPath: number[];
+                unresolvedPath: Array<{ name: string }> | null;
+                originalPath: Array<{ name: string }>;
+            },
+            options?: {
+                startId?: number;
+            },
+        ): {
+            core: ResolverCore;
+            calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[];
+        } {
+            const calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[] = [];
+
+            // Build a minimal flat DAST from the JS DAST by assigning sequential
+            // ids to elements in depth-first order (matching Rust's pre-order).
+            const elements: Array<{
+                data: { id: number };
+                position?: { start: { offset?: number } };
+            }> = [];
+            let nextId = options?.startId ?? 0;
+            const collectElements = (node: any) => {
+                if (node.type === "element") {
+                    elements.push({
+                        data: { id: nextId++ },
+                        position: node.position,
+                    });
+                    for (const child of node.children || []) {
+                        collectElements(child);
+                    }
+                }
+            };
+            for (const child of sourceObj.dast.children) {
+                collectElements(child);
+            }
+
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => ({ elements }),
+                resolvePath: async ({ path, origin, skipParentSearch }) => {
+                    calls.push({
+                        path,
+                        origin,
+                        skip_parent_search: skipParentSearch,
+                    });
+                    if (resolveResult) return resolveResult;
+                    // Default: resolve to first element, no unresolved path
+                    return {
+                        nodeIdx: 0,
+                        nodesInResolvedPath: [0],
+                        unresolvedPath: null,
+                        originalPath: [],
+                    };
+                },
+            };
+
+            return { core, calls };
+        }
+
+        it("Enables adapter when core is provided", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>`;
+            const sourceObj = new DoenetSourceObject(source);
+            const { core } = createMockCore(source, sourceObj);
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            expect(adapter.isEnabled()).toBe(true);
+        });
+
+        it("Resolves single-level ref via Rust core", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 0, // section
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            // pathParts: ["s1", ""] — "s1" is the container, "" is the incomplete member
+            const result = await resolver({
+                offset: source.indexOf("$s1.") + 4,
+                pathParts: ["s1", ""],
+            });
+
+            // First call resolves the container ("s1"), subsequent calls
+            // probe descendant visibility (one per unique descendant name).
+            expect(calls.length).toBeGreaterThanOrEqual(1);
+            expect(calls[0].path).toEqual({
+                path: [{ type: "flatPathPart", name: "s1", index: [] }],
+            });
+            expect(result).not.toBeNull();
+            expect(result!.node?.type).toBe("element");
+            // The resolved node is the section (index 0 in our mock)
+            expect(
+                (result!.node as any)?.attributes?.name?.children?.[0]?.value,
+            ).toBe("s1");
+            expect(result!.unresolvedPathParts).toEqual([]);
+            // Visibility probing returns names the mock considers resolvable
+            expect(result!.visibleDescendantNames).toBeDefined();
+        });
+
+        it("Returns null when resolve_path throws", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$missing.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => {
+                    const elements: Array<{
+                        data: { id: number };
+                        position?: { start: { offset?: number } };
+                    }> = [];
+                    let nextId = 0;
+                    const collectElements = (node: any) => {
+                        if (node.type === "element") {
+                            elements.push({
+                                data: { id: nextId++ },
+                                position: node.position,
+                            });
+                            for (const child of node.children || []) {
+                                collectElements(child);
+                            }
+                        }
+                    };
+                    for (const child of sourceObj.dast.children) {
+                        collectElements(child);
+                    }
+                    return { elements };
+                },
+                resolvePath: async () => {
+                    throw new Error("NoReferent");
+                },
+            };
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$missing.") + 9,
+                pathParts: ["missing", ""],
+            });
+            expect(result).toBeNull();
+        });
+
+        it("Passes unresolved path parts through", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.p1.x`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1, // p
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: [{ name: "remaining" }],
+                originalPath: [{ name: "s1" }, { name: "p1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$s1.p1.x") + 8,
+                pathParts: ["s1", "p1", "x"],
+            });
+
+            // Invalid path — node is null so no completions are offered.
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["remaining"]);
+        });
+
+        it("Treats missing trailing member segment as an implicit empty segment", async () => {
+            const source = `<section name="s"><p name="p1" /></section>\n$s.p1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: null,
+                originalPath: [{ name: "s" }, { name: "p1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$s.p1.") + "$s.p1.".length,
+                // Simulates a parser/context path that dropped the final empty segment.
+                pathParts: ["s", "p1"],
+            });
+
+            expect(result).not.toBeNull();
+            expect(calls[0].path).toEqual({
+                path: [
+                    { type: "flatPathPart", name: "s", index: [] },
+                    { type: "flatPathPart", name: "p1", index: [] },
+                ],
+            });
+        });
+
+        it("isNameAddressableFromOffset enforces exact case for resolved referent names", async () => {
+            const source = `<section name="sec"><math name="Inside">x</math>$in</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [1],
+                unresolvedPath: null,
+                originalPath: [{ name: "Inside" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+
+            const offset = source.indexOf("$in") + 1;
+            expect(
+                await adapter.isNameAddressableFromOffset(offset, "inside"),
+            ).toBe(false);
+            expect(
+                await adapter.isNameAddressableFromOffset(offset, "Inside"),
+            ).toBe(true);
+        });
+
+        it("Filters visibleDescendantNames by exact-case referent match", async () => {
+            const source = `<section name="sec"><math name="inside">x</math></section><math name="Inside">y</math>\n$sec.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+
+            const elements: Array<{
+                data: { id: number };
+                position?: { start: { offset?: number } };
+            }> = [];
+            let nextId = 0;
+            const collectElements = (node: any) => {
+                if (node.type === "element") {
+                    elements.push({
+                        data: { id: nextId++ },
+                        position: node.position,
+                    });
+                    for (const child of node.children || []) {
+                        collectElements(child);
+                    }
+                }
+            };
+            for (const child of sourceObj.dast.children) {
+                collectElements(child);
+            }
+
+            const core: ResolverCore = {
+                setSource: async () => {},
+                setFlags: async () => {},
+                returnDast: async () => ({ elements }),
+                resolvePath: async ({ path }) => {
+                    const first = (path.path[0] as { name: string }).name;
+                    // Resolve $sec. to section (id 0), but resolve probe "inside"
+                    // to differently cased "Inside" outside the section (id 2).
+                    if (first === "sec") {
+                        return {
+                            nodeIdx: 0,
+                            nodesInResolvedPath: [0],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "sec" }],
+                        };
+                    }
+                    if (first === "inside") {
+                        return {
+                            nodeIdx: 2,
+                            nodesInResolvedPath: [2],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "inside" }],
+                        };
+                    }
+                    throw new Error("NoReferent");
+                },
+            };
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$sec.") + "$sec.".length,
+                pathParts: ["sec", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.visibleDescendantNames).not.toContain("inside");
+        });
+
+        it("Blocks unindexed traversal from the first takesIndex segment, not the following segment", async () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep.myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$rep.myMath.") + "$rep.myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [false, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["rep", "myMath"]);
+        });
+
+        it("Allows indexed traversal when the indexed segment is after the origin entry", async () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset:
+                    source.indexOf("$rep[1].myMath.") +
+                    "$rep[1].myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Aligns to the trailing path nodes when nodesInResolvedPath has extra leading entries", async () => {
+            const source = `<section name="sec"><repeat name="outer"><repeatForSequence name="inner"><math name="myMath">x</math></repeatForSequence></repeat>\n$outer[1].inner[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 3, // myMath
+                // Simulate a resolver shape with an extra leading bookkeeping node
+                // before the actual path-aligned tail [1, 2, 3].
+                nodesInResolvedPath: [0, 0, 1, 2, 3],
+                unresolvedPath: null,
+                originalPath: [
+                    { name: "outer" },
+                    { name: "inner" },
+                    { name: "myMath" },
+                ],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset:
+                    source.indexOf("$outer[1].inner[1].myMath.") +
+                    "$outer[1].inner[1].myMath.".length,
+                pathParts: ["outer", "inner", "myMath", ""],
+                pathPartHasIndex: [true, true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Blocks traversal when an intermediate non-takesIndex segment has an index", async () => {
+            // $sec[1].myP. — section does not takesIndex, so the [1] is spurious
+            // and should produce no completions (false positive is worse than false negative).
+            const source = `<section name="sec"><p name="myP">text</p></section>\n$sec[1].myP.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1, // p
+                nodesInResolvedPath: [0, 1], // section then p
+                unresolvedPath: null,
+                originalPath: [{ name: "sec" }, { name: "myP" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$sec[1].myP.") + "$sec[1].myP.".length,
+                pathParts: ["sec", "myP", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["sec", "myP"]);
+        });
+
+        it("Blocks completions when the resolved non-takesIndex element has an index", async () => {
+            // $myMath[1]. — math does not takesIndex, so the [1] is spurious
+            // and should produce no completions.
+            const source = `<math name="myMath">x</math>\n$myMath[1].`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 0, // myMath
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$myMath[1].") + "$myMath[1].".length,
+                pathParts: ["myMath", ""],
+                pathPartHasIndex: [true, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Handles updateSource to re-sync with core", async () => {
+            const source1 = `<section name="s1"><p name="p1" /></section>`;
+            const sourceObj1 = new DoenetSourceObject(source1);
+            const { core } = createMockCore(source1, sourceObj1);
+
+            const adapter = new RustResolverAdapter(sourceObj1, { core });
+            await adapter.init();
+            expect(adapter.isEnabled()).toBe(true);
+
+            const source2 = `<section name="s2"><p name="p2" /></section>`;
+            const sourceObj2 = new DoenetSourceObject(source2);
+            await adapter.updateSource(sourceObj2);
+            expect(adapter.isEnabled()).toBe(true);
+        });
+
+        it("Uses mapped root origin index when Rust ids are non-zero", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(
+                source,
+                sourceObj,
+                {
+                    nodeIdx: 10,
+                    nodesInResolvedPath: [10],
+                    unresolvedPath: null,
+                    originalPath: [{ name: "s1" }],
+                },
+                { startId: 10 },
+            );
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+
+            const result = await resolver({
+                offset: source.indexOf("$s1.") + 4,
+                pathParts: ["s1", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(calls.length).toBeGreaterThan(0);
+            expect(calls[0].origin).toBe(10);
+        });
+
+        it("Disables adapter when set_source throws", async () => {
+            const source = `<section name="s1"></section>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const brokenCore: ResolverCore = {
+                setSource: async () => {
+                    throw new Error("WASM error");
+                },
+                setFlags: async () => {},
+                returnDast: async () => ({ elements: [] }),
+                resolvePath: async () => ({
+                    nodeIdx: 0,
+                    nodesInResolvedPath: [0],
+                    unresolvedPath: null,
+                    originalPath: [],
+                }),
+            };
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core: brokenCore,
+            });
+            await adapter.init();
+            expect(adapter.isEnabled()).toBe(false);
+
+            const resolver = adapter.createResolver();
+            expect(
+                await resolver({ offset: 0, pathParts: ["s1", ""] }),
+            ).toBeNull();
+        });
+
+        it("Caches visibility probes for repeated member resolutions", async () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+            const offset = source.indexOf("$s1.") + 4;
+
+            await resolver({ offset, pathParts: ["s1", ""] });
+            await resolver({ offset, pathParts: ["s1", ""] });
+
+            // The container resolution runs each time
+            // (skip_parent_search=false), but the descendant visibility probe
+            // path (skip_parent_search=true) should be cached after the first
+            // call for this source revision and resolved node.
+            const probeCalls = calls.filter((c) => c.skip_parent_search);
+            expect(probeCalls.length).toBe(1);
+        });
+
+        it("Invalidates visibility-probe cache when source changes", async () => {
+            const source1 = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj1 = new DoenetSourceObject(source1 + " ");
+            const { core, calls } = createMockCore(source1, sourceObj1, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj1, { core });
+            await adapter.init();
+            const resolver = adapter.createResolver();
+            const offset1 = source1.indexOf("$s1.") + 4;
+
+            await resolver({ offset: offset1, pathParts: ["s1", ""] });
+            await resolver({ offset: offset1, pathParts: ["s1", ""] });
+
+            const firstProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(firstProbeCount).toBe(1);
+
+            const source2 = `<section name="s2"><p name="p2" /></section>\n$s2.`;
+            const sourceObj2 = new DoenetSourceObject(source2 + " ");
+            await adapter.updateSource(sourceObj2);
+
+            const offset2 = source2.indexOf("$s2.") + 4;
+            await resolver({ offset: offset2, pathParts: ["s2", ""] });
+
+            const secondProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(secondProbeCount).toBe(2);
+        });
+    });
+
+    describe("childContextHelp alias-aware completions (#1174, #1092)", () => {
+        // Same fixture as the schema-violations alias-aware tests: a
+        // synthetic schema where `<matrix>` redirects child `<row>` through
+        // the `matrixRow` alias.  The alias declares `<math>` as a valid
+        // child, the `unordered` attribute (with values "true"/"false"),
+        // and a wider attribute set than the tabular `<row>`.
+        const aliasSchema = [
+            {
+                name: "doc",
+                children: ["matrix", "row", "math"],
+                attributes: [],
+                top: true,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "matrix",
+                children: ["row"],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: false,
+                childContextHelp: { row: "matrixRow" },
+            },
+            {
+                name: "row",
+                children: ["cell"],
+                attributes: [
+                    {
+                        name: "header",
+                        description: "Header row.",
+                        values: ["true", "false"],
+                    },
+                ],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "cell",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+            {
+                name: "math",
+                children: [],
+                attributes: [],
+                top: false,
+                acceptsStringChildren: true,
+            },
+        ];
+        const aliasedElements = {
+            matrixRow: {
+                name: "matrixRow",
+                summary: "A row inside a matrix.",
+                attributes: [
+                    {
+                        name: "unordered",
+                        description: "Mathlist is unordered.",
+                        values: ["true", "false"],
+                        autocompleteValues: [
+                            {
+                                value: "true",
+                                description: "Treat as unordered.",
+                            },
+                            { value: "false", description: "Keep order." },
+                        ],
+                    },
+                ],
+                children: ["math"],
+                acceptsStringChildren: false,
+            },
+        };
+
+        function createAliasAutoCompleter(source: string) {
+            const ac = new AutoCompleter(source, aliasSchema);
+            ac.setSchema(aliasSchema, aliasedElements);
+            return ac;
+        }
+
+        it("Element-body `<` completions offer alias children (#1174)", async () => {
+            // `<doc><matrix><row><` — the in-tag suggestions for `<row>`
+            // inside `<matrix>` must come from `matrixRow`'s children
+            // (`["math"]`), not the canonical `<row>`'s (`["cell"]`).
+            const source = `<doc><matrix><row><`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            expect(labels).toContain("math");
+            expect(labels).not.toContain("cell");
+        });
+
+        it("openTagName completions inside the alias parent offer alias children (#1174)", async () => {
+            // Same as above but with a partial element name already typed.
+            const source = `<doc><matrix><row><ma`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("math");
+        });
+
+        it("Attribute-name completions inside the alias offer the alias's attribute set (#1174)", async () => {
+            // `<row ` inside `<matrix>` exposes `matrixRow`'s attribute
+            // set — `unordered` is offered, while the canonical `<row>`'s
+            // `header` is not.
+            const source = `<doc><matrix><row `;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toContain("unordered");
+            expect(labels).not.toContain("header");
+        });
+
+        it("Attribute-value completions on alias attributes return the alias's values (#1092)", async () => {
+            // `<row unordered="` inside `<matrix>` — value completions
+            // come from `matrixRow.unordered.autocompleteValues`. The
+            // canonical `<row>` doesn't even declare `unordered`, so this
+            // value-set could only originate from the alias-aware path.
+            const source = `<doc><matrix><row unordered="`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toEqual(["true", "false"]);
+            // The richer per-value descriptions from `autocompleteValues`
+            // should flow through to the dropdown documentation.
+            const trueItem = items.find((i) => i.label === "true");
+            expect(trueItem?.documentation).toEqual({
+                kind: "markdown",
+                value: "Treat as unordered.",
+            });
+        });
+
+        it("Canonical element-body completions are unchanged outside the alias context", async () => {
+            // `<doc><row><` — no `<matrix>` parent, so the canonical
+            // `<row>`'s children (`["cell"]`) are offered.
+            const source = `<doc><row><`;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            expect(labels).toContain("cell");
+            expect(labels).not.toContain("math");
+        });
+
+        it("Canonical attribute-name completions are unchanged outside the alias context", async () => {
+            // `<doc><row ` — canonical `<row>` declares `header` but not
+            // `unordered`.
+            const source = `<doc><row `;
+            const ac = createAliasAutoCompleter(source);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toContain("header");
+            expect(labels).not.toContain("unordered");
+        });
+
+        it("Falls back to canonical children when the alias entry omits `children`", async () => {
+            // Backward-compat path: an alias built from an older schema
+            // snapshot may only carry attributes/help text and no
+            // `children` field (which `AliasedElementSchema` explicitly
+            // permits).  In that case the canonical entry's children
+            // should still surface in completions — empty alias children
+            // must not silently strip them.  Mirrors the existing
+            // fallthrough in `isAllowedChild`.
+            const aliasedElementsSparse = {
+                matrixRow: {
+                    name: "matrixRow",
+                    summary: "A row inside a matrix.",
+                    attributes: [
+                        {
+                            name: "unordered",
+                            description: "Mathlist is unordered.",
+                            values: ["true", "false"],
+                        },
+                    ],
+                    // intentionally no `children`
+                },
+            };
+            const source = `<doc><matrix><row><`;
+            const ac = new AutoCompleter(source, aliasSchema);
+            ac.setSchema(aliasSchema, aliasedElementsSparse);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items
+                .map((i) => i.label)
+                .filter((l) => l === "math" || l === "cell");
+            // Canonical `<row>` children (`["cell"]`) should still surface
+            // because the alias didn't declare its own child set.
+            expect(labels).toContain("cell");
+        });
+    });
+
+    describe("Bundled Doenet schema: matrix alias-aware completions (#1174, #1092)", () => {
+        // End-to-end smoke against the real schema: confirm the alias path
+        // surfaces matrix-flavored children/attributes that motivated the
+        // bug, mirroring the row_matrix.mdx / column_matrix.mdx examples.
+        it("Offers <math> as a child of <row> inside <matrix>", async () => {
+            const source = `<matrix><row><`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("math");
+        });
+
+        it("Offers `unordered` as an attribute of <row> inside <matrix>", async () => {
+            const source = `<matrix><row `;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.label)).toContain("unordered");
         });
     });
 });

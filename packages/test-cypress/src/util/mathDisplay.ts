@@ -55,6 +55,12 @@ const mapping: Record<string, string> = {
     "-": `−`,
 };
 
+const reverseLetterMapping: Record<string, string> = Object.fromEntries(
+    Object.entries(mapping)
+        .filter(([key]) => /^[A-Za-z]$/.test(key))
+        .map(([key, value]) => [value, key]),
+);
+
 /**
  * A utility function to convert a string closer to what MathJax puts into the DOM.
  *
@@ -68,7 +74,7 @@ export function toMathJaxString(
     s: string,
     options: { noInvisibleTimes?: boolean } = {},
 ) {
-    let chars = s.split("");
+    let chars = Array.from(s);
     let newChars: string[] = [];
 
     if (options.noInvisibleTimes) {
@@ -92,8 +98,91 @@ export function toMathJaxString(
 }
 
 export function removeSpaces(s: string) {
-    return s
-        .split("")
+    return Array.from(s)
         .filter((c) => c != " ")
         .join("");
+}
+
+/**
+ * Normalizes math text so Cypress assertions are resilient to MathJax timing differences.
+ *
+ * In CI we can occasionally read either:
+ * - raw inline math text (for example "\\(x+1\\)")
+ * - fully rendered MathJax glyph text (for example "𝑥 +1")
+ *
+ * We collapse those forms to a comparable representation by removing delimiters,
+ * normalizing spacing/signs, and mapping rendered italic glyphs back to ASCII letters.
+ *
+ * NOTE: We use Array.from() so surrogate-pair glyphs such as 𝑥 are processed as
+ * complete Unicode code points rather than split UTF-16 code units.
+ */
+export function normalizeMathTextForComparison(s: string) {
+    return Array.from(s)
+        .map((c) => reverseLetterMapping[c] ?? c)
+        .join("")
+        .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
+        .replace(/\u2062/g, "")
+        .replace(/−/g, "-")
+        .replace(/\s+/g, "");
+}
+/**
+ * Returns true when actual math text semantically equals the expected source,
+ * accepting either raw-source form or MathJax-rendered form.
+ */
+export function mathTextMatchesExpected(
+    actualText: string,
+    expectedMathSource: string,
+) {
+    const normalizedActual = normalizeMathTextForComparison(actualText);
+    const normalizedExpectedSource =
+        normalizeMathTextForComparison(expectedMathSource);
+    const normalizedRenderedExpected = normalizeMathTextForComparison(
+        toMathJaxString(expectedMathSource),
+    );
+
+    return (
+        normalizedActual === normalizedExpectedSource ||
+        normalizedActual === normalizedRenderedExpected
+    );
+}
+
+/**
+ * Logical inverse of mathTextMatchesExpected for readable negative assertions.
+ */
+export function mathTextDoesNotMatchExpected(
+    actualText: string,
+    expectedMathSource: string,
+) {
+    return !mathTextMatchesExpected(actualText, expectedMathSource);
+}
+
+/**
+ * Returns true when actual math text contains the expected source semantically,
+ * tolerating raw-source and MathJax-rendered DOM output.
+ */
+export function mathTextContainsExpected(
+    actualText: string,
+    expectedMathSource: string,
+) {
+    const normalizedActual = normalizeMathTextForComparison(actualText);
+    const normalizedExpectedSource =
+        normalizeMathTextForComparison(expectedMathSource);
+    const normalizedRenderedExpected = normalizeMathTextForComparison(
+        toMathJaxString(expectedMathSource),
+    );
+
+    return (
+        normalizedActual.includes(normalizedExpectedSource) ||
+        normalizedActual.includes(normalizedRenderedExpected)
+    );
+}
+
+/**
+ * Logical inverse of mathTextContainsExpected for readable negative assertions.
+ */
+export function mathTextDoesNotContainExpected(
+    actualText: string,
+    expectedMathSource: string,
+) {
+    return !mathTextContainsExpected(actualText, expectedMathSource);
 }

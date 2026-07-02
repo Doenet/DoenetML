@@ -1,5 +1,7 @@
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+const { max } = me.math;
 
 export class SideBySide extends BlockComponent {
     constructor(args) {
@@ -10,6 +12,10 @@ export class SideBySide extends BlockComponent {
         });
     }
     static componentType = "sideBySide";
+
+    static componentDocs = {
+        summary: "Renders children in a side-by-side horizontal layout",
+    };
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
@@ -18,20 +24,49 @@ export class SideBySide extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Total rendered width of the side-by-side container.",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",
+            description: "List of widths for each panel.",
         };
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
+            description: "List of margin widths between panels.",
         };
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
+            description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
+            description: "Per-panel vertical alignment values.",
         };
 
         return attributes;
@@ -52,6 +87,56 @@ export class SideBySide extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // listItemInlineAlignment and childrenToRenderInlineForListItem share the same
+        // parent-list membership check, so they are computed together.
+        stateVariableDefinitions.listItemInlineAlignment = {
+            forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "childrenToRenderInlineForListItem" },
+            ],
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                blockChildren: {
+                    dependencyType: "child",
+                    childGroups: ["blocks"],
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                const shouldRenderInline =
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx);
+
+                if (!shouldRenderInline) {
+                    return {
+                        setValue: {
+                            listItemInlineAlignment: "none",
+                            childrenToRenderInlineForListItem: [],
+                        },
+                    };
+                }
+
+                // Use baseline alignment when the first panel is a plain paragraph
+                // so the list-item number aligns with its text; use flex-start for
+                // block-level content (graphs, choiceInputs, etc.) so the number
+                // aligns with the top of the content instead.
+                const firstPanel = dependencyValues.blockChildren?.[0];
+                return {
+                    setValue: {
+                        listItemInlineAlignment:
+                            firstPanel?.componentType === "p"
+                                ? "baseline"
+                                : "flex-start",
+                        childrenToRenderInlineForListItem:
+                            dependencyValues.blockChildren,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.numPanels = {
             forRenderer: true,
@@ -155,7 +240,7 @@ export class SideBySide extends BlockComponent {
                 let allWidthsSpecified = [];
                 let widthsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 let nWidthsSpecifiedFromAttrs;
                 let usingSingleWidth = false;
@@ -228,9 +313,10 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
-                        message: `<sideBySide> is not implemented for absolute measurements. Setting widths to relative.`,
-                        level: 1,
+                    diagnostics.push({
+                        message:
+                            "`<sideBySide>` is not implemented for absolute measurements. Setting widths to relative.",
+                        type: "warning",
                     });
                 }
                 widthsAbsolute = false;
@@ -242,7 +328,7 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allWidthsSpecified, widthsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -317,7 +403,7 @@ export class SideBySide extends BlockComponent {
                 let allMarginsSpecified = [];
                 let marginsAbsolute = null;
                 let secondMarginAbsolute = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.marginsAttr === null) {
                     if (dependencyValues.parentMargins) {
@@ -401,9 +487,10 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (secondMarginAbsolute || marginsAbsolute) {
-                    warnings.push({
-                        message: `<sideBySide> is not implemented for absolute measurements. Setting margins to relative.`,
-                        level: 1,
+                    diagnostics.push({
+                        message:
+                            "`<sideBySide>` is not implemented for absolute measurements. Setting margins to relative.",
+                        type: "warning",
                     });
                 }
 
@@ -411,12 +498,14 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allMarginsSpecified, marginsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
 
         stateVariableDefinitions.absoluteMeasurements = {
+            description:
+                "Whether children's widths are interpreted in absolute units.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -444,11 +533,14 @@ export class SideBySide extends BlockComponent {
         };
 
         stateVariableDefinitions.allWidths = {
+            description: "All children's widths combined.",
             additionalStateVariablesDefined: [
                 "allMargins",
                 {
                     variableName: "gapWidth",
                     public: true,
+                    description:
+                        "The gap width between panels as a percentage of the total container width.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
@@ -474,7 +566,7 @@ export class SideBySide extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let gapWidth = 0;
                 let allWidths = [...dependencyValues.allWidthsSpecified];
@@ -587,10 +679,10 @@ export class SideBySide extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
-                                    "Invalid <sideBySide>: it must have at least one block child.",
-                                level: 1,
+                                    "Invalid `<sideBySide>`: it must have at least one block child.",
+                                type: "warning",
                             });
                         }
                     }
@@ -600,12 +692,13 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allWidths, allMargins, gapWidth },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
 
         stateVariableDefinitions.widths = {
+            description: "The list of child widths.",
             public: true,
             isArray: true,
             shadowingInstructions: {
@@ -746,6 +839,7 @@ export class SideBySide extends BlockComponent {
         };
 
         stateVariableDefinitions.margins = {
+            description: "Margins between adjacent children.",
             public: true,
             isArray: true,
             shadowingInstructions: {
@@ -959,6 +1053,7 @@ export class SideBySide extends BlockComponent {
         };
 
         stateVariableDefinitions.valigns = {
+            description: "Vertical alignment of each child.",
             public: true,
             isArray: true,
             shadowingInstructions: {
@@ -1187,25 +1282,59 @@ export class SbsGroup extends BlockComponent {
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
+    static componentDocs = {
+        summary:
+            "A group of `<sideBySide>` components that share alignment and spacing",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Total rendered width of the side-by-side container.",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",
+            description: "List of widths for each panel.",
         };
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
+            description: "List of margin widths between panels.",
         };
 
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align panels to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center panels.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align panels to the bottom.",
+                },
+            ],
+            description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            toLowerCase: true,
+            validValues: [
+                { value: "top", description: "Align the panel to the top." },
+                {
+                    value: "middle",
+                    description: "Vertically center the panel.",
+                },
+                {
+                    value: "bottom",
+                    description: "Align the panel to the bottom.",
+                },
+            ],
+            description: "Per-panel vertical alignment values.",
         };
 
         return attributes;
@@ -1227,6 +1356,11 @@ export class SbsGroup extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
         stateVariableDefinitions.maxNPanelsPerRow = {
             // forRenderer: true,
             returnDependencies: () => ({
@@ -1242,7 +1376,7 @@ export class SbsGroup extends BlockComponent {
                         maxNPanelsPerRow:
                             dependencyValues.sideBySideChildren.length === 0
                                 ? 0
-                                : me.math.max(
+                                : max(
                                       dependencyValues.sideBySideChildren.map(
                                           (x) => x.stateValues.numPanels,
                                       ),
@@ -1448,7 +1582,7 @@ export class SbsGroup extends BlockComponent {
             definition({ dependencyValues }) {
                 let widthsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let ind in dependencyValues.widthsAbsoluteArray) {
                     let thisAbsolute =
@@ -1462,14 +1596,18 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
-                        message: `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative.`,
-                        level: 1,
+                    diagnostics.push({
+                        message:
+                            "`<sbsGroup>` is not implemented for absolute measurements. Setting widths to relative.",
+                        type: "warning",
                     });
                 }
                 widthsAbsolute = false;
 
-                return { setValue: { widthsAbsolute }, sendWarnings: warnings };
+                return {
+                    setValue: { widthsAbsolute },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -1704,7 +1842,7 @@ export class SbsGroup extends BlockComponent {
             definition({ dependencyValues }) {
                 let marginsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let ind in dependencyValues.marginsAbsoluteArray) {
                     let thisAbsolute =
@@ -1719,22 +1857,25 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
-                        message: `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative.`,
-                        level: 1,
+                    diagnostics.push({
+                        message:
+                            "`<sbsGroup>` is not implemented for absolute measurements. Setting margins to relative.",
+                        type: "warning",
                     });
                 }
                 marginsAbsolute = false;
 
                 return {
                     setValue: { marginsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
 
         stateVariableDefinitions.absoluteMeasurements = {
             public: true,
+            description:
+                "Whether children's widths are interpreted in absolute units.",
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
@@ -1766,6 +1907,8 @@ export class SbsGroup extends BlockComponent {
                 {
                     variableName: "gapWidth",
                     public: true,
+                    description:
+                        "The gap width between panels as a percentage of the total container width.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
@@ -1791,7 +1934,7 @@ export class SbsGroup extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let gapWidth = 0;
                 let allWidths = [...dependencyValues.specifiedWidths];
@@ -1908,10 +2051,10 @@ export class SbsGroup extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
-                                    "Invalid <sbsGroup>: it must have at least one block child.",
-                                level: 1,
+                                    "Invalid `<sbsGroup>`: it must have at least one block child.",
+                                type: "warning",
                             });
                         }
                     }
@@ -1921,13 +2064,14 @@ export class SbsGroup extends BlockComponent {
 
                 return {
                     setValue: { allWidths, allMargins, gapWidth },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
 
         stateVariableDefinitions.widths = {
             public: true,
+            description: "The list of child widths.",
             isArray: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1999,6 +2143,7 @@ export class SbsGroup extends BlockComponent {
 
         stateVariableDefinitions.margins = {
             public: true,
+            description: "Margins between adjacent children.",
             isArray: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -2065,6 +2210,7 @@ export class SbsGroup extends BlockComponent {
 
         stateVariableDefinitions.valigns = {
             public: true,
+            description: "Vertical alignment of each child.",
             isArray: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -2264,6 +2410,11 @@ export class Stack extends BlockComponent {
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
+    static componentDocs = {
+        summary:
+            "A vertical container element for organizing content within a `<sideBySide>`",
+    };
+
     static includeBlankStringChildren = true;
 
     static returnChildGroups() {
@@ -2273,6 +2424,17 @@ export class Stack extends BlockComponent {
                 componentTypes: ["_base"],
             },
         ];
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
+        return stateVariableDefinitions;
     }
 
     recordVisibilityChange({ isVisible }) {

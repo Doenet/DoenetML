@@ -9,6 +9,9 @@ import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
 
+    static componentDocs = {
+        summary: "A boolean value",
+    };
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
@@ -22,12 +25,15 @@ export default class BooleanComponent extends InlineComponent {
             createStateVariable: "symbolicEquality",
             defaultValue: false,
             public: true,
+            description:
+                "Whether children compared via this boolean use symbolic equality.",
         };
         attributes.expandOnCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "expandOnCompare",
             defaultValue: false,
             public: true,
+            description: "Whether to expand math expressions before comparing.",
         };
         attributes.simplifyOnCompare = {
             createComponentOfType: "text",
@@ -37,67 +43,106 @@ export default class BooleanComponent extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                {
+                    value: "none",
+                    description:
+                        "No simplification is applied before comparing.",
+                },
+                {
+                    value: "full",
+                    description:
+                        "Fully simplify both expressions before comparing.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
             public: true,
+            description:
+                "Level of simplification applied to math expressions before comparing.",
         };
         attributes.unorderedCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedCompare",
             defaultValue: false,
             public: true,
+            description:
+                "Whether order is ignored when comparing list-like values.",
         };
         attributes.matchByExactPositions = {
             createComponentOfType: "boolean",
             createStateVariable: "matchByExactPositions",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to match list values by exact position rather than by content.",
         };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",
             createStateVariable: "allowedErrorInNumbers",
             defaultValue: 0,
             public: true,
+            description:
+                "Maximum allowed numeric error when comparing numbers.",
         };
         attributes.includeErrorInNumberExponents = {
             createComponentOfType: "boolean",
             createStateVariable: "includeErrorInNumberExponents",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the allowed numeric error also applies to numbers in exponents.",
         };
         attributes.allowedErrorIsAbsolute = {
             createComponentOfType: "boolean",
             createStateVariable: "allowedErrorIsAbsolute",
             defaultValue: false,
             public: true,
+            description:
+                "Whether allowedErrorInNumbers is interpreted as an absolute (rather than relative) tolerance.",
         };
         attributes.numSignErrorsMatched = {
             createComponentOfType: "number",
             createStateVariable: "numSignErrorsMatched",
             defaultValue: 0,
             public: true,
+            description:
+                "Maximum number of sign errors that still count as a match.",
         };
         attributes.numPeriodicSetMatchesRequired = {
             createComponentOfType: "integer",
             createStateVariable: "numPeriodicSetMatchesRequired",
             defaultValue: 3,
             public: true,
+            description:
+                "Number of consecutive elements of a periodic set required to count as a match.",
         };
         attributes.caseInsensitiveMatch = {
             createComponentOfType: "boolean",
             createStateVariable: "caseInsensitiveMatch",
             defaultValue: false,
             public: true,
+            description: "Whether text comparisons ignore letter case.",
         };
         attributes.matchBlanks = {
             createComponentOfType: "boolean",
             createStateVariable: "matchBlanks",
             defaultValue: false,
             public: true,
+            description:
+                "Whether unfilled blanks in a math expression count as a match.",
         };
         return attributes;
     }
@@ -182,6 +227,7 @@ export default class BooleanComponent extends InlineComponent {
         );
 
         stateVariableDefinitions.value = {
+            description: "The boolean value (true or false).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
@@ -364,6 +410,8 @@ export default class BooleanComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description:
+                'The boolean rendered as a text string ("true" or "false").',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

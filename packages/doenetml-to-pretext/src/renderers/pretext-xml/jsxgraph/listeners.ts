@@ -27,30 +27,24 @@ export function attachStandardGraphListeners<T extends JSG.GeometryElement>(
         ) {
             interactionState.dragActive = true;
         }
-        console.log("dragging", obj.elType, { interactionState, obj });
     });
     obj.on("down", function (_e) {
         const e = _e as MouseEvent;
         interactionState.pointerAtDown = [e.x, e.y];
-        console.log("down", obj.elType, { interactionState, obj });
     });
     obj.on("hit", function (_e) {
         interactionState.dragActive = false;
-        console.log("hit", obj.elType, { interactionState, obj });
     });
     obj.on("up", function (_e) {
         interactionState.dragActive = false;
-        console.log("up", obj.elType, { interactionState, obj });
     });
     obj.on("keyfocusout", function (_e) {
         interactionState.dragActive = false;
-        console.log("keyfocusout", obj.elType, { interactionState, obj });
     });
     obj.on("keydown", function (_e) {
         const e = _e as KeyboardEvent;
         if (e.key === "Enter") {
             interactionState.dragActive = false;
         }
-        console.log("keydown", obj.elType, { interactionState, obj });
     });
 }

@@ -1,0 +1,2 @@
+recursive-include pretext_wasm/core **
+recursive-include pretext_wasm/templates **

@@ -1,4 +1,4 @@
-import { cesc, deepCompare } from "@doenet/utils";
+import { deepCompare } from "@doenet/utils";
 
 describe("DocViewer Attribute Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
@@ -60,7 +60,7 @@ describe("DocViewer Attribute Tests", { tags: ["@group5"] }, function () {
             });
         });
 
-        cy.get(cesc("#t")).should("not.exist");
+        cy.get("#t").should("not.exist");
 
         cy.log("Core has not been initialized");
         cy.window().then(async (win) => {

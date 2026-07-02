@@ -27,7 +27,19 @@ export default class CallAction extends InlineComponent {
         });
     }
     static componentType = "callAction";
+
+    static componentDocs = {
+        summary:
+            "Triggers an action when clicked or in response to a specified user interaction",
+    };
     static rendererType = "button";
+
+    // The children of a `<callAction>` are kept serialized (see
+    // `keepChildrenSerialized`) and passed to the invoked action — e.g. as the
+    // components to insert for an `addChildren` action — rather than being matched
+    // to child groups. Since those children can be any component, declare `_base`
+    // as an additional schema child so the schema accepts arbitrary children.
+    static additionalSchemaChildren = ["_base"];
 
     static keepChildrenSerialized({
         serializedComponent,
@@ -59,6 +71,8 @@ export default class CallAction extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the component whose action will be invoked.",
         };
 
         attributes.actionName = {
@@ -66,6 +80,8 @@ export default class CallAction extends InlineComponent {
             createStateVariable: "actionName",
             defaultValue: null,
             public: true,
+            description:
+                "Name of the action to invoke on the target component.",
         };
 
         attributes.draggable = {
@@ -74,6 +90,7 @@ export default class CallAction extends InlineComponent {
             defaultValue: true,
             public: true,
             forRenderer: true,
+            description: "Whether the action button can be dragged on a graph.",
         };
 
         Object.assign(attributes, returnLabelAttributes());
@@ -88,10 +105,12 @@ export default class CallAction extends InlineComponent {
 
         attributes.numbers = {
             createComponentOfType: "numberList",
+            description: "Numeric arguments passed to the invoked action.",
         };
 
         attributes.number = {
             createComponentOfType: "number",
+            description: "Numeric argument passed to the invoked action.",
         };
 
         return attributes;

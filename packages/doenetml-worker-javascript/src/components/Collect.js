@@ -5,6 +5,12 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
+    static componentDocs = {
+        summary:
+            "Collects descendants of a component matching a specified component type",
+    };
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static acceptAnyAttribute = true;
@@ -26,6 +32,7 @@ export default class Collect extends CompositeComponent {
         delete attributes.hide;
 
         attributes.maxNumber = {
+            description: "Maximum number of descendants to collect.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: null,
@@ -34,16 +41,20 @@ export default class Collect extends CompositeComponent {
 
         attributes.from = {
             createReferences: true,
+            description: "Component subtree(s) to collect descendants from.",
         };
 
         attributes.componentType = {
             createComponentOfType: "text",
+            description: "Component type of descendants to collect.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -149,11 +160,11 @@ export default class Collect extends CompositeComponent {
                 if (dependencyValues.sourceComponent === null) {
                     let warning = {
                         message: "No source found for collect.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { sourceName: "" },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
                 return {
@@ -176,7 +187,7 @@ export default class Collect extends CompositeComponent {
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
                 let componentTypeToCollect = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.componentTypeAttr !== null) {
                     const cType =
@@ -193,14 +204,14 @@ export default class Collect extends CompositeComponent {
                     } else {
                         const warning = {
                             type: "warning",
-                            message: `Cannot collect components of type <${cType}> as it is an invalid component type.`,
+                            message: `Cannot collect components of type \`<${cType}>\` as it is an invalid component type.`,
                         };
                         if (dependencyValues.componentTypeAttr.position) {
                             warning.position =
                                 dependencyValues.componentTypeAttr.position;
                         }
 
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                     }
                 }
 
@@ -208,7 +219,7 @@ export default class Collect extends CompositeComponent {
                     setValue: {
                         componentTypeToCollect,
                     },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -316,15 +327,14 @@ export default class Collect extends CompositeComponent {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
         // console.log(await component.stateValues.collectedComponents)
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         workspace.numReplacementsByCollected = [];
         workspace.collectedNames = [];
         workspace.replacementNamesByCollected = [];
 
         if (!(await component.stateValues.sourceComponent)) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let replacements = [];
@@ -354,8 +364,7 @@ export default class Collect extends CompositeComponent {
                     publicCaseInsensitiveAliasSubstitutions,
                     nComponents,
                 });
-                errors.push(...results.errors);
-                warnings.push(...results.warnings);
+                diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
 
                 let collectedReplacements = results.serializedReplacements;
@@ -376,7 +385,7 @@ export default class Collect extends CompositeComponent {
             (x) => x.componentIdx,
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async createReplacementForCollected({
@@ -392,8 +401,7 @@ export default class Collect extends CompositeComponent {
     }) {
         // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let collectedObj = (await component.stateValues.collectedComponents)[
             collectedNum
@@ -410,8 +418,7 @@ export default class Collect extends CompositeComponent {
         if (!collectedComponent) {
             return {
                 serializedReplacements,
-                errors,
-                warnings,
+                diagnostics,
             };
         }
 
@@ -450,8 +457,7 @@ export default class Collect extends CompositeComponent {
 
         return {
             serializedReplacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -471,9 +477,7 @@ export default class Collect extends CompositeComponent {
         // console.log(deepClone(workspace));
         // console.log(component.replacements.map(x => x.componentIdx))
 
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let numReplacementsFoundSoFar = 0;
 
@@ -611,8 +615,7 @@ export default class Collect extends CompositeComponent {
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
                 });
-                errors.push(...results.errors);
-                warnings.push(...results.warnings);
+                diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
 
                 numReplacementsSoFar += results.numReplacements;
@@ -674,7 +677,7 @@ export default class Collect extends CompositeComponent {
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static async recreateReplacements({
@@ -689,8 +692,7 @@ export default class Collect extends CompositeComponent {
         publicCaseInsensitiveAliasSubstitutions,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let results = await this.createReplacementForCollected({
             component,
@@ -703,8 +705,7 @@ export default class Collect extends CompositeComponent {
             publicCaseInsensitiveAliasSubstitutions,
             nComponents,
         });
-        errors.push(...results.errors);
-        warnings.push(...results.warnings);
+        diagnostics.push(...results.diagnostics);
         nComponents = results.nComponents;
 
         let newSerializedChildren = results.serializedReplacements;
@@ -720,8 +721,7 @@ export default class Collect extends CompositeComponent {
         return {
             numReplacements: newSerializedChildren.length,
             replacementInstruction,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

@@ -1,29 +1,28 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <option>{:dn}`
+# `<option>{:dn}`
 
+<ComponentDisplay name='option'/>
 
-` <option>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
-component that defines a selection element within a [` <select>{:dn}`](select.mdx) block. 
-If only ` <math>{:dn}` type components are to be selected, the ` <option>{:dn}` 
+`<option>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that defines a selection element within a [`<select>{:dn}`](select.mdx) block. 
+If only `<math>{:dn}` type components are to be selected, the `<option>{:dn}` 
 component can be excluded and selection items can simply be listed with a space between list items. 
-However, if multiple types or complex selections are required, the ` <option>{:dn}` component is necessary.
+However, if multiple types or complex selections are required, the `<option>{:dn}` component is necessary.
 
 
 When varying component types are used as options, such as 
-a ` <text>{:dn}`, ` <function>{:dn}`, 
-or ` <number>{:dn}`, these tags are nested within the ` <option>{:dn}` tag.
+a `<text>{:dn}`, `<function>{:dn}`, 
+or `<number>{:dn}`, these tags are nested within the `<option>{:dn}` tag.
 
-## Attributes and Properties 
- <AttrDisplay name='option'/> 
- <PropDisplay name='option'/>
+<AttrPropDisplay name='option'/>
 
----
+## Examples
 
-### Example: ` <option>{:dn}` type math
+### Example: `<option>{:dn}` type math
 
 
 ```doenet-editor-horiz
@@ -41,15 +40,15 @@ or ` <number>{:dn}`, these tags are nested within the ` <option>{:dn}` tag.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: ` <option>{:dn}` type text
+### Example: `<option>{:dn}` type text
 
 
 ```doenet-editor-horiz
@@ -65,15 +64,15 @@ editor to see different variants of the document.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: ` <option>{:dn}` type vector
+### Example: `<option>{:dn}` type vector
 
 
 ```doenet-editor-horiz
@@ -91,15 +90,15 @@ editor to see different variants of the document.
 
 
 
-Three options for a variable name are nested within a ` <select>{:dn}`. The 
-type of each ` <option>{:dn}` must be specified.
+Three options for a variable name are nested within a `<select>{:dn}`. The 
+type of each `<option>{:dn}` must be specified.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: Multiple ` <option>{:dn}` types within a ` <select>{:dn}`
+### Example: Multiple `<option>{:dn}` types within a `<select>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -118,15 +117,15 @@ editor to see different variants of the document.
 
 
 
-The ` <option>{:dn}` component is used to define multiple 
-component types as choices within a ` <select>{:dn}` block.
+The `<option>{:dn}` component is used to define multiple 
+component types as choices within a `<select>{:dn}` block.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
 ---
 
-### Example: Retrieving ` <option>{:dn}` selections with multiple elements
+### Example: Retrieving `<option>{:dn}` selections with multiple elements
 
 
 ```doenet-editor-horiz
@@ -155,15 +154,15 @@ editor to see different variants of the document.
 <p>Click page variants to see other randomized values assigned.</p>  
 ```
 
-It is possible to group several components for selection within a single ` <option>{:dn}` component.
-In order to reference a specific component within a selected ` <option>{:dn}`, use array notation. 
-The first index of the array notation refers to the selected ` <option>{:dn}` component, and the
-second index refers to the specific component within the ` <option>{:dn}` component.
+It is possible to group several components for selection within a single `<option>{:dn}` component.
+In order to reference a specific component within a selected `<option>{:dn}`, use array notation. 
+The first index of the array notation refers to the selected `<option>{:dn}` component, and the
+second index refers to the specific component within the `<option>{:dn}` component.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
----
+## Attribute Examples
 
 ### Attribute Example: selectWeight
 
@@ -189,7 +188,74 @@ editor to see different variants of the document.
 
 
 
-The ` <option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the ` <select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
+The `<option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the `<select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
+
+
+
+---
+
+### Attribute Example: selectForVariants
+
+
+```doenet-editor-horiz
+<variantControl numVariants="3" variantNames="apple banana cherry" />
+
+<p>Selected option:
+  <select name="s">
+    <option selectForVariants="apple"><text>red</text></option>
+    <option selectForVariants="banana"><text>yellow</text></option>
+    <option selectForVariants="cherry"><text>dark red</text></option>
+  </select>
+</p>
+```
+
+
+`selectForVariants` pins this `<option>{:dn}` to specific named variants of
+the document. Paired with `variantNames` on
+[`<variantControl>{:dn}`](variantControl), it lets the author control
+exactly which option appears in which variant — useful when the variants
+need to line up with a specific story, image, or partner answer key
+rather than being randomly assigned. In the example, the *apple* variant
+always shows `red`, *banana* always shows `yellow`, and *cherry* always
+shows `dark red`.
+
+A few rules to keep in mind:
+
+- It's all-or-nothing per `<select>{:dn}`: either no option uses
+  `selectForVariants`, or every variant name declared by
+  `<variantControl>{:dn}` is covered.
+- Each variant name has to be listed in exactly as many options as the
+  `<select>{:dn}`'s `numToSelect` (the default is 1). For
+  `numToSelect="3"`, each variant name must appear in three options'
+  `selectForVariants` lists.
+- Multiple variant names are space-separated, and matching is
+  case-insensitive.
+
+
+
+---
+
+### Attribute Example: selectForVariants with multiple choices per variant
+
+
+```doenet-editor-horiz
+<variantControl numVariants="3" variantNames="apple banana cherry" />
+
+<p>Selected pair:
+  <select name="s" numToSelect="2">
+    <option selectForVariants="apple banana"><text>red</text></option>
+    <option selectForVariants="apple cherry"><text>yellow</text></option>
+    <option selectForVariants="banana cherry"><text>dark red</text></option>
+  </select>
+</p>
+```
+
+
+When `numToSelect` is greater than 1, each variant name has to appear in
+exactly that many options' `selectForVariants` lists. Here each variant
+name (`apple`, `banana`, `cherry`) appears in exactly two options, so the
+*apple* variant produces `red, yellow`, *banana* produces `red, dark red`,
+and *cherry* produces `yellow, dark red`.

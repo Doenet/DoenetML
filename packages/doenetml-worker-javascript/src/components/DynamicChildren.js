@@ -13,10 +13,27 @@ export default class DynamicChildren extends CompositeComponent {
 
     static componentType = "_dynamicChildren";
 
+    static componentDocs = {
+        summary: "Internal container for dynamically-generated children.",
+    };
     static treatAsComponentForRecursiveReplacements = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+
+        attributes.deferUntilParentRendered = {
+            createComponentOfType: "boolean",
+            createStateVariable: "deferUntilParentRendered",
+            defaultValue: false,
+            description:
+                "Whether to wait until the parent is rendered before creating dynamic children.",
+        };
+
+        return attributes;
+    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -43,6 +60,42 @@ export default class DynamicChildren extends CompositeComponent {
             },
         };
 
+        // When dynamic children were added to postponed content, keep them
+        // serialized until the parent reveals its content. Only sectioning
+        // components that postpone rendering set `deferUntilParentRendered`, and
+        // only those have a `rendered` state variable, so we request the parent
+        // dependency only in that case (other parents like `<graph>` lack it).
+        stateVariableDefinitions.createReplacements = {
+            stateVariablesDeterminingDependencies: ["deferUntilParentRendered"],
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {
+                    deferUntilParentRendered: {
+                        dependencyType: "stateVariable",
+                        variableName: "deferUntilParentRendered",
+                    },
+                };
+                if (stateValues.deferUntilParentRendered) {
+                    dependencies.parentRendered = {
+                        dependencyType: "parentStateVariable",
+                        variableName: "rendered",
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        createReplacements:
+                            !dependencyValues.deferUntilParentRendered ||
+                            dependencyValues.parentRendered !== false,
+                    },
+                };
+            },
+            markStale() {
+                return { updateReplacements: true };
+            },
+        };
+
         stateVariableDefinitions.nGroups = {
             returnDependencies: () => ({
                 dynamicChildren: {
@@ -64,6 +117,10 @@ export default class DynamicChildren extends CompositeComponent {
                 dynamicChildren: {
                     dependencyType: "stateVariable",
                     variableName: "dynamicChildren",
+                },
+                createReplacements: {
+                    dependencyType: "stateVariable",
+                    variableName: "createReplacements",
                 },
             }),
             definition: function () {
@@ -152,8 +209,7 @@ export default class DynamicChildren extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -162,6 +218,15 @@ export default class DynamicChildren extends CompositeComponent {
         workspace.replacementsCreatedThroughGroup = [];
 
         let replacements = [];
+
+        if (!(await component.stateValues.createReplacements)) {
+            workspace.nGroups = 0;
+            return {
+                replacements,
+                diagnostics,
+                nComponents,
+            };
+        }
 
         const nGroups = await component.stateValues.nGroups;
         for (let groupNum = 0; groupNum < nGroups; groupNum++) {
@@ -184,8 +249,7 @@ export default class DynamicChildren extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -231,7 +295,11 @@ export default class DynamicChildren extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        const nGroups = await component.stateValues.nGroups;
+        const createReplacements =
+            await component.stateValues.createReplacements;
+        const nGroups = createReplacements
+            ? await component.stateValues.nGroups
+            : 0;
 
         if (nGroups === workspace.nGroups) {
             return {

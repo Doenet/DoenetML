@@ -1,9 +1,9 @@
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
@@ -14,6 +14,7 @@ export default class Polyline extends GraphicalComponent {
 
         Object.assign(this.actions, {
             movePolyline: this.movePolyline.bind(this),
+            movePolylineCenter: this.movePolylineCenter.bind(this),
             finalizePolylinePosition: this.finalizePolylinePosition.bind(this),
             reflectPolyline: this.reflectPolyline.bind(this),
             polylineClicked: this.polylineClicked.bind(this),
@@ -21,11 +22,16 @@ export default class Polyline extends GraphicalComponent {
         });
     }
     static componentType = "polyline";
+    static styleOverrideCategories = ["line"];
 
+    static componentDocs = {
+        summary: "A polyline (open polygon) defined by a list of vertices",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the polyline can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -35,13 +41,17 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.verticesDraggable = {
             createComponentOfType: "boolean",
+            description:
+                "Whether individual vertices may be dragged independently.",
         };
 
         attributes.vertices = {
             createComponentOfType: "pointList",
+            description: "The list of vertex points that define the shape.",
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -50,6 +60,8 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.rigid = {
+            description:
+                "Whether the polyline is treated as rigid (preserves shape under drag).",
             createComponentOfType: "boolean",
             createStateVariable: "rigid",
             defaultValue: false,
@@ -58,6 +70,8 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.preserveSimilarity = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the shape is preserved up to similarity (uniform scaling) under drag.",
         };
 
         // Vertices displayed for rotations when rigid/preserveSimilarity.
@@ -67,28 +81,52 @@ export default class Polyline extends GraphicalComponent {
             createComponentOfType: "numberList",
             createStateVariable: "rotationHandleVertices",
             defaultValue: [1],
+            description:
+                "Vertex indices that should display rotation handles when the shape is rigid or preserves similarity.",
         };
 
         attributes.rotateAround = {
             createComponentOfType: "text",
             createStateVariable: "rotateAround",
-            validValues: ["centroid", "vertex", "point"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "centroid",
+                    description: "Rotate around the centroid of the shape.",
+                },
+                {
+                    value: "vertex",
+                    description:
+                        "Rotate around the vertex specified by `rotationVertex`.",
+                },
+                {
+                    value: "point",
+                    description:
+                        "Rotate around the explicit point given by `rotationCenter`.",
+                },
+            ],
             defaultValue: "centroid",
+            description: "What point to rotate the shape around.",
         };
 
         attributes.rotationCenter = {
             createComponentOfType: "point",
             createStateVariable: "rotationCenterPrescribed",
             defaultValue: null,
+            description:
+                "The point to rotate around when rotateAround is 'point'.",
         };
 
         attributes.rotationVertex = {
             createComponentOfType: "integer",
             createStateVariable: "rotationVertex",
             defaultValue: 1,
+            description:
+                "The vertex index to rotate around when rotateAround is 'vertex'.",
         };
 
         attributes.allowRotation = {
+            description: "Whether the polyline can be rotated under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowRotation",
             defaultValue: true,
@@ -96,6 +134,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.allowTranslation = {
+            description: "Whether the polyline can be translated under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowTranslation",
             defaultValue: true,
@@ -104,22 +143,26 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.allowDilation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the shape can be dilated (scaled) under drag.",
         };
 
         attributes.minShrink = {
             createComponentOfType: "number",
             createStateVariable: "minShrink",
             defaultValue: 0.1,
+            description: "Minimum scaling factor allowed when dilating.",
         };
 
         attributes.allowReflection = {
+            description: "Whether the polyline can be reflected under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowReflection",
             defaultValue: true,
             public: true,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -143,12 +186,13 @@ export default class Polyline extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the polyline's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -195,6 +239,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "polyline".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -214,6 +259,8 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.preserveSimilarity = {
+            description:
+                "Whether the polyline preserves its shape (up to similarity).",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -253,6 +300,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.allowDilation = {
+            description: "Whether the polyline can be dilated under drag.",
             public: true,
             hasEssential: true,
             defaultValue: true,
@@ -290,6 +338,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.verticesDraggable = {
+            description: "Whether each vertex can be dragged independently.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -399,6 +448,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices in the polyline.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -426,6 +476,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "The number of dimensions the polyline lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -847,11 +898,12 @@ export default class Polyline extends GraphicalComponent {
 
         stateVariableDefinitions.vertices = {
             public: true,
+            description: "The vertices of the polyline.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "vertexX") {
                         return [];
@@ -1941,11 +1993,12 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
+            description: "The total length of the polyline.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numericalVertices: {
@@ -1964,6 +2017,133 @@ export default class Polyline extends GraphicalComponent {
                 }
 
                 return { setValue: { length } };
+            },
+        };
+
+        stateVariableDefinitions.center = {
+            description: "The centroid of the polyline's vertices.",
+            public: true,
+            forRenderer: true,
+            isLocation: true,
+            isArray: true,
+            entryPrefixes: ["centerX"],
+            shadowingInstructions: {
+                createComponentOfType: "math",
+                addAttributeComponentsShadowingStateVariables:
+                    returnNumberDisplayAttributeComponentShadowing(),
+                returnWrappingComponents(prefix) {
+                    if (prefix === "centerX") {
+                        return [];
+                    } else {
+                        // entire array
+                        // wrap by both <point> and <xs>
+                        return [
+                            [
+                                "point",
+                                {
+                                    componentType: "mathList",
+                                    isAttributeNamed: "xs",
+                                },
+                            ],
+                        ];
+                    }
+                },
+            },
+
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
+
+            returnArrayDependenciesByKey() {
+                let globalDependencies = {
+                    vertices: {
+                        dependencyType: "stateVariable",
+                        variableName: "vertices",
+                    },
+                    numVertices: {
+                        dependencyType: "stateVariable",
+                        variableName: "numVertices",
+                    },
+                };
+
+                return { globalDependencies };
+            },
+
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                let center = {};
+                let numVertices = globalDependencyValues.numVertices;
+
+                for (let arrayKey of arrayKeys) {
+                    let dim = Number(arrayKey);
+
+                    if (!(numVertices > 0)) {
+                        center[arrayKey] = me.fromAst(NaN);
+                        continue;
+                    }
+
+                    let centerComponent =
+                        globalDependencyValues.vertices[0][dim];
+
+                    for (let pointInd = 1; pointInd < numVertices; pointInd++) {
+                        centerComponent = centerComponent.add(
+                            globalDependencyValues.vertices[pointInd][dim],
+                        );
+                    }
+
+                    center[arrayKey] = centerComponent
+                        .divide(numVertices)
+                        .simplify();
+                }
+
+                return { setValue: { center } };
+            },
+
+            async inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                globalDependencyValues,
+                stateValues,
+            }) {
+                let center = await stateValues.center;
+
+                let desiredVertices = globalDependencyValues.vertices.map(
+                    (v) => [...v],
+                );
+
+                for (let arrayKey in desiredStateVariableValues.center) {
+                    let dim = Number(arrayKey);
+
+                    let offset = desiredStateVariableValues.center[arrayKey]
+                        .subtract(center[dim])
+                        .simplify();
+
+                    for (
+                        let pointInd = 0;
+                        pointInd < desiredVertices.length;
+                        pointInd++
+                    ) {
+                        desiredVertices[pointInd][dim] = desiredVertices[
+                            pointInd
+                        ][dim]
+                            .add(offset)
+                            .simplify();
+                    }
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "vertices",
+                            desiredValue: desiredVertices,
+                        },
+                    ],
+                };
             },
         };
 
@@ -2018,6 +2198,231 @@ export default class Polyline extends GraphicalComponent {
         };
 
         return stateVariableDefinitions;
+    }
+
+    /**
+     * After a move action has been applied, checks whether constraints caused
+     * a strict subset of vertices to land at positions other than the ones
+     * requested.  If so, and if all displaced vertices share the same
+     * translational offset (i.e. the displacement is a rigid translation),
+     * the remaining (unconstrained) vertices are adjusted by that same offset
+     * so the polyline moves as a rigid body.
+     *
+     * Returns the result of the follow-up `performUpdate` call when a
+     * correction was applied, or `null` when no correction was needed.
+     */
+    async _attemptConstrainedRigidTranslationReconciliation({
+        transient,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        let desiredUnconstrainedVertices =
+            await this.stateValues.desiredUnconstrainedVertices;
+
+        if (
+            desiredUnconstrainedVertices.length === 0 ||
+            desiredUnconstrainedVertices[0][0] == null
+        ) {
+            return null;
+        }
+
+        let desiredNumericalVertices = desiredUnconstrainedVertices.map(
+            (vertex) => vertex.map((v) => v.evaluate_to_constant()),
+        );
+        let resultingNumericalVertices =
+            await this.stateValues.numericalVertices;
+        let numVertices = await this.stateValues.numVertices;
+
+        let verticesChanged = [];
+        let numVerticesChanged = 0;
+        let tol = 1e-6;
+
+        for (let [ind, vrtx] of desiredNumericalVertices.entries()) {
+            if (
+                !vrtx.every(
+                    (v, i) =>
+                        Math.abs(v - resultingNumericalVertices[ind][i]) < tol,
+                )
+            ) {
+                verticesChanged.push(ind);
+                numVerticesChanged++;
+            }
+        }
+
+        if (!(numVerticesChanged > 0 && numVerticesChanged < numVertices)) {
+            return null;
+        }
+
+        // A subset of points were altered from the requested location.
+        // Check to see if the relationship among them is preserved
+        let changedInd1 = verticesChanged[0];
+        let relationshipPreserved = true;
+
+        let orig1 = desiredNumericalVertices[changedInd1];
+        let changed1 = resultingNumericalVertices[changedInd1];
+        let changevec1 = orig1.map((v, i) => v - changed1[i]);
+
+        if (numVerticesChanged > 1) {
+            for (let ind of verticesChanged.slice(1)) {
+                let orig2 = desiredNumericalVertices[ind];
+                let changed2 = resultingNumericalVertices[ind];
+                let changevec2 = orig2.map((v, i) => v - changed2[i]);
+
+                if (
+                    !changevec1.every(
+                        (v, i) => Math.abs(v - changevec2[i]) < tol,
+                    )
+                ) {
+                    relationshipPreserved = false;
+                    break;
+                }
+            }
+        }
+
+        if (!relationshipPreserved) {
+            return null;
+        }
+
+        // All the vertices that were altered from their requested location
+        // were altered in a way consistent with a rigid translation.
+        // Attempt to move the remaining vertices to achieve a rigid translation
+        // of the whole polyline.
+        let newNumericalVertices = [];
+
+        for (let i = 0; i < numVertices; i++) {
+            if (verticesChanged.includes(i)) {
+                newNumericalVertices.push(resultingNumericalVertices[i]);
+            } else {
+                newNumericalVertices.push(
+                    desiredNumericalVertices[i].map(
+                        (v, j) => v - changevec1[j],
+                    ),
+                );
+            }
+        }
+
+        let newVertexComponents = {};
+        for (let ind in newNumericalVertices) {
+            for (let dim = 0; dim < newNumericalVertices[ind].length; dim++) {
+                newVertexComponents[`${ind},${dim}`] = me.fromAst(
+                    newNumericalVertices[ind][dim],
+                );
+            }
+        }
+
+        return await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "unconstrainedVertices",
+                    value: newVertexComponents,
+                },
+            ],
+            transient,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+
+    async movePolylineCenter({
+        center,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+        pointRole = "polyline",
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!["polyline", "polygon", "triangle"].includes(pointRole)) {
+            console.warn(`Invalid pointRole for polyline: ${pointRole}`);
+            return;
+        }
+
+        let numDimensions = await this.stateValues.numDimensions;
+
+        // Center must match the polyline dimensionality exactly.
+        if (!Array.isArray(center) || center.length !== numDimensions) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
+            );
+            return;
+        }
+
+        // Polyline must be draggable for center movement to work
+        if (!(await this.stateValues.draggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "center",
+                value: center.map((x) => me.fromAst(x)),
+                sourceDetails,
+            },
+        ];
+
+        // Note: we set skipRendererUpdate to true
+        // so that renderer updates are consolidated at the end of the action.
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate: true,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    center,
+                },
+            };
+        }
+
+        await this.coreFunctions.performUpdate(performUpdateArgs);
+
+        // Attempt to preserve rigid translation when constraints alter
+        // a subset of vertices during a center move.
+        // E.g., if moving center causes some vertices to snap to a grid,
+        // we adjust other vertices to maintain the translation offset.
+        let reconciliationResult =
+            await this._attemptConstrainedRigidTranslationReconciliation({
+                transient,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+
+        if (reconciliationResult !== null) {
+            return reconciliationResult;
+        }
+
+        return await this.coreFunctions.updateRenderers({
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
     }
 
     async movePolyline({
@@ -2098,113 +2503,22 @@ export default class Polyline extends GraphicalComponent {
         // when the whole polyline is moved or preserveSimilarity is true.
         // This procedure may preserve the rigid/similarity transformation
         // even if a subset of the vertices are constrained.
-        // Note: If desiredUnconstrainedVertices has null components, then the original update was not successful.
-        let desiredUnconstrainedVertices =
-            await this.stateValues.desiredUnconstrainedVertices;
+        // Note: If desiredUnconstrainedVertices has null components,
+        // then the original update was not successful.
         if (
-            (numVerticesMoved > 1 ||
-                (await this.stateValues.preserveSimilarity)) &&
-            desiredUnconstrainedVertices[0][0] != null
+            numVerticesMoved > 1 ||
+            (await this.stateValues.preserveSimilarity)
         ) {
-            let desiredNumericalVertices = desiredUnconstrainedVertices.map(
-                (vertex) => vertex.map((v) => v.evaluate_to_constant()),
-            );
-            let resultingNumericalVertices =
-                await this.stateValues.numericalVertices;
-            let numVertices = await this.stateValues.numVertices;
+            let reconciliationResult =
+                await this._attemptConstrainedRigidTranslationReconciliation({
+                    transient,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate,
+                });
 
-            let verticesChanged = [];
-            let numVerticesChanged = 0;
-            let tol = 1e-6;
-
-            for (let [ind, vrtx] of desiredNumericalVertices.entries()) {
-                if (
-                    !vrtx.every(
-                        (v, i) =>
-                            Math.abs(v - resultingNumericalVertices[ind][i]) <
-                            tol,
-                    )
-                ) {
-                    verticesChanged.push(ind);
-                    numVerticesChanged++;
-                }
-            }
-
-            if (numVerticesChanged > 0 && numVerticesChanged < numVertices) {
-                // A subset of points were altered from the requested location.
-                // Check to see if the relationship among them is preserved
-
-                let changedInd1 = verticesChanged[0];
-                let relationshipPreserved = true;
-
-                let orig1 = desiredNumericalVertices[changedInd1];
-                let changed1 = resultingNumericalVertices[changedInd1];
-                let changevec1 = orig1.map((v, i) => v - changed1[i]);
-
-                if (numVerticesChanged > 1) {
-                    for (let ind of verticesChanged.slice(1)) {
-                        let orig2 = desiredNumericalVertices[ind];
-                        let changed2 = resultingNumericalVertices[ind];
-                        let changevec2 = orig2.map((v, i) => v - changed2[i]);
-
-                        if (
-                            !changevec1.every(
-                                (v, i) => Math.abs(v - changevec2[i]) < tol,
-                            )
-                        ) {
-                            relationshipPreserved = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (relationshipPreserved) {
-                    // All the vertices that were altered from their requested location
-                    // were altered in a way consistent with a rigid translation.
-                    // Attempt to move the remaining vertices to achieve a rigid translation
-                    // of the whole polyline.
-                    let newNumericalVertices = [];
-
-                    for (let i = 0; i < numVertices; i++) {
-                        if (verticesChanged.includes(i)) {
-                            newNumericalVertices.push(
-                                resultingNumericalVertices[i],
-                            );
-                        } else {
-                            newNumericalVertices.push(
-                                desiredNumericalVertices[i].map(
-                                    (v, j) => v - changevec1[j],
-                                ),
-                            );
-                        }
-                    }
-
-                    let newVertexComponents = {};
-                    for (let ind in newNumericalVertices) {
-                        newVertexComponents[ind + ",0"] = me.fromAst(
-                            newNumericalVertices[ind][0],
-                        );
-                        newVertexComponents[ind + ",1"] = me.fromAst(
-                            newNumericalVertices[ind][1],
-                        );
-                    }
-
-                    let newInstructions = [
-                        {
-                            updateType: "updateValue",
-                            componentIdx: this.componentIdx,
-                            stateVariable: "unconstrainedVertices",
-                            value: newVertexComponents,
-                        },
-                    ];
-                    return await this.coreFunctions.performUpdate({
-                        updateInstructions: newInstructions,
-                        transient,
-                        actionId,
-                        sourceInformation,
-                        skipRendererUpdate,
-                    });
-                }
+            if (reconciliationResult !== null) {
+                return reconciliationResult;
             }
         }
 

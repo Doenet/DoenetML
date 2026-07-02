@@ -10,10 +10,29 @@ import {
 } from "../utils/constraints";
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 import me from "math-expressions";
+const { mod } = me.math;
 
 export default class StickyGroup extends GraphicalComponent {
     static componentType = "stickyGroup";
+
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
+        });
+    }
+
+    static componentDocs = {
+        summary:
+            "Constrains group members to attract to each other when nearby",
+    };
     static rendererType = "containerInline";
     static renderChildren = true;
 
@@ -21,6 +40,8 @@ export default class StickyGroup extends GraphicalComponent {
         let attributes = super.createAttributesObject();
 
         attributes.relativeToGraphScales = {
+            description:
+                "Whether the snapping threshold is interpreted relative to graph scales.",
             createComponentOfType: "boolean",
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,
@@ -29,9 +50,13 @@ export default class StickyGroup extends GraphicalComponent {
 
         attributes.threshold = {
             createComponentOfType: "number",
+            description:
+                "Distance threshold within which group members snap together.",
         };
 
         attributes.angleThreshold = {
+            description:
+                "Angular distance within which group members snap together.",
             createComponentOfType: "number",
             createStateVariable: "angleThreshold",
             defaultValue: Math.PI * 0.03,
@@ -234,6 +259,8 @@ export default class StickyGroup extends GraphicalComponent {
         };
 
         stateVariableDefinitions.threshold = {
+            description:
+                "Distance within which group members attract each other.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -999,6 +1026,14 @@ export default class StickyGroup extends GraphicalComponent {
 
         return stateVariableDefinitions;
     }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
+    }
 }
 
 // Find the edge whose angle is closest to one of anglesToAttract.
@@ -1026,10 +1061,7 @@ function rotateToAttractAngles({
 
         for (let attractingAngle of anglesToAttract) {
             let dAngle =
-                me.math.mod(
-                    attractingAngle - edgeAngle + Math.PI / 2,
-                    Math.PI,
-                ) -
+                mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) -
                 Math.PI / 2;
 
             if (Math.abs(dAngle) < Math.abs(minDAngle)) {
@@ -1085,8 +1117,7 @@ function rotateIfClose({
     );
 
     let dAngle =
-        me.math.mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) -
-        Math.PI / 2;
+        mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) - Math.PI / 2;
 
     if (!(Math.abs(dAngle) < angleThreshold)) {
         return null;

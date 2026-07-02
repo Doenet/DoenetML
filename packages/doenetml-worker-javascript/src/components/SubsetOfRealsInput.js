@@ -20,70 +20,105 @@ export default class SubsetOfRealsInput extends BlockComponent {
     }
     static componentType = "subsetOfRealsInput";
 
+    static componentDocs = {
+        summary:
+            "An interactive number-line widget for entering a subset of real numbers (block-level; does not inherit from Input)",
+    };
     static variableForImplicitProp = "subsetValue";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // xMin/xMax/width/height/dx/xlabel are declared on the descriptor
+        // but currently do nothing (the renderer hard-codes width="808" /
+        // height="80" and ignores the rest; dx="1" actively breaks
+        // negative-point input). Hidden from the schema (and therefore the
+        // auto-generated docs and editor autocomplete) until they actually
+        // work; tracked in https://github.com/Doenet/DoenetML/issues/391.
         attributes.xMin = {
+            description: "Left endpoint of the visible number line.",
             createComponentOfType: "number",
             createStateVariable: "xMin",
             defaultValue: -10,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.xMax = {
+            description: "Right endpoint of the visible number line.",
             createComponentOfType: "number",
             createStateVariable: "xMax",
             defaultValue: 10,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.width = {
+            description: "Display width of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: 800,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.height = {
+            description: "Display height of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: 300,
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         attributes.xlabel = {
+            description: "Label rendered for the x axis.",
             createComponentOfType: "text",
             createStateVariable: "xlabel",
             defaultValue: "",
             public: true,
             forRenderer: true,
+            excludeFromSchema: true,
         };
         //interval type buttons includeIntervalBasedControls
         //point type buttons includePointBasedControls
 
         attributes.dx = {
+            description: "Tick spacing along the number line.",
             createComponentOfType: "number",
             createStateVariable: "dx",
             defaultValue: 0.5,
             public: true,
+            excludeFromSchema: true,
         };
 
         attributes.variable = {
+            description: "Variable name displayed on the number line.",
             createComponentOfType: "_variableName",
             createStateVariable: "variable",
             defaultValue: me.fromAst("x"),
             public: true,
         };
         attributes.format = {
+            description: "Input format used for parsing entered subsets.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
             toLowerCase: true,
-            validValues: ["text", "latex"],
+            validValues: [
+                {
+                    value: "text",
+                    description:
+                        "Parse entered subsets as plain-text notation.",
+                },
+                {
+                    value: "latex",
+                    description: "Parse entered subsets as LaTeX notation.",
+                },
+            ],
         };
         attributes.prefill = {
+            description: "Initial subset displayed in the input.",
             createComponentOfType: "text",
             createStateVariable: "prefill",
             defaultValue: "",
@@ -92,6 +127,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
         attributes.bindValueTo = {
             createComponentOfType: "subsetOfReals",
+            description: "Two-way binding target for the input's value.",
         };
         return attributes;
     }
@@ -100,9 +136,13 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.subsetValue = {
+            description: "The current subset of the reals entered by the user.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "subsetOfReals",
+                addAttributeComponentsShadowingStateVariables: {
+                    variable: { stateVariableToShadow: "variable" },
+                },
             },
             hasEssential: true,
             returnDependencies: () => ({

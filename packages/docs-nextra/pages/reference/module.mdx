@@ -1,21 +1,21 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <module>{:dn}`
+# `<module>{:dn}`
 
-` <module>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='module'/>
+
+`<module>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that provides a way to organize a sequence of repeatable content. It is similar to creating
-a macro that can be reused multiple times within a DoenetML document.
+a reference that can be reused multiple times within a DoenetML document.
 
-## Attributes and Properties 
- <AttrDisplay name='module'/> 
- <PropDisplay name='module'/>
+<AttrPropDisplay name='module'/>
 
----
+## Examples
 
-### Example: ` <module>{:dn}` for repeated geometry
+### Example: `<module>{:dn}` for repeated geometry
 
 
 ```doenet-editor-horiz
@@ -61,16 +61,12 @@ a macro that can be reused multiple times within a DoenetML document.
 </graph>
 ```
 
-In this example, a ` <module>{:dn}` named `drawBalloon` is defined within a `<setup>{:dn}` block. Nested 
+In this example, a `<module>{:dn}` named `drawBalloon` is defined within a `<setup>{:dn}` block. Nested 
 `<moduleAttributes>{:dn}` components define the center point, color, and radius of a default balloon. 
 
-Geometry defined within the ` <module>{:dn}` (the `<lineSegment>{:dn}` and `<circle>{:dn}` components) 
+Geometry defined within the `<module>{:dn}` (the `<lineSegment>{:dn}` and `<circle>{:dn}` components) 
 are copied into the graph when the module is referenced.
 
 Referencing the module multiple times within the `<graph>{:dn}` and varying the
 attribute values has the effect of creating a "bunch" of balloons.
 Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy.
-
-
-
----

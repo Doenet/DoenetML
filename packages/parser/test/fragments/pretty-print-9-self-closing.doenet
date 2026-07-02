@@ -1,0 +1,6 @@
+<p>Before break.</p>
+<hr />
+<p>After break.</p>
+<image source="a.png" />
+<br />
+<p>End.</p>

@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import me from "math-expressions";
 import { movePoint, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import type {
+    mod as ModType,
+    std as StdType,
+    variance as VarianceType,
+} from "mathjs";
+const { mod, std, variance } = me.math as {
+    mod: ModType;
+    std: StdType;
+    variance: VarianceType;
+};
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2635,7 +2646,7 @@ describe("Math operator tests @group2", async () => {
         });
 
         let clamp = (x) => Math.min(5, Math.max(-2, x));
-        let wrap = (x) => -2 + me.math.mod(x + 2, 7);
+        let wrap = (x) => -2 + mod(x + 2, 7);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x = 6,
@@ -4748,7 +4759,7 @@ describe("Math operator tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let theVariance = me.math.variance([3, 17, 1]);
+        let theVariance = variance([3, 17, 1]);
         let theVarianceString = theVariance.toString();
 
         expect(
@@ -4873,7 +4884,7 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.value.tree,
-        ).eq(me.math.variance([3, me.math.variance([17, 1])]));
+        ).eq(variance([3, variance([17, 1])]));
         expect(
             stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumericOperator,
@@ -4967,7 +4978,7 @@ describe("Math operator tests @group2", async () => {
       `,
         });
 
-        let theVariance = me.math.variance([3, 17, 1]);
+        let theVariance = variance([3, 17, 1]);
         let theVarianceString = theVariance.toString();
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -5313,8 +5324,8 @@ describe("Math operator tests @group2", async () => {
       `,
         });
 
-        let theVariance = me.math.variance([3, 17, 1]);
-        let theVariance2 = me.math.variance([3, 17, 1, 3, 17, 13]);
+        let theVariance = variance([3, 17, 1]);
+        let theVariance2 = variance([3, 17, 1, 3, 17, 13]);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -5507,8 +5518,8 @@ describe("Math operator tests @group2", async () => {
     `,
         });
 
-        let variancePrimes = me.math.variance(2, 3, 5, 7);
-        let variance100 = me.math.variance(
+        let variancePrimes = variance(2, 3, 5, 7);
+        let variance100 = variance(
             Array.from({ length: 100 }, (_, i) => i + 1),
         );
 
@@ -5567,7 +5578,7 @@ describe("Math operator tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let theVariance = me.math.variance([4, 16, 1], "uncorrected");
+        let theVariance = variance([4, 16, 1], "uncorrected");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
@@ -5691,12 +5702,7 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.value.tree,
-        ).eq(
-            me.math.variance(
-                [4, me.math.variance([17, 1], "uncorrected")],
-                "uncorrected",
-            ),
-        );
+        ).eq(variance([4, variance([17, 1], "uncorrected")], "uncorrected"));
         expect(
             stateVariables[await resolvePathToNodeIdx("withNumberVariance")]
                 .stateValues.isNumericOperator,
@@ -5771,8 +5777,8 @@ describe("Math operator tests @group2", async () => {
     `,
         });
 
-        let variancePrimes = me.math.variance([2, 3, 5, 7], "uncorrected");
-        let variance100 = me.math.variance(
+        let variancePrimes = variance([2, 3, 5, 7], "uncorrected");
+        let variance100 = variance(
             Array.from({ length: 100 }, (_, i) => i + 1),
             "uncorrected",
         );
@@ -5832,7 +5838,7 @@ describe("Math operator tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let thestandardDeviation = me.math.std([3, 17, 1]);
+        let thestandardDeviation = std([3, 17, 1]);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
@@ -5957,7 +5963,7 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("withNumberstandardDeviation")
             ].stateValues.value.tree,
-        ).closeTo(me.math.std([3, me.math.std([17, 1])]), 1e-12);
+        ).closeTo(std([3, std([17, 1])]), 1e-12);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("withNumberstandardDeviation")
@@ -6066,7 +6072,7 @@ describe("Math operator tests @group2", async () => {
       `,
         });
 
-        let theStd = me.math.std([13, 25, 1]);
+        let theStd = std([13, 25, 1]);
         let theStdString = theStd.toString();
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -6209,8 +6215,8 @@ describe("Math operator tests @group2", async () => {
     `,
         });
 
-        let stdPrimes = me.math.std(2, 3, 5, 7);
-        let std100 = me.math.std(Array.from({ length: 100 }, (_, i) => i + 1));
+        let stdPrimes = std(2, 3, 5, 7);
+        let std100 = std(Array.from({ length: 100 }, (_, i) => i + 1));
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
@@ -6268,7 +6274,7 @@ describe("Math operator tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let thestandardDeviation = me.math.std([4, 16, 1], "uncorrected");
+        let thestandardDeviation = std([4, 16, 1], "uncorrected");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numbers")].stateValues
@@ -6393,13 +6399,7 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("withNumberstandardDeviation")
             ].stateValues.value.tree,
-        ).closeTo(
-            me.math.std(
-                [3, me.math.std([17, 1], "uncorrected")],
-                "uncorrected",
-            ),
-            1e-12,
-        );
+        ).closeTo(std([3, std([17, 1], "uncorrected")], "uncorrected"), 1e-12);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("withNumberstandardDeviation")
@@ -6476,8 +6476,8 @@ describe("Math operator tests @group2", async () => {
     `,
         });
 
-        let stdPrimes = me.math.std([2, 3, 5, 7], "uncorrected");
-        let std100 = me.math.std(
+        let stdPrimes = std([2, 3, 5, 7], "uncorrected");
+        let std100 = std(
             Array.from({ length: 100 }, (_, i) => i + 1),
             "uncorrected",
         );
@@ -10557,18 +10557,18 @@ describe("Math operator tests @group2", async () => {
       `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Must specify a operandNumber when extracting a math operand`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(23);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(86);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(23);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(86);
     });
 
     it("math operators that take multiple inputs ignore composites with no replacements", async () => {

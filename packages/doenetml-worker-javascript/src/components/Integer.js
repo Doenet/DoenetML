@@ -5,6 +5,10 @@ import { textToAst } from "../utils/math";
 
 export default class Integer extends NumberComponent {
     static componentType = "integer";
+
+    static componentDocs = {
+        summary: "An integer value",
+    };
     static rendererType = "number";
 
     static returnStateVariableDefinitions() {
@@ -22,6 +26,7 @@ export default class Integer extends NumberComponent {
         stateVariableDefinitions.valuePreRound.essentialVarName = "value";
 
         stateVariableDefinitions.value = {
+            description: "The integer value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",

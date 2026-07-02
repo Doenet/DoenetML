@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
@@ -29,10 +28,10 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#n") + " textarea").type("1", { force: true });
+        cy.get("#n" + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
-        cy.get(cesc("#pv")).should("contain.text", "[\uff3f]");
+        cy.get("#piv").should("have.text", "immediate value: [1]");
+        cy.get("#pv").should("contain.text", "[\uff3f]");
 
         cy.wait(1500); // wait for debounce
 
@@ -47,8 +46,8 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#pv")).should("have.text", "value: [1]");
-        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
+        cy.get("#pv").should("have.text", "value: [1]");
+        cy.get("#piv").should("have.text", "immediate value: [1]");
     });
 
     it("with description", () => {
@@ -123,5 +122,71 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#mi [data-test='Description Button']").should("not.exist");
         cy.get("#mi [data-test='Description']").should("not.exist");
         cy.get("#mi table").should("not.have.attr", "aria-details");
+    });
+
+    it("matrixInput uses external labels and shortDescription fallback for table labelling", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><label name="matrixExternalLabel" for="$matExternal">Matrix A</label></p>
+    <p><matrixInput name="matExternal" /></p>
+
+    <p>
+        <matrixInput name="matFallback">
+            <shortDescription>Matrix B</shortDescription>
+        </matrixInput>
+    </p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#matrixExternalLabel").should("contain.text", "Matrix A");
+
+        cy.get("#matExternal table")
+            .should("have.attr", "aria-labelledby", "matrixExternalLabel")
+            .and("not.have.attr", "aria-label");
+
+        cy.get("#matFallback table")
+            .should("have.attr", "aria-label", "Matrix B")
+            .and("not.have.attr", "aria-labelledby");
+    });
+
+    it("labelPosition left and right", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+    <matrixInput name="ml" labelPosition="left">
+      <label>left</label>
+    </matrixInput>
+    </p>
+
+    <p>
+    <matrixInput name="mr" labelPosition="right">
+      <label>right</label>
+    </matrixInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Left matrixInput: label before matrix input row");
+        cy.get("#ml-container")
+            .children()
+            .eq(0)
+            .should("have.attr", "id", "ml-label");
+
+        cy.log("Right matrixInput: label after matrix input row");
+        cy.get("#mr-container")
+            .children()
+            .last()
+            .should("have.attr", "id", "mr-label");
     });
 });

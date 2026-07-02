@@ -204,6 +204,11 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
             "contain.text",
             "Incorrect",
         );
+
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -253,6 +258,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -272,6 +281,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.deleteLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -289,6 +302,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -308,6 +325,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -324,6 +345,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -339,6 +364,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -377,6 +406,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
 
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -407,6 +440,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -424,6 +461,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
             });
         });
 
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -439,6 +480,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -454,6 +499,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -469,6 +518,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -485,6 +538,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -1010,7 +1067,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
 
         let f = (x) => 2 * x - x ** 2 / 3;
 
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc1.addPoint1_button")).click();
@@ -1028,9 +1085,9 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
-        cy.get(cesc("#ca")).should("have.text", "0.167");
+        cy.get("#ca").should("have.text", "0.167");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc2.addVline1_button")).click();
@@ -1051,10 +1108,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.167");
+        cy.get("#ca").should("have.text", "0.167");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addHline1_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addHline1_button")).should(
@@ -1075,7 +1132,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addPoint2_button")).should(
             "be.visible",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addPoint2_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
@@ -1089,10 +1146,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ca").should("have.text", "0.5");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc4.addPoint3_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc4.addPoint3_button")).should(
@@ -1109,10 +1166,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ca").should("have.text", "0.5");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.667");
+        cy.get("#ca").should("have.text", "0.667");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc5.addVline2_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc5addVline2_button")).should(
@@ -1132,10 +1189,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.667");
+        cy.get("#ca").should("have.text", "0.667");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addHline2_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addHline2_button")).should(
@@ -1157,7 +1214,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).should(
             "be.visible",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).should(
@@ -1174,21 +1231,21 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "1");
+        cy.get("#ca").should("have.text", "1");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc7.shortcutButton_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc7.shortcutButton_button")).should(
             "not.exist",
         );
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "1");
+        cy.get("#ca").should("have.text", "1");
 
         cy.get(cesc("#cobwebTutorial.resetTutorial_button")).click();
 
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc1.addPoint1_button")).click();
@@ -1206,9 +1263,9 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
-        cy.get(cesc("#ca")).should("have.text", "0.167");
+        cy.get("#ca").should("have.text", "0.167");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc2.addVline1_button")).click();
@@ -1229,10 +1286,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.167");
+        cy.get("#ca").should("have.text", "0.167");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addHline1_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addHline1_button")).should(
@@ -1254,7 +1311,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addPoint2_button")).should(
             "be.visible",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addPoint2_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc3.addPoint2_button")).should(
@@ -1271,10 +1328,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ca").should("have.text", "0.5");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc4.addPoint3_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc4.addPoint3_button")).should(
@@ -1291,10 +1348,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ca").should("have.text", "0.5");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.667");
+        cy.get("#ca").should("have.text", "0.667");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc5.addVline2_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc5.addVline2_button")).should(
@@ -1314,10 +1371,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.667");
+        cy.get("#ca").should("have.text", "0.667");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addHline2_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addHline2_button")).should(
@@ -1339,7 +1396,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).should(
             "be.visible",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc6.addPoint4_button")).should(
@@ -1356,16 +1413,16 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(cesc("#cobwebTutorial.next_button")).should("not.be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#ca").should("have.text", "0.833");
         cy.get(cesc("#cobwebTutorial.next_button")).click();
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "1");
+        cy.get("#ca").should("have.text", "1");
 
         cy.get(cesc("#cobwebTutorial.cc0.cc7.shortcutButton_button")).click();
         cy.get(cesc("#cobwebTutorial.cc0.cc7.shortcutButton_button")).should(
             "not.exist",
         );
         cy.get(cesc("#cobwebTutorial.next_button")).should("be.disabled");
-        cy.get(cesc("#ca")).should("have.text", "1");
+        cy.get("#ca").should("have.text", "1");
     });
 });

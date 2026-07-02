@@ -1,20 +1,20 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <coords>{:dn}`
+# `<coords>{:dn}`
 
-` <coords>{:dn}` is a math component that renders a set of coordinates.
+<ComponentDisplay name='coords'/>
 
-## Attributes and Properties 
- <AttrDisplay name='coords'/> 
- <PropDisplay name='coords'/>
+`<coords>{:dn}` is a math component that renders a set of coordinates.
 
----
+<AttrPropDisplay name='coords'/>
 
-### Example: ` <coords>{:dn}` rendered as a ` <math>{:dn}`
+## Examples
+
+### Example: `<coords>{:dn}` rendered as a `<math>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -24,13 +24,13 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The ` <coords>{:dn}` component renders as an ordered pair or an ordered triplet.
+The `<coords>{:dn}` component renders as an ordered pair or an ordered triplet.
 
 
 
 ---
 
-### Example: ` <coords>{:dn}` referenced by a ` <point>{:dn}`
+### Example: `<coords>{:dn}` referenced by a `<point>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -42,6 +42,6 @@ The ` <coords>{:dn}` component renders as an ordered pair or an ordered triplet.
 
 
 
-A named ` <coords>{:dn}` component is referenced in the `coords` attribute of a ` <point>{:dn}`.
+A named `<coords>{:dn}` component is referenced in the `coords` attribute of a `<point>{:dn}`.
 
 

@@ -1,17 +1,30 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
-    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
     sizePossibilities,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
+import {
+    GRAPH_CONTROL_COMPONENT_TYPES,
+    GRAPH_CONTROL_DESCENDANT_CONFIGS,
+    GRAPH_CONTROL_VARIABLE_NAMES,
+} from "../utils/graphControls";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
+// PreFigure conversion architecture and extension guide:
+// see src/utils/prefigure/README.md
+import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -24,6 +37,10 @@ export default class Graph extends BlockComponent {
         });
     }
     static componentType = "graph";
+
+    static componentDocs = {
+        summary: "A 2D coordinate-axis graph",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -32,61 +49,104 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "number",
             createStateVariable: "xminPrelim",
             defaultValue: -10,
+            description: "Minimum value displayed on the x axis.",
         };
         attributes.xMax = {
             createComponentOfType: "number",
             createStateVariable: "xmaxPrelim",
             defaultValue: 10,
+            description: "Maximum value displayed on the x axis.",
         };
         attributes.yMin = {
             createComponentOfType: "number",
             createStateVariable: "yminPrelim",
             defaultValue: -10,
+            description: "Minimum value displayed on the y axis.",
         };
         attributes.yMax = {
             createComponentOfType: "number",
             createStateVariable: "ymaxPrelim",
             defaultValue: 10,
+            description: "Maximum value displayed on the y axis.",
         };
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Explicit width of the graph (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",
             createStateVariable: "specifiedSize",
             defaultValue: "medium",
             toLowerCase: true,
-            validValues: sizePossibilities,
+            validValues: [
+                { value: "tiny", description: "About 1/12 the full width." },
+                { value: "small", description: "About 30% of the full width." },
+                { value: "medium", description: "About half the full width." },
+                { value: "large", description: "About 70% of the full width." },
+                { value: "full", description: "The full available width." },
+            ],
+            description: "Named size preset for the graph.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the graph.",
         };
 
         attributes.displayMode = {
+            description: "How to size the graph.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
-            validValues: ["block", "inline"],
+            validValues: [
+                {
+                    value: "block",
+                    description: "Display as a block element on its own line.",
+                },
+                {
+                    value: "inline",
+                    description: "Render inline with surrounding text.",
+                },
+            ],
             defaultValue: "block",
+            toLowerCase: true,
             forRenderer: true,
             public: true,
         };
 
         attributes.horizontalAlign = {
+            description:
+                "Horizontal alignment of the graph within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
-            validValues: ["center", "left", "right"],
+            validValues: [
+                {
+                    value: "center",
+                    description: "Center the graph horizontally.",
+                },
+                {
+                    value: "left",
+                    description: "Align the graph to the left edge.",
+                },
+                {
+                    value: "right",
+                    description: "Align the graph to the right edge.",
+                },
+            ],
             defaultValue: "center",
+            toLowerCase: true,
             forRenderer: true,
             public: true,
         };
 
         attributes.identicalAxisScales = {
+            description:
+                "Whether to force the x and y axis scales to be equal.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "identicalAxisScales",
             defaultValue: false,
             public: true,
         };
         attributes.displayXAxis = {
+            description: "Whether to display the x axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxis",
             defaultValue: true,
@@ -94,36 +154,120 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.displayYAxis = {
+            description: "Whether to display the y axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayYAxis",
             defaultValue: true,
             public: true,
             forRenderer: true,
         };
-        attributes.displayXAxisTickLabels = {
+        attributes.addControls = {
+            description: "Whether to render interactive zoom/pan controls.",
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "none",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "all",
+                    description: "Render both sliders and input boxes.",
+                },
+                {
+                    value: "slidersOnly",
+                    description: "Render only slider controls.",
+                },
+                {
+                    value: "inputsOnly",
+                    description: "Render only input-box controls.",
+                },
+                {
+                    value: "none",
+                    description: "Render no interactive controls.",
+                },
+            ],
+            valueForTrue: "all",
+            valueForFalse: "none",
+            forRenderer: true,
+        };
+        attributes.controlsPosition = {
+            description: "Position of the graph controls.",
+            createComponentOfType: "text",
+            createStateVariable: "controlsPosition",
+            defaultValue: "left",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "bottom",
+                    description: "Place controls below the graph.",
+                },
+                {
+                    value: "left",
+                    description: "Place controls to the left of the graph.",
+                },
+                {
+                    value: "right",
+                    description: "Place controls to the right of the graph.",
+                },
+                {
+                    value: "top",
+                    description: "Place controls above the graph.",
+                },
+            ],
+        };
+        attributes.displayXAxisTicks = {
+            description: "Whether to display tick marks on the x axis.",
             createComponentOfType: "boolean",
-            createStateVariable: "displayXAxisTickLabels",
+            createStateVariable: "displayXAxisTicks",
             defaultValue: true,
             public: true,
             forRenderer: true,
+        };
+        attributes.displayYAxisTicks = {
+            description: "Whether to display tick marks on the y axis.",
+            createComponentOfType: "boolean",
+            createStateVariable: "displayYAxisTicks",
+            defaultValue: true,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.displayXAxisTickLabels = {
+            createComponentOfType: "boolean",
+            createStateVariable: "displayXAxisTickLabelsPrelim",
+            defaultValue: true,
+            description: "Whether to display labels on x-axis ticks.",
         };
         attributes.displayYAxisTickLabels = {
             createComponentOfType: "boolean",
-            createStateVariable: "displayYAxisTickLabels",
+            createStateVariable: "displayYAxisTickLabelsPrelim",
             defaultValue: true,
-            public: true,
-            forRenderer: true,
+            description: "Whether to display labels on y-axis ticks.",
         };
         attributes.xLabelPosition = {
+            description: "Position of the x-axis label.",
             createComponentOfType: "text",
             createStateVariable: "xLabelPosition",
             defaultValue: "right",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["right", "left"],
+            validValues: [
+                {
+                    value: "right",
+                    description:
+                        "Place the x-axis label at the right end of the axis.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the x-axis label at the left end of the axis.",
+                },
+            ],
         };
         attributes.xTickScaleFactor = {
+            description: "Scale factor applied to x-axis tick spacing.",
             createComponentOfType: "math",
             createStateVariable: "xTickScaleFactor",
             defaultValue: null,
@@ -131,24 +275,49 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.yLabelPosition = {
+            description: "Position of the y-axis label.",
             createComponentOfType: "text",
             createStateVariable: "yLabelPosition",
             defaultValue: "top",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["top", "bottom"],
+            validValues: [
+                {
+                    value: "top",
+                    description:
+                        "Place the y-axis label at the top of the axis.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the y-axis label at the bottom of the axis.",
+                },
+            ],
         };
         attributes.yLabelAlignment = {
+            description: "Alignment of the y-axis label.",
             createComponentOfType: "text",
             createStateVariable: "yLabelAlignment",
             defaultValue: "left",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["left", "right"],
+            validValues: [
+                {
+                    value: "left",
+                    description:
+                        "Align the y-axis label to the left of the axis.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Align the y-axis label to the right of the axis.",
+                },
+            ],
         };
         attributes.yTickScaleFactor = {
+            description: "Scale factor applied to y-axis tick spacing.",
             createComponentOfType: "math",
             createStateVariable: "yTickScaleFactor",
             defaultValue: null,
@@ -156,6 +325,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.showNavigation = {
+            description: "Whether to show navigation controls (pan/zoom).",
             createComponentOfType: "boolean",
             createStateVariable: "showNavigation",
             defaultValue: true,
@@ -166,15 +336,20 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "boolean",
             createStateVariable: "fixAxesPreliminary",
             defaultValue: false,
+            description:
+                "Whether the axis limits are locked (preventing zoom/pan).",
         };
         attributes.grid = {
             createComponentOfType: "text",
             valueForTrue: "medium",
+            description:
+                "Grid density to render on the graph (off, minor, medium, or major).",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.showBorder = {
+            description: "Whether to render a border around the graph.",
             createComponentOfType: "boolean",
             createStateVariable: "showBorder",
             defaultValue: true,
@@ -183,6 +358,8 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.hideOffGraphIndicators = {
+            description:
+                "Whether to suppress indicators for objects outside the visible region.",
             createComponentOfType: "boolean",
             createStateVariable: "hideOffGraphIndicators",
             defaultValue: false,
@@ -190,10 +367,34 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.decorative = {
+            description:
+                "Whether the graph is purely decorative (excluded from a11y tree).",
             createPrimitiveOfType: "boolean",
             createStateVariable: "decorative",
             defaultValue: false,
             public: true,
+            forRenderer: true,
+        };
+
+        attributes.renderer = {
+            description: "Which renderer to use for the graph.",
+            createPrimitiveOfType: "string",
+            createStateVariable: "renderer",
+            validValues: [
+                {
+                    value: "doenet",
+                    description:
+                        "Render using the built-in Doenet graph renderer.",
+                },
+                {
+                    value: "prefigure",
+                    description:
+                        "Render using the PreFigure SVG-based renderer.",
+                },
+            ],
+            defaultValue: "doenet",
+            public: true,
+            toLowerCase: true,
             forRenderer: true,
         };
 
@@ -240,6 +441,10 @@ export default class Graph extends BlockComponent {
                 group: "graphs",
                 componentTypes: ["graph"],
             },
+            {
+                group: "annotations",
+                componentTypes: ["annotations"],
+            },
         ];
     }
 
@@ -248,10 +453,18 @@ export default class Graph extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.shortDescription = {
+            description: "A short accessibility description of the graph.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -263,10 +476,6 @@ export default class Graph extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
                 decorative: {
                     dependencyType: "stateVariable",
                     variableName: "decorative",
@@ -274,7 +483,7 @@ export default class Graph extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.shortDescriptionChild.length > 0) {
                     const shortDescriptionChild =
                         dependencyValues.shortDescriptionChild[
@@ -285,19 +494,18 @@ export default class Graph extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "" && !dependencyValues.decorative) {
-                    warnings.push({
+                    diagnostics.push({
+                        type: "accessibility",
                         level: 1,
                         message:
-                            "For accessibility, <graph> must either have a short description or be specified as decorative.",
+                            "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
                     });
                 }
 
-                return accessibilityWarningsResult({
+                return {
                     setValue: { shortDescription },
-                    warnings,
-                    upgradeWarningsToErrors:
-                        dependencyValues.upgradeAccessibilityWarningsToErrors,
-                });
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -323,6 +531,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.fixAxes = {
+            description: "Whether the visible axes range is locked.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -350,6 +559,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xLabel = {
+            description: "The x-axis label text.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -430,6 +640,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yLabel = {
+            description: "The y-axis label text.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -527,6 +738,91 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.graphicalDescendantsForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                controlDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: GRAPH_CONTROL_COMPONENT_TYPES,
+                    variableNames: GRAPH_CONTROL_VARIABLE_NAMES,
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            graphicalDescendantsForControls: [],
+                        },
+                    };
+                }
+
+                const graphicalDescendantsForControls = [];
+                const countersByType = Object.fromEntries(
+                    GRAPH_CONTROL_DESCENDANT_CONFIGS.map((config) => [
+                        config.controlType,
+                        0,
+                    ]),
+                );
+
+                for (const descendant of dependencyValues.controlDescendants ??
+                    []) {
+                    const componentType = descendant.componentType;
+
+                    // Config order is semantically significant: first matching
+                    // inherited type wins, so specific types must be listed
+                    // before broader ancestors in GRAPH_CONTROL_DESCENDANT_CONFIGS.
+                    // This fallback-to-ancestor behavior is intentional.
+                    for (const config of GRAPH_CONTROL_DESCENDANT_CONFIGS) {
+                        if (
+                            !componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: componentType,
+                                baseComponentType: config.componentType,
+                            })
+                        ) {
+                            continue;
+                        }
+
+                        // Numbering follows matched descendants of a control
+                        // family, even when a matched descendant is later
+                        // filtered out by payload validation.
+                        countersByType[config.controlType] += 1;
+                        const componentIdx = descendant.componentIdx;
+                        if (!Number.isFinite(componentIdx)) {
+                            break;
+                        }
+
+                        const payload = config.buildPayload({
+                            stateValues: descendant.stateValues ?? {},
+                            componentIdx,
+                            number: countersByType[config.controlType],
+                        });
+
+                        if (payload !== null) {
+                            graphicalDescendantsForControls.push(payload);
+                        }
+
+                        break;
+                    }
+                }
+
+                return {
+                    setValue: {
+                        graphicalDescendantsForControls,
+                    },
+                };
+            },
+        };
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphPrefigureStateVariableDefinitions(),
+        );
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 graphicalOrGraphChildren: {
@@ -590,6 +886,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.size = {
+            description: "The size of the graph.",
             public: true,
             defaultValue: "medium",
             hasEssential: true,
@@ -664,6 +961,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.width = {
+            description: "The width of the graph.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -713,6 +1011,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.aspectRatio = {
+            description: "The aspect ratio (width / height) of the graph.",
             public: true,
             forRenderer: true,
             defaultValue: 1,
@@ -730,13 +1029,13 @@ export default class Graph extends BlockComponent {
                             dependencyType: "stateVariable",
                             variableName: "aspectRatioFromAxisScales",
                         },
-                        xscale: {
+                        xScale: {
                             dependencyType: "stateVariable",
-                            variableName: "xscale",
+                            variableName: "xScale",
                         },
-                        yscale: {
+                        yScale: {
                             dependencyType: "stateVariable",
-                            variableName: "yscale",
+                            variableName: "yScale",
                         },
                     };
                 } else {
@@ -760,7 +1059,7 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 if (dependencyValues.aspectRatioFromAxisScales) {
                     let aspectRatio =
-                        dependencyValues.xscale / dependencyValues.yscale;
+                        dependencyValues.xScale / dependencyValues.yScale;
                     return {
                         setValue: { aspectRatio },
                     };
@@ -798,7 +1097,110 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.effectiveRenderer = {
+            description:
+                "The renderer actually used after resolving fallbacks.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                renderer: {
+                    dependencyType: "stateVariable",
+                    variableName: "renderer",
+                },
+                graphParentRenderer: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "graph",
+                    variableName: "effectiveRenderer",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        effectiveRenderer:
+                            dependencyValues.graphParentRenderer ??
+                            dependencyValues.renderer,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.displayXAxisTickLabels = {
+            description: "Whether x-axis tick labels are displayed.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                displayXAxisTickLabelsPrelim: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayXAxisTickLabelsPrelim",
+                },
+                displayXAxisTicks: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayXAxisTicks",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (usedDefault.displayXAxisTickLabelsPrelim) {
+                    return {
+                        setValue: {
+                            displayXAxisTickLabels:
+                                dependencyValues.displayXAxisTicks,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            displayXAxisTickLabels:
+                                dependencyValues.displayXAxisTickLabelsPrelim,
+                        },
+                    };
+                }
+            },
+        };
+
+        stateVariableDefinitions.displayYAxisTickLabels = {
+            description: "Whether y-axis tick labels are displayed.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                displayYAxisTickLabelsPrelim: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayYAxisTickLabelsPrelim",
+                },
+                displayYAxisTicks: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayYAxisTicks",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (usedDefault.displayYAxisTickLabelsPrelim) {
+                    return {
+                        setValue: {
+                            displayYAxisTickLabels:
+                                dependencyValues.displayYAxisTicks,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            displayYAxisTickLabels:
+                                dependencyValues.displayYAxisTickLabelsPrelim,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.xMin = {
+            description: "Minimum x value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -807,7 +1209,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -944,6 +1346,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xMax = {
+            description: "Maximum x value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -952,7 +1355,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1095,6 +1498,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yMin = {
+            description: "Minimum y value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1103,7 +1507,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1242,6 +1646,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yMax = {
+            description: "Maximum y value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1250,7 +1655,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1427,12 +1832,59 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.xscale = {
+        function returnScaleInverseDefinition({
+            scaleStateVariable,
+            minDependency,
+            maxDependency,
+        }) {
+            return function inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredScale =
+                    desiredStateVariableValues[scaleStateVariable];
+                let midpoint =
+                    dependencyValues[minDependency] / 2 +
+                    dependencyValues[maxDependency] / 2;
+                let desiredMin = midpoint - desiredScale / 2;
+                let desiredMax = midpoint + desiredScale / 2;
+
+                if (
+                    !Number.isFinite(desiredScale) ||
+                    desiredScale <= 0 ||
+                    !Number.isFinite(midpoint) ||
+                    !Number.isFinite(desiredMin) ||
+                    !Number.isFinite(desiredMax)
+                ) {
+                    // Reject non-positive scales: they would make min ≥ max,
+                    // which breaks consumers that treat the scale as a positive
+                    // magnitude (e.g. aspectRatio = xScale / yScale).
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: minDependency,
+                            desiredValue: desiredMin,
+                        },
+                        {
+                            setDependency: maxDependency,
+                            desiredValue: desiredMax,
+                        },
+                    ],
+                };
+            };
+        }
+
+        stateVariableDefinitions.xScale = {
+            description: "Scale used along the x axis (xMax − xMin).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 xMin: {
@@ -1447,18 +1899,24 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        xscale: dependencyValues.xMax - dependencyValues.xMin,
+                        xScale: dependencyValues.xMax - dependencyValues.xMin,
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "xScale",
+                minDependency: "xMin",
+                maxDependency: "xMax",
+            }),
         };
 
-        stateVariableDefinitions.yscale = {
+        stateVariableDefinitions.yScale = {
+            description: "Scale used along the y axis (yMax − yMin).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 yMin: {
@@ -1473,10 +1931,15 @@ export default class Graph extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        yscale: dependencyValues.yMax - dependencyValues.yMin,
+                        yScale: dependencyValues.yMax - dependencyValues.yMin,
                     },
                 };
             },
+            inverseDefinition: returnScaleInverseDefinition({
+                scaleStateVariable: "yScale",
+                minDependency: "yMin",
+                maxDependency: "yMax",
+            }),
         };
 
         stateVariableDefinitions.gridAttrCompName = {
@@ -1531,11 +1994,12 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.grid = {
+            description: "Grid line spacing on the graph.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             stateVariablesDeterminingDependencies: ["gridAttrCompChildren"],
@@ -1788,19 +2252,11 @@ export default class Graph extends BlockComponent {
     }
 
     async addChildren(args) {
-        const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "_dynamicChildren",
-        );
-
-        return await dynamicChildren.addChildren(args);
+        return await addChildrenToDynamicChild(this, args);
     }
 
     async deleteChildren(args) {
-        const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "_dynamicChildren",
-        );
-
-        return await dynamicChildren.deleteChildren(args);
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {

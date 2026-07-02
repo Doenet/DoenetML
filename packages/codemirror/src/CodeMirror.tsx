@@ -1,5 +1,6 @@
 import React from "react";
 import { EditorSelection, EditorState, Extension } from "@codemirror/state";
+import { selectedCompletion, type Completion } from "@codemirror/autocomplete";
 import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
@@ -8,7 +9,12 @@ import {
     lspPlugin,
     uniqueLanguageServerInstance,
 } from "./extensions/lsp/plugin";
-import { colorTheme, readOnlyColorTheme } from "./extensions/theme";
+import {
+    colorTheme,
+    readOnlyColorTheme,
+    completionIconTheme,
+    type ThemeMode,
+} from "./extensions/theme";
 
 /**
  * A CodeMirror instance set up with a language server to provide completions/etc. for DoenetML.
@@ -17,15 +23,24 @@ const CodeMirror = React.memo(function CodeMirror({
     value,
     onChange,
     onCursorChange,
+    onSelectedCompletionChange,
     readOnly,
     onBlur,
     onFocus,
     languageServerRef,
     ariaLabel = "DoenetML code editor",
+    doenetWorkerUrl,
+    darkMode = "light",
 }: {
     value: string;
     onChange?: (str: string) => void;
     onCursorChange?: (selection: EditorSelection) => any;
+    /**
+     * Fires when the currently-highlighted autocomplete option changes,
+     * including transitions to/from `null` (popup opens/closes). Used to
+     * drive the context-sensitive help panel.
+     */
+    onSelectedCompletionChange?: (completion: Completion | null) => void;
     readOnly?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
@@ -41,6 +56,25 @@ const CodeMirror = React.memo(function CodeMirror({
      * Accessible label for the editor. Defaults to "DoenetML code editor".
      */
     ariaLabel?: string;
+    /**
+     * Optional URL of the inlined core webworker JS bundle.  When provided,
+     * the LSP spawns this worker behind the scenes to power name/member
+     * resolution.  When omitted, ref/member completions are silently disabled
+     * but the rest of the editor works normally.
+     *
+     * The LSP is a process-wide singleton; the first `<CodeMirror>` instance
+     * to mount locks in the URL.  Later instances passing a different URL
+     * will see a console warning and have their value ignored.  In practice
+     * every editor on a page reads from the same `doenetGlobalConfig`, so
+     * this is rarely an issue.
+     */
+    doenetWorkerUrl?: string;
+    /**
+     * Resolved theme mode for the editor.  Defaults to `"light"`.  When set
+     * to `"dark"` the CodeMirror color theme, syntax-highlight palette, and
+     * autocomplete icon colors all switch to dark-mode-verified variants.
+     */
+    darkMode?: ThemeMode;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -71,8 +105,8 @@ const CodeMirror = React.memo(function CodeMirror({
 
     const extensions: Extension[] = React.useMemo(() => {
         const extensions: Extension[] = [
-            syntaxHighlightingExtension,
-            readOnly ? readOnlyColorTheme : colorTheme,
+            syntaxHighlightingExtension(darkMode),
+            readOnly ? readOnlyColorTheme(darkMode) : colorTheme(darkMode),
             EditorView.lineWrapping,
             // Add aria-label to the contenteditable element for accessibility
             EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
@@ -80,15 +114,20 @@ const CodeMirror = React.memo(function CodeMirror({
         if (!readOnly) {
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
-            extensions.push(lspPlugin(documentId));
+            extensions.push(lspPlugin(documentId, doenetWorkerUrl));
+            extensions.push(completionIconTheme(darkMode));
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
-    }, [documentId, readOnly, ariaLabel]);
+    }, [documentId, readOnly, ariaLabel, doenetWorkerUrl, darkMode]);
 
     return (
-        <div className="mathjax_ignore" style={{ height: "100%" }}>
+        <div
+            className="mathjax_ignore"
+            data-theme={darkMode}
+            style={{ height: "100%" }}
+        >
             <ReactCodeMirror
                 style={{ height: "100%" }}
                 value={value}
@@ -108,9 +147,21 @@ const CodeMirror = React.memo(function CodeMirror({
                             onCursorChange(tr.selection);
                         }
                     }
+                    if (onSelectedCompletionChange) {
+                        const prev = selectedCompletion(viewUpdate.startState);
+                        const next = selectedCompletion(viewUpdate.state);
+                        // Identity compare: CodeMirror returns the same
+                        // Completion instance across renders of the same
+                        // active option. When the filter rebuilds (typing),
+                        // a new object may surface — the downstream handler
+                        // is idempotent, so re-firing is cheap.
+                        if (prev !== next) {
+                            onSelectedCompletionChange(next);
+                        }
+                    }
                 }}
-                onBlur={() => onBlur && onBlur()}
-                onFocus={() => onFocus && onFocus()}
+                onBlur={onBlur}
+                onFocus={onFocus}
                 height="100%"
                 extensions={extensions}
             />

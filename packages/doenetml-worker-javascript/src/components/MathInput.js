@@ -1,11 +1,16 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildEffectiveMathInputFunctionNames,
+    deepCompare,
+    convertValueToMathExpression,
+} from "@doenet/utils";
+import {
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import {
     latexToMathFactory,
@@ -14,6 +19,10 @@ import {
     stripLatex,
 } from "../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -24,26 +33,13 @@ export default class MathInput extends Input {
             updateValue: this.updateValue.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "mathInput";
 
+    static componentDocs = {
+        summary: "An interactive math input",
+    };
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";
 
@@ -52,6 +48,7 @@ export default class MathInput extends Input {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.prefill = {
+            description: "Initial value displayed in the input.",
             createComponentOfType: "math",
             createStateVariable: "prefill",
             defaultValue: me.fromAst("\uff3f"),
@@ -64,26 +61,70 @@ export default class MathInput extends Input {
             ],
         };
         attributes.prefillLatex = {
+            description: "Initial value as a LaTeX string.",
             createComponentOfType: "latex",
             createStateVariable: "prefillLatex",
             defaultValue: "",
             public: true,
         };
         attributes.format = {
+            description: "Input format.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
             toLowerCase: true,
-            validValues: ["text", "latex"],
+            validValues: [
+                {
+                    value: "text",
+                    description: "Plain-text math notation (e.g., `x^2 + 1`).",
+                },
+                {
+                    value: "latex",
+                    description: "LaTeX-formatted math (e.g., `x^{2} + 1`).",
+                },
+            ],
         };
         attributes.functionSymbols = {
+            description: "Symbols treated as function names when parsing.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
             public: true,
         };
+        attributes.additionalFunctionNames = {
+            description:
+                "Extra identifiers to auto-format as function names in " +
+                "the editor (e.g., 'erf'). Entries that also appear in " +
+                "`removedFunctionNames` are dropped.",
+            createComponentOfType: "textList",
+            createStateVariable: "additionalFunctionNames",
+            defaultValue: [],
+            public: true,
+        };
+        attributes.removedFunctionNames = {
+            description:
+                "Built-in function names to stop auto-formatting in the " +
+                "editor (e.g., 'min' so 'kg/min' can be typed as a unit).",
+            createComponentOfType: "textList",
+            createStateVariable: "removedFunctionNames",
+            defaultValue: [],
+            public: true,
+        };
+        attributes.resetFunctionNames = {
+            description:
+                "When set, replaces the entire auto-formatted function " +
+                "name list (defaults, `additionalFunctionNames`, and " +
+                "`removedFunctionNames` are all ignored). Set to an empty " +
+                "value to disable auto-formatting entirely.",
+            createComponentOfType: "textList",
+            createStateVariable: "resetFunctionNames",
+            defaultValue: null,
+            public: true,
+        };
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of single-character variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
@@ -91,6 +132,8 @@ export default class MathInput extends Input {
             fallBackToParentStateVariable: "splitSymbols",
         };
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -98,18 +141,22 @@ export default class MathInput extends Input {
             fallBackToParentStateVariable: "parseScientificNotation",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.unionFromU = {
+            description: 'Whether "U" between sets is parsed as union.',
             createComponentOfType: "boolean",
             createStateVariable: "unionFromU",
             defaultValue: false,
             public: true,
         };
         attributes.hideNaN = {
+            description:
+                "Whether to hide NaN values when displaying the input.",
             createComponentOfType: "boolean",
             createStateVariable: "hideNaN",
             defaultValue: true,
@@ -119,8 +166,10 @@ export default class MathInput extends Input {
             createComponentOfType: "textList",
             createStateVariable: "removeStrings",
             defaultValue: null,
+            description: "Substrings to strip from the input before parsing.",
         };
         attributes.minWidth = {
+            description: "Minimum rendered width of the input.",
             createComponentOfType: "integer",
             createStateVariable: "minWidth",
             defaultValue: 50,
@@ -133,6 +182,7 @@ export default class MathInput extends Input {
             createComponentOfType: "boolean",
             createStateVariable: "showPreviewPreliminary",
             defaultValue: false,
+            description: "Whether to display a preview of the parsed math.",
         };
 
         return attributes;
@@ -180,13 +230,103 @@ export default class MathInput extends Input {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions({
+            returnNumberDisplayStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
         );
 
+        stateVariableDefinitions.effectiveFunctionNames = {
+            // Resolved MathQuill `autoOperatorNames` list — defaults
+            // merged with `additionalFunctionNames` / `removedFunctionNames`
+            // (or replaced wholesale when `resetFunctionNames` is set).
+            // Computed here in the worker (rather than the renderer) so
+            // we can emit a `warning` diagnostic when authored tokens
+            // are dropped for failing MathQuill's validator — letting
+            // those reach MathQuill would crash the `EditableMathField`
+            // mount instead.
+            forRenderer: true,
+            returnDependencies: () => ({
+                additionalFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "additionalFunctionNames",
+                },
+                removedFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "removedFunctionNames",
+                },
+                resetFunctionNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "resetFunctionNames",
+                },
+                // The attribute components carry their own source
+                // positions; we read them so each emitted diagnostic
+                // points at the attribute whose contents actually
+                // contributed an invalid token, rather than the whole
+                // `<mathInput>` element. The `attributeComponent`
+                // dependency returns `null` when the attribute is
+                // absent, so the `?.position` guards below are real.
+                additionalFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "additionalFunctionNames",
+                },
+                resetFunctionNamesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "resetFunctionNames",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { names, droppedFromAdditional, droppedFromReset } =
+                    buildEffectiveMathInputFunctionNames({
+                        additional: dependencyValues.additionalFunctionNames,
+                        removed: dependencyValues.removedFunctionNames,
+                        reset: dependencyValues.resetFunctionNames,
+                    });
+                const result = { setValue: { effectiveFunctionNames: names } };
+                const diagnostics = [];
+                const buildMessage = (attr, list) =>
+                    `<mathInput>: ignored invalid function name(s) in ` +
+                    `${attr}: ${list.map((n) => `'${n}'`).join(", ")}. ` +
+                    `Each name's display segment must be at least 2 ` +
+                    `characters (letters or dashes); an optional ` +
+                    "`|<mathspeak alternative>` suffix may follow.";
+                // One diagnostic per *contributing* attribute. The
+                // helper already enforces precedence (`reset` wins
+                // over `additional`), so when both are authored only
+                // `reset`'s invalid tokens surface — `additional` is
+                // inactive in that case, and warning about its
+                // contents would be misleading.
+                if (droppedFromAdditional.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "additionalFunctionNames",
+                            droppedFromAdditional,
+                        ),
+                        position:
+                            dependencyValues.additionalFunctionNamesAttr
+                                ?.position,
+                    });
+                }
+                if (droppedFromReset.length > 0) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: buildMessage(
+                            "resetFunctionNames",
+                            droppedFromReset,
+                        ),
+                        position:
+                            dependencyValues.resetFunctionNamesAttr?.position,
+                    });
+                }
+                if (diagnostics.length > 0)
+                    result.sendDiagnostics = diagnostics;
+                return result;
+            },
+        };
+
         stateVariableDefinitions.showPreview = {
+            description: "Whether to display a preview of the parsed math.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -217,6 +357,8 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the value has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -243,11 +385,12 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.value = {
+            description: "The math value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -336,7 +479,7 @@ export default class MathInput extends Input {
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
                                             },
-                                        );
+                                        ).expression;
                                     }
                                 },
                             },
@@ -387,6 +530,8 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.immediateValueChanged = {
+            description:
+                "Whether the value, including in-progress edits, has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -415,11 +560,13 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.immediateValue = {
+            description:
+                "The math value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -529,7 +676,6 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.valueForDisplay = {
-            forRenderer: true,
             returnDependencies: () => ({
                 value: {
                     dependencyType: "stateVariable",
@@ -552,6 +698,10 @@ export default class MathInput extends Input {
             definition: function ({ dependencyValues }) {
                 // round any decimal numbers to the significant digits
                 // determined by displaydigits or displaydecimals
+                // NOTE: this rounded value is used for semantic references
+                // (e.g. $mi.value and $mi.immediateValue). The live input
+                // display continues to come from rawRendererValue so we preserve
+                // what the user typed while editing.
                 let rounded = roundForDisplay({
                     value: dependencyValues.value,
                     dependencyValues,
@@ -564,6 +714,7 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.text = {
+            description: "The current input as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -573,11 +724,36 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "valueForDisplay",
                 },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                // `.text` reflects number-display formatting, while the live
+                // editor content is still preserved in rawRendererValue.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
-                        text: dependencyValues.valueForDisplay.toString(),
+                        text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
             },
@@ -613,6 +789,8 @@ export default class MathInput extends Input {
             defaultValue: "",
             provideEssentialValuesInDefinition: true,
             public: true,
+            description:
+                "The raw value used by the renderer (e.g. LaTeX string).",
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
@@ -627,6 +805,7 @@ export default class MathInput extends Input {
             ],
             returnDependencies: () => ({
                 // include immediateValue for inverse definition
+                // and to determine if used default value
                 immediateValue: {
                     dependencyType: "stateVariable",
                     variableName: "immediateValue",
@@ -758,7 +937,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
                     let desiredMath = calculateMathExpressionFromLatex({
                         latex: desiredValue,
                         unionFromU,
@@ -766,7 +945,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that within double precision are detected
@@ -806,7 +985,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that are within double precision are detected
@@ -850,6 +1029,77 @@ export default class MathInput extends Input {
                 return {
                     success: true,
                     instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.errorMessageRawRenderer = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                rawRendererValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "rawRendererValue",
+                },
+                unionFromU: {
+                    dependencyType: "stateVariable",
+                    variableName: "unionFromU",
+                },
+                functionSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "functionSymbols",
+                },
+                splitSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "splitSymbols",
+                },
+                parseScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "parseScientificNotation",
+                },
+                removeStrings: {
+                    dependencyType: "stateVariable",
+                    variableName: "removeStrings",
+                },
+                showPreview: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreview",
+                },
+                immediateValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "immediateValue",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let errorMessage = null;
+
+                if (
+                    dependencyValues.showPreview &&
+                    dependencyValues.rawRendererValue !== null &&
+                    dependencyValues.rawRendererValue !== ""
+                ) {
+                    const placeholder = "\uFF3F";
+
+                    if (dependencyValues.immediateValue?.tree === placeholder) {
+                        // if we have a raw renderer value and immediate value is the placeholder,
+                        // then we have latex that we could not parse.
+                        // Show the error message from parsing in the preview instead of the placeholder.
+
+                        errorMessage = calculateMathExpressionFromLatex({
+                            latex: dependencyValues.rawRendererValue,
+                            unionFromU: dependencyValues.unionFromU,
+                            functionSymbols: dependencyValues.functionSymbols,
+                            splitSymbols: dependencyValues.splitSymbols,
+                            parseScientificNotation:
+                                dependencyValues.parseScientificNotation,
+                            removeStrings: dependencyValues.removeStrings,
+                        }).errorMessage;
+                    }
+                }
+
+                return {
+                    setValue: {
+                        errorMessageRawRenderer: errorMessage,
+                    },
                 };
             },
         };
@@ -955,24 +1205,12 @@ export default class MathInput extends Input {
                     valueOfStateVariable: "valueForDisplay",
                 });
 
-                let event = {
+                let event = await buildInputResponseEvent({
+                    component: this,
                     verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue.toString(),
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
+                    response: immediateValue,
+                    responseText: immediateValue.toString(),
+                });
 
                 // TODO: we should should skip renderer updates here,
                 // but doing so triggers a bug in the resolveItem logic
@@ -1001,7 +1239,7 @@ export default class MathInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];
@@ -1036,11 +1274,16 @@ function calculateMathExpressionFromLatex({
         parseScientificNotation,
     });
 
+    let errorMessage = null;
     try {
         expression = fromLatex(latex);
     } catch (e) {
         // TODO: error on bad latex
         expression = me.fromAst("\uFF3F");
+
+        if (e.name === "ParseError") {
+            errorMessage = e.message;
+        }
     }
-    return expression;
+    return { expression, errorMessage };
 }

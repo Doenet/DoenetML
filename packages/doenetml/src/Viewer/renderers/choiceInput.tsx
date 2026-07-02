@@ -1,16 +1,26 @@
-import React, { createContext, useRef, useState } from "react";
+import React, {
+    createContext,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import Select, { components, MultiValue, OnChangeValue } from "react-select";
+import { CANVAS_DARK_MODE_COLOR } from "@doenet/utils/style";
+import { DocContext } from "../DocViewer";
 import "./choiceInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { addValidationStateToShortDescription } from "./utils/validationState";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 // type guard
 const isMultiValue = <T,>(
@@ -26,18 +36,47 @@ type Option = { value: number; label: any; isDisabled: boolean };
  * 1. isHidden: indicates that the content is being rendered invisibly to size the select input.
  *    It is used by the math renderer to turn off hideUntilTypeset, which would cause it to
  *    overwrite the invisible rendering and add tab stops to the invisible content.
- * 2. inOption: indicates that the content is being rendered inside a select option.
- *    It is used to turn off color specifications so that the font color of selected options
- *    can be set to white for contrast.
+ * 2. inOption: indicates that the content is being rendered inside a selected
+ *    (highlighted) select option. Because a selected option uses a dark
+ *    background, it is used to turn off color specifications so that the font
+ *    color can be set to white for contrast. (With selectMultiple, more than
+ *    one option can be selected at once.) Unselected options and the displayed
+ *    value render with their own style colors.
  */
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
     inOption: boolean;
 }>({ isHidden: false, inOption: false });
 
+interface ChoiceInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    inline: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition: string;
+    justSubmitted: boolean;
+    forceFullCheckWorkButton: boolean;
+    forceSmallCheckWorkButton: boolean;
+    colorCorrectness: boolean;
+    choiceChildIndices: any;
+    choiceOrder: any;
+    choicesDisabled: any;
+    choicesHidden: any;
+    descriptionChildInd: any;
+    externalLabelRendererIds: any;
+    immediateValue: any;
+    placeHolder: any;
+    renderInlineForListItem: boolean;
+    selectedIndices: any;
+}
+
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<ChoiceInputSVs>(props);
+
+    const { darkMode } = useContext(DocContext) || {};
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -60,10 +99,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     const validationState = calculateValidationState(SVs);
-    const submitAnswer = () =>
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
+
+    function onFocusChanged(focused: boolean) {
         callAction({
-            action: actions.submitAnswer,
+            action: actions.focusChanged,
+            args: { focused },
         });
+    }
 
     function onChangeHandlerInline(newValue: OnChangeValue<Option, boolean>) {
         let newSelectedIndices: number[] = [];
@@ -137,7 +186,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     let disabled = SVs.disabled;
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
+    const inlineInputId = `${id}_input`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -147,6 +200,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const inlineLabelledByIds = [
+        hasLabel ? labelId : null,
+        ...externalLabelRendererIds,
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
@@ -173,8 +233,41 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         fullCheckWork,
+        isPending,
+    );
+
+    const inlineSelectComponents = useMemo(
+        () => ({
+            // Disable pointer events on option content to keep MathJax from
+            // interfering with option selection.
+            Option: (props: any) => (
+                <components.Option {...props}>
+                    {/*
+                     * Render the option content with its style colors, except
+                     * for selected options, which are highlighted with a dark
+                     * background. There, the text color is left to react-select
+                     * (white) for contrast.
+                     */}
+                    <ChoiceInputInlineContext.Provider
+                        value={{
+                            isHidden: false,
+                            inOption: !!props.isSelected,
+                        }}
+                    >
+                        <div style={{ pointerEvents: "none" }}>
+                            {props.label}
+                        </div>
+                    </ChoiceInputInlineContext.Provider>
+                </components.Option>
+            ),
+            // Add aria-details to the internal input used by react-select.
+            Input: (props: any) => (
+                <components.Input {...props} aria-details={descriptionId} />
+            ),
+        }),
+        [descriptionId],
     );
 
     if (SVs.inline) {
@@ -186,21 +279,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 shortDescription,
             );
         }
-
-        // Custom Option to disable pointer events on option content
-        // to keep MathJax from interfering with option selection
-        const CustomOption = (props: any) => {
-            return (
-                <components.Option {...props}>
-                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
-                </components.Option>
-            );
-        };
-
-        // Custom Input to add aria-details
-        const CustomInput = (props: any) => {
-            return <components.Input {...props} aria-details={descriptionId} />;
-        };
 
         const choiceChildren = SVs.choiceChildIndices.map(
             (ind: number) => children[ind],
@@ -236,14 +314,37 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             inputClasses += ` custom-select-${validationState}`;
         }
 
+        const menuPortalTarget =
+            typeof document === "undefined" ? undefined : document.body;
+
+        // The dropdown menu is portaled to document.body, which sits outside
+        // the `data-theme` wrapper, so its CSS custom properties don't resolve
+        // to the dark-mode values. Drive the colors from the doc-level dark mode
+        // instead. (These mirror the `--canvas` / `--canvasText` palette.)
+        const isDark = darkMode === "dark";
+        const surfaceColor = isDark ? CANVAS_DARK_MODE_COLOR : "#fff";
+        const onSurfaceColor = isDark ? "#fff" : "#000";
+        // The dropdown is a floating surface: in dark mode it must read as
+        // *elevated* above the canvas, so use a lighter surface plus a border
+        // rather than the same color as the canvas (which would be invisible).
+        const menuSurfaceColor = isDark ? "#2a2a2a" : "#fff";
+        const focusedOptionColor = isDark ? "#3d3d3d" : "#e9ecef";
+        const menuBorder = isDark ? "1px solid #555" : undefined;
+
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
-                background: "#fff",
+                background: surfaceColor,
+                color: onSurfaceColor,
                 minHeight: "0.8lh",
                 pointerEvents: disabled ? "auto" : undefined,
                 boxShadow: "none",
                 border: "none",
+            }),
+
+            singleValue: (provided: any) => ({
+                ...provided,
+                color: onSurfaceColor,
             }),
 
             valueContainer: (provided: any) => ({
@@ -254,6 +355,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             input: (provided: any) => ({
                 ...provided,
                 margin: "0px",
+                color: onSurfaceColor,
             }),
             indicatorSeparator: () => ({
                 display: "none",
@@ -266,15 +368,25 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 ...provided,
                 padding: "2px",
             }),
+            menu: (provided: any) => ({
+                ...provided,
+                backgroundColor: menuSurfaceColor,
+                border: menuBorder,
+            }),
             option: (provided: any, state: any) => ({
                 ...provided,
                 cursor: state.isDisabled ? "not-allowed" : "pointer",
                 backgroundColor: state.isSelected
                     ? "#0056b3" // Darker blue for better contrast
                     : state.isFocused
-                      ? "#e9ecef"
-                      : "#fff",
-                color: state.isSelected ? "#fff" : "#000",
+                      ? focusedOptionColor
+                      : menuSurfaceColor,
+                color: state.isSelected ? "#fff" : onSurfaceColor,
+            }),
+            menuPortal: (provided: any) => ({
+                ...provided,
+                fontSize: "80%",
+                zIndex: 9999,
             }),
         };
 
@@ -340,17 +452,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     }}
                 >
                     <ChoiceInputInlineContext.Provider
-                        value={{ isHidden: false, inOption: true }}
+                        value={{ isHidden: false, inOption: false }}
                     >
                         <Select
                             id={id}
+                            inputId={inlineInputId}
                             isMulti={SVs.selectMultiple}
                             styles={customStyles}
                             options={choiceOptions}
-                            components={{
-                                Option: CustomOption,
-                                Input: CustomInput,
-                            }}
+                            components={inlineSelectComponents}
+                            menuPortalTarget={menuPortalTarget}
                             menuPlacement="auto"
                             className={inputClasses}
                             onChange={onChangeHandlerInline}
@@ -360,7 +471,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             placeholder={SVs.placeHolder}
                             isDisabled={disabled}
                             isOptionDisabled={(opt) => !!opt.isDisabled}
-                            aria-label={shortDescription}
+                            aria-labelledby={inlineLabelledByIds || undefined}
+                            aria-label={
+                                !inlineLabelledByIds
+                                    ? shortDescription
+                                    : undefined
+                            }
+                            aria-description={
+                                inlineLabelledByIds
+                                    ? shortDescription
+                                    : undefined
+                            }
                             // Note: aria-details added in CustomInput
                         />
                     </ChoiceInputInlineContext.Provider>
@@ -368,34 +489,134 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
-        return (
-            <span
-                style={{ display: "inline-flex", alignItems: "start" }}
-                id={id + "-container"}
+        const labelComponent = hasLabel ? (
+            <label
+                id={labelId}
+                htmlFor={inlineInputId}
+                style={{
+                    marginRight:
+                        SVs.labelPosition === "right" ? undefined : "4px",
+                    marginLeft:
+                        SVs.labelPosition === "right" ? "4px" : undefined,
+                }}
             >
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                    <label
-                        style={{
-                            display: "inline-flex",
-                            maxWidth: "100%",
-                        }}
-                        id={id + "-label"}
-                    >
-                        {label}
-                        {selectWithDynamicWidth}
-                    </label>
-                    {checkWorkComponent}
-                </span>
+                {label}
+            </label>
+        ) : null;
+
+        const inputRow = (
+            <span
+                style={{
+                    display: "inline-flex",
+                    alignItems: "flex-start",
+                    // The input row flows as inline content (see the container
+                    // comment). `vertical-align: baseline` aligns it with the
+                    // text baseline of its line.
+                    verticalAlign: "baseline",
+                }}
+            >
+                {selectWithDynamicWidth}
+                {checkWorkComponent}
                 {description}
             </span>
         );
+
+        return (
+            <span
+                // `display: inline` so the label and select flow with the
+                // surrounding paragraph text and a wrapping label keeps the
+                // select after its end rather than beside its first line
+                // (#1245). See mathInput.tsx for the full rationale.
+                style={{
+                    display: "inline",
+                }}
+                id={id + "-container"}
+                onFocus={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(true);
+                    }
+                }}
+                onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(false);
+                    }
+                }}
+            >
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {inputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {inputRow}
+                    </>
+                )}
+            </span>
+        );
     } else {
+        // Non-inline choice input
+
+        // Prevent the wrapping <label> from redirecting focus to the
+        // radio/checkbox when the click originates from an interactive input
+        // (e.g. a <mathInput> or <textInput>) inside the choice content.
+        //
+        // React uses root-level event delegation, so a bubble-phase onClick
+        // fires after the native event has already passed through the <label>
+        // (too late to cancel the label's activation behavior). Using
+        // onClickCapture fires in the capture phase — before the native event
+        // reaches <label> — so calling preventDefault() here marks the event
+        // as cancelled before the label can redirect focus to the radio button.
+        // The event still propagates down to the interactive element, which
+        // receives focus normally.
+        //
+        // The selector covers:
+        //   - any nested form control except choiceInput radio/checkbox
+        //     controls, whose own click behavior should not be cancelled
+        //   - <textarea>
+        //   - <select> and <button>
+        //   - [contenteditable]
+        //   - .mathInputWrapper — MathQuill's visual spans are regular <span>
+        //     elements; clicking them does not target a native form control, so
+        //     the above selectors miss them. MathQuill focuses its internal
+        //     textarea programmatically. Detecting the wrapper class is the
+        //     reliable way to identify a mathInput click.
+        //   - booleanInput containers
+        //   - inline choiceInput controls rendered by react-select
+        //
+        function preventDefaultIfInput(e: React.MouseEvent) {
+            const target = e.target as HTMLElement;
+            const outerChoiceControl = e.currentTarget.querySelector(
+                ":scope > input.choiceinput-control",
+            );
+
+            const interactiveTarget = target.closest(
+                "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
+            );
+
+            if (
+                interactiveTarget &&
+                interactiveTarget !== outerChoiceControl &&
+                !interactiveTarget.classList.contains("choiceinput-control")
+            ) {
+                e.preventDefault();
+            }
+        }
+
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
-            marginTop: label ? "10px" : "0px",
+            marginTop: hasLabel ? "10px" : "0px",
             marginBottom: checkWorkComponent ? "10px" : "0px",
         };
+
+        const groupLabelledByIds = [
+            hasLabel ? labelId : null,
+            ...externalLabelRendererIds,
+        ]
+            .filter(Boolean)
+            .join(" ");
 
         let keyBeginning = inputKey + "_choice";
         let inputType = "radio";
@@ -428,8 +649,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="radio"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
@@ -441,12 +664,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     disabled={radioDisabled}
                                 />
                                 <span className={radioClassName} />
-                                <label
-                                    htmlFor={keyBeginning + (i + 1) + "_input"}
-                                    style={{ marginLeft: "2px" }}
-                                >
+                                <span style={{ marginLeft: "2px" }}>
                                     {child}
-                                </label>
+                                </span>
                             </label>
                         </li>
                     );
@@ -465,8 +685,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="checkbox"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
@@ -480,34 +702,57 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     }
                                 />
                                 <span className={checkboxClassName} />
-                                <label
-                                    htmlFor={keyBeginning + (i + 1) + "_input"}
-                                    style={{ marginLeft: "2px" }}
-                                >
+                                <span style={{ marginLeft: "2px" }}>
                                     {child}
-                                </label>
+                                </span>
                             </label>
                         </li>
                     );
                 }
             });
 
+        const nonInlineLabelComponent = hasLabel ? (
+            <legend id={labelId}>{label}</legend>
+        ) : null;
+
         return (
-            <div id={inputKey + "-label"} style={{ margin: "16px 0" }}>
-                {label}
-                <ul
-                    id={inputKey}
-                    style={listStyle}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                >
-                    {choiceDoenetTags}
-                </ul>
+            <fieldset
+                id={inputKey}
+                style={{
+                    margin: getBlockMarginWithOptionalTopSuppression({
+                        suppressTopMargin:
+                            SVs.renderInlineForListItem && !SVs.inline,
+                        top: 16,
+                        bottom: 16,
+                    }),
+                    padding: 0,
+                    border: "none",
+                    minInlineSize: 0,
+                }}
+                aria-labelledby={groupLabelledByIds || undefined}
+                aria-label={!groupLabelledByIds ? shortDescription : undefined}
+                aria-description={
+                    groupLabelledByIds ? shortDescription : undefined
+                }
+                aria-details={descriptionId}
+                onFocus={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(true);
+                    }
+                }}
+                onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(false);
+                    }
+                }}
+            >
+                {nonInlineLabelComponent}
+                <ul style={listStyle}>{choiceDoenetTags}</ul>
                 <span style={{ display: "inline-flex", alignItems: "start" }}>
                     {checkWorkComponent}
                     {description}
                 </span>
-            </div>
+            </fieldset>
         );
     }
 });

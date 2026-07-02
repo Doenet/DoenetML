@@ -3,16 +3,21 @@ import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    addShadowRoundingAttributes,
-    gatherRawRoundingFixedResponseAttributes,
-    returnRoundingAttributes,
-} from "../utils/rounding";
+    addShadowNumberDisplayAttributes,
+    gatherRawNumberDisplayFixedResponseAttributes,
+    returnNumberDisplayAttributes,
+} from "../utils/numberDisplay";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
 
 export default class MathList extends CompositeComponent {
     static componentType = "mathList";
+
+    static componentDocs = {
+        summary: "A list of math expressions",
+    };
+    static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
@@ -40,8 +45,11 @@ export default class MathList extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -49,14 +57,20 @@ export default class MathList extends CompositeComponent {
         };
         attributes.mergeMathLists = {
             createComponentOfType: "boolean",
+            description:
+                "Whether nested math-list children should be flattened into this list.",
         };
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -67,15 +81,21 @@ export default class MathList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
         attributes.functionSymbols = {
+            description:
+                "Symbols treated as function names when parsing items.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
@@ -91,9 +111,13 @@ export default class MathList extends CompositeComponent {
             fallBackToParentStateVariable: "referencesAreFunctionSymbols",
             fallBackToSourceCompositeStateVariable:
                 "referencesAreFunctionSymbols",
+            description:
+                "References whose names should be treated as function symbols when parsing items.",
         };
 
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
@@ -103,6 +127,8 @@ export default class MathList extends CompositeComponent {
         };
 
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -170,6 +196,8 @@ export default class MathList extends CompositeComponent {
         };
 
         stateVariableDefinitions.mergeMathLists = {
+            description:
+                "Whether nested math lists are merged into the parent list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -195,6 +223,7 @@ export default class MathList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the math list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -539,11 +568,13 @@ export default class MathList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of math expressions in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "maths",
+            description: "The list's math expressions.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
@@ -583,14 +614,13 @@ export default class MathList extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
         let componentsCopied = [];
 
         // For attributes that were left raw, we convert them and add them to the replacements
-        let attributesToConvert = gatherRawRoundingFixedResponseAttributes(
+        let attributesToConvert = gatherRawNumberDisplayFixedResponseAttributes(
             component,
             components,
         );
@@ -635,7 +665,7 @@ export default class MathList extends CompositeComponent {
             }
 
             if (copyChildSource) {
-                nComponents = addShadowRoundingAttributes({
+                nComponents = addShadowNumberDisplayAttributes({
                     nComponents,
                     stateIdInfo,
                     source: copyChildSource,
@@ -693,8 +723,7 @@ export default class MathList extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -706,9 +735,7 @@ export default class MathList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let numComponents = await component.stateValues.numComponents;
 
@@ -738,7 +765,7 @@ export default class MathList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -752,8 +779,7 @@ export default class MathList extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -766,6 +792,6 @@ export default class MathList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

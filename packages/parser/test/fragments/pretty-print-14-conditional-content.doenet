@@ -1,0 +1,7 @@
+<conditionalContent condition="$flag">just sugar text, should stay inline</conditionalContent>
+
+<conditionalContent>
+  <case condition="$a">first branch</case><case condition="$b">second branch</case><else>fallback</else>
+</conditionalContent>
+
+<conditionalContent><case condition="$a"><p>block content branch</p></case><else><p>fallback paragraph</p></else></conditionalContent>

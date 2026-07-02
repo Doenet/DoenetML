@@ -4,9 +4,19 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+
+interface PreSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    displayDoenetMLIndices?: any;
+    renderInlineForListItem: boolean;
+}
 
 export default React.memo(function Pre(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<PreSVs>(props);
 
     const ref = useRef(null);
 
@@ -43,7 +53,15 @@ export default React.memo(function Pre(props: UseDoenetRendererProps) {
     }
 
     return (
-        <pre id={id} style={{ margin: "12px 0" }} ref={ref}>
+        <pre
+            id={id}
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
+            ref={ref}
+        >
             {children}
         </pre>
     );

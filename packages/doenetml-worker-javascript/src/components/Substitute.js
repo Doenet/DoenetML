@@ -1,12 +1,17 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class Substitute extends CompositeComponent {
     static componentType = "substitute";
+
+    static componentDocs = {
+        summary: "Substitutes math expressions into another expression",
+    };
+    static takesIndex = true;
 
     static allowInSchemaAsComponent = ["math", "text"];
 
@@ -17,11 +22,21 @@ export default class Substitute extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.type = {
+            description: "Type of values being substituted.",
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultPrimitiveValue: "math",
             toLowerCase: true,
-            validValues: ["math", "text"],
+            validValues: [
+                {
+                    value: "math",
+                    description: "Substitute within math expressions.",
+                },
+                {
+                    value: "text",
+                    description: "Substitute within text values.",
+                },
+            ],
             public: true,
         };
 
@@ -29,17 +44,20 @@ export default class Substitute extends CompositeComponent {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "match",
             defaultValue: null,
+            description: "Pattern to match in the source value.",
         };
 
         attributes.replacement = {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "replacement",
             defaultValue: null,
+            description: "Value to substitute in place of each match.",
         };
 
         // attributes for math
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied after substitution.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",
@@ -48,18 +66,38 @@ export default class Substitute extends CompositeComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the resulting expression.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         // attributes for text
         attributes.matchWholeWord = {
+            description:
+                "Whether matching is restricted to whole words (text mode).",
             createComponentOfType: "boolean",
             createStateVariable: "matchWholeWord",
             defaultValue: false,
@@ -67,6 +105,7 @@ export default class Substitute extends CompositeComponent {
         };
 
         attributes.matchCase = {
+            description: "Whether matching is case-sensitive (text mode).",
             createComponentOfType: "boolean",
             createStateVariable: "matchCase",
             defaultValue: false,
@@ -74,6 +113,8 @@ export default class Substitute extends CompositeComponent {
         };
 
         attributes.preserveCase = {
+            description:
+                "Whether the case of the original is preserved when substituting.",
             createComponentOfType: "boolean",
             createStateVariable: "preserveCase",
             defaultValue: false,
@@ -136,7 +177,7 @@ export default class Substitute extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["anything"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
@@ -470,8 +511,7 @@ export default class Substitute extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let type = await component.stateValues.type;
         let serializedReplacement = {
@@ -501,7 +541,7 @@ export default class Substitute extends CompositeComponent {
 
             let attributesComponentTypes = {};
 
-            let roundingSVs = returnRoundingStateVariableDefinitions();
+            let roundingSVs = returnNumberDisplayStateVariableDefinitions();
             for (let attrName in roundingSVs) {
                 attributesComponentTypes[attrName] =
                     roundingSVs[
@@ -543,8 +583,7 @@ export default class Substitute extends CompositeComponent {
 
         return {
             replacements: [serializedReplacement],
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

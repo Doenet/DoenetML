@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useRef, useEffect } from "react";
+import React, { useContext, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -10,7 +9,9 @@ import {
 import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import {
@@ -18,9 +19,42 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { cesc } from "@doenet/utils";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { DocContext } from "../DocViewer";
 
-export default React.memo(function Section(props) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+interface SectionSVs {
+    [key: string]: any;
+    hidden: boolean;
+    rendered: boolean;
+    isListItem: boolean;
+    boxed: boolean;
+    collapsible: boolean;
+    open: boolean;
+    title: string;
+    titleChildName?: string;
+    titleColor?: string;
+    titleColorDarkMode?: string;
+    titlePrefix?: string;
+    sectionNumber?: string;
+    level: number;
+    containerTag: string;
+    justSubmitted: boolean;
+    firstChildListItemAlignment?: string;
+    firstVisibleChildAdjustedForListItem?: any;
+}
+
+export default React.memo(function Section(props: UseDoenetRendererProps) {
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<SectionSVs>(props);
+
+    const { darkMode } = useContext(DocContext) || {};
+
+    // Pick the heading box background appropriate for the current theme.
+    // titleColorDarkMode is a hex default; titleColor may be a CSS variable.
+    const headingBoxBg =
+        darkMode === "dark" && SVs.titleColorDarkMode != null
+            ? SVs.titleColorDarkMode
+            : SVs.titleColor;
 
     // List item styling constants
     // When a section is rendered as a list item (SVs.isListItem), the section number
@@ -40,7 +74,12 @@ export default React.memo(function Section(props) {
     const hasTitle = !!SVs.titleChildName || (!!SVs.title && !SVs.isListItem);
 
     // Declare heading variable early (assigned later in the component)
-    let heading = null;
+    let heading: React.ReactNode = null;
+
+    const hasAdjustedFirstChildForListItem =
+        SVs.firstVisibleChildAdjustedForListItem;
+    const shouldBaselineAlignFirstChild =
+        SVs.firstChildListItemAlignment === "baseline";
 
     // Helper function to generate CSS for section number ::before pseudo-element
     // Used for list-item sections to display hanging section numbers
@@ -69,10 +108,12 @@ export default React.memo(function Section(props) {
     };
 
     // Helper function to create heading box styles for boxed sections
-    const getHeadingBoxStyle = (isCollapsible: boolean) => {
-        const baseStyle = {
+    const getHeadingBoxStyle = (
+        isCollapsible: boolean,
+    ): React.CSSProperties => {
+        const baseStyle: React.CSSProperties = {
             padding: BOX_PADDING,
-            backgroundColor: SVs.titleColor,
+            backgroundColor: headingBoxBg,
             borderTopLeftRadius: "var(--mainBorderRadius)",
             borderTopRightRadius: "var(--mainBorderRadius)",
             ...(isCollapsible && {
@@ -150,6 +191,7 @@ export default React.memo(function Section(props) {
         const cssRules = [];
         const escapedId = cesc(id);
         const escapedHeadingWrapperId = cesc(`${id}-heading-wrapper`);
+        const escapedContentWrapperId = cesc(`${id}-content-wrapper`);
 
         // For non-boxed sections with heading wrapper
         if (!SVs.collapsible && !SVs.boxed && hasTitle) {
@@ -179,6 +221,28 @@ export default React.memo(function Section(props) {
                     vertical-align: baseline;
                 }
             `);
+
+            if (hasAdjustedFirstChildForListItem) {
+                cssRules.push(`
+                    #${escapedId} {
+                        display: flex;
+                        align-items: ${
+                            shouldBaselineAlignFirstChild
+                                ? "baseline"
+                                : "flex-start"
+                        };
+                    }
+
+                    #${escapedContentWrapperId} {
+                        flex: 1 1 auto;
+                        min-width: 0;
+                    }
+
+                    #${escapedContentWrapperId} > :first-child {
+                        margin-block-start: 0;
+                    }
+                `);
+            }
         }
 
         // For collapsible boxed sections
@@ -226,6 +290,8 @@ export default React.memo(function Section(props) {
         SVs.collapsible,
         SVs.boxed,
         hasTitle,
+        hasAdjustedFirstChildForListItem,
+        shouldBaselineAlignFirstChild,
         id,
     ]);
 
@@ -235,10 +301,14 @@ export default React.memo(function Section(props) {
         return null;
     }
 
-    const submitAllAnswers = () =>
-        callAction({
-            action: actions.submitAllAnswers,
-        });
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAllAnswers",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     let title;
     let removedChildInd = null;
@@ -249,7 +319,7 @@ export default React.memo(function Section(props) {
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentIdx ===
+                (child as any)?.props?.componentInstructions.componentIdx ===
                 SVs.titleChildName
             ) {
                 title = children[ind];
@@ -347,13 +417,13 @@ export default React.memo(function Section(props) {
         }
     }
 
-    const validationState = calculateValidationState(SVs);
     let checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAllAnswers,
+        submitActionWithPending,
         true,
+        isPending,
     );
 
     if (checkWorkComponent) {
@@ -369,6 +439,26 @@ export default React.memo(function Section(props) {
             endInd: children.length - 1,
             removedInd: removedChildInd,
         });
+    }
+
+    let childrenForContentWrapper = children;
+    const needsContentWrapper =
+        SVs.isListItem &&
+        !SVs.collapsible &&
+        !SVs.boxed &&
+        !heading &&
+        hasAdjustedFirstChildForListItem;
+
+    if (needsContentWrapper) {
+        let startInd = 0;
+        while (
+            startInd < children.length &&
+            typeof children[startInd] === "string" &&
+            (children[startInd] as string).trim() === ""
+        ) {
+            startInd++;
+        }
+        childrenForContentWrapper = children.slice(startInd);
     }
 
     let content = (
@@ -390,8 +480,17 @@ export default React.memo(function Section(props) {
             ) : (
                 heading
             )}
-            {children}
-            {checkWorkComponent}
+            {needsContentWrapper ? (
+                <div id={`${id}-content-wrapper`}>
+                    {childrenForContentWrapper}
+                    {checkWorkComponent}
+                </div>
+            ) : (
+                <>
+                    {children}
+                    {checkWorkComponent}
+                </>
+            )}
         </>
     );
 
@@ -425,7 +524,7 @@ export default React.memo(function Section(props) {
                 <div
                     className={headingBoxClassName}
                     style={headingBoxStyle}
-                    tabIndex="0"
+                    tabIndex={0}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") {
                             callAction({
@@ -500,7 +599,7 @@ export default React.memo(function Section(props) {
 
     // Render non-boxed list-item sections with hanging section numbers
     if (SVs.isListItem && !SVs.collapsible && !SVs.boxed) {
-        const containerStyle = {
+        const containerStyle: React.CSSProperties = {
             margin: "12px 0",
             position: "relative",
             marginLeft: LIST_ITEM_INDENT,

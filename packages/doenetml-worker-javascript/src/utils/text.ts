@@ -182,6 +182,7 @@ export function returnTextPieceStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
 
     stateVariableDefinitions.numWords = {
+        description: "The number of words in the text value.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -206,6 +207,7 @@ export function returnTextPieceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.words = {
+        description: "The text value split into words.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "text",
@@ -249,6 +251,7 @@ export function returnTextPieceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numCharacters = {
+        description: "The number of characters (graphemes) in the text value.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -275,6 +278,7 @@ export function returnTextPieceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.characters = {
+        description: "The text value split into characters (graphemes).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "text",
@@ -323,6 +327,8 @@ export function returnTextPieceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numListItems = {
+        description:
+            "The number of comma-separated items when the text is interpreted as a list.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -348,6 +354,7 @@ export function returnTextPieceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.list = {
+        description: "The text value split into items at commas.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "text",

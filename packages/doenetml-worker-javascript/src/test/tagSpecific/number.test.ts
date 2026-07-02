@@ -3220,4 +3220,43 @@ describe("Number tag tests @group3", async () => {
 
         await test_in_graph(doenetMLsnippet, moveNumber);
     });
+
+    it("avoidScientificNotation", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <number name="n1">7e-12</number>
+      <number name="n2" avoidScientificNotation>7e-12</number>
+      <number name="n3">2000000000000000000000</number>
+      <number name="n4" avoidScientificNotation>2000000000000000000000</number>
+      <number name="n5" avoidScientificNotation>7e-12</number>
+      <number extend="$n5" avoidScientificNotation="false" name="n5b" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n1")].stateValues.text,
+        ).eq("7 * 10^(-12)");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.text,
+        ).eq("0.000000000007");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3")].stateValues.text,
+        ).eq("2 * 10^21");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n4")].stateValues.text,
+        ).eq("2000000000000000000000");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5")].stateValues.text,
+        ).eq("0.000000000007");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5b")].stateValues.text,
+        ).eq("7 * 10^(-12)");
+    });
 });

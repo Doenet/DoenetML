@@ -84,6 +84,8 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
         let constructor = this;
 
         stateVariableDefinitions.value = {
+            description:
+                "The boolean result of applying this operator to its child math values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

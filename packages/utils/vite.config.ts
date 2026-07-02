@@ -11,6 +11,10 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                diagnosticMarkdown:
+                    "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
+                parseInlineMarkdown: "./src/markdown/parseInlineMarkdown.ts",
+                style: "./src/style/index.ts",
             },
             formats: ["es"],
         },

@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
     // These tests intentionally target WCAG AA contrast behavior.
     // We enforce this by running axe's `color-contrast` rule only.
@@ -13,6 +15,16 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
+    }
+
+    function postDoenetMLDarkMode(doenetML, settleSelector) {
+        cy.window().then((win) => {
+            win.postMessage({ doenetML, darkMode: "dark" }, "*");
+        });
+        cy.get('[data-theme="dark"]').should("exist");
+        if (settleSelector) {
+            cy.get(settleSelector).should("exist");
+        }
     }
 
     function checkColorContrastViolations(assertionFn) {
@@ -45,24 +57,35 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
         });
     }
 
-    function expectContrastWarningForStyle({ styleNumber, messagePart }) {
+    function expectContrastAccessibilityLevel1ForStyle({
+        styleNumber,
+        messagePart,
+    }) {
         cy.window().then((win) => {
-            const errorWarnings = win.returnErrorWarnings1();
-            const styleWarning = errorWarnings.warnings.find(
+            const diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
+            );
+            const styleViolation = diagnosticsByType.accessibility.find(
                 (x) =>
+                    x.level === 1 &&
                     x.message.includes(`Style definition ${styleNumber}`) &&
                     x.message.includes("insufficient contrast") &&
                     x.message.includes(messagePart),
             );
 
-            expect(styleWarning).not.eq(undefined);
+            expect(styleViolation).not.eq(undefined);
         });
     }
 
-    function expectNoWarnings() {
+    function expectNoLevel1AccessibilityIssues() {
         cy.window().then((win) => {
-            const errorWarnings = win.returnErrorWarnings1();
-            expect(errorWarnings.warnings.length).eq(0);
+            const diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
+            );
+            const level1Issues = diagnosticsByType.accessibility.filter(
+                (x) => x.level === 1,
+            );
+            expect(level1Issues.length).eq(0);
         });
     }
 
@@ -74,7 +97,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#p1").should("contain.text", "Readable contrast text");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
@@ -87,7 +110,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#p2").should("contain.text", "Low contrast text");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 32,
             messagePart: "text color against the canvas",
         });
@@ -95,7 +118,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
         expectColorContrastA11yFail();
     });
 
-    it("renders graph styles with sufficient contrast without warnings", () => {
+    it("renders graph styles with sufficient contrast without level 1 accessibility issues", () => {
         postDoenetML(`
 <styleDefinition styleNumber="33" lineColor="#111111" markerColor="#111111" lineOpacity="1" markerOpacity="1" />
 <graph name="g1">
@@ -107,12 +130,12 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#g1").should("be.visible");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
 
-    it("reports a warning for insufficient graphical contrast", () => {
+    it("reports a level 1 accessibility issue for insufficient graphical contrast", () => {
         postDoenetML(`
 <styleDefinition styleNumber="34" lineColor="#000000" markerColor="#000000" lineOpacity="0.2" markerOpacity="0.2" />
 <graph name="g2">
@@ -124,7 +147,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#g2").should("be.visible");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 34,
             messagePart: "line color against the canvas",
         });
@@ -140,7 +163,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#tpass").should("contain.text", "Text should pass");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
@@ -153,7 +176,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#tfail").should("contain.text", "Text should fail");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 36,
             messagePart: "text color against the canvas",
         });
@@ -172,7 +195,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gLineBoundary").should("be.visible");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
@@ -188,7 +211,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gLineBoundaryFail").should("be.visible");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 38,
             messagePart: "line color against the canvas",
         });
@@ -207,7 +230,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gPointBoundary").should("be.visible");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
@@ -223,7 +246,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gPointBoundaryFail").should("be.visible");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 40,
             messagePart: "marker color against the canvas",
         });
@@ -242,7 +265,7 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gOpacityBoundary").should("be.visible");
 
-        expectNoWarnings();
+        expectNoLevel1AccessibilityIssues();
 
         expectColorContrastA11yPass();
     });
@@ -258,9 +281,54 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
         cy.get("#gOpacityBoundaryFail").should("be.visible");
 
-        expectContrastWarningForStyle({
+        expectContrastAccessibilityLevel1ForStyle({
             styleNumber: 42,
             messagePart: "line color against the canvas",
+        });
+
+        expectColorContrastA11yFail();
+    });
+
+    // --- Dark-mode boundary cross-validation ---------------------------------
+    // Confirm that the dark-mode text-contrast threshold we compute (against the
+    // #121212 dark canvas) agrees with the axe scanner: a `textColorDarkMode`
+    // whose contrast lands just above 4.5:1 must clear both our diagnostic and
+    // axe, while one just below must fail both. (axe's color-contrast rule only
+    // evaluates HTML text, so dark-mode graphic/opacity boundaries can't be
+    // cross-validated with the scanner the way text can.)
+
+    it("dark-mode text near 4.5:1 above threshold passes scanner", () => {
+        // #7d7d7d on #121212 ≈ 4.55:1 (just above AA).
+        postDoenetMLDarkMode(
+            `
+<styleDefinition styleNumber="51" textColorDarkMode="#7d7d7d" />
+<p name="dtpass" styleNumber="51">Dark text should pass near 4.5:1</p>
+`,
+            "#dtpass",
+        );
+
+        cy.get("#dtpass").should("contain.text", "Dark text should pass");
+
+        expectNoLevel1AccessibilityIssues();
+
+        expectColorContrastA11yPass();
+    });
+
+    it("dark-mode text near 4.5:1 below threshold fails scanner", () => {
+        // #7c7c7c on #121212 ≈ 4.48:1 (just below AA).
+        postDoenetMLDarkMode(
+            `
+<styleDefinition styleNumber="52" textColorDarkMode="#7c7c7c" />
+<p name="dtfail" styleNumber="52">Dark text should fail near 4.5:1</p>
+`,
+            "#dtfail",
+        );
+
+        cy.get("#dtfail").should("contain.text", "Dark text should fail");
+
+        expectContrastAccessibilityLevel1ForStyle({
+            styleNumber: 52,
+            messagePart: "text color against the canvas (dark mode)",
         });
 
         expectColorContrastA11yFail();

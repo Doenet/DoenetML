@@ -5,7 +5,10 @@ import type {
     PublicDoenetMLCore,
 } from "lib-doenetml-worker";
 
-import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "@doenet/doenetml-worker-javascript";
+import {
+    PublicDoenetMLCore as PublicDoenetMLCoreJavascript,
+    expandCompositeComponent,
+} from "@doenet/doenetml-worker-javascript";
 
 /**
  * Attempt to resolve `name` immediately by parsing `name` to a path
@@ -110,7 +113,10 @@ export async function resolvePathImmediatelyToNodeIdx(
             // then we force expand it by forcibly resolving `readyToExpandWhenResolved`
             // before calling `expandCompositeComponent`.
             await refComponent.stateValues.readyToExpandWhenResolved;
-            await jsCore.core.expandCompositeComponent(refComponent);
+            await expandCompositeComponent({
+                core: jsCore.core,
+                component: refComponent,
+            });
 
             // try resolving again
             resolution = rustCore.resolve_path({ path }, origin, false);

@@ -22,6 +22,7 @@ import * as Divisions from "./components/Divisions";
 import * as Verbatim from "./components/Verbatim";
 import * as Paginator from "./components/Paginator";
 import * as MatrixInput from "./components/MatrixInput";
+import * as FractionInput from "./components/FractionInput";
 import * as Solution from "./components/Solution";
 
 import Document from "./components/Document";
@@ -70,6 +71,8 @@ import Choice from "./components/Choice";
 import NumberComponent from "./components/Number";
 import Integer from "./components/Integer";
 import Graph from "./components/Graph";
+import Annotations from "./components/Annotations";
+import Annotation from "./components/Annotation";
 import Function from "./components/Function";
 import PiecewiseFunction from "./components/PiecewiseFunction";
 import Interval from "./components/Interval";
@@ -163,6 +166,7 @@ import Matrix from "./components/Matrix";
 import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
+import Description from "./components/Description";
 // import VertexConstraints from "./components/VertexConstraints";
 // import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
@@ -225,6 +229,7 @@ const componentTypeArray = [
     ...Object.values(Verbatim),
     ...Object.values(Paginator),
     ...Object.values(MatrixInput),
+    ...Object.values(FractionInput),
     ...Object.values(Solution),
     Document,
     Text,
@@ -268,6 +273,8 @@ const componentTypeArray = [
     NumberComponent,
     Integer,
     Graph,
+    Annotations,
+    Annotation,
     Function,
     PiecewiseFunction,
     Interval,
@@ -361,6 +368,7 @@ const componentTypeArray = [
     EigenDecomposition,
     Latex,
     BlockQuote,
+    Description,
     // VertexConstraints,
     // EdgeConstraints,
     StickyGroup,

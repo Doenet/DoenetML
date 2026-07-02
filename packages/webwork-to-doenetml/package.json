@@ -1,0 +1,17 @@
+{
+    "name": "@doenet/webwork-to-doenetml",
+    "type": "module",
+    "description": "CLI tool to convert WeBWorK problems to DoenetML",
+    "version": "0.1.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "bin": {
+        "webwork-to-doenetml": "./convert.js"
+    },
+    "scripts": {
+        "convert": "node ./convert.js",
+        "test": "node ./test/smoke-test.js"
+    }
+}

@@ -1,37 +1,38 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# ` <sign>{:dn}`
+# `<sign>{:dn}`
 
-` <sign>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+<ComponentDisplay name='sign'/>
+
+`<sign>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
 component that renders the result of the $\text{sign}$ or the $\text{signum}$ function on the enclosed argument.
 
-## Attributes and Properties 
- <AttrDisplay name='sign'/> 
- <PropDisplay name='sign'/>
+<AttrPropDisplay name='sign'/>
 
----
+## Examples
 
-### Example: ` <sign>{:dn}` of a user-input number
+### Example: `<sign>{:dn}` of a user-input number
 
 
 ```doenet-editor-horiz
-<p>Enter a number between -10 and 10: 
-  <mathInput name="x" prefill="0"/></p>
+<p><mathInput name="x" prefill="0">
+  <label>Enter a number between -10 and 10</label>
+</mathInput></p>
 <sign>$x</sign>
 ```
 
 
 
-The ` <sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments.
+The `<sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments.
 
 
 
 ---
 
-### Example: graph of the ` <sign>{:dn}` function
+### Example: graph of the `<sign>{:dn}` function
 
 
 ```doenet-editor-horiz
@@ -49,5 +50,5 @@ The ` <sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ a
 
 
 
-The ` <sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments. Drag the slider to evaluate the ` <function>{:dn}` at different inputs.
+The `<sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments. Drag the slider to evaluate the `<function>{:dn}` at different inputs.
 

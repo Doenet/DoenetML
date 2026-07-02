@@ -1,6 +1,7 @@
-// @ts-nocheck
 import React, { useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 import { ToggleButton } from "@doenet/ui-components";
@@ -8,13 +9,35 @@ import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import "./subsetOfRealsInput.css";
 
-export default React.memo(function subsetOfReals(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
-    let [mode, setMode] = useState("add remove points");
-    let bounds = useRef(null);
-    let pointGrabbed = useRef(null);
+interface PointDisplayed {
+    value: number;
+    inSubset: boolean;
+}
 
-    const ref = useRef(null);
+interface IntervalDisplayed {
+    left: number;
+    right: number;
+    inSubset: boolean;
+}
+
+interface SubsetOfRealsInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    fixed: boolean;
+    pointsDisplayed: PointDisplayed[];
+    intervalsDisplayed: IntervalDisplayed[];
+}
+
+export default React.memo(function subsetOfReals(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<SubsetOfRealsInputSVs>(props, false);
+    let [mode, setMode] = useState("add remove points");
+    let bounds = useRef<HTMLDivElement | null>(null);
+    let pointGrabbed = useRef<number | null>(null);
+
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -22,7 +45,7 @@ export default React.memo(function subsetOfReals(props) {
         return null;
     }
 
-    function handleTogglePoints(val) {
+    function handleTogglePoints(val: number) {
         // setTogglePoints(val);
         if (val === 0) {
             setMode("add remove points");
@@ -86,7 +109,7 @@ export default React.memo(function subsetOfReals(props) {
                 y1="35"
                 x2={x}
                 y2="45"
-                style={{ stroke: "black", strokeWidth: "1" }}
+                style={{ stroke: "var(--canvasText)", strokeWidth: "1" }}
                 shapeRendering="geometricPrecision"
             />,
         );
@@ -98,7 +121,7 @@ export default React.memo(function subsetOfReals(props) {
                 x={x}
                 y="66"
                 textAnchor="middle"
-                class="text-no-select"
+                className="text-no-select"
             >
                 {number}
             </text>,
@@ -115,7 +138,7 @@ export default React.memo(function subsetOfReals(props) {
 
         let currentFillColor = "var(--mainPurple)"; // New CSS variable color
         if (!closed) {
-            currentFillColor = "white";
+            currentFillColor = "var(--canvas)";
         }
 
         let key = `point-${xPosition}`;
@@ -126,7 +149,7 @@ export default React.memo(function subsetOfReals(props) {
                 cx={xPosition}
                 cy="40"
                 r="6"
-                stroke="black"
+                stroke="var(--mainPurple)"
                 strokeWidth="1"
                 fill={currentFillColor}
             />,
@@ -155,7 +178,7 @@ export default React.memo(function subsetOfReals(props) {
             storedPoints.push(
                 <polygon
                     key={lowerPointKey}
-                    points="5,40 20,46 20,34"
+                    points="5,40 20,50 20,30"
                     style={{
                         fill: currentFillColor,
                         stroke: currentFillColor,
@@ -170,7 +193,7 @@ export default React.memo(function subsetOfReals(props) {
             storedPoints.push(
                 <polygon
                     key={higherPointKey}
-                    points="795,40 780,46 780,34"
+                    points="795,40 780,50 780,30"
                     style={{
                         fill: currentFillColor,
                         stroke: currentFillColor,
@@ -191,7 +214,7 @@ export default React.memo(function subsetOfReals(props) {
         );
     }
 
-    function xValueToXPosition(xValue) {
+    function xValueToXPosition(xValue: number) {
         // let minValue = -10;
         // let maxValue = 10;
         // Shift to positive numbers
@@ -207,7 +230,7 @@ export default React.memo(function subsetOfReals(props) {
         return position;
     }
 
-    function xPositionToXValue(xPosition) {
+    function xPositionToXValue(xPosition: number) {
         let relativeX = xPosition - firstHashXPosition;
         let shiftAmount = 10;
         let intervalValueWidth = 1;
@@ -217,8 +240,8 @@ export default React.memo(function subsetOfReals(props) {
         return value;
     }
 
-    async function handleInput(e, inputState) {
-        let mouseLeft = e.clientX - bounds.current.offsetLeft;
+    async function handleInput(e: React.MouseEvent, inputState: string) {
+        let mouseLeft = e.clientX - (bounds.current?.offsetLeft ?? 0);
         let xPosition = xPositionToXValue(mouseLeft);
         let pointHitTolerance = 0.2;
 
@@ -320,7 +343,7 @@ export default React.memo(function subsetOfReals(props) {
             <svg
                 width="808"
                 height="80"
-                style={{ backgroundColor: "white" }}
+                style={{ backgroundColor: "var(--canvas)" }}
                 onMouseDown={(e) => {
                     handleInput(e, "down");
                 }}
@@ -337,16 +360,16 @@ export default React.memo(function subsetOfReals(props) {
                 <polygon
                     points="5,40 20,50 20,30"
                     style={{
-                        fill: "black",
-                        stroke: "black",
+                        fill: "var(--canvasText)",
+                        stroke: "var(--canvasText)",
                         strokeWidth: "1",
                     }}
                 />
                 <polygon
                     points="795,40 780,50 780,30"
                     style={{
-                        fill: "black",
-                        stroke: "black",
+                        fill: "var(--canvasText)",
+                        stroke: "var(--canvasText)",
                         strokeWidth: "1",
                     }}
                 />
@@ -357,7 +380,7 @@ export default React.memo(function subsetOfReals(props) {
                     y1="40"
                     x2="780"
                     y2="40"
-                    style={{ stroke: "black", strokeWidth: "2" }}
+                    style={{ stroke: "var(--canvasText)", strokeWidth: "2" }}
                 />
                 {storedPoints}
                 {labels}

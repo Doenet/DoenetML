@@ -1,9 +1,7 @@
-import { cesc } from "@doenet/utils";
-
 describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
-    const pretzelSelector = cesc("#pretzel1");
-    const pretzelButtonSelector = cesc("#pretzel1_button");
-    const creditSelector = cesc("#ca");
+    const pretzelSelector = "#pretzel1";
+    const pretzelButtonSelector = "#pretzel1_button";
+    const creditSelector = "#ca";
     const pretzelRowsSelector = `${pretzelSelector} [data-test="pretzel-problem-row"]`;
     const pretzelRowInputSelector = '[data-test="pretzel-row-input"] input';
 

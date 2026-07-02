@@ -1,4 +1,4 @@
-import { returnRoundingStateVariableDefinitions } from "../../utils/rounding";
+import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
 
@@ -18,12 +18,16 @@ export default class MathOperator extends MathComponent {
             createStateVariable: "forceSymbolic",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to force the operator to evaluate symbolically rather than numerically.",
         };
         attributes.forceNumeric = {
             createComponentOfType: "boolean",
             createStateVariable: "forceNumeric",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to force the operator to evaluate numerically rather than symbolically.",
         };
         return attributes;
     }
@@ -98,7 +102,7 @@ export default class MathOperator extends MathComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);

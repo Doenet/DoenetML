@@ -2,12 +2,21 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class DataFrame extends BaseComponent {
     static componentType = "dataFrame";
+
+    // Experimental — not surfaced via the schema/autocomplete/reference
+    // docs until the data-source story is implemented.
+    static excludeFromSchema = true;
+
+    static componentDocs = {
+        summary: "A 2D table of typed data values.",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.source = {
+            description: "URL or identifier of the data source.",
             createComponentOfType: "text",
             createStateVariable: "source",
             required: true, // not implemented yet
@@ -16,6 +25,8 @@ export default class DataFrame extends BaseComponent {
         };
 
         attributes.hasHeader = {
+            description:
+                "Whether the first row of data contains column headers.",
             createComponentOfType: "boolean",
             createStateVariable: "hasHeader",
             defaultValue: true,
@@ -26,6 +37,7 @@ export default class DataFrame extends BaseComponent {
             createComponentOfType: "textList",
             createStateVariable: "columnTypesPrelim",
             defaultValue: [],
+            description: "Override the inferred type of each column.",
         };
 
         return attributes;
@@ -71,6 +83,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "numRows",
                     public: true,
+                    description: "The number of rows in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "integer",
                     },
@@ -78,6 +91,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "numColumns",
                     public: true,
+                    description: "The number of columns in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "integer",
                     },
@@ -85,6 +99,8 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "columnTypes",
                     public: true,
+                    description:
+                        "The data type of each column in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "textList",
                     },
@@ -92,6 +108,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "columnNames",
                     public: true,
+                    description: "The name of each column in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "textList",
                     },
@@ -140,7 +157,7 @@ export default class DataFrame extends BaseComponent {
                 if (foundInconsistentRow) {
                     let warning = {
                         message: `Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -150,7 +167,7 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -183,7 +200,7 @@ export default class DataFrame extends BaseComponent {
                 ) {
                     let warning = {
                         message: `Data has duplicate column names.  Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -193,14 +210,14 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
                 if (dataFrame.columnNames.includes("")) {
                     let warning = {
                         message: `Data is missing a column name.  Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -210,7 +227,7 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -296,6 +313,7 @@ export default class DataFrame extends BaseComponent {
         };
 
         stateVariableDefinitions.means = {
+            description: "Mean of each numeric column in the data frame.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

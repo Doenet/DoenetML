@@ -11,6 +11,10 @@ export default class Hint extends BlockComponent {
         });
     }
     static componentType = "hint";
+
+    static componentDocs = {
+        summary: "Hint shown on demand to help with an exercise",
+    };
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
@@ -56,6 +60,7 @@ export default class Hint extends BlockComponent {
         };
 
         stateVariableDefinitions.open = {
+            description: "Whether the hint is currently open (revealed).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -148,6 +153,7 @@ export default class Hint extends BlockComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The hint's title text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -1,21 +1,26 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-import { AttrDisplay, PropDisplay } from "../../components"
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 
-# ` <intervalList>{:dn}`
+# `<intervalList>{:dn}`
 
-` <intervalList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
-component that renders a list of intervals.
+<ComponentDisplay name='intervalList'/>
 
-## Attributes and Properties 
- <AttrDisplay name='intervalList'/> 
- <PropDisplay name='intervalList'/>
+`<intervalList>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
+component that collects a sequence of intervals.
 
----
+When creating an `<intervalList>{:dn}`, separate items by **spaces**, not commas.
+The component will default to displaying the list with commas. (The commas that
+appear inside each interval — e.g. `(-1, 2)` — are part of the interval itself, not
+separators between intervals.)
 
-### Example: ` <intervalList>{:dn}` as domain of a `<piecewiseFunction>{:dn}`
+<AttrPropDisplay name='intervalList'/>
+
+## Examples
+
+### Example: `<intervalList>{:dn}` as domain of a `<piecewiseFunction>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -38,7 +43,7 @@ component that renders a list of intervals.
 </graph>
 ```
 
-Individual intervals in an ` <intervalList>{:dn}` can be accessed using array notation. 
+Individual intervals in an `<intervalList>{:dn}` can be accessed using array notation. 
 
 
 

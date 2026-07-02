@@ -8,6 +8,9 @@ export function returnLabelAttributes() {
             createStateVariable: "labelIsName",
             defaultValue: false,
             public: true,
+            groupName: "labels",
+            description:
+                "Whether to use this component's name as its rendered label.",
         },
     };
 }
@@ -267,8 +270,10 @@ export function returnLabelStateVariableDefinitions({
     };
 
     stateVariableDefinitions.label = {
+        description: "The label rendered with this component.",
         forRenderer: true,
         public: true,
+        groupName: "labels",
         shadowingInstructions: {
             createComponentOfType: "label",
             addStateVariablesShadowingStateVariables: {

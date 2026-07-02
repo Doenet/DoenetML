@@ -61,7 +61,8 @@ pub(super) enum Visibility {
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "option", "case"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 5] =
+    ["repeat", "repeatForSequence", "option", "case", "else"];
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
@@ -136,7 +137,7 @@ pub struct Resolver {
 
 impl Resolver {
     /// Search for a node specified by `path` starting from `origin`. This algorithm searches first
-    /// for the nearest parent that has a descendent with `path[0].name` as its name. Then it tries
+    /// for the nearest parent that has a descendant with `path[0].name` as its name. Then it tries
     /// to match as much of `path[1..]` as possible. A match is returned along with any unmatched
     /// path parts.
     ///

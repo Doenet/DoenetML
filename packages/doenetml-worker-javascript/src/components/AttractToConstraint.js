@@ -5,6 +5,10 @@ import { applyConstraintFromComponentConstraints } from "../utils/constraints";
 export default class AttractToConstraint extends ConstraintComponent {
     static componentType = "attractToConstraint";
 
+    static componentDocs = {
+        summary:
+            "Wraps another constraint so it acts as a soft attraction within a threshold",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.threshold = {
@@ -12,6 +16,8 @@ export default class AttractToConstraint extends ConstraintComponent {
             createStateVariable: "threshold",
             defaultValue: 0.5,
             public: true,
+            description:
+                "Distance within which the position attracts to the constraint location.",
         };
         return attributes;
     }

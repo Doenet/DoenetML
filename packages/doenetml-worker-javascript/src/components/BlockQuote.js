@@ -1,4 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class BlockQuote extends BlockComponent {
     constructor(args) {
@@ -12,6 +13,14 @@ export default class BlockQuote extends BlockComponent {
     static rendererType = "blockQuote";
     static renderChildren = true;
 
+    static canDisplayChildErrors = true;
+
+    static includeBlankStringChildren = true;
+
+    static componentDocs = {
+        summary: "A block-level quotation",
+    };
+
     static returnChildGroups() {
         return [
             {
@@ -19,6 +28,17 @@ export default class BlockQuote extends BlockComponent {
                 componentTypes: ["_base"],
             },
         ];
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
+        return stateVariableDefinitions;
     }
 
     recordVisibilityChange({ isVisible }) {

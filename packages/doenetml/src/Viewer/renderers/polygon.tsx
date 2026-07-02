@@ -1,65 +1,88 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { JXGPolygon, JXGPoint } from "./jsxgraph-distrib/types";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveHandleColor,
+} from "./utils/styleColors";
+import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
+import {
+    removeJXGEventHandlers,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+    syncVisPropValues,
+} from "./utils/jsxgraph";
+import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
 
-export default React.memo(function Polygon(props) {
+interface PolygonSVs extends DraggableGraphicalSVs {
+    numVertices: number;
+    numericalVertices: [number, number][];
+    verticesDraggable: boolean;
+    vertexIndicesDraggable: number[];
+    filled: boolean;
+    showCoordsWhenDragging: boolean;
+}
+
+export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<PolygonSVs>(props);
 
+    // @ts-ignore
     Polygon.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let polygonJXG = useRef(null);
-    let pointsJXG = useRef([]);
+    let polygonJXG = useRef<JXGPolygon | null>(null);
+    let pointsJXG = useRef<JXGPoint[]>([]);
 
-    let pointCoords = useRef(null);
-    let draggedPoint = useRef(null);
-    let downOnPoint = useRef(null);
-    let pointerAtDown = useRef(null);
-    let pointsAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let previousNumVertices = useRef(null);
-    let jsxPointAttributes = useRef(null);
+    let pointCoords = useRef<any>(null);
+    const dragState = usePointerDragState();
+    let previousNumVertices = useRef<number | null>(null);
+    let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
-    let lastPositionsFromCore = useRef(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    // Tag layout: -1 = polygon body; 0..N-1 = vertex at that index.
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
+
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalVertices);
     let verticesFixed = useRef(false);
-    let vertexIndicesDraggable = useRef([]);
-
-    lastPositionsFromCore.current = SVs.numericalVertices;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    let vertexIndicesDraggable = useRef<number[]>([]);
     verticesFixed.current =
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
     const { darkMode } = useContext(DocContext) || {};
 
-    useEffect(() => {
-        //On unmount
-        return () => {
-            // if point is defined
-            if (polygonJXG.current) {
-                deletePolygonJXG();
-            }
+    useBoardPointerTracking(board, dragState);
 
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
+    useJSXGraphCleanup({
+        objectRef: polygonJXG,
+        destroy: () => deletePolygonJXG(),
+    });
 
     function createPolygonJXG() {
         if (board === null) {
@@ -70,21 +93,33 @@ export default React.memo(function Polygon(props) {
             return null;
         }
 
-        let lineColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.lineColorDarkMode
-                : SVs.selectedStyle.lineColor;
-        let fillColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.fillColorDarkMode
-                : SVs.selectedStyle.fillColor;
-        fillColor = SVs.filled ? fillColor : "none";
+        const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+        const resolvedFillColor = SVs.filled
+            ? resolveFillColor(SVs.selectedStyle, darkMode)
+            : "none";
+        const fillAttributes =
+            SVs.filled && board
+                ? getPatternFillAttributes({
+                      defsEl: board.renderer.defs as SVGDefsElement | null,
+                      boardId: board.container.id,
+                      fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                      fillColor: resolvedFillColor,
+                      fillOpacity: SVs.selectedStyle.fillOpacity,
+                      fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+                      highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                  })
+                : {
+                      fillColor: resolvedFillColor,
+                      fillOpacity: SVs.selectedStyle.fillOpacity,
+                      highlightFillColor: resolvedFillColor,
+                      highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
+                  };
 
         jsxPointAttributes.current = {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: "black",
+            highlightFillColor: resolveHandleColor(darkMode),
             visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -92,7 +127,7 @@ export default React.memo(function Polygon(props) {
             showInfoBox: SVs.showCoordsWhenDragging,
         };
 
-        let jsxBorderAttributes = {
+        let jsxBorderAttributes: Record<string, any> = {
             highlight: false,
             visible: !SVs.hidden,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
@@ -106,19 +141,19 @@ export default React.memo(function Polygon(props) {
             dash: styleToDash(SVs.selectedStyle.lineStyle),
         };
 
-        let jsxPolygonAttributes = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withLabel: SVs.labelForGraph !== "",
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
+        let jsxPolygonAttributes: Record<string, any> = {
+            ...buildBaseAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+            }),
 
             //specific to polygon
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
-            highlightFillColor: fillColor,
-            highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
-            highlight: !fixLocation.current,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
+            highlightFillColor: fillAttributes.highlightFillColor,
+            highlightFillOpacity: fillAttributes.highlightFillOpacity,
             vertices: jsxPointAttributes.current,
             borders: jsxBorderAttributes,
         };
@@ -154,7 +189,7 @@ export default React.memo(function Polygon(props) {
             );
         }
 
-        let newPolygonJXG = board.create(
+        let newPolygonJXG: JXGPolygon = board.create(
             "polygon",
             pointsJXG.current,
             jsxPolygonAttributes,
@@ -163,18 +198,12 @@ export default React.memo(function Polygon(props) {
 
         initializePoints(newPolygonJXG);
 
-        newPolygonJXG.on("drag", (e) => dragHandler(-1, e));
-        newPolygonJXG.on("up", (e) => upHandler(-1));
-        newPolygonJXG.on("keyfocusout", (e) => keyFocusOutHandler(-1));
-        newPolygonJXG.on("keydown", (e) => keyDownHandler(-1, e));
+        attachPolygonBodyDragHandlers(newPolygonJXG);
 
-        newPolygonJXG.on("down", (e) => downHandler(-1, e));
-        newPolygonJXG.on("hit", (e) => hitHandler());
-
-        newPolygonJXG.on("over", (e) => {
+        newPolygonJXG.on("over", () => {
             highlightVertices();
         });
-        newPolygonJXG.on("out", (e) => {
+        newPolygonJXG.on("out", () => {
             unHighlightVertices();
         });
 
@@ -185,52 +214,165 @@ export default React.memo(function Polygon(props) {
         return newPolygonJXG;
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
+    function initializePoints(polygon: JXGPolygon) {
+        for (let i = 0; i < SVs.numVertices; i++) {
+            let vertex = polygon.vertices[i];
+            removeJXGEventHandlers(vertex);
+            attachPolygonVertexDragHandlers(vertex, i);
         }
     }
 
-    function initializePoints(polygon) {
-        for (let i = 0; i < SVs.numVertices; i++) {
-            let vertex = polygon.vertices[i];
-            vertex.off("drag");
-            vertex.on("drag", (e) => dragHandler(i, e));
-            vertex.off("up");
-            vertex.on("up", () => upHandler(i));
-            vertex.off("keyfocusout");
-            vertex.on("keyfocusout", () => keyFocusOutHandler(i));
-            vertex.off("keydown");
-            vertex.on("keydown", (e) => keyDownHandler(i, e));
-            vertex.off("down");
-            vertex.on("down", (e) => downHandler(i, e));
-            vertex.off("hit");
-            vertex.on("hit", (e) => hitHandler());
-        }
+    function attachPolygonBodyDragHandlers(polygon: JXGPolygon) {
+        attachLineFamilyDragHandlers({
+            jxg: polygon,
+            tag: -1,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            participatesInDownTag: false,
+            suppressClickWhenDownOnOtherTag: true,
+            suppressFocusOnDownWhenDownOnOtherTag: true,
+            actions: {
+                move: actions.movePolygon,
+                focus: actions.polygonFocused,
+                click: actions.polygonClicked,
+            },
+            snapshot: () =>
+                polygon.vertices.map(
+                    (x) => [...x.coords.scrCoords] as number[],
+                ),
+            buildTransientMoveArgs: (e, snap) => {
+                if (!polygonJXG.current || !board) {
+                    return null;
+                }
+                const next: [number, number][] = [];
+                if (
+                    e.type === "pointermove" &&
+                    dragState.pointerAtDown.current &&
+                    snap
+                ) {
+                    // Compute from pointer delta rather than .X()/.Y() directly
+                    // so points don't snap back to attractors on slow drags.
+                    for (let j = 0; j < polygon.vertices.length - 1; j++) {
+                        next.push(
+                            pointerEventToUserCoords(
+                                e,
+                                dragState.pointerAtDown.current,
+                                snap[j] as [number, number, number],
+                                board,
+                            ),
+                        );
+                    }
+                } else {
+                    for (let j = 0; j < polygon.vertices.length - 1; j++) {
+                        const v = polygon.vertices[j];
+                        next.push([v.X(), v.Y()]);
+                    }
+                }
+                pointCoords.current = next;
+                return {
+                    pointCoords: next,
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: () =>
+                pointCoords.current
+                    ? { pointCoords: pointCoords.current }
+                    : null,
+            onDragApplied: () => {
+                if (
+                    !polygonJXG.current ||
+                    dragCoordination.draggedTag.current !== -1
+                ) {
+                    return;
+                }
+                for (let j = 0; j < SVs.numVertices; j++) {
+                    polygon.vertices[j].coords.setCoordinates(
+                        JXG.COORDS_BY_USER,
+                        [...lastPositionsFromCore.current[j]],
+                    );
+                }
+            },
+            onHitExtra: () => highlightVertices(),
+            onKeyFocusOutExtra: () => unHighlightVertices(),
+        });
+    }
+
+    function attachPolygonVertexDragHandlers(vertex: JXGPoint, i: number) {
+        attachLineFamilyDragHandlers({
+            jxg: vertex,
+            tag: i,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            shouldDispatchFocusOnDown: () => !verticesFixed.current,
+            actions: {
+                move: actions.movePolygon,
+                focus: actions.polygonFocused,
+                click: actions.polygonClicked,
+            },
+            snapshot: () => null,
+            buildTransientMoveArgs: () => {
+                const map: Record<number, [number, number]> = {};
+                map[i] = [vertex.X(), vertex.Y()];
+                pointCoords.current = map;
+                return {
+                    pointCoords: map,
+                    transient: true,
+                    skippable: true,
+                    sourceDetails: { vertex: i },
+                };
+            },
+            buildCommitMoveArgs: (_, variant) => {
+                if (!pointCoords.current) {
+                    return null;
+                }
+                if (variant === "up") {
+                    return {
+                        pointCoords: pointCoords.current,
+                        sourceDetails: { vertex: i },
+                    };
+                }
+                return {
+                    pointCoords: pointCoords.current,
+                    sourceInformation: { vertex: i },
+                };
+            },
+            onDragApplied: () => {
+                if (
+                    !polygonJXG.current ||
+                    !board ||
+                    dragCoordination.draggedTag.current !== i
+                ) {
+                    return;
+                }
+                polygonJXG.current.vertices[i].coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    [...lastPositionsFromCore.current[i]],
+                );
+                board.updateInfobox(polygonJXG.current.vertices[i]);
+            },
+            onHitExtra: () => highlightVertices(),
+            onKeyFocusOutExtra: () => unHighlightVertices(),
+        });
     }
 
     function deletePolygonJXG() {
+        if (!polygonJXG.current) {
+            return;
+        }
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygonJXG.current.vertices[i];
             if (vertex) {
-                vertex.off("drag");
-                vertex.off("up");
-                vertex.off("down");
-                vertex.off("hit");
+                removeJXGEventHandlers(vertex);
             }
         }
-        polygonJXG.current.off("drag");
-        polygonJXG.current.off("up");
-        polygonJXG.current.off("down");
-        polygonJXG.current.off("hit");
+        removeJXGEventHandlers(polygonJXG.current);
         board?.removeObject(polygonJXG.current);
         polygonJXG.current = null;
 
@@ -240,222 +382,11 @@ export default React.memo(function Polygon(props) {
         pointsJXG.current = [];
     }
 
-    function dragHandler(i, e) {
-        let viaPointer = e.type === "pointermove";
-
-        //Protect against very small unintended drags
-        if (
-            !viaPointer ||
-            Math.abs(e.x - pointerAtDown.current[0]) > POINTER_DRAG_THRESHOLD ||
-            Math.abs(e.y - pointerAtDown.current[1]) > POINTER_DRAG_THRESHOLD
-        ) {
-            draggedPoint.current = i;
-
-            if (i === -1) {
-                pointCoords.current = [];
-
-                var o = board.origin.scrCoords;
-
-                for (
-                    let i = 0;
-                    i < polygonJXG.current.vertices.length - 1;
-                    i++
-                ) {
-                    if (viaPointer) {
-                        // the reason we calculate point positions with this algorithm,
-                        // is so that points don't get trapped on an attracting object
-                        // if you move the mouse slowly.
-                        let calculatedX =
-                            (pointsAtDown.current[i][1] +
-                                e.x -
-                                pointerAtDown.current[0] -
-                                o[1]) /
-                            board.unitX;
-                        let calculatedY =
-                            (o[2] -
-                                (pointsAtDown.current[i][2] +
-                                    e.y -
-                                    pointerAtDown.current[1])) /
-                            board.unitY;
-                        pointCoords.current.push([calculatedX, calculatedY]);
-                    } else {
-                        let vertex = polygonJXG.current.vertices[i];
-                        pointCoords.current.push([vertex.X(), vertex.Y()]);
-                    }
-                }
-
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                    },
-                });
-
-                for (let j = 0; j < SVs.numVertices; j++) {
-                    polygonJXG.current.vertices[j].coords.setCoordinates(
-                        JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current[j]],
-                    );
-                }
-            } else {
-                pointCoords.current = {};
-                pointCoords.current[i] = [
-                    polygonJXG.current.vertices[i].X(),
-                    polygonJXG.current.vertices[i].Y(),
-                ];
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                        sourceDetails: { vertex: i },
-                    },
-                });
-                polygonJXG.current.vertices[i].coords.setCoordinates(
-                    JXG.COORDS_BY_USER,
-                    [...lastPositionsFromCore.current[i]],
-                );
-                board.updateInfobox(polygonJXG.current.vertices[i]);
-            }
-        }
-    }
-
-    function downHandler(i, e) {
-        (document.activeElement as HTMLElement | null)?.blur();
-
-        draggedPoint.current = null;
-        pointerAtDown.current = [e.x, e.y];
-
-        if (i === -1) {
-            if (downOnPoint.current === null && !fixed.current) {
-                // Note: counting on fact that down on polygon itself will trigger after down on points
-                callAction({
-                    action: actions.polygonFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointsAtDown.current = polygonJXG.current.vertices.map((x) => [
-                ...x.coords.scrCoords,
-            ]);
-        } else {
-            if (!verticesFixed.current) {
-                callAction({
-                    action: actions.polygonFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            downOnPoint.current = i;
-        }
-
-        pointerIsDown.current = true;
-        pointerMovedSinceDown.current = false;
-    }
-
-    function hitHandler() {
-        highlightVertices();
-        draggedPoint.current = null;
-        callAction({
-            action: actions.polygonFocused,
-            args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-        });
-    }
-
-    function upHandler(i) {
-        if (draggedPoint.current === i) {
-            if (i === -1) {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                    },
-                });
-            } else {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        sourceDetails: { vertex: i },
-                    },
-                });
-            }
-        } else if (
-            !pointerMovedSinceDown.current &&
-            (downOnPoint.current === null || i !== -1) &&
-            !fixed.current
-        ) {
-            // Note: counting on fact that up on polygon itself (i===-1) will trigger before up on points
-            callAction({
-                action: actions.polygonClicked,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        }
-
-        if (i !== -1) {
-            downOnPoint.current = null;
-        }
-
-        pointerIsDown.current = false;
-    }
-
-    function keyFocusOutHandler(i) {
-        unHighlightVertices();
-        if (draggedPoint.current === i) {
-            if (i === -1) {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                    },
-                });
-            } else {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        sourceInformation: { vertex: i },
-                    },
-                });
-            }
-        }
-        draggedPoint.current = null;
-    }
-
-    function keyDownHandler(i, e) {
-        if (e.key === "Enter") {
-            if (draggedPoint.current === i) {
-                if (i === -1) {
-                    callAction({
-                        action: actions.movePolygon,
-                        args: {
-                            pointCoords: pointCoords.current,
-                        },
-                    });
-                } else {
-                    callAction({
-                        action: actions.movePolygon,
-                        args: {
-                            pointCoords: pointCoords.current,
-                            sourceInformation: { vertex: i },
-                        },
-                    });
-                }
-            }
-            draggedPoint.current = null;
-            callAction({
-                action: actions.polygonClicked,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        }
-    }
-
     function highlightVertices() {
-        if (!verticesFixed.current) {
+        if (!verticesFixed.current && polygonJXG.current) {
             for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    vertex.setAttribute({ fillcolor: "black" });
+                    vertex.setAttribute({ fillcolor: "var(--canvasText)" });
                     vertex.needsUpdate = true;
                     vertex.update();
                 }
@@ -464,7 +395,7 @@ export default React.memo(function Polygon(props) {
     }
 
     function unHighlightVertices() {
-        if (!verticesFixed.current) {
+        if (!verticesFixed.current && polygonJXG.current) {
             for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
                     vertex.setAttribute({ fillcolor: "none" });
@@ -492,8 +423,14 @@ export default React.memo(function Polygon(props) {
                 }
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
+
             // add or delete points as required and change data array size
-            if (SVs.numVertices > previousNumVertices.current) {
+            if (
+                previousNumVertices.current !== null &&
+                SVs.numVertices > previousNumVertices.current
+            ) {
                 for (
                     let i = previousNumVertices.current;
                     i < SVs.numVertices;
@@ -503,7 +440,7 @@ export default React.memo(function Polygon(props) {
                     if (!vertexIndicesDraggable.current.includes(i)) {
                         pointAttributes.visible = false;
                     }
-                    let newPoint = board.create(
+                    let newPoint: JXGPoint = board.create(
                         "point",
                         [...SVs.numericalVertices[i]],
                         pointAttributes,
@@ -512,23 +449,23 @@ export default React.memo(function Polygon(props) {
                     pointsJXG.current.push(newPoint);
                 }
                 initializePoints(polygonJXG.current);
-            } else if (SVs.numVertices < previousNumVertices.current) {
+            } else if (
+                previousNumVertices.current !== null &&
+                SVs.numVertices < previousNumVertices.current
+            ) {
                 for (
                     let i = previousNumVertices.current - 1;
                     i >= SVs.numVertices;
                     i--
                 ) {
-                    polygonJXG.current.vertices[i].off("drag");
-                    polygonJXG.current.vertices[i].off("down");
-                    polygonJXG.current.vertices[i].off("hit");
-                    polygonJXG.current.vertices[i].off("up");
-                    polygonJXG.current.vertices[i].off("keyfocusout");
-                    polygonJXG.current.vertices[i].off("keydown");
+                    removeJXGEventHandlers(polygonJXG.current.vertices[i]);
                     polygonJXG.current.removePoints(
                         polygonJXG.current.vertices[i],
                     );
                     const pointToDelete = pointsJXG.current.pop();
-                    board?.removeObject(pointToDelete);
+                    if (pointToDelete) {
+                        board?.removeObject(pointToDelete);
+                    }
                 }
                 initializePoints(polygonJXG.current);
             }
@@ -542,10 +479,12 @@ export default React.memo(function Polygon(props) {
                 );
                 polygonJXG.current.vertices[i].needsUpdate = true;
                 polygonJXG.current.vertices[i].update();
-                // // let actuallyChangedVisibility = polygonJXG.current.vertices[i].visProp["visible"] !== verticesVisible;
                 let vertexVisible =
                     verticesVisible &&
                     vertexIndicesDraggable.current.includes(i);
+                syncVisPropValues(polygonJXG.current.vertices[i], {
+                    highlightfillcolor: handleColor,
+                });
                 polygonJXG.current.vertices[i].visProp["visible"] =
                     vertexVisible;
                 polygonJXG.current.vertices[i].visPropCalc["visible"] =
@@ -558,7 +497,11 @@ export default React.memo(function Polygon(props) {
                 sourceOfUpdate.sourceInformation &&
                 componentIdx in sourceOfUpdate.sourceInformation
             ) {
-                let ind = sourceOfUpdate.sourceInformation[componentIdx].vertex;
+                let sourceInfo = sourceOfUpdate.sourceInformation[componentIdx];
+                let ind =
+                    typeof sourceInfo === "object" && sourceInfo
+                        ? (sourceInfo as any).vertex
+                        : undefined;
                 if (ind !== undefined) {
                     board.updateInfobox(polygonJXG.current.vertices[ind]);
                 }
@@ -575,101 +518,100 @@ export default React.memo(function Polygon(props) {
 
             polygonJXG.current.visProp["visible"] = visibleNow;
             polygonJXG.current.visPropCalc["visible"] = visibleNow;
-            // polygonJXG.current.setAttribute({visible: visibleNow})
 
-            let polygonLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged =
-                polygonJXG.current.visProp.layer !== polygonLayer;
-            let borderLayer, pointLayer;
+            let borderLayer: number | undefined;
+            let pointLayer: number | undefined;
+            let layerChanged = syncLayer(
+                polygonJXG.current,
+                SVs.layer,
+                LINE_LAYER_OFFSET,
+            );
 
             if (layerChanged) {
                 borderLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
                 pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                polygonJXG.current.setAttribute({ layer: polygonLayer });
             }
 
-            let lineColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.lineColorDarkMode
-                    : SVs.selectedStyle.lineColor;
-            let fillColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.fillColorDarkMode
-                    : SVs.selectedStyle.fillColor;
-            fillColor = SVs.filled ? fillColor : "none";
+            const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const resolvedFillColor = SVs.filled
+                ? resolveFillColor(SVs.selectedStyle, darkMode)
+                : "none";
+            const fillAttributes =
+                SVs.filled && board
+                    ? getPatternFillAttributes({
+                          defsEl: board.renderer.defs as SVGDefsElement | null,
+                          boardId: board.container.id,
+                          fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          fillPatternOpacity:
+                              SVs.selectedStyle.fillPatternOpacity,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      })
+                    : {
+                          fillColor: resolvedFillColor,
+                          fillOpacity: SVs.selectedStyle.fillOpacity,
+                          highlightFillColor: resolvedFillColor,
+                          highlightFillOpacity:
+                              SVs.selectedStyle.fillOpacity * 0.5,
+                      };
 
             polygonJXG.current.name = SVs.labelForGraph;
 
-            if (polygonJXG.current.hasLabel) {
-                if (SVs.applyStyleToLabel) {
-                    polygonJXG.current.label.visProp.strokecolor = lineColor;
-                } else {
-                    polygonJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
-                }
-                polygonJXG.current.label.needsUpdate = true;
-                polygonJXG.current.label.update();
+            if (polygonJXG.current.hasLabel && polygonJXG.current.label) {
+                const label = polygonJXG.current.label;
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                label.needsUpdate = true;
+                label.update();
             }
 
-            if (polygonJXG.current.visProp.fillcolor !== fillColor) {
-                polygonJXG.current.visProp.fillcolor = fillColor;
-                polygonJXG.current.visProp.highlightfillcolor = fillColor;
+            if (
+                polygonJXG.current.visProp.fillcolor !==
+                fillAttributes.fillColor
+            ) {
+                polygonJXG.current.visProp.fillcolor = fillAttributes.fillColor;
+                polygonJXG.current.visProp.highlightfillcolor =
+                    fillAttributes.highlightFillColor;
                 polygonJXG.current.visProp.hasinnerpoints = SVs.filled;
             }
 
             if (
                 polygonJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 polygonJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
                 polygonJXG.current.visProp.highlightfillopacity =
-                    SVs.selectedStyle.fillOpacity * 0.5;
+                    fillAttributes.highlightFillOpacity;
             }
 
             polygonJXG.current.needsUpdate = true;
 
-            polygonJXG.current.update().updateVisibility();
+            polygonJXG.current.update();
+            polygonJXG.current.updateVisibility();
             for (let i = 0; i < polygonJXG.current.borders.length; i++) {
                 let border = polygonJXG.current.borders[i];
                 border.visProp.visible = visibleNow;
                 border.visPropCalc.visible = visibleNow;
 
-                if (layerChanged) {
+                if (layerChanged && borderLayer !== undefined) {
                     border.setAttribute({ layer: borderLayer });
                 }
 
-                if (border.visProp.strokecolor !== lineColor) {
-                    border.visProp.strokecolor = lineColor;
-                    border.visProp.highlightstrokecolor = lineColor;
-                }
-                if (
-                    border.visProp.strokeopacity !==
-                    SVs.selectedStyle.lineOpacity
-                ) {
-                    border.visProp.strokeopacity =
-                        SVs.selectedStyle.lineOpacity;
-                    border.visProp.highlightstrokeopacity =
-                        SVs.selectedStyle.lineOpacity * 0.5;
-                }
-                let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-                if (border.visProp.dash !== newDash) {
-                    border.visProp.dash = newDash;
-                }
-                if (
-                    border.visProp.strokewidth !== SVs.selectedStyle.lineWidth
-                ) {
-                    border.visProp.strokewidth = SVs.selectedStyle.lineWidth;
-                    border.visProp.highlightstrokewidth =
-                        SVs.selectedStyle.lineWidth;
-                }
+                syncLineStrokeStyle(border, {
+                    lineColor,
+                    lineWidth: SVs.selectedStyle.lineWidth,
+                    lineOpacity: SVs.selectedStyle.lineOpacity,
+                    dash: styleToDash(SVs.selectedStyle.lineStyle),
+                });
 
                 border.needsUpdate = true;
                 border.update();
             }
 
-            if (layerChanged) {
-                jsxPointAttributes.current.layer = pointLayer;
+            if (layerChanged && pointLayer !== undefined) {
+                jsxPointAttributes.current!.layer = pointLayer;
                 for (let vertex of polygonJXG.current.vertices) {
                     vertex.setAttribute({ layer: pointLayer });
                     vertex.needsUpdate = true;
@@ -694,15 +636,3 @@ export default React.memo(function Polygon(props) {
         </>
     );
 });
-
-function styleToDash(style) {
-    if (style === "solid") {
-        return 0;
-    } else if (style === "dashed") {
-        return 2;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
