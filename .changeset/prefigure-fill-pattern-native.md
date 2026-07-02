@@ -2,6 +2,8 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 PreFigure renderer: use native `fill-pattern` attribute for patterned `fillStyle` values.
