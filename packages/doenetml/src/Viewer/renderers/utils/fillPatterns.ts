@@ -1,10 +1,4 @@
-import {
-    encodeFillPatternColorToken,
-    getFillPatternDef,
-    isDeprecatedFillStyleAlias,
-    normalizeFillStyle,
-    resolveDeprecatedFillStyleAlias,
-} from "@doenet/utils";
+import { encodeFillPatternColorToken } from "@doenet/utils";
 
 /**
  * SVG fill-pattern support for JSXGraph renderers.
@@ -14,8 +8,19 @@ import {
  * `fillColor` attribute on the JSXGraph element.
  */
 
+type PatternDef = {
+    width: number;
+    height: number;
+    path: string;
+    /** When true, path is filled with fillColor and stroke is "none". */
+    useFill?: boolean;
+    /** Stroke width override (default: 1.5). */
+    strokeWidth?: number;
+    /** stroke-linecap value (e.g. "round" for dots). */
+    strokeLinecap?: string;
+};
+
 const warnedUnsupportedFillStyles = new Set<string>();
-const warnedDeprecatedFillStyles = new Set<string>();
 
 function warnUnsupportedFillStyle(fillStyle: string) {
     if (warnedUnsupportedFillStyles.has(fillStyle)) {
@@ -28,16 +33,67 @@ function warnUnsupportedFillStyle(fillStyle: string) {
     );
 }
 
-function warnDeprecatedFillStyle(fillStyle: string, resolvedFillStyle: string) {
-    if (warnedDeprecatedFillStyles.has(fillStyle)) {
-        return;
-    }
-
-    warnedDeprecatedFillStyles.add(fillStyle);
-    console.warn(
-        `DoenetML: deprecated fillStyle "${fillStyle}" rendered using "${resolvedFillStyle}".`,
-    );
-}
+/**
+ * Maps each non-solid fillStyle value to its SVG pattern definition.
+ *
+ * Straight patterns (horizontal, vertical) use 8×8 px tiles.  Diagonal
+ * patterns use 12×12 px tiles with each diagonal split into two half-segments
+ * that meet at tile-edge midpoints — this avoids the corner-clipping artifact
+ * that appears when a single segment endpoint sits at a tile corner.
+ *
+ * Dots and diamonds use hexagonal grids via a rectangular tile of width W and
+ * height H ≈ W√3.  Dots place two complete dots fully inside the tile (rather
+ * than corner-assembly) so every dot renders at the same size: dot 1 at
+ * (W/4, H/4) and dot 2 at (3W/4, 3H/4), which are offset by (W/2, H/2) —
+ * the correct stagger for a hex grid.  Diamonds use the same center +
+ * corner-assembly layout with a non-square rhombus (horizontal half-extent 3,
+ * vertical half-extent 5 ≈ 3√3) so the visual gap is approximately equal in
+ * all six hex directions (~2 px).
+ *
+ * Keys must be all-lowercase (matching the `toLowerCase: true` normalization
+ * applied by the style system).
+ */
+const FILL_PATTERN_DEFS: Record<string, PatternDef> = {
+    horizontal: { width: 8, height: 8, path: "M0,4 L8,4" },
+    vertical: { width: 8, height: 8, path: "M4,0 L4,8" },
+    // Split into two half-segments so endpoints land at tile-edge midpoints,
+    // not corners, which prevents the corner anti-aliasing gap on tiling.
+    // Round linecap + overflow="visible" on the pattern element let each
+    // endpoint's cap bleed slightly across the tile boundary so adjacent
+    // tiles' strokes meet without a sub-pixel seam.
+    diagonal: {
+        width: 12,
+        height: 12,
+        path: "M0,6 L6,0 M6,12 L12,6",
+        strokeLinecap: "round",
+    },
+    backdiagonal: {
+        width: 12,
+        height: 12,
+        path: "M0,6 L6,12 M6,0 L12,6",
+        strokeLinecap: "round",
+    },
+    // Hex grid: tile 18×31 (≈ 18 × 18√3).  Two fully interior dots so every
+    // dot is rendered the same size (no partial-circle corner assembly).
+    dots: {
+        width: 18,
+        height: 31,
+        path: "M4.5,7.75 L4.5,7.75 M13.5,23.25 L13.5,23.25",
+        strokeWidth: 4,
+        strokeLinecap: "round",
+    },
+    // Hex grid: tile 12×21 (≈ 12 × 12√3).  Center rhombus + four corner
+    // quarter-triangles that assemble into a second rhombus when four tiles
+    // meet.  Horizontal half-extent 3, vertical half-extent 5 (≈ 3√3).
+    // Tile width = 4a = 12 so the gap between diamonds (6 px) approximately
+    // equals the diamond width (6 px).
+    diamonds: {
+        width: 12,
+        height: 21,
+        path: "M6,5.5 L9,10.5 L6,15.5 L3,10.5 Z  M0,0 L3,0 L0,5 Z  M12,0 L9,0 L12,5 Z  M0,21 L3,21 L0,16 Z  M12,21 L9,21 L12,16 Z",
+        useFill: true,
+    },
+};
 
 /**
  * Returns a stable pattern element ID for a given board + fill style + color.
@@ -65,27 +121,22 @@ export function getOrInjectPattern(
     fillStyle: string,
     fillColor: string,
 ): string {
-    const normalizedFillStyle = normalizeFillStyle(fillStyle);
-    const resolvedFillStyle = resolveDeprecatedFillStyleAlias(fillStyle);
-    const def = getFillPatternDef(fillStyle);
-
+    const def = FILL_PATTERN_DEFS[fillStyle];
     if (!def) {
-        if (normalizedFillStyle !== "solid") {
+        if (fillStyle !== "solid") {
             warnUnsupportedFillStyle(fillStyle);
         }
         return fillColor;
     }
 
-    if (isDeprecatedFillStyleAlias(fillStyle)) {
-        warnDeprecatedFillStyle(fillStyle, resolvedFillStyle);
-    }
-
     if (!defsEl) {
+        // No defs available — return the plain color.
         return fillColor;
     }
 
-    const id = buildPatternId(boardId, resolvedFillStyle, fillColor);
+    const id = buildPatternId(boardId, fillStyle, fillColor);
 
+    // Avoid injecting the same pattern twice (e.g. after state updates).
     if (defsEl.ownerDocument?.getElementById(id)) {
         return `url(#${id})`;
     }
@@ -97,6 +148,8 @@ export function getOrInjectPattern(
     pattern.setAttribute("width", String(def.width));
     pattern.setAttribute("height", String(def.height));
     pattern.setAttribute("patternUnits", "userSpaceOnUse");
+    // Allow strokes to bleed across the tile boundary so adjacent tiles'
+    // endpoints meet without a sub-pixel anti-aliasing seam.
     pattern.setAttribute("overflow", "visible");
 
     const path = ownerDocument.createElementNS(svgNS, "path");

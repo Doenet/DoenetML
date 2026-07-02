@@ -1,12 +1,7 @@
 import { Position } from "../dast/types";
 import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
-import {
-    encodeFillPatternColorToken,
-    getFillPatternDef,
-    resolveDeprecatedFillStyleAlias,
-    type DiagnosticRecord,
-} from "@doenet/utils";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
@@ -95,24 +90,9 @@ export function styleAttributes({
         attrs.push(`thickness="${escapeXml(thickness)}"`);
     }
 
-    const fill = includeFill
-        ? (selectedStyle?.fillColor ?? selectedStyle?.fillColorWord ?? null)
-        : null;
-    const resolvedFillStyle = selectedStyle?.fillStyle
-        ? resolveDeprecatedFillStyleAlias(selectedStyle.fillStyle)
-        : "solid";
-    const usePatternFill =
-        !!fill &&
-        resolvedFillStyle !== "solid" &&
-        !!getFillPatternDef(selectedStyle?.fillStyle ?? resolvedFillStyle);
-
-    if (fill) {
-        if (usePatternFill) {
-            const colorToken = encodeFillPatternColorToken(fill);
-            attrs.push(
-                `fill="url(#doenet-hatch-${escapeXml(resolvedFillStyle)}-${colorToken})"`,
-            );
-        } else {
+    if (includeFill) {
+        const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
+        if (fill) {
             attrs.push(`fill="${escapeXml(fill)}"`);
         }
     }
@@ -123,13 +103,18 @@ export function styleAttributes({
     }
 
     if (includeFill) {
-        const fillOpacity = formatNumber(
-            usePatternFill
-                ? selectedStyle?.fillPatternOpacity
-                : selectedStyle?.fillOpacity,
-        );
+        const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
         if (fillOpacity !== null) {
             attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+        }
+
+        const fillStyle = selectedStyle?.fillStyle;
+        if (fillStyle && fillStyle !== "solid") {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+                position: warningPosition,
+            });
         }
     }
 

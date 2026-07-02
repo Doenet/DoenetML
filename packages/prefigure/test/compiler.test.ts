@@ -74,7 +74,9 @@ describe("PreFigureCompiler", () => {
         const compiler = new PreFigureCompiler();
 
         await expect(compiler.init()).rejects.toThrow(
-            `Failed to load PreFigure wheel (${PREFIG_WHEEL_FILENAME}) from https://cdn.example.com/assets/`,
+            new RegExp(
+                `Failed to load PreFigure wheel \\(${PREFIG_WHEEL_FILENAME.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")}\\) from https://cdn\\.example\\.com/assets/`,
+            ),
         );
 
         try {
@@ -114,105 +116,6 @@ describe("PreFigureCompiler", () => {
             svg: "<svg id='ok' />",
             annotations: "<annotations></annotations>",
         });
-    });
-
-    it("injects one shared pattern into an existing defs block", async () => {
-        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
-        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
-        mocks.loadPackageSpy.mockResolvedValue(undefined);
-        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
-        mocks.runPythonSpy.mockResolvedValue([
-            '<svg><defs><marker id="m"/></defs><path fill="url(#doenet-hatch-horizontal-23316635646666)"/><path fill="url(#doenet-hatch-horizontal-23316635646666)"/></svg>',
-            "",
-        ]);
-
-        const { PreFigureCompiler } = await import("../src/worker/compiler");
-        const compiler = new PreFigureCompiler();
-
-        await compiler.init();
-        const result = await compiler.compile("svg", "<diagram/>");
-
-        expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-horizontal-23316635646666"',
-        );
-        expect(
-            result.svg.match(/id="doenet-hatch-horizontal-23316635646666"/g),
-        ).toHaveLength(1);
-        expect(result.svg).toContain('<marker id="m"/>');
-        expect(result.svg).toContain('stroke="#1f5dff"');
-    });
-
-    it("injects pattern fills even when the svg has no defs block", async () => {
-        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
-        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
-        mocks.loadPackageSpy.mockResolvedValue(undefined);
-        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
-        mocks.runPythonSpy.mockResolvedValue([
-            '<svg><path fill="url(#doenet-hatch-diamonds-23666630303030)"/></svg>',
-            "",
-        ]);
-
-        const { PreFigureCompiler } = await import("../src/worker/compiler");
-        const compiler = new PreFigureCompiler();
-
-        await compiler.init();
-        const result = await compiler.compile("svg", "<diagram/>");
-
-        expect(result.svg).toContain(
-            '<defs><pattern id="doenet-hatch-diamonds-23666630303030"',
-        );
-        expect(result.svg).toContain('fill="#ff0000"');
-        expect(result.svg).toContain('stroke="none"');
-    });
-
-    it("injects stroke-based patterns for 4- and 8-digit hex colors", async () => {
-        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
-        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
-        mocks.loadPackageSpy.mockResolvedValue(undefined);
-        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
-        mocks.runPythonSpy.mockResolvedValue([
-            '<svg><path fill="url(#doenet-hatch-horizontal-2361626364)"/><path fill="url(#doenet-hatch-diagonal-233131323233333434)"/></svg>',
-            "",
-        ]);
-
-        const { PreFigureCompiler } = await import("../src/worker/compiler");
-        const compiler = new PreFigureCompiler();
-
-        await compiler.init();
-        const result = await compiler.compile("svg", "<diagram/>");
-
-        expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-horizontal-2361626364"',
-        );
-        expect(result.svg).toContain('stroke="#abcd"');
-        expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-diagonal-233131323233333434"',
-        );
-        expect(result.svg).toContain('stroke="#11223344"');
-        expect(result.svg).toContain('stroke-linecap="round"');
-    });
-
-    it("injects patterns for named fill colors", async () => {
-        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
-        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
-        mocks.loadPackageSpy.mockResolvedValue(undefined);
-        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
-        mocks.runPythonSpy.mockResolvedValue([
-            '<svg><path fill="url(#doenet-hatch-dots-626c61636b)"/></svg>',
-            "",
-        ]);
-
-        const { PreFigureCompiler } = await import("../src/worker/compiler");
-        const compiler = new PreFigureCompiler();
-
-        await compiler.init();
-        const result = await compiler.compile("svg", "<diagram/>");
-
-        expect(result.svg).toContain(
-            '<pattern id="doenet-hatch-dots-626c61636b"',
-        );
-        expect(result.svg).toContain('stroke="black"');
-        expect(result.svg).toContain('stroke-linecap="round"');
     });
 
     it("coalesces concurrent init calls into one initialization", async () => {
