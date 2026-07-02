@@ -35,7 +35,9 @@
     width: 1px;
 }
 
-.doenet-viewer .radio-container-disabled > input.choiceinput-control {
+.doenet-viewer
+    .radio-container-disabled
+    > input.choiceinput-control[type="radio"] {
     cursor: not-allowed;
 }
 
@@ -155,7 +157,9 @@
     width: 1px;
 }
 
-.doenet-viewer .checkbox-container-disabled > input.choiceinput-control {
+.doenet-viewer
+    .checkbox-container-disabled
+    > input.choiceinput-control[type="checkbox"] {
     cursor: not-allowed;
 }
 
