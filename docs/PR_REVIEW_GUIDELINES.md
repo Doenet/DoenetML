@@ -17,7 +17,7 @@ The CI job `schema-freshness` will fail if the committed schema files are out of
 
 Review whether the PR includes adequate tests:
 
-- New behavior or bug fixes should have at least one Vitest unit test (in `*.test.ts`) **or** a Cypress e2e test (in `cypress/e2e/**/*.cy.js`), as appropriate for the change.
+- New behavior or bug fixes should have at least one Vitest unit test (in `*.test.ts`), a Cypress e2e test (in `cypress/e2e/**/*.cy.js`), or a Cypress component test (in `test/cypress/component/**/*.cy.tsx` — present in `@doenet/codemirror`, `@doenet/doenetml`, and `@doenet/doenetml-iframe`), as appropriate for the change.
 - If the PR modifies existing behavior, confirm that any existing tests covering that behavior have been updated to reflect the new expected behavior.
 - Check that the tests actually exercise the scenario described in the PR — not just adjacent or unrelated scenarios.
 
