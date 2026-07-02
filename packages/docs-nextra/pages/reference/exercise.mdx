@@ -258,6 +258,11 @@ set `startOpen="false"` to have it start collapsed.
 
 ### Attribute Example: hide
 
+```doenet-editor-horiz
+<booleanInput name="hideExercise">
+  <label>Click here to hide the exercise</label>
+</booleanInput>
+
 <exercise hide="$hideExercise"><title>Now you see me...</title>
   <p><lorem generateWords="10"/></p>
 </exercise>
@@ -266,4 +271,3 @@ set `startOpen="false"` to have it start collapsed.
 
 
 The `hide` attribute takes a boolean as input and can be used with any rendered component.
-
