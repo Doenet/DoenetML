@@ -110,29 +110,14 @@ export function styleAttributes({
                 ? prefigureFillPatternByFillStyle[fillStyle]
                 : undefined;
 
-        if (prefigurePattern !== undefined) {
-            attrs.push(`fill-pattern="${escapeXml(prefigurePattern)}"`);
-        }
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
-        if (fill) {
-            attrs.push(`fill="${escapeXml(fill)}"`);
-        }
-    }
-
-    const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
-    if (lineOpacity !== null) {
-        attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
-    }
-
-    if (includeFill) {
-        const fillStyle = selectedStyle?.fillStyle;
-        const prefigurePattern =
-            fillStyle && fillStyle !== "solid"
-                ? prefigureFillPatternByFillStyle[fillStyle]
-                : undefined;
 
         if (prefigurePattern !== undefined) {
-            // Patterned fill: use fillPatternOpacity for opacity
+            // Patterned fill: emit fill-pattern, fill color, and fillPatternOpacity
+            attrs.push(`fill-pattern="${escapeXml(prefigurePattern)}"`);
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
             const fillPatternOpacity = formatNumber(
                 selectedStyle?.fillPatternOpacity,
             );
@@ -141,6 +126,9 @@ export function styleAttributes({
             }
         } else {
             // Solid fill (or unsupported pattern falling back to solid)
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
             const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
             if (fillOpacity !== null) {
                 attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
@@ -153,6 +141,11 @@ export function styleAttributes({
                 });
             }
         }
+    }
+
+    const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
+    if (lineOpacity !== null) {
+        attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
     }
 
     const lineStyle = selectedStyle?.lineStyle;

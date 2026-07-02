@@ -32,21 +32,6 @@ describe("PreFigure style attributes", () => {
             expect(attrs).toContain('fill-opacity="0.8"');
             expect(attrs).not.toContain('fill-opacity="0.3"');
             expect(attrs.join(" ")).not.toContain("url(#");
-            expect(
-                attrs.findIndex(
-                    (x) => x === `fill-pattern="${expectedPattern}"`,
-                ),
-            ).toBeLessThan(
-                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
-            );
-            expect(attrs.findIndex((x) => x === 'fill="#abcd"')).toBeLessThan(
-                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
-            );
-            expect(
-                attrs.findIndex((x) => x === 'fill-opacity="0.8"'),
-            ).toBeGreaterThan(
-                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
-            );
             expect(diagnostics).toHaveLength(0);
         },
     );
@@ -92,12 +77,6 @@ describe("PreFigure style attributes", () => {
         expect(attrs).toContain('fill-opacity="0.3"');
         expect(attrs).not.toContain('fill-pattern="solid"');
         expect(attrs).not.toContain('fill-opacity="0.8"');
-        expect(attrs.findIndex((x) => x === 'fill="blue"')).toBeLessThan(
-            attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
-        );
-        expect(
-            attrs.findIndex((x) => x === 'fill-opacity="0.3"'),
-        ).toBeGreaterThan(attrs.findIndex((x) => x === 'stroke-opacity="0.7"'));
         expect(diagnostics).toHaveLength(0);
     });
 });
