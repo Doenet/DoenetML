@@ -1311,6 +1311,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     }
 
+    /** Assert that the section root itself owns the rendered list marker. */
     function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
         withBeforeStyle(itemId, (rootBefore) => {
             expect(rootBefore.getPropertyValue("content")).to.equal(

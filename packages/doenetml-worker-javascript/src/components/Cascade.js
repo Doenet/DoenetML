@@ -24,9 +24,9 @@ export default class Cascade extends SectioningComponent {
 
         attributes.noAutoTitle.defaultValue = true;
 
-        // Store the raw `asList` attribute value separately so the effective
-        // state variable can inherit from the parent when left at its default.
-        attributes.asList.createStateVariable = "asListFromAttr";
+        // Keep the explicit attribute value separate so the effective state
+        // variable can inherit from the parent when the attribute is omitted.
+        attributes.asList.createStateVariable = "asListPreliminary";
 
         attributes.revealAll = {
             createComponentOfType: "boolean",
@@ -68,9 +68,9 @@ export default class Cascade extends SectioningComponent {
                 createComponentOfType: "boolean",
             },
             returnDependencies: () => ({
-                asListFromAttr: {
+                asListPreliminary: {
                     dependencyType: "stateVariable",
-                    variableName: "asListFromAttr",
+                    variableName: "asListPreliminary",
                 },
                 parentAsList: {
                     dependencyType: "parentStateVariable",
@@ -79,8 +79,8 @@ export default class Cascade extends SectioningComponent {
             }),
             definition({ dependencyValues, usedDefault }) {
                 let asList = dependencyValues.parentAsList;
-                if (!usedDefault.asListFromAttr) {
-                    asList = dependencyValues.asListFromAttr;
+                if (!usedDefault.asListPreliminary) {
+                    asList = dependencyValues.asListPreliminary;
                 }
 
                 return { setValue: { asList: Boolean(asList) } };
