@@ -117,6 +117,15 @@ export class SectioningComponent extends BlockComponent {
             description: "Whether to render this section's children as a list.",
         };
 
+        attributes.collapsible = {
+            createComponentOfType: "boolean",
+            createStateVariable: "collapsible",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+            description: "Whether the section can be collapsed and expanded.",
+        };
+
         attributes.level = {
             createComponentOfType: "integer",
             description:
@@ -1190,14 +1199,6 @@ export class SectioningComponent extends BlockComponent {
                         isVariantComponent: true,
                     },
                 };
-            },
-        };
-
-        stateVariableDefinitions.collapsible = {
-            forRenderer: true,
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { collapsible: false } };
             },
         };
 

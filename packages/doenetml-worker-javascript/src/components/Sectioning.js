@@ -97,14 +97,8 @@ export class Aside extends SectioningComponentNumberWithSiblings {
                 "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            description: "Whether the section can be collapsed and expanded.",
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            forRenderer: true,
-        };
+        attributes.collapsible.defaultValue = true;
+
         attributes.startOpen = {
             createComponentOfType: "boolean",
             createStateVariable: "startOpen",
@@ -118,8 +112,6 @@ export class Aside extends SectioningComponentNumberWithSiblings {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
 
         stateVariableDefinitions.open.returnDependencies = () => ({
             startOpen: {
@@ -348,14 +340,8 @@ export class Proof extends UnnumberedSectioningComponent {
                 "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            description: "Whether the section can be collapsed and expanded.",
-            forRenderer: true,
-        };
+        attributes.collapsible.defaultValue = true;
+
         attributes.startOpen = {
             createComponentOfType: "boolean",
             createStateVariable: "startOpen",
@@ -369,8 +355,6 @@ export class Proof extends UnnumberedSectioningComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
 
         stateVariableDefinitions.open.returnDependencies = () => ({
             startOpen: {
