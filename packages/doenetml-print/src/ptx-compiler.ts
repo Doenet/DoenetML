@@ -17,7 +17,8 @@ import rawLxmlImport from "./assets/lxml-5.2.1-cp312-cp312-pyodide_2024_0_wasm32
 const rawLxml = rawLxmlImport as Uint8Array;
 
 // @ts-ignore
-import rawPrefigImport from "../../prefigure/pyodide_packages/prefig-0.5.15-py3-none-any.whl?uint8array&base64";
+// Keep this wheel path in sync with PREFIG_VERSION in packages/prefigure/src/worker/compiler-metadata.ts
+import rawPrefigImport from "../../prefigure/pyodide_packages/prefig-0.6.7-py3-none-any.whl?uint8array&base64";
 const rawPrefig = rawPrefigImport as Uint8Array;
 
 type PyodideAPI = Awaited<ReturnType<typeof loadPyodide>>;
