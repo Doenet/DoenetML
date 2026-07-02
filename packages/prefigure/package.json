@@ -38,7 +38,8 @@
             "command": "vite build",
             "dependencies": [
                 "fetch-wheels",
-                "fetch-liblouis"
+                "fetch-liblouis",
+                "../utils:build"
             ],
             "files": [
                 "src/**/*.ts",

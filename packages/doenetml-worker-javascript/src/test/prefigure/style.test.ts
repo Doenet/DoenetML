@@ -3,9 +3,14 @@ import { styleAttributes } from "../../utils/prefigure/style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 describe("PreFigure style attributes", () => {
-    it.each(["dots", "diagonal"])(
-        "falls back to solid fills for non-solid fillStyle value %s",
-        (fillStyle) => {
+    it.each([
+        ["dots", "dots"],
+        ["diagonal", "diagonal"],
+        ["crosshatch", "dots"],
+        ["diagonalcrosshatch", "diamonds"],
+    ])(
+        "preserves patterned fillStyle value %s as pattern %s",
+        (fillStyle, expectedPattern) => {
             const diagnostics: DiagnosticRecord[] = [];
             const attrs = styleAttributes({
                 selectedStyle: {
@@ -17,15 +22,13 @@ describe("PreFigure style attributes", () => {
                 diagnostics,
                 warningPrefix: "test",
             });
+            const joinedAttrs = attrs.join(" ");
 
-            expect(attrs).toContain('fill="#abcd"');
-            expect(attrs).toContain('fill-opacity="0.3"');
-            expect(attrs.join(" ")).not.toContain("url(#");
-            expect(diagnostics).toHaveLength(1);
-            expect(diagnostics[0].type).toBe("warning");
-            expect(diagnostics[0].message).toContain(
-                `fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+            expect(joinedAttrs).toContain(
+                `fill="url(#doenet-hatch-${expectedPattern}-2361626364)"`,
             );
+            expect(attrs).toContain('fill-opacity="0.8"');
+            expect(diagnostics).toHaveLength(0);
         },
     );
 

@@ -307,6 +307,12 @@ describe("Per-component style override tests @group4", async () => {
     filled
     fillStyle="horizontal"
   />
+  <polygon
+    name="PLegacy"
+    vertices="(0,0) (-1,0) (-1,1)"
+    filled
+    fillStyle="crosshatch"
+  />
   <circle
     name="C"
     center="(3,0)"
@@ -341,6 +347,7 @@ describe("Per-component style override tests @group4", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const P = stateVariables[await resolvePathToNodeIdx("P")];
+        const PLegacy = stateVariables[await resolvePathToNodeIdx("PLegacy")];
         const C = stateVariables[await resolvePathToNodeIdx("C")];
         const A = stateVariables[await resolvePathToNodeIdx("A")];
         const RX = stateVariables[await resolvePathToNodeIdx("RX")];
@@ -350,6 +357,8 @@ describe("Per-component style override tests @group4", async () => {
         expect(P.stateValues.selectedStyle.fillStyleWord).eq(
             "horizontal lines",
         );
+        expect(PLegacy.stateValues.selectedStyle.fillStyle).eq("crosshatch");
+        expect(PLegacy.stateValues.selectedStyle.fillStyleWord).eq("dots");
         expect(C.stateValues.selectedStyle.fillStyle).eq("backdiagonal");
         expect(C.stateValues.selectedStyle.fillStyleWord).eq(
             "reverse diagonal lines",

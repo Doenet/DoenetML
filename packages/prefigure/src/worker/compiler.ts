@@ -9,11 +9,105 @@
  */
 
 import { PyodideInterface, loadPyodide } from "pyodide";
+import { decodeFillPatternColorToken, getFillPatternDef } from "@doenet/utils";
 import { prefigBrowserApi } from "./compat-api";
 import { PREFIG_WHEEL_FILENAME } from "./compiler-metadata";
 
 type Options = Parameters<typeof loadPyodide>[0];
 export { PREFIG_WHEEL_FILENAME };
+
+function escapeSvgAttribute(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+}
+
+/**
+ * Scans the SVG string for `fill="url(#doenet-hatch-STYLE-COLORTOKEN)"` references
+ * emitted by the PreFigure XML generator and injects the corresponding `<pattern>`
+ * definitions into the SVG's `<defs>` section.
+ *
+ * Returns the SVG string unchanged when no pattern references are found.
+ */
+function injectHatchPatterns(svg: string): string {
+    const patternRefRe = new RegExp(
+        'fill="url\\(#(doenet-hatch-([a-z]+)-([0-9a-f]+))\\)"',
+        "g",
+    );
+
+    const seen = new Set<string>();
+    const patternDefs: string[] = [];
+
+    let match: RegExpExecArray | null;
+    while ((match = patternRefRe.exec(svg)) !== null) {
+        const [, id, style, colorToken] = match;
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+
+        const def = getFillPatternDef(style);
+        if (!def) {
+            continue;
+        }
+
+        const color = decodeFillPatternColorToken(colorToken);
+        if (!color) {
+            continue;
+        }
+
+        const patternAttrs = [
+            `id="${id}"`,
+            `width="${def.width}"`,
+            `height="${def.height}"`,
+            'patternUnits="userSpaceOnUse"',
+            'overflow="visible"',
+        ];
+        const pathAttrs = [`d="${def.path}"`];
+
+        if (def.useFill) {
+            pathAttrs.push(
+                `fill="${escapeSvgAttribute(color)}"`,
+                'stroke="none"',
+            );
+        } else {
+            pathAttrs.push(
+                `stroke="${escapeSvgAttribute(color)}"`,
+                `stroke-width="${def.strokeWidth ?? 1.5}"`,
+                'fill="none"',
+            );
+            if (def.strokeLinecap) {
+                pathAttrs.push(
+                    `stroke-linecap="${escapeSvgAttribute(def.strokeLinecap)}"`,
+                );
+            }
+        }
+
+        patternDefs.push(
+            `<pattern ${patternAttrs.join(" ")}><path ${pathAttrs.join(" ")}/></pattern>`,
+        );
+    }
+
+    if (patternDefs.length === 0) {
+        return svg;
+    }
+
+    const defsClose = svg.indexOf("</defs>");
+    if (defsClose === -1) {
+        const svgTagEnd = svg.indexOf(">") + 1;
+        return (
+            svg.slice(0, svgTagEnd) +
+            `<defs>${patternDefs.join("")}</defs>` +
+            svg.slice(svgTagEnd)
+        );
+    }
+
+    return (
+        svg.slice(0, defsClose) + patternDefs.join("") + svg.slice(defsClose)
+    );
+}
 
 /**
  * A class for compiling a PreFigure document file using a WASM implementation of python.
@@ -33,8 +127,6 @@ export class PreFigureCompiler {
     }
 
     _normalizeIndexUrl(pyodide: PyodideInterface): string {
-        // Accessing this internal field is currently required to align package
-        // downloads with the runtime index URL.
         const rawIndexUrl = (pyodide as any)._api.config.indexURL as string;
         if (rawIndexUrl.endsWith("/")) {
             return rawIndexUrl;
@@ -68,7 +160,6 @@ export class PreFigureCompiler {
                 },
             );
 
-            // Pre-import during warmup so the first user-triggered compile is fast.
             await pyodide.runPythonAsync(`
 import logging
 import prefig
@@ -90,15 +181,10 @@ for _handler in _prefigure_logger.handlers:
     }
 
     async _initialize(options: Options) {
-        // Prefer `._pyodide` over creating a new pyodide instance since
-        // `._pyodide` was provided by the user.
         const pyodide = (await this._pyodide) || (await loadPyodide(options));
 
-        // There may be some MathJax etc. setup that needs to be done.
         await prefigBrowserApi.initFinished;
 
-        // Set up our global compatibility API so it can be imported from
-        // Python with `import prefigBrowserApi`.
         pyodide.registerJsModule("prefigBrowserApi", prefigBrowserApi);
 
         const indexURL = this._normalizeIndexUrl(pyodide);
@@ -112,7 +198,6 @@ for _handler in _prefigure_logger.handlers:
      * multiple times with the same settings.
      */
     async init(options: Options = {}) {
-        // Wait for an existing initialization only when there is one in flight.
         if (this.pyodideInitPromise) {
             await this.pyodideInitPromise;
         }
@@ -122,7 +207,6 @@ for _handler in _prefigure_logger.handlers:
         }
 
         this.pyodideInitPromise = this._initialize(options).catch((error) => {
-            // Allow retries after transient init failures.
             this.pyodideInitPromise = null;
             throw error;
         });
@@ -149,7 +233,8 @@ for _handler in _prefigure_logger.handlers:
 import prefig
 prefig.engine.build_from_string("${mode}", ${JSON.stringify(source)})
         `);
-        const [svg, annotations] = result;
+        const [rawSvg, annotations] = result;
+        const svg = injectHatchPatterns(rawSvg);
         return { svg, annotations };
     }
 }

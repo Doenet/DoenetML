@@ -202,6 +202,14 @@ export let styleAttributes: StyleAttributes = {
                 value: "diamonds",
                 description: "Filled diamonds pattern.",
             },
+            {
+                value: "crosshatch",
+                description: "Deprecated alias for the dots pattern.",
+            },
+            {
+                value: "diagonalCrosshatch",
+                description: "Deprecated alias for the diamonds pattern.",
+            },
         ],
     },
     fillStyleWord: {
@@ -749,6 +757,8 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
                 backdiagonal: "reverse diagonal lines",
                 dots: "dots",
                 diamonds: "diamonds",
+                crosshatch: "dots",
+                diagonalcrosshatch: "diamonds",
             };
             const word = fillStyleWordMap[fillStyle] ?? "";
             setStyleValue(styleDef, "fillStyleWord", word, fillStylePosition);
