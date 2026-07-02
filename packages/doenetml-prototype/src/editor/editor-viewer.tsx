@@ -17,6 +17,7 @@ import { ButtonGroup } from "./components/ui/button-group";
 import { Dropdown } from "./components/ui/dropdown";
 import type { CoreType } from "../state/redux-slices/core/slice";
 import { isSaveShortcutKeydown, isMacPlatform } from "@doenet/utils";
+import { doenetGlobalConfig } from "../global-config";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -157,6 +158,9 @@ export function EditorViewer({
                                 <div className="editor-panel-codemirror">
                                     <CodeMirror
                                         value={sourceInEditor}
+                                        doenetWorkerUrl={
+                                            doenetGlobalConfig.doenetWorkerUrl
+                                        }
                                         onChange={(source) => {
                                             if (source !== sourceInEditor) {
                                                 setSourceInEditor(source);

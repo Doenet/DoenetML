@@ -61,6 +61,10 @@ connection.onInitialize((params: InitializeParams) => {
     )?.doenetWorkerUrl;
     if (typeof initOptionsWorkerUrl === "string" && initOptionsWorkerUrl) {
         config.doenetWorkerUrl = initOptionsWorkerUrl;
+    } else {
+        console.warn(
+            "[DoenetML LSP] no doenetWorkerUrl in initializationOptions — rust resolver disabled",
+        );
     }
 
     const result: InitializeResult = {

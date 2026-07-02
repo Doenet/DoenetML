@@ -35,6 +35,40 @@ export function deactivate(): Thenable<void> | undefined {
  * Setup the language server.
  */
 async function setupLanguageServer(context: ExtensionContext) {
+    // Read the bundled doenetml-worker file and create a blob URL from it.
+    // The language server (running as a web worker) needs to spawn its own
+    // rust-backed core sub-worker for path resolution — that's how it
+    // suppresses false-positive "unknown attribute" diagnostics on
+    // `<module copy="$x" ans="57" />` (issue #1375).
+    //
+    // We pass the blob URL via `initializationOptions.doenetWorkerUrl`, which
+    // the LSP's `onInitialize` handler already reads and stores in `config`.
+    // Using a blob URL (rather than a vscode-file:// URL directly) ensures the
+    // language server worker can call `new Worker(url)` in any context.
+    let doenetWorkerBlobUrl: string | undefined;
+    try {
+        const workerUri = vscode.Uri.joinPath(
+            context.extensionUri,
+            "build/doenetml-worker/index.js",
+        );
+        const workerBytes = await vscode.workspace.fs.readFile(workerUri);
+        // Decode the bytes as a UTF-8 string so the Blob is created from the
+        // exact file content.  Using `workerBytes.buffer` directly is unsafe
+        // because VS Code's readFile may return a Uint8Array that is a
+        // sub-view of a larger ArrayBuffer (non-zero byteOffset), which would
+        // include garbage bytes before the actual file content and corrupt the
+        // JavaScript source.
+        const workerSource = new TextDecoder().decode(workerBytes);
+        doenetWorkerBlobUrl = URL.createObjectURL(
+            new Blob([workerSource], { type: "application/javascript" }),
+        );
+    } catch (e) {
+        console.warn(
+            "[DoenetML] Could not load doenetml-worker for LSP rust resolver:",
+            e,
+        );
+    }
+
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
@@ -42,6 +76,9 @@ async function setupLanguageServer(context: ExtensionContext) {
             { scheme: "file", language: "doenet" },
             { scheme: "untitled", language: "doenet" },
         ],
+        initializationOptions: doenetWorkerBlobUrl
+            ? { doenetWorkerUrl: doenetWorkerBlobUrl }
+            : undefined,
     };
 
     // Create a worker. The worker main file implements the language server.
