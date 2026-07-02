@@ -558,6 +558,52 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     } else {
         // Non-inline choice input
 
+        // Prevent the wrapping <label> from redirecting focus to the
+        // radio/checkbox when the click originates from an interactive input
+        // (e.g. a <mathInput> or <textInput>) inside the choice content.
+        //
+        // React uses root-level event delegation, so a bubble-phase onClick
+        // fires after the native event has already passed through the <label>
+        // (too late to cancel the label's activation behavior). Using
+        // onClickCapture fires in the capture phase — before the native event
+        // reaches <label> — so calling preventDefault() here marks the event
+        // as cancelled before the label can redirect focus to the radio button.
+        // The event still propagates down to the interactive element, which
+        // receives focus normally.
+        //
+        // The selector covers:
+        //   - any nested form control except choiceInput radio/checkbox
+        //     controls, whose own click behavior should not be cancelled
+        //   - <textarea>
+        //   - <select> and <button>
+        //   - [contenteditable]
+        //   - .mathInputWrapper — MathQuill's visual spans are regular <span>
+        //     elements; clicking them does not target a native form control, so
+        //     the above selectors miss them. MathQuill focuses its internal
+        //     textarea programmatically. Detecting the wrapper class is the
+        //     reliable way to identify a mathInput click.
+        //   - booleanInput containers
+        //   - inline choiceInput controls rendered by react-select
+        //
+        function preventDefaultIfInput(e: React.MouseEvent) {
+            const target = e.target as HTMLElement;
+            const outerChoiceControl = e.currentTarget.querySelector(
+                ":scope > input.choiceinput-control",
+            );
+
+            const interactiveTarget = target.closest(
+                "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
+            );
+
+            if (
+                interactiveTarget &&
+                interactiveTarget !== outerChoiceControl &&
+                !interactiveTarget.classList.contains("choiceinput-control")
+            ) {
+                e.preventDefault();
+            }
+        }
+
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
@@ -603,8 +649,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="radio"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
@@ -637,8 +685,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="checkbox"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
