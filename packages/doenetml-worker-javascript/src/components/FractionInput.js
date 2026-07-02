@@ -951,66 +951,6 @@ export default class FractionComponentInput extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.additionalAriaDescription = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                parentColorCorrectness: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "colorCorrectness",
-                },
-                parentCreditAchieved: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "creditAchieved",
-                },
-                parentJustSubmitted: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "justSubmitted",
-                },
-                parentNumAttemptsLeft: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "numAttemptsLeft",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let additionalAriaDescription = "";
-
-                if (dependencyValues.parentColorCorrectness) {
-                    let validationState = "unvalidated";
-                    if (
-                        dependencyValues.parentJustSubmitted ||
-                        dependencyValues.parentNumAttemptsLeft < 1
-                    ) {
-                        if (dependencyValues.parentCreditAchieved === 1) {
-                            validationState = "correct";
-                        } else if (
-                            dependencyValues.parentCreditAchieved === 0
-                        ) {
-                            validationState = "incorrect";
-                        } else {
-                            validationState = "partialcorrect";
-                        }
-                    }
-
-                    if (validationState === "correct") {
-                        additionalAriaDescription = "Fraction is correct";
-                    } else if (validationState === "incorrect") {
-                        additionalAriaDescription = "Fraction is incorrect";
-                    } else if (validationState === "partialcorrect") {
-                        additionalAriaDescription =
-                            "Fraction is partially correct";
-                    }
-                }
-
-                return {
-                    setValue: { additionalAriaDescription },
-                };
-            },
-        };
-
         stateVariableDefinitions.includeValidationStateInShortDescription = {
             forRenderer: true,
             returnDependencies: () => ({}),

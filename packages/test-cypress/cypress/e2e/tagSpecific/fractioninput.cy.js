@@ -56,6 +56,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             const correctColor = getCSSVariableAsRGB(win, "--mainGreen");
             const partialColor = getCSSVariableAsRGB(win, "--mainOrange");
             const incorrectColor = getCSSVariableAsRGB(win, "--mainRed");
+            const defaultColor = getCSSVariableAsRGB(win, "--canvasText");
 
             win.postMessage(
                 {
@@ -95,69 +96,44 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
                     });
             }
 
-            function checkFractionPartDescription(expectedText) {
-                const assertion = expectedText ? "have.attr" : "not.have.attr";
-                const args = expectedText
-                    ? ["aria-description", expectedText]
-                    : ["aria-description"];
-
-                cy.get("#frac textarea")
+            function checkInputBoxBorderColor(expectedColor) {
+                cy.get("#frac .mq-editable-field")
                     .eq(0)
-                    .should(assertion, ...args);
-                cy.get("#frac textarea")
+                    .should("have.css", "border-color", expectedColor);
+                cy.get("#frac .mq-editable-field")
                     .eq(1)
-                    .should(assertion, ...args);
+                    .should("have.css", "border-color", expectedColor);
             }
 
-            function checkFractionDescription(expectedText) {
-                cy.get("#frac table").then(($table) => {
-                    const accessibleDescription =
-                        $table.attr("aria-description") ??
-                        $table.attr("aria-label");
-                    expect(accessibleDescription).eq(expectedText);
-                });
-            }
-
-            cy.get("#frac").should(
-                "not.have.css",
-                "outline-color",
-                correctColor,
-            );
+            checkInputBoxBorderColor(defaultColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
-            checkFractionPartDescription("");
 
             cy.get("#frac textarea").eq(0).type("1", { force: true });
             cy.get("#frac textarea").eq(1).type("5", { force: true });
             cy.get("#frac_button").should("contain.text", "Check Work").click();
             cy.get("#frac_button").should("contain.text", "Correct");
-            cy.get("#frac").should("have.css", "outline-color", correctColor);
+            checkInputBoxBorderColor(correctColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
-            checkFractionPartDescription("Fraction is correct");
-            checkFractionDescription("(Correct)");
 
             cy.get("#frac textarea")
                 .eq(0)
                 .type("{end}{backspace}2{enter}", { force: true });
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "50% Correct");
-            cy.get("#frac").should("have.css", "outline-color", partialColor);
+            checkInputBoxBorderColor(partialColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
-            checkFractionPartDescription("Fraction is partially correct");
-            checkFractionDescription("(Partially correct)");
 
             cy.get("#frac textarea")
                 .eq(1)
                 .type("{end}{backspace}7{enter}", { force: true });
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "Incorrect");
-            cy.get("#frac").should("have.css", "outline-color", incorrectColor);
+            checkInputBoxBorderColor(incorrectColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
-            checkFractionPartDescription("Fraction is incorrect");
-            checkFractionDescription("(Incorrect)");
         });
     });
 
