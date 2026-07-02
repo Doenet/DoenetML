@@ -1168,13 +1168,19 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    /** Assert the CSS list marker rendered through the item's `::before`. */
-    function verifyBeforeContent(itemId, expectedContent) {
+    /** Run assertions against the CSS `::before` pseudo-element for an item. */
+    function withBeforeStyle(itemId, callback) {
         const escapedItemId = cesc(itemId);
 
         cy.get(`#${escapedItemId}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
+            callback(win.getComputedStyle($el[0], "::before"));
+        });
+    }
+
+    /** Assert the CSS list marker rendered through the item's `::before`. */
+    function verifyBeforeContent(itemId, expectedContent) {
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 expectedContent,
             );
@@ -1183,11 +1189,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
 
     /** Assert that an item does not render a CSS list marker. */
     function verifyNoBeforeContent(itemId) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             const content = before.getPropertyValue("content");
             expect(content).to.be.oneOf(["none", '""', ""]);
         });
@@ -1229,11 +1231,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * (e.g., choiceInput/math on the first rendered line).
      */
     function verifyNonBoxedListItemUsesInlineBefore(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1256,18 +1254,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         const escapedItemId = cesc(itemId);
         const escapedHeadingClassName = cesc(`section-heading-${itemId}`);
 
-        cy.get(`#${escapedItemId}`).then(($sectionEl) => {
-            const win = $sectionEl[0].ownerDocument.defaultView;
-            const sectionBefore = win.getComputedStyle(
-                $sectionEl[0],
-                "::before",
-            );
-            expect(sectionBefore.getPropertyValue("content")).to.be.oneOf([
-                "none",
-                '""',
-                "",
-            ]);
-        });
+        verifyNoBeforeContent(itemId);
 
         cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
             ($headingEl) => {
@@ -1305,8 +1292,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("flex");
+        });
 
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1324,11 +1312,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     }
 
     function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const rootBefore = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (rootBefore) => {
             expect(rootBefore.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );

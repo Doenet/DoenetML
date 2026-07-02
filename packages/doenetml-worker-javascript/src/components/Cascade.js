@@ -55,9 +55,7 @@ export default class Cascade extends SectioningComponent {
         stateVariableDefinitions.isListItem = {
             forRenderer: true,
             returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { isListItem: false } };
-            },
+            definition: () => ({ setValue: { isListItem: false } }),
         };
 
         // Make cascade transparent for `asList` propagation unless the author
@@ -80,16 +78,12 @@ export default class Cascade extends SectioningComponent {
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
+                let asList = dependencyValues.parentAsList;
                 if (!usedDefault.asListFromAttr) {
-                    return {
-                        setValue: { asList: dependencyValues.asListFromAttr },
-                    };
+                    asList = dependencyValues.asListFromAttr;
                 }
-                return {
-                    setValue: {
-                        asList: Boolean(dependencyValues.parentAsList),
-                    },
-                };
+
+                return { setValue: { asList: Boolean(asList) } };
             },
         };
 
