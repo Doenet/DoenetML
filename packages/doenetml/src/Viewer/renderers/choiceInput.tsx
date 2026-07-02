@@ -572,7 +572,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // receives focus normally.
         //
         // The selector covers:
-        //   - text/number/<input> (non-radio/checkbox)
+        //   - any nested <input> except the choice input's own control
         //   - <textarea>
         //   - [contenteditable]
         //   - .mathInputWrapper — MathQuill's visual spans are regular <span>
@@ -580,13 +580,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         //     the above selectors miss them. MathQuill focuses its internal
         //     textarea programmatically. Detecting the wrapper class is the
         //     reliable way to identify a mathInput click.
+        //   - booleanInput / nested choiceInput containers, whose visible click
+        //     targets are spans or labels rather than their hidden native
+        //     inputs.
         function preventDefaultIfInput(e: React.MouseEvent) {
             const target = e.target as HTMLElement;
-            if (
-                target.closest(
-                    'input:not([type="radio"]):not([type="checkbox"]), textarea, [contenteditable], .mathInputWrapper',
-                )
-            ) {
+            const interactiveTarget = target.closest(
+                "input:not(.choiceinput-control), textarea, [contenteditable], .mathInputWrapper, .boolean-container, .radio-container, .checkbox-container",
+            );
+
+            if (interactiveTarget && interactiveTarget !== e.currentTarget) {
                 e.preventDefault();
             }
         }
@@ -639,6 +642,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="radio"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
@@ -674,6 +678,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="checkbox"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}

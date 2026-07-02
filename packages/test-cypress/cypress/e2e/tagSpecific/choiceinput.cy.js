@@ -498,6 +498,35 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
     });
 
+    it("clicking embedded booleanInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><booleanInput name="radioBi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><booleanInput name="checkboxBi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioBi-container").click();
+        cy.get("#radioBi_input").should("be.checked");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#checkboxBi-container").click();
+        cy.get("#checkboxBi_input").should("be.checked");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+    });
+
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 

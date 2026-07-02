@@ -27,7 +27,7 @@
 }
 
 /* Hide the browser's default radio button */
-.doenet-viewer .radio-container input[type="radio"] {
+.doenet-viewer .radio-container > input.choiceinput-control[type="radio"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -35,7 +35,7 @@
     width: 1;
 }
 
-.doenet-viewer .radio-container-disabled input {
+.doenet-viewer .radio-container-disabled > input.choiceinput-control {
     cursor: not-allowed;
 }
 
@@ -59,22 +59,34 @@
 }
 
 /* On mouse-over, add a theme-aware blue background color */
-.doenet-viewer .radio-container:hover input ~ .radio-checkmark {
+.doenet-viewer
+    .radio-container:hover
+    > input.choiceinput-control
+    ~ .radio-checkmark {
     background-color: var(--indicatorHoverBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
-.doenet-viewer .radio-container:hover input ~ .radio-checkmark-disabled {
+.doenet-viewer
+    .radio-container:hover
+    > input.choiceinput-control
+    ~ .radio-checkmark-disabled {
     background-color: var(--mainGray);
 }
 
 /* When the radio button is checked, add a blue background */
-.doenet-viewer .radio-container input:checked ~ .radio-checkmark {
+.doenet-viewer
+    .radio-container
+    > input.choiceinput-control:checked
+    ~ .radio-checkmark {
     background-color: var(--mainBlue);
 }
 
 /* When a radio button has focus, add a dark blue outline */
-.doenet-viewer .radio-container:focus-within input ~ .radio-checkmark {
+.doenet-viewer
+    .radio-container:focus-within
+    > input.choiceinput-control
+    ~ .radio-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
 }
@@ -87,7 +99,10 @@
 }
 
 /* Show the indicator (dot/circle) when checked */
-.doenet-viewer .radio-container input:checked ~ .radio-checkmark:after {
+.doenet-viewer
+    .radio-container
+    > input.choiceinput-control:checked
+    ~ .radio-checkmark:after {
     display: block;
 }
 
@@ -130,7 +145,9 @@
 }
 
 /* Hide the browser's default checkbox */
-.doenet-viewer .checkbox-container input[type="checkbox"] {
+.doenet-viewer
+    .checkbox-container
+    > input.choiceinput-control[type="checkbox"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -138,7 +155,7 @@
     width: 1;
 }
 
-.doenet-viewer .checkbox-container-disabled input {
+.doenet-viewer .checkbox-container-disabled > input.choiceinput-control {
     cursor: not-allowed;
 }
 
@@ -162,22 +179,34 @@
 }
 
 /* On mouse-over, use the theme-aware indicator hover color */
-.doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark {
+.doenet-viewer
+    .checkbox-container:hover
+    > input.choiceinput-control
+    ~ .checkbox-checkmark {
     background-color: var(--indicatorHoverBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
-.doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark-disabled {
+.doenet-viewer
+    .checkbox-container:hover
+    > input.choiceinput-control
+    ~ .checkbox-checkmark-disabled {
     background-color: var(--mainGray);
 }
 
 /* When the checkbox is checked, add a dark blue background */
-.doenet-viewer .checkbox-container input:checked ~ .checkbox-checkmark {
+.doenet-viewer
+    .checkbox-container
+    > input.choiceinput-control:checked
+    ~ .checkbox-checkmark {
     background-color: var(--mainBlue);
 }
 
 /* When a checkbox has focus, add a dark blue outline */
-.doenet-viewer .checkbox-container:focus-within input ~ .checkbox-checkmark {
+.doenet-viewer
+    .checkbox-container:focus-within
+    > input.choiceinput-control
+    ~ .checkbox-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
 }
@@ -190,7 +219,10 @@
 }
 
 /* Show the checkmark when checked */
-.doenet-viewer .checkbox-container input:checked ~ .checkbox-checkmark:after {
+.doenet-viewer
+    .checkbox-container
+    > input.choiceinput-control:checked
+    ~ .checkbox-checkmark:after {
     display: block;
 }
 
