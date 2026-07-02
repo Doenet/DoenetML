@@ -26,7 +26,10 @@ export default class Cascade extends SectioningComponent {
 
         // Keep the explicit attribute value separate so the effective state
         // variable can inherit from the parent when the attribute is omitted.
+        // Mark it non-public so it doesn't appear in the schema or as a
+        // shadowable property.
         attributes.asList.createStateVariable = "asListPreliminary";
+        attributes.asList.public = false;
 
         attributes.revealAll = {
             createComponentOfType: "boolean",
