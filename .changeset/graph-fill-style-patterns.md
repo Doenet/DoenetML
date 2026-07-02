@@ -7,20 +7,26 @@
 "@doenet/prefigure": patch
 ---
 
-Graph: add `fillStyle` style attribute for patterned fills on closed shapes.
+Graph: revise closed-shape `fillStyle` patterns and add `fillPatternOpacity`.
 
-Closed shapes in graphs (`polygon`, `circle`, `angle`, `regionBetweenCurves`, and `regionBetweenCurveXAxis`) now accept a `fillStyle` override attribute (or `<styleDefinition fillStyle="...">`) with the following values:
+Closed shapes in graphs (`polygon`, `circle`, `angle`, `regionBetweenCurves`, and `regionBetweenCurveXAxis`) now support patterned fills via `fillStyle` and separate pattern opacity via `fillPatternOpacity`.
+
+Available `fillStyle` values are:
 
 - `solid` (default — existing behavior unchanged)
 - `horizontal` — horizontal line pattern
 - `vertical` — vertical line pattern
 - `diagonal` — diagonal lines (/)
 - `backDiagonal` — back-diagonal lines (\\)
-- `crosshatch` — horizontal + vertical grid
-- `diagonalCrosshatch` — diagonal X-pattern
+- `dots` — dots pattern
+- `diamonds` — filled diamonds pattern
 
-Both the JSXGraph interactive renderer and the PreFigure static diagram renderer support all patterns. The hatch lines use the shape's fill color and stay fully opaque so the pattern remains visible.
+The `dots` and `diamonds` patterns are drawn from the BANA (Braille Authority of North America) Texture Palette for Tiger Embossers, intended for tactile graphics. Pattern fills now use `fillPatternOpacity` (default `1`) instead of the solid-fill `fillOpacity` default (`0.3`).
 
-Filled circles and polygons also include the hatch wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
+The previous `crosshatch` and `diagonalCrosshatch` values are replaced by `dots` and `diamonds`, respectively.
+
+The JSXGraph interactive renderer supports all patterns. Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
+
+`@doenet/prefigure` no longer injects SVG hatch definitions. Until native PreFigure pattern support lands, non-solid `fillStyle` values there warn and fall back to solid fills.
 
 Closes #1386.

@@ -255,6 +255,29 @@ describe("Graph prefigure renderer core @group4", () => {
         );
     });
 
+    it("renderer=prefigure warns and falls back to solid fills for patterned polygons", async () => {
+        const doenetML = withStyleDefinitions(
+            '    <styleDefinition styleNumber="7" fillColor="green" fillStyle="dots" fillOpacity="0.3" fillPatternOpacity="0.8" />',
+            prefigureGraph(
+                '<polygon styleNumber="7" filled vertices="(0,0) (2,0) (1,1)" />',
+            ),
+        );
+        const prefigureXML = await getPrefigureXML(doenetML);
+
+        expect(prefigureXML).toContain(`fill="green"`);
+        expect(prefigureXML).toContain(`fill-opacity="0.3"`);
+        expect(prefigureXML).not.toContain(`url(#`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "fill style 'dots' is unsupported by PreFigure; falling back to a solid fill.",
+                ),
+            ),
+        ).eq(true);
+    });
+
     it("renderer=prefigure maps endpoint and equilibriumPoint as points", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(

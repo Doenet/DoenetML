@@ -255,6 +255,45 @@ describe("Per-component style override tests @group4", async () => {
         expect(C3.stateValues.selectedStyle.fillOpacity).eq(0.3);
     });
 
+    it("fillPatternOpacity override flows through to selectedStyle on closed shapes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <polygon
+    name="P1"
+    vertices="(0,0) (1,0) (1,1)"
+    filled
+    fillStyle="dots"
+    fillPatternOpacity="0.2"
+  />
+  <circle
+    name="C1"
+    center="(3,0)"
+    radius="1"
+    filled
+    fillStyle="diamonds"
+    fillPatternOpacity="0.8"
+  />
+  <circle
+    name="C2"
+    center="(6,0)"
+    radius="1"
+    filled
+    fillStyle="diamonds"
+  />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const P1 = stateVariables[await resolvePathToNodeIdx("P1")];
+        const C1 = stateVariables[await resolvePathToNodeIdx("C1")];
+        const C2 = stateVariables[await resolvePathToNodeIdx("C2")];
+        expect(P1.stateValues.selectedStyle.fillPatternOpacity).eq(0.2);
+        expect(C1.stateValues.selectedStyle.fillPatternOpacity).eq(0.8);
+        expect(C2.stateValues.selectedStyle.fillPatternOpacity).eq(1);
+    });
+
     it("fillStyle values flow through to selectedStyle and derive fillStyleWord", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -285,14 +324,14 @@ describe("Per-component style override tests @group4", async () => {
     name="RX"
     function="$f"
     boundaryValues="0 1"
-    fillStyle="crosshatch"
+    fillStyle="dots"
   />
   <function name="f1">x</function>
   <function name="f2">x^2</function>
   <regionBetweenCurves
     name="RB"
     boundaryValues="0 1"
-    fillStyle="diagonalCrosshatch"
+    fillStyle="diamonds"
   >
     $f1 $f2
   </regionBetweenCurves>
@@ -317,12 +356,10 @@ describe("Per-component style override tests @group4", async () => {
         );
         expect(A.stateValues.selectedStyle.fillStyle).eq("vertical");
         expect(A.stateValues.selectedStyle.fillStyleWord).eq("vertical lines");
-        expect(RX.stateValues.selectedStyle.fillStyle).eq("crosshatch");
-        expect(RX.stateValues.selectedStyle.fillStyleWord).eq("cross hatched");
-        expect(RB.stateValues.selectedStyle.fillStyle).eq("diagonalcrosshatch");
-        expect(RB.stateValues.selectedStyle.fillStyleWord).eq(
-            "diagonal cross hatched",
-        );
+        expect(RX.stateValues.selectedStyle.fillStyle).eq("dots");
+        expect(RX.stateValues.selectedStyle.fillStyleWord).eq("dots");
+        expect(RB.stateValues.selectedStyle.fillStyle).eq("diamonds");
+        expect(RB.stateValues.selectedStyle.fillStyleWord).eq("diamonds");
     });
 
     it("lineWidth/lineStyle overrides flow through to selectedStyle on a parabola", async () => {
@@ -383,6 +420,7 @@ describe("Per-component style override tests @group4", async () => {
         expect(lineAttrs.markerStyle).toBeUndefined();
         expect(lineAttrs.markerSize).toBeUndefined();
         expect(lineAttrs.fillOpacity).toBeUndefined();
+        expect(lineAttrs.fillPatternOpacity).toBeUndefined();
 
         // line+fill components
         const Polygon = (await import("../../components/Polygon.js")).default;
@@ -390,6 +428,7 @@ describe("Per-component style override tests @group4", async () => {
         expect(polyAttrs.lineWidth).toBeDefined();
         expect(polyAttrs.lineStyle).toBeDefined();
         expect(polyAttrs.fillOpacity).toBeDefined();
+        expect(polyAttrs.fillPatternOpacity).toBeDefined();
         expect(polyAttrs.fillStyle).toBeDefined();
         expect(polyAttrs.markerStyle).toBeUndefined();
 
@@ -397,11 +436,13 @@ describe("Per-component style override tests @group4", async () => {
         const Curve = (await import("../../components/Curve.js")).default;
         const curveAttrs = Curve.createAttributesObject();
         expect(curveAttrs.fillOpacity).toBeDefined();
+        expect(curveAttrs.fillPatternOpacity).toBeDefined();
         expect(curveAttrs.fillStyle).toBeDefined();
         const Parabola = (await import("../../components/Parabola.js")).default;
         const parAttrs = Parabola.createAttributesObject();
         expect(parAttrs.lineWidth).toBeDefined();
         expect(parAttrs.fillOpacity).toBeUndefined();
+        expect(parAttrs.fillPatternOpacity).toBeUndefined();
         expect(parAttrs.fillStyle).toBeUndefined();
 
         // Subclasses inherit their parent's category:
@@ -411,18 +452,28 @@ describe("Per-component style override tests @group4", async () => {
         // - CobwebPolyline inherits Polyline's line-only (no fill)
         const Triangle = (await import("../../components/Triangle.js")).default;
         expect(Triangle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(
+            Triangle.createAttributesObject().fillPatternOpacity,
+        ).toBeDefined();
         expect(Triangle.createAttributesObject().fillStyle).toBeDefined();
         const Circle = (await import("../../components/Circle.js")).default;
         expect(Circle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(
+            Circle.createAttributesObject().fillPatternOpacity,
+        ).toBeDefined();
         expect(Circle.createAttributesObject().fillStyle).toBeDefined();
         const Angle = (await import("../../components/Angle.js")).default;
         expect(Angle.createAttributesObject().fillOpacity).toBeDefined();
+        expect(Angle.createAttributesObject().fillPatternOpacity).toBeDefined();
         expect(Angle.createAttributesObject().fillStyle).toBeDefined();
         const RegionBetweenCurveXAxis = (
             await import("../../components/RegionBetweenCurveXAxis.js")
         ).default;
         expect(
             RegionBetweenCurveXAxis.createAttributesObject().fillOpacity,
+        ).toBeDefined();
+        expect(
+            RegionBetweenCurveXAxis.createAttributesObject().fillPatternOpacity,
         ).toBeDefined();
         expect(
             RegionBetweenCurveXAxis.createAttributesObject().fillStyle,
@@ -434,6 +485,9 @@ describe("Per-component style override tests @group4", async () => {
             RegionBetweenCurves.createAttributesObject().fillOpacity,
         ).toBeDefined();
         expect(
+            RegionBetweenCurves.createAttributesObject().fillPatternOpacity,
+        ).toBeDefined();
+        expect(
             RegionBetweenCurves.createAttributesObject().fillStyle,
         ).toBeDefined();
         const BestFitLine = (await import("../../components/BestFitLine.js"))
@@ -441,12 +495,14 @@ describe("Per-component style override tests @group4", async () => {
         const bflAttrs = BestFitLine.createAttributesObject();
         expect(bflAttrs.lineWidth).toBeDefined();
         expect(bflAttrs.fillOpacity).toBeUndefined();
+        expect(bflAttrs.fillPatternOpacity).toBeUndefined();
         const CobwebPolyline = (
             await import("../../components/dynamicalSystems/CobwebPolyline.js")
         ).default;
         const cobwebAttrs = CobwebPolyline.createAttributesObject();
         expect(cobwebAttrs.lineWidth).toBeDefined();
         expect(cobwebAttrs.fillOpacity).toBeUndefined();
+        expect(cobwebAttrs.fillPatternOpacity).toBeUndefined();
     });
 
     it("markerStyle and lineStyle are declared as keyword/enum attributes", async () => {

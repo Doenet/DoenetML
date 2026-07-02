@@ -4845,7 +4845,7 @@ describe("Polygon tag tests @group2", async () => {
 
     <graph>
       <polygon vertices="(0,0) (0,2) (2,0)" name="p1" />
-      <polygon vertices="(3,0) (3,2) (5,0)" name="p2" filled fillStyle="crosshatch" />
+      <polygon vertices="(3,0) (3,2) (5,0)" name="p2" filled fillStyle="dots" />
       <polygon vertices="(0,3) (0,5) (2,3)" name="p3" styleNumber="2" />
       <polygon vertices="(3,3) (3,5) (5,3)" name="p4" styleNumber="2" filled />
 
@@ -4903,16 +4903,16 @@ describe("Polygon tag tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st2")].stateValues.text,
-        ).eq("filled blue with cross hatched");
+        ).eq("filled blue with dots");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn2")].stateValues.text,
-        ).eq("filled blue polygon with cross hatched");
+        ).eq("filled blue polygon with dots");
         expect(
             stateVariables[await resolvePathToNodeIdx("bst2")].stateValues.text,
         ).eq("blue");
         expect(
             stateVariables[await resolvePathToNodeIdx("fst2")].stateValues.text,
-        ).eq("blue cross hatched");
+        ).eq("blue dots");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st3")].stateValues.text,

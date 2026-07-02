@@ -1,53 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { styleAttributes } from "../../utils/prefigure/style";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 describe("PreFigure style attributes", () => {
-    it("uses hatch pattern urls for hex fill colors and omits fill-opacity", () => {
-        const attrs = styleAttributes({
-            selectedStyle: {
-                fillColor: "#abcd",
-                fillStyle: "diagonal",
-                fillOpacity: 0.3,
-            },
-            diagnostics: [],
-            warningPrefix: "test",
-        });
+    it.each(["dots", "diagonal"])(
+        "falls back to solid fills for non-solid fillStyle value %s",
+        (fillStyle) => {
+            const diagnostics: DiagnosticRecord[] = [];
+            const attrs = styleAttributes({
+                selectedStyle: {
+                    fillColor: "#abcd",
+                    fillStyle,
+                    fillOpacity: 0.3,
+                    fillPatternOpacity: 0.8,
+                },
+                diagnostics,
+                warningPrefix: "test",
+            });
 
-        expect(attrs).toContain(
-            'fill="url(#doenet-hatch-diagonal-2361626364)"',
-        );
-        expect(attrs).not.toContain('fill-opacity="0.3"');
-    });
+            expect(attrs).toContain('fill="#abcd"');
+            expect(attrs).toContain('fill-opacity="0.3"');
+            expect(attrs.join(" ")).not.toContain("url(#");
+            expect(diagnostics).toHaveLength(1);
+            expect(diagnostics[0].type).toBe("warning");
+            expect(diagnostics[0].message).toContain(
+                `fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+            );
+        },
+    );
 
-    it("preserves 8-digit hex colors in hatch pattern ids", () => {
-        const attrs = styleAttributes({
-            selectedStyle: {
-                fillColor: "#11223344",
-                fillStyle: "crosshatch",
-            },
-            diagnostics: [],
-            warningPrefix: "test",
-        });
-
-        expect(attrs).toContain(
-            'fill="url(#doenet-hatch-crosshatch-233131323233333434)"',
-        );
-    });
-
-    it("uses hatch pattern urls for named fill colors too", () => {
+    it("keeps solid fills warning-free", () => {
+        const diagnostics: DiagnosticRecord[] = [];
         const attrs = styleAttributes({
             selectedStyle: {
                 fillColorWord: "blue",
-                fillStyle: "horizontal",
+                fillStyle: "solid",
                 fillOpacity: 0.3,
             },
-            diagnostics: [],
+            diagnostics,
             warningPrefix: "test",
         });
 
-        expect(attrs).toContain(
-            'fill="url(#doenet-hatch-horizontal-626c7565)"',
-        );
-        expect(attrs).not.toContain('fill-opacity="0.3"');
+        expect(attrs).toContain('fill="blue"');
+        expect(attrs).toContain('fill-opacity="0.3"');
+        expect(diagnostics).toHaveLength(0);
     });
 });

@@ -141,6 +141,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                     fillColor: jsxCircleAttributes.fillColor,
                     fillOpacity: SVs.selectedStyle.fillOpacity,
+                    fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
                     highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
                 }),
             );
@@ -700,6 +701,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                           fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                           fillColor: resolvedFillColor,
                           fillOpacity: SVs.selectedStyle.fillOpacity,
+                          fillPatternOpacity:
+                              SVs.selectedStyle.fillPatternOpacity,
                           highlightFillOpacity:
                               SVs.selectedStyle.fillOpacity * 0.5,
                       })

@@ -166,7 +166,11 @@ export let styleAttributes: StyleAttributes = {
     },
     fillOpacity: {
         componentType: "number",
-        description: "Opacity of fills, 0 to 1.",
+        description: "Opacity of solid fills, 0 to 1.",
+    },
+    fillPatternOpacity: {
+        componentType: "number",
+        description: "Opacity of pattern fills (non-solid fillStyle), 0 to 1.",
     },
     fillStyle: {
         componentType: "text",
@@ -191,12 +195,12 @@ export let styleAttributes: StyleAttributes = {
                 description: "Back-diagonal line pattern (\\).",
             },
             {
-                value: "crosshatch",
-                description: "Horizontal and vertical crosshatch pattern.",
+                value: "dots",
+                description: "Dots pattern.",
             },
             {
-                value: "diagonalCrosshatch",
-                description: "Diagonal crosshatch pattern (X).",
+                value: "diamonds",
+                description: "Filled diamonds pattern.",
             },
         ],
     },
@@ -302,6 +306,7 @@ const LINE_OVERRIDE_KEYS = [
 
 const FILL_OVERRIDE_KEYS = [
     "fillOpacity",
+    "fillPatternOpacity",
     "fillStyle",
 ] as const satisfies readonly StyleDefinitionKey[];
 
@@ -324,9 +329,9 @@ export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
 );
 
 /**
- * Fill toggles for closed-shape components. `fillOpacity` and `fillStyle` are
- * both decorative and not part of the contrast check, unlike `lineOpacity` /
- * `markerOpacity`.
+ * Fill toggles for closed-shape components. `fillOpacity`, `fillPatternOpacity`,
+ * and `fillStyle` are both decorative and not part of the contrast check, unlike
+ * `lineOpacity` / `markerOpacity`.
  */
 export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
     FILL_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
@@ -363,13 +368,14 @@ export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
  *    are fed into the contrast diagnostic as `opacityMultiplier` on the
  *    foreground alpha (see `styleContrastAccessibility.ts`), so they
  *    participate in the effective-color check just like the color itself.
- *    Only `fillOpacity` is contrast-irrelevant and overridable.
+ *    Only `fillOpacity` and `fillPatternOpacity` are contrast-irrelevant and
+ *    overridable.
  * 3. **Text-typed keys must opt in to lowercase.** The override path in
  *    `returnSelectedStyleStateVariableDefinition` only lowercases string
  *    values when the attribute spec sets `toLowerCase: true`, but the
  *    parallel `<styleDefinition>` path lowercases unconditionally. Today's
- *    text-typed override keys (`markerStyle`, `lineStyle`) all opt in; the
- *    guard fails loudly if a new one slips in without opting in.
+ *    text-typed override keys (`markerStyle`, `lineStyle`, `fillStyle`) all
+ *    opt in; the guard fails loudly if a new one slips in without opting in.
  */
 for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
     for (const [key, spec] of Object.entries(group)) {
@@ -380,11 +386,15 @@ for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
                     `If this is intentional, also reconcile the lowercase asymmetry in returnSelectedStyleStateVariableDefinition.`,
             );
         }
-        if (key.endsWith("Opacity") && key !== "fillOpacity") {
+        if (
+            key.endsWith("Opacity") &&
+            key !== "fillOpacity" &&
+            key !== "fillPatternOpacity"
+        ) {
             throw new Error(
                 `Style override category "${category}" contains contrast-feeding opacity key "${key}"; ` +
                     `lineOpacity and markerOpacity feed the WCAG contrast diagnostic as an opacityMultiplier on the foreground alpha, ` +
-                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity is contrast-irrelevant and overridable.`,
+                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity and fillPatternOpacity are contrast-irrelevant and overridable.`,
             );
         }
         if (spec.componentType === "text" && !spec.toLowerCase) {
@@ -652,7 +662,7 @@ function deriveMissingDarkModeColor(
  * - `markerStyle` (text) → `markerStyleWord`: copies the value, then normalizes
  *   `"circle"` → `"point"` and any `"triangle*"` → `"triangle"`.
  * - `fillStyle` (text) → `fillStyleWord`: human-readable description of the
- *   fill pattern (e.g. `"horizontal lines"`, `"cross hatched"`), or `""` for
+ *   fill pattern (e.g. `"horizontal lines"`, `"diamonds"`), or `""` for
  *   `"solid"`.
  *
  * Used both by the styleDefinitions-merge path and by the per-component
@@ -737,8 +747,8 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
                 vertical: "vertical lines",
                 diagonal: "diagonal lines",
                 backdiagonal: "reverse diagonal lines",
-                crosshatch: "cross hatched",
-                diagonalcrosshatch: "diagonal cross hatched",
+                dots: "dots",
+                diamonds: "diamonds",
             };
             const word = fillStyleWordMap[fillStyle] ?? "";
             setStyleValue(styleDef, "fillStyleWord", word, fillStylePosition);

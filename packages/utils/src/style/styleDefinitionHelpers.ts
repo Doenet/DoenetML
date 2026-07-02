@@ -49,6 +49,7 @@ export type StyleDefinitionKey =
     | "fillColorDarkMode"
     | "fillColorWordDarkMode"
     | "fillOpacity"
+    | "fillPatternOpacity"
     | "fillStyle"
     | "fillStyleWord"
     | "textColor"
@@ -112,6 +113,7 @@ export interface ResolvedStyleDefinition {
     fillColorDarkMode: string;
     fillColorWordDarkMode: string;
     fillOpacity: number;
+    fillPatternOpacity: number;
     fillStyle: string;
     fillStyleWord: string;
     textColor: string;
@@ -302,6 +304,7 @@ export const DEFAULT_STYLE_VALUES = {
     markerSize: 5,
     markerFilled: true,
     fillOpacity: 0.3,
+    fillPatternOpacity: 1,
     fillStyle: "solid",
     fillStyleWord: "",
     lineColor: "#1f5dff",

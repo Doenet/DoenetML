@@ -67,6 +67,7 @@ export default React.memo(function RegionBetweenCurveXAxis(
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
         // Note: actual content of label is being ignored
         // but, if label is non-empty, then jsxgraph display a label
@@ -167,6 +168,7 @@ export default React.memo(function RegionBetweenCurveXAxis(
                         ? SVs.selectedStyle.fillColorDarkMode
                         : SVs.selectedStyle.fillColor,
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
 
             if (

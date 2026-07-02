@@ -29,6 +29,7 @@ const expectedKeys: (keyof ResolvedStyleDefinition)[] = [
     "fillColorDarkMode",
     "fillColorWordDarkMode",
     "fillOpacity",
+    "fillPatternOpacity",
     "fillStyle",
     "fillStyleWord",
     "textColor",
@@ -64,6 +65,7 @@ describe("resolveStyleDefinition", () => {
         expect(resolved.highContrastColorDarkMode).eq("#92B4FF");
         expect(resolved.lineColor).eq("#1f5dff");
         expect(resolved.fillOpacity).eq(0.3);
+        expect(resolved.fillPatternOpacity).eq(1);
     });
 
     it("fills color and word keys absent from DEFAULT_STYLE_VALUES with empty string", () => {

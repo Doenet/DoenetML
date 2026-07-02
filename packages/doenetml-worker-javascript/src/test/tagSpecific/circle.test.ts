@@ -6025,7 +6025,7 @@ $c7.radius
         <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
 
         <styleDefinition stylenumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
-        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="diagonalCrosshatch" />
+        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="dots" />
     </setup>
 
     <graph>
@@ -6213,14 +6213,12 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st8")].stateValues.value,
-        ).toContain(
-            "filled green with diagonal cross hatched and thin dotted red border",
-        );
+        ).toContain("filled green with dots and thin dotted red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn8")].stateValues
                 .value,
         ).toContain(
-            "filled green circle with diagonal cross hatched and a thin dotted red border",
+            "filled green circle with dots and a thin dotted red border",
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst8")].stateValues
@@ -6229,7 +6227,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst8")].stateValues
                 .value,
-        ).toContain("green diagonal cross hatched");
+        ).toContain("green dots");
     });
 
     it("hideOffGraphIndicator", async () => {
