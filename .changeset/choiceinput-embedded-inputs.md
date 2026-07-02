@@ -6,6 +6,6 @@
 "doenet-vscode-extension": patch
 ---
 
-Choice inputs no longer hide embedded text inputs or steal focus and activation from interactive inputs nested in non-inline choices.
+Choice inputs no longer hide embedded text inputs, redirect nested interactive input clicks to the outer choice, or show the outer choice focus ring while those embedded controls are focused.
 
 Closes #1398.

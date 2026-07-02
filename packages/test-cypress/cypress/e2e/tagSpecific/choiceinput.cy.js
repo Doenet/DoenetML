@@ -435,12 +435,12 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 {
                     doenetML: `
     <choiceInput name="radioCi">
-      <choice><textInput name="radioTi" prefill="alpha"><label>radio label</label></textInput></choice>
+      <choice><textInput name="radioTi" prefill="alpha" /></choice>
       <choice>dog</choice>
     </choiceInput>
 
     <choiceInput name="checkboxCi" selectMultiple>
-      <choice><textInput name="checkboxTi" prefill="beta"><label>checkbox label</label></textInput></choice>
+      <choice><textInput name="checkboxTi" prefill="beta" /></choice>
       <choice>cat</choice>
     </choiceInput>
     `,
@@ -456,14 +456,14 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             .should("be.visible")
             .should("have.value", "beta");
 
-        cy.contains("label", "radio label").click();
+        cy.get("#radioTi_input").click();
         cy.get("#radioTi_input").should("be.focused");
         cy.get("#radioCi_choice1_input").should("not.be.checked");
         cy.get("#radioCi_choice1_input")
             .siblings(".radio-checkmark")
             .should("have.css", "outline-style", "none");
 
-        cy.contains("label", "checkbox label").click();
+        cy.get("#checkboxTi_input").click();
         cy.get("#checkboxTi_input").should("be.focused");
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
         cy.get("#checkboxCi_choice1_input")

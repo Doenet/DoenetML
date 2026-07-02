@@ -595,11 +595,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
             );
 
-            if (
-                interactiveTarget &&
-                interactiveTarget !== e.currentTarget &&
-                interactiveTarget !== outerChoiceControl
-            ) {
+            if (interactiveTarget && interactiveTarget !== outerChoiceControl) {
                 e.preventDefault();
             }
         }
