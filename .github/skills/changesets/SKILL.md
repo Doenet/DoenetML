@@ -24,7 +24,12 @@ Bump any one of these and Changesets bumps all six. Listing or omitting a fixed-
 
 ## Independent Versioning
 
-- `@doenet/prefigure` versions independently.
+`@doenet/prefigure` is published but **never listed in any changeset**. Its npm
+version is manually pinned to match the bundled `prefig` Python wheel version
+(e.g. `0.6.7`) so consumers can see which upstream Python runtime they are
+running. It lives in the `ignore` list in `.changeset/config.json`. When
+bumping the prefig wheel, update `packages/prefigure/package.json` directly
+following the instructions in `packages/prefigure/README.md`.
 
 ## Never Versioned
 

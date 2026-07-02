@@ -150,7 +150,11 @@ npm run verify-wheel-sync -w @doenet/prefigure
 
 ### Upgrade PreFigure runtime version
 
-1. Update `version` in `packages/prefigure/package.json`.
+`@doenet/prefigure` is **not** managed by Changesets. Its npm version is manually
+pinned to match the bundled `prefig` Python wheel so consumers can immediately
+see which upstream version they are running. Follow these steps when bumping:
+
+1. Update `version` in `packages/prefigure/package.json` to match the new wheel version.
 2. Update `PREFIG_VERSION` in `src/worker/compiler-metadata.ts`.
 3. Update the default CDN module URL in `packages/doenetml/src/Viewer/renderers/utils/prefigureConfig.ts`.
 4. If the bundled accessibility runtime changed, update the default diagcess CDN URL there as well.
