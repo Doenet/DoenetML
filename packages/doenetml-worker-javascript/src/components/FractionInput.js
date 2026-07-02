@@ -84,27 +84,6 @@ function ensureFraction(mathValue) {
     return me.fromAst(["/", tree, 1]);
 }
 
-function addValidationStateToPartDescription(
-    part,
-    { colorCorrectness, justSubmitted, numAttemptsLeft, creditAchieved },
-) {
-    let shortDescription = part ?? "";
-
-    if (!colorCorrectness || (!justSubmitted && numAttemptsLeft >= 1)) {
-        return shortDescription;
-    }
-
-    if (creditAchieved === 1) {
-        return (shortDescription ? `${shortDescription} ` : "") + "(Correct)";
-    } else if (creditAchieved === 0) {
-        return (shortDescription ? `${shortDescription} ` : "") + "(Incorrect)";
-    }
-
-    return (
-        (shortDescription ? `${shortDescription} ` : "") + "(Partially correct)"
-    );
-}
-
 export class FractionInput extends Input {
     constructor(args) {
         super(args);
@@ -884,34 +863,11 @@ export default class FractionComponentInput extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "part",
                 },
-                colorCorrectness: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "colorCorrectness",
-                },
-                justSubmitted: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "justSubmitted",
-                },
-                numAttemptsLeft: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "numAttemptsLeft",
-                },
-                creditAchieved: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "fractionInput",
-                    variableName: "creditAchieved",
-                },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        shortDescription: addValidationStateToPartDescription(
-                            dependencyValues.part,
-                            dependencyValues,
-                        ),
+                        shortDescription: dependencyValues.part ?? "",
                     },
                 };
             },

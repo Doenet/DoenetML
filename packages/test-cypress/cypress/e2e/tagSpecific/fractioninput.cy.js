@@ -95,6 +95,15 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
                     });
             }
 
+            function checkFractionDescription(expectedText) {
+                cy.get("#frac table").then(($table) => {
+                    const accessibleDescription =
+                        $table.attr("aria-description") ??
+                        $table.attr("aria-label");
+                    expect(accessibleDescription).eq(expectedText);
+                });
+            }
+
             cy.get("#frac").should(
                 "not.have.css",
                 "outline-color",
@@ -108,8 +117,9 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").should("contain.text", "Check Work").click();
             cy.get("#frac_button").should("contain.text", "Correct");
             cy.get("#frac").should("have.css", "outline-color", correctColor);
-            checkFractionPartLabelText(0, "numerator (Correct)");
-            checkFractionPartLabelText(1, "denominator (Correct)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+            checkFractionDescription("(Correct)");
 
             cy.get("#frac textarea")
                 .eq(0)
@@ -117,8 +127,9 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "50% Correct");
             cy.get("#frac").should("have.css", "outline-color", partialColor);
-            checkFractionPartLabelText(0, "numerator (Partially correct)");
-            checkFractionPartLabelText(1, "denominator (Partially correct)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+            checkFractionDescription("(Partially correct)");
 
             cy.get("#frac textarea")
                 .eq(1)
@@ -126,8 +137,9 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac_button").click();
             cy.get("#frac_button").should("contain.text", "Incorrect");
             cy.get("#frac").should("have.css", "outline-color", incorrectColor);
-            checkFractionPartLabelText(0, "numerator (Incorrect)");
-            checkFractionPartLabelText(1, "denominator (Incorrect)");
+            checkFractionPartLabelText(0, "numerator");
+            checkFractionPartLabelText(1, "denominator");
+            checkFractionDescription("(Incorrect)");
         });
     });
 
