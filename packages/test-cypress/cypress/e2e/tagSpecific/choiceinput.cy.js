@@ -459,10 +459,16 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.contains("label", "radio label").click();
         cy.get("#radioTi_input").should("be.focused");
         cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
 
         cy.contains("label", "checkbox label").click();
         cy.get("#checkboxTi_input").should("be.focused");
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
 
         cy.get("#radioTi_input").type("{end}1");
         cy.get("#checkboxTi_input").type("{end}2");
@@ -497,6 +503,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
         cy.get("#radioMi .mq-editable-field").should("contain.text", "x");
         cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
 
         cy.get("#checkboxMi .mq-editable-field").click();
         cy.get("#checkboxMi textarea").should("be.focused").type("y", {
@@ -504,6 +513,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
         cy.get("#checkboxMi .mq-editable-field").should("contain.text", "y");
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
     });
 
     it("clicking embedded booleanInputs does not activate non-inline choices", () => {

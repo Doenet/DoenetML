@@ -84,8 +84,8 @@
 
 /* When a radio button has focus, add a dark blue outline */
 .doenet-viewer
-    .radio-container:focus-within
-    > input.choiceinput-control
+    .radio-container
+    > input.choiceinput-control:focus
     ~ .radio-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
@@ -204,8 +204,8 @@
 
 /* When a checkbox has focus, add a dark blue outline */
 .doenet-viewer
-    .checkbox-container:focus-within
-    > input.choiceinput-control
+    .checkbox-container
+    > input.choiceinput-control:focus
     ~ .checkbox-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
