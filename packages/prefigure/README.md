@@ -29,7 +29,7 @@ Or load from CDN:
 
 ```html
 <script type="module">
-  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js';
+  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.6.7/prefigure.js';
   await prefigure.initPrefigure();
   const result = await prefigure.compilePrefigure(diagramXml, { mode: 'svg' });
 </script>
