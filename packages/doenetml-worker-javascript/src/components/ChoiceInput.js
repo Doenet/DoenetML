@@ -714,29 +714,30 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.indicesMatchedByBoundValue = {
-            // Only pull in choiceChildren.text when bindValueTo is present.
-            // When bindValueTo is absent this variable always returns [],
-            // so the text dependency is unnecessary and causes the cycle
-            // described on hasBoundValue above.
+            // Only pull in bound-value-specific dependencies when
+            // bindValueTo is present. When bindValueTo is absent this
+            // variable always returns [], so those dependencies are
+            // unnecessary and the choiceChildren.text dependency causes the
+            // cycle described on hasBoundValue above.
             stateVariablesDeterminingDependencies: ["hasBoundValue"],
             returnDependencies: ({ stateValues }) => {
                 const deps = {
-                    choiceOrder: {
-                        dependencyType: "stateVariable",
-                        variableName: "choiceOrder",
-                    },
                     bindValueTo: {
                         dependencyType: "attributeComponent",
                         attributeName: "bindValueTo",
                         variableNames: ["value"],
                     },
-                    selectMultiple: {
-                        dependencyType: "stateVariable",
-                        variableName: "selectMultiple",
-                    },
                 };
 
                 if (stateValues.hasBoundValue) {
+                    deps.choiceOrder = {
+                        dependencyType: "stateVariable",
+                        variableName: "choiceOrder",
+                    };
+                    deps.selectMultiple = {
+                        dependencyType: "stateVariable",
+                        variableName: "selectMultiple",
+                    };
                     deps.choiceChildren = {
                         dependencyType: "child",
                         childGroups: ["choices"],
