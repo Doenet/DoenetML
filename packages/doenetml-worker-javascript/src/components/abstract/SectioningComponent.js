@@ -117,6 +117,23 @@ export class SectioningComponent extends BlockComponent {
             description: "Whether to render this section's children as a list.",
         };
 
+        attributes.collapsible = {
+            createComponentOfType: "boolean",
+            createStateVariable: "collapsible",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+            description: "Whether the section can be collapsed and expanded.",
+        };
+
+        attributes.startOpen = {
+            createComponentOfType: "boolean",
+            createStateVariable: "startOpen",
+            defaultValue: true,
+            description:
+                "Whether the collapsible section starts in the open state.",
+        };
+
         attributes.level = {
             createComponentOfType: "integer",
             description:
@@ -1193,14 +1210,6 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.collapsible = {
-            forRenderer: true,
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { collapsible: false } };
-            },
-        };
-
         stateVariableDefinitions.open = {
             description:
                 "Whether this section is currently open (for collapsible sections).",
@@ -1211,11 +1220,25 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({}),
-            definition() {
+            returnDependencies: () => ({
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+                startOpen: {
+                    dependencyType: "stateVariable",
+                    variableName: "startOpen",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // When not collapsible, always open regardless of any stored
+                // essential value (handles collapsible toggling false at runtime).
+                if (!dependencyValues.collapsible) {
+                    return { setValue: { open: true } };
+                }
                 return {
                     useEssentialOrDefaultValue: {
-                        open: true,
+                        open: { defaultValue: dependencyValues.startOpen },
                     },
                 };
             },

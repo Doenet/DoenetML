@@ -1076,6 +1076,154 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
     });
 
+    it("startOpen only affects collapsible sectioning components", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="closedSection" collapsible startOpen="false">
+        <title>Closed section</title>
+        <p>Content</p>
+      </section>
+      <example name="openExample" collapsible>
+        <title>Open example</title>
+        <p>Content</p>
+      </example>
+      <section name="plainSection" startOpen="false">
+        <title>Plain section</title>
+        <p name="plainText">Plain content</p>
+      </section>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        // collapsible + startOpen="false" → starts closed
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(false);
+        // collapsible without startOpen → starts open (default startOpen=true)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("openExample")]
+                .stateValues.open,
+        ).eq(true);
+        // not collapsible → always open; startOpen is ignored
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainSection")]
+                .stateValues.open,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainText")].stateValues
+                .text,
+        ).eq("Plain content");
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentIdx: await resolvePathToNodeIdx("closedSection"),
+            args: {},
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(true);
+    });
+
+    it("sectioning components default to collapsible=false; aside and proof default to collapsible=true", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="sec" />
+      <example name="ex" />
+      <theorem name="thm"><title>T</title><p>P</p></theorem>
+      <aside name="as" />
+      <proof name="pf"><p>P</p></proof>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Non-collapsible by default
+        for (const name of ["sec", "ex", "thm"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=false`,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should be open`,
+            ).eq(true);
+        }
+
+        // Collapsible by default
+        for (const name of ["as", "pf"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=true`,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should start closed`,
+            ).eq(false);
+        }
+    });
+
+    it("section with dynamic collapsible attribute stays open when collapsible toggles to false", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <booleanInput name="toggle" />
+      <section name="sec" collapsible="$toggle" startOpen="false">
+        <title>Dynamic section</title>
+        <p name="content">Content</p>
+      </section>
+    `,
+        });
+
+        // Initially collapsible=false (toggle is false), so open must be true
+        // regardless of startOpen="false"
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(true);
+
+        // Enable collapsible — section starts closed per startOpen="false",
+        // so the essential open value is now false
+        await core.requestAction({
+            actionName: "updateBoolean",
+            componentIdx: await resolvePathToNodeIdx("toggle"),
+            args: { boolean: true },
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(false);
+
+        // Disable collapsible with the section still closed (essential open=false) —
+        // the section must be forced open despite the stored essential value
+        await core.requestAction({
+            actionName: "updateBoolean",
+            componentIdx: await resolvePathToNodeIdx("toggle"),
+            args: { boolean: false },
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(true);
+    });
+
     it("aside content with postponeRendering isn't created before opening", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

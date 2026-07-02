@@ -97,44 +97,14 @@ export class Aside extends SectioningComponentNumberWithSiblings {
                 "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            description: "Whether the section can be collapsed and expanded.",
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            forRenderer: true,
-        };
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-            description:
-                "Whether the collapsible section starts in the open state.",
-        };
+        attributes.collapsible.defaultValue = true;
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.rendered.returnDependencies = () => ({
             startOpen: {
@@ -348,44 +318,14 @@ export class Proof extends UnnumberedSectioningComponent {
                 "Whether to delay rendering this section's contents until expanded.",
         };
 
-        attributes.collapsible = {
-            createComponentOfType: "boolean",
-            createStateVariable: "collapsible",
-            defaultValue: true,
-            public: true,
-            description: "Whether the section can be collapsed and expanded.",
-            forRenderer: true,
-        };
-        attributes.startOpen = {
-            createComponentOfType: "boolean",
-            createStateVariable: "startOpen",
-            defaultValue: false,
-            description:
-                "Whether the collapsible section starts in the open state.",
-        };
+        attributes.collapsible.defaultValue = true;
+        attributes.startOpen.defaultValue = false;
 
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        delete stateVariableDefinitions.collapsible;
-
-        stateVariableDefinitions.open.returnDependencies = () => ({
-            startOpen: {
-                dependencyType: "stateVariable",
-                variableName: "startOpen",
-            },
-        });
-
-        stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
-            useEssentialOrDefaultValue: {
-                open: {
-                    defaultValue: dependencyValues.startOpen,
-                },
-            },
-        });
 
         stateVariableDefinitions.rendered.returnDependencies = () => ({
             startOpen: {

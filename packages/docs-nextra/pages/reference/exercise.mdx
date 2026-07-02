@@ -231,8 +231,32 @@ component to one that has a border and a shaded banner for the title.
 
 ---
 
-### Attribute Example: hide
+### Attribute Example: collapsible
 
+
+```doenet-example
+<exercise collapsible>
+  <title>Optional exercise</title>
+  <p><answer><label>What is <m>6 \times 7</m>?</label>42</answer></p>
+</exercise>
+
+<exercise collapsible startOpen="false">
+  <title>Start collapsed</title>
+  <p><answer><label>What is <m>3 \times 3</m>?</label>9</answer></p>
+</exercise>
+```
+
+
+
+The `collapsible` attribute makes an `<exercise>{:dn}` collapsible — clicking the title
+banner toggles it open or closed. A collapsible exercise starts expanded by default;
+set `startOpen="false"` to have it start collapsed.
+
+
+
+---
+
+### Attribute Example: hide
 
 ```doenet-editor-horiz
 <booleanInput name="hideExercise">
@@ -247,4 +271,3 @@ component to one that has a border and a shaded banner for the title.
 
 
 The `hide` attribute takes a boolean as input and can be used with any rendered component.
-
