@@ -74,9 +74,7 @@ jobs:
             - name: Update versions
               run: |
                   CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
-                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
-                  COMMIT_HASH=$(git rev-parse --short HEAD)
-                  VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
+                  VERSION="${CURRENT_VERSION}-dev.${{ github.run_number }}"
                   npm run version -- ${VERSION} --no-git-tag-version
 
             - name: Build workspaces
@@ -158,12 +156,13 @@ jobs:
                   MAJOR=$(echo "$CURRENT" | cut -d. -f1)
                   MINOR=$(echo "$CURRENT" | cut -d. -f2)
                   # Offset the CI run number by 10000 so pre-release patches are
-                  # always much larger than any stable patch (e.g. 0.7.20) and
-                  # the number is clearly a CI artefact, not a hand-crafted bump.
+                  # always much larger than any stable patch (e.g. 0.7.20).
+                  # Correlates with the npm dev release: npm 0.7.20-dev.150
+                  # corresponds to VS Code 0.7.10150.
                   PATCH=$(( ${{ github.run_number }} + 10000 ))
                   VERSION="${MAJOR}.${MINOR}.${PATCH}"
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "Pre-release version: ${VERSION}"
+                  echo "Pre-release version: ${VERSION} (npm dev suffix: ${{ github.run_number }})"
 
             - name: Set pre-release version in extension manifest
               run: |
