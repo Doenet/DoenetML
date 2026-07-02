@@ -547,6 +547,59 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
     });
 
+    it("clicking embedded inline choiceInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice>
+        <choiceInput inline name="radioInlineCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice>
+        <choiceInput inline name="checkboxInlineCi">
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioInlineCi").click();
+        getOpenInlineChoiceMenu().contains("red").click({ force: true });
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("radioInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["red"]);
+        });
+
+        cy.get("#checkboxInlineCi").click();
+        getOpenInlineChoiceMenu().contains("mouse").click({ force: true });
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("checkboxInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["mouse"]);
+        });
+    });
+
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 

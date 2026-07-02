@@ -572,8 +572,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // receives focus normally.
         //
         // The selector covers:
-        //   - any nested form control except the outer choice input's own
-        //     radio/checkbox
+        //   - any nested form control except choiceInput radio/checkbox
+        //     controls, whose label behavior is handled separately
         //   - <textarea>
         //   - <select> and <button>
         //   - [contenteditable]
@@ -595,7 +595,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
             );
 
-            if (interactiveTarget && interactiveTarget !== outerChoiceControl) {
+            if (
+                interactiveTarget &&
+                interactiveTarget !== outerChoiceControl &&
+                !interactiveTarget.classList.contains("choiceinput-control")
+            ) {
                 e.preventDefault();
             }
         }
