@@ -95,6 +95,20 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
                     });
             }
 
+            function checkFractionPartDescription(expectedText) {
+                const assertion = expectedText ? "have.attr" : "not.have.attr";
+                const args = expectedText
+                    ? ["aria-description", expectedText]
+                    : ["aria-description"];
+
+                cy.get("#frac textarea")
+                    .eq(0)
+                    .should(assertion, ...args);
+                cy.get("#frac textarea")
+                    .eq(1)
+                    .should(assertion, ...args);
+            }
+
             function checkFractionDescription(expectedText) {
                 cy.get("#frac table").then(($table) => {
                     const accessibleDescription =
@@ -111,6 +125,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             );
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
+            checkFractionPartDescription("");
 
             cy.get("#frac textarea").eq(0).type("1", { force: true });
             cy.get("#frac textarea").eq(1).type("5", { force: true });
@@ -119,6 +134,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac").should("have.css", "outline-color", correctColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
+            checkFractionPartDescription("Fraction is correct");
             checkFractionDescription("(Correct)");
 
             cy.get("#frac textarea")
@@ -129,6 +145,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac").should("have.css", "outline-color", partialColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
+            checkFractionPartDescription("Fraction is partially correct");
             checkFractionDescription("(Partially correct)");
 
             cy.get("#frac textarea")
@@ -139,6 +156,7 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
             cy.get("#frac").should("have.css", "outline-color", incorrectColor);
             checkFractionPartLabelText(0, "numerator");
             checkFractionPartLabelText(1, "denominator");
+            checkFractionPartDescription("Fraction is incorrect");
             checkFractionDescription("(Incorrect)");
         });
     });
