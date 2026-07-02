@@ -3,6 +3,19 @@ import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
 
+/**
+ * Maps DoenetML fillStyle values (stored lowercase) to prefigure fill-pattern values.
+ * DoenetML's "dots"/"diamonds" (plural) map to prefigure's "dot"/"diamond" (singular).
+ */
+const prefigureFillPatternByFillStyle: Record<string, string> = {
+    horizontal: "horizontal",
+    vertical: "vertical",
+    diagonal: "diagonal",
+    backdiagonal: "backdiagonal",
+    dots: "dot",
+    diamonds: "diamond",
+};
+
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
     dashed: "9 9",
@@ -91,31 +104,48 @@ export function styleAttributes({
     }
 
     if (includeFill) {
+        const fillStyle = selectedStyle?.fillStyle;
+        const prefigurePattern =
+            fillStyle && fillStyle !== "solid"
+                ? prefigureFillPatternByFillStyle[fillStyle]
+                : undefined;
+
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
-        if (fill) {
-            attrs.push(`fill="${escapeXml(fill)}"`);
+
+        if (prefigurePattern !== undefined) {
+            // Patterned fill: emit fill-pattern, fill color, and fillPatternOpacity
+            attrs.push(`fill-pattern="${escapeXml(prefigurePattern)}"`);
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
+            const fillPatternOpacity = formatNumber(
+                selectedStyle?.fillPatternOpacity,
+            );
+            if (fillPatternOpacity !== null) {
+                attrs.push(`fill-opacity="${escapeXml(fillPatternOpacity)}"`);
+            }
+        } else {
+            // Solid fill (or unsupported pattern falling back to solid)
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
+            const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
+            if (fillOpacity !== null) {
+                attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+            }
+            if (fillStyle && fillStyle !== "solid") {
+                pushWarning({
+                    diagnostics,
+                    message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+                    position: warningPosition,
+                });
+            }
         }
     }
 
     const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
     if (lineOpacity !== null) {
         attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
-    }
-
-    if (includeFill) {
-        const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
-        if (fillOpacity !== null) {
-            attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
-        }
-
-        const fillStyle = selectedStyle?.fillStyle;
-        if (fillStyle && fillStyle !== "solid") {
-            pushWarning({
-                diagnostics,
-                message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
-                position: warningPosition,
-            });
-        }
     }
 
     const lineStyle = selectedStyle?.lineStyle;
