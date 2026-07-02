@@ -1208,7 +1208,8 @@ describe("Sectioning tag tests @group3", async () => {
                 .rendered,
         ).eq(true);
 
-        // Enable collapsible — section should now start closed per startOpen="false"
+        // Enable collapsible — section starts closed per startOpen="false",
+        // so the essential open value is now false
         await core.requestAction({
             actionName: "updateBoolean",
             componentIdx: await resolvePathToNodeIdx("toggle"),
@@ -1222,20 +1223,13 @@ describe("Sectioning tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
         ).eq(false);
-
-        // Reveal the section
-        await core.requestAction({
-            actionName: "revealSection",
-            componentIdx: await resolvePathToNodeIdx("sec"),
-            args: {},
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
-        ).eq(true);
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .rendered,
+        ).eq(false);
 
-        // Disable collapsible again — section must be forced open even though
-        // the essential value was previously set to false
+        // Disable collapsible with the section still closed (essential open=false) —
+        // the section must be forced open despite the stored essential value
         await core.requestAction({
             actionName: "updateBoolean",
             componentIdx: await resolvePathToNodeIdx("toggle"),
