@@ -78,19 +78,19 @@ describe("FractionInput Tag Tests", { tags: ["@group4"] }, function () {
                     .then((ariaLabelledBy) => {
                         const labelIds = ariaLabelledBy.split(" ");
                         cy.document().then((doc) => {
-                            const hasExpectedLabel = labelIds.some(
-                                (labelId) => {
-                                    const labelElement =
-                                        doc.getElementById(labelId);
-                                    return (
-                                        labelElement &&
-                                        labelElement.textContent.includes(
-                                            expectedText,
-                                        )
-                                    );
-                                },
+                            const labelText = labelIds
+                                .map(
+                                    (labelId) =>
+                                        doc.getElementById(labelId)
+                                            ?.textContent ?? "",
+                                )
+                                .join(" ");
+                            expect(labelText).include(expectedText);
+                            expect(labelText).not.include("(Correct)");
+                            expect(labelText).not.include(
+                                "(Partially correct)",
                             );
-                            expect(hasExpectedLabel).eq(true);
+                            expect(labelText).not.include("(Incorrect)");
                         });
                     });
             }
