@@ -580,13 +580,32 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         //     the above selectors miss them. MathQuill focuses its internal
         //     textarea programmatically. Detecting the wrapper class is the
         //     reliable way to identify a mathInput click.
-        //   - booleanInput / nested choiceInput containers, whose visible click
-        //     targets are spans or labels rather than their hidden native
-        //     inputs.
+        //   - booleanInput containers
+        //   - inline choiceInput controls rendered by react-select
+        //   - labels associated to embedded controls
+        //
         function preventDefaultIfInput(e: React.MouseEvent) {
             const target = e.target as HTMLElement;
+            const embeddedLabel = target.closest(
+                "label:not(.radio-container):not(.checkbox-container)",
+            ) as HTMLLabelElement | null;
+
+            if (embeddedLabel && embeddedLabel !== e.currentTarget) {
+                const labelledControl =
+                    embeddedLabel.control ||
+                    (embeddedLabel.htmlFor
+                        ? document.getElementById(embeddedLabel.htmlFor)
+                        : null);
+
+                if (labelledControl instanceof HTMLElement) {
+                    e.preventDefault();
+                    labelledControl.focus();
+                    return;
+                }
+            }
+
             const interactiveTarget = target.closest(
-                "input:not(.choiceinput-control), textarea, [contenteditable], .mathInputWrapper, .boolean-container, .radio-container, .checkbox-container",
+                "input:not(.choiceinput-control), textarea, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
             );
 
             if (interactiveTarget && interactiveTarget !== e.currentTarget) {
