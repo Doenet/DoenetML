@@ -1076,7 +1076,7 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
     });
 
-    it("collapsible sectioning components respect startOpen", async () => {
+    it("startOpen only affects collapsible sectioning components", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <section name="closedSection" collapsible startOpen="false">
@@ -1087,6 +1087,10 @@ describe("Sectioning tag tests @group3", async () => {
         <title>Open example</title>
         <p>Content</p>
       </example>
+      <section name="plainSection" startOpen="false">
+        <title>Plain section</title>
+        <p name="plainText">Plain content</p>
+      </section>
     `,
         });
 
@@ -1107,6 +1111,18 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("openExample")]
                 .stateValues.rendered,
         ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainSection")]
+                .stateValues.open,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainSection")]
+                .stateValues.rendered,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainText")].stateValues
+                .text,
+        ).eq("Plain content");
 
         await core.requestAction({
             actionName: "revealSection",

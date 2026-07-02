@@ -1221,6 +1221,10 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: true,
             hasEssential: true,
             returnDependencies: () => ({
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
                 startOpen: {
                     dependencyType: "stateVariable",
                     variableName: "startOpen",
@@ -1230,7 +1234,9 @@ export class SectioningComponent extends BlockComponent {
                 return {
                     useEssentialOrDefaultValue: {
                         open: {
-                            defaultValue: dependencyValues.startOpen,
+                            defaultValue: dependencyValues.collapsible
+                                ? dependencyValues.startOpen
+                                : true,
                         },
                     },
                 };
@@ -1253,6 +1259,10 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: true,
             hasEssential: true,
             returnDependencies: () => ({
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
                 startOpen: {
                     dependencyType: "stateVariable",
                     variableName: "startOpen",
@@ -1262,7 +1272,9 @@ export class SectioningComponent extends BlockComponent {
                 return {
                     useEssentialOrDefaultValue: {
                         rendered: {
-                            defaultValue: dependencyValues.startOpen,
+                            defaultValue: dependencyValues.collapsible
+                                ? dependencyValues.startOpen
+                                : true,
                         },
                     },
                 };
