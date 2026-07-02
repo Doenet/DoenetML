@@ -33,6 +33,7 @@
         "test": "vitest",
         "package": "cd ./extension && vsce package --no-dependencies --out ../",
         "publish": "cd ./extension && vsce publish --no-dependencies",
+        "publish:prerelease": "cd ./extension && vsce publish --pre-release --no-dependencies",
         "run-in-browser:firefox": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension .",
         "run-in-browser:chrome": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=./extension .",
         "run-in-browser": "npm run run-in-browser:firefox"
