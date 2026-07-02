@@ -50,25 +50,34 @@ import {
 } from "./flatDastUpdateFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 import { translateJsCoreActionName } from "./jsCoreActionNames";
-let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
-try {
-    // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
-    // the base64 part
-    if (wasmBlobUrl.match(/^data:.*;base64,/)) {
-        const base64 = wasmBlobUrl.split(",")[1];
-        // Create a blob URL from the base64 data
+// The wasm-bindgen `init` function accepts a `BufferSource` (ArrayBuffer)
+// directly — passing the decoded bytes avoids any `fetch()` round-trip and
+// works in all environments including VS Code's web-worker extension host
+// where `fetch()` is blocked for blob/data URLs (issue #1375).
+// Previously, the data URL was converted to a blob URL first (to work around
+// CORS/Firefox issues with data URLs), but fetching that blob URL is also
+// blocked in VS Code.  Passing the ArrayBuffer directly uses
+// `WebAssembly.instantiate(buffer, imports)` inside wasm-bindgen, which
+// requires no network access at all.
+let wasmInitInput: string | ArrayBuffer = WASM_BYTES_DATA_URL;
+if (
+    typeof wasmInitInput === "string" &&
+    wasmInitInput.match(/^data:.*;base64,/)
+) {
+    try {
+        const base64 = wasmInitInput.split(",")[1];
         const byteCharacters = atob(base64);
-        const byteNumbers = new Uint8Array(byteCharacters.length);
+        const wasmBytes = new Uint8Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
+            wasmBytes[i] = byteCharacters.charCodeAt(i);
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        wasmBlobUrl = URL.createObjectURL(
-            new Blob([byteArray], { type: "application/wasm" }),
+        wasmInitInput = wasmBytes.buffer;
+    } catch (e) {
+        console.warn(
+            "Error while decoding WASM data URL, falling back to URL (fetch may fail):",
+            e,
         );
     }
-} catch (e) {
-    console.warn("Error while creating blob URL for wasm bundle", e);
 }
 
 /**
@@ -161,7 +170,7 @@ export class CoreWorker {
 
         try {
             if (!this.wasm_initialized) {
-                await init({ module_or_path: wasmBlobUrl });
+                await init({ module_or_path: wasmInitInput });
                 this.wasm_initialized = true;
             }
 
@@ -205,7 +214,7 @@ export class CoreWorker {
 
         try {
             if (!this.wasm_initialized) {
-                await init({ module_or_path: wasmBlobUrl });
+                await init({ module_or_path: wasmInitInput });
                 this.wasm_initialized = true;
             }
 
