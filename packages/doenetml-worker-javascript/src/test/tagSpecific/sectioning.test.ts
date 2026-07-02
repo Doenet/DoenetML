@@ -1140,6 +1140,48 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(true);
     });
 
+    it("sectioning components default to collapsible=false; aside and proof default to collapsible=true", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="sec" />
+      <example name="ex" />
+      <theorem name="thm"><title>T</title><p>P</p></theorem>
+      <aside name="as" />
+      <proof name="pf"><p>P</p></proof>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Non-collapsible by default
+        for (const name of ["sec", "ex", "thm"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=false`,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should be open`,
+            ).eq(true);
+        }
+
+        // Collapsible by default
+        for (const name of ["as", "pf"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=true`,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should start closed`,
+            ).eq(false);
+        }
+    });
+
     it("aside content with postponeRendering isn't created before opening", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

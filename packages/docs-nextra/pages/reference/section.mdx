@@ -292,6 +292,32 @@ that has a border and a shaded banner for the title.
 
 ---
 
+### Attribute Example: collapsible
+
+
+```doenet-example
+<section collapsible><title>Optional reading</title>
+  <p>This section can be collapsed and expanded by clicking the title banner.</p>
+</section>
+
+<section collapsible startOpen><title>Open by default</title>
+  <p>This section starts expanded because <c>startOpen</c> is set.</p>
+</section>
+```
+
+
+
+The `collapsible` attribute makes a `<section>{:dn}` collapsible — clicking the title
+banner toggles the section open or closed. By default a collapsible section starts
+closed; use `startOpen` to have it start expanded.
+
+(`<aside>{:dn}` and `<proof>{:dn}` are collapsible and closed by default without
+setting this attribute.)
+
+
+
+---
+
 ### Attribute Example: hide
 
 
