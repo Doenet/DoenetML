@@ -124,9 +124,6 @@ function createCloseTagCompletionItem(
         kind: CompletionItemKind.Property,
     };
     if (editOffsets) {
-        // Explicit completion can offer a close tag with no leading `<`
-        // already typed. In that case, replace the empty range with the full
-        // close tag rather than relying on the label-only insertion.
         item.textEdit = {
             range: createTextEditRange(
                 editOffsets.sourceObj,
@@ -135,6 +132,13 @@ function createCloseTagCompletionItem(
             ),
             newText: `</${elementName}>`,
         };
+        // VS Code uses `filterText` (falling back to `label`) to decide
+        // which items to show as the user types.  The textEdit range starts
+        // at the `<` character, so the "typed prefix" VS Code compares
+        // against is e.g. `<`, `</`, `</t` — none of which is a prefix of
+        // the label `"/text>"`.  Setting filterText to the full close tag
+        // ensures the item keeps appearing after each additional keystroke.
+        item.filterText = `</${elementName}>`;
     }
     return item;
 }
@@ -792,13 +796,17 @@ export async function getCompletionItems(
     const showElementMenu = hasLeadingLt || explicit;
     const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
     const insertLeadingBracket = !hasLeadingLt;
-    const closeTagEditOffsets = insertLeadingBracket
-        ? {
-              sourceObj: this.sourceObj,
-              startOffset: elementMenuStart,
-              endOffset: offset,
-          }
-        : undefined;
+    // Always provide a textEdit range for close-tag completions so that
+    // VS Code (which re-triggers completion on `/`) inserts the correct
+    // text.  When `hasLeadingLt`, the range covers the `<` (offset-1 →
+    // offset), and `newText` starts with `</`, replacing the whole thing.
+    // When there is no leading `<` (explicit Ctrl+Space invoke), the range
+    // is empty (cursor → cursor) so `</tag>` is inserted verbatim.
+    const closeTagEditOffsets: CompletionTextEditOffsets = {
+        sourceObj: this.sourceObj,
+        startOffset: elementMenuStart,
+        endOffset: offset,
+    };
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -1175,8 +1183,27 @@ export async function getCompletionItems(
     }
 
     if (cursorPosition === "closeTagName") {
-        // We're in the close tag name. Suggest the close tag name.
-        return [createCloseTagCompletionItem(element.name)];
+        // Cursor is inside a partially-typed closing tag name (e.g. `</te|`).
+        // Scan backward from cursor to find the `<` so the textEdit can
+        // replace the entire `</...` prefix, not just what was typed after `/`.
+        // Without a textEdit, VS Code inserts at the cursor and duplicates
+        // the already-typed characters.
+        const src = this.sourceObj.source;
+        let ltPos = offset - 1;
+        while (ltPos >= 0 && src.charAt(ltPos) !== "<") {
+            ltPos--;
+        }
+        const closeTagNameEditOffsets: CompletionTextEditOffsets | undefined =
+            ltPos >= 0
+                ? {
+                      sourceObj: this.sourceObj,
+                      startOffset: ltPos,
+                      endOffset: offset,
+                  }
+                : undefined;
+        return [
+            createCloseTagCompletionItem(element.name, closeTagNameEditOffsets),
+        ];
     }
 
     const { tagComplete, closed } = this.sourceObj.isCompleteElement(element);
@@ -1225,7 +1252,15 @@ export async function getCompletionItems(
             (cursorPosition === "unknown" &&
                 this.sourceObj.source.charAt(offset).match(/(\s|\n)/)))
     ) {
-        return [createCloseTagCompletionItem(element.name)];
+        // Provide a textEdit so VS Code replaces the `</` prefix instead of
+        // appending after the `/` (which would produce `<//text>`).
+        return [
+            createCloseTagCompletionItem(element.name, {
+                sourceObj: this.sourceObj,
+                startOffset: offset - 2,
+                endOffset: offset,
+            }),
+        ];
     }
 
     if (cursorPosition === "openTagName") {
