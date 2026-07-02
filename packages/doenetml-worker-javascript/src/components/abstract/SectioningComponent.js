@@ -1231,13 +1231,14 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // When not collapsible, always open regardless of any stored
+                // essential value (handles collapsible toggling false at runtime).
+                if (!dependencyValues.collapsible) {
+                    return { setValue: { open: true } };
+                }
                 return {
                     useEssentialOrDefaultValue: {
-                        open: {
-                            defaultValue: dependencyValues.collapsible
-                                ? dependencyValues.startOpen
-                                : true,
-                        },
+                        open: { defaultValue: dependencyValues.startOpen },
                     },
                 };
             },
@@ -1269,13 +1270,14 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // When not collapsible, always rendered regardless of any stored
+                // essential value (handles collapsible toggling false at runtime).
+                if (!dependencyValues.collapsible) {
+                    return { setValue: { rendered: true } };
+                }
                 return {
                     useEssentialOrDefaultValue: {
-                        rendered: {
-                            defaultValue: dependencyValues.collapsible
-                                ? dependencyValues.startOpen
-                                : true,
-                        },
+                        rendered: { defaultValue: dependencyValues.startOpen },
                     },
                 };
             },
