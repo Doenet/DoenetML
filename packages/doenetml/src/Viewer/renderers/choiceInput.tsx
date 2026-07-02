@@ -573,7 +573,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         //
         // The selector covers:
         //   - any nested form control except choiceInput radio/checkbox
-        //     controls, whose label behavior is handled separately
+        //     controls, whose own click behavior should not be cancelled
         //   - <textarea>
         //   - <select> and <button>
         //   - [contenteditable]

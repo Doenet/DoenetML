@@ -600,6 +600,45 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
     });
 
+    it("clicking embedded non-inline choiceInput controls does not activate outer choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="outerRadioCi">
+      <choice>
+        <choiceInput name="innerRadioCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="outerCheckboxCi" selectMultiple>
+      <choice>
+        <choiceInput name="innerCheckboxCi" selectMultiple>
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#innerRadioCi_choice1_input").click({ force: true });
+        cy.get("#innerRadioCi_choice1_input").should("be.checked");
+        cy.get("#outerRadioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#innerCheckboxCi_choice2_input").click({ force: true });
+        cy.get("#innerCheckboxCi_choice2_input").should("be.checked");
+        cy.get("#outerCheckboxCi_choice1_input").should("not.be.checked");
+    });
+
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 
