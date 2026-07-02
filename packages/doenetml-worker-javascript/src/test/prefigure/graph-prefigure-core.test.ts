@@ -266,9 +266,19 @@ describe("Graph prefigure renderer core @group4", () => {
 
         expect(prefigureXML).toContain(`fill-pattern="dot"`);
         expect(prefigureXML).toContain(`fill="green"`);
+        expect(prefigureXML).toContain(`stroke-opacity="0.7"`);
         expect(prefigureXML).toContain(`fill-opacity="0.8"`);
         expect(prefigureXML).not.toContain(`fill-opacity="0.3"`);
         expect(prefigureXML).not.toContain(`url(#`);
+        expect(prefigureXML.indexOf(`fill-pattern="dot"`)).toBeLessThan(
+            prefigureXML.indexOf(`stroke-opacity="0.7"`),
+        );
+        expect(prefigureXML.indexOf(`fill="green"`)).toBeLessThan(
+            prefigureXML.indexOf(`stroke-opacity="0.7"`),
+        );
+        expect(prefigureXML.indexOf(`fill-opacity="0.8"`)).toBeGreaterThan(
+            prefigureXML.indexOf(`stroke-opacity="0.7"`),
+        );
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(

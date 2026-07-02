@@ -18,6 +18,7 @@ describe("PreFigure style attributes", () => {
                 selectedStyle: {
                     fillColor: "#abcd",
                     fillStyle,
+                    lineOpacity: 0.7,
                     fillOpacity: 0.3,
                     fillPatternOpacity: 0.8,
                 },
@@ -27,9 +28,25 @@ describe("PreFigure style attributes", () => {
 
             expect(attrs).toContain(`fill-pattern="${expectedPattern}"`);
             expect(attrs).toContain('fill="#abcd"');
+            expect(attrs).toContain('stroke-opacity="0.7"');
             expect(attrs).toContain('fill-opacity="0.8"');
             expect(attrs).not.toContain('fill-opacity="0.3"');
             expect(attrs.join(" ")).not.toContain("url(#");
+            expect(
+                attrs.findIndex(
+                    (x) => x === `fill-pattern="${expectedPattern}"`,
+                ),
+            ).toBeLessThan(
+                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
+            );
+            expect(attrs.findIndex((x) => x === 'fill="#abcd"')).toBeLessThan(
+                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
+            );
+            expect(
+                attrs.findIndex((x) => x === 'fill-opacity="0.8"'),
+            ).toBeGreaterThan(
+                attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
+            );
             expect(diagnostics).toHaveLength(0);
         },
     );
@@ -62,14 +79,25 @@ describe("PreFigure style attributes", () => {
             selectedStyle: {
                 fillColorWord: "blue",
                 fillStyle: "solid",
+                lineOpacity: 0.7,
                 fillOpacity: 0.3,
+                fillPatternOpacity: 0.8,
             },
             diagnostics,
             warningPrefix: "test",
         });
 
         expect(attrs).toContain('fill="blue"');
+        expect(attrs).toContain('stroke-opacity="0.7"');
         expect(attrs).toContain('fill-opacity="0.3"');
+        expect(attrs).not.toContain('fill-pattern="solid"');
+        expect(attrs).not.toContain('fill-opacity="0.8"');
+        expect(attrs.findIndex((x) => x === 'fill="blue"')).toBeLessThan(
+            attrs.findIndex((x) => x === 'stroke-opacity="0.7"'),
+        );
+        expect(
+            attrs.findIndex((x) => x === 'fill-opacity="0.3"'),
+        ).toBeGreaterThan(attrs.findIndex((x) => x === 'stroke-opacity="0.7"'));
         expect(diagnostics).toHaveLength(0);
     });
 });
