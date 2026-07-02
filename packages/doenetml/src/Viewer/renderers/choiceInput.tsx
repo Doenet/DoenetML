@@ -86,7 +86,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     >(SVs.selectedIndices);
 
     let selectedIndicesWhenSetState = useRef(null);
-    const embeddedLabelClicksToAllow = useRef(new WeakSet<HTMLElement>());
 
     if (
         !ignoreUpdate &&
@@ -585,52 +584,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         //     reliable way to identify a mathInput click.
         //   - booleanInput containers
         //   - inline choiceInput controls rendered by react-select
-        //   - labels associated to embedded controls
         //
         function preventDefaultIfInput(e: React.MouseEvent) {
             const target = e.target as HTMLElement;
             const outerChoiceControl = e.currentTarget.querySelector(
                 ":scope > input.choiceinput-control",
             );
-
-            if (embeddedLabelClicksToAllow.current.has(target)) {
-                embeddedLabelClicksToAllow.current.delete(target);
-                return;
-            }
-
-            const embeddedLabel = target.closest(
-                "label",
-            ) as HTMLLabelElement | null;
-
-            if (embeddedLabel && embeddedLabel !== e.currentTarget) {
-                const labelledControl =
-                    embeddedLabel.control ||
-                    (embeddedLabel.htmlFor
-                        ? document.getElementById(embeddedLabel.htmlFor)
-                        : null);
-
-                if (
-                    labelledControl instanceof HTMLElement &&
-                    labelledControl !== outerChoiceControl
-                ) {
-                    e.preventDefault();
-                    labelledControl.focus();
-
-                    if (
-                        labelledControl instanceof HTMLInputElement &&
-                        (labelledControl.type === "checkbox" ||
-                            labelledControl.type === "radio")
-                    ) {
-                        // Recreate the inner label's native toggle behavior
-                        // without letting the outer choice intercept the
-                        // synthetic click we trigger here.
-                        embeddedLabelClicksToAllow.current.add(labelledControl);
-                        labelledControl.click();
-                    }
-
-                    return;
-                }
-            }
 
             const interactiveTarget = target.closest(
                 "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",

@@ -547,60 +547,6 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#checkboxCi_choice1_input").should("not.be.checked");
     });
 
-    it("embedded booleanInput labels toggle nested controls without activating non-inline choices", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <choiceInput name="radioCi">
-      <choice><booleanInput name="radioBi"><label>radio bool label</label></booleanInput></choice>
-      <choice>dog</choice>
-    </choiceInput>
-
-    <choiceInput name="checkboxCi" selectMultiple>
-      <choice><booleanInput name="checkboxBi"><label>checkbox bool label</label></booleanInput></choice>
-      <choice>cat</choice>
-    </choiceInput>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.contains("label", "radio bool label").click();
-        cy.get("#radioBi_input").should("be.checked");
-        cy.get("#radioCi_choice1_input").should("not.be.checked");
-
-        cy.contains("label", "checkbox bool label").click();
-        cy.get("#checkboxBi_input").should("be.checked");
-        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
-    });
-
-    it("clicking nested non-inline choiceInputs does not activate outer non-inline choices", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <choiceInput name="outerCi">
-      <choice>
-        <choiceInput name="innerCi">
-          <choice>inner alpha</choice>
-          <choice>inner beta</choice>
-        </choiceInput>
-      </choice>
-      <choice>outer dog</choice>
-    </choiceInput>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.contains("label", "inner alpha").click();
-        cy.get("#innerCi_choice1_input").should("be.checked");
-        cy.get("#outerCi_choice1_input").should("not.be.checked");
-    });
-
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 
