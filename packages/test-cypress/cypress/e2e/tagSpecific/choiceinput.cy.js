@@ -429,6 +429,75 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         }
     });
 
+    it("embedded textInputs stay visible inside non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><textInput name="radioTi" prefill="alpha" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><textInput name="checkboxTi" prefill="beta" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioTi_input")
+            .should("be.visible")
+            .should("have.value", "alpha");
+        cy.get("#checkboxTi_input")
+            .should("be.visible")
+            .should("have.value", "beta");
+
+        cy.get("#radioTi_input").type("{end}1");
+        cy.get("#checkboxTi_input").type("{end}2");
+
+        cy.get("#radioTi_input").should("have.value", "alpha1");
+        cy.get("#checkboxTi_input").should("have.value", "beta2");
+    });
+
+    it("clicking embedded mathInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><mathInput name="radioMi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><mathInput name="checkboxMi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioMi .mq-editable-field").click();
+        cy.get("#radioMi textarea").should("be.focused").type("x", {
+            force: true,
+        });
+        cy.get("#radioMi .mq-editable-field").should("contain.text", "x");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#checkboxMi .mq-editable-field").click();
+        cy.get("#checkboxMi textarea").should("be.focused").type("y", {
+            force: true,
+        });
+        cy.get("#checkboxMi .mq-editable-field").should("contain.text", "y");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+    });
+
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 

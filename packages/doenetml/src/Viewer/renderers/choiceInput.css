@@ -27,7 +27,7 @@
 }
 
 /* Hide the browser's default radio button */
-.doenet-viewer .radio-container input {
+.doenet-viewer .radio-container input[type="radio"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -130,7 +130,7 @@
 }
 
 /* Hide the browser's default checkbox */
-.doenet-viewer .checkbox-container input {
+.doenet-viewer .checkbox-container input[type="checkbox"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
