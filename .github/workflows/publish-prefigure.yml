@@ -13,14 +13,52 @@ on:
                 required: true
                 type: string
                 default: latest
+    workflow_run:
+        workflows: ["CI"]
+        types: [completed]
+        branches: [main]
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
     cancel-in-progress: false
 
 jobs:
+    check-version-changed:
+        name: Check if prefigure version changed
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_run'
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 2
+                  ref: ${{ github.event.workflow_run.head_sha }}
+
+            - name: Check for version bump
+              id: check
+              run: |
+                  PREV=$(git show HEAD~1:packages/prefigure/package.json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).version))" 2>/dev/null || echo "none")
+                  CURR=$(node -e "console.log(require('./packages/prefigure/package.json').version)")
+                  echo "Previous version: $PREV"
+                  echo "Current version:  $CURR"
+                  if [ "$PREV" != "$CURR" ]; then
+                      echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "Prefigure version unchanged ($CURR), skipping publish."
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  fi
+
     publish-prefigure:
         name: Publish Prefigure
+        needs: [check-version-changed]
+        if: >-
+            always() && (
+              github.event_name == 'workflow_dispatch' ||
+              (github.event.workflow_run.conclusion == 'success' &&
+               needs.check-version-changed.outputs.should_publish == 'true')
+            )
         runs-on: ubuntu-latest
         environment: production
         permissions:
@@ -28,10 +66,22 @@ jobs:
             contents: read
             id-token: write
         steps:
+            - name: Set publish parameters
+              id: params
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                      echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+                      echo "npm_tag=${{ inputs.npm_tag }}" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "dry_run=false" >> "$GITHUB_OUTPUT"
+                      echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
             - name: Determine checked out commit SHA
               id: checked-sha
@@ -73,16 +123,16 @@ jobs:
               run: npm run verify-wheel-sync -w @doenet/prefigure
 
             - name: Publish prefigure package
-              if: ${{ !inputs.dry_run }}
+              if: steps.params.outputs.dry_run != 'true'
               env:
-                  NPM_TAG: ${{ inputs.npm_tag }}
+                  NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: |
                   node .github/scripts/npm-publish-with-retry.mjs packages/prefigure/dist --tag "${NPM_TAG}"
 
             - name: Purge jsDelivr cache
-              if: ${{ !inputs.dry_run }}
+              if: steps.params.outputs.dry_run != 'true'
               env:
-                  NPM_TAG: ${{ inputs.npm_tag }}
+                  NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: |
                   echo "Waiting for npm package propagation before purging jsDelivr cache..."
                   sleep 15
