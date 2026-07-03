@@ -10,6 +10,10 @@ import {
     isRefCompletionContext,
 } from "./_rust-ready";
 
+/**
+ * Identify completion items whose `textEdit` range must stay aligned with the
+ * user's typed prefix across repeated completion requests.
+ */
 function completionItemNeedsRefresh(item: CompletionItem): boolean {
     if (
         typeof item.label === "string" &&
@@ -33,9 +37,7 @@ function completionItemNeedsRefresh(item: CompletionItem): boolean {
 function shouldKeepCompletionListIncomplete(
     completions: CompletionItem[],
 ): boolean {
-    return completions.some((item) => {
-        return completionItemNeedsRefresh(item);
-    });
+    return completions.some(completionItemNeedsRefresh);
 }
 
 export function addDocumentCompletionSupport(

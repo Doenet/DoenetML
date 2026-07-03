@@ -11,10 +11,37 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { addDocumentCompletionSupport } from "../src/features/completions";
-import type {
-    CompletionItem,
-    CompletionList,
+import {
+    CompletionItemKind,
+    type CompletionItem,
+    type CompletionList,
 } from "vscode-languageserver-protocol";
+
+function createDocumentEntry(
+    getCompletionContext: () => unknown,
+    getCompletionItems: () => CompletionItem[],
+    rustState: "ready" | "initializing" | "unavailable" = "unavailable",
+    rustAdapter?: unknown,
+    rustReady?: Promise<void>,
+) {
+    return {
+        autoCompleter: {
+            getCompletionContext,
+            getCompletionItems,
+        },
+        additionalDiagnostics: [],
+        rustState,
+        rustAdapter,
+        ...(rustReady ? { rustReady } : {}),
+    };
+}
+
+function createDocumentInfo(
+    uri: string,
+    documentEntry: ReturnType<typeof createDocumentEntry>,
+) {
+    return new Map([[uri, documentEntry]]);
+}
 
 /** Register the completion handler against `documentInfo` and return it. */
 function getCompletionHandler(documentInfo: Map<string, unknown>) {
@@ -37,76 +64,44 @@ describe("addDocumentCompletionSupport", () => {
     });
     it("allows non-ref completions when Rust is unavailable", async () => {
         const uri = "file:///test.doenet";
-        const getCompletionItems = vi.fn(() => [{ label: "graph", kind: 10 }]);
-
-        const documentInfo = new Map([
-            [
-                uri,
-                {
-                    autoCompleter: {
-                        getCompletionContext: () => ({ cursorPos: "body" }),
-                        getCompletionItems,
-                    },
-                    additionalDiagnostics: [],
-                    rustState: "unavailable",
-                    rustAdapter: undefined,
-                },
-            ],
+        const getCompletionItems = vi.fn(() => [
+            { label: "graph", kind: CompletionItemKind.Property },
         ]);
-
-        let completionHandler:
-            | ((params: any) => Promise<CompletionItem[] | CompletionList>)
-            | undefined;
-        const connection = {
-            onCompletion: (handler: any) => {
-                completionHandler = handler;
-            },
-            onCompletionResolve: () => {},
-        };
-
-        addDocumentCompletionSupport(connection as any, documentInfo as any);
+        const completionHandler = getCompletionHandler(
+            createDocumentInfo(
+                uri,
+                createDocumentEntry(
+                    () => ({ cursorPos: "body" }),
+                    getCompletionItems,
+                ),
+            ),
+        );
 
         const items = await completionHandler!({
             textDocument: { uri },
             position: { line: 0, character: 1 },
         });
 
-        expect(items).toEqual([{ label: "graph", kind: 10 }]);
+        expect(items).toEqual([
+            { label: "graph", kind: CompletionItemKind.Property },
+        ]);
         expect(getCompletionItems).toHaveBeenCalledOnce();
     });
 
     it("gates ref completions when Rust is unavailable", async () => {
         const uri = "file:///test.doenet";
-        const getCompletionItems = vi.fn(() => [{ label: "x", kind: 18 }]);
-
-        const documentInfo = new Map([
-            [
-                uri,
-                {
-                    autoCompleter: {
-                        getCompletionContext: () => ({
-                            cursorPos: "refMember",
-                        }),
-                        getCompletionItems,
-                    },
-                    additionalDiagnostics: [],
-                    rustState: "unavailable",
-                    rustAdapter: undefined,
-                },
-            ],
+        const getCompletionItems = vi.fn(() => [
+            { label: "x", kind: CompletionItemKind.Reference },
         ]);
-
-        let completionHandler:
-            | ((params: any) => Promise<CompletionItem[] | CompletionList>)
-            | undefined;
-        const connection = {
-            onCompletion: (handler: any) => {
-                completionHandler = handler;
-            },
-            onCompletionResolve: () => {},
-        };
-
-        addDocumentCompletionSupport(connection as any, documentInfo as any);
+        const completionHandler = getCompletionHandler(
+            createDocumentInfo(
+                uri,
+                createDocumentEntry(
+                    () => ({ cursorPos: "refMember" }),
+                    getCompletionItems,
+                ),
+            ),
+        );
 
         const items = await completionHandler!({
             textDocument: { uri },
@@ -119,25 +114,24 @@ describe("addDocumentCompletionSupport", () => {
 
     it("waits for the rust boot before answering a ref completion", async () => {
         const uri = "file:///test.doenet";
-        const getCompletionItems = vi.fn(() => [{ label: "coords", kind: 18 }]);
+        const getCompletionItems = vi.fn(() => [
+            { label: "coords", kind: CompletionItemKind.Reference },
+        ]);
 
         let resolveRustReady!: () => void;
         const rustReady = new Promise<void>((resolve) => {
             resolveRustReady = resolve;
         });
 
-        const docEntry = {
-            autoCompleter: {
-                getCompletionContext: () => ({ cursorPos: "refMember" }),
-                getCompletionItems,
-            },
-            additionalDiagnostics: [],
-            rustState: "initializing",
-            rustAdapter: undefined as unknown,
+        const docEntry = createDocumentEntry(
+            () => ({ cursorPos: "refMember" }),
+            getCompletionItems,
+            "initializing",
+            undefined,
             rustReady,
-        };
+        );
         const completionHandler = getCompletionHandler(
-            new Map([[uri, docEntry]]),
+            createDocumentInfo(uri, docEntry),
         );
 
         // Handler is invoked while Rust is still initializing — it must not
@@ -153,28 +147,29 @@ describe("addDocumentCompletionSupport", () => {
         docEntry.rustAdapter = {};
         resolveRustReady();
 
-        expect(await pending).toEqual([{ label: "coords", kind: 18 }]);
+        expect(await pending).toEqual([
+            { label: "coords", kind: CompletionItemKind.Reference },
+        ]);
         expect(getCompletionItems).toHaveBeenCalledOnce();
     });
 
     it("falls back to [] if the rust boot exceeds the wait cap", async () => {
         vi.useFakeTimers();
         const uri = "file:///test.doenet";
-        const getCompletionItems = vi.fn(() => [{ label: "coords", kind: 18 }]);
+        const getCompletionItems = vi.fn(() => [
+            { label: "coords", kind: CompletionItemKind.Reference },
+        ]);
 
-        const docEntry = {
-            autoCompleter: {
-                getCompletionContext: () => ({ cursorPos: "refMember" }),
-                getCompletionItems,
-            },
-            additionalDiagnostics: [],
-            rustState: "initializing",
-            rustAdapter: undefined,
+        const docEntry = createDocumentEntry(
+            () => ({ cursorPos: "refMember" }),
+            getCompletionItems,
+            "initializing",
+            undefined,
             // A broken worker never settles `rustReady`.
-            rustReady: new Promise<void>(() => {}),
-        };
+            new Promise<void>(() => {}),
+        );
         const completionHandler = getCompletionHandler(
-            new Map([[uri, docEntry]]),
+            createDocumentInfo(uri, docEntry),
         );
 
         const pending = completionHandler({
@@ -192,7 +187,7 @@ describe("addDocumentCompletionSupport", () => {
         const getCompletionItems = vi.fn(() => [
             {
                 label: "/text>",
-                kind: 10,
+                kind: CompletionItemKind.Property,
                 filterText: "</text>",
                 textEdit: {
                     newText: "</text>",
@@ -205,20 +200,13 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         const completionHandler = getCompletionHandler(
-            new Map([
-                [
-                    uri,
-                    {
-                        autoCompleter: {
-                            getCompletionContext: () => ({ cursorPos: "body" }),
-                            getCompletionItems,
-                        },
-                        additionalDiagnostics: [],
-                        rustState: "unavailable",
-                        rustAdapter: undefined,
-                    },
-                ],
-            ]),
+            createDocumentInfo(
+                uri,
+                createDocumentEntry(
+                    () => ({ cursorPos: "body" }),
+                    getCompletionItems,
+                ),
+            ),
         );
 
         const items = await completionHandler({
@@ -231,7 +219,7 @@ describe("addDocumentCompletionSupport", () => {
             items: [
                 {
                     label: "/text>",
-                    kind: 10,
+                    kind: CompletionItemKind.Property,
                     filterText: "</text>",
                     textEdit: {
                         newText: "</text>",
@@ -250,26 +238,19 @@ describe("addDocumentCompletionSupport", () => {
         const getCompletionItems = vi.fn(() => [
             {
                 label: "/text>",
-                kind: 10,
+                kind: CompletionItemKind.Property,
                 filterText: "</text>",
             },
         ]);
 
         const completionHandler = getCompletionHandler(
-            new Map([
-                [
-                    uri,
-                    {
-                        autoCompleter: {
-                            getCompletionContext: () => ({ cursorPos: "body" }),
-                            getCompletionItems,
-                        },
-                        additionalDiagnostics: [],
-                        rustState: "unavailable",
-                        rustAdapter: undefined,
-                    },
-                ],
-            ]),
+            createDocumentInfo(
+                uri,
+                createDocumentEntry(
+                    () => ({ cursorPos: "body" }),
+                    getCompletionItems,
+                ),
+            ),
         );
 
         const items = await completionHandler({
@@ -280,7 +261,7 @@ describe("addDocumentCompletionSupport", () => {
         expect(items).toEqual([
             {
                 label: "/text>",
-                kind: 10,
+                kind: CompletionItemKind.Property,
                 filterText: "</text>",
             },
         ]);
@@ -291,7 +272,7 @@ describe("addDocumentCompletionSupport", () => {
         const getCompletionItems = vi.fn(() => [
             {
                 label: "answer-skeleton",
-                kind: 15,
+                kind: CompletionItemKind.Snippet,
                 filterText: "<answer-skeleton",
                 textEdit: {
                     newText: '<answer name="ans" />',
@@ -304,22 +285,13 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         const completionHandler = getCompletionHandler(
-            new Map([
-                [
-                    uri,
-                    {
-                        autoCompleter: {
-                            getCompletionContext: () => ({
-                                cursorPos: "openTagName",
-                            }),
-                            getCompletionItems,
-                        },
-                        additionalDiagnostics: [],
-                        rustState: "unavailable",
-                        rustAdapter: undefined,
-                    },
-                ],
-            ]),
+            createDocumentInfo(
+                uri,
+                createDocumentEntry(
+                    () => ({ cursorPos: "openTagName" }),
+                    getCompletionItems,
+                ),
+            ),
         );
 
         const items = await completionHandler({
@@ -332,7 +304,7 @@ describe("addDocumentCompletionSupport", () => {
             items: [
                 {
                     label: "answer-skeleton",
-                    kind: 15,
+                    kind: CompletionItemKind.Snippet,
                     filterText: "<answer-skeleton",
                     textEdit: {
                         newText: '<answer name="ans" />',
