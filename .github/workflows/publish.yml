@@ -102,15 +102,18 @@ jobs:
     # main, mirroring the `dev-release` pattern for npm packages.
     #
     # Version scheme: the extension version uses an integer semver (required by
-    # the VS Code Marketplace), so we cannot use the `-dev.timestamp.hash`
-    # suffix that npm dev packages use.  Instead we derive a pre-release patch
-    # number from the CI run number, adding a large offset (10000) to keep it
-    # well above any stable patch (e.g. 0.7.20) while still being unique and
-    # monotonically increasing.  Example: CI run 42 → extension version 0.7.10042.
+    # the VS Code Marketplace), so we cannot use the `-dev.N` suffix that npm
+    # dev packages use.  Instead we add a large offset (10000) to the publish
+    # workflow run number to keep the patch well above any stable patch while
+    # remaining unique and monotonically increasing.  The two are correlatable:
+    #   npm 0.7.20-dev.150  ↔  VS Code 0.7.10150  (publish workflow run 150)
+    # A workflow rerun republishes the same code under the same version, which
+    # is correct — "version already published" on a rerun means the first
+    # attempt succeeded.
     #
     # Secret requirement: `VSCE_PAT` must be configured as a **repository-level**
     # secret (not only in the `production` environment) for this job to publish.
-    # If the secret is absent the publish step is skipped and a warning is emitted.
+    # If the secret is absent the publish step emits a warning and exits cleanly.
     dev-vscode-extension:
         name: Dev VS Code Extension Pre-release
         runs-on: ubuntu-latest
@@ -155,14 +158,13 @@ jobs:
                   CURRENT=$(node -p "require('./packages/vscode-extension/extension/package.json').version")
                   MAJOR=$(echo "$CURRENT" | cut -d. -f1)
                   MINOR=$(echo "$CURRENT" | cut -d. -f2)
-                  # Offset the CI run number by 10000 so pre-release patches are
-                  # always much larger than any stable patch (e.g. 0.7.20).
-                  # Correlates with the npm dev release: npm 0.7.20-dev.150
-                  # corresponds to VS Code 0.7.10150.
+                  # Add 10000 to the publish workflow run number to keep pre-release
+                  # patches well above any stable patch (e.g. 0.7.20).  Correlates
+                  # with the npm dev release: npm 0.7.20-dev.150 ↔ VS Code 0.7.10150.
                   PATCH=$(( ${{ github.run_number }} + 10000 ))
                   VERSION="${MAJOR}.${MINOR}.${PATCH}"
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "Pre-release version: ${VERSION} (npm dev suffix: ${{ github.run_number }})"
+                  echo "Pre-release version: ${VERSION} (publish run: ${{ github.run_number }})"
 
             - name: Set pre-release version in extension manifest
               run: |
