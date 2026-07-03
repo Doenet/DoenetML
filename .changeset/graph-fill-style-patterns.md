@@ -4,7 +4,6 @@
 "@doenet/doenetml-iframe": patch
 "@doenet/vscode-extension": patch
 "doenet-vscode-extension": patch
-"@doenet/prefigure": patch
 ---
 
 Graph: revise closed-shape `fillStyle` patterns and add `fillPatternOpacity`.
@@ -25,8 +24,6 @@ The `dots` and `diamonds` patterns are drawn from the BANA (Braille Authority of
 
 The previous `crosshatch` and `diagonalCrosshatch` values are replaced by `dots` and `diamonds`, respectively.
 
-The JSXGraph interactive renderer supports all patterns. Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
-
-`@doenet/prefigure` no longer injects SVG hatch definitions. Until native PreFigure pattern support lands, non-solid `fillStyle` values there warn and fall back to solid fills.
+The JSXGraph interactive renderer supports all patterns. The PreFigure renderer uses the native `fill-pattern` attribute (available from prefig 0.6.7). Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
 
 Closes #1386.

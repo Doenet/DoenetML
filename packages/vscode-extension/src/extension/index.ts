@@ -18,23 +18,47 @@ import { DoenetPreviewPanel } from "./preview-panel/doenet-preview-panel";
 import { lspRangeToVscodeRange } from "./utils/lsp-range-to-vscode-range";
 
 let client: LanguageClient;
+let doenetWorkerBlobUrl: string | undefined;
 
-export function activate(context: ExtensionContext) {
-    setupLanguageServer(context);
+export async function activate(context: ExtensionContext) {
+    await setupLanguageServer(context);
     setupPreviewWindow(context);
 }
 
-export function deactivate(): Thenable<void> | undefined {
-    if (!client) {
-        return undefined;
+export async function deactivate(): Promise<void> {
+    try {
+        if (client) {
+            await client.stop();
+        }
+    } finally {
+        revokeDoenetWorkerBlobUrl();
     }
-    return client.stop();
 }
 
 /**
  * Setup the language server.
  */
 async function setupLanguageServer(context: ExtensionContext) {
+    // Read the bundled doenetml-worker file and create a blob URL from it.
+    // The language server (running as a web worker) needs to spawn its own
+    // rust-backed core sub-worker for path resolution — that's how it
+    // suppresses false-positive "unknown attribute" diagnostics on
+    // `<module copy="$x" ans="57" />` (issue #1375).
+    //
+    // We pass the blob URL via `initializationOptions.doenetWorkerUrl`, which
+    // the LSP's `onInitialize` handler already reads and stores in `config`.
+    // Using a blob URL (rather than a vscode-file:// URL directly) ensures the
+    // language server worker can call `new Worker(url)` in any context.
+    revokeDoenetWorkerBlobUrl();
+    try {
+        doenetWorkerBlobUrl = await createDoenetWorkerBlobUrl(context);
+    } catch (e) {
+        console.warn(
+            "[DoenetML] Could not load doenetml-worker for LSP rust resolver:",
+            e,
+        );
+    }
+
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
@@ -42,6 +66,9 @@ async function setupLanguageServer(context: ExtensionContext) {
             { scheme: "file", language: "doenet" },
             { scheme: "untitled", language: "doenet" },
         ],
+        initializationOptions: doenetWorkerBlobUrl
+            ? { doenetWorkerUrl: doenetWorkerBlobUrl }
+            : undefined,
     };
 
     // Create a worker. The worker main file implements the language server.
@@ -49,88 +76,88 @@ async function setupLanguageServer(context: ExtensionContext) {
         context.extensionUri,
         "build/language-server/index.js",
     );
-    const worker = new Worker(serverMain.toString(true));
 
-    // Create the language client and start the client.
-    client = new LanguageClient(
-        "DoenetLanguageServer",
-        "Doenet Language Server",
-        clientOptions,
-        worker,
-    );
+    // Wrap Worker construction, LanguageClient construction, and client.start()
+    // together so that any throw at any point revokes the blob URL.
+    try {
+        const worker = new Worker(serverMain.toString(true));
 
-    // Start the client. This will also launch the server
-    client.start();
+        client = new LanguageClient(
+            "DoenetLanguageServer",
+            "Doenet Language Server",
+            clientOptions,
+            worker,
+        );
 
-    const formatAsDoenet = commands.registerCommand(
-        "doenet.formatAsDoenetML",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
+        // Start the client. This will also launch the server.
+        await client.start();
+
+        const formatAsDoenet = registerFormatCommand(
+            "doenet.formatAsDoenetML",
+            "doenet.formatAsDoenetML",
+        );
+        const formatAsXML = registerFormatCommand(
+            "doenet.formatAsXML",
+            "doenet.formatAsXML",
+        );
+        const formatAsMarkdown = registerFormatCommand(
+            "doenet.formatAsMarkdown",
+            "doenet.formatAsMarkdown",
+        );
+
+        context.subscriptions.push(
+            formatAsDoenet,
+            formatAsXML,
+            formatAsMarkdown,
+        );
+    } catch (e) {
+        revokeDoenetWorkerBlobUrl();
+        throw e;
+    }
+}
+
+function registerFormatCommand(commandName: string, requestName: string) {
+    return commands.registerCommand(commandName, async () => {
+        const activeTextEditor = vscode.window.activeTextEditor;
+        if (!activeTextEditor) {
+            return;
+        }
+        const currentDocument = activeTextEditor.document;
+        const edits: TextEdit[] = await client.sendRequest(
+            requestName,
+            String(currentDocument.uri),
+        );
+        await activeTextEditor.edit((editBuilder) => {
+            for (const edit of edits) {
+                editBuilder.replace(
+                    lspRangeToVscodeRange(edit.range),
+                    edit.newText,
+                );
             }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsDoenetML",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
-    );
-    const formatAsXML = commands.registerCommand(
-        "doenet.formatAsXML",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
-            }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsXML",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
-    );
+        });
+    });
+}
 
-    const formatAsMarkdown = commands.registerCommand(
-        "doenet.formatAsMarkdown",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
-            }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsMarkdown",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
+async function createDoenetWorkerBlobUrl(context: ExtensionContext) {
+    const workerUri = vscode.Uri.joinPath(
+        context.extensionUri,
+        "build/doenetml-worker/index.js",
     );
+    const workerBytes = await vscode.workspace.fs.readFile(workerUri);
+    // Pass the Uint8Array directly — Blob respects the view's byteOffset and
+    // length, so there is no risk of including extra bytes from a larger
+    // backing ArrayBuffer that VS Code may return.
+    return URL.createObjectURL(
+        new Blob([workerBytes], { type: "application/javascript" }),
+    );
+}
 
-    context.subscriptions.push(formatAsDoenet, formatAsXML, formatAsMarkdown);
+function revokeDoenetWorkerBlobUrl() {
+    if (!doenetWorkerBlobUrl) {
+        return;
+    }
+    URL.revokeObjectURL(doenetWorkerBlobUrl);
+    doenetWorkerBlobUrl = undefined;
 }
 
 /**

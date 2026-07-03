@@ -34,6 +34,7 @@ export interface SelectedStyle {
     fillColorWord?: string;
     lineOpacity?: number;
     fillOpacity?: number;
+    fillPatternOpacity?: number;
     lineStyle?: string;
     fillStyle?: string;
     markerStyle?: string;
