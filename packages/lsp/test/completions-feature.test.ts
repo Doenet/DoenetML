@@ -245,6 +245,47 @@ describe("addDocumentCompletionSupport", () => {
         });
     });
 
+    it("does not mark close-tag-shaped items incomplete when they lack a textEdit", async () => {
+        const uri = "file:///test.doenet";
+        const getCompletionItems = vi.fn(() => [
+            {
+                label: "/text>",
+                kind: 10,
+                filterText: "</text>",
+            },
+        ]);
+
+        const completionHandler = getCompletionHandler(
+            new Map([
+                [
+                    uri,
+                    {
+                        autoCompleter: {
+                            getCompletionContext: () => ({ cursorPos: "body" }),
+                            getCompletionItems,
+                        },
+                        additionalDiagnostics: [],
+                        rustState: "unavailable",
+                        rustAdapter: undefined,
+                    },
+                ],
+            ]),
+        );
+
+        const items = await completionHandler({
+            textDocument: { uri },
+            position: { line: 0, character: 7 },
+        });
+
+        expect(items).toEqual([
+            {
+                label: "/text>",
+                kind: 10,
+                filterText: "</text>",
+            },
+        ]);
+    });
+
     it("marks `<`-prefixed snippet completions incomplete so VS Code refreshes their textEdit range", async () => {
         const uri = "file:///test.doenet";
         const getCompletionItems = vi.fn(() => [

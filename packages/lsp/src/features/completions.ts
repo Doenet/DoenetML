@@ -16,7 +16,8 @@ function completionItemNeedsRefresh(item: CompletionItem): boolean {
         item.label.startsWith("/") &&
         item.label.endsWith(">") &&
         typeof item.filterText === "string" &&
-        item.filterText.startsWith("</")
+        item.filterText.startsWith("</") &&
+        item.textEdit != null
     ) {
         return true;
     }
