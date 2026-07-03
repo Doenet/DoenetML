@@ -86,75 +86,42 @@ async function setupLanguageServer(context: ExtensionContext) {
     // Start the client. This will also launch the server
     client.start();
 
-    const formatAsDoenet = commands.registerCommand(
+    const formatAsDoenet = registerFormatCommand(
         "doenet.formatAsDoenetML",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
-            }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsDoenetML",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
+        "doenet.formatAsDoenetML",
     );
-    const formatAsXML = commands.registerCommand(
+    const formatAsXML = registerFormatCommand(
         "doenet.formatAsXML",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
-            }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsXML",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
+        "doenet.formatAsXML",
     );
-
-    const formatAsMarkdown = commands.registerCommand(
+    const formatAsMarkdown = registerFormatCommand(
         "doenet.formatAsMarkdown",
-        async () => {
-            const activeTextEditor = vscode.window.activeTextEditor;
-            if (!activeTextEditor) {
-                return;
-            }
-            const currentDocument = vscode.window.activeTextEditor?.document;
-            const edits: TextEdit[] = await client.sendRequest(
-                "doenet.formatAsMarkdown",
-                String(currentDocument.uri),
-            );
-            activeTextEditor.edit((editBuilder) => {
-                for (const edit of edits) {
-                    editBuilder.replace(
-                        lspRangeToVscodeRange(edit.range),
-                        edit.newText,
-                    );
-                }
-            });
-        },
+        "doenet.formatAsMarkdown",
     );
 
     context.subscriptions.push(formatAsDoenet, formatAsXML, formatAsMarkdown);
+}
+
+function registerFormatCommand(commandName: string, requestName: string) {
+    return commands.registerCommand(commandName, async () => {
+        const activeTextEditor = vscode.window.activeTextEditor;
+        if (!activeTextEditor) {
+            return;
+        }
+        const currentDocument = activeTextEditor.document;
+        const edits: TextEdit[] = await client.sendRequest(
+            requestName,
+            String(currentDocument.uri),
+        );
+        activeTextEditor.edit((editBuilder) => {
+            for (const edit of edits) {
+                editBuilder.replace(
+                    lspRangeToVscodeRange(edit.range),
+                    edit.newText,
+                );
+            }
+        });
+    });
 }
 
 async function createDoenetWorkerBlobUrl(context: ExtensionContext) {
