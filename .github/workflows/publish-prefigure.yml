@@ -68,11 +68,15 @@ jobs:
     publish-prefigure:
         name: Publish Prefigure
         needs: [check-version-changed]
+        # Allow reruns to retry post-publish steps without attempting a
+        # duplicate npm publish once the version is already on the registry.
         if: >-
             always() && (
               github.event_name == 'workflow_dispatch' ||
               (github.event.workflow_run.conclusion == 'success' &&
-               needs.check-version-changed.outputs.should_publish == 'true')
+               needs.check-version-changed.result == 'success' &&
+               (needs.check-version-changed.outputs.should_publish == 'true' ||
+                github.run_attempt > 1))
             )
         runs-on: ubuntu-latest
         environment: production
@@ -138,14 +142,21 @@ jobs:
               run: npm run verify-wheel-sync -w @doenet/prefigure
 
             - name: Publish prefigure package
-              if: steps.params.outputs.dry_run != 'true'
+              if: >-
+                  steps.params.outputs.dry_run != 'true' &&
+                  (github.event_name == 'workflow_dispatch' ||
+                   needs.check-version-changed.outputs.should_publish == 'true')
               env:
                   NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: |
                   node .github/scripts/npm-publish-with-retry.mjs packages/prefigure/dist --tag "${NPM_TAG}"
 
             - name: Purge jsDelivr cache
-              if: steps.params.outputs.dry_run != 'true'
+              if: >-
+                  steps.params.outputs.dry_run != 'true' &&
+                  (github.event_name == 'workflow_dispatch' ||
+                   needs.check-version-changed.outputs.should_publish == 'true' ||
+                   github.run_attempt > 1)
               env:
                   NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: |
