@@ -18,17 +18,18 @@ import { DoenetPreviewPanel } from "./preview-panel/doenet-preview-panel";
 import { lspRangeToVscodeRange } from "./utils/lsp-range-to-vscode-range";
 
 let client: LanguageClient;
+let doenetWorkerBlobUrl: string | undefined;
 
-export function activate(context: ExtensionContext) {
-    setupLanguageServer(context);
+export async function activate(context: ExtensionContext) {
+    await setupLanguageServer(context);
     setupPreviewWindow(context);
 }
 
-export function deactivate(): Thenable<void> | undefined {
-    if (!client) {
-        return undefined;
+export async function deactivate(): Promise<void> {
+    if (client) {
+        await client.stop();
     }
-    return client.stop();
+    revokeDoenetWorkerBlobUrl();
 }
 
 /**
@@ -45,23 +46,9 @@ async function setupLanguageServer(context: ExtensionContext) {
     // the LSP's `onInitialize` handler already reads and stores in `config`.
     // Using a blob URL (rather than a vscode-file:// URL directly) ensures the
     // language server worker can call `new Worker(url)` in any context.
-    let doenetWorkerBlobUrl: string | undefined;
+    revokeDoenetWorkerBlobUrl();
     try {
-        const workerUri = vscode.Uri.joinPath(
-            context.extensionUri,
-            "build/doenetml-worker/index.js",
-        );
-        const workerBytes = await vscode.workspace.fs.readFile(workerUri);
-        // Decode the bytes as a UTF-8 string so the Blob is created from the
-        // exact file content.  Using `workerBytes.buffer` directly is unsafe
-        // because VS Code's readFile may return a Uint8Array that is a
-        // sub-view of a larger ArrayBuffer (non-zero byteOffset), which would
-        // include garbage bytes before the actual file content and corrupt the
-        // JavaScript source.
-        const workerSource = new TextDecoder().decode(workerBytes);
-        doenetWorkerBlobUrl = URL.createObjectURL(
-            new Blob([workerSource], { type: "application/javascript" }),
-        );
+        doenetWorkerBlobUrl = await createDoenetWorkerBlobUrl(context);
     } catch (e) {
         console.warn(
             "[DoenetML] Could not load doenetml-worker for LSP rust resolver:",
@@ -168,6 +155,32 @@ async function setupLanguageServer(context: ExtensionContext) {
     );
 
     context.subscriptions.push(formatAsDoenet, formatAsXML, formatAsMarkdown);
+}
+
+async function createDoenetWorkerBlobUrl(context: ExtensionContext) {
+    const workerUri = vscode.Uri.joinPath(
+        context.extensionUri,
+        "build/doenetml-worker/index.js",
+    );
+    const workerBytes = await vscode.workspace.fs.readFile(workerUri);
+    // Decode the bytes as a UTF-8 string so the Blob is created from the
+    // exact file content.  Using `workerBytes.buffer` directly is unsafe
+    // because VS Code's readFile may return a Uint8Array that is a
+    // sub-view of a larger ArrayBuffer (non-zero byteOffset), which would
+    // include garbage bytes before the actual file content and corrupt the
+    // JavaScript source.
+    const workerSource = new TextDecoder().decode(workerBytes);
+    return URL.createObjectURL(
+        new Blob([workerSource], { type: "application/javascript" }),
+    );
+}
+
+function revokeDoenetWorkerBlobUrl() {
+    if (!doenetWorkerBlobUrl) {
+        return;
+    }
+    URL.revokeObjectURL(doenetWorkerBlobUrl);
+    doenetWorkerBlobUrl = undefined;
 }
 
 /**

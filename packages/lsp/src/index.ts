@@ -56,14 +56,20 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument?.publishDiagnostics?.relatedInformation ||
         false;
 
+    const initializationOptions = params.initializationOptions;
     const initOptionsWorkerUrl = (
-        params.initializationOptions as { doenetWorkerUrl?: unknown } | null
+        initializationOptions as { doenetWorkerUrl?: unknown } | null
     )?.doenetWorkerUrl;
     if (typeof initOptionsWorkerUrl === "string" && initOptionsWorkerUrl) {
         config.doenetWorkerUrl = initOptionsWorkerUrl;
-    } else {
+    } else if (
+        initializationOptions &&
+        typeof initializationOptions === "object" &&
+        "doenetWorkerUrl" in initializationOptions &&
+        initOptionsWorkerUrl != null
+    ) {
         console.warn(
-            "[DoenetML LSP] no doenetWorkerUrl in initializationOptions — rust resolver disabled",
+            "[DoenetML LSP] ignoring invalid initializationOptions.doenetWorkerUrl",
         );
     }
 
