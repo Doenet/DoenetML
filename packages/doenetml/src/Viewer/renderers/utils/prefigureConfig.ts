@@ -5,7 +5,7 @@ const DEFAULT_PREFIGURE_DIAGCESS_SCRIPT_URL =
 // It is configured here (not auto-derived from prefigure package metadata),
 // but should still be manually kept aligned with runtime version bumps.
 const DEFAULT_PREFIGURE_MODULE_URL =
-    "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js";
+    "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.6.7/prefigure.js";
 
 const env = (
     import.meta as ImportMeta & {
