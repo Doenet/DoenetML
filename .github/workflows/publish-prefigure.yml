@@ -24,30 +24,45 @@ concurrency:
 
 jobs:
     check-version-changed:
-        name: Check if prefigure version changed
+        name: Check if prefigure needs publishing
         runs-on: ubuntu-latest
-        if: github.event_name == 'workflow_run'
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
         outputs:
             should_publish: ${{ steps.check.outputs.should_publish }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
-                  fetch-depth: 2
                   ref: ${{ github.event.workflow_run.head_sha }}
 
-            - name: Check for version bump
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  # See ci.yml for the rationale behind pinning to 24.15.0.
+                  node-version: 24.15.0
+                  registry-url: https://registry.npmjs.org
+
+            - name: Check whether current version is already published
               id: check
               run: |
-                  PREV=$(git show HEAD~1:packages/prefigure/package.json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).version))" 2>/dev/null || echo "none")
+                  # Compare against npm rather than HEAD~1 so reruns and
+                  # multi-commit pushes on main make the right publish decision.
                   CURR=$(node -e "console.log(require('./packages/prefigure/package.json').version)")
-                  echo "Previous version: $PREV"
-                  echo "Current version:  $CURR"
-                  if [ "$PREV" != "$CURR" ]; then
+                  echo "Current version: $CURR"
+                  set +e
+                  VIEW_OUTPUT=$(npm view "@doenet/prefigure@${CURR}" version --json 2>&1)
+                  VIEW_STATUS=$?
+                  set -e
+                  if [ "$VIEW_STATUS" -eq 0 ]; then
+                      echo "Version ${CURR} is already published, skipping publish."
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif echo "$VIEW_OUTPUT" | grep -q "E404"; then
+                      echo "Version ${CURR} is not yet published."
                       echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   else
-                      echo "Prefigure version unchanged ($CURR), skipping publish."
-                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                      echo "$VIEW_OUTPUT" >&2
+                      echo "Failed to query npm for @doenet/prefigure@${CURR}." >&2
+                      exit 1
                   fi
 
     publish-prefigure:
