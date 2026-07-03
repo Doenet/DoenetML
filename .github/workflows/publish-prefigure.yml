@@ -29,10 +29,12 @@ jobs:
         if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
         outputs:
             should_publish: ${{ steps.check.outputs.should_publish }}
+            is_latest_main: ${{ steps.check.outputs.is_latest_main }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
+                  fetch-depth: 0
                   ref: ${{ github.event.workflow_run.head_sha }}
 
             - name: Use Node.js 24
@@ -45,6 +47,15 @@ jobs:
             - name: Check whether current version is already published
               id: check
               run: |
+                  git fetch origin main
+                  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+                      echo "Triggered commit is not the current origin/main tip, skipping publish."
+                      echo "is_latest_main=false" >> "$GITHUB_OUTPUT"
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+
+                  echo "is_latest_main=true" >> "$GITHUB_OUTPUT"
                   # Compare against npm rather than HEAD~1 so reruns and
                   # multi-commit pushes on main make the right publish decision.
                   CURR=$(node -e "console.log(require('./packages/prefigure/package.json').version)")
@@ -75,6 +86,7 @@ jobs:
               github.event_name == 'workflow_dispatch' ||
               (github.event.workflow_run.conclusion == 'success' &&
                needs.check-version-changed.result == 'success' &&
+               needs.check-version-changed.outputs.is_latest_main == 'true' &&
                (needs.check-version-changed.outputs.should_publish == 'true' ||
                 github.run_attempt > 1))
             )
@@ -109,7 +121,12 @@ jobs:
             - name: Verify commit is on main
               run: |
                   git fetch origin main
-                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                  if [ "${{ github.event_name }}" = "workflow_run" ]; then
+                      if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+                          echo "Error: auto-publish only runs for the current origin/main tip." >&2
+                          exit 1
+                      fi
+                  elif ! git merge-base --is-ancestor HEAD origin/main; then
                       echo "Error: checked-out commit is not reachable from origin/main. Only commits on main may be published." >&2
                       exit 1
                   fi
