@@ -11,11 +11,15 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { addDocumentCompletionSupport } from "../src/features/completions";
+import type {
+    CompletionItem,
+    CompletionList,
+} from "vscode-languageserver-protocol";
 
 /** Register the completion handler against `documentInfo` and return it. */
 function getCompletionHandler(documentInfo: Map<string, unknown>) {
     let completionHandler:
-        | ((params: any) => Promise<Array<{ label: string; kind: number }>>)
+        | ((params: any) => Promise<CompletionItem[] | CompletionList>)
         | undefined;
     const connection = {
         onCompletion: (handler: any) => {
@@ -51,7 +55,7 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         let completionHandler:
-            | ((params: any) => Promise<Array<{ label: string; kind: number }>>)
+            | ((params: any) => Promise<CompletionItem[] | CompletionList>)
             | undefined;
         const connection = {
             onCompletion: (handler: any) => {
@@ -93,7 +97,7 @@ describe("addDocumentCompletionSupport", () => {
         ]);
 
         let completionHandler:
-            | ((params: any) => Promise<Array<{ label: string; kind: number }>>)
+            | ((params: any) => Promise<CompletionItem[] | CompletionList>)
             | undefined;
         const connection = {
             onCompletion: (handler: any) => {
@@ -181,5 +185,63 @@ describe("addDocumentCompletionSupport", () => {
 
         expect(await pending).toEqual([]);
         expect(getCompletionItems).not.toHaveBeenCalled();
+    });
+
+    it("marks close-tag completions incomplete so VS Code re-requests them", async () => {
+        const uri = "file:///test.doenet";
+        const getCompletionItems = vi.fn(() => [
+            {
+                label: "/text>",
+                kind: 10,
+                filterText: "</text>",
+                textEdit: {
+                    newText: "</text>",
+                    range: {
+                        start: { line: 0, character: 5 },
+                        end: { line: 0, character: 7 },
+                    },
+                },
+            },
+        ]);
+
+        const completionHandler = getCompletionHandler(
+            new Map([
+                [
+                    uri,
+                    {
+                        autoCompleter: {
+                            getCompletionContext: () => ({ cursorPos: "body" }),
+                            getCompletionItems,
+                        },
+                        additionalDiagnostics: [],
+                        rustState: "unavailable",
+                        rustAdapter: undefined,
+                    },
+                ],
+            ]),
+        );
+
+        const items = await completionHandler({
+            textDocument: { uri },
+            position: { line: 0, character: 7 },
+        });
+
+        expect(items).toEqual({
+            isIncomplete: true,
+            items: [
+                {
+                    label: "/text>",
+                    kind: 10,
+                    filterText: "</text>",
+                    textEdit: {
+                        newText: "</text>",
+                        range: {
+                            start: { line: 0, character: 5 },
+                            end: { line: 0, character: 7 },
+                        },
+                    },
+                },
+            ],
+        });
     });
 });

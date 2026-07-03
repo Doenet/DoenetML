@@ -800,14 +800,6 @@ export async function getCompletionItems(
         offset = this.sourceObj.rowColToOffset(offset);
     }
 
-    // Ensure the per-instance `<module>` attribute allowlist is up to date
-    // for the current source revision before the attribute-name branch
-    // consults it.  Coalesces with the matching call in `getSchemaViolations`
-    // (validation typically runs first), so back-to-back validation +
-    // completion between edits costs at most one resolver round-trip per
-    // `<module copy=…>` site total.
-    await this._refreshModuleInstanceAttributes();
-
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
 
@@ -1352,6 +1344,14 @@ export async function getCompletionItems(
         !isBareValueAfterEquals &&
         prevNonWhitespaceChar !== "="
     ) {
+        // Only attribute-name completions consult the per-instance
+        // `<module copy|extend=...>` allowlist, so defer the refresh until
+        // we know we are in that branch. This keeps unrelated completion
+        // triggers (notably close-tag flows in VS Code) off the resolver path.
+        // Coalesces with the matching call in `getSchemaViolations`, so
+        // back-to-back validation + completion between edits still costs at
+        // most one resolver round-trip per `<module copy=…>` site total.
+        await this._refreshModuleInstanceAttributes();
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(
