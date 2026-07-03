@@ -200,6 +200,23 @@ describe("Doenet vscode extension", () => {
         expect(activateResolved).toBe(true);
     });
 
+    it("revokes the worker blob URL when activation fails after reading the worker", async () => {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        const createObjectURL = vi.fn(() => "blob:doenet-worker");
+        const revokeObjectURL = vi.fn();
+        stubUrlStatics(createObjectURL, revokeObjectURL);
+        hoisted.start.mockRejectedValue(new Error("start failed"));
+
+        const { activate } = await import("../src/extension/index");
+
+        await expect(activate(createContext() as any)).rejects.toThrow(
+            "start failed",
+        );
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:doenet-worker");
+    });
+
     it("starts the client without initializationOptions when the bundled worker cannot be read", async () => {
         hoisted.readFile.mockRejectedValue(new Error("missing worker"));
         const createObjectURL = vi.fn();

@@ -83,23 +83,32 @@ async function setupLanguageServer(context: ExtensionContext) {
         worker,
     );
 
-    // Start the client. This will also launch the server
-    await client.start();
+    try {
+        // Start the client. This will also launch the server
+        await client.start();
 
-    const formatAsDoenet = registerFormatCommand(
-        "doenet.formatAsDoenetML",
-        "doenet.formatAsDoenetML",
-    );
-    const formatAsXML = registerFormatCommand(
-        "doenet.formatAsXML",
-        "doenet.formatAsXML",
-    );
-    const formatAsMarkdown = registerFormatCommand(
-        "doenet.formatAsMarkdown",
-        "doenet.formatAsMarkdown",
-    );
+        const formatAsDoenet = registerFormatCommand(
+            "doenet.formatAsDoenetML",
+            "doenet.formatAsDoenetML",
+        );
+        const formatAsXML = registerFormatCommand(
+            "doenet.formatAsXML",
+            "doenet.formatAsXML",
+        );
+        const formatAsMarkdown = registerFormatCommand(
+            "doenet.formatAsMarkdown",
+            "doenet.formatAsMarkdown",
+        );
 
-    context.subscriptions.push(formatAsDoenet, formatAsXML, formatAsMarkdown);
+        context.subscriptions.push(
+            formatAsDoenet,
+            formatAsXML,
+            formatAsMarkdown,
+        );
+    } catch (e) {
+        revokeDoenetWorkerBlobUrl();
+        throw e;
+    }
 }
 
 function registerFormatCommand(commandName: string, requestName: string) {
