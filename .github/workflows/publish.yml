@@ -170,10 +170,15 @@ jobs:
               run: |
                   node -e "
                     const fs = require('fs');
-                    const p = 'packages/vscode-extension/extension/package.json';
-                    const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-                    pkg.version = '${{ steps.prerelease-version.outputs.version }}';
-                    fs.writeFileSync(p, JSON.stringify(pkg, null, 4) + '\n');
+                    const version = '${{ steps.prerelease-version.outputs.version }}';
+                    for (const p of [
+                      'packages/vscode-extension/package.json',
+                      'packages/vscode-extension/extension/package.json',
+                    ]) {
+                      const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+                      pkg.version = version;
+                      fs.writeFileSync(p, JSON.stringify(pkg, null, 4) + '\n');
+                    }
                   "
 
             - name: Build VS Code extension
