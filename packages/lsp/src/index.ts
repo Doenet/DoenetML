@@ -65,9 +65,10 @@ connection.onInitialize((params: InitializeParams) => {
     } else if (
         initializationOptions &&
         typeof initializationOptions === "object" &&
-        "doenetWorkerUrl" in initializationOptions &&
-        initOptionsWorkerUrl != null
+        "doenetWorkerUrl" in initializationOptions
     ) {
+        // Warn when the key is present but the value is not a non-empty string
+        // (covers null, undefined, empty string, and wrong types).
         console.warn(
             "[DoenetML LSP] ignoring invalid initializationOptions.doenetWorkerUrl",
         );

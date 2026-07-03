@@ -26,10 +26,13 @@ export async function activate(context: ExtensionContext) {
 }
 
 export async function deactivate(): Promise<void> {
-    if (client) {
-        await client.stop();
+    try {
+        if (client) {
+            await client.stop();
+        }
+    } finally {
+        revokeDoenetWorkerBlobUrl();
     }
-    revokeDoenetWorkerBlobUrl();
 }
 
 /**
@@ -139,15 +142,11 @@ async function createDoenetWorkerBlobUrl(context: ExtensionContext) {
         "build/doenetml-worker/index.js",
     );
     const workerBytes = await vscode.workspace.fs.readFile(workerUri);
-    // Decode the bytes as a UTF-8 string so the Blob is created from the
-    // exact file content.  Using `workerBytes.buffer` directly is unsafe
-    // because VS Code's readFile may return a Uint8Array that is a
-    // sub-view of a larger ArrayBuffer (non-zero byteOffset), which would
-    // include garbage bytes before the actual file content and corrupt the
-    // JavaScript source.
-    const workerSource = new TextDecoder().decode(workerBytes);
+    // Pass the Uint8Array directly — Blob respects the view's byteOffset and
+    // length, so there is no risk of including extra bytes from a larger
+    // backing ArrayBuffer that VS Code may return.
     return URL.createObjectURL(
-        new Blob([workerSource], { type: "application/javascript" }),
+        new Blob([workerBytes], { type: "application/javascript" }),
     );
 }
 
