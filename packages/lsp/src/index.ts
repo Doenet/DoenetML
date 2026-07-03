@@ -56,11 +56,22 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument?.publishDiagnostics?.relatedInformation ||
         false;
 
+    const initializationOptions = params.initializationOptions;
     const initOptionsWorkerUrl = (
-        params.initializationOptions as { doenetWorkerUrl?: unknown } | null
+        initializationOptions as { doenetWorkerUrl?: unknown } | null
     )?.doenetWorkerUrl;
     if (typeof initOptionsWorkerUrl === "string" && initOptionsWorkerUrl) {
         config.doenetWorkerUrl = initOptionsWorkerUrl;
+    } else if (
+        initializationOptions &&
+        typeof initializationOptions === "object" &&
+        "doenetWorkerUrl" in initializationOptions
+    ) {
+        // Warn when the key is present but the value is not a non-empty string
+        // (covers null, undefined, empty string, and wrong types).
+        console.warn(
+            "[DoenetML LSP] ignoring invalid initializationOptions.doenetWorkerUrl",
+        );
     }
 
     const result: InitializeResult = {

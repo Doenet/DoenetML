@@ -26,6 +26,6 @@ function getWorkerUrl() {
     } catch (e) {
         // `window.location.href` may not be a valid URL. For example, in an iframe it
         // could be `about:srcdoc`.
-        return "https://doenet.org/doenetml-worker/CoreWorker.js";
+        return "https://doenet.org/doenetml-worker/index.js";
     }
 }

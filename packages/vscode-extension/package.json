@@ -24,10 +24,11 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run build",
-        "build": "npm run build:preview-window && npm run build:extension && npm run build:language-server",
+        "build": "npm run build:preview-window && npm run build:extension && npm run build:language-server && npm run build:doenetml-worker",
         "build:language-server": "wireit",
         "build:extension": "wireit",
         "build:preview-window": "wireit",
+        "build:doenetml-worker": "wireit",
         "dev": "vite -c vite.preview-window.config.mts",
         "watch": "npm run build && vite -c vite.language-server.config.mts build --watch",
         "test": "vitest",
@@ -77,6 +78,16 @@
             ],
             "dependencies": [
                 "../doenetml:build"
+            ]
+        },
+        "build:doenetml-worker": {
+            "command": "node -e \"const {mkdirSync,copyFileSync}=require('fs');mkdirSync('extension/build/doenetml-worker',{recursive:true});copyFileSync('../doenetml-worker/dist/index.js','extension/build/doenetml-worker/index.js')\"",
+            "files": [],
+            "output": [
+                "extension/build/doenetml-worker/**/*"
+            ],
+            "dependencies": [
+                "../doenetml-worker:build"
             ]
         }
     },
