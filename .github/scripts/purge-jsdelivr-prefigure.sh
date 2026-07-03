@@ -18,7 +18,7 @@ sleep 15
 echo "Purging jsDelivr cache for @doenet/prefigure@${TAG} (package-level)..."
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${TAG}" || exit 1
 
-echo "Purging key prefigure assets for @${TAG} tag..."
+echo "Purging key prefigure assets for @doenet/prefigure@${TAG}..."
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${TAG}/prefigure.js" || exit 1
 
 echo "Successfully purged jsDelivr cache for @doenet/prefigure@${TAG}"
