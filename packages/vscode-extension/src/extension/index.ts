@@ -84,7 +84,7 @@ async function setupLanguageServer(context: ExtensionContext) {
     );
 
     // Start the client. This will also launch the server
-    client.start();
+    await client.start();
 
     const formatAsDoenet = registerFormatCommand(
         "doenet.formatAsDoenetML",
@@ -113,7 +113,7 @@ function registerFormatCommand(commandName: string, requestName: string) {
             requestName,
             String(currentDocument.uri),
         );
-        activeTextEditor.edit((editBuilder) => {
+        await activeTextEditor.edit((editBuilder) => {
             for (const edit of edits) {
                 editBuilder.replace(
                     lspRangeToVscodeRange(edit.range),

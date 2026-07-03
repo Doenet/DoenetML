@@ -7,6 +7,7 @@ const hoisted = vi.hoisted(() => ({
     onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
+    start: vi.fn(async () => {}),
     stop: vi.fn(async () => {}),
     sendRequest: vi.fn(),
     languageClientCalls: [] as {
@@ -46,7 +47,7 @@ vi.mock("vscode-languageclient/browser", () => {
             hoisted.languageClientCalls.push({ options, worker });
         }
 
-        start = vi.fn();
+        start = hoisted.start;
         stop = hoisted.stop;
         sendRequest = hoisted.sendRequest;
     }
@@ -107,6 +108,7 @@ describe("Doenet vscode extension", () => {
         hoisted.onDidChangeTextDocument.mockClear();
         hoisted.onDidSaveTextDocument.mockClear();
         hoisted.onDidChangeActiveTextEditor.mockClear();
+        hoisted.start.mockReset();
         hoisted.stop.mockClear();
         hoisted.sendRequest.mockClear();
         hoisted.languageClientCalls.length = 0;
@@ -166,6 +168,36 @@ describe("Doenet vscode extension", () => {
         await deactivate();
         expect(hoisted.stop).toHaveBeenCalledTimes(1);
         expect(revokeObjectURL).toHaveBeenCalledWith("blob:doenet-worker");
+    });
+
+    it("waits for the language client to finish starting before activate resolves", async () => {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+
+        let resolveStart: (() => void) | undefined;
+        hoisted.start.mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveStart = resolve;
+                }),
+        );
+
+        const { activate } = await import("../src/extension/index");
+        let activateResolved = false;
+        const activatePromise = activate(createContext() as any).then(() => {
+            activateResolved = true;
+        });
+
+        await vi.waitFor(() => {
+            expect(hoisted.start).toHaveBeenCalledTimes(1);
+        });
+        expect(activateResolved).toBe(false);
+
+        resolveStart?.();
+        await activatePromise;
+        expect(activateResolved).toBe(true);
     });
 
     it("starts the client without initializationOptions when the bundled worker cannot be read", async () => {
