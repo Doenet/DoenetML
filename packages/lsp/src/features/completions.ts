@@ -1,5 +1,6 @@
 import {
     CompletionItem,
+    CompletionItemKind,
     CompletionList,
     Connection,
 } from "vscode-languageserver/browser";
@@ -9,17 +10,30 @@ import {
     isRefCompletionContext,
 } from "./_rust-ready";
 
+function completionItemNeedsRefresh(item: CompletionItem): boolean {
+    if (
+        typeof item.label === "string" &&
+        item.label.startsWith("/") &&
+        item.label.endsWith(">") &&
+        typeof item.filterText === "string" &&
+        item.filterText.startsWith("</")
+    ) {
+        return true;
+    }
+
+    return (
+        item.kind === CompletionItemKind.Snippet &&
+        typeof item.filterText === "string" &&
+        item.filterText.startsWith("<") &&
+        item.textEdit != null
+    );
+}
+
 function shouldKeepCompletionListIncomplete(
     completions: CompletionItem[],
 ): boolean {
     return completions.some((item) => {
-        return (
-            typeof item.label === "string" &&
-            item.label.startsWith("/") &&
-            item.label.endsWith(">") &&
-            typeof item.filterText === "string" &&
-            item.filterText.startsWith("</")
-        );
+        return completionItemNeedsRefresh(item);
     });
 }
 
@@ -76,9 +90,10 @@ export function addDocumentCompletionSupport(
             );
             // VS Code only asks the server for refreshed completion items while a
             // completion session is active if the prior list was marked
-            // `isIncomplete`. Close-tag completions need that refresh because the
-            // replacement range must expand as the user types `</te...`; otherwise
-            // accepting the stale item can leave the typed suffix behind.
+            // `isIncomplete`. Close-tag and `<`-prefixed snippet completions need
+            // that refresh because their replacement ranges must expand as the
+            // user keeps typing; otherwise accepting a stale item can leave the
+            // typed suffix behind.
             if (shouldKeepCompletionListIncomplete(completions)) {
                 return {
                     isIncomplete: true,

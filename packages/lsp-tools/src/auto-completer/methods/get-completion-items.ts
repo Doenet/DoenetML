@@ -338,6 +338,7 @@ function createDynamicSnippetCompletionItems(
     startOffset: number,
     endOffset: number,
     typedPrefix = "",
+    filterTextPrefix = "",
 ): CompletionItem[] {
     if (!allowedElementNames.includes("annotations")) {
         return [];
@@ -364,6 +365,7 @@ function createDynamicSnippetCompletionItems(
         [dynamicSnippet],
         startOffset,
         endOffset,
+        filterTextPrefix,
     );
 }
 
@@ -495,6 +497,7 @@ function createElementAndSnippetCompletionItems(
         startOffset,
         endOffset,
         typedPrefix,
+        snippetFilterTextPrefix,
     );
 
     return [...schemaItems, ...snippetItems, ...dynamicSnippetItems];

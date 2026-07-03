@@ -2170,6 +2170,22 @@ describe("AutoCompleter", () => {
                 "<aa>\n  <bb></bb>\n  </aa>",
             );
         });
+
+        it("Adds the `<` filterText prefix to dynamic annotations snippets in prefigure graphs", async () => {
+            const source = `<graph renderer="prefigure">\n  <point name="P" />\n  <ann\n</graph>`;
+            const autoCompleter = new AutoCompleter(
+                source,
+                doenetSchema.elements,
+            );
+            const offset = source.indexOf("<ann") + 4;
+            const items = await autoCompleter.getCompletionItems(offset);
+
+            const snippetItem = items.find(
+                (item) => item.label === "annotations-skeleton",
+            );
+            expect(snippetItem).toBeDefined();
+            expect(snippetItem?.filterText).toBe("<annotations-skeleton");
+        });
     });
 
     describe("Offset-to-node-index mapping", () => {

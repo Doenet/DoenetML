@@ -244,4 +244,64 @@ describe("addDocumentCompletionSupport", () => {
             ],
         });
     });
+
+    it("marks `<`-prefixed snippet completions incomplete so VS Code refreshes their textEdit range", async () => {
+        const uri = "file:///test.doenet";
+        const getCompletionItems = vi.fn(() => [
+            {
+                label: "answer-skeleton",
+                kind: 15,
+                filterText: "<answer-skeleton",
+                textEdit: {
+                    newText: '<answer name="ans" />',
+                    range: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 1 },
+                    },
+                },
+            },
+        ]);
+
+        const completionHandler = getCompletionHandler(
+            new Map([
+                [
+                    uri,
+                    {
+                        autoCompleter: {
+                            getCompletionContext: () => ({
+                                cursorPos: "openTagName",
+                            }),
+                            getCompletionItems,
+                        },
+                        additionalDiagnostics: [],
+                        rustState: "unavailable",
+                        rustAdapter: undefined,
+                    },
+                ],
+            ]),
+        );
+
+        const items = await completionHandler({
+            textDocument: { uri },
+            position: { line: 0, character: 1 },
+        });
+
+        expect(items).toEqual({
+            isIncomplete: true,
+            items: [
+                {
+                    label: "answer-skeleton",
+                    kind: 15,
+                    filterText: "<answer-skeleton",
+                    textEdit: {
+                        newText: '<answer name="ans" />',
+                        range: {
+                            start: { line: 0, character: 0 },
+                            end: { line: 0, character: 1 },
+                        },
+                    },
+                },
+            ],
+        });
+    });
 });
