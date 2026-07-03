@@ -76,18 +76,20 @@ async function setupLanguageServer(context: ExtensionContext) {
         context.extensionUri,
         "build/language-server/index.js",
     );
-    const worker = new Worker(serverMain.toString(true));
 
-    // Create the language client and start the client.
-    client = new LanguageClient(
-        "DoenetLanguageServer",
-        "Doenet Language Server",
-        clientOptions,
-        worker,
-    );
-
+    // Wrap Worker construction, LanguageClient construction, and client.start()
+    // together so that any throw at any point revokes the blob URL.
     try {
-        // Start the client. This will also launch the server
+        const worker = new Worker(serverMain.toString(true));
+
+        client = new LanguageClient(
+            "DoenetLanguageServer",
+            "Doenet Language Server",
+            clientOptions,
+            worker,
+        );
+
+        // Start the client. This will also launch the server.
         await client.start();
 
         const formatAsDoenet = registerFormatCommand(
