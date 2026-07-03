@@ -182,16 +182,19 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Publish VS Code extension pre-release
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) && secrets.VSCE_PAT != '' }}
-              run: npm run publish:prerelease -w @doenet/vscode-extension
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: |
+                  # secrets.* is not available in `if:` expressions (GitHub Actions
+                  # treats secrets as empty strings there), so we guard here in the
+                  # shell where the secret is actually populated via env:.
+                  if [ -z "${VSCE_PAT}" ]; then
+                      echo "::warning::VSCE_PAT repository secret is not set — VS Code extension pre-release was not published."
+                      echo "Add VSCE_PAT as a repository-level secret (Settings → Secrets → Actions) to enable pre-release publishing."
+                      exit 0
+                  fi
+                  npm run publish:prerelease -w @doenet/vscode-extension
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-            - name: Warn if VSCE_PAT is not configured
-              if: ${{ secrets.VSCE_PAT == '' }}
-              run: |
-                  echo "::warning::VSCE_PAT repository secret is not set — VS Code extension pre-release was not published."
-                  echo "Add VSCE_PAT as a repository-level secret (Settings → Secrets → Actions) to enable pre-release publishing."
 
     production-release:
         name: Production Release
