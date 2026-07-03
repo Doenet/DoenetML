@@ -15,5 +15,5 @@
     "access": "restricted",
     "baseBranch": "main",
     "updateInternalDependencies": "patch",
-    "ignore": []
+    "ignore": ["@doenet/prefigure"]
 }

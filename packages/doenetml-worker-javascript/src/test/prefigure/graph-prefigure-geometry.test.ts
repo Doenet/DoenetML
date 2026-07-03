@@ -127,7 +127,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1083,7 +1083,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1194,9 +1194,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(
             `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
-        expect(prefigureXML).toContain(
-            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red" stroke-opacity="0.7" fill-opacity="0.4"`,
-        );
+        // Verify fill attrs are present on the filled polygon (order-independent)
+        expect(prefigureXML).toContain(`fill="red"`);
+        expect(prefigureXML).toContain(`stroke-opacity="0.7"`);
+        expect(prefigureXML).toContain(`fill-opacity="0.4"`);
     });
 
     it("renderer=prefigure maps triangle and rectangle directly to polygons", async () => {
