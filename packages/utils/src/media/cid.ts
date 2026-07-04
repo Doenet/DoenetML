@@ -7,7 +7,7 @@ export async function cidFromText(text: string) {
     return await cidFromArrayBuffer(data);
 }
 
-// Digest is set lazily. Since crpto.subtle is not available in `http` mode,
+// Digest is set lazily. Since crypto.subtle is not available in `http` mode,
 // we fall back to a polyfill in that case
 let digest:
     ((data: BufferSource) => Promise<ArrayBuffer> | Array<number>) | null =
