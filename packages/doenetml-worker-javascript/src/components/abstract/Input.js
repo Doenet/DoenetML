@@ -341,8 +341,8 @@ export default class Input extends InlineComponent {
                         variablesOptional: true,
                     };
                 } else if (stateValues.answerSpecifiedInForAnswer !== null) {
-                    // Input is external (forAnswer): fetch both the flag and
-                    // the per-input map together in one multipleStateVariables dep.
+                    // Input is external (forAnswer): fetch colorInputsSeparately
+                    // and creditAchievedPerInput together in one dep.
                     deps.answerColoringState = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: stateValues.answerSpecifiedInForAnswer,
