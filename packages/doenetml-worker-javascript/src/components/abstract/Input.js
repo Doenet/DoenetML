@@ -341,9 +341,9 @@ export default class Input extends InlineComponent {
                         variablesOptional: true,
                     };
                 } else if (stateValues.answerSpecifiedInForAnswer !== null) {
-                    // Input is external (forAnswer): fetch flag first to decide
-                    // whether we need creditAchievedPerInput.
-                    deps.answerFlagAndCredit = {
+                    // Input is external (forAnswer): fetch both the flag and
+                    // the per-input map together in one multipleStateVariables dep.
+                    deps.answerColoringState = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: stateValues.answerSpecifiedInForAnswer,
                         variableNames: [
@@ -365,9 +365,9 @@ export default class Input extends InlineComponent {
                     const creditAchievedPerInput =
                         dependencyValues.answerCreditAchievedPerInput
                             ?.stateValues?.creditAchievedPerInput ??
-                        (dependencyValues.answerFlagAndCredit?.stateValues
+                        (dependencyValues.answerColoringState?.stateValues
                             ?.colorInputsSeparately
-                            ? dependencyValues.answerFlagAndCredit.stateValues
+                            ? dependencyValues.answerColoringState.stateValues
                                   .creditAchievedPerInput
                             : undefined);
                     if (
