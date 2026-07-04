@@ -999,7 +999,7 @@ export default class FractionComponentInput extends BaseComponent {
                         parentComponentType: "fractionInput",
                         variableName: "creditAchieved",
                     },
-                    parentForceIndividualInputColoring: {
+                    parentColorInputsSeparately: {
                         dependencyType: "parentStateVariable",
                         parentComponentType: "fractionInput",
                         variableName: "colorInputsSeparately",
@@ -1031,7 +1031,7 @@ export default class FractionComponentInput extends BaseComponent {
             definition({ dependencyValues }) {
                 const fallback = dependencyValues.parentCreditAchieved ?? 0;
                 if (
-                    dependencyValues.parentForceIndividualInputColoring &&
+                    dependencyValues.parentColorInputsSeparately &&
                     dependencyValues.parentCreditAchievedPerInput &&
                     dependencyValues.parentComponentIdx !== undefined &&
                     dependencyValues.part
