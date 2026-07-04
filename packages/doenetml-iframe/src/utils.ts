@@ -17,8 +17,7 @@ export type DoenetEditorProps = Omit<
 >;
 
 type IframeDarkMode =
-    | DoenetViewerProps["darkMode"]
-    | DoenetEditorProps["darkMode"];
+    DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"];
 type BodyBackgroundMode = "dark" | "light" | "system";
 
 const DARK_CANVAS = "#121212";

@@ -1157,14 +1157,12 @@ export class RustResolverAdapter {
                     // descendants already behind a wrapper barrier) is hidden.
                     const resolvedParent =
                         this._sourceObj.getParent(resolvedElement);
-                    if (
-                        !(
-                            resolvedParent &&
-                            resolvedParent.type === "element" &&
-                            resolvedParent === parent &&
-                            COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
-                        )
-                    ) {
+                    if (!(
+                        resolvedParent &&
+                        resolvedParent.type === "element" &&
+                        resolvedParent === parent &&
+                        COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
+                    )) {
                         return true;
                     }
                 }

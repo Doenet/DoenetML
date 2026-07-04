@@ -668,15 +668,13 @@ export class AncestorDependency extends Dependency {
 
             let foundAllVarNames = true;
             for (let vName of variableNames) {
-                if (
-                    !(
-                        vName in ancestorComponent.state ||
-                        this.dependencyHandler.core.checkIfArrayEntry({
-                            stateVariable: vName,
-                            component: ancestorComponent,
-                        }).isArrayEntry
-                    )
-                ) {
+                if (!(
+                    vName in ancestorComponent.state ||
+                    this.dependencyHandler.core.checkIfArrayEntry({
+                        stateVariable: vName,
+                        component: ancestorComponent,
+                    }).isArrayEntry
+                )) {
                     foundAllVarNames = false;
                     break;
                 }

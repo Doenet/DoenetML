@@ -2048,16 +2048,14 @@ export default class Circle extends Curve {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                if (
-                    !(
-                        dependencyValues.haveNumericalEntries &&
-                        dependencyValues.numThroughPoints > 0 &&
-                        dependencyValues.numericalRadius > 0 &&
-                        dependencyValues.numericalCenter.every((x) =>
-                            Number.isFinite(x),
-                        )
+                if (!(
+                    dependencyValues.haveNumericalEntries &&
+                    dependencyValues.numThroughPoints > 0 &&
+                    dependencyValues.numericalRadius > 0 &&
+                    dependencyValues.numericalCenter.every((x) =>
+                        Number.isFinite(x),
                     )
-                ) {
+                )) {
                     return {
                         useEssentialOrDefaultValue: {
                             throughAngles: true,
@@ -2853,13 +2851,11 @@ export default class Circle extends Curve {
                                 return {};
                             }
 
-                            if (
-                                !(
-                                    Number.isFinite(centerX) &&
-                                    Number.isFinite(centerY) &&
-                                    Number.isFinite(radius)
-                                )
-                            ) {
+                            if (!(
+                                Number.isFinite(centerX) &&
+                                Number.isFinite(centerY) &&
+                                Number.isFinite(radius)
+                            )) {
                                 return {};
                             }
 
@@ -2893,13 +2889,11 @@ export default class Circle extends Curve {
                 },
             }),
             definition({ dependencyValues }) {
-                if (
-                    !(
-                        dependencyValues.numericalRadius >= 0 &&
-                        dependencyValues.numericalCenter.length == 2 &&
-                        dependencyValues.numericalCenter.every(Number.isFinite)
-                    )
-                ) {
+                if (!(
+                    dependencyValues.numericalRadius >= 0 &&
+                    dependencyValues.numericalCenter.length == 2 &&
+                    dependencyValues.numericalCenter.every(Number.isFinite)
+                )) {
                     // if don't have a numerical circle in 2D, then don't calculate if contains point
                     return { setValue: { containsPoint: () => false } };
                 }

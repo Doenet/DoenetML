@@ -140,15 +140,13 @@ export class DependencyHandler {
         let stateVariablesToProccess: string[] = [];
         let additionalStateVariablesThatWillBeProcessed: string[] = [];
         for (let stateVariable in component.state) {
-            if (
-                !(
-                    component.state[stateVariable].isArrayEntry ||
-                    component.state[stateVariable].isAlias ||
-                    additionalStateVariablesThatWillBeProcessed.includes(
-                        stateVariable,
-                    )
+            if (!(
+                component.state[stateVariable].isArrayEntry ||
+                component.state[stateVariable].isAlias ||
+                additionalStateVariablesThatWillBeProcessed.includes(
+                    stateVariable,
                 )
-            ) {
+            )) {
                 // TODO: if do indeed keep aliases deleted from state, then don't need second check, above
                 stateVariablesToProccess.push(stateVariable);
                 if (
@@ -851,9 +849,9 @@ export class DependencyHandler {
         // console.log("changeResult")
         // console.log(changeResult)
 
-        if (
-            !(changeResult.changedDependency || returnDepArgs.changedDependency)
-        ) {
+        if (!(
+            changeResult.changedDependency || returnDepArgs.changedDependency
+        )) {
             // || arraySizeChanged) {
             // console.log(`didn't actually change a dependency for ${stateVariable} of ${component.componentIdx}`)
             return { success: true };
@@ -1006,16 +1004,12 @@ export class DependencyHandler {
                 for (let varName of dep.upstreamVariableNames) {
                     let stateVarObj = upComponent.state[varName];
                     if (stateVarObj.initiallyResolved) {
-                        if (
-                            !(
-                                variablesJustResolved[
-                                    dep.upstreamComponentIdx
-                                ] &&
-                                variablesJustResolved[dep.upstreamComponentIdx][
-                                    varName
-                                ]
-                            )
-                        ) {
+                        if (!(
+                            variablesJustResolved[dep.upstreamComponentIdx] &&
+                            variablesJustResolved[dep.upstreamComponentIdx][
+                                varName
+                            ]
+                        )) {
                             // console.log(`****** a variable value changed because have a new component ******`)
                             // console.log(`${dep.dependencyName} of ${varName} of ${dep.upstreamComponentIdx}`)
                             variablesChanged.push({
@@ -1320,12 +1314,9 @@ export class DependencyHandler {
         }
 
         let parent = this._components[component.ancestors[0].componentIdx];
-        if (
-            !(
-                parent &&
-                parent.allChildrenOrdered.includes(component.componentIdx)
-            )
-        ) {
+        if (!(
+            parent && parent.allChildrenOrdered.includes(component.componentIdx)
+        )) {
             return { foundChange: true, finishedPropagation: false };
         }
 

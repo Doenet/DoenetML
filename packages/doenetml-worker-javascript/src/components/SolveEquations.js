@@ -212,13 +212,11 @@ export default class SolveEquations extends InlineComponent {
                 let expression =
                     dependencyValues.mathChild[0].stateValues.value;
 
-                if (
-                    !(
-                        Array.isArray(expression.tree) &&
-                        expression.tree.length === 3 &&
-                        expression.tree[0] === "="
-                    )
-                ) {
+                if (!(
+                    Array.isArray(expression.tree) &&
+                    expression.tree.length === 3 &&
+                    expression.tree[0] === "="
+                )) {
                     return { setValue: { allSolutions: [] } };
                 }
 

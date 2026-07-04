@@ -369,12 +369,10 @@ export async function expandCompositeComponent({
 
     const newNComponents = result.nComponents;
 
-    if (
-        !(
-            Number.isInteger(newNComponents) &&
-            newNComponents >= core._components.length
-        )
-    ) {
+    if (!(
+        Number.isInteger(newNComponents) &&
+        newNComponents >= core._components.length
+    )) {
         throw Error(
             `Invalid nComponents returned by createSerializedReplacements for ${component.componentType}: `,
             newNComponents,

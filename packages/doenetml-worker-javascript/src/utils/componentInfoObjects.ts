@@ -87,8 +87,7 @@ type StateVariableDescription = {
     schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
     /** See description of returnWrappingComponents in Core.js */
     wrappingComponents?: (
-        | string
-        | { componentType: string; isAttributeNamed: string }
+        string | { componentType: string; isAttributeNamed: string }
     )[][];
     entryPrefixes: string[];
     /**
@@ -143,8 +142,7 @@ type ArrayEntryPrefixDescription = {
     arrayVariableName: string;
     numDimensions: number;
     wrappingComponents: (
-        | string
-        | { componentType: string; isAttributeNamed: string }
+        string | { componentType: string; isAttributeNamed: string }
     )[][];
 };
 

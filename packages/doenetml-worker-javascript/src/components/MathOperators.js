@@ -1406,23 +1406,19 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                                 } else if (
                                     dependencyValues.argumentNumber === 1
                                 ) {
-                                    if (
-                                        !(
-                                            Array.isArray(allArgs) &&
-                                            allArgs[0] === "tuple"
-                                        )
-                                    ) {
+                                    if (!(
+                                        Array.isArray(allArgs) &&
+                                        allArgs[0] === "tuple"
+                                    )) {
                                         return me.fromAst(allArgs);
                                     } else {
                                         return me.fromAst(allArgs[1]);
                                     }
                                 } else {
-                                    if (
-                                        !(
-                                            Array.isArray(allArgs) &&
-                                            allArgs[0] === "tuple"
-                                        )
-                                    ) {
+                                    if (!(
+                                        Array.isArray(allArgs) &&
+                                        allArgs[0] === "tuple"
+                                    )) {
                                         return me.fromAst("\uff3f");
                                     } else {
                                         let theArg =

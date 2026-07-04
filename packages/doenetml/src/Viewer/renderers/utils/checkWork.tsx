@@ -12,10 +12,7 @@ import "./checkWork.css";
 
 /** Validation state for answer submissions */
 export type ValidationState =
-    | "unvalidated"
-    | "correct"
-    | "incorrect"
-    | "partialcorrect";
+    "unvalidated" | "correct" | "incorrect" | "partialcorrect";
 
 /**
  * Calculate if the current response of an answer blank has already been validated,

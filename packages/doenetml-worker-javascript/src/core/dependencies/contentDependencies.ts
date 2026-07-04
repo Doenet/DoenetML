@@ -540,13 +540,11 @@ export class DetermineDependenciesDependency extends Dependency {
             this.dependencyHandler._components[this.upstreamComponentIdx];
 
         for (let varName of this.upstreamVariableNames) {
-            if (
-                !(
-                    component &&
-                    component.state[varName] &&
-                    component.state[varName].currentlyResolving
-                )
-            ) {
+            if (!(
+                component &&
+                component.state[varName] &&
+                component.state[varName].currentlyResolving
+            )) {
                 await this.dependencyHandler.addBlocker({
                     blockerComponentIdx: this.upstreamComponentIdx,
                     blockerType: "determineDependencies",

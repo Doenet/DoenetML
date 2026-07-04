@@ -113,10 +113,7 @@ function rerenderTray() {
     if (trayEl) {
         const currentTheme =
             (trayEl.getAttribute("data-theme") as
-                | "dark"
-                | "light"
-                | null
-                | undefined) ?? undefined;
+                "dark" | "light" | null | undefined) ?? undefined;
         if (currentTheme === theme) {
             return;
         }

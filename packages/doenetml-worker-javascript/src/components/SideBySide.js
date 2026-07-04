@@ -913,16 +913,14 @@ export class SideBySide extends BlockComponent {
                                 desiredStateVariableValues.margins[arrayKey],
                         });
                     }
-                } else if (
-                    !(
+                } else if (!(
+                    globalDependencyValues.marginsAttr.stateValues
+                        .componentSize1 &&
+                    Number.isFinite(
                         globalDependencyValues.marginsAttr.stateValues
-                            .componentSize1 &&
-                        Number.isFinite(
-                            globalDependencyValues.marginsAttr.stateValues
-                                .componentSize1.size,
-                        )
+                            .componentSize1.size,
                     )
-                ) {
+                )) {
                     if ("0" in desiredStateVariableValues.margins) {
                         instructions.push({
                             setDependency: "marginsAttr",
@@ -1737,16 +1735,14 @@ export class SbsGroup extends BlockComponent {
                         setEssentialValue: "specifiedMargins",
                         value: desiredStateVariableValues.specifiedMargins,
                     });
-                } else if (
-                    !(
+                } else if (!(
+                    globalDependencyValues.marginsAttr.stateValues
+                        .componentSize1 &&
+                    Number.isFinite(
                         globalDependencyValues.marginsAttr.stateValues
-                            .componentSize1 &&
-                        Number.isFinite(
-                            globalDependencyValues.marginsAttr.stateValues
-                                .componentSize1.size,
-                        )
+                            .componentSize1.size,
                     )
-                ) {
+                )) {
                     if ("0" in desiredStateVariableValues.specifiedMargins) {
                         instructions.push({
                             setDependency: "marginsAttr",

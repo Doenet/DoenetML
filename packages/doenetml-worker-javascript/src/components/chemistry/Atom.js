@@ -727,13 +727,11 @@ function electronConfigurationToOrbitalDiagram(electronConfiguration) {
         let shellType = infoObj[1];
         let nElectrons = infoObj[2];
 
-        if (
-            !(
-                ["s", "p", "d", "f"].includes(shellType) &&
-                Number.isInteger(nElectrons) &&
-                nElectrons > 0
-            )
-        ) {
+        if (!(
+            ["s", "p", "d", "f"].includes(shellType) &&
+            Number.isInteger(nElectrons) &&
+            nElectrons > 0
+        )) {
             return null;
         }
 

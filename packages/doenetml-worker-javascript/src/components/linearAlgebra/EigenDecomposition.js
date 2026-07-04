@@ -265,12 +265,9 @@ export default class EigenDecomposition extends BaseComponent {
                     // eigenvector3 is all components of the third eigenvector
 
                     let eigenvectorInd = Number(varEnding) - 1;
-                    if (
-                        !(
-                            Number.isInteger(eigenvectorInd) &&
-                            eigenvectorInd >= 0
-                        )
-                    ) {
+                    if (!(
+                        Number.isInteger(eigenvectorInd) && eigenvectorInd >= 0
+                    )) {
                         return [];
                     }
 

@@ -31,10 +31,7 @@ export type AccessibilityRecord = BaseDiagnosticRecord & {
 };
 
 export type DiagnosticRecord =
-    | ErrorRecord
-    | WarningRecord
-    | InfoRecord
-    | AccessibilityRecord;
+    ErrorRecord | WarningRecord | InfoRecord | AccessibilityRecord;
 
 export function isErrorRecord(
     diagnostic: DiagnosticRecord,

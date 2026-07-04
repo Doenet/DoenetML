@@ -80,12 +80,10 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
 
         for (let child of matchedChildren) {
             if (typeof child !== "string") {
-                if (
-                    !(
-                        includeNonMacros ||
-                        (child.extending && "Ref" in child.extending)
-                    )
-                ) {
+                if (!(
+                    includeNonMacros ||
+                    (child.extending && "Ref" in child.extending)
+                )) {
                     createNewChild();
                     pieces.push(child);
                     createNewChild();

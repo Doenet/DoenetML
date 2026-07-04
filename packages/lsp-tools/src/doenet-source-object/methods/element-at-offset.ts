@@ -39,8 +39,7 @@ export function elementAtOffsetWithContext(
     const leftLezerCursor = this._lezerCursor();
     leftLezerCursor.moveTo(offset, -1);
     const leftLezerNodeParentName = leftLezerCursor.node.parent?.type?.name as
-        | LezerSyntaxNodeName
-        | undefined;
+        LezerSyntaxNodeName | undefined;
     const atOpenTagNameEnd =
         (leftLezerCursor.node.type.name as LezerSyntaxNodeName) === "TagName" &&
         (leftLezerNodeParentName === "OpenTag" ||
@@ -127,8 +126,7 @@ export function elementAtOffsetWithContext(
                 type: "element",
             }) as DastElement | null;
             const leftParentType = leftNode.parent?.type?.name as
-                | LezerSyntaxNodeName
-                | undefined;
+                LezerSyntaxNodeName | undefined;
             if (
                 leftElement &&
                 (leftParentType === "CloseTag" ||
@@ -154,8 +152,7 @@ export function elementAtOffsetWithContext(
         } else {
             const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
             const lezerNodeParentType = lezerNode.parent?.type?.name as
-                | LezerSyntaxNodeName
-                | undefined;
+                LezerSyntaxNodeName | undefined;
             switch (lezerNodeType) {
                 case "TagName": {
                     if (
@@ -281,8 +278,7 @@ export function elementAtOffsetWithContext(
         cursor.moveTo(prevNonWhitespaceCharOffset, 1);
         const lezerNodeType = cursor.node.type.name as LezerSyntaxNodeName;
         const lezerNodeParentType = cursor.node.parent?.type?.name as
-            | LezerSyntaxNodeName
-            | undefined;
+            LezerSyntaxNodeName | undefined;
         switch (lezerNodeType) {
             case "TagName": {
                 if (lezerNodeParentType === "CloseTag") {

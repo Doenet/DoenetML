@@ -287,8 +287,7 @@ function readComponentsAttr(node: MdxJsxFlowElement): string[] | null {
         return null;
     }
     const estree = (value as MdxJsxAttributeValueExpression).data?.estree as
-        | { body: any[] }
-        | undefined;
+        { body: any[] } | undefined;
     if (!estree || !estree.body || estree.body.length === 0) return null;
     const expr = estree.body[0]?.expression;
     if (!expr || expr.type !== "ArrayExpression") return null;

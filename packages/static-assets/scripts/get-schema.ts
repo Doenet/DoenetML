@@ -280,8 +280,7 @@ type ArrayElementDescription = {
 };
 
 type WrappingComponentElement =
-    | string
-    | { componentType: string; isAttributeNamed: string };
+    string | { componentType: string; isAttributeNamed: string };
 
 type ArrayEntryPrefixDescription = {
     arrayVariableName: string;

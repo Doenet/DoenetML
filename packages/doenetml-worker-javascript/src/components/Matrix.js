@@ -526,16 +526,12 @@ export default class Matrix extends MathComponent {
                 let desiredTree =
                     desiredStateVariableValues.unnormalizedValue.tree;
 
-                if (
-                    !(
-                        Array.isArray(desiredTree) &&
-                        desiredTree[0] === "matrix" &&
-                        desiredTree[1]?.[1] ===
-                            dependencyValues.matrixSizePre[0] &&
-                        desiredTree[1]?.[2] ===
-                            dependencyValues.matrixSizePre[1]
-                    )
-                ) {
+                if (!(
+                    Array.isArray(desiredTree) &&
+                    desiredTree[0] === "matrix" &&
+                    desiredTree[1]?.[1] === dependencyValues.matrixSizePre[0] &&
+                    desiredTree[1]?.[2] === dependencyValues.matrixSizePre[1]
+                )) {
                     return { success: false };
                 }
 

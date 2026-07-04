@@ -359,15 +359,13 @@ export function findChildGroupNoAdapters({
                 }
                 // don't match composites to the base component
                 // so that they will expand
-                if (
-                    !(
-                        typeFromGroup === "_base" &&
-                        core.componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: componentType,
-                            baseComponentType: "_composite",
-                        })
-                    )
-                ) {
+                if (!(
+                    typeFromGroup === "_base" &&
+                    core.componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: componentType,
+                        baseComponentType: "_composite",
+                    })
+                )) {
                     parentClass.childGroupOfComponentType[componentType] =
                         group.group;
 

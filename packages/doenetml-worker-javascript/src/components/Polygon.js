@@ -357,14 +357,12 @@ export default class Polygon extends Polyline {
                     nxPty = numericalVertices[i]?.[1];
 
                     // only implement for constants
-                    if (
-                        !(
-                            Number.isFinite(prPtx) &&
-                            Number.isFinite(prPty) &&
-                            Number.isFinite(nxPtx) &&
-                            Number.isFinite(nxPty)
-                        )
-                    ) {
+                    if (!(
+                        Number.isFinite(prPtx) &&
+                        Number.isFinite(prPty) &&
+                        Number.isFinite(nxPtx) &&
+                        Number.isFinite(nxPty)
+                    )) {
                         vals.push(null);
                     } else {
                         let BA1sub = nxPtx - prPtx;
@@ -524,14 +522,12 @@ export default class Polygon extends Polyline {
                 // Return: true if winding number != 0, i.e., point is in polygon
                 let containsPoint = function (P) {
                     // short circuit if not in bounding box
-                    if (
-                        !(
-                            P[0] <= maxx &&
-                            P[0] >= minx &&
-                            P[1] <= maxy &&
-                            P[1] >= miny
-                        )
-                    ) {
+                    if (!(
+                        P[0] <= maxx &&
+                        P[0] >= minx &&
+                        P[1] <= maxy &&
+                        P[1] >= miny
+                    )) {
                         return false;
                     }
 

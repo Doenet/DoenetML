@@ -196,8 +196,7 @@ export function flatDastUpdateFromJS(
                 applyCompositeListWrapping(
                     childContents,
                     stateValues?._compositeReplacementActiveRange as
-                        | CompositeReplacementRange[]
-                        | undefined,
+                        CompositeReplacementRange[] | undefined,
                 );
 
             // Assemble a synthetic element so the shared JS->Rust converter

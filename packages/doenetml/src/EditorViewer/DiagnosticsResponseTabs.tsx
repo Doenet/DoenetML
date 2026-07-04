@@ -26,12 +26,7 @@ type SubmittedResponse = {
 
 /** IDs of the tabs available in the diagnostics/responses/help panel. */
 export type DiagnosticsTabId =
-    | "errors"
-    | "warnings"
-    | "info"
-    | "accessibility"
-    | "responses"
-    | "help";
+    "errors" | "warnings" | "info" | "accessibility" | "responses" | "help";
 
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {

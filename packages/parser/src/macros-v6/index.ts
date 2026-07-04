@@ -9,9 +9,7 @@ export function parseMacrosV06(
     str: string,
 ): (DastText | DastMacroV6 | DastFunctionMacroV6)[] {
     return MacroParser.parse(str) as (
-        | DastText
-        | DastMacroV6
-        | DastFunctionMacroV6
+        DastText | DastMacroV6 | DastFunctionMacroV6
     )[];
 }
 

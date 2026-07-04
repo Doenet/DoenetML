@@ -85,12 +85,9 @@ export default class ConstrainToGraph extends ConstraintComponent {
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphXmax;
 
-                            if (
-                                !(
-                                    Number.isFinite(xMin) &&
-                                    Number.isFinite(xMax)
-                                )
-                            ) {
+                            if (!(
+                                Number.isFinite(xMin) && Number.isFinite(xMax)
+                            )) {
                                 return {};
                             }
 
@@ -129,12 +126,9 @@ export default class ConstrainToGraph extends ConstraintComponent {
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphYmax;
 
-                            if (
-                                !(
-                                    Number.isFinite(yMin) &&
-                                    Number.isFinite(yMax)
-                                )
-                            ) {
+                            if (!(
+                                Number.isFinite(yMin) && Number.isFinite(yMax)
+                            )) {
                                 return {};
                             }
 

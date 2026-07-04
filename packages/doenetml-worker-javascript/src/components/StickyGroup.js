@@ -654,12 +654,10 @@ export default class StickyGroup extends GraphicalComponent {
                             continue;
                         }
 
-                        if (
-                            !(
-                                constraintUsedForVertex[vertexInd1] ||
-                                constraintUsedForVertex[vertexInd2]
-                            )
-                        ) {
+                        if (!(
+                            constraintUsedForVertex[vertexInd1] ||
+                            constraintUsedForVertex[vertexInd2]
+                        )) {
                             let numericalVertex1 =
                                 numericalUnconstrainedVertices[vertexInd1];
                             let numericalVertex2 =
@@ -837,12 +835,10 @@ export default class StickyGroup extends GraphicalComponent {
                         vertexInd2,
                         movedSegment,
                     } of potentialConstraintsForEdges) {
-                        if (
-                            !(
-                                constraintUsedForVertex[vertexInd1] ||
-                                constraintUsedForVertex[vertexInd2]
-                            )
-                        ) {
+                        if (!(
+                            constraintUsedForVertex[vertexInd1] ||
+                            constraintUsedForVertex[vertexInd2]
+                        )) {
                             constraintUsedForVertex[vertexInd1] = true;
                             constraintUsedForVertex[vertexInd2] = true;
 

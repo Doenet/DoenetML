@@ -447,8 +447,7 @@ function collectConfiguredDescendants(
         ...GRAPHICAL_DESCENDANT_CONFIGS,
     ]) {
         for (const descendant of (dependencyValues[config.key] as
-            | Descendant[]
-            | undefined) ?? []) {
+            Descendant[] | undefined) ?? []) {
             if (!Number.isFinite(descendant.componentIdx)) {
                 continue;
             }
