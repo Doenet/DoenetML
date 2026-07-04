@@ -98,7 +98,7 @@ export default class Input extends InlineComponent {
                         "forceFullCheckWorkButton",
                         "forceSmallCheckWorkButton",
                         "labelsForAnswer",
-                        "forceIndividualInputColoring",
+                        "colorInputsSeparately",
                     ],
                 },
             }),
@@ -198,7 +198,7 @@ export default class Input extends InlineComponent {
                             "creditAchieved",
                             "showCorrectness",
                             "colorCorrectness",
-                            "forceIndividualInputColoring",
+                            "colorInputsSeparately",
                         ],
                         variablesOptional: true,
                     };
@@ -320,11 +320,11 @@ export default class Input extends InlineComponent {
                     },
                 };
                 // Only request creditAchievedPerInput when
-                // forceIndividualInputColoring is active — prevents unnecessary
+                // colorInputsSeparately is active — prevents unnecessary
                 // staleness propagation on every keystroke.
                 if (
                     stateValues.answerAncestor?.stateValues
-                        .forceIndividualInputColoring
+                        .colorInputsSeparately
                 ) {
                     // Input is inside the answer: use ancestor dependency.
                     deps.answerCreditAchievedPerInput = {
@@ -340,7 +340,7 @@ export default class Input extends InlineComponent {
                         dependencyType: "multipleStateVariables",
                         componentIdx: stateValues.answerSpecifiedInForAnswer,
                         variableNames: [
-                            "forceIndividualInputColoring",
+                            "colorInputsSeparately",
                             "creditAchievedPerInput",
                         ],
                         variablesOptional: true,
@@ -354,17 +354,17 @@ export default class Input extends InlineComponent {
                     dependencyValues.componentDeterminingDisplayedCorrectness;
                 if (comp) {
                     const overallCredit = comp.stateValues.creditAchieved ?? 0;
-                    // Per-input coloring when forceIndividualInputColoring is active.
+                    // Per-input coloring when colorInputsSeparately is active.
                     const creditAchievedPerInput =
                         dependencyValues.answerCreditAchievedPerInput
                             ?.stateValues?.creditAchievedPerInput ??
                         (dependencyValues.answerFlagAndCredit?.stateValues
-                            ?.forceIndividualInputColoring
+                            ?.colorInputsSeparately
                             ? dependencyValues.answerFlagAndCredit.stateValues
                                   .creditAchievedPerInput
                             : undefined);
                     if (
-                        comp.stateValues.forceIndividualInputColoring &&
+                        comp.stateValues.colorInputsSeparately &&
                         creditAchievedPerInput
                     ) {
                         const key = `${componentIdx}/value`;

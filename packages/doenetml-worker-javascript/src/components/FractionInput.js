@@ -735,7 +735,7 @@ export class FractionInput extends Input {
         // Expose the answer ancestor's per-input coloring state so that the
         // _fractionInputComponent sub-boxes can read them via parentStateVariable.
         // FractionInput is always inside the answer, so an ancestor dependency works.
-        stateVariableDefinitions.forceIndividualInputColoring = {
+        stateVariableDefinitions.colorInputsSeparately = {
             returnDependencies: () => ({
                 answerAncestor: {
                     dependencyType: "stateVariable",
@@ -745,20 +745,18 @@ export class FractionInput extends Input {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        forceIndividualInputColoring:
+                        colorInputsSeparately:
                             dependencyValues.answerAncestor?.stateValues
-                                .forceIndividualInputColoring ?? false,
+                                .colorInputsSeparately ?? false,
                     },
                 };
             },
         };
 
         stateVariableDefinitions.creditAchievedPerInput = {
-            stateVariablesDeterminingDependencies: [
-                "forceIndividualInputColoring",
-            ],
+            stateVariablesDeterminingDependencies: ["colorInputsSeparately"],
             returnDependencies({ stateValues }) {
-                if (!stateValues.forceIndividualInputColoring) {
+                if (!stateValues.colorInputsSeparately) {
                     return {};
                 }
                 return {
@@ -965,10 +963,10 @@ export default class FractionComponentInput extends BaseComponent {
                     parentForceIndividualInputColoring: {
                         dependencyType: "parentStateVariable",
                         parentComponentType: "fractionInput",
-                        variableName: "forceIndividualInputColoring",
+                        variableName: "colorInputsSeparately",
                     },
                 };
-                // Only pull in the per-part data when forceIndividualInputColoring
+                // Only pull in the per-part data when colorInputsSeparately
                 // is active so we don't track creditAchievedPerInput needlessly.
                 // We can't read the parent flag here (stateVariablesDeterminingDependencies
                 // only gives us this component's own vars), so we always request the

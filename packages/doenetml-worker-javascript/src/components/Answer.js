@@ -157,13 +157,13 @@ export default class Answer extends InlineComponent {
             description:
                 "Maximum number of matching awards whose credits are summed.",
         };
-        attributes.forceIndividualInputColoring = {
+        attributes.colorInputsSeparately = {
             createComponentOfType: "boolean",
-            createStateVariable: "forceIndividualInputColoring",
+            createStateVariable: "colorInputsSeparately",
             defaultValue: false,
             public: true,
             description:
-                "When true, each input inside this answer is colored individually based on the award(s) that reference it, rather than all inputs receiving the same overall credit color.",
+                "When enabled, each input inside this answer is colored based on the awards that reference it, rather than all inputs receiving the same overall credit color. Requires numAwardsCredited >= 2 to be meaningful.",
         };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",

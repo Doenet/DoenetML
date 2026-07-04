@@ -434,13 +434,13 @@ describe("FractionInput tag tests @group3", async () => {
         ).eqls(["/", ["-", 4], 5]);
     });
 
-    it("forceIndividualInputColoring colors numerator and denominator sub-boxes independently", async () => {
-        // With forceIndividualInputColoring, the numerator and denominator boxes
+    it("colorInputsSeparately colors numerator and denominator sub-boxes independently", async () => {
+        // With colorInputsSeparately, the numerator and denominator boxes
         // of a fractionInput should each be colored based on their respective
         // covering award's result.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
     <fractionInput name="fi" />
     <award name="numAward" credit="0.5"><when>$fi.numerator = 2</when></award>
     <award name="denAward" credit="0.5"><when>$fi.denominator = 3</when></award>

@@ -193,7 +193,7 @@ export default class When extends BooleanComponent {
         // For each code-child ($fi.numerator, $mi1, etc.), read its shadow
         // source info to determine which input component and state variable it
         // was created from.  Used by Award.referencedInputStateVars to build
-        // the per-input coloring map for forceIndividualInputColoring.
+        // the per-input coloring map for colorInputsSeparately.
         stateVariableDefinitions.referencedStateVars = {
             stateVariablesDeterminingDependencies: [
                 "mathChildrenByCode",

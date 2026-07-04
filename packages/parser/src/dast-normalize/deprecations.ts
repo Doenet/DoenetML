@@ -54,6 +54,63 @@ type DeprecationIndex = {
  * valid on a component. Using such an attribute emits a warning, and the attribute
  * is dropped from the DAST so it does not become an "invalid attribute" error.
  */
+/**
+ * All component types that accept scored-section attributes (returnScoredSectionAttributes).
+ * Used to register attribute rename deprecations that apply across all of them.
+ */
+const SCORED_SECTION_COMPONENT_TYPES = [
+    "document",
+    "section",
+    "subsection",
+    "subsubsection",
+    "paragraphs",
+    "aside",
+    "objectives",
+    "problem",
+    "exercise",
+    "question",
+    "activity",
+    "example",
+    "definition",
+    "note",
+    "theorem",
+    "part",
+    "task",
+    "proof",
+    "problems",
+    "exercises",
+    "standinForFutureLayoutTag",
+    "externalContent",
+    "cascade",
+    "div",
+    "span",
+    "ol",
+    "ul",
+    "li",
+    "p",
+];
+
+/**
+ * Build rename rules for every scored-section component type for a single
+ * attribute rename.
+ */
+function renamedScoredSectionAttribute(
+    oldName: string,
+    newName: string,
+): Record<string, Record<string, AttributeRenameRule>> {
+    const rule: AttributeRenameRule = {
+        to: newName,
+        warningMessage: `[deprecation] Attribute \`${oldName}\` is deprecated; use \`${newName}\` instead.`,
+        conflictWarningMessage: `[deprecation] Attribute \`${oldName}\` is deprecated and ignored because \`${newName}\` is also specified.`,
+    };
+    return Object.fromEntries(
+        SCORED_SECTION_COMPONENT_TYPES.map((comp) => [
+            comp,
+            { [oldName]: rule },
+        ]),
+    );
+}
+
 function ignoredAttributes(
     componentName: string,
     attributeNames: string[],
@@ -68,9 +125,20 @@ function ignoredAttributes(
     );
 }
 
+const SCORED_SECTION_COLORING_RENAMES = renamedScoredSectionAttribute(
+    "forceIndividualAnswerColoring",
+    "colorAnswersSeparately",
+);
+
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
+        // Merge per-component rules, spreading scored-section rename rules
+        // first so component-specific rules take precedence on conflict.
+        ...SCORED_SECTION_COLORING_RENAMES,
         document: {
+            // document already has a scored-section rename (spread above) plus
+            // its own documentWideCheckWork rename.
+            ...SCORED_SECTION_COLORING_RENAMES["document"],
             documentWideCheckWork: {
                 to: "sectionWideCheckWork",
                 warningMessage:
@@ -86,6 +154,15 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
                     "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated; use `sort` instead.",
                 conflictWarningMessage:
                     "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated and ignored because `sort` is also specified.",
+            },
+        },
+        answer: {
+            forceIndividualInputColoring: {
+                to: "colorInputsSeparately",
+                warningMessage:
+                    "[deprecation] Attribute `forceIndividualInputColoring` on `<answer>` is deprecated; use `colorInputsSeparately` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `forceIndividualInputColoring` on `<answer>` is deprecated and ignored because `colorInputsSeparately` is also specified.",
             },
         },
         selectPrimeNumbers: {

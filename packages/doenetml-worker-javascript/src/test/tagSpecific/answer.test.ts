@@ -8765,7 +8765,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("force individual answer coloring  with section-wide check work", async () => {
         const doenetML = `
-    <section name="sec" sectionWideCheckWork forceIndividualAnswerColoring>
+    <section name="sec" sectionWideCheckWork colorAnswersSeparately>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8815,7 +8815,7 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
         expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
 
-        // since forceIndividualAnswerColoring is set,
+        // since colorAnswersSeparately is set,
         // math inputs should reflect their own answer credit achieved
         expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
             true,
@@ -8899,7 +8899,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("force individual answer coloring  with document-wide check work", async () => {
         const doenetML = `
-    <document name="doc" sectionWideCheckWork forceIndividualAnswerColoring>
+    <document name="doc" sectionWideCheckWork colorAnswersSeparately>
         <answer name="ans1">
             <mathInput name="mi1"/>
                 x
@@ -8949,7 +8949,7 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
         expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
 
-        // since forceIndividualAnswerColoring is set,
+        // since colorAnswersSeparately is set,
         // math inputs should reflect their own answer credit achieved
         expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
             true,
@@ -9134,13 +9134,13 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[ansIdx].stateValues.focused).eq(false);
     });
 
-    it("forceIndividualInputColoring with two mathInputs and separate awards", async () => {
+    it("colorInputsSeparately with two mathInputs and separate awards", async () => {
         // Each award references a different input; per-input coloring should
         // color each box independently based on which award(s) it is covered by.
         const doenetML = `
   <mathInput name="mi1" forAnswer="$ans" />
   <mathInput name="mi2" forAnswer="$ans" />
-  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
     <award name="aw1" credit="0.5"><when>$mi1 = x</when></award>
     <award name="aw2" credit="0.5"><when>$mi2 = y</when></award>
     <award name="aw3" credit="0"><when>$mi1 = z</when></award>
@@ -9245,14 +9245,14 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
-    it("forceIndividualInputColoring: input with no covering award falls back to overall credit", async () => {
+    it("colorInputsSeparately: input with no covering award falls back to overall credit", async () => {
         // mi3 is not referenced by any award, so it should fall back to the
         // answer's overall creditAchieved rather than getting a per-input value.
         const doenetML = `
   <mathInput name="mi1" forAnswer="$ans" />
   <mathInput name="mi2" forAnswer="$ans" />
   <mathInput name="mi3" forAnswer="$ans" />
-  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
     <award name="aw1" credit="0.5"><when>$mi1 = x</when></award>
     <award name="aw2" credit="0.5"><when>$mi2 = y</when></award>
   </answer>
@@ -9280,13 +9280,13 @@ What is the derivative of <function name="f">x^2</function>?
         expect(sv[mi3Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
     });
 
-    it("forceIndividualInputColoring: partial credit per input with multiple awards covering one input", async () => {
+    it("colorInputsSeparately: partial credit per input with multiple awards covering one input", async () => {
         // Two awards cover mi1 (different correctness levels); the best awarded
         // one determines actualCredit; maxCredit is the best overall.
         const doenetML = `
   <mathInput name="mi1" forAnswer="$ans" />
   <mathInput name="mi2" forAnswer="$ans" />
-  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
     <award name="aw1" credit="0.4"><when>$mi1 = x</when></award>
     <award name="aw2" credit="0.2"><when>$mi1 = x^2</when></award>
     <award name="aw3" credit="0.6"><when>$mi2 = y</when></award>
