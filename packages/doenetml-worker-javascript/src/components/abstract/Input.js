@@ -305,6 +305,13 @@ export default class Input extends InlineComponent {
             },
         };
 
+        // creditAchieved on an input is used purely for display/coloring: the
+        // renderer reads it to decide whether to show the input border as green
+        // (1), red (0), or orange (0 < x < 1).  It is NOT the input's own
+        // credit contribution — without colorInputsSeparately it simply mirrors
+        // the answer's overall creditAchieved so all inputs in the same answer
+        // share a uniform color.  With colorInputsSeparately it carries the
+        // per-input ratio derived from the awards that reference this input.
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
