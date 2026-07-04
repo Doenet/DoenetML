@@ -893,20 +893,21 @@ export default class Award extends BaseComponent {
                         dependencyType: "parentStateVariable",
                         variableName: "colorInputsSeparately",
                     },
-                    // Use the lightweight structural set (no live values) so
-                    // that per-input coloring doesn't go stale on every keystroke.
-                    allInputComponentIdxs: {
+                };
+                // Only add the remaining deps when colorInputsSeparately is
+                // active — avoids resolving When.referencedStateVars (which
+                // traverses descendants) unnecessarily.
+                if (stateValues.colorInputsSeparatelyFromAnswer) {
+                    // Lightweight structural set — no live values so coloring
+                    // doesn't go stale on every keystroke.
+                    deps.allInputComponentIdxs = {
                         dependencyType: "parentStateVariable",
                         variableName: "allInputComponentIdxs",
-                    },
-                    singleInputComponentIdx: {
+                    };
+                    deps.singleInputComponentIdx = {
                         dependencyType: "parentStateVariable",
                         variableName: "singleInputComponentIdx",
-                    },
-                };
-                // Only resolve When.referencedStateVars (which traverses
-                // descendants) when colorInputsSeparately is actually active.
-                if (stateValues.colorInputsSeparatelyFromAnswer) {
+                    };
                     deps.whenChild = {
                         dependencyType: "child",
                         childGroups: ["whens"],
