@@ -753,7 +753,6 @@ export class FractionInput extends Input {
                         dependencyType: "stateVariable",
                         componentIdx: stateValues.answerSpecifiedInForAnswer,
                         variableName: "colorInputsSeparately",
-                        returnAsComponentObject: true,
                         variablesOptional: true,
                     };
                 }
@@ -765,8 +764,7 @@ export class FractionInput extends Input {
                         colorInputsSeparately:
                             dependencyValues.answerAncestor?.stateValues
                                 .colorInputsSeparately ||
-                            dependencyValues.forAnswerColorInputsSeparately
-                                ?.stateValues?.colorInputsSeparately ||
+                            dependencyValues.forAnswerColorInputsSeparately ||
                             false,
                     },
                 };
