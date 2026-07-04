@@ -904,10 +904,6 @@ export default class Award extends BaseComponent {
                         dependencyType: "parentStateVariable",
                         variableName: "allInputComponentIdxs",
                     };
-                    deps.singleInputComponentIdx = {
-                        dependencyType: "parentStateVariable",
-                        variableName: "singleInputComponentIdx",
-                    };
                     deps.whenChild = {
                         dependencyType: "child",
                         childGroups: ["whens"],
@@ -925,34 +921,15 @@ export default class Award extends BaseComponent {
                 const allInputComponentIdxs =
                     dependencyValues.allInputComponentIdxs ?? new Set();
 
-                if (dependencyValues.whenChild?.length > 0) {
-                    const referencedStateVars =
-                        dependencyValues.whenChild[0].stateValues
-                            .referencedStateVars ?? [];
-                    return {
-                        setValue: {
-                            referencedInputStateVars:
-                                referencedStateVars.filter((ref) =>
-                                    allInputComponentIdxs.has(ref.componentIdx),
-                                ),
-                        },
-                    };
-                }
-
-                // Inline award (no <when>): references the single answer input
-                const singleInputComponentIdx =
-                    dependencyValues.singleInputComponentIdx;
-                if (singleInputComponentIdx == null) {
-                    return { setValue: { referencedInputStateVars: [] } };
-                }
+                const referencedStateVars =
+                    dependencyValues.whenChild?.[0]?.stateValues
+                        .referencedStateVars ?? [];
                 return {
                     setValue: {
-                        referencedInputStateVars: [
-                            {
-                                componentIdx: singleInputComponentIdx,
-                                propVariable: "value",
-                            },
-                        ],
+                        referencedInputStateVars: referencedStateVars.filter(
+                            (ref) =>
+                                allInputComponentIdxs.has(ref.componentIdx),
+                        ),
                     },
                 };
             },

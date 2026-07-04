@@ -1239,7 +1239,6 @@ export default class Answer extends InlineComponent {
             stateVariablesDeterminingDependencies: [
                 "inputChildRelativeIndices",
             ],
-            additionalStateVariablesDefined: ["singleInputComponentIdx"],
             returnDependencies: ({ stateValues }) => ({
                 inputChildren: {
                     dependencyType: "child",
@@ -1260,16 +1259,8 @@ export default class Answer extends InlineComponent {
                         (c) => c.componentIdx,
                     ),
                 ]);
-                // Single-input index for inline (no-<when>) awards.
-                const singleInputComponentIdx =
-                    dependencyValues.inputChildren.length === 1
-                        ? dependencyValues.inputChildren[0].componentIdx
-                        : null;
                 return {
-                    setValue: {
-                        allInputComponentIdxs,
-                        singleInputComponentIdx,
-                    },
+                    setValue: { allInputComponentIdxs },
                 };
             },
         };
