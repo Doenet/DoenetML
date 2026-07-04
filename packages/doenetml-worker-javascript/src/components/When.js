@@ -190,37 +190,40 @@ export default class When extends BooleanComponent {
             },
         };
 
-        // For each code-child ($fi.numerator, $mi1, etc.), read its shadow
-        // source info to determine which input component and state variable it
-        // was created from.  Used by Award.referencedInputStateVars to build
-        // the per-input coloring map for colorInputsSeparately.
+        // Collect the component indices of all descendants so we can check each
+        // for shadow-source info in referencedStateVars below.
+        stateVariableDefinitions._descendantIdxs = {
+            returnDependencies: () => ({
+                allDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["_base"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        _descendantIdxs: (
+                            dependencyValues.allDescendants ?? []
+                        ).map((d) => d.componentIdx),
+                    },
+                };
+            },
+        };
+
+        // For each descendant, check whether it is a shadow of an input's state
+        // variable. Handles both direct references ($fi.numerator = 2) and
+        // nested ones (<when><math>$fi.numerator</math>=2</when>).
+        // Used by Award.referencedInputStateVars to build the per-input coloring
+        // map for colorInputsSeparately.
         stateVariableDefinitions.referencedStateVars = {
-            stateVariablesDeterminingDependencies: [
-                "mathChildrenByCode",
-                "numberChildrenByCode",
-                "textChildrenByCode",
-                "booleanChildrenByCode",
-                "otherChildrenByCode",
-            ],
+            stateVariablesDeterminingDependencies: ["_descendantIdxs"],
             returnDependencies({ stateValues }) {
                 const deps = {};
-                const allMaps = [
-                    stateValues.mathChildrenByCode,
-                    stateValues.numberChildrenByCode,
-                    stateValues.textChildrenByCode,
-                    stateValues.booleanChildrenByCode,
-                    stateValues.otherChildrenByCode,
-                ];
-                for (const map of allMaps) {
-                    if (!map) continue;
-                    for (const child of Object.values(map)) {
-                        if (child?.componentIdx !== undefined) {
-                            deps[`shadowInfo_${child.componentIdx}`] = {
-                                dependencyType: "shadowInfo",
-                                componentIdx: child.componentIdx,
-                            };
-                        }
-                    }
+                for (const idx of stateValues._descendantIdxs ?? []) {
+                    deps[`shadowInfo_${idx}`] = {
+                        dependencyType: "shadowInfo",
+                        componentIdx: idx,
+                    };
                 }
                 return deps;
             },
