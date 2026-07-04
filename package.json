@@ -200,7 +200,7 @@
         "vitest": "^4.1.9",
         "vscode-jsonrpc": "8.2.1",
         "vscode-languageserver": "^9.0.1",
-        "vscode-languageserver-protocol": "^3.18.2",
+        "vscode-languageserver-protocol": "3.17.5",
         "wait-on": "^9.0.10",
         "wasm-pack": "^0.15.0",
         "webdriverio": "^9.29.1",
