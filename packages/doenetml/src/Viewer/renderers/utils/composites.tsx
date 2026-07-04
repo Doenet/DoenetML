@@ -222,16 +222,14 @@ function removeEndingBlankString(component: React.ReactNode) {
     if (typeof component === "string") {
         return component.trimEnd();
     }
-    if (
-        !(
-            typeof component === "object" &&
-            "props" in component &&
-            typeof component.props === "object" &&
-            component.props !== null &&
-            "children" in component.props &&
-            Array.isArray(component.props.children)
-        )
-    ) {
+    if (!(
+        typeof component === "object" &&
+        "props" in component &&
+        typeof component.props === "object" &&
+        component.props !== null &&
+        "children" in component.props &&
+        Array.isArray(component.props.children)
+    )) {
         return component;
     }
     if (!(component.props.children?.length > 0)) {

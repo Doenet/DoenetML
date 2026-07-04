@@ -64,18 +64,16 @@ export function buildParsedExpression({
     for (let child of dependencyValues.allChildren) {
         if (typeof child !== "string") {
             let code = codePre + subnum;
-            if (
-                !(
-                    componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: child.componentType,
-                        baseComponentType: "math",
-                    }) ||
-                    componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: child.componentType,
-                        baseComponentType: "number",
-                    })
-                )
-            ) {
+            if (!(
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: child.componentType,
+                    baseComponentType: "math",
+                }) ||
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: child.componentType,
+                    baseComponentType: "number",
+                })
+            )) {
                 nonMathCodes.push(code);
             }
 
@@ -521,14 +519,12 @@ export function evaluateLogic({
             return fraction_equal === 0 ? 1 : 0;
         } else if (operator === "in" || operator === "notin") {
             let boolean1 = operands[0];
-            if (
-                !(
-                    operands.length === 2 &&
-                    typeof boolean1 === "boolean" &&
-                    Array.isArray(operands[1]) &&
-                    operands[1].every((b) => typeof b === "boolean")
-                )
-            ) {
+            if (!(
+                operands.length === 2 &&
+                typeof boolean1 === "boolean" &&
+                Array.isArray(operands[1]) &&
+                operands[1].every((b) => typeof b === "boolean")
+            )) {
                 return valueOnInvalid;
             }
 
@@ -558,15 +554,13 @@ export function evaluateLogic({
                 booleanList2 = [booleanList2];
             }
 
-            if (
-                !(
-                    operands.length === 2 &&
-                    Array.isArray(booleanList1) &&
-                    booleanList1.every((b) => typeof b === "boolean") &&
-                    Array.isArray(booleanList2) &&
-                    booleanList2.every((b) => typeof b === "boolean")
-                )
-            ) {
+            if (!(
+                operands.length === 2 &&
+                Array.isArray(booleanList1) &&
+                booleanList1.every((b) => typeof b === "boolean") &&
+                Array.isArray(booleanList2) &&
+                booleanList2.every((b) => typeof b === "boolean")
+            )) {
                 return valueOnInvalid;
             }
 
@@ -758,15 +752,13 @@ export function evaluateLogic({
                 textList2 = [textList2];
             }
 
-            if (
-                !(
-                    operands.length === 2 &&
-                    Array.isArray(textList1) &&
-                    textList1.every((b) => typeof b === "string") &&
-                    Array.isArray(textList2) &&
-                    textList2.every((b) => typeof b === "string")
-                )
-            ) {
+            if (!(
+                operands.length === 2 &&
+                Array.isArray(textList1) &&
+                textList1.every((b) => typeof b === "string") &&
+                Array.isArray(textList2) &&
+                textList2.every((b) => typeof b === "string")
+            )) {
                 return valueOnInvalid;
             }
 
@@ -1017,9 +1009,9 @@ export function evaluateLogic({
 
         // since single lists are indistinguishable from singletons,
         // turn single values into lists
-        if (
-            !(Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0]))
-        ) {
+        if (!(
+            Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0])
+        )) {
             set_tree = ["list", set_tree];
         }
 
@@ -1140,20 +1132,14 @@ export function evaluateLogic({
         // since single lists are indistinguishable from singletons,
         // turn single values into lists
 
-        if (
-            !(
-                Array.isArray(set1_tree) &&
-                ["set", "list"].includes(set1_tree[0])
-            )
-        ) {
+        if (!(
+            Array.isArray(set1_tree) && ["set", "list"].includes(set1_tree[0])
+        )) {
             set1_tree = ["list", set1_tree];
         }
-        if (
-            !(
-                Array.isArray(set2_tree) &&
-                ["set", "list"].includes(set2_tree[0])
-            )
-        ) {
+        if (!(
+            Array.isArray(set2_tree) && ["set", "list"].includes(set2_tree[0])
+        )) {
             set2_tree = ["list", set2_tree];
         }
 

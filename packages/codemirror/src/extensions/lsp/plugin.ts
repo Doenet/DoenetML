@@ -146,8 +146,7 @@ function getDiagnosticHeadingClass({
 }
 
 type PositionLike =
-    | { line: number; character: number }
-    | { line: number; column: number };
+    { line: number; character: number } | { line: number; column: number };
 
 type RangeLike = {
     start: PositionLike;

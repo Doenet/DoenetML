@@ -89,7 +89,7 @@
     "dependencies": {
         "@doenet/lsp-tools": "*",
         "@doenet/static-assets": "*",
-        "dompurify": "^3.3.0"
+        "dompurify": "^3.4.11"
     },
     "prettier": {
         "tabWidth": 4

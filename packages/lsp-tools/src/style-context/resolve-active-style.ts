@@ -428,8 +428,7 @@ function mergeBlockInto(
  * doesn't need source positions for the active-default hint.
  */
 let _builtInPresetsCache:
-    | ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>>
-    | undefined;
+    ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>> | undefined;
 function builtInPresets(): ReadonlyMap<
     number,
     Readonly<PrimitiveStyleDefinition>

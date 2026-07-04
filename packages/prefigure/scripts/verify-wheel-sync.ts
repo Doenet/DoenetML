@@ -22,12 +22,10 @@ export function verifyWheelSync({
     }
 
     const configuredWheel = PREFIG_WHEEL_FILENAME;
-    if (
-        !(
-            configuredWheel.startsWith("prefig-") &&
-            configuredWheel.endsWith(".whl")
-        )
-    ) {
+    if (!(
+        configuredWheel.startsWith("prefig-") &&
+        configuredWheel.endsWith(".whl")
+    )) {
         throw new Error(
             `PREFIG_WHEEL_FILENAME is not a prefig wheel filename: ${configuredWheel}`,
         );

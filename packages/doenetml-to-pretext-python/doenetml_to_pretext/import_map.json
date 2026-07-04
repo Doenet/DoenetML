@@ -1,5 +1,5 @@
 {
     "imports": {
-        "react": "npm:react@19.2.3"
+        "react": "npm:react@19.2.7"
     }
 }

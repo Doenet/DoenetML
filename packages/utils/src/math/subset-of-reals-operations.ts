@@ -72,13 +72,11 @@ function buildSubsetFromIntervals(
         let left = endpoints[1];
         if (!Number.isFinite(left)) {
             left = me.fromAst(left).evaluate_to_constant();
-            if (
-                !(
-                    Number.isFinite(left) ||
-                    left === Infinity ||
-                    left === -Infinity
-                )
-            ) {
+            if (!(
+                Number.isFinite(left) ||
+                left === Infinity ||
+                left === -Infinity
+            )) {
                 return InvalidSet();
             }
         }
@@ -86,13 +84,11 @@ function buildSubsetFromIntervals(
         let right = endpoints[2];
         if (!Number.isFinite(right)) {
             right = me.fromAst(right).evaluate_to_constant();
-            if (
-                !(
-                    Number.isFinite(right) ||
-                    right === Infinity ||
-                    right === -Infinity
-                )
-            ) {
+            if (!(
+                Number.isFinite(right) ||
+                right === Infinity ||
+                right === -Infinity
+            )) {
                 return InvalidSet();
             }
         }
@@ -153,13 +149,11 @@ function buildSubsetFromIntervals(
                 varAtLeft = true;
             } else {
                 left = me.fromAst(left).evaluate_to_constant();
-                if (
-                    !(
-                        Number.isFinite(left) ||
-                        left === Infinity ||
-                        left === -Infinity
-                    )
-                ) {
+                if (!(
+                    Number.isFinite(left) ||
+                    left === Infinity ||
+                    left === -Infinity
+                )) {
                     return InvalidSet();
                 }
             }
@@ -172,13 +166,11 @@ function buildSubsetFromIntervals(
                 varAtRight = true;
             } else {
                 right = me.fromAst(right).evaluate_to_constant();
-                if (
-                    !(
-                        Number.isFinite(right) ||
-                        right === Infinity ||
-                        right === -Infinity
-                    )
-                ) {
+                if (!(
+                    Number.isFinite(right) ||
+                    right === Infinity ||
+                    right === -Infinity
+                )) {
                     return InvalidSet();
                 }
             }
@@ -266,13 +258,11 @@ function buildSubsetFromIntervals(
         let left = vals[0];
         if (!Number.isFinite(left)) {
             left = me.fromAst(left).evaluate_to_constant();
-            if (
-                !(
-                    Number.isFinite(left) ||
-                    left === Infinity ||
-                    left === -Infinity
-                )
-            ) {
+            if (!(
+                Number.isFinite(left) ||
+                left === Infinity ||
+                left === -Infinity
+            )) {
                 return InvalidSet();
             }
         }
@@ -280,13 +270,11 @@ function buildSubsetFromIntervals(
         let right = vals[2];
         if (!Number.isFinite(right)) {
             right = me.fromAst(right).evaluate_to_constant();
-            if (
-                !(
-                    Number.isFinite(right) ||
-                    right === Infinity ||
-                    right === -Infinity
-                )
-            ) {
+            if (!(
+                Number.isFinite(right) ||
+                right === Infinity ||
+                right === -Infinity
+            )) {
                 return InvalidSet();
             }
         }

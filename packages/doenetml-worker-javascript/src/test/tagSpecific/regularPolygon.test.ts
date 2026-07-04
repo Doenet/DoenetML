@@ -642,11 +642,7 @@ function adjustVertex1CenterWhenChangeNumVertices(
     numVerticesOld: number,
     numVerticesNew: number,
     conservedWhenChangeNumVertices:
-        | "inradius"
-        | "sideLength"
-        | "perimeter"
-        | "area"
-        | "twoVertices",
+        "inradius" | "sideLength" | "perimeter" | "area" | "twoVertices",
 ) {
     let radiusRatio = 1;
 

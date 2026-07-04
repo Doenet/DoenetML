@@ -15,10 +15,7 @@ type DoenetMLFlags = {
     showCorrectness: boolean;
     readOnly: boolean;
     solutionDisplayMode:
-        | "button"
-        | "buttonRequirePermission"
-        | "displayed"
-        | "none";
+        "button" | "buttonRequirePermission" | "displayed" | "none";
     showFeedback: boolean;
     showHints: boolean;
     allowLoadState: boolean;

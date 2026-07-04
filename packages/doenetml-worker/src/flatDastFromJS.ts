@@ -245,8 +245,7 @@ export function flatDastFromJS(
                         childContents,
                         rendererState.stateValues
                             ?._compositeReplacementActiveRange as
-                            | CompositeReplacementRange[]
-                            | undefined,
+                            CompositeReplacementRange[] | undefined,
                     );
                 element.children = children;
                 for (const wrapper of wrapperElements) {

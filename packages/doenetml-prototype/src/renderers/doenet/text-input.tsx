@@ -9,10 +9,7 @@ import { _ServerSafeMath } from "./_server-safe-math";
 
 /** Validation state for answer submissions */
 export type ValidationState =
-    | "unvalidated"
-    | "correct"
-    | "incorrect"
-    | "partialcorrect";
+    "unvalidated" | "correct" | "incorrect" | "partialcorrect";
 
 type TextInputData = {
     props: {

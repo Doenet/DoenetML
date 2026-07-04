@@ -190,9 +190,9 @@ export default class HasSameFactoring extends BooleanComponent {
                     } else {
                         return { setValue: { value: false } };
                     }
-                } else if (
-                    !(Array.isArray(expr2.tree) && expr2.tree[0] === "*")
-                ) {
+                } else if (!(
+                    Array.isArray(expr2.tree) && expr2.tree[0] === "*"
+                )) {
                     return { setValue: { value: false } };
                 }
 

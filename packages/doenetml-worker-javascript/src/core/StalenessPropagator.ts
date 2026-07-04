@@ -665,12 +665,10 @@ export class StalenessPropagator {
             const stateVarObj = allStateVariablesAffectedObj[vName];
             // if don't have a getter set, this indicates that, before this markStale function,
             // a state variable was fresh.
-            if (
-                !(
-                    Object.getOwnPropertyDescriptor(stateVarObj, "value")
-                        ?.get || stateVarObj.immutable
-                )
-            ) {
+            if (!(
+                Object.getOwnPropertyDescriptor(stateVarObj, "value")?.get ||
+                stateVarObj.immutable
+            )) {
                 previouslyFreshVars.push(vName);
             } else if (currentFreshnessInfo) {
                 if (

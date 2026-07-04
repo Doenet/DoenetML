@@ -1626,13 +1626,11 @@ export default class Line extends GraphicalComponent {
                 }
 
                 // if not inverting equation, must be inverting coeffs
-                if (
-                    !(
-                        "coeff0" in desiredStateVariableValues &&
-                        "coeffvar1" in desiredStateVariableValues &&
-                        "coeffvar2" in desiredStateVariableValues
-                    )
-                ) {
+                if (!(
+                    "coeff0" in desiredStateVariableValues &&
+                    "coeffvar1" in desiredStateVariableValues &&
+                    "coeffvar2" in desiredStateVariableValues
+                )) {
                     console.log(
                         `Haven't implemented inverting coeffs if not specifying all of them`,
                     );
@@ -2170,13 +2168,11 @@ export default class Line extends GraphicalComponent {
             "0,0": me.fromAst(point1coords[0]),
             "0,1": me.fromAst(point1coords[1]),
         };
-        if (
-            !(
-                (await this.stateValues.basedOnSlope) ||
-                (await this.stateValues.basedOnParallel) ||
-                (await this.stateValues.basedOnPerpendicular)
-            )
-        ) {
+        if (!(
+            (await this.stateValues.basedOnSlope) ||
+            (await this.stateValues.basedOnParallel) ||
+            (await this.stateValues.basedOnPerpendicular)
+        )) {
             desiredPoints["1,0"] = me.fromAst(point2coords[0]);
             desiredPoints["1,1"] = me.fromAst(point2coords[1]);
         }
@@ -2226,13 +2222,11 @@ export default class Line extends GraphicalComponent {
 
         // we will attempt to keep the slope of the line fixed
         // even if one of the points is constrained
-        if (
-            !(
-                (await this.stateValues.basedOnSlope) ||
-                (await this.stateValues.basedOnParallel) ||
-                (await this.stateValues.basedOnPerpendicular)
-            )
-        ) {
+        if (!(
+            (await this.stateValues.basedOnSlope) ||
+            (await this.stateValues.basedOnParallel) ||
+            (await this.stateValues.basedOnPerpendicular)
+        )) {
             // based on two points
 
             let numericalPoints = [point1coords, point2coords];
@@ -2360,13 +2354,11 @@ function calculateCoeffsFromEquation({ equation, variables }) {
 
     equation = equation.expand().simplify();
 
-    if (
-        !(
-            Array.isArray(equation.tree) &&
-            equation.tree[0] === "=" &&
-            equation.tree.length === 3
-        )
-    ) {
+    if (!(
+        Array.isArray(equation.tree) &&
+        equation.tree[0] === "=" &&
+        equation.tree.length === 3
+    )) {
         return { success: false };
     }
 

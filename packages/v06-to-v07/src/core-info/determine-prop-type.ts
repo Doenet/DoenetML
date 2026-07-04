@@ -126,8 +126,7 @@ export function determinePropType(
  */
 function componentTypeFromWrapping(
     wrappingComponents: (
-        | string
-        | { componentType: string; isAttributeNamed: string }
+        string | { componentType: string; isAttributeNamed: string }
     )[][],
     nDimensions: number,
     nIndices: number,

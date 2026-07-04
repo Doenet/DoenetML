@@ -365,18 +365,16 @@ function intersectTwoLines(lines) {
     let [[x3, y3], [x4, y4]] =
         line2.numericalPoints || line2.numericalEndpoints;
 
-    if (
-        !(
-            Number.isFinite(x1) &&
-            Number.isFinite(y1) &&
-            Number.isFinite(x2) &&
-            Number.isFinite(y2) &&
-            Number.isFinite(x3) &&
-            Number.isFinite(y3) &&
-            Number.isFinite(x4) &&
-            Number.isFinite(y4)
-        )
-    ) {
+    if (!(
+        Number.isFinite(x1) &&
+        Number.isFinite(y1) &&
+        Number.isFinite(x2) &&
+        Number.isFinite(y2) &&
+        Number.isFinite(x3) &&
+        Number.isFinite(y3) &&
+        Number.isFinite(x4) &&
+        Number.isFinite(y4)
+    )) {
         console.log(
             "Intersection of lines implemented only for numerical values",
         );
@@ -439,16 +437,14 @@ function intersectTwoCircles(circleChildren) {
     let r2 = circ2.numericalRadius;
     let [x2, y2] = circ2.numericalCenter;
 
-    if (
-        !(
-            Number.isFinite(x1) &&
-            Number.isFinite(y1) &&
-            Number.isFinite(r1) &&
-            Number.isFinite(x2) &&
-            Number.isFinite(y2) &&
-            Number.isFinite(r2)
-        )
-    ) {
+    if (!(
+        Number.isFinite(x1) &&
+        Number.isFinite(y1) &&
+        Number.isFinite(r1) &&
+        Number.isFinite(x2) &&
+        Number.isFinite(y2) &&
+        Number.isFinite(r2)
+    )) {
         console.log(
             "Intersection of circles implemented only for numerical values",
         );
@@ -504,17 +500,15 @@ function intersectLineAndCircle(line, circle) {
     let r = circle.numericalRadius;
     let [cx, cy] = circle.numericalCenter;
 
-    if (
-        !(
-            Number.isFinite(x1) &&
-            Number.isFinite(y1) &&
-            Number.isFinite(x2) &&
-            Number.isFinite(y2) &&
-            Number.isFinite(r) &&
-            Number.isFinite(cx) &&
-            Number.isFinite(cy)
-        )
-    ) {
+    if (!(
+        Number.isFinite(x1) &&
+        Number.isFinite(y1) &&
+        Number.isFinite(x2) &&
+        Number.isFinite(y2) &&
+        Number.isFinite(r) &&
+        Number.isFinite(cx) &&
+        Number.isFinite(cy)
+    )) {
         console.log(
             "Intersection of line and circle implemented only for numerical values",
         );

@@ -1444,12 +1444,10 @@ export default class Curve extends GraphicalComponent {
                     let indices = varEnding
                         .split("_")
                         .map((x) => Number(x) - 1);
-                    if (
-                        !(
-                            indices.length === 2 &&
-                            indices.every((x) => Number.isInteger(x) && x >= 0)
-                        )
-                    ) {
+                    if (!(
+                        indices.length === 2 &&
+                        indices.every((x) => Number.isInteger(x) && x >= 0)
+                    )) {
                         return [];
                     }
 
@@ -1933,12 +1931,10 @@ export default class Curve extends GraphicalComponent {
                     let indices = varEnding
                         .split("_")
                         .map((x) => Number(x) - 1);
-                    if (
-                        !(
-                            indices.length === 2 &&
-                            indices.every((x) => Number.isInteger(x) && x >= 0)
-                        )
-                    ) {
+                    if (!(
+                        indices.length === 2 &&
+                        indices.every((x) => Number.isInteger(x) && x >= 0)
+                    )) {
                         return [];
                     }
 
@@ -4256,12 +4252,9 @@ function getNearestPointFunctionCurve({ dependencyValues, numerics }) {
             // if function isn't defined at current variable value, replace with
             // value at nearest endpoint
 
-            if (
-                !(
-                    Number.isFinite(x1AsFunction) &&
-                    Number.isFinite(x2AsFunction)
-                )
-            ) {
+            if (!(
+                Number.isFinite(x1AsFunction) && Number.isFinite(x2AsFunction)
+            )) {
                 let distLeft, distRight;
                 if (flipFunction) {
                     distLeft = Math.abs(parMin - x2);
@@ -4385,13 +4378,11 @@ function getNearestPointFunctionCurve({ dependencyValues, numerics }) {
 
         let currentD2;
 
-        if (
-            !(
-                result.success &&
-                Number.isFinite(x1AtMin) &&
-                Number.isFinite(x2AtMin)
-            )
-        ) {
+        if (!(
+            result.success &&
+            Number.isFinite(x1AtMin) &&
+            Number.isFinite(x2AtMin)
+        )) {
             currentD2 = Infinity;
         } else {
             if (flipFunction) {

@@ -105,13 +105,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (board === null) {
             return null;
         }
-        if (
-            !(
-                Number.isFinite(SVs.numericalCenter[0]) &&
-                Number.isFinite(SVs.numericalCenter[1]) &&
-                SVs.numericalRadius > 0
-            )
-        ) {
+        if (!(
+            Number.isFinite(SVs.numericalCenter[0]) &&
+            Number.isFinite(SVs.numericalCenter[1]) &&
+            SVs.numericalRadius > 0
+        )) {
             return null;
         }
 
@@ -647,13 +645,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             // attempt to create circleJXG.current if it doesn't exist yet
 
             createCircleJXG();
-        } else if (
-            !(
-                Number.isFinite(SVs.numericalCenter[0]) &&
-                Number.isFinite(SVs.numericalCenter[1]) &&
-                SVs.numericalRadius > 0
-            )
-        ) {
+        } else if (!(
+            Number.isFinite(SVs.numericalCenter[0]) &&
+            Number.isFinite(SVs.numericalCenter[1]) &&
+            SVs.numericalRadius > 0
+        )) {
             // can't render circle
 
             deleteCircleJXG();

@@ -1197,12 +1197,10 @@ export default class Point extends GraphicalComponent {
 
                 let coordsTree = desiredStateVariableValues.coords.tree;
 
-                if (
-                    !(
-                        Array.isArray(coordsTree) &&
-                        vectorOperators.includes(coordsTree[0])
-                    )
-                ) {
+                if (!(
+                    Array.isArray(coordsTree) &&
+                    vectorOperators.includes(coordsTree[0])
+                )) {
                     desiredXValues[0] = desiredStateVariableValues.coords;
                 } else {
                     for (let i = 0; i < coordsTree.length - 1; i++) {

@@ -6,9 +6,7 @@ import {
 } from "@doenet/utils";
 
 type NonErrorDiagnosticRecord =
-    | WarningRecord
-    | InfoRecord
-    | AccessibilityRecord;
+    WarningRecord | InfoRecord | AccessibilityRecord;
 
 /**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core

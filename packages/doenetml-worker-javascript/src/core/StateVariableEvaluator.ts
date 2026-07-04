@@ -574,12 +574,10 @@ export class StateVariableEvaluator {
             // Not only is marking those values stale not available when getting state variable values,
             // but it would cause an infinite loop when those definitions also set the essential value
 
-            if (
-                !(
-                    component.state[varName].shadowVariable ||
-                    component.state[varName].doNotShadowEssential
-                )
-            ) {
+            if (!(
+                component.state[varName].shadowVariable ||
+                component.state[varName].doNotShadowEssential
+            )) {
                 throw Error(
                     `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it is not allowed unless the state variable is shadowed or the essential state is not shadowed.`,
                 );
@@ -781,13 +779,11 @@ export class StateVariableEvaluator {
         }
 
         for (let varName in receivedValue) {
-            if (
-                !(
-                    receivedValue[varName] ||
-                    component.state[varName].isArrayEntry ||
-                    component.state[varName].isArray
-                )
-            ) {
+            if (!(
+                receivedValue[varName] ||
+                component.state[varName].isArrayEntry ||
+                component.state[varName].isArray
+            )) {
                 throw Error(
                     `definition of ${stateVariable} of ${component.componentIdx} didn't return value of ${varName}`,
                 );
