@@ -97,7 +97,7 @@
         "@codemirror/lang-xml": "^6.1.0",
         "@codemirror/language": "^6.12.4",
         "@codemirror/state": "^6.7.0",
-        "@codemirror/view": "^6.43.4",
+        "@codemirror/view": "6.38.8",
         "@cypress/grep": "^6.0.2",
         "@emotion/react": "^11.14.0",
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
