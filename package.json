@@ -202,7 +202,7 @@
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-protocol": "^3.18.2",
         "wait-on": "^9.0.10",
-        "wasm-pack": "^0.13.1",
+        "wasm-pack": "^0.15.0",
         "webdriverio": "^9.29.1",
         "wick-a11y": "^2.5.0",
         "wireit": "^0.14.13",
