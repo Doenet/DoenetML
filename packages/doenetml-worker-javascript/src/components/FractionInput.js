@@ -753,6 +753,7 @@ export class FractionInput extends Input {
                         dependencyType: "stateVariable",
                         componentIdx: stateValues.answerSpecifiedInForAnswer,
                         variableName: "colorInputsSeparately",
+                        returnAsComponentObject: true,
                         variablesOptional: true,
                     };
                 }
@@ -764,7 +765,8 @@ export class FractionInput extends Input {
                         colorInputsSeparately:
                             dependencyValues.answerAncestor?.stateValues
                                 .colorInputsSeparately ||
-                            dependencyValues.forAnswerColorInputsSeparately ||
+                            dependencyValues.forAnswerColorInputsSeparately
+                                ?.stateValues?.colorInputsSeparately ||
                             false,
                     },
                 };
@@ -800,6 +802,7 @@ export class FractionInput extends Input {
                             componentIdx:
                                 stateValues.answerSpecifiedInForAnswer,
                             variableName: "creditAchievedPerInput",
+                            returnAsComponentObject: true,
                             variablesOptional: true,
                         },
                     };
@@ -811,9 +814,7 @@ export class FractionInput extends Input {
                     setValue: {
                         creditAchievedPerInput:
                             dependencyValues.answerCreditAchievedPerInput
-                                ?.stateValues?.creditAchievedPerInput ??
-                            dependencyValues.answerCreditAchievedPerInput ??
-                            {},
+                                ?.stateValues?.creditAchievedPerInput ?? {},
                     },
                 };
             },
