@@ -144,11 +144,11 @@ async function createDoenetWorkerBlobUrl(context: ExtensionContext) {
         "build/doenetml-worker/index.js",
     );
     const workerBytes = await vscode.workspace.fs.readFile(workerUri);
-    // VS Code's readFile always returns a plain ArrayBuffer-backed Uint8Array.
-    // The declared return type (Uint8Array<ArrayBufferLike>) is overly broad and
-    // is rejected by the Blob constructor's BlobPart type, so we cast.
+    // VS Code's readFile returns Uint8Array<ArrayBufferLike>, but Blob requires
+    // Uint8Array<ArrayBuffer>. Copying into a fresh Uint8Array ensures a plain
+    // ArrayBuffer-backed view and satisfies the type constraint.
     return URL.createObjectURL(
-        new Blob([workerBytes as unknown as Uint8Array<ArrayBuffer>], {
+        new Blob([new Uint8Array(workerBytes)], {
             type: "application/javascript",
         }),
     );
