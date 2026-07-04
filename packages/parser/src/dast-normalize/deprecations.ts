@@ -156,15 +156,6 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
                     "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated and ignored because `sort` is also specified.",
             },
         },
-        answer: {
-            forceIndividualInputColoring: {
-                to: "colorInputsSeparately",
-                warningMessage:
-                    "[deprecation] Attribute `forceIndividualInputColoring` on `<answer>` is deprecated; use `colorInputsSeparately` instead.",
-                conflictWarningMessage:
-                    "[deprecation] Attribute `forceIndividualInputColoring` on `<answer>` is deprecated and ignored because `colorInputsSeparately` is also specified.",
-            },
-        },
         selectPrimeNumbers: {
             minValue: {
                 to: "from",
