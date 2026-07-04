@@ -9318,4 +9318,44 @@ What is the derivative of <function name="f">x^2</function>?
         // mi2: actualCredit = 0.6 (aw3 awarded), maxCredit = 0.6 → ratio = 1
         expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
     });
+
+    it("colorInputsSeparately: input reference nested inside <math> inside <when> is still detected", async () => {
+        // Verifies that referencedStateVars uses descendant traversal, not just
+        // direct children. <when><math>$mi1</math>=x</when> puts the shadow of
+        // mi1 inside <math>, not as a direct child of <when>.
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+    <award name="aw1" credit="0.5"><when><math>$mi1</math>=x</when></award>
+    <award name="aw2" credit="0.5"><when><math>$mi2</math>=y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        // Both correct
+        await updateMathInputValue({ latex: "x", componentIdx: mi1Idx, core });
+        await updateMathInputValue({ latex: "y", componentIdx: mi2Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+
+        // mi1 wrong, mi2 correct
+        await updateMathInputValue({ latex: "z", componentIdx: mi1Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+        expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(0, 1e-12);
+        expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+    });
 });
