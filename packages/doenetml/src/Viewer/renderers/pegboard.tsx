@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
 import me from "math-expressions";
 import type { round as RoundType } from "mathjs";
-const { round } = me.math as { round: RoundType };
+const { round } = me.math as { round: typeof RoundType };
 import { JXGPoint } from "./jsxgraph-distrib/types";
 
 interface PegboardSVs {
