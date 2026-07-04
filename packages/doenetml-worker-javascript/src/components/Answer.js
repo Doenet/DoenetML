@@ -163,7 +163,7 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
             description:
-                "When enabled, each input inside this answer is colored based on the awards that reference it, rather than all inputs receiving the same overall credit color. Requires numAwardsCredited >= 2 to be meaningful.",
+                "Attempt to color each input separately based on the awards that reference it, rather than all inputs sharing the same overall credit color.",
         };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",
