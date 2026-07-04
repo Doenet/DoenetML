@@ -95,6 +95,24 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("styles disabled graph textInput like other disabled text inputs", () => {
+        function expectMatchingStyles() {
+            for (let property of [
+                "background-color",
+                "border-top-color",
+                "cursor",
+            ]) {
+                cy.get("@plainInput")
+                    .invoke("css", property)
+                    .then((plainValue) => {
+                        cy.get("@graphInput").should(
+                            "have.css",
+                            property,
+                            plainValue,
+                        );
+                    });
+            }
+        }
+
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -102,6 +120,7 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
     <booleanInput name="toggleDisabled" prefill="true">
       <label>Disable graph input</label>
     </booleanInput>
+    <textInput name="plain" disabled="$toggleDisabled" />
     <graph name="g">
       <textInput name="ti" disabled="$toggleDisabled" />
     </graph>
@@ -111,43 +130,24 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
+        cy.get("#plain_input").as("plainInput");
         cy.get("#g").find("input").should("have.length", 1).as("graphInput");
 
+        cy.get("@plainInput").should("be.disabled");
         cy.get("@graphInput").should("be.disabled");
-        cy.get("@graphInput").should(
-            "have.css",
-            "background-color",
-            "rgb(227, 227, 227)",
-        );
-        cy.get("@graphInput").should(
-            "have.css",
-            "border-top-color",
-            "rgb(227, 227, 227)",
-        );
-        cy.get("@graphInput").should("have.css", "cursor", "not-allowed");
+        expectMatchingStyles();
 
         cy.get("#toggleDisabled_input").click({ force: true });
 
+        cy.get("@plainInput").should("not.be.disabled");
         cy.get("@graphInput").should("not.be.disabled");
-        cy.get("@graphInput").should(
-            "have.css",
-            "background-color",
-            "rgb(255, 255, 255)",
-        );
-        cy.get("@graphInput").should(
-            "have.css",
-            "border-top-color",
-            "rgb(0, 0, 0)",
-        );
+        expectMatchingStyles();
 
         cy.get("#toggleDisabled_input").click({ force: true });
 
+        cy.get("@plainInput").should("be.disabled");
         cy.get("@graphInput").should("be.disabled");
-        cy.get("@graphInput").should(
-            "have.css",
-            "background-color",
-            "rgb(227, 227, 227)",
-        );
+        expectMatchingStyles();
     });
 
     it("focused state variable is not saved to database (doNotSave)", () => {

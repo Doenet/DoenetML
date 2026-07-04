@@ -212,7 +212,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
             rendNodeInput.style.cursor = "not-allowed";
         } else {
             rendNodeInput.style.background = "var(--canvas)";
-            rendNodeInput.style.border = "var(--mainBorder)";
+            rendNodeInput.style.border = "";
+            rendNodeInput.style.borderColor = "var(--canvasText)";
             rendNodeInput.style.cursor = "auto";
         }
     }
