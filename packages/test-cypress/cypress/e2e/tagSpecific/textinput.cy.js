@@ -94,6 +94,62 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#piv").should("have.text", "immediate value: hello");
     });
 
+    it("styles disabled graph textInput like other disabled text inputs", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="toggleDisabled" prefill="true">
+      <label>Disable graph input</label>
+    </booleanInput>
+    <graph name="g">
+      <textInput name="ti" disabled="$toggleDisabled" />
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#g").find("input").should("have.length", 1).as("graphInput");
+
+        cy.get("@graphInput").should("be.disabled");
+        cy.get("@graphInput").should(
+            "have.css",
+            "background-color",
+            "rgb(227, 227, 227)",
+        );
+        cy.get("@graphInput").should(
+            "have.css",
+            "border-top-color",
+            "rgb(227, 227, 227)",
+        );
+        cy.get("@graphInput").should("have.css", "cursor", "not-allowed");
+
+        cy.get("#toggleDisabled_input").click({ force: true });
+
+        cy.get("@graphInput").should("not.be.disabled");
+        cy.get("@graphInput").should(
+            "have.css",
+            "background-color",
+            "rgb(255, 255, 255)",
+        );
+        cy.get("@graphInput").should(
+            "have.css",
+            "border-top-color",
+            "rgb(0, 0, 0)",
+        );
+
+        cy.get("#toggleDisabled_input").click({ force: true });
+
+        cy.get("@graphInput").should("be.disabled");
+        cy.get("@graphInput").should(
+            "have.css",
+            "background-color",
+            "rgb(227, 227, 227)",
+        );
+    });
+
     it("focused state variable is not saved to database (doNotSave)", () => {
         let doenetML = `
     <p><textInput name="ti">
