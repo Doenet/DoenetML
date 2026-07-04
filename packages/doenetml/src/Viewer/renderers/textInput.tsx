@@ -202,6 +202,21 @@ export default function TextInput(props: UseDoenetRendererProps) {
         }
     }
 
+    function applyDisabledStyleJXG(
+        rendNodeInput: HTMLElement,
+        disabled: boolean,
+    ) {
+        if (disabled) {
+            rendNodeInput.style.background = "var(--revealButtonSurface)";
+            rendNodeInput.style.border = "2px solid var(--revealButtonSurface)";
+            rendNodeInput.style.cursor = "not-allowed";
+        } else {
+            rendNodeInput.style.background = "var(--canvas)";
+            rendNodeInput.style.border = "var(--mainBorder)";
+            rendNodeInput.style.cursor = "auto";
+        }
+    }
+
     function createInputJXG() {
         if (board === null) {
             return null;
@@ -280,8 +295,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
         newInputJXG.rendNodeInput.style.width = width!;
         newInputJXG.rendNodeInput.style.color = "var(--canvasText)";
-        newInputJXG.rendNodeInput.style.background = "var(--canvas)";
-        newInputJXG.rendNodeInput.style.borderColor = "var(--canvasText)";
+        applyDisabledStyleJXG(newInputJXG.rendNodeInput, SVs.disabled);
 
         newInputJXG.rendNodeLabel.style.marginRight = "2px";
 
@@ -549,6 +563,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
             if (inputJXG.current.visProp.disabled !== SVs.disabled) {
                 inputJXG.current.visProp.disabled = SVs.disabled;
                 inputJXG.current.setAttribute({ disabled: SVs.disabled });
+                applyDisabledStyleJXG(
+                    inputJXG.current.rendNodeInput,
+                    SVs.disabled,
+                );
             }
 
             inputJXG.current.visProp.highlight = !fixLocation.current;
