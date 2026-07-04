@@ -1244,9 +1244,7 @@ export default class Answer extends InlineComponent {
                 inputChildren: {
                     dependencyType: "child",
                     childGroups: ["inputs"],
-                    variableNames: [],
                     childIndices: stateValues.inputChildRelativeIndices,
-                    variablesOptional: true,
                 },
                 inputsForAnswer: {
                     dependencyType: "stateVariable",
