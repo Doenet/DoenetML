@@ -732,41 +732,80 @@ export class FractionInput extends Input {
             },
         };
 
-        // Expose the answer ancestor's per-input coloring state so that the
+        // Expose the controlling answer's per-input coloring state so that the
         // _fractionInputComponent sub-boxes can read them via parentStateVariable.
-        // FractionInput is always inside the answer, so an ancestor dependency works.
+        // Mirrors the logic in abstract/Input.js creditAchieved: checks both
+        // answerAncestor (fractionInput inside answer) and answerSpecifiedInForAnswer
+        // (fractionInput outside answer linked via forAnswer).
         stateVariableDefinitions.colorInputsSeparately = {
-            returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-            }),
+            stateVariablesDeterminingDependencies: [
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    answerAncestor: {
+                        dependencyType: "stateVariable",
+                        variableName: "answerAncestor",
+                    },
+                };
+                if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    deps.forAnswerColorInputsSeparately = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerSpecifiedInForAnswer,
+                        variableNames: ["colorInputsSeparately"],
+                        variablesOptional: true,
+                    };
+                }
+                return deps;
+            },
             definition({ dependencyValues }) {
                 return {
                     setValue: {
                         colorInputsSeparately:
                             dependencyValues.answerAncestor?.stateValues
-                                .colorInputsSeparately ?? false,
+                                .colorInputsSeparately ||
+                            dependencyValues.forAnswerColorInputsSeparately
+                                ?.stateValues?.colorInputsSeparately ||
+                            false,
                     },
                 };
             },
         };
 
         stateVariableDefinitions.creditAchievedPerInput = {
-            stateVariablesDeterminingDependencies: ["colorInputsSeparately"],
+            stateVariablesDeterminingDependencies: [
+                "colorInputsSeparately",
+                "answerAncestor",
+                "answerSpecifiedInForAnswer",
+            ],
             returnDependencies({ stateValues }) {
                 if (!stateValues.colorInputsSeparately) {
                     return {};
                 }
-                return {
-                    answerCreditAchievedPerInput: {
-                        dependencyType: "ancestor",
-                        componentType: "answer",
-                        variableNames: ["creditAchievedPerInput"],
-                        variablesOptional: true,
-                    },
-                };
+                if (stateValues.answerAncestor) {
+                    // Inside the answer — use ancestor dep.
+                    return {
+                        answerCreditAchievedPerInput: {
+                            dependencyType: "ancestor",
+                            componentType: "answer",
+                            variableNames: ["creditAchievedPerInput"],
+                            variablesOptional: true,
+                        },
+                    };
+                }
+                if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    // External forAnswer input — use multipleStateVariables.
+                    return {
+                        answerCreditAchievedPerInput: {
+                            dependencyType: "multipleStateVariables",
+                            componentIdx:
+                                stateValues.answerSpecifiedInForAnswer,
+                            variableNames: ["creditAchievedPerInput"],
+                            variablesOptional: true,
+                        },
+                    };
+                }
+                return {};
             },
             definition({ dependencyValues }) {
                 return {
