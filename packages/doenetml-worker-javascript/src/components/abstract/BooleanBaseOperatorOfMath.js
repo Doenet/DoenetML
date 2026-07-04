@@ -75,6 +75,7 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
+        delete stateVariableDefinitions.referencedStateVars;
 
         stateVariableDefinitions.booleanOperator = {
             returnDependencies: () => ({}),

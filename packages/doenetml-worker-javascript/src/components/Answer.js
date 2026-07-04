@@ -157,6 +157,14 @@ export default class Answer extends InlineComponent {
             description:
                 "Maximum number of matching awards whose credits are summed.",
         };
+        attributes.forceIndividualInputColoring = {
+            createComponentOfType: "boolean",
+            createStateVariable: "forceIndividualInputColoring",
+            defaultValue: false,
+            public: true,
+            description:
+                "When true, each input inside this answer is colored individually based on the award(s) that reference it, rather than all inputs receiving the same overall credit color.",
+        };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",
             createStateVariable: "allowedErrorInNumbers",
@@ -1224,6 +1232,68 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        // Lightweight structural version of the answer's input list: just
+        // component indices, no live values.  Used by Award.referencedInputStateVars
+        // so that per-input coloring doesn't become stale every time a user types.
+        stateVariableDefinitions.allInputComponentIdxs = {
+            stateVariablesDeterminingDependencies: [
+                "inputChildRelativeIndices",
+            ],
+            additionalStateVariablesDefined: ["singleInputComponentIdx"],
+            returnDependencies: ({ stateValues }) => ({
+                inputChildren: {
+                    dependencyType: "child",
+                    childGroups: ["inputs"],
+                    variableNames: [],
+                    childIndices: stateValues.inputChildRelativeIndices,
+                    variablesOptional: true,
+                },
+                inputsForAnswer: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputsForAnswer",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const allInputComponentIdxs = new Set([
+                    ...dependencyValues.inputChildren.map(
+                        (c) => c.componentIdx,
+                    ),
+                    ...dependencyValues.inputsForAnswer.map(
+                        (c) => c.componentIdx,
+                    ),
+                ]);
+                // Single-input index for inline (no-<when>) awards.
+                const singleInputComponentIdx =
+                    dependencyValues.inputChildren.length === 1
+                        ? dependencyValues.inputChildren[0].componentIdx
+                        : null;
+                return {
+                    setValue: {
+                        allInputComponentIdxs,
+                        singleInputComponentIdx,
+                    },
+                };
+            },
+        };
+
+        // for award children to find the one input child
+        stateVariableDefinitions.inputChildWithValues = {
+            returnDependencies: () => ({
+                inputChildrenWithValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputChildrenWithValues",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let inputChildWithValues = null;
+                if (dependencyValues.inputChildrenWithValues.length === 1) {
+                    inputChildWithValues =
+                        dependencyValues.inputChildrenWithValues[0];
+                }
+                return { setValue: { inputChildWithValues } };
+            },
+        };
+
         stateVariableDefinitions.inputComponentIdxForLabel = {
             stateVariablesDeterminingDependencies: ["inputChildrenWithValues"],
             additionalStateVariablesDefined: [
@@ -2224,6 +2294,70 @@ export default class Answer extends InlineComponent {
                         inputUsedIfSubmit: inputUsed,
                     },
                 };
+            },
+        };
+
+        // Reactive per-input coloring state: maps "componentIdx/propVariable"
+        // keys to a correctness ratio (0–1).  Depends on award.awarded and
+        // award.creditAchieved which are essential state vars updated only in
+        // submitAnswer(), so this naturally recomputes only on submission.
+        stateVariableDefinitions.creditAchievedPerInput = {
+            returnDependencies: () => ({
+                awardChildren: {
+                    dependencyType: "child",
+                    childGroups: ["awards"],
+                    variableNames: [
+                        "awarded",
+                        "creditAchieved",
+                        "credit",
+                        "referencedInputStateVars",
+                    ],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const maxCreditByKey = {};
+                const actualCreditByKey = {};
+
+                for (const award of dependencyValues.awardChildren) {
+                    const referencedInputStateVars =
+                        award.stateValues.referencedInputStateVars ?? [];
+                    const credit = award.stateValues.credit ?? 0;
+                    const awarded = award.stateValues.awarded ?? false;
+                    const creditAchieved =
+                        award.stateValues.creditAchieved ?? 0;
+
+                    for (const {
+                        componentIdx,
+                        propVariable,
+                    } of referencedInputStateVars) {
+                        const key = `${componentIdx}/${propVariable}`;
+                        if (
+                            maxCreditByKey[key] === undefined ||
+                            credit > maxCreditByKey[key]
+                        ) {
+                            maxCreditByKey[key] = credit;
+                        }
+                        if (
+                            awarded &&
+                            (actualCreditByKey[key] === undefined ||
+                                creditAchieved > actualCreditByKey[key])
+                        ) {
+                            actualCreditByKey[key] = creditAchieved;
+                        }
+                    }
+                }
+
+                const creditAchievedPerInput = {};
+                for (const key of Object.keys(maxCreditByKey)) {
+                    const maxCredit = maxCreditByKey[key];
+                    if (maxCredit > 0) {
+                        creditAchievedPerInput[key] =
+                            (actualCreditByKey[key] ?? 0) / maxCredit;
+                    }
+                }
+
+                return { setValue: { creditAchievedPerInput } };
             },
         };
 

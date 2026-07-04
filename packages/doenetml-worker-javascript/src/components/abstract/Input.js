@@ -98,6 +98,7 @@ export default class Input extends InlineComponent {
                         "forceFullCheckWorkButton",
                         "forceSmallCheckWorkButton",
                         "labelsForAnswer",
+                        "forceIndividualInputColoring",
                     ],
                 },
             }),
@@ -197,6 +198,7 @@ export default class Input extends InlineComponent {
                             "creditAchieved",
                             "showCorrectness",
                             "colorCorrectness",
+                            "forceIndividualInputColoring",
                         ],
                         variablesOptional: true,
                     };
@@ -305,19 +307,75 @@ export default class Input extends InlineComponent {
 
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
-            returnDependencies: () => ({
-                componentDeterminingDisplayedCorrectness: {
-                    dependencyType: "stateVariable",
-                    variableName: "componentDeterminingDisplayedCorrectness",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
+            stateVariablesDeterminingDependencies: [
+                "answerAncestor",
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    componentDeterminingDisplayedCorrectness: {
+                        dependencyType: "stateVariable",
+                        variableName:
+                            "componentDeterminingDisplayedCorrectness",
+                    },
+                };
+                // Only request creditAchievedPerInput when
+                // forceIndividualInputColoring is active — prevents unnecessary
+                // staleness propagation on every keystroke.
+                if (
+                    stateValues.answerAncestor?.stateValues
+                        .forceIndividualInputColoring
+                ) {
+                    // Input is inside the answer: use ancestor dependency.
+                    deps.answerCreditAchievedPerInput = {
+                        dependencyType: "ancestor",
+                        componentType: "answer",
+                        variableNames: ["creditAchievedPerInput"],
+                        variablesOptional: true,
+                    };
+                } else if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    // Input is external (forAnswer): fetch flag first to decide
+                    // whether we need creditAchievedPerInput.
+                    deps.answerFlagAndCredit = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerSpecifiedInForAnswer,
+                        variableNames: [
+                            "forceIndividualInputColoring",
+                            "creditAchievedPerInput",
+                        ],
+                        variablesOptional: true,
+                    };
+                }
+                return deps;
+            },
+            definition: function ({ dependencyValues, componentIdx }) {
                 let creditAchieved = 0;
-                if (dependencyValues.componentDeterminingDisplayedCorrectness) {
-                    creditAchieved =
-                        dependencyValues
-                            .componentDeterminingDisplayedCorrectness
-                            .stateValues.creditAchieved;
+                const comp =
+                    dependencyValues.componentDeterminingDisplayedCorrectness;
+                if (comp) {
+                    const overallCredit = comp.stateValues.creditAchieved ?? 0;
+                    // Per-input coloring when forceIndividualInputColoring is active.
+                    const creditAchievedPerInput =
+                        dependencyValues.answerCreditAchievedPerInput
+                            ?.stateValues?.creditAchievedPerInput ??
+                        (dependencyValues.answerFlagAndCredit?.stateValues
+                            ?.forceIndividualInputColoring
+                            ? dependencyValues.answerFlagAndCredit.stateValues
+                                  .creditAchievedPerInput
+                            : undefined);
+                    if (
+                        comp.stateValues.forceIndividualInputColoring &&
+                        creditAchievedPerInput
+                    ) {
+                        const key = `${componentIdx}/value`;
+                        const perInputCredit = creditAchievedPerInput[key];
+                        creditAchieved =
+                            perInputCredit !== undefined
+                                ? perInputCredit
+                                : overallCredit;
+                    } else {
+                        creditAchieved = overallCredit;
+                    }
                 }
                 return {
                     setValue: { creditAchieved },

@@ -9133,4 +9133,189 @@ What is the derivative of <function name="f">x^2</function>?
         // Should be false since there are no inputs
         expect(stateVariables[ansIdx].stateValues.focused).eq(false);
     });
+
+    it("forceIndividualInputColoring with two mathInputs and separate awards", async () => {
+        // Each award references a different input; per-input coloring should
+        // color each box independently based on which award(s) it is covered by.
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+    <award name="aw1" credit="0.5"><when>$mi1 = x</when></award>
+    <award name="aw2" credit="0.5"><when>$mi2 = y</when></award>
+    <award name="aw3" credit="0"><when>$mi1 = z</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        // Helper: submit and check per-input creditAchieved
+        async function checkCreditAfterSubmit({
+            mi1Latex,
+            mi2Latex,
+            expectedCredit,
+            expectedMi1Credit,
+            expectedMi2Credit,
+        }: {
+            mi1Latex: string;
+            mi2Latex: string;
+            expectedCredit: number;
+            expectedMi1Credit: number;
+            expectedMi2Credit: number;
+        }) {
+            await updateMathInputValue({
+                latex: mi1Latex,
+                componentIdx: mi1Idx,
+                core,
+            });
+            await updateMathInputValue({
+                latex: mi2Latex,
+                componentIdx: mi2Idx,
+                core,
+            });
+            await submitAnswer({ componentIdx: ansIdx, core });
+
+            const sv = await core.returnAllStateVariables(false, true);
+
+            expect(sv[ansIdx].stateValues.creditAchieved).closeTo(
+                expectedCredit,
+                1e-12,
+            );
+            expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(
+                expectedMi1Credit,
+                1e-12,
+                `mi1 credit: expected ${expectedMi1Credit}`,
+            );
+            expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(
+                expectedMi2Credit,
+                1e-12,
+                `mi2 credit: expected ${expectedMi2Credit}`,
+            );
+        }
+
+        // Both correct: both get full credit
+        await checkCreditAfterSubmit({
+            mi1Latex: "x",
+            mi2Latex: "y",
+            expectedCredit: 1,
+            expectedMi1Credit: 1,
+            expectedMi2Credit: 1,
+        });
+
+        // mi1 correct, mi2 wrong: mi1 green, mi2 red
+        await checkCreditAfterSubmit({
+            mi1Latex: "x",
+            mi2Latex: "z",
+            expectedCredit: 0.5,
+            expectedMi1Credit: 1,
+            expectedMi2Credit: 0,
+        });
+
+        // mi1 wrong, mi2 correct: mi1 red, mi2 green
+        await checkCreditAfterSubmit({
+            mi1Latex: "a",
+            mi2Latex: "y",
+            expectedCredit: 0.5,
+            expectedMi1Credit: 0,
+            expectedMi2Credit: 1,
+        });
+
+        // Both wrong: both red
+        await checkCreditAfterSubmit({
+            mi1Latex: "a",
+            mi2Latex: "b",
+            expectedCredit: 0,
+            expectedMi1Credit: 0,
+            expectedMi2Credit: 0,
+        });
+
+        // mi1 = z matches aw3 (credit=0 award): maxCredit for mi1 = 0.5 (aw1),
+        // aw3 is awarded but contributes 0 — so mi1 shows 0/0.5 = 0
+        await checkCreditAfterSubmit({
+            mi1Latex: "z",
+            mi2Latex: "y",
+            expectedCredit: 0.5,
+            expectedMi1Credit: 0,
+            expectedMi2Credit: 1,
+        });
+    });
+
+    it("forceIndividualInputColoring: input with no covering award falls back to overall credit", async () => {
+        // mi3 is not referenced by any award, so it should fall back to the
+        // answer's overall creditAchieved rather than getting a per-input value.
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <mathInput name="mi3" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+    <award name="aw1" credit="0.5"><when>$mi1 = x</when></award>
+    <award name="aw2" credit="0.5"><when>$mi2 = y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+        const mi3Idx = await resolvePathToNodeIdx("mi3");
+
+        await updateMathInputValue({ latex: "x", componentIdx: mi1Idx, core });
+        await updateMathInputValue({ latex: "y", componentIdx: mi2Idx, core });
+        await updateMathInputValue({ latex: "q", componentIdx: mi3Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        // mi1 and mi2 get per-input coloring
+        expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        // mi3 has no covering award → falls back to overall answer credit (1)
+        expect(sv[mi3Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+    });
+
+    it("forceIndividualInputColoring: partial credit per input with multiple awards covering one input", async () => {
+        // Two awards cover mi1 (different correctness levels); the best awarded
+        // one determines actualCredit; maxCredit is the best overall.
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+    <award name="aw1" credit="0.4"><when>$mi1 = x</when></award>
+    <award name="aw2" credit="0.2"><when>$mi1 = x^2</when></award>
+    <award name="aw3" credit="0.6"><when>$mi2 = y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        // mi1 = x^2 (partial): aw2 awarded (credit=0.2), maxCredit for mi1=0.4
+        // mi2 = y (full): aw3 awarded (credit=0.6), maxCredit for mi2=0.6
+        await updateMathInputValue({
+            latex: "x^2",
+            componentIdx: mi1Idx,
+            core,
+        });
+        await updateMathInputValue({ latex: "y", componentIdx: mi2Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        // Overall: top-2 awards selected are aw3 (0.6) + aw2 (0.2) = 0.8
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(0.8, 1e-12);
+        // mi1: actualCredit = 0.2 (aw2 awarded), maxCredit = 0.4 → ratio = 0.5
+        expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+        // mi2: actualCredit = 0.6 (aw3 awarded), maxCredit = 0.6 → ratio = 1
+        expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
+    });
 });

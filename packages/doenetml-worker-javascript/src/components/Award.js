@@ -861,6 +861,67 @@ export default class Award extends BaseComponent {
             description: "The first feedback message produced by this award.",
         };
 
+        // Identifies which answer-input state variables this award's condition
+        // references, so the answer can compute per-input coloring.
+        // Each entry is { componentIdx, propVariable } pointing to the source
+        // component+variable that a code-child in the <when> expression shadows.
+        // Only entries whose componentIdx is one of the answer's own inputs are included.
+        stateVariableDefinitions.referencedInputStateVars = {
+            returnDependencies: () => ({
+                whenChild: {
+                    dependencyType: "child",
+                    childGroups: ["whens"],
+                    variableNames: ["referencedStateVars"],
+                    variablesOptional: true,
+                },
+                // Use the lightweight structural set (no live values) so that
+                // per-input coloring doesn't go stale every time a user types.
+                allInputComponentIdxs: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "allInputComponentIdxs",
+                },
+                singleInputComponentIdx: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "singleInputComponentIdx",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const allInputComponentIdxs =
+                    dependencyValues.allInputComponentIdxs ?? new Set();
+
+                if (dependencyValues.whenChild.length > 0) {
+                    const referencedStateVars =
+                        dependencyValues.whenChild[0].stateValues
+                            .referencedStateVars ?? [];
+                    return {
+                        setValue: {
+                            referencedInputStateVars:
+                                referencedStateVars.filter((ref) =>
+                                    allInputComponentIdxs.has(ref.componentIdx),
+                                ),
+                        },
+                    };
+                }
+
+                // Inline award (no <when>): references the single answer input
+                const singleInputComponentIdx =
+                    dependencyValues.singleInputComponentIdx;
+                if (singleInputComponentIdx == null) {
+                    return { setValue: { referencedInputStateVars: [] } };
+                }
+                return {
+                    setValue: {
+                        referencedInputStateVars: [
+                            {
+                                componentIdx: singleInputComponentIdx,
+                                propVariable: "value",
+                            },
+                        ],
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 

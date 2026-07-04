@@ -723,6 +723,64 @@ export class FractionInput extends Input {
             }),
         };
 
+        // Expose this component's index so _fractionInputComponent sub-boxes can
+        // build the correct per-input key ("fractionInputIdx/numerator" etc.).
+        stateVariableDefinitions.componentIdx = {
+            returnDependencies: () => ({}),
+            definition({ componentIdx }) {
+                return { setValue: { componentIdx } };
+            },
+        };
+
+        // Expose the answer ancestor's per-input coloring state so that the
+        // _fractionInputComponent sub-boxes can read them via parentStateVariable.
+        // FractionInput is always inside the answer, so an ancestor dependency works.
+        stateVariableDefinitions.forceIndividualInputColoring = {
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        forceIndividualInputColoring:
+                            dependencyValues.answerAncestor?.stateValues
+                                .forceIndividualInputColoring ?? false,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.creditAchievedPerInput = {
+            stateVariablesDeterminingDependencies: [
+                "forceIndividualInputColoring",
+            ],
+            returnDependencies({ stateValues }) {
+                if (!stateValues.forceIndividualInputColoring) {
+                    return {};
+                }
+                return {
+                    answerCreditAchievedPerInput: {
+                        dependencyType: "ancestor",
+                        componentType: "answer",
+                        variableNames: ["creditAchievedPerInput"],
+                        variablesOptional: true,
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        creditAchievedPerInput:
+                            dependencyValues.answerCreditAchievedPerInput
+                                ?.stateValues?.creditAchievedPerInput ?? {},
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -896,19 +954,65 @@ export default class FractionComponentInput extends BaseComponent {
 
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
-            returnDependencies: () => ({
-                parentCreditAchieved: {
+            stateVariablesDeterminingDependencies: ["part"],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    parentCreditAchieved: {
+                        dependencyType: "parentStateVariable",
+                        parentComponentType: "fractionInput",
+                        variableName: "creditAchieved",
+                    },
+                    parentForceIndividualInputColoring: {
+                        dependencyType: "parentStateVariable",
+                        parentComponentType: "fractionInput",
+                        variableName: "forceIndividualInputColoring",
+                    },
+                };
+                // Only pull in the per-part data when forceIndividualInputColoring
+                // is active so we don't track creditAchievedPerInput needlessly.
+                // We can't read the parent flag here (stateVariablesDeterminingDependencies
+                // only gives us this component's own vars), so we always request the
+                // flag cheaply and conditionally request the map below in definition.
+                // Actually pull them both always but only use when needed — the
+                // dependency is structural-only (no live value tracking) so it's safe.
+                deps.parentCreditAchievedPerInput = {
                     dependencyType: "parentStateVariable",
                     parentComponentType: "fractionInput",
-                    variableName: "creditAchieved",
-                },
-            }),
+                    variableName: "creditAchievedPerInput",
+                };
+                deps.parentComponentIdx = {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "componentIdx",
+                };
+                deps.part = {
+                    dependencyType: "stateVariable",
+                    variableName: "part",
+                };
+                return deps;
+            },
             definition({ dependencyValues }) {
+                const fallback = dependencyValues.parentCreditAchieved ?? 0;
+                if (
+                    dependencyValues.parentForceIndividualInputColoring &&
+                    dependencyValues.parentCreditAchievedPerInput &&
+                    dependencyValues.parentComponentIdx !== undefined &&
+                    dependencyValues.part
+                ) {
+                    const key = `${dependencyValues.parentComponentIdx}/${dependencyValues.part}`;
+                    const perPartCredit =
+                        dependencyValues.parentCreditAchievedPerInput[key];
+                    return {
+                        setValue: {
+                            creditAchieved:
+                                perPartCredit !== undefined
+                                    ? perPartCredit
+                                    : fallback,
+                        },
+                    };
+                }
                 return {
-                    setValue: {
-                        creditAchieved:
-                            dependencyValues.parentCreditAchieved ?? 0,
-                    },
+                    setValue: { creditAchieved: fallback },
                 };
             },
         };

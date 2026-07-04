@@ -433,4 +433,79 @@ describe("FractionInput tag tests @group3", async () => {
                 .tree,
         ).eqls(["/", ["-", 4], 5]);
     });
+
+    it("forceIndividualInputColoring colors numerator and denominator sub-boxes independently", async () => {
+        // With forceIndividualInputColoring, the numerator and denominator boxes
+        // of a fractionInput should each be colored based on their respective
+        // covering award's result.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <answer name="ans" numAwardsCredited="2" forceIndividualInputColoring>
+    <fractionInput name="fi" />
+    <award name="numAward" credit="0.5"><when>$fi.numerator = 2</when></award>
+    <award name="denAward" credit="0.5"><when>$fi.denominator = 3</when></award>
+  </answer>
+  `,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const fiIdx = await resolvePathToNodeIdx("fi");
+
+        // Find the _fractionInputComponent children (numerator and denominator boxes)
+        let sv = await core.returnAllStateVariables(false, true);
+        const fiAllChildren = sv[fiIdx].activeChildren as {
+            componentIdx: number;
+            componentType: string;
+        }[];
+        const subBoxes = fiAllChildren.filter(
+            (c) => c.componentType === "_fractionInputComponent",
+        );
+        expect(subBoxes.length).eq(2);
+        const numBoxIdx = subBoxes[0].componentIdx;
+        const denBoxIdx = subBoxes[1].componentIdx;
+
+        async function checkBoxCredit(
+            numLatex: string,
+            denLatex: string,
+            expectedNumCredit: number,
+            expectedDenCredit: number,
+        ) {
+            await updateFractionInputValue({
+                latex: numLatex,
+                componentIdx: fiIdx,
+                part: "numerator",
+                core,
+            });
+            await updateFractionInputValue({
+                latex: denLatex,
+                componentIdx: fiIdx,
+                part: "denominator",
+                core,
+            });
+            await submitAnswer({ componentIdx: ansIdx, core });
+            sv = await core.returnAllStateVariables(false, true);
+            expect(sv[numBoxIdx].stateValues.creditAchieved).closeTo(
+                expectedNumCredit,
+                1e-12,
+                `numerator credit: expected ${expectedNumCredit}`,
+            );
+            expect(sv[denBoxIdx].stateValues.creditAchieved).closeTo(
+                expectedDenCredit,
+                1e-12,
+                `denominator credit: expected ${expectedDenCredit}`,
+            );
+        }
+
+        // Both correct: both green (credit=1)
+        await checkBoxCredit("2", "3", 1, 1);
+
+        // Only numerator correct: numerator green, denominator red
+        await checkBoxCredit("2", "5", 1, 0);
+
+        // Only denominator correct: numerator red, denominator green
+        await checkBoxCredit("7", "3", 0, 1);
+
+        // Both wrong: both red
+        await checkBoxCredit("7", "5", 0, 0);
+    });
 });
