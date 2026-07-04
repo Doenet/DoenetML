@@ -190,9 +190,51 @@ export default class When extends BooleanComponent {
             },
         };
 
+        // For each code-child ($fi.numerator, $mi1, etc.), read its shadow
+        // source info to determine which input component and state variable it
+        // was created from.  Used by Award.referencedInputStateVars to build
+        // the per-input coloring map for forceIndividualInputColoring.
+        stateVariableDefinitions.referencedStateVars = {
+            stateVariablesDeterminingDependencies: [
+                "mathChildrenByCode",
+                "numberChildrenByCode",
+                "textChildrenByCode",
+                "booleanChildrenByCode",
+                "otherChildrenByCode",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {};
+                const allMaps = [
+                    stateValues.mathChildrenByCode,
+                    stateValues.numberChildrenByCode,
+                    stateValues.textChildrenByCode,
+                    stateValues.booleanChildrenByCode,
+                    stateValues.otherChildrenByCode,
+                ];
+                for (const map of allMaps) {
+                    if (!map) continue;
+                    for (const child of Object.values(map)) {
+                        if (child?.componentIdx !== undefined) {
+                            deps[`shadowInfo_${child.componentIdx}`] = {
+                                dependencyType: "shadowInfo",
+                                componentIdx: child.componentIdx,
+                            };
+                        }
+                    }
+                }
+                return deps;
+            },
+            definition({ dependencyValues }) {
+                const referencedStateVars = [];
+                for (const [key, value] of Object.entries(dependencyValues)) {
+                    if (key.startsWith("shadowInfo_") && value !== null) {
+                        referencedStateVars.push(value);
+                    }
+                }
+                return { setValue: { referencedStateVars } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
-
-    // "when" does not adapt to "text", even though boolean does
-    static adapters = [];
 }

@@ -72,7 +72,6 @@ export default class BooleanOperator extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
-        delete stateVariableDefinitions.referencedStateVars;
 
         let constructor = this;
 

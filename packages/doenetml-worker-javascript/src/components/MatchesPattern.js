@@ -131,7 +131,6 @@ export default class MatchesPattern extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
-        delete stateVariableDefinitions.referencedStateVars;
 
         stateVariableDefinitions.pattern = {
             additionalStateVariablesDefined: ["patternVariables"],

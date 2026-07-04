@@ -409,52 +409,6 @@ export default class BooleanComponent extends InlineComponent {
             },
         };
 
-        // For each code-child (the components from $fi.numerator, $mi1, etc.),
-        // read its shadow source info to determine which input component and
-        // state variable it was created from.  The *ChildrenByCode maps already
-        // hold the child objects (with componentIdx); the "shadowInfo" dependency
-        // reads component.shadows which is set statically at construction time.
-        stateVariableDefinitions.referencedStateVars = {
-            stateVariablesDeterminingDependencies: [
-                "mathChildrenByCode",
-                "numberChildrenByCode",
-                "textChildrenByCode",
-                "booleanChildrenByCode",
-                "otherChildrenByCode",
-            ],
-            returnDependencies({ stateValues }) {
-                const deps = {};
-                const allMaps = [
-                    stateValues.mathChildrenByCode,
-                    stateValues.numberChildrenByCode,
-                    stateValues.textChildrenByCode,
-                    stateValues.booleanChildrenByCode,
-                    stateValues.otherChildrenByCode,
-                ];
-                for (const map of allMaps) {
-                    if (!map) continue;
-                    for (const child of Object.values(map)) {
-                        if (child?.componentIdx !== undefined) {
-                            deps[`shadowInfo_${child.componentIdx}`] = {
-                                dependencyType: "shadowInfo",
-                                componentIdx: child.componentIdx,
-                            };
-                        }
-                    }
-                }
-                return deps;
-            },
-            definition({ dependencyValues }) {
-                const referencedStateVars = [];
-                for (const [key, value] of Object.entries(dependencyValues)) {
-                    if (key.startsWith("shadowInfo_") && value !== null) {
-                        referencedStateVars.push(value);
-                    }
-                }
-                return { setValue: { referencedStateVars } };
-            },
-        };
-
         stateVariableDefinitions.text = {
             description:
                 'The boolean rendered as a text string ("true" or "false").',

@@ -63,7 +63,6 @@ export default class HasSameFactoring extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
-        delete stateVariableDefinitions.referencedStateVars;
 
         stateVariableDefinitions.value = {
             public: true,
