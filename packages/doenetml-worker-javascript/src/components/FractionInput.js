@@ -759,12 +759,22 @@ export class FractionInput extends Input {
                 return deps;
             },
             definition({ dependencyValues }) {
+                // answerAncestor takes precedence — if the fractionInput is
+                // inside an answer, use that answer's setting and ignore any
+                // forAnswer attribute (which would be a misconfiguration).
+                if (dependencyValues.answerAncestor) {
+                    return {
+                        setValue: {
+                            colorInputsSeparately:
+                                dependencyValues.answerAncestor.stateValues
+                                    .colorInputsSeparately ?? false,
+                        },
+                    };
+                }
                 return {
                     setValue: {
                         colorInputsSeparately:
-                            dependencyValues.answerAncestor?.stateValues
-                                .colorInputsSeparately ||
-                            dependencyValues.forAnswerColorInputsSeparately ||
+                            dependencyValues.forAnswerColorInputsSeparately ??
                             false,
                     },
                 };
