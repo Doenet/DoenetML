@@ -469,6 +469,7 @@ describe("FractionInput tag tests @group3", async () => {
             denLatex: string,
             expectedNumCredit: number,
             expectedDenCredit: number,
+            expectedParentCredit: number,
         ) {
             await updateFractionInputValue({
                 latex: numLatex,
@@ -494,19 +495,26 @@ describe("FractionInput tag tests @group3", async () => {
                 1e-12,
                 `denominator credit: expected ${expectedDenCredit}`,
             );
+            expect(sv[fiIdx].stateValues.creditAchieved).closeTo(
+                expectedParentCredit,
+                1e-12,
+                `parent fractionInput credit: expected ${expectedParentCredit}`,
+            );
         }
 
         // Both correct: both green (credit=1)
-        await checkBoxCredit("2", "3", 1, 1);
+        await checkBoxCredit("2", "3", 1, 1, 1);
 
-        // Only numerator correct: numerator green, denominator red
-        await checkBoxCredit("2", "5", 1, 0);
+        // Only numerator correct: numerator green, denominator red, but the
+        // parent fractionInput remains partially correct overall.
+        await checkBoxCredit("2", "5", 1, 0, 0.5);
 
-        // Only denominator correct: numerator red, denominator green
-        await checkBoxCredit("7", "3", 0, 1);
+        // Only denominator correct: numerator red, denominator green, but the
+        // parent fractionInput remains partially correct overall.
+        await checkBoxCredit("7", "3", 0, 1, 0.5);
 
         // Both wrong: both red
-        await checkBoxCredit("7", "5", 0, 0);
+        await checkBoxCredit("7", "5", 0, 0, 0);
     });
 
     it("colorInputsSeparately works when fractionInput is outside answer via forAnswer", async () => {
@@ -541,6 +549,7 @@ describe("FractionInput tag tests @group3", async () => {
             denLatex: string,
             expectedNum: number,
             expectedDen: number,
+            expectedParentCredit: number,
         ) {
             await updateFractionInputValue({
                 latex: numLatex,
@@ -566,11 +575,16 @@ describe("FractionInput tag tests @group3", async () => {
                 1e-12,
                 `denominator credit: expected ${expectedDen}`,
             );
+            expect(sv[fiIdx].stateValues.creditAchieved).closeTo(
+                expectedParentCredit,
+                1e-12,
+                `parent fractionInput credit: expected ${expectedParentCredit}`,
+            );
         }
 
-        await checkBoxCredit("2", "3", 1, 1);
-        await checkBoxCredit("2", "5", 1, 0);
-        await checkBoxCredit("7", "3", 0, 1);
-        await checkBoxCredit("7", "5", 0, 0);
+        await checkBoxCredit("2", "3", 1, 1, 1);
+        await checkBoxCredit("2", "5", 1, 0, 0.5);
+        await checkBoxCredit("7", "3", 0, 1, 0.5);
+        await checkBoxCredit("7", "5", 0, 0, 0);
     });
 });

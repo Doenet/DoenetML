@@ -377,7 +377,10 @@ export default class Input extends InlineComponent {
                     ) {
                         const key = `${componentIdx}/${variableForImplicitProp}`;
                         let perInputCredit = creditAchievedPerInput[key];
-                        if (perInputCredit === undefined) {
+                        if (
+                            perInputCredit === undefined &&
+                            variableForImplicitProp !== "value"
+                        ) {
                             const keyPrefix = `${componentIdx}/`;
                             const candidateCredits = Object.entries(
                                 creditAchievedPerInput,
