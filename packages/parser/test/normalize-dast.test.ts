@@ -376,7 +376,7 @@ describe("Normalize dast", async () => {
     });
 
     it("drops renamed scored-section coloring attributes on description", () => {
-        const source = `<description colorAnswersSeparately forceIndividualAnswerColoring>hello</description>`;
+        const source = `<description forceIndividualAnswerColoring>hello</description>`;
         const dast = lezerToDast(source);
         const normalized = normalizeDocumentDast(dast);
 
@@ -388,7 +388,6 @@ describe("Normalize dast", async () => {
             (error) => error.error_type === "warning",
         );
         expect(warnings.map((x) => x.message).sort()).toEqual([
-            "[deprecation] Attribute `colorAnswersSeparately` on `<description>` is deprecated and ignored.",
             "[deprecation] Attribute `forceIndividualAnswerColoring` on `<description>` is deprecated and ignored.",
         ]);
     });

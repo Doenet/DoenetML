@@ -208,7 +208,6 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             "showCorrectness",
             "colorCorrectness",
             "forceIndividualAnswerColoring",
-            "colorAnswersSeparately",
             "submitLabel",
             "submitLabelNoCorrectness",
             "displayDigitsForCreditAchieved",
