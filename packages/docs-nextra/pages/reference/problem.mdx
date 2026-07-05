@@ -174,11 +174,11 @@ The `sectionWideCheckWork` attribute combines validation for all `<answer>{:dn}`
 
 ---
 
-### Attribute Example: forceIndividualAnswerColoring
+### Attribute Example: colorAnswersSeparately
 
 
 ```doenet-example
-<problem sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
+<problem sectionWideCheckWork colorAnswersSeparately><title>Multiple questions</title>
   <p><answer><label>Enter <m>x</m></label>x</answer></p>
   <p><answer><label>Enter <m>y</m></label>y</answer></p>
   <p><answer><label>Enter <m>z</m></label>z</answer></p>
@@ -188,7 +188,7 @@ The `sectionWideCheckWork` attribute combines validation for all `<answer>{:dn}`
 Typically, the `sectionWideCheckWork` attribute causes all answer box border colors
 to correspond to the overall correctness of the entire problem
 (i.e., the colors don't reveal additional information about which answer is correct).
-If `forceIndividualAnswerColoring` is also specified, then each answer box border
+If `colorAnswersSeparately` is also specified, then each answer box border
 will instead be colored according to its own answer's correctness.
 
 
