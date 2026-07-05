@@ -1265,24 +1265,6 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        // for award children to find the one input child
-        stateVariableDefinitions.inputChildWithValues = {
-            returnDependencies: () => ({
-                inputChildrenWithValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "inputChildrenWithValues",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let inputChildWithValues = null;
-                if (dependencyValues.inputChildrenWithValues.length === 1) {
-                    inputChildWithValues =
-                        dependencyValues.inputChildrenWithValues[0];
-                }
-                return { setValue: { inputChildWithValues } };
-            },
-        };
-
         stateVariableDefinitions.inputComponentIdxForLabel = {
             stateVariablesDeterminingDependencies: ["inputChildrenWithValues"],
             additionalStateVariablesDefined: [
@@ -2287,9 +2269,9 @@ export default class Answer extends InlineComponent {
         };
 
         // Reactive per-input coloring state: maps "componentIdx/propVariable"
-        // keys to a correctness ratio (0–1).  Depends on award.awarded and
-        // award.creditAchieved which are essential state vars updated only in
-        // submitAnswer(), so this naturally recomputes only on submission.
+        // keys to a correctness ratio (0–1). It depends primarily on
+        // essential award state updated in submitAnswer(), plus each
+        // award's referenced-input structure.
         stateVariableDefinitions.creditAchievedPerInput = {
             returnDependencies: () => ({
                 awardChildren: {

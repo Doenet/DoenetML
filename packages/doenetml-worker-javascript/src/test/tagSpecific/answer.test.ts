@@ -9358,4 +9358,69 @@ What is the derivative of <function name="f">x^2</function>?
         expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(0, 1e-12);
         expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(1, 1e-12);
     });
+
+    it("colorInputsSeparately works for choiceInput implicit values", async () => {
+        const doenetML = `
+  <choiceInput name="ci" forAnswer="$ans">
+    <choice>A</choice>
+    <choice>B</choice>
+  </choiceInput>
+  <mathInput name="mi" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+    <award credit="0.5"><when>$ci = B</when></award>
+    <award credit="0.5"><when>$mi = x</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const choiceInputIdx = await resolvePathToNodeIdx("ci");
+        const mathInputIdx = await resolvePathToNodeIdx("mi");
+
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [2],
+            core,
+        });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+        expect(sv[choiceInputIdx].stateValues.creditAchieved).closeTo(1, 1e-12);
+        expect(sv[mathInputIdx].stateValues.creditAchieved).closeTo(0, 1e-12);
+    });
+
+    it("without colorInputsSeparately all linked inputs use overall credit", async () => {
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2">
+    <award credit="0.5"><when>$mi1 = x</when></award>
+    <award credit="0.5"><when>$mi2 = y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        await updateMathInputValue({ latex: "x", componentIdx: mi1Idx, core });
+        await updateMathInputValue({ latex: "z", componentIdx: mi2Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+        expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+        expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+    });
 });

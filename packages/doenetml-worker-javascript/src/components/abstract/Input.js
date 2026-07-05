@@ -312,6 +312,7 @@ export default class Input extends InlineComponent {
         // the answer's overall creditAchieved so all inputs in the same answer
         // share a uniform color.  With colorInputsSeparately it carries the
         // per-input ratio derived from the awards that reference this input.
+        const variableForImplicitProp = this.variableForImplicitProp ?? "value";
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
@@ -374,8 +375,21 @@ export default class Input extends InlineComponent {
                         comp.stateValues.colorInputsSeparately &&
                         creditAchievedPerInput
                     ) {
-                        const key = `${componentIdx}/value`;
-                        const perInputCredit = creditAchievedPerInput[key];
+                        const key = `${componentIdx}/${variableForImplicitProp}`;
+                        let perInputCredit = creditAchievedPerInput[key];
+                        if (perInputCredit === undefined) {
+                            const keyPrefix = `${componentIdx}/`;
+                            const candidateCredits = Object.entries(
+                                creditAchievedPerInput,
+                            )
+                                .filter(([entryKey]) =>
+                                    entryKey.startsWith(keyPrefix),
+                                )
+                                .map(([, credit]) => credit);
+                            if (candidateCredits.length > 0) {
+                                perInputCredit = Math.max(...candidateCredits);
+                            }
+                        }
                         creditAchieved =
                             perInputCredit !== undefined
                                 ? perInputCredit
