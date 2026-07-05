@@ -10,6 +10,21 @@ import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
+/**
+ * Given a list of attribute names that are being ignored, builds a
+ * human-readable phrase like "slope is" or "slope and length are" or
+ * "slope, length, and pointOffset are".
+ */
+function buildIgnoredPhrase(ignored) {
+    if (ignored.length === 1) {
+        return `${ignored[0]} is`;
+    } else if (ignored.length === 2) {
+        return `${ignored[0]} and ${ignored[1]} are`;
+    } else {
+        return `${ignored.slice(0, -1).join(", ")}, and ${ignored.slice(-1)} are`;
+    }
+}
+
 function directionFromSlope(slope) {
     if (slope === Infinity || slope === -Infinity) {
         return [0, Math.sign(slope)];
@@ -195,24 +210,23 @@ export default class LineSegment extends GraphicalComponent {
         attributes.through = {
             createComponentOfType: "point",
             description:
-                "A reference point the line segment passes through. Used with slope/length/pointOffset to position the segment, or alone to center a default 1-unit horizontal segment.",
+                "A reference point the line segment passes through. Used with slope/length/pointOffset to position the segment.",
         };
 
         attributes.slope = {
             createComponentOfType: "number",
-            description:
-                "The slope of the line segment in the x-y plane. It may be negative and can change sign when the direction passes through vertical.",
+            description: "The slope of the line segment in the x-y plane.",
         };
 
         attributes.length = {
             createComponentOfType: "number",
             description:
-                "The signed defining length used with the slope/through parameterization. Negative values flip the direction relative to the slope, while the public length state variable remains Euclidean and non-negative.",
+                "The signed defining length used with the slope/through parameterization. Negative values flip the relative position of the endpoints.",
         };
 
         attributes.pointOffset = {
             createComponentOfType: "number",
-            createStateVariable: "pointOffsetAttr",
+            createStateVariable: "pointOffset",
             defaultValue: 0,
             clamp: [-1, 1],
             description:
@@ -484,19 +498,57 @@ export default class LineSegment extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "numEndpointsSpecified",
                 },
+                pointOffset: {
+                    dependencyType: "stateVariable",
+                    variableName: "pointOffset",
+                },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, usedDefault }) {
                 const anyPositioningAttr =
                     dependencyValues.slopeAttr !== null ||
                     dependencyValues.lengthAttr !== null ||
                     dependencyValues.throughAttr !== null;
-                return {
+                const basedOnSlopeOrThrough =
+                    anyPositioningAttr &&
+                    dependencyValues.numEndpointsSpecified < 2;
+
+                const result = {
                     setValue: {
-                        basedOnSlopeOrThrough:
-                            anyPositioningAttr &&
-                            dependencyValues.numEndpointsSpecified < 2,
+                        basedOnSlopeOrThrough,
                     },
                 };
+                if (anyPositioningAttr && !basedOnSlopeOrThrough) {
+                    const ignored = [];
+                    if (dependencyValues.slopeAttr !== null) {
+                        ignored.push("slope");
+                    }
+                    if (dependencyValues.lengthAttr !== null) {
+                        ignored.push("length");
+                    }
+                    if (dependencyValues.throughAttr !== null) {
+                        ignored.push("through");
+                    }
+                    if (!usedDefault.pointOffset) {
+                        ignored.push("pointOffset");
+                    }
+
+                    result.sendDiagnostics = [
+                        {
+                            type: "info",
+                            message: `${buildIgnoredPhrase(ignored)} ignored when two endpoints are specified`,
+                        },
+                    ];
+                } else if (!basedOnSlopeOrThrough && !usedDefault.pointOffset) {
+                    result.sendDiagnostics = [
+                        {
+                            type: "info",
+                            message:
+                                "pointOffset has no effect without a through point",
+                        },
+                    ];
+                }
+
+                return result;
             },
         };
         // Essential slope — used when basedOnSlopeOrThrough but no slope attr.
@@ -539,16 +591,6 @@ export default class LineSegment extends GraphicalComponent {
                     ],
                 };
             },
-        };
-
-        // Essential point offset — used when numThroughPoints===1 but no pointOffset attr.
-        stateVariableDefinitions.essentialPointOffset = {
-            defaultValue: 0,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: { essentialPointOffset: true },
-            }),
         };
 
         // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrThrough is true
@@ -757,13 +799,9 @@ export default class LineSegment extends GraphicalComponent {
                         attributeName: "length",
                         variableNames: ["value"],
                     },
-                    pointOffsetAttrComponent: {
-                        dependencyType: "attributeComponent",
-                        attributeName: "pointOffset",
-                    },
-                    pointOffsetAttr: {
+                    pointOffset: {
                         dependencyType: "stateVariable",
-                        variableName: "pointOffsetAttr",
+                        variableName: "pointOffset",
                     },
                     essentialSlope: {
                         dependencyType: "stateVariable",
@@ -772,10 +810,6 @@ export default class LineSegment extends GraphicalComponent {
                     essentialSignedLength: {
                         dependencyType: "stateVariable",
                         variableName: "essentialSignedLength",
-                    },
-                    essentialPointOffset: {
-                        dependencyType: "stateVariable",
-                        variableName: "essentialPointOffset",
                     },
                 };
 
@@ -846,10 +880,11 @@ export default class LineSegment extends GraphicalComponent {
 
             arrayDefinitionByKey({
                 globalDependencyValues,
+                globalUsedDefault,
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // Old behavior: basedOnSlopeOrThrough is false.
+                // basedOnSlopeOrThrough is false: each endpoint is independent, from attr or essential.
                 if (!globalDependencyValues?.basedOnSlopeOrThrough) {
                     let unconstrainedEndpoints = {};
                     let essentialUnconstrainedEndpoints = {};
@@ -893,6 +928,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 // New parameterization — compute ep1/ep2 from slope/length/through.
                 const g = globalDependencyValues;
+                const gUsedDefault = globalUsedDefault;
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
@@ -900,17 +936,27 @@ export default class LineSegment extends GraphicalComponent {
                     if (
                         g.slopeAttr !== null ||
                         g.lengthAttr !== null ||
-                        g.pointOffsetAttrComponent !== null
+                        !gUsedDefault.pointOffset
                     ) {
+                        const ignored = [];
+                        if (g.slopeAttr !== null) {
+                            ignored.push("slope");
+                        }
+                        if (g.lengthAttr !== null) {
+                            ignored.push("length");
+                        }
+                        if (!gUsedDefault.pointOffset) {
+                            ignored.push("pointOffset");
+                        }
+
                         sendDiagnostics.push({
                             type: "info",
-                            message:
-                                "slope, length, and pointOffset are ignored when an endpoint and a through point are both specified",
+                            message: `${buildIgnoredPhrase(ignored)} ignored when an endpoint and a through point are both specified`,
                         });
                     }
                 } else if (
                     g.numThroughPoints === 0 &&
-                    g.pointOffsetAttrComponent !== null
+                    !gUsedDefault.pointOffset
                 ) {
                     sendDiagnostics.push({
                         type: "info",
@@ -999,10 +1045,7 @@ export default class LineSegment extends GraphicalComponent {
                     } else if (g.numThroughPoints === 1) {
                         // Case C: 0 endpoints + 1 through.
                         // Build endpoints as expressions so symbolic through points are preserved.
-                        const po =
-                            g.pointOffsetAttrComponent !== null
-                                ? g.pointOffsetAttr
-                                : g.essentialPointOffset;
+                        const po = g.pointOffset;
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
                             let throughCoordVal =
@@ -1215,10 +1258,7 @@ export default class LineSegment extends GraphicalComponent {
                     // Case C: through point T is the position handle.
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
-                    const po =
-                        g.pointOffsetAttrComponent !== null
-                            ? g.pointOffsetAttr
-                            : g.essentialPointOffset;
+                    const po = g.pointOffset;
                     const tT = (1 + po) / 2;
 
                     let T_new;

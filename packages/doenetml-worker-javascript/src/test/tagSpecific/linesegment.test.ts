@@ -4328,3 +4328,85 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(6, 1e-10);
     });
 });
+
+describe("LineSegment info diagnostics @group5", async () => {
+    // -----------------------------------------------------------------------
+    // pointOffset without through → info diagnostic
+    // -----------------------------------------------------------------------
+    it("pointOffset without through emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" pointOffset="1" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("pointOffset");
+        expect(d.infos[0].message).contain("without a through point");
+    });
+
+    // -----------------------------------------------------------------------
+    // slope/length/through/pointOffset ignored when two endpoints given
+    // -----------------------------------------------------------------------
+    it("slope and length ignored when two endpoints specified — emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2) (4,5)" slope="1" length="3" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("slope");
+        expect(d.infos[0].message).contain("length");
+        expect(d.infos[0].message).contain("two endpoints");
+    });
+
+    // -----------------------------------------------------------------------
+    // slope/length/pointOffset ignored when endpoint + through given (Case A)
+    // -----------------------------------------------------------------------
+    it("slope and pointOffset ignored when one endpoint and through given — emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2)" through="(4,5)" slope="2" pointOffset="-1" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("slope");
+        expect(d.infos[0].message).contain("pointOffset");
+        expect(d.infos[0].message).contain("endpoint and a through point");
+    });
+
+    // -----------------------------------------------------------------------
+    // No diagnostic when slope/through used correctly
+    // -----------------------------------------------------------------------
+    it("no info diagnostic when slope and through used without endpoints", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" through="(2,0)" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.infos.length).eq(0);
+    });
+});
