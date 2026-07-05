@@ -1005,13 +1005,9 @@ export default class FractionComponentInput extends BaseComponent {
                         variableName: "colorInputsSeparately",
                     },
                 };
-                // Only pull in the per-part data when colorInputsSeparately
-                // is active so we don't track creditAchievedPerInput needlessly.
-                // We can't read the parent flag here (stateVariablesDeterminingDependencies
-                // only gives us this component's own vars), so we always request the
-                // flag cheaply and conditionally request the map below in definition.
-                // Actually pull them both always but only use when needed — the
-                // dependency is structural-only (no live value tracking) so it's safe.
+                // This component can't make its dependency graph conditional on a
+                // parent state variable, so request the per-part map here and only
+                // read it in definition when the parent has colorInputsSeparately on.
                 deps.parentCreditAchievedPerInput = {
                     dependencyType: "parentStateVariable",
                     parentComponentType: "fractionInput",

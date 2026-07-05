@@ -50,11 +50,6 @@ type DeprecationIndex = {
 };
 
 /**
- * Build "deprecated and ignored" removal rules for attributes that are no longer
- * valid on a component. Using such an attribute emits a warning, and the attribute
- * is dropped from the DAST so it does not become an "invalid attribute" error.
- */
-/**
  * All component types that accept scored-section attributes (returnScoredSectionAttributes).
  * Used to register attribute rename deprecations that apply across all of them.
  */
@@ -111,6 +106,11 @@ function renamedScoredSectionAttribute(
     );
 }
 
+/**
+ * Build "deprecated and ignored" removal rules for attributes that are no longer
+ * valid on a component. Using such an attribute emits a warning, and the attribute
+ * is dropped from the DAST so it does not become an "invalid attribute" error.
+ */
 function ignoredAttributes(
     componentName: string,
     attributeNames: string[],
