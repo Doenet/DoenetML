@@ -440,8 +440,8 @@ their respective award is satisfied, red when not.
 This works by detecting which `<when>{:dn}` conditions reference each input.
 It works best when each input is covered by **at most one positive-credit award** per
 "tier". When multiple simultaneously-satisfiable awards cover the same input, only the
-highest-credit awarded one is used to determine that input's color — so an input may
-show green even if not all of its covering awards were satisfied.
+largest awarded `creditAchieved` is used to determine that input's color — so an input
+may show partial or full credit even if not all of its covering awards were satisfied.
 
 The attribute also applies to multiple `<mathInput>{:dn}`s connected to an answer via
 `forAnswer`:
@@ -461,4 +461,3 @@ The attribute also applies to multiple `<mathInput>{:dn}`s connected to an answe
 
 Each `<mathInput>{:dn}` box colors independently: green when its award is satisfied,
 red when not.
-

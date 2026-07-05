@@ -327,9 +327,12 @@ export default class Input extends InlineComponent {
                             "componentDeterminingDisplayedCorrectness",
                     },
                 };
-                // Only request creditAchievedPerInput when
-                // colorInputsSeparately is active — prevents unnecessary
-                // staleness propagation on every keystroke.
+                // Inputs nested inside an answer can avoid depending on
+                // creditAchievedPerInput unless colorInputsSeparately is active,
+                // which prevents unnecessary staleness propagation on every
+                // keystroke. forAnswer inputs still fetch both variables together
+                // so they can react if the referenced answer enables
+                // colorInputsSeparately.
                 if (
                     stateValues.answerAncestor?.stateValues
                         .colorInputsSeparately
