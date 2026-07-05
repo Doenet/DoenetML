@@ -102,6 +102,34 @@ export function applyAxisTickHeights({
     }
 }
 
+/**
+ * Restore the sign of an axis's tick labels after its defining points have
+ * been reversed (as done for a negative-only axis so the arrow head is drawn
+ * on the negative side).
+ *
+ * JSXGraph computes each equidistant tick label from the *signed distance*
+ * from the origin, where the sign follows the axis's `point1 -> point2`
+ * direction (see `getDistanceFromZero` in jsxgraph's ticks.js). When the axis
+ * is defined pointing toward the negative direction, that flips the sign of
+ * every label (e.g. the tick at x = -2 would be labeled "2"). Overriding
+ * `generateLabelText` to read the tick's true coordinate restores the correct
+ * labels while leaving tick placement and bounds untouched.
+ *
+ * @param coordIndex 1 for an x axis, 2 for a y axis (JSXGraph `usrCoords` are
+ *   homogeneous: `[w, x, y]`).
+ */
+function reverseTickLabelSigns(axis: AxisJXG, coordIndex: 1 | 2): void {
+    const ticks = axis.defaultTicks as any;
+    ticks.generateLabelText = function (tick: { usrCoords: number[] }): string {
+        const scale = this.evalVisProp("scale") || 1;
+        const coord = tick.usrCoords[coordIndex];
+        if (Math.abs(coord) < 1e-12) {
+            return "0";
+        }
+        return this.formatLabelText(coord / scale);
+    };
+}
+
 export function createXAxis({
     theBoard,
     SVs,
@@ -180,24 +208,32 @@ export function createXAxis({
         xaxisOptions.ticks.drawZero = true;
     }
 
+    // Second defining point of the axis. For a negative-only axis, point it
+    // toward -x so the axis (and its default arrow head) is drawn on the
+    // negative side, mirroring the positive-only case exactly. This keeps the
+    // arrow head inside the graph's rounded border, unlike a custom
+    // `firstArrow` extending in the backward direction. The tradeoff is that
+    // JSXGraph signs tick labels by the point1->point2 direction, so the
+    // labels must have their sign restored afterward (see reverseTickLabelSigns).
+    let secondPoint = [1, 0];
     if (SVs.displayXAxis === "positiveonly") {
         xaxisOptions.straightFirst = false;
     } else if (SVs.displayXAxis === "negativeonly") {
-        xaxisOptions.straightLast = false;
-        xaxisOptions.lastArrow = false;
-        xaxisOptions.firstArrow = { type: 1, highlightSize: 8, size: 8 };
+        xaxisOptions.straightFirst = false;
+        secondPoint = [-1, 0];
     }
 
     theBoard.suspendUpdate();
 
     xaxisRef.current = theBoard.create(
         "axis",
-        [
-            [0, 0],
-            [1, 0],
-        ],
+        [[0, 0], secondPoint],
         xaxisOptions,
     ) as AxisJXG;
+
+    if (SVs.displayXAxis === "negativeonly") {
+        reverseTickLabelSigns(xaxisRef.current, 1);
+    }
 
     setMinorTicks(xaxisRef.current);
     theBoard.unsuspendUpdate();
@@ -284,24 +320,28 @@ export function createYAxis({
         yaxisOptions.ticks.drawZero = true;
     }
 
+    // See createXAxis for why a negative-only axis is defined toward the
+    // negative direction (arrow head placement) and why its tick label signs
+    // must then be restored.
+    let secondPoint = [0, 1];
     if (SVs.displayYAxis === "positiveonly") {
         yaxisOptions.straightFirst = false;
     } else if (SVs.displayYAxis === "negativeonly") {
-        yaxisOptions.straightLast = false;
-        yaxisOptions.lastArrow = false;
-        yaxisOptions.firstArrow = { type: 1, highlightSize: 8, size: 8 };
+        yaxisOptions.straightFirst = false;
+        secondPoint = [0, -1];
     }
 
     theBoard.suspendUpdate();
 
     yaxisRef.current = theBoard.create(
         "axis",
-        [
-            [0, 0],
-            [0, 1],
-        ],
+        [[0, 0], secondPoint],
         yaxisOptions,
     ) as AxisJXG;
+
+    if (SVs.displayYAxis === "negativeonly") {
+        reverseTickLabelSigns(yaxisRef.current, 2);
+    }
 
     setMinorTicks(yaxisRef.current);
 

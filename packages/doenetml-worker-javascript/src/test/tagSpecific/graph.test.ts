@@ -1828,27 +1828,19 @@ describe("Graph tag tests @group2", async () => {
     <booleanInput name="b2" prefill="true" />
     `,
         });
-        // displayXAxis/displayYAxis now accept "full"/"none"/"positiveOnly"/"negativeOnly"
-        // as literal string values in DoenetML, and this works correctly (see the
-        // "displayXAxis and displayYAxis accept positiveOnly and negativeOnly" test below).
+        // displayXAxis/displayYAxis accept "full"/"none"/"positiveOnly"/"negativeOnly"
+        // as literal string values in DoenetML (see the "displayXAxis and displayYAxis
+        // accept positiveOnly and negativeOnly" test below). When bound to a
+        // booleanInput (e.g. displayXAxis="$b1"), the boolean is mapped through the
+        // attribute's valueForTrue/valueForFalse ("full"/"none"), so the axis tracks
+        // the boolean's value dynamically.
         //
-        // KNOWN LIMITATION: when displayXAxis/displayYAxis is bound to a booleanInput
-        // (e.g. displayXAxis="$b1"), the valueForTrue/valueForFalse mapping does not
-        // currently resolve correctly for dynamic boolean references -- the attribute
-        // appears to fall back to defaultValue ("full") regardless of the bound
-        // boolean's actual value, both for the initial unset/no-prefill case and for
-        // later updates via updateBooleanInputValue. This is flagged on GitHub issue
-        // #355 for maintainer input, since it likely touches core attribute-resolution
-        // logic in the createComponentOfType/createStateVariable machinery rather than
-        // anything specific to this component. The assertions below reflect the
-        // currently observed (not yet correct) behavior so the test suite stays green;
-        // this is a documented known issue to revisit in Phase IV, not a regression
-        // introduced by accident.
+        // b1 has no prefill (false -> "none"); b2 has prefill="true" (true -> "full").
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq("full");
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
@@ -1880,7 +1872,7 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq("full");
+        ).eq("none");
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: await resolvePathToNodeIdx("b1"),
@@ -1890,11 +1882,11 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq("full");
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq("full");
+        ).eq("none");
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b2"),
@@ -1904,7 +1896,7 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq("full");
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
