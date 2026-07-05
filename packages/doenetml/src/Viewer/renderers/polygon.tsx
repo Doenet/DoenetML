@@ -24,11 +24,16 @@ import {
 } from "./utils/lineFamilyDragHandlers";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncVisPropValues,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
 
@@ -160,6 +165,8 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
         jsxPolygonAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxPolygonAttributes.label.useMathJax = true;
@@ -195,6 +202,13 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             jsxPolygonAttributes,
         );
         newPolygonJXG.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newPolygonJXG,
+            getLabelJXG: () => polygonJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
 
         initializePoints(newPolygonJXG);
 
@@ -562,6 +576,9 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             if (polygonJXG.current.hasLabel && polygonJXG.current.label) {
                 const label = polygonJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: polygonJXG.current.highlighted,
+                });
                 label.needsUpdate = true;
                 label.update();
             }

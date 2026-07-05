@@ -10,12 +10,17 @@ import {
     buildLineFamilyLabelAttributes,
     removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineFamilyVisibility,
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -108,6 +113,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
             labelHasLatex: SVs.labelHasLatex,
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
+            layer: SVs.layer,
         });
 
         let through = [
@@ -202,6 +208,13 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         });
 
         rayJXG.current = newRayJXG;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newRayJXG,
+            getLabelJXG: () => rayJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
 
         if (SVs.labelForGraph !== "" && newRayJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
@@ -305,6 +318,9 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
             if (rayJXG.current.hasLabel && rayJXG.current.label) {
                 const label = rayJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: rayJXG.current.highlighted,
+                });
 
                 applyLineFamilyLabelPlacement({
                     board,

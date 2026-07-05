@@ -20,6 +20,7 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
 
 interface LabelSVs {
     hidden: boolean;
@@ -83,10 +84,10 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 ? SVs.selectedStyle.backgroundColorDarkMode
                 : SVs.selectedStyle.backgroundColor;
 
-        let cssStyle = ``;
-        if (backgroundColor) {
-            cssStyle += `background-color: ${backgroundColor}`;
-        }
+        let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+            layer: SVs.layer,
+            backgroundColor,
+        });
 
         //things to be passed to JSXGraph as attributes
         let jsxLabelAttributes: Record<string, any> = {
@@ -94,11 +95,14 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
             cssStyle,
-            highlightCssStyle: cssStyle,
+            highlightCssStyle,
             strokeColor: textColor,
             strokeOpacity: 1,
             highlightStrokeColor: textColor,
-            highlightStrokeOpacity: 0.5,
+            // Text elements default to a highlightStrokeOpacity < 1, which
+            // combines with the background alpha and makes the highlighted
+            // mask look transparent (jsxgraph issue #777). Force it to 1.
+            highlightStrokeOpacity: 1,
             highlight: !fixLocation.current,
             useMathJax: SVs.hasLatex,
             parse: false,
@@ -252,12 +256,10 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 darkMode === "dark"
                     ? SVs.selectedStyle.backgroundColorDarkMode
                     : SVs.selectedStyle.backgroundColor;
-            let cssStyle = ``;
-            if (backgroundColor) {
-                cssStyle += `background-color: ${backgroundColor}`;
-            } else {
-                cssStyle += `background-color: transparent`;
-            }
+            let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                backgroundColor,
+            });
 
             if (labelJXG.current.visProp.strokecolor !== textColor) {
                 labelJXG.current.visProp.strokecolor = textColor!;
@@ -265,7 +267,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             }
             if (labelJXG.current.visProp.cssstyle !== cssStyle) {
                 labelJXG.current.visProp.cssstyle = cssStyle;
-                labelJXG.current.visProp.highlightcssstyle = cssStyle;
+                labelJXG.current.visProp.highlightcssstyle = highlightCssStyle;
+                labelJXG.current.visProp.highlightstrokeopacity = 1;
             }
 
             labelJXG.current.visProp.highlight = !fixLocation.current;

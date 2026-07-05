@@ -20,11 +20,16 @@ import {
 } from "./utils/lineFamilyDragHandlers";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncVisPropValues,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
@@ -133,6 +138,8 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         }
         jsxPolylineAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxPolylineAttributes.label.useMathJax = true;
@@ -172,6 +179,13 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             jsxPolylineAttributes,
         );
         newPolylineJXG.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newPolylineJXG,
+            getLabelJXG: () => polylineJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
 
         for (let i = 0; i < SVs.numVertices; i++) {
             attachVertexDragHandlers(pointsJXG.current[i], i);
@@ -529,6 +543,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
                 const label = polylineJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: polylineJXG.current.highlighted,
+                });
                 label.needsUpdate = true;
                 label.update();
             }

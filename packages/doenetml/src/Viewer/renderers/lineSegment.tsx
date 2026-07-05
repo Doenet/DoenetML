@@ -10,6 +10,7 @@ import {
     buildLineFamilyLabelAttributes,
     removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineFamilyVisibility,
@@ -17,6 +18,10 @@ import {
     syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -116,6 +121,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             labelHasLatex: SVs.labelHasLatex,
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
+            layer: SVs.layer,
         });
 
         let endpointsVisible = !endpointsFixed.current && !SVs.hidden;
@@ -160,6 +166,13 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         );
         lineSegmentJXG.current = newSegmentJXG;
         newSegmentJXG.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newSegmentJXG,
+            getLabelJXG: () => lineSegmentJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
 
         const segmentBuildCommit = (): Record<string, any> | null => {
             if (!pointCoords.current) {
@@ -473,6 +486,9 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                 const label = lineSegmentJXG.current.label;
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: lineSegmentJXG.current.highlighted,
+                });
 
                 applyLineFamilyLabelPlacement({
                     board,
