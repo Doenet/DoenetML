@@ -8,6 +8,11 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { JXGCurve, JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { styleToDash } from "./utils/styleToDash";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
+import { syncLabelMaskCssStyle } from "./utils/jsxgraph";
 
 interface CobwebPolylineSVs extends GraphicalSVs {
     numPoints: number;
@@ -108,6 +113,8 @@ export default React.memo(function CobwebPolyline(
 
         jsxPolylineAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxPolylineAttributes.label.useMathJax = true;
@@ -123,6 +130,11 @@ export default React.memo(function CobwebPolyline(
             strokeColor: SVs.selectedStyle.markerColor,
             size: SVs.selectedStyle.markerSize,
             face: normalizeStyle(SVs.selectedStyle.markerStyle),
+            label: {
+                highlight: false,
+                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                highlightStrokeOpacity: 1,
+            },
         };
 
         if (SVs.draggable) {
@@ -178,6 +190,13 @@ export default React.memo(function CobwebPolyline(
             jsxPolylineAttributes,
         );
 
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newPolylineJXG,
+            getLabelJXG: () => polylineJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
+
         for (let i = 0; i < SVs.numPoints; i++) {
             pointsJXG.current[i].on("drag", (e) => dragHandler(i, e));
             pointsJXG.current[i].on("up", () => upHandler(i));
@@ -185,6 +204,12 @@ export default React.memo(function CobwebPolyline(
             pointsJXG.current[i].on("keydown", (e) => keyDownHandler(i, e));
             pointsJXG.current[i].on("down", () => {
                 draggedPoint.current = null;
+            });
+            attachLabelHoverHighlight({
+                hoverTargetJXG: pointsJXG.current[i],
+                getLabelJXG: () => pointsJXG.current?.[i]?.label,
+                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                board,
             });
         }
 
@@ -426,12 +451,21 @@ export default React.memo(function CobwebPolyline(
                 pointsJXG.current[i].needsUpdate = true;
                 pointsJXG.current[i].update();
             }
+            if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
+                syncLabelMaskCssStyle(polylineJXG.current.label, SVs.layer, {
+                    highlighted: polylineJXG.current.highlighted,
+                });
+            }
+
             if (SVs.numPoints > 0) {
                 const lastPoint = pointsJXG.current[SVs.numPoints - 1];
                 lastPoint.setAttribute({
                     withlabel: true,
                 });
                 if (lastPoint.label) {
+                    syncLabelMaskCssStyle(lastPoint.label, SVs.layer, {
+                        highlighted: lastPoint.highlighted,
+                    });
                     lastPoint.label.needsUpdate = true;
                     lastPoint.label.update();
                 }

@@ -9,6 +9,11 @@ import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve } from "./jsxgraph-distrib/types";
 import { styleToDash } from "./utils/styleToDash";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
+import { syncLabelMaskCssStyle } from "./utils/jsxgraph";
 
 interface RegionBetweenCurvesSVs extends GraphicalSVs {
     haveFunctions: boolean;
@@ -95,6 +100,8 @@ export default React.memo(function RegionBetweenCurves(
 
         jsxAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            highlightStrokeOpacity: 1,
         };
 
         let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
@@ -158,6 +165,13 @@ export default React.memo(function RegionBetweenCurves(
                 this.dataY = y;
             }
         };
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: region,
+            getLabelJXG: () => regionJXG.current?.label,
+            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            board,
+        });
 
         return region;
     }
@@ -264,6 +278,12 @@ export default React.memo(function RegionBetweenCurves(
             ) {
                 regionJXG.current.visProp.fillopacity =
                     fillAttributes.fillOpacity;
+            }
+
+            if (regionJXG.current.hasLabel && regionJXG.current.label) {
+                syncLabelMaskCssStyle(regionJXG.current.label, SVs.layer, {
+                    highlighted: regionJXG.current.highlighted,
+                });
             }
 
             regionJXG.current.needsUpdate = true;
