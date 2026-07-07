@@ -23,12 +23,52 @@ const STANDALONE_CSS_BLOB_URL = URL.createObjectURL(
     new Blob([STANDALONE_CSS], { type: "text/css" }),
 );
 
+const SOURCE_STORAGE_KEY = "doenetml-iframe-dev-source";
+const SAVE_DEBOUNCE_MS = 500;
+
+const DEFAULT_EDITOR_SOURCE = `<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
+                <problem copy="doenet:abcdef" />
+                <graph />
+                <graph />
+                <graph />
+               <mathInput />`;
+
+let saveTimer: number | null = null;
+
+function getInitialSource(): string {
+    try {
+        return (
+            localStorage.getItem(SOURCE_STORAGE_KEY) ?? DEFAULT_EDITOR_SOURCE
+        );
+    } catch {
+        return DEFAULT_EDITOR_SOURCE;
+    }
+}
+
+// Wired to the editor's immediate (per-keystroke) change callback, so debounce
+// the writes: calling localStorage.setItem synchronously on every keystroke can
+// noticeably block the UI for larger documents.
+function saveSource(source: string) {
+    if (saveTimer !== null) {
+        window.clearTimeout(saveTimer);
+    }
+    saveTimer = window.setTimeout(() => {
+        saveTimer = null;
+        try {
+            localStorage.setItem(SOURCE_STORAGE_KEY, source);
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+    }, SAVE_DEBOUNCE_MS);
+}
+
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
     const DOENET_LEGACY_VERSION = "0.6.5";
     const editorRef = useRef<DoenetEditorHandle>(null);
+    const [initialEditorSource] = React.useState(getInitialSource);
 
     return (
         <React.Fragment>
@@ -95,18 +135,14 @@ function App() {
             </div>
             <DoenetEditor
                 ref={editorRef}
-                doenetML={`<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
-                <problem copy="doenet:abcdef" />
-                <graph />
-                <graph />
-                <graph />
-               <mathInput />`}
+                doenetML={initialEditorSource}
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
                 activityId={"a"}
                 showDiagnostics={true}
                 showResponses={false}
                 fetchExternalDoenetML={fetchExternalDoenetML}
+                immediateDoenetmlChangeCallback={saveSource}
             />
         </React.Fragment>
     );
