@@ -21,6 +21,9 @@ export default defineConfig({
         }),
         suppressLogPlugin(),
     ],
+    server: {
+        host: "0.0.0.0",
+    },
     build: {
         minify: true,
         sourcemap: true,
