@@ -11,11 +11,34 @@ const SOURCE_STORAGE_KEY_PREFIX = "doenetml-standalone-dev-source-";
 const SAVE_DEBOUNCE_MS = 500;
 
 const saveTimers = new Map<string, ReturnType<typeof window.setTimeout>>();
+const pendingSources = new Map<string, string>();
+
+window.addEventListener("pagehide", () => {
+    if (pendingSources.size === 0) {
+        return;
+    }
+
+    for (const [key, source] of pendingSources) {
+        const pending = saveTimers.get(key);
+        if (pending !== undefined) {
+            window.clearTimeout(pending);
+            saveTimers.delete(key);
+        }
+        try {
+            localStorage.setItem(key, source);
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+    }
+
+    pendingSources.clear();
+});
 
 // Wired to the editor's immediate (per-keystroke) change callback, so debounce
 // the writes: calling localStorage.setItem synchronously on every keystroke can
 // noticeably block the UI for larger documents.
 function saveSource(key: string, source: string) {
+    pendingSources.set(key, source);
     const pending = saveTimers.get(key);
     if (pending !== undefined) {
         window.clearTimeout(pending);
@@ -29,6 +52,7 @@ function saveSource(key: string, source: string) {
             } catch {
                 // Ignore localStorage failures in constrained environments.
             }
+            pendingSources.delete(key);
         }, SAVE_DEBOUNCE_MS),
     );
 }
