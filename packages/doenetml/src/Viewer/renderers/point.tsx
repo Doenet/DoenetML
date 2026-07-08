@@ -381,9 +381,16 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 }
                 if (pointJXG.current?.label) {
                     const label = pointJXG.current.label;
-                    label.visProp.cssstyle = computeLabelMaskCssStyle({
-                        layer: SVs.layer,
-                    }).cssStyle;
+                    const { cssStyle, highlightCssStyle } =
+                        computeLabelMaskCssStyle({ layer: SVs.layer });
+                    // If the pointer is still over the shadow point when the
+                    // drag ends, keep the highlighted mask: the "out" handler
+                    // won't re-fire (the pointer never left), so reverting to
+                    // the base style here would leave the label un-highlighted
+                    // while still hovered.
+                    label.visProp.cssstyle = shadowPointJXG.current?.highlighted
+                        ? highlightCssStyle
+                        : cssStyle;
                     label.needsUpdate = true;
                     label.update();
                     board.updateRenderer();

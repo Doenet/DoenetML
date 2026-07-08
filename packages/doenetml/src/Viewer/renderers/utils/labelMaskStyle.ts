@@ -50,6 +50,15 @@ export function computeLabelMaskCssStyle({
     layer: number;
     backgroundColor?: string;
 }): { cssStyle: string; highlightCssStyle: string } {
+    // Labels are HTML elements overlaid on the JSXGraph board. The base
+    // z-index lifts a label just above sibling labels/objects on the same
+    // Doenet layer without escaping the board's own stacking context, while
+    // the highlight z-index lifts a hovered/dragged label clearly above the
+    // others. `+ layer` preserves the relative ordering of Doenet layers in
+    // both states. Two non-highlighted labels on the same layer intentionally
+    // share a z-index, so their DOM order breaks the tie. The base offset (9)
+    // and highlight offset (100) are chosen to leave headroom between the two
+    // bands for the small per-layer increments.
     const baseZIndex = 9 + layer;
     const highlightZIndex = 100 + layer;
     // `backgroundColor` commonly comes from a style-definition state variable
@@ -73,6 +82,12 @@ export function computeLabelMaskCssStyle({
  *
  * `getLabelJXG` is called lazily on each hover event so callers can pass a
  * ref-based getter for a label that may not exist yet at wiring time.
+ *
+ * The `"over"`/`"out"` handlers are intentionally not tracked for later
+ * removal (unlike the handlers in `removeJXGEventHandlers`): they are wired
+ * only inside a renderer's create-JXG path, so they live and die with the
+ * freshly created `hoverTargetJXG`. If a label is re-created, a new object
+ * (and new handlers) replaces the old one rather than accumulating on it.
  */
 export function attachLabelHoverHighlight({
     hoverTargetJXG,
@@ -87,16 +102,30 @@ export function attachLabelHoverHighlight({
     highlightCssStyle: string;
     board: { updateRenderer: () => void } | null;
 }) {
-    function setLabelCssStyle(style: string) {
-        const labelJXG = getLabelJXG();
-        if (labelJXG) {
-            labelJXG.visProp.cssstyle = style;
-            labelJXG.needsUpdate = true;
-            labelJXG.update();
-            board?.updateRenderer();
-        }
+    function applyLabelCssStyle(labelJXG: LabelLikeJXG, style: string) {
+        labelJXG.visProp.cssstyle = style;
+        labelJXG.needsUpdate = true;
+        labelJXG.update();
+        board?.updateRenderer();
     }
 
-    hoverTargetJXG.on("over", () => setLabelCssStyle(highlightCssStyle));
-    hoverTargetJXG.on("out", () => setLabelCssStyle(cssStyle));
+    hoverTargetJXG.on("over", () => {
+        const labelJXG = getLabelJXG();
+        if (labelJXG) {
+            // Prefer the label's live `highlightcssstyle`, which the renderer's
+            // update path (`syncLabelMaskCssStyle`) keeps in sync with the
+            // current layer/z-index, so a runtime layer change is reflected on
+            // hover. Fall back to the value captured when the handler was wired.
+            applyLabelCssStyle(
+                labelJXG,
+                labelJXG.visProp.highlightcssstyle ?? highlightCssStyle,
+            );
+        }
+    });
+    hoverTargetJXG.on("out", () => {
+        const labelJXG = getLabelJXG();
+        if (labelJXG) {
+            applyLabelCssStyle(labelJXG, cssStyle);
+        }
+    });
 }
