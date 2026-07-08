@@ -48,7 +48,26 @@ function getInitialSource(): string {
 // Wired to the editor's immediate (per-keystroke) change callback, so debounce
 // the writes: calling localStorage.setItem synchronously on every keystroke can
 // noticeably block the UI for larger documents.
+let pendingSource: string | null = null;
+
+window.addEventListener("pagehide", () => {
+    if (pendingSource === null) {
+        return;
+    }
+    if (saveTimer !== null) {
+        window.clearTimeout(saveTimer);
+        saveTimer = null;
+    }
+    try {
+        localStorage.setItem(SOURCE_STORAGE_KEY, pendingSource);
+    } catch {
+        // Ignore localStorage failures in constrained environments.
+    }
+    pendingSource = null;
+});
+
 function saveSource(source: string) {
+    pendingSource = source;
     if (saveTimer !== null) {
         window.clearTimeout(saveTimer);
     }
@@ -59,6 +78,7 @@ function saveSource(source: string) {
         } catch {
             // Ignore localStorage failures in constrained environments.
         }
+        pendingSource = null;
     }, SAVE_DEBOUNCE_MS);
 }
 
