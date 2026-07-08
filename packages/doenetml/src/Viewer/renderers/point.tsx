@@ -24,6 +24,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncWithLabelToggle,
@@ -599,12 +600,13 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 const label = pointJXG.current.label;
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, markerColor);
-                const { cssStyle, highlightCssStyle } =
-                    computeLabelMaskCssStyle({ layer: SVs.layer });
-                label.visProp.cssstyle = shadowPointJXG.current.highlighted
-                    ? highlightCssStyle
-                    : cssStyle;
-                label.visProp.highlightstrokeopacity = 1;
+                // Keep the point's label mask (and its live `highlightcssstyle`,
+                // which `attachLabelHoverHighlight` reads on hover) in sync with
+                // the current layer. Use the shadow point's highlight state,
+                // since that is what drives the point's hover/drag highlighting.
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: shadowPointJXG.current.highlighted,
+                });
 
                 let labelPosition = adjustPointLabelPosition(
                     SVs.labelPosition,
