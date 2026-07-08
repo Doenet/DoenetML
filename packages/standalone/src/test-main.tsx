@@ -25,6 +25,7 @@ window.addEventListener("pagehide", () => {
         }
         try {
             localStorage.setItem(key, source);
+            pendingSources.delete(key);
         } catch {
             // Ignore localStorage failures in constrained environments.
         }

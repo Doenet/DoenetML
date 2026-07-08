@@ -33,7 +33,7 @@ const DEFAULT_EDITOR_SOURCE = `<mathInput /><p><mathInput />Use this to test Doe
                 <graph />
                <mathInput />`;
 
-let saveTimer: number | null = null;
+let saveTimer: ReturnType<typeof window.setTimeout> | null = null;
 
 function getInitialSource(): string {
     try {
