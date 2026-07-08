@@ -10,7 +10,7 @@ import {
 const SOURCE_STORAGE_KEY_PREFIX = "doenetml-standalone-dev-source-";
 const SAVE_DEBOUNCE_MS = 500;
 
-const saveTimers = new Map<string, number>();
+const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 // Wired to the editor's immediate (per-keystroke) change callback, so debounce
 // the writes: calling localStorage.setItem synchronously on every keystroke can
