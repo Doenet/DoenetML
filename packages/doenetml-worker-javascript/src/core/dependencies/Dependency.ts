@@ -75,7 +75,11 @@ export class Dependency {
         this.upstreamComponentIdx = component.componentIdx;
         this.upstreamVariableNames = allStateVariablesAffected;
 
-        this.definition = Object.assign({}, dependencyDefinition);
+        // Store the definition by reference: nothing writes to the stored
+        // object (its nested arrays were shared under the previous shallow
+        // copy anyway), and `returnDependencies` produces a fresh object per
+        // call, so per-instance copies only wasted memory.
+        this.definition = dependencyDefinition;
         this.representativeStateVariable = stateVariable;
 
         if (dependencyDefinition.doNotProxy) {
@@ -317,6 +321,13 @@ export class Dependency {
                 originalVarNames.length > 0 ||
                 this.originalVariablesByComponent
             ) {
+                // Intern the (frozen) name list: most dependencies map the
+                // same few lists, so share one array per distinct list.
+                mappedVarNames =
+                    this.dependencyHandler.internVariableNameList(
+                        mappedVarNames,
+                    );
+
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     index,
                     0,
@@ -477,9 +488,12 @@ export class Dependency {
                     // (It doesn't matter if extra variables are included,
                     // as they will be skipped below.  And, since the component may have
                     // been deleted already, we don't want to check its state.)
-                    affectedDownstreamVariableNames.push(
+                    // Copy first: the name list is interned (frozen) and
+                    // shared with other dependencies.
+                    affectedDownstreamVariableNames = [
+                        ...affectedDownstreamVariableNames,
                         this.downstreamVariableNameIfNoVariables,
-                    );
+                    ];
                 }
             }
 
@@ -799,11 +813,13 @@ export class Dependency {
                             if (!mappedStateVarObj.deferred) {
                                 componentObj.stateValues[nameForOutput] =
                                     await mappedStateVarObj.value;
+                                // absent when already consumed and not
+                                // marked changed since
                                 let valueChanged =
                                     this.valuesChanged[componentInd][
                                         mappedVarName
                                     ];
-                                if (valueChanged.changed) {
+                                if (valueChanged?.changed) {
                                     if (!changes.valuesChanged) {
                                         changes.valuesChanged = {};
                                     }
@@ -819,9 +835,13 @@ export class Dependency {
                                     });
                                 }
                                 if (consumeChanges) {
-                                    this.valuesChanged[componentInd][
+                                    // delete rather than reset to `{}`:
+                                    // change records are recreated on demand,
+                                    // and empty leftovers were a major
+                                    // retained-memory cost
+                                    delete this.valuesChanged[componentInd][
                                         mappedVarName
-                                    ] = {};
+                                    ];
                                 }
 
                                 if (mappedStateVarObj.usedDefault) {

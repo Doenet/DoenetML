@@ -63,11 +63,56 @@ export default class BaseComponent {
         this.state = {};
         for (let stateVariable in stateVariableDefinitions) {
             // need to separately create a shallow copy of each state variable
-            // as state variable definitions of multiple variables could be same object
-            this.state[stateVariable] = Object.assign(
+            // as state variable definitions of multiple variables could be same object.
+            // The definitions may also be shared across all components of this
+            // class (see the definition cache in StateVariableDefinitionFactory),
+            // so the nested fields that get mutated at runtime need their own
+            // per-instance copies as well.
+            let def = Object.assign(
                 {},
                 stateVariableDefinitions[stateVariable],
             );
+            if (def.shadowingInstructions) {
+                def.shadowingInstructions = Object.assign(
+                    {},
+                    def.shadowingInstructions,
+                );
+            }
+            if (def.additionalStateVariablesDefined) {
+                def.additionalStateVariablesDefined = [
+                    ...def.additionalStateVariablesDefined,
+                ];
+            }
+            if (def.stateVariablesDeterminingDependencies) {
+                def.stateVariablesDeterminingDependencies = [
+                    ...def.stateVariablesDeterminingDependencies,
+                ];
+            }
+            this.state[stateVariable] = def;
+        }
+
+        // Definitions mutate their workspace across evaluations, so each
+        // instance needs a fresh one in place of the workspace on the (shared)
+        // definition. State variables defined together via
+        // additionalStateVariablesDefined share a single workspace.
+        let workspaceAssigned = new Set();
+        for (let stateVariable in this.state) {
+            let def = this.state[stateVariable];
+            if (!def.createWorkspace || workspaceAssigned.has(stateVariable)) {
+                continue;
+            }
+            let workspace = {};
+            def.workspace = workspace;
+            workspaceAssigned.add(stateVariable);
+            if (def.additionalStateVariablesDefined) {
+                for (let otherVar of def.additionalStateVariablesDefined) {
+                    let otherDef = this.state[otherVar];
+                    if (otherDef?.createWorkspace) {
+                        otherDef.workspace = workspace;
+                        workspaceAssigned.add(otherVar);
+                    }
+                }
+            }
         }
         this.stateValues = new Proxy(this.state, createStateProxyHandler());
 
