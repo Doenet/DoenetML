@@ -723,6 +723,110 @@ export class FractionInput extends Input {
             }),
         };
 
+        // Expose this component's index so _fractionInputComponent sub-boxes can
+        // build the correct per-input key ("fractionInputIdx/numerator" etc.).
+        stateVariableDefinitions.componentIdx = {
+            returnDependencies: () => ({}),
+            definition({ componentIdx }) {
+                return { setValue: { componentIdx } };
+            },
+        };
+
+        // Expose the controlling answer's per-input coloring state so that the
+        // _fractionInputComponent sub-boxes can read them via parentStateVariable.
+        // Mirrors the logic in abstract/Input.js creditAchieved: checks both
+        // answerAncestor (fractionInput inside answer) and answerSpecifiedInForAnswer
+        // (fractionInput outside answer linked via forAnswer).
+        stateVariableDefinitions.colorInputsSeparately = {
+            stateVariablesDeterminingDependencies: [
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    answerAncestor: {
+                        dependencyType: "stateVariable",
+                        variableName: "answerAncestor",
+                    },
+                };
+                if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    deps.forAnswerColorInputsSeparately = {
+                        dependencyType: "stateVariable",
+                        componentIdx: stateValues.answerSpecifiedInForAnswer,
+                        variableName: "colorInputsSeparately",
+                        variablesOptional: true,
+                    };
+                }
+                return deps;
+            },
+            definition({ dependencyValues }) {
+                // answerAncestor takes precedence — if the fractionInput is
+                // inside an answer, use that answer's setting and ignore any
+                // forAnswer attribute (which would be a misconfiguration).
+                if (dependencyValues.answerAncestor) {
+                    return {
+                        setValue: {
+                            colorInputsSeparately:
+                                dependencyValues.answerAncestor.stateValues
+                                    .colorInputsSeparately ?? false,
+                        },
+                    };
+                }
+                return {
+                    setValue: {
+                        colorInputsSeparately:
+                            dependencyValues.forAnswerColorInputsSeparately ??
+                            false,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.creditAchievedPerInput = {
+            stateVariablesDeterminingDependencies: [
+                "colorInputsSeparately",
+                "answerAncestor",
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                if (!stateValues.colorInputsSeparately) {
+                    return {};
+                }
+                if (stateValues.answerAncestor) {
+                    // Inside the answer — use ancestor dep.
+                    return {
+                        answerCreditAchievedPerInput: {
+                            dependencyType: "ancestor",
+                            componentType: "answer",
+                            variableNames: ["creditAchievedPerInput"],
+                        },
+                    };
+                }
+                if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    // External forAnswer input — fetch with stateVariable dep.
+                    return {
+                        answerCreditAchievedPerInput: {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.answerSpecifiedInForAnswer,
+                            variableName: "creditAchievedPerInput",
+                            returnAsComponentObject: true,
+                            variablesOptional: true,
+                        },
+                    };
+                }
+                return {};
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        creditAchievedPerInput:
+                            dependencyValues.answerCreditAchievedPerInput
+                                ?.stateValues?.creditAchievedPerInput ?? {},
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -896,19 +1000,61 @@ export default class FractionComponentInput extends BaseComponent {
 
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
-            returnDependencies: () => ({
-                parentCreditAchieved: {
+            stateVariablesDeterminingDependencies: ["part"],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    parentCreditAchieved: {
+                        dependencyType: "parentStateVariable",
+                        parentComponentType: "fractionInput",
+                        variableName: "creditAchieved",
+                    },
+                    parentColorInputsSeparately: {
+                        dependencyType: "parentStateVariable",
+                        parentComponentType: "fractionInput",
+                        variableName: "colorInputsSeparately",
+                    },
+                };
+                // This component can't make its dependency graph conditional on a
+                // parent state variable, so request the per-part map here and only
+                // read it in definition when the parent has colorInputsSeparately on.
+                deps.parentCreditAchievedPerInput = {
                     dependencyType: "parentStateVariable",
                     parentComponentType: "fractionInput",
-                    variableName: "creditAchieved",
-                },
-            }),
+                    variableName: "creditAchievedPerInput",
+                };
+                deps.parentComponentIdx = {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "fractionInput",
+                    variableName: "componentIdx",
+                };
+                deps.part = {
+                    dependencyType: "stateVariable",
+                    variableName: "part",
+                };
+                return deps;
+            },
             definition({ dependencyValues }) {
+                const fallback = dependencyValues.parentCreditAchieved ?? 0;
+                if (
+                    dependencyValues.parentColorInputsSeparately &&
+                    dependencyValues.parentCreditAchievedPerInput &&
+                    dependencyValues.parentComponentIdx !== undefined &&
+                    dependencyValues.part
+                ) {
+                    const key = `${dependencyValues.parentComponentIdx}/${dependencyValues.part}`;
+                    const perPartCredit =
+                        dependencyValues.parentCreditAchievedPerInput[key];
+                    return {
+                        setValue: {
+                            creditAchieved:
+                                perPartCredit !== undefined
+                                    ? perPartCredit
+                                    : fallback,
+                        },
+                    };
+                }
                 return {
-                    setValue: {
-                        creditAchieved:
-                            dependencyValues.parentCreditAchieved ?? 0,
-                    },
+                    setValue: { creditAchieved: fallback },
                 };
             },
         };

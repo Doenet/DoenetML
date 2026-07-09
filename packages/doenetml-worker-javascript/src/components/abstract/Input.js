@@ -98,6 +98,7 @@ export default class Input extends InlineComponent {
                         "forceFullCheckWorkButton",
                         "forceSmallCheckWorkButton",
                         "labelsForAnswer",
+                        "colorInputsSeparately",
                     ],
                 },
             }),
@@ -197,6 +198,7 @@ export default class Input extends InlineComponent {
                             "creditAchieved",
                             "showCorrectness",
                             "colorCorrectness",
+                            "colorInputsSeparately",
                         ],
                         variablesOptional: true,
                     };
@@ -303,21 +305,103 @@ export default class Input extends InlineComponent {
             },
         };
 
+        // creditAchieved on an input is used purely for display/coloring: the
+        // renderer reads it to decide whether to show the input border as green
+        // (1), red (0), or orange (0 < x < 1).  It is NOT the input's own
+        // credit contribution — without colorInputsSeparately it simply mirrors
+        // the answer's overall creditAchieved so all inputs in the same answer
+        // share a uniform color.  With colorInputsSeparately it carries the
+        // per-input ratio derived from the awards that reference this input.
+        const variableForImplicitProp = this.variableForImplicitProp ?? "value";
         stateVariableDefinitions.creditAchieved = {
             forRenderer: true,
-            returnDependencies: () => ({
-                componentDeterminingDisplayedCorrectness: {
-                    dependencyType: "stateVariable",
-                    variableName: "componentDeterminingDisplayedCorrectness",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
+            stateVariablesDeterminingDependencies: [
+                "answerAncestor",
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    componentDeterminingDisplayedCorrectness: {
+                        dependencyType: "stateVariable",
+                        variableName:
+                            "componentDeterminingDisplayedCorrectness",
+                    },
+                };
+                // Inputs nested inside an answer can avoid depending on
+                // creditAchievedPerInput unless colorInputsSeparately is active,
+                // which prevents unnecessary staleness propagation on every
+                // keystroke. forAnswer inputs still fetch both variables together
+                // so they can react if the referenced answer enables
+                // colorInputsSeparately.
+                if (
+                    stateValues.answerAncestor?.stateValues
+                        .colorInputsSeparately
+                ) {
+                    // Input is inside the answer: use ancestor dependency.
+                    deps.answerCreditAchievedPerInput = {
+                        dependencyType: "ancestor",
+                        componentType: "answer",
+                        variableNames: ["creditAchievedPerInput"],
+                    };
+                } else if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    // Input is external (forAnswer): fetch colorInputsSeparately
+                    // and creditAchievedPerInput together in one dep.
+                    deps.answerColoringState = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerSpecifiedInForAnswer,
+                        variableNames: [
+                            "colorInputsSeparately",
+                            "creditAchievedPerInput",
+                        ],
+                        variablesOptional: true,
+                    };
+                }
+                return deps;
+            },
+            definition: function ({ dependencyValues, componentIdx }) {
                 let creditAchieved = 0;
-                if (dependencyValues.componentDeterminingDisplayedCorrectness) {
-                    creditAchieved =
-                        dependencyValues
-                            .componentDeterminingDisplayedCorrectness
-                            .stateValues.creditAchieved;
+                const comp =
+                    dependencyValues.componentDeterminingDisplayedCorrectness;
+                if (comp) {
+                    const overallCredit = comp.stateValues.creditAchieved ?? 0;
+                    // Per-input coloring when colorInputsSeparately is active.
+                    const creditAchievedPerInput =
+                        dependencyValues.answerCreditAchievedPerInput
+                            ?.stateValues.creditAchievedPerInput ??
+                        (dependencyValues.answerColoringState?.stateValues
+                            ?.colorInputsSeparately
+                            ? dependencyValues.answerColoringState.stateValues
+                                  .creditAchievedPerInput
+                            : undefined);
+                    if (
+                        comp.stateValues.colorInputsSeparately &&
+                        creditAchievedPerInput
+                    ) {
+                        const key = `${componentIdx}/${variableForImplicitProp}`;
+                        let perInputCredit = creditAchievedPerInput[key];
+                        if (
+                            perInputCredit === undefined &&
+                            variableForImplicitProp !== "value"
+                        ) {
+                            const keyPrefix = `${componentIdx}/`;
+                            const candidateCredits = Object.entries(
+                                creditAchievedPerInput,
+                            )
+                                .filter(([entryKey]) =>
+                                    entryKey.startsWith(keyPrefix),
+                                )
+                                .map(([, credit]) => credit);
+                            if (candidateCredits.length > 0) {
+                                perInputCredit = Math.max(...candidateCredits);
+                            }
+                        }
+                        creditAchieved =
+                            perInputCredit !== undefined
+                                ? perInputCredit
+                                : overallCredit;
+                    } else {
+                        creditAchieved = overallCredit;
+                    }
                 }
                 return {
                     setValue: { creditAchieved },
