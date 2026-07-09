@@ -19,7 +19,7 @@
  * were produced with this harness.
  *
  * Document-scaling scenarios (`repeat-N`) render one viewer with a generated
- * document containing N `<repeatForSequence>` iterations (~4 components plus
+ * document containing N `<repeatForSequence>` iterations (~5 components plus
  * strings each), so worker-side costs that grow with component count show up.
  *
  * Usage:
@@ -53,8 +53,8 @@ const POST_GC_MS = 3_000;
 
 /**
  * Generate a document with n repeatForSequence iterations. Each iteration
- * contributes a <p>, a <math>, a <number>, and a <boolean> (plus strings), so
- * component count scales at roughly 4n. This exercises the document-scaling
+ * contributes a <p>, a <math>, two <number>s, and a <boolean> (plus strings),
+ * so component count scales at roughly 5n. This exercises the document-scaling
  * worker costs tracked in DoenetML issues #1428-#1431.
  */
 function makeRepeatDoc(n) {
@@ -188,20 +188,22 @@ function pssByProcessType(pids) {
     for (const pid of pids) {
         try {
             const rollup = fs.readFileSync(`/proc/${pid}/smaps_rollup`, "utf8");
-            const kb = parseInt(
-                rollup.match(/^Pss:\s+(\d+) kB/m)?.[1] ?? "0",
-                10,
-            );
+            const mb =
+                parseInt(rollup.match(/^Pss:\s+(\d+) kB/m)?.[1] ?? "0", 10) /
+                1024;
             let type = "browser";
             try {
                 const cmdline = fs
                     .readFileSync(`/proc/${pid}/cmdline`, "utf8")
                     .replaceAll("\0", " ");
-                const m = cmdline.match(/--type=(\w+)/);
+                // e.g. --type=renderer or --type=gpu-process (note the hyphen)
+                const m = cmdline.match(/--type=([\w-]+)/);
                 if (m) type = m[1];
-            } catch {}
-            byType[type] = (byType[type] ?? 0) + kb / 1024;
-            total += kb / 1024;
+            } catch {
+                // cmdline unreadable; leave type as "browser"
+            }
+            byType[type] = (byType[type] ?? 0) + mb;
+            total += mb;
         } catch {
             // process exited or not readable
         }
@@ -240,7 +242,9 @@ async function runScenario({ name, url, expectInitialized }, idx) {
         try {
             await client.send("HeapProfiler.enable");
             await client.send("HeapProfiler.collectGarbage");
-        } catch {}
+        } catch {
+            // GC is best-effort; ignore if the CDP domain is unavailable
+        }
         await page.waitForTimeout(POST_GC_MS);
 
         const result = {
@@ -356,7 +360,7 @@ for (const size of opts.sizes) {
     const big = byName[`repeat-${size}`];
     if (small?.totalPssMB != null && big?.totalPssMB != null) {
         console.error(
-            `document-scaling cost of repeat-${size} (~${4 * size} components) ` +
+            `document-scaling cost of repeat-${size} (~${5 * size} components) ` +
                 `over the small document: ~${big.totalPssMB - small.totalPssMB} MB`,
         );
     }

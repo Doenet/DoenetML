@@ -29,7 +29,7 @@ Playwright's Chromium must be installed once: `npx playwright install chromium`.
 | `blank`    | Browser baseline, no DoenetML                                                                                   |
 | `direct-N` | N viewers sharing one realm (`renderDoenetViewerToContainer` on one page)                                       |
 | `iframe-N` | N viewers in one iframe each, the way `@doenet/doenetml-iframe` and PreTeXt embed documents                     |
-| `repeat-S` | One viewer with a generated `<repeatForSequence>` document of S iterations (≈4S components) — document scaling |
+| `repeat-S` | One viewer with a generated `<repeatForSequence>` document of S iterations (≈5S components) — document scaling |
 
 Each scenario runs in a fresh browser instance. The harness waits for every
 core to report ready (`initializedCallback`), lets workers/MathJax settle,
@@ -61,8 +61,8 @@ Doenet/DoenetML#1441.
 | iframe-1   | 554        | —                                               |
 | direct-4   | 944        | ≈ +131 MB per additional direct instance        |
 | iframe-4   | 1153       | ≈ +200 MB per additional iframe instance        |
-| repeat-25  | 766        | ~100 components: ≈ +214 MB over the small doc   |
-| repeat-250 | 2046       | ~1000 components: ≈ +1494 MB over the small doc |
+| repeat-25  | 766        | ~125 components: ≈ +214 MB over the small doc   |
+| repeat-250 | 2046       | ~1250 components: ≈ +1494 MB over the small doc |
 
 In the `repeat` scenarios the main realm's JS heap grows only 78 → 93 MB
 while the renderer process grows by ~1.5 GB — i.e. essentially all of the
