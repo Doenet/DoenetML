@@ -798,7 +798,6 @@ export class FractionInput extends Input {
                             dependencyType: "ancestor",
                             componentType: "answer",
                             variableNames: ["creditAchievedPerInput"],
-                            variablesOptional: true,
                         },
                     };
                 }

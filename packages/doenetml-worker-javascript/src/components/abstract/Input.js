@@ -342,7 +342,6 @@ export default class Input extends InlineComponent {
                         dependencyType: "ancestor",
                         componentType: "answer",
                         variableNames: ["creditAchievedPerInput"],
-                        variablesOptional: true,
                     };
                 } else if (stateValues.answerSpecifiedInForAnswer !== null) {
                     // Input is external (forAnswer): fetch colorInputsSeparately
@@ -368,7 +367,7 @@ export default class Input extends InlineComponent {
                     // Per-input coloring when colorInputsSeparately is active.
                     const creditAchievedPerInput =
                         dependencyValues.answerCreditAchievedPerInput
-                            ?.stateValues?.creditAchievedPerInput ??
+                            ?.stateValues.creditAchievedPerInput ??
                         (dependencyValues.answerColoringState?.stateValues
                             ?.colorInputsSeparately
                             ? dependencyValues.answerColoringState.stateValues

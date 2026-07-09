@@ -908,7 +908,6 @@ export default class Award extends BaseComponent {
                         dependencyType: "child",
                         childGroups: ["whens"],
                         variableNames: ["referencedStateVars"],
-                        variablesOptional: true,
                     };
                 }
                 return deps;

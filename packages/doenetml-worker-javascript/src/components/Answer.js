@@ -2283,7 +2283,6 @@ export default class Answer extends InlineComponent {
                         "credit",
                         "referencedInputStateVars",
                     ],
-                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
@@ -2292,11 +2291,10 @@ export default class Answer extends InlineComponent {
 
                 for (const award of dependencyValues.awardChildren) {
                     const referencedInputStateVars =
-                        award.stateValues.referencedInputStateVars ?? [];
-                    const credit = award.stateValues.credit ?? 0;
-                    const awarded = award.stateValues.awarded ?? false;
-                    const creditAchieved =
-                        award.stateValues.creditAchieved ?? 0;
+                        award.stateValues.referencedInputStateVars;
+                    const credit = award.stateValues.credit;
+                    const awarded = award.stateValues.awarded;
+                    const creditAchieved = award.stateValues.creditAchieved;
 
                     for (const {
                         componentIdx,
