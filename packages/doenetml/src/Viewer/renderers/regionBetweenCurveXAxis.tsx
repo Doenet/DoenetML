@@ -98,7 +98,10 @@ export default React.memo(function RegionBetweenCurveXAxis(
 
         jsxAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
 
@@ -116,7 +119,10 @@ export default React.memo(function RegionBetweenCurveXAxis(
         attachLabelHoverHighlight({
             hoverTargetJXG: newIntegralJXG,
             getLabelJXG: () => integralJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -206,6 +212,7 @@ export default React.memo(function RegionBetweenCurveXAxis(
             if (integralJXG.current.hasLabel && integralJXG.current.label) {
                 syncLabelMaskCssStyle(integralJXG.current.label, SVs.layer, {
                     highlighted: integralJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
             }
 

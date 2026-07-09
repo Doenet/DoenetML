@@ -113,7 +113,10 @@ export default React.memo(function CobwebPolyline(
 
         jsxPolylineAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
@@ -132,7 +135,10 @@ export default React.memo(function CobwebPolyline(
             face: normalizeStyle(SVs.selectedStyle.markerStyle),
             label: {
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             },
         };
@@ -193,7 +199,10 @@ export default React.memo(function CobwebPolyline(
         attachLabelHoverHighlight({
             hoverTargetJXG: newPolylineJXG,
             getLabelJXG: () => polylineJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -208,7 +217,10 @@ export default React.memo(function CobwebPolyline(
             attachLabelHoverHighlight({
                 hoverTargetJXG: pointsJXG.current[i],
                 getLabelJXG: () => pointsJXG.current?.[i]?.label,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 board,
             });
         }
@@ -454,6 +466,7 @@ export default React.memo(function CobwebPolyline(
             if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
                 syncLabelMaskCssStyle(polylineJXG.current.label, SVs.layer, {
                     highlighted: polylineJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
             }
 
@@ -465,6 +478,7 @@ export default React.memo(function CobwebPolyline(
                 if (lastPoint.label) {
                     syncLabelMaskCssStyle(lastPoint.label, SVs.layer, {
                         highlighted: lastPoint.highlighted,
+                        maskLabel: SVs.maskLabel,
                     });
                     lastPoint.label.needsUpdate = true;
                     lastPoint.label.update();

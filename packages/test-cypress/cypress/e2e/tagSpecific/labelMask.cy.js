@@ -44,6 +44,20 @@ function assertBackgroundIsOpaque(element, description) {
     ).to.not.equal("rgba(0, 0, 0, 0)");
 }
 
+// The inverse of `assertBackgroundIsOpaque`: with `maskLabel="false"` the
+// label should fall back to the pre-mask transparent background.
+function assertBackgroundIsTransparent(element, description) {
+    const backgroundColor =
+        element.ownerDocument.defaultView.getComputedStyle(
+            element,
+        ).backgroundColor;
+
+    expect(
+        backgroundColor,
+        `${description} background-color should be transparent`,
+    ).to.be.oneOf(["transparent", "rgba(0, 0, 0, 0)"]);
+}
+
 describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -158,6 +172,60 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
             // dark canvas color, which must still be opaque (not transparent)
             // so the label stays legible over axes/grid lines.
             assertBackgroundIsOpaque(labelElement, `dark-mode point label`);
+        });
+    });
+
+    it('point label with maskLabel="false" has a transparent background', () => {
+        const pointLabel = "POINT_UNMASKED_LABEL";
+
+        postDoenetML(`
+  <text name="loaded">loaded</text>
+
+  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+    <point name="P" labelIsName="false" maskLabel="false">
+      (0, 3)
+      <label>${pointLabel}</label>
+    </point>
+  </graph>
+        `);
+
+        cy.get("#loaded").should("have.text", "loaded");
+
+        cy.window().should((win) => {
+            const graph = win.document.querySelector(cesc("#g"));
+            expect(graph, "graph").to.not.equal(null);
+
+            const labelElement = findLabelElement(graph, pointLabel);
+            expect(labelElement, `label ${pointLabel}`).to.not.equal(undefined);
+
+            assertBackgroundIsTransparent(labelElement, `unmasked point label`);
+        });
+    });
+
+    it('stand-alone label with maskLabel="false" has a transparent background', () => {
+        const labelText = "STANDALONE_UNMASKED_LABEL";
+
+        postDoenetML(`
+  <text name="loaded">loaded</text>
+
+  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+    <label anchor="(0,0)" maskLabel="false">${labelText}</label>
+  </graph>
+        `);
+
+        cy.get("#loaded").should("have.text", "loaded");
+
+        cy.window().should((win) => {
+            const graph = win.document.querySelector(cesc("#g"));
+            expect(graph, "graph").to.not.equal(null);
+
+            const labelElement = findLabelElement(graph, labelText);
+            expect(labelElement, `label ${labelText}`).to.not.equal(undefined);
+
+            assertBackgroundIsTransparent(
+                labelElement,
+                `unmasked standalone label`,
+            );
         });
     });
 });

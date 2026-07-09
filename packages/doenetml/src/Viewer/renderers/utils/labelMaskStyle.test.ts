@@ -70,6 +70,32 @@ describe("computeLabelMaskCssStyle", () => {
             zIndexOf(high.cssStyle),
         );
     });
+
+    describe("when masking is disabled (maskLabel=false)", () => {
+        it("uses a transparent background with no border or z-index", () => {
+            const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+                layer: 2,
+                masked: false,
+            });
+            expect(cssStyle).toContain("background-color: transparent");
+            expect(cssStyle).not.toContain("border");
+            expect(cssStyle).not.toContain("z-index");
+            // Base and highlight are identical, so hovering/dragging the
+            // labeled object leaves the label unchanged.
+            expect(highlightCssStyle).toBe(cssStyle);
+        });
+
+        it("still honors an explicit backgroundColor", () => {
+            const { cssStyle } = computeLabelMaskCssStyle({
+                layer: 0,
+                backgroundColor: "rgb(4, 5, 6)",
+                masked: false,
+            });
+            expect(cssStyle).toContain("background-color: rgb(4, 5, 6)");
+            expect(cssStyle).not.toContain("transparent");
+            expect(cssStyle).not.toContain("border");
+        });
+    });
 });
 
 describe("attachLabelHoverHighlight", () => {

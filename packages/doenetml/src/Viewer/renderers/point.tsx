@@ -169,7 +169,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 anchorx,
                 anchory,
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
 
@@ -185,7 +188,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         } else {
             jsxPointAttributes.label = {
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
@@ -238,7 +244,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newShadowPointJXG,
             getLabelJXG: () => pointJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -366,6 +375,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     const label = pointJXG.current.label;
                     label.visProp.cssstyle = computeLabelMaskCssStyle({
                         layer: SVs.layer,
+                        masked: SVs.maskLabel,
                     }).highlightCssStyle;
                     label.needsUpdate = true;
                     label.update();
@@ -383,7 +393,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 if (pointJXG.current?.label) {
                     const label = pointJXG.current.label;
                     const { cssStyle, highlightCssStyle } =
-                        computeLabelMaskCssStyle({ layer: SVs.layer });
+                        computeLabelMaskCssStyle({
+                            layer: SVs.layer,
+                            masked: SVs.maskLabel,
+                        });
                     // If the pointer is still over the shadow point when the
                     // drag ends, keep the highlighted mask: the "out" handler
                     // won't re-fire (the pointer never left), so reverting to
@@ -606,6 +619,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 // since that is what drives the point's hover/drag highlighting.
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: shadowPointJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
 
                 let labelPosition = adjustPointLabelPosition(

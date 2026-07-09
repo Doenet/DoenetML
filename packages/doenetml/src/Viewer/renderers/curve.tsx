@@ -180,7 +180,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 position,
                 anchorx,
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
 
@@ -196,7 +199,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
         } else {
             curveAttributes.label = {
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
@@ -405,7 +411,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newCurveJXG,
             getLabelJXG: () => curveJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -901,6 +910,7 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: curveJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
                 label.update();
             }

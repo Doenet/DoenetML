@@ -156,7 +156,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         jsxCircleAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
@@ -182,7 +185,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: circleJXG.current,
             getLabelJXG: () => circleJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -224,7 +230,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 anchorx,
                 anchory,
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
 
@@ -240,7 +249,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         } else {
             jsxPointAttributes.label = {
                 highlight: false,
-                ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
                 highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
@@ -263,7 +275,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: indicatorJXG.current,
             getLabelJXG: () => indicatorJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -776,6 +791,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: circleJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;
                 label.update();
@@ -852,6 +868,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     );
                     syncLabelMaskCssStyle(label, SVs.layer, {
                         highlighted: indicatorJXG.current.highlighted,
+                        maskLabel: SVs.maskLabel,
                     });
 
                     let labelPosition = adjustPointLabelPosition(

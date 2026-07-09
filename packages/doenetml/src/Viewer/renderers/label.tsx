@@ -32,6 +32,7 @@ interface LabelSVs {
     positionFromAnchor: any;
     value: string;
     hasLatex: boolean;
+    maskLabel: boolean;
     forTargetRendererId?: string;
     forTargetIsGroup?: boolean;
     selectedStyle: ResolvedStyleDefinition;
@@ -87,6 +88,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: SVs.layer,
             backgroundColor,
+            masked: SVs.maskLabel,
         });
 
         //things to be passed to JSXGraph as attributes
@@ -259,6 +261,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
                 layer: SVs.layer,
                 backgroundColor,
+                masked: SVs.maskLabel,
             });
 
             if (labelJXG.current.visProp.strokecolor !== textColor) {

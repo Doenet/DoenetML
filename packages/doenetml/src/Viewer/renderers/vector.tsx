@@ -168,6 +168,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
             layer: SVs.layer,
+            maskLabel: SVs.maskLabel,
         });
 
         let newVectorJXG: JXGLine = board.create(
@@ -327,7 +328,10 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newVectorJXG,
             getLabelJXG: () => vectorJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -497,6 +501,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                 );
                 syncLabelMaskCssStyle(vectorJXG.current.label, SVs.layer, {
                     highlighted: vectorJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
 
                 applyLineFamilyLabelPlacement({

@@ -165,7 +165,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
         jsxPolygonAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
@@ -206,7 +209,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newPolygonJXG,
             getLabelJXG: () => polygonJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -578,6 +584,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: polygonJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;
                 label.update();

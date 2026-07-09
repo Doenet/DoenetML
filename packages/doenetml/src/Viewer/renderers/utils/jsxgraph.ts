@@ -551,6 +551,7 @@ export function buildLineFamilyLabelAttributes({
     applyStyleToLabel,
     lineColor,
     layer,
+    maskLabel = true,
 }: {
     labelForGraph: string;
     labelPosition: string;
@@ -558,9 +559,11 @@ export function buildLineFamilyLabelAttributes({
     applyStyleToLabel: boolean;
     lineColor: string;
     layer: number;
+    maskLabel?: boolean;
 }): Record<string, any> {
     const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
         layer,
+        masked: maskLabel,
     });
 
     if (labelForGraph !== "") {
@@ -912,12 +915,17 @@ export function syncLabelStrokeColor(
 export function syncLabelMaskCssStyle(
     label: { visProp: Record<string, any> },
     layer: number,
-    options: { backgroundColor?: string; highlighted?: boolean } = {},
+    options: {
+        backgroundColor?: string;
+        highlighted?: boolean;
+        maskLabel?: boolean;
+    } = {},
 ): { cssStyle: string; highlightCssStyle: string } {
-    const { backgroundColor, highlighted } = options;
+    const { backgroundColor, highlighted, maskLabel = true } = options;
     const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
         layer,
         backgroundColor,
+        masked: maskLabel,
     });
     label.visProp.cssstyle = highlighted ? highlightCssStyle : cssStyle;
     label.visProp.highlightcssstyle = highlightCssStyle;

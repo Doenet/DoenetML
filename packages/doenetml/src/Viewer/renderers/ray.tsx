@@ -114,6 +114,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
             layer: SVs.layer,
+            maskLabel: SVs.maskLabel,
         });
 
         let through = [
@@ -212,7 +213,10 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newRayJXG,
             getLabelJXG: () => rayJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -320,6 +324,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: rayJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
 
                 applyLineFamilyLabelPlacement({

@@ -101,7 +101,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
         jsxAngleAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
@@ -156,7 +159,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newAngleJXG,
             getLabelJXG: () => angleJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -261,6 +267,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 angleJXG.current.label.needsUpdate = true;
                 syncLabelMaskCssStyle(angleJXG.current.label, SVs.layer, {
                     highlighted: angleJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
                 angleJXG.current.label.update();
             }

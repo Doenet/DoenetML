@@ -100,7 +100,10 @@ export default React.memo(function RegionBetweenCurves(
 
         jsxAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
 
@@ -169,7 +172,10 @@ export default React.memo(function RegionBetweenCurves(
         attachLabelHoverHighlight({
             hoverTargetJXG: region,
             getLabelJXG: () => regionJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -283,6 +289,7 @@ export default React.memo(function RegionBetweenCurves(
             if (regionJXG.current.hasLabel && regionJXG.current.label) {
                 syncLabelMaskCssStyle(regionJXG.current.label, SVs.layer, {
                     highlighted: regionJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
             }
 

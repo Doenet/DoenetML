@@ -138,7 +138,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         }
         jsxPolylineAttributes.label = {
             highlight: false,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
@@ -183,7 +186,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         attachLabelHoverHighlight({
             hoverTargetJXG: newPolylineJXG,
             getLabelJXG: () => polylineJXG.current?.label,
-            ...computeLabelMaskCssStyle({ layer: SVs.layer }),
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
             board,
         });
 
@@ -545,6 +551,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
                     highlighted: polylineJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;
                 label.update();

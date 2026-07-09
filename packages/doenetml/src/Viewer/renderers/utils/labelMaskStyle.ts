@@ -42,14 +42,29 @@ export interface LabelLikeJXG {
  * with `attachLabelHoverHighlight` below. As of jsxgraph 1.12.2 (the latest
  * published release at the time this was written), that fix has not yet
  * shipped.
+ *
+ * When `masked` is `false` (the author set `maskLabel="false"` on the
+ * component), the mask is disabled and this restores the pre-mask behavior:
+ * a transparent background (or the explicit style-definition
+ * `backgroundColor`, if one is set), no border, no z-index bump, and a
+ * highlight style identical to the base style so hovering/dragging leaves
+ * the label unchanged.
  */
 export function computeLabelMaskCssStyle({
     layer,
     backgroundColor,
+    masked = true,
 }: {
     layer: number;
     backgroundColor?: string;
+    masked?: boolean;
 }): { cssStyle: string; highlightCssStyle: string } {
+    if (!masked) {
+        const background = backgroundColor || "transparent";
+        const cssStyle = `background-color: ${background};`;
+        return { cssStyle, highlightCssStyle: cssStyle };
+    }
+
     // Labels are HTML elements overlaid on the JSXGraph board. The base
     // z-index lifts a label just above sibling labels/objects on the same
     // Doenet layer without escaping the board's own stacking context, while
