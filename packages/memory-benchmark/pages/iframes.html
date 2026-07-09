@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>iframe embed</title>
+    </head>
+    <body>
+        <script>
+            // Mimic @doenet/doenetml-iframe (and PreTeXt): each instance is an
+            // iframe whose document loads the full standalone bundle and
+            // renders one viewer. ?doc= selects the document.
+            const params = new URLSearchParams(location.search);
+            const n = parseInt(params.get("n") ?? "1", 10);
+            const doc = params.get("doc") ?? "default";
+            const origin = location.origin;
+            window.__done = false;
+            window.__initializedCount = 0;
+            window.addEventListener("message", (e) => {
+                if (e.data === "viewer-initialized") {
+                    window.__initializedCount++;
+                }
+            });
+            (async () => {
+                const source = await fetch(
+                    "/doenetml-source?doc=" + encodeURIComponent(doc),
+                ).then((r) => r.text());
+                const srcdoc = `<!doctype html><html><head>
+<link rel="stylesheet" href="${origin}/standalone/style.css">
+<script type="module" src="${origin}/standalone/doenet-standalone.js"><\/script>
+</head><body><div id="root"></div>
+<script>
+const SOURCE = ${JSON.stringify(source)};
+const waitForApi = setInterval(() => {
+  if (!window.renderDoenetViewerToContainer) return;
+  clearInterval(waitForApi);
+  window.renderDoenetViewerToContainer(
+    document.getElementById("root"),
+    SOURCE,
+    {
+      addVirtualKeyboard: false,
+      initializedCallback: () => {
+        window.parent.postMessage("viewer-initialized", "*");
+      },
+    },
+  );
+}, 50);
+<\/script></body></html>`;
+                for (let i = 0; i < n; i++) {
+                    const iframe = document.createElement("iframe");
+                    iframe.style =
+                        "width: 600px; height: 400px; display: block;";
+                    iframe.srcdoc = srcdoc;
+                    document.body.appendChild(iframe);
+                }
+                window.__done = true;
+            })();
+        </script>
+    </body>
+</html>
