@@ -18,6 +18,105 @@ const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
 };
 
 /**
+ * Marks a state-variable-definitions map whose values are class-shared
+ * definition objects (the cached non-shadow case). `BaseComponent` builds
+ * prototype-based per-instance wrappers over marked definitions; unmarked
+ * maps (adapter / reference-shadow) hold per-instance clones that the
+ * component may use directly. A symbol key so `for..in` over the map skips it.
+ */
+export const SHARED_STATE_VARIABLE_DEFINITIONS = Symbol(
+    "sharedStateVariableDefinitions",
+);
+
+/**
+ * Per-core cache of class-level state-variable definitions, so the
+ * definition objects (and, more importantly, the closures they hold:
+ * `definition`, `returnDependencies`, `inverseDefinition`, `markStale`, ...)
+ * are created once per component class rather than once per component
+ * instance. For a moderately sized document this is tens of MB of heap.
+ *
+ * The cache is keyed per core because attribute-derived definitions close
+ * over `core`, and class definitions close over `core.numerics`.
+ *
+ * Sharing contract: consumers must not mutate the cached definition objects
+ * or anything nested inside them.
+ *   - `BaseComponent`'s constructor shallow-copies each definition into
+ *     `component.state` and additionally clones the nested fields that are
+ *     mutated at runtime (`shadowingInstructions`,
+ *     `additionalStateVariablesDefined`, `stateVariablesDeterminingDependencies`)
+ *     and re-materializes definition `workspace`s per instance.
+ *   - The adapter / reference-shadow paths below mutate definitions while
+ *     building a component, so they operate on per-instance clones made by
+ *     `cloneStateVariableDefinition`.
+ */
+const classStateVariableDefinitionsCache: WeakMap<
+    Core,
+    Map<
+        any,
+        {
+            /** attribute-derived + class definitions (non-shadow path) */
+            combined: Record<string, any>;
+            /** class definitions only (adapter / reference-shadow path) */
+            normalized: Record<string, any>;
+        }
+    >
+> = new WeakMap();
+
+function getClassStateVariableDefinitions(core: Core, componentClass: any) {
+    let perCore = classStateVariableDefinitionsCache.get(core);
+    if (!perCore) {
+        perCore = new Map();
+        classStateVariableDefinitionsCache.set(core, perCore);
+    }
+    let entry = perCore.get(componentClass);
+    if (!entry) {
+        const combined: Record<string, any> = {};
+        createAttributeStateVariableDefinitions({
+            core,
+            stateVariableDefinitions: combined,
+            componentClass,
+        });
+        const normalized =
+            componentClass.returnNormalizedStateVariableDefinitions(
+                core.numerics,
+            );
+        // class definitions win on a name collision, as before
+        Object.assign(combined, normalized);
+        (combined as any)[SHARED_STATE_VARIABLE_DEFINITIONS] = true;
+        entry = { combined, normalized };
+        perCore.set(componentClass, entry);
+    }
+    return entry;
+}
+
+/**
+ * Shallow-clone a cached state-variable definition so the adapter /
+ * reference-shadow code can freely assign and delete fields on it.
+ * The nested fields those paths mutate in place (rather than reassign)
+ * are cloned one level deeper.
+ */
+function cloneStateVariableDefinition(def: Record<string, any>) {
+    const clone = Object.assign({}, def);
+    if (clone.shadowingInstructions) {
+        clone.shadowingInstructions = Object.assign(
+            {},
+            clone.shadowingInstructions,
+        );
+    }
+    if (clone.additionalStateVariablesDefined) {
+        clone.additionalStateVariablesDefined = [
+            ...clone.additionalStateVariablesDefined,
+        ];
+    }
+    if (clone.stateVariablesDeterminingDependencies) {
+        clone.stateVariablesDeterminingDependencies = [
+            ...clone.stateVariablesDeterminingDependencies,
+        ];
+    }
+    return clone;
+}
+
+/**
  * Builds the synchronous state-variable *shape* (the schema-like definition
  * objects that say what each state variable depends on, how to compute it,
  * how to invert it, etc.) for a component class.
@@ -91,38 +190,40 @@ export async function createStateVariableDefinitions({
         }
     }
 
-    let stateVariableDefinitions = {};
+    const classDefinitions = getClassStateVariableDefinitions(
+        core,
+        componentClass,
+    );
 
     if (!redefineDependencies) {
-        createAttributeStateVariableDefinitions({
+        // Shared class-level definitions. `BaseComponent`'s constructor
+        // makes the per-instance copies (see cache comment above).
+        return classDefinitions.combined;
+    }
+
+    // The adapter / reference-shadow paths mutate the definition objects,
+    // so give them per-instance clones of the class definitions.
+    let stateVariableDefinitions: Record<string, any> = {};
+    for (const varName in classDefinitions.normalized) {
+        stateVariableDefinitions[varName] = cloneStateVariableDefinition(
+            classDefinitions.normalized[varName],
+        );
+    }
+
+    if (redefineDependencies.linkSource === "adapter") {
+        createAdapterStateVariableDefinitions({
             core,
+            redefineDependencies,
             stateVariableDefinitions,
             componentClass,
         });
-    }
-
-    //  add state variable definitions from component class
-    let newDefinitions =
-        componentClass.returnNormalizedStateVariableDefinitions(core.numerics);
-
-    Object.assign(stateVariableDefinitions, newDefinitions);
-
-    if (redefineDependencies) {
-        if (redefineDependencies.linkSource === "adapter") {
-            createAdapterStateVariableDefinitions({
-                core,
-                redefineDependencies,
-                stateVariableDefinitions,
-                componentClass,
-            });
-        } else {
-            await createReferenceShadowStateVariableDefinitions({
-                core,
-                redefineDependencies,
-                stateVariableDefinitions,
-                componentClass,
-            });
-        }
+    } else {
+        await createReferenceShadowStateVariableDefinitions({
+            core,
+            redefineDependencies,
+            stateVariableDefinitions,
+            componentClass,
+        });
     }
 
     return stateVariableDefinitions;

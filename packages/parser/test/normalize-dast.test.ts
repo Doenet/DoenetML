@@ -375,6 +375,23 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("drops renamed scored-section coloring attributes on description", () => {
+        const source = `<description forceIndividualAnswerColoring>hello</description>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><description>hello</description></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((x) => x.message).sort()).toEqual([
+            "[deprecation] Attribute `forceIndividualAnswerColoring` on `<description>` is deprecated and ignored.",
+        ]);
+    });
+
     it("renames deprecated attributes regardless of case", () => {
         const source = `<selectPrimeNumbers MINvalue="5" maxVALUE="19" />`;
         const dast = lezerToDast(source);

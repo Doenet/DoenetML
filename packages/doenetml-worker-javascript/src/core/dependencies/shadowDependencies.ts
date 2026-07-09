@@ -662,6 +662,39 @@ export class UnlinkedCopySourceDependency extends Dependency {
     }
 }
 
+/**
+ * Returns the shadow-source info for the specified component:
+ * `{ componentIdx, propVariable }` from `component.shadows`, or `null` if
+ * the component is not a shadow. `shadows` is set once at construction time
+ * and never changes, so this dependency does not track any downstream
+ * component changes — it simply reads the static metadata.
+ */
+export class ShadowInfoDependency extends Dependency {
+    static dependencyType = "shadowInfo";
+
+    setUpParameters() {
+        if (this.definition.componentIdx != undefined) {
+            this.componentIdx = this.definition.componentIdx;
+        } else {
+            this.componentIdx = this.upstreamComponentIdx;
+        }
+    }
+
+    async getValue() {
+        const component = this.dependencyHandler._components[this.componentIdx];
+        if (!component?.shadows) {
+            return { value: null, changes: {} };
+        }
+        return {
+            value: {
+                componentIdx: component.shadows.componentIdx,
+                propVariable: component.shadows.propVariable ?? null,
+            },
+            changes: {},
+        };
+    }
+}
+
 export class PrimaryShadowDependency extends Dependency {
     static dependencyType = "primaryShadow";
 
