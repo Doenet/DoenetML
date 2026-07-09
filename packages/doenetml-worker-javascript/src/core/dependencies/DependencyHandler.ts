@@ -144,6 +144,11 @@ export class DependencyHandler {
     }
 
     internVariableNameList(names: string[]): string[] {
+        // Newline is a safe list separator: state variable names are
+        // identifiers or numeric-ending array entries, and author-supplied
+        // reference names are restricted to the parser grammar's `nameChar`
+        // (letters/digits/`-`/`.`/combining marks — never whitespace), so no
+        // name can contain a "\n" that would collide two distinct lists.
         const key = names.join("\n");
         let interned = this._internedVariableNameLists.get(key);
         if (!interned) {
