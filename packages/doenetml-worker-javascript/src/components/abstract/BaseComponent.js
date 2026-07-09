@@ -1,4 +1,5 @@
 import createStateProxyHandler from "../../StateProxyHandler";
+import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
@@ -61,34 +62,55 @@ export default class BaseComponent {
         }
 
         this.state = {};
-        for (let stateVariable in stateVariableDefinitions) {
-            // need to separately create a shallow copy of each state variable
-            // as state variable definitions of multiple variables could be same object.
-            // The definitions may also be shared across all components of this
-            // class (see the definition cache in StateVariableDefinitionFactory),
-            // so the nested fields that get mutated at runtime need their own
-            // per-instance copies as well.
-            let def = Object.assign(
-                {},
-                stateVariableDefinitions[stateVariable],
-            );
-            if (def.shadowingInstructions) {
-                def.shadowingInstructions = Object.assign(
-                    {},
-                    def.shadowingInstructions,
+        if (stateVariableDefinitions[SHARED_STATE_VARIABLE_DEFINITIONS]) {
+            // The definitions are class-shared (see the cache in
+            // StateVariableDefinitionFactory). Each state variable object is
+            // a per-instance wrapper whose prototype is the definition:
+            // reads of definition fields fall through to the shared
+            // definition, while runtime writes create own properties on the
+            // wrapper. This also isolates state variables whose definitions
+            // are the same object. The runtime deletes
+            // (`delete stateVarObj.value` etc.) only ever target runtime
+            // fields, which live on the wrapper.
+            // (Prototype wrappers are only used over the class-shared
+            // definitions — a few per class — because using the per-instance
+            // adapter/shadow clones below as prototypes made every clone the
+            // root of its own V8 shape tree, costing more in hidden-class
+            // metadata than the shared property backing saved.)
+            for (let stateVariable in stateVariableDefinitions) {
+                let def = Object.create(
+                    stateVariableDefinitions[stateVariable],
                 );
+                // Nested fields that get mutated in place at runtime need
+                // their own per-instance copies; a prototype read would hand
+                // back the shared object.
+                if (def.shadowingInstructions) {
+                    def.shadowingInstructions = Object.assign(
+                        {},
+                        def.shadowingInstructions,
+                    );
+                }
+                if (def.additionalStateVariablesDefined) {
+                    def.additionalStateVariablesDefined = [
+                        ...def.additionalStateVariablesDefined,
+                    ];
+                }
+                if (def.stateVariablesDeterminingDependencies) {
+                    def.stateVariablesDeterminingDependencies = [
+                        ...def.stateVariablesDeterminingDependencies,
+                    ];
+                }
+                this.state[stateVariable] = def;
             }
-            if (def.additionalStateVariablesDefined) {
-                def.additionalStateVariablesDefined = [
-                    ...def.additionalStateVariablesDefined,
-                ];
+        } else {
+            // Adapter / reference-shadow definitions: the factory already
+            // produced per-instance clones (one distinct object per state
+            // variable, nested mutable fields included), so they can be used
+            // directly as the state variable objects.
+            for (let stateVariable in stateVariableDefinitions) {
+                this.state[stateVariable] =
+                    stateVariableDefinitions[stateVariable];
             }
-            if (def.stateVariablesDeterminingDependencies) {
-                def.stateVariablesDeterminingDependencies = [
-                    ...def.stateVariablesDeterminingDependencies,
-                ];
-            }
-            this.state[stateVariable] = def;
         }
 
         // Definitions mutate their workspace across evaluations, so each

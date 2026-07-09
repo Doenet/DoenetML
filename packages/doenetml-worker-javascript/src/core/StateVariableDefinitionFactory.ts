@@ -38,6 +38,17 @@ const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
  *     building a component, so they operate on per-instance clones made by
  *     `cloneStateVariableDefinition`.
  */
+/**
+ * Marks a state-variable-definitions map whose values are class-shared
+ * definition objects (the cached non-shadow case). `BaseComponent` builds
+ * prototype-based per-instance wrappers over marked definitions; unmarked
+ * maps (adapter / reference-shadow) hold per-instance clones that the
+ * component may use directly. A symbol key so `for..in` over the map skips it.
+ */
+export const SHARED_STATE_VARIABLE_DEFINITIONS = Symbol(
+    "sharedStateVariableDefinitions",
+);
+
 const classStateVariableDefinitionsCache: WeakMap<
     Core,
     Map<
@@ -71,6 +82,7 @@ function getClassStateVariableDefinitions(core: Core, componentClass: any) {
             );
         // class definitions win on a name collision, as before
         Object.assign(combined, normalized);
+        (combined as any)[SHARED_STATE_VARIABLE_DEFINITIONS] = true;
         entry = { combined, normalized };
         perCore.set(componentClass, entry);
     }
