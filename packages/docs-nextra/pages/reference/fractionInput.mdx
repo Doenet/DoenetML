@@ -93,6 +93,31 @@ The `bindValueTo` attribute (`<fractionInput bindValueTo="$mi" />{:dn}`) creates
 the same link, but the child form above is usually clearer.
 
 
+---
+
+### Example: colorInputsSeparately — coloring the numerator and denominator independently
+
+```doenet-editor-horiz
+<p>Enter a fraction equal to <m>\dfrac{3}{4}</m>:</p>
+<answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+  <fractionInput name="fi">
+    <label>Enter a fraction equal to three quarters</label>
+  </fractionInput>
+  <award credit="0.5"><when>$fi.numerator = 3</when></award>
+  <award credit="0.5"><when>$fi.denominator = 4</when></award>
+</answer>
+```
+
+When the parent `<answer>{:dn}` has `colorInputsSeparately` set, the numerator
+and denominator boxes are colored independently as long as the numerator and denominator
+are referenced in separate `<award>{:dn}`s.
+Each box turns green when its
+corresponding award is satisfied, and red when not — rather than both boxes
+sharing the answer's overall credit color.
+
+See the [`<answer>{:dn}`](answer2a#attribute-example-colorinputsseparately) reference for
+more details on how `colorInputsSeparately` works and its limitations.
+
 
 ## Attribute Examples
 
@@ -211,39 +236,3 @@ The `valueChanged` property is `true` once the user has changed either box and
 the page has updated (when the user clicks elsewhere, hits Enter, or interacts
 with another part of the page). The `immediateValueChanged` property becomes
 `true` immediately as the user types.
-
----
-
-### Example: colorInputsSeparately — coloring the numerator and denominator independently
-
-```doenet-editor-horiz
-<p>Enter a fraction equal to <m>\dfrac{3}{4}</m>:</p>
-<answer name="ans" numAwardsCredited="2" colorInputsSeparately>
-  <fractionInput name="fi">
-    <label>Enter a fraction equal to three quarters</label>
-  </fractionInput>
-  <award credit="0.5"><when>$fi.numerator = 3</when></award>
-  <award credit="0.5"><when>$fi.denominator = 4</when></award>
-</answer>
-```
-
-When the parent `<answer>{:dn}` has `colorInputsSeparately` set, the numerator
-and denominator boxes are colored independently. Each box turns green when its
-corresponding award is satisfied, and red when not — rather than both boxes
-sharing the answer's overall credit color.
-
-This also works when the `<fractionInput/>{:dn}` is linked to an answer via
-`forAnswer` instead of being a direct child:
-
-```doenet-editor-horiz
-<fractionInput name="fi2" forAnswer="$ans2">
-  <label>Enter a fraction equal to one half</label>
-</fractionInput>
-<answer name="ans2" numAwardsCredited="2" colorInputsSeparately>
-  <award credit="0.5"><when>$fi2.numerator = 1</when></award>
-  <award credit="0.5"><when>$fi2.denominator = 2</when></award>
-</answer>
-```
-
-See the [`<answer>{:dn}`](answer2a#attribute-example-colorinputsseparately) reference for
-more details on how `colorInputsSeparately` works and its limitations.
