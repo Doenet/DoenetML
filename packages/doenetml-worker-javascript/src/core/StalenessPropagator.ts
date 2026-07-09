@@ -431,18 +431,22 @@ export class StalenessPropagator {
                         if (!upDep.valuesChanged[componentInd]) {
                             upDep.valuesChanged[componentInd] = {};
                         }
-                        if (!upDep.valuesChanged[componentInd][varName]) {
-                            upDep.valuesChanged[componentInd][varName] = {};
+                        let changeRecord =
+                            upDep.valuesChanged[componentInd][varName];
+                        if (!changeRecord || Object.isFrozen(changeRecord)) {
+                            // absent (consumed by a previous getValue) or the
+                            // shared frozen initial record — (re)create it
+                            changeRecord = upDep.valuesChanged[componentInd][
+                                varName
+                            ] = changeRecord
+                                ? { changed: changeRecord.changed }
+                                : {};
                         }
-                        upDep.valuesChanged[componentInd][
-                            varName
-                        ].potentialChange = true;
+                        changeRecord.potentialChange = true;
 
                         // add any additional information about the stalename of component/varName
                         if (freshnessInfo) {
-                            upDep.valuesChanged[componentInd][
-                                varName
-                            ].freshnessInfo = freshnessInfo;
+                            changeRecord.freshnessInfo = freshnessInfo;
                             // = new Proxy(freshnessInfo, readOnlyProxyHandler);
                         }
 

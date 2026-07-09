@@ -1181,6 +1181,12 @@ export class DependencyHandler {
                         // deleted on consumption, so absence is normal.)
                         upValuesChanged = upDep.valuesChanged[ind][varName] =
                             {};
+                    } else if (Object.isFrozen(upValuesChanged)) {
+                        // the shared initial change record — replace it
+                        // before recording metadata on it
+                        upValuesChanged = upDep.valuesChanged[ind][varName] = {
+                            changed: upValuesChanged.changed,
+                        };
                     }
 
                     if (

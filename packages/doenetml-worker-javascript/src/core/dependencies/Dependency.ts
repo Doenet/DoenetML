@@ -28,6 +28,16 @@ export function cloneChangeMetadataIfNeeded({
     return consumeChanges ? changeMetadata : deepClone(changeMetadata);
 }
 
+/**
+ * Shared initial change record for every downstream variable of every new
+ * dependency. Frozen: code that needs to record additional change metadata
+ * must replace the record (writers check `Object.isFrozen`; see
+ * `recordActualChangeInUpstreamDependencies` and `StalenessPropagator`).
+ * One shared object instead of one `{ changed: true }` per
+ * (dependency, downstream component, variable).
+ */
+const INITIAL_CHANGE_RECORD = Object.freeze({ changed: true });
+
 export class Dependency {
     [key: string]: any;
 
@@ -336,7 +346,7 @@ export class Dependency {
 
                 let valsChanged: Record<string, any> = {};
                 for (let downVar of mappedVarNames) {
-                    valsChanged[downVar] = { changed: true };
+                    valsChanged[downVar] = INITIAL_CHANGE_RECORD;
                 }
                 this.valuesChanged.splice(index, 0, valsChanged);
 
