@@ -430,23 +430,30 @@ assigning partial credit based on different required aspects of the answer.
   <award credit="0.5"><when>$fi.denominator = 3</when></award>
 </answer>
 ```
+When `colorInputsSeparately` is set and the `<award>{:dn}`s of the answer are structured appropriately,
+then each input will be colored based on the correctness of its value
+(green if correct, red if incorrect, and orange if partially correct).
 
-When `colorInputsSeparately` is set and the answer uses `numAwardsCredited` with separate
-`<award>{:dn}`s for different parts of the response, each input box is colored based on the
-awards that reference it rather than all inputs receiving the same overall credit color.
-In the example above, the numerator and denominator boxes color independently — green when
-their respective award is satisfied, red when not.
+At present, `colorInputsSeparately` requires a particular setup of the `<award>{:dn}`s so that the credit associated
+with each input can be correctly calculated.
+It works best when:
+1. `numAwardsCredited` is set to the number of inputs used,
+2. each input is referenced in its own `<award>{:dn}`, and
+3. the credits for those awards add up to 1.
 
-This works by detecting which `<when>{:dn}` conditions reference each input.
-It works best when each input is covered by **at most one positive-credit award** per
-"tier". When multiple simultaneously-satisfiable awards cover the same input, only the
-largest awarded `creditAchieved` is used to determine that input's color — so an input
-may show partial or full credit even if not all of its covering awards were satisfied.
+(Additional `<award>{:dn}`s can be added to create partial-credit scenarios for each input.)
 
+Using other patterns for awards,
+such as referencing multiple inputs in an award
+or having multiple awards credited for a single input,
+may lead to unexpected results.
+
+A common use case for `colorInputsSeparately` is to color the numerator and denominator
+boxes of a fraction input separately, as illustrated above.
 The attribute also applies to multiple `<mathInput>{:dn}`s connected to an answer via
 `forAnswer`:
 
-```doenet-editor
+```doenet-editor-horiz
 <mathInput name="mi1" forAnswer="$ans2">
   <label>Enter a value greater than 0</label>
 </mathInput>
