@@ -57,6 +57,15 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     const dragState = usePointerDragState();
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
+    // Vertex drag handlers are only attached while vertices are draggable
+    // (they have no hit target while the vertex points are invisible), so a
+    // fixed polygon skips ~10 handler closures per vertex.
+    let vertexHandlersAttached = useRef(false);
+    // Whether the JSXGraph polygon was created with border segments. A
+    // zero-width line style skips creating the N border elements entirely
+    // (the polygon renders its own filled path); if the style later gains a
+    // visible border, the polygon is recreated.
+    let createdWithBorders = useRef(true);
 
     // Tag layout: -1 = polygon body; 0..N-1 = vertex at that index.
     const dragCoordination: DragCoordinationState<number> = {
@@ -141,6 +150,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             dash: styleToDash(SVs.selectedStyle.lineStyle),
         };
 
+        // A zero-width line can never render a border, so skip creating the
+        // N border segment elements entirely (each is a full JSXGraph line
+        // with its own deep-copied attributes). The polygon element renders
+        // its own filled path regardless.
+        const needBorders = SVs.selectedStyle.lineWidth > 0;
+
         let jsxPolygonAttributes: Record<string, any> = {
             ...buildBaseAttributes({
                 SVs,
@@ -156,6 +171,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             highlightFillOpacity: fillAttributes.highlightFillOpacity,
             vertices: jsxPointAttributes.current,
             borders: jsxBorderAttributes,
+            withLines: needBorders,
         };
 
         jsxPolygonAttributes.label = {
@@ -195,8 +211,18 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             jsxPolygonAttributes,
         );
         newPolygonJXG.isDraggable = !fixLocation.current;
+        createdWithBorders.current = needBorders;
 
-        initializePoints(newPolygonJXG);
+        // Vertex handlers have no hit target while the vertex points are
+        // invisible (non-draggable vertices), so attach them only when
+        // draggable; the update path attaches them later if vertices become
+        // draggable.
+        if (!verticesFixed.current) {
+            initializePoints(newPolygonJXG);
+            vertexHandlersAttached.current = true;
+        } else {
+            vertexHandlersAttached.current = false;
+        }
 
         attachPolygonBodyDragHandlers(newPolygonJXG);
 
@@ -366,6 +392,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         if (!polygonJXG.current) {
             return;
         }
+        vertexHandlersAttached.current = false;
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygonJXG.current.vertices[i];
             if (vertex) {
@@ -411,6 +438,14 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             polygonJXG.current = createPolygonJXG();
         } else if (!(SVs.numVertices >= 2)) {
             deletePolygonJXG();
+        } else if (
+            SVs.selectedStyle.lineWidth > 0 !==
+            createdWithBorders.current
+        ) {
+            // the polygon was created without border segments (zero-width
+            // line) and now needs them, or vice versa; recreate it
+            deletePolygonJXG();
+            polygonJXG.current = createPolygonJXG();
         } else {
             let validCoords = true;
 
@@ -448,7 +483,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                     polygonJXG.current.addPoints(newPoint);
                     pointsJXG.current.push(newPoint);
                 }
-                initializePoints(polygonJXG.current);
+                // The vertex set changed, so newly added vertices have no drag
+                // handlers yet. Clear the flag; the lazy (re)attach below
+                // handles them if the vertices are draggable.
+                vertexHandlersAttached.current = false;
             } else if (
                 previousNumVertices.current !== null &&
                 SVs.numVertices < previousNumVertices.current
@@ -467,7 +505,19 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                         board?.removeObject(pointToDelete);
                     }
                 }
+                // The vertex set changed, so handler-to-vertex bindings are
+                // stale. Clear the flag; the lazy (re)attach below handles it.
+                vertexHandlersAttached.current = false;
+            }
+
+            // (Re)attach vertex drag handlers if the vertices are draggable —
+            // either they became draggable since creation, or the vertex set
+            // just changed (including vertices added while the polygon was
+            // fixed). initializePoints removes any existing handlers first, so
+            // this is idempotent and never double-attaches.
+            if (!verticesFixed.current && !vertexHandlersAttached.current) {
                 initializePoints(polygonJXG.current);
+                vertexHandlersAttached.current = true;
             }
 
             let verticesVisible = !verticesFixed.current && !SVs.hidden;

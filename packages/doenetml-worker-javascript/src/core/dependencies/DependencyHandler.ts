@@ -22,6 +22,13 @@ import {
 import { dependencyTypeClasses } from "./registry";
 
 /**
+ * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
+ * entry exists. Frozen: peek callers only read, and a write to this object
+ * would corrupt every other caller.
+ */
+const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
+
+/**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
  * change propagation. Each is an index over component identifiers or names
  * pointing at the dependent dependency records; the records themselves are
@@ -83,6 +90,16 @@ export class DependencyHandler {
     };
     attributeRefResolutionDependenciesByReferenced: Record<ComponentIdx, any>;
 
+    /**
+     * Interned (deduplicated, frozen) lists of downstream variable names.
+     * Most dependencies map the same few variable-name lists (e.g.
+     * `["value"]`), so sharing one frozen array per distinct list saves a
+     * separate array per (dependency, downstream component). Frozen so an
+     * accidental in-place mutation throws instead of corrupting the other
+     * dependencies sharing the list.
+     */
+    _internedVariableNameLists: Map<string, readonly string[]>;
+
     constructor({
         _components,
         componentInfoObjects,
@@ -122,6 +139,23 @@ export class DependencyHandler {
         };
 
         this.attributeRefResolutionDependenciesByReferenced = {};
+
+        this._internedVariableNameLists = new Map();
+    }
+
+    internVariableNameList(names: string[]): string[] {
+        // Newline is a safe list separator: state variable names are
+        // identifiers or numeric-ending array entries, and author-supplied
+        // reference names are restricted to the parser grammar's `nameChar`
+        // (letters/digits/`-`/`.`/combining marks — never whitespace), so no
+        // name can contain a "\n" that would collide two distinct lists.
+        const key = names.join("\n");
+        let interned = this._internedVariableNameLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(names);
+            this._internedVariableNameLists.set(key, interned);
+        }
+        return interned as string[];
     }
 
     async setUpComponentDependencies(component: ComponentInstance) {
@@ -1141,46 +1175,23 @@ export class DependencyHandler {
                         upDep.downstreamComponentIndices.indexOf(componentIdx);
                     let upValuesChanged = upDep.valuesChanged[ind][varName];
 
-                    // Note (dated July 20, 2023):
-                    // The code in the next two sections references a variable upValuesChangedSub
-                    // that is not defined, so it will throw an error if evaluated.
-                    // This code is years old at this point and all tests have been passing.
-                    // Either there is a rare edge case that will call this code and we need to fix it,
-                    // or this code is no longer used.
-                    // TODO: determine if this code is need.  Fix it if it is needed or else delete it.
-
                     if (!upValuesChanged) {
-                        // check if have an alias that maps to varName
-                        if (component.stateVarAliases) {
-                            for (let alias in component.stateVarAliases) {
-                                if (
-                                    component.stateVarAliases[alias] ===
-                                        varName &&
-                                    // @ts-expect-error see "Note (dated July 20, 2023)" above:
-                                    // `upValuesChangedSub` is undefined; keeping the
-                                    // reference verbatim so behavior matches the JS source.
-                                    alias in upValuesChangedSub
-                                ) {
-                                    upValuesChanged =
-                                        // @ts-expect-error same as above
-                                        upValuesChangedSub[alias];
-                                }
-                            }
-                        }
-                    }
-
-                    // if still don't have record of change, create new change object
-                    // (Should only be needed when have array entry variables,
-                    // where original change was recorded in array)
-                    if (!upValuesChanged) {
-                        if (!component.state[varName].isArrayEntry) {
-                            throw Error(
-                                `Something is wrong, as a variable ${varName} of ${component.componentIdx} actually changed, but wasn't marked with a potential change`,
-                            );
-                        }
-                        upValuesChanged =
-                            // @ts-expect-error same as above
-                            upValuesChangedSub[varName] = { changed: {} };
+                        // The change record was consumed (deleted) by a
+                        // previous getValue, or the original change was
+                        // recorded in the array state variable rather than
+                        // this array entry. Recreate it.
+                        // (This replaced dead code that referenced an
+                        // undefined `upValuesChangedSub` and threw for
+                        // non-array-entry variables; change records are now
+                        // deleted on consumption, so absence is normal.)
+                        upValuesChanged = upDep.valuesChanged[ind][varName] =
+                            {};
+                    } else if (Object.isFrozen(upValuesChanged)) {
+                        // the shared initial change record — replace it
+                        // before recording metadata on it
+                        upValuesChanged = upDep.valuesChanged[ind][varName] = {
+                            changed: upValuesChanged.changed,
+                        };
                     }
 
                     if (
@@ -1333,6 +1344,49 @@ export class DependencyHandler {
             foundChange: true,
             finishedPropagation: parentResult.finishedPropagation,
         };
+    }
+
+    /**
+     * Non-creating variant of `getNeededToResolve`: returns the nested entry
+     * if it exists, else `EMPTY_BLOCKERS`, without materializing intermediate
+     * levels. `getNeededToResolve` creates the whole nested chain on every
+     * lookup, and read-only callers used to leave tens of thousands of empty
+     * `{cIdx: {type: {stateVariable: {}}}}` chains behind — the bulk of
+     * `resolveBlockers`' retained memory.
+     */
+    peekNeededToResolve({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+    }: any) {
+        let neededToResolve =
+            this.resolveBlockers.neededToResolve[componentIdx]?.[type];
+        if (neededToResolve && stateVariable) {
+            neededToResolve = neededToResolve[stateVariable];
+            if (neededToResolve && dependency) {
+                neededToResolve = neededToResolve[dependency];
+            }
+        }
+        return neededToResolve ?? EMPTY_BLOCKERS;
+    }
+
+    /** Non-creating variant of `getResolveBlockedBy`; see `peekNeededToResolve`. */
+    peekResolveBlockedBy({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+    }: any) {
+        let resolveBlockedBy =
+            this.resolveBlockers.resolveBlockedBy[componentIdx]?.[type];
+        if (resolveBlockedBy && stateVariable) {
+            resolveBlockedBy = resolveBlockedBy[stateVariable];
+            if (resolveBlockedBy && dependency) {
+                resolveBlockedBy = resolveBlockedBy[dependency];
+            }
+        }
+        return resolveBlockedBy ?? EMPTY_BLOCKERS;
     }
 
     getNeededToResolve({ componentIdx, type, stateVariable, dependency }: any) {
@@ -2052,7 +2106,7 @@ export class DependencyHandler {
 
                 if (dep) {
                     // check if there are any other determineDependencies blocking state variable
-                    let neededForItem = this.getNeededToResolve({
+                    let neededForItem = this.peekNeededToResolve({
                         componentIdx: componentIdxNewlyResolved,
                         type: "stateVariable",
                         stateVariable: stateVariableNewlyResolved,
@@ -2180,7 +2234,7 @@ export class DependencyHandler {
             }
         }
 
-        let resolveBlockedByNewlyResolved = this.getResolveBlockedBy({
+        let resolveBlockedByNewlyResolved = this.peekResolveBlockedBy({
             componentIdx: componentIdxNewlyResolved,
             type: typeNewlyResolved,
             stateVariable: stateVariableNewlyResolved,
@@ -2357,7 +2411,7 @@ export class DependencyHandler {
         // and updateDependencies calls the getters on
         // the state variables determining dependencies
 
-        let neededForItem = this.getNeededToResolve({
+        let neededForItem = this.peekNeededToResolve({
             componentIdx,
             type,
             stateVariable,
@@ -2417,7 +2471,7 @@ export class DependencyHandler {
                 break;
             }
             if (nFailures > 0) {
-                neededForItem = this.getNeededToResolve({
+                neededForItem = this.peekNeededToResolve({
                     componentIdx,
                     type,
                     stateVariable,
@@ -2469,7 +2523,7 @@ export class DependencyHandler {
             // it means we are forcing.
             // Try one more time while passing force to resolveItem
 
-            neededForItem = this.getNeededToResolve({
+            neededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2529,7 +2583,7 @@ export class DependencyHandler {
         if (!finalResult.success) {
             // after removing all blockers, we still can't resolve
 
-            let stillNeededForItem = this.getNeededToResolve({
+            let stillNeededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2609,7 +2663,7 @@ export class DependencyHandler {
         if (!this.circularResolveBlockedCheckPassed[identifier]) {
             this.circularResolveBlockedCheckPassed[identifier] = true;
 
-            let neededForItem = this.getNeededToResolve({
+            let neededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2749,7 +2803,7 @@ export class DependencyHandler {
         if (this.circularResolveBlockedCheckPassed[identifier]) {
             delete this.circularResolveBlockedCheckPassed[identifier];
 
-            let resolveBlockedBy = this.getResolveBlockedBy({
+            let resolveBlockedBy = this.peekResolveBlockedBy({
                 componentIdx,
                 type,
                 stateVariable,
