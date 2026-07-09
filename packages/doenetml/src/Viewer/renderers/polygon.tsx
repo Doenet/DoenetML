@@ -483,16 +483,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                     polygonJXG.current.addPoints(newPoint);
                     pointsJXG.current.push(newPoint);
                 }
-                if (!verticesFixed.current) {
-                    initializePoints(polygonJXG.current);
-                    vertexHandlersAttached.current = true;
-                } else {
-                    // The vertex set changed while the polygon is fixed, so
-                    // the (possibly new) vertices did not get drag handlers.
-                    // Drop the flag so the lazy catch-all below re-attaches
-                    // handlers to every vertex if they later become draggable.
-                    vertexHandlersAttached.current = false;
-                }
+                // The vertex set changed, so newly added vertices have no drag
+                // handlers yet. Clear the flag; the lazy (re)attach below
+                // handles them if the vertices are draggable.
+                vertexHandlersAttached.current = false;
             } else if (
                 previousNumVertices.current !== null &&
                 SVs.numVertices < previousNumVertices.current
@@ -511,20 +505,16 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                         board?.removeObject(pointToDelete);
                     }
                 }
-                if (!verticesFixed.current) {
-                    initializePoints(polygonJXG.current);
-                    vertexHandlersAttached.current = true;
-                } else {
-                    // The vertex set changed while the polygon is fixed, so
-                    // the (possibly new) vertices did not get drag handlers.
-                    // Drop the flag so the lazy catch-all below re-attaches
-                    // handlers to every vertex if they later become draggable.
-                    vertexHandlersAttached.current = false;
-                }
+                // The vertex set changed, so handler-to-vertex bindings are
+                // stale. Clear the flag; the lazy (re)attach below handles it.
+                vertexHandlersAttached.current = false;
             }
 
-            // vertices may have become draggable since creation; their drag
-            // handlers are attached lazily
+            // (Re)attach vertex drag handlers if the vertices are draggable —
+            // either they became draggable since creation, or the vertex set
+            // just changed (including vertices added while the polygon was
+            // fixed). initializePoints removes any existing handlers first, so
+            // this is idempotent and never double-attaches.
             if (!verticesFixed.current && !vertexHandlersAttached.current) {
                 initializePoints(polygonJXG.current);
                 vertexHandlersAttached.current = true;

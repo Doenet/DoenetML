@@ -18,6 +18,17 @@ const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
 };
 
 /**
+ * Marks a state-variable-definitions map whose values are class-shared
+ * definition objects (the cached non-shadow case). `BaseComponent` builds
+ * prototype-based per-instance wrappers over marked definitions; unmarked
+ * maps (adapter / reference-shadow) hold per-instance clones that the
+ * component may use directly. A symbol key so `for..in` over the map skips it.
+ */
+export const SHARED_STATE_VARIABLE_DEFINITIONS = Symbol(
+    "sharedStateVariableDefinitions",
+);
+
+/**
  * Per-core cache of class-level state-variable definitions, so the
  * definition objects (and, more importantly, the closures they hold:
  * `definition`, `returnDependencies`, `inverseDefinition`, `markStale`, ...)
@@ -38,17 +49,6 @@ const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
  *     building a component, so they operate on per-instance clones made by
  *     `cloneStateVariableDefinition`.
  */
-/**
- * Marks a state-variable-definitions map whose values are class-shared
- * definition objects (the cached non-shadow case). `BaseComponent` builds
- * prototype-based per-instance wrappers over marked definitions; unmarked
- * maps (adapter / reference-shadow) hold per-instance clones that the
- * component may use directly. A symbol key so `for..in` over the map skips it.
- */
-export const SHARED_STATE_VARIABLE_DEFINITIONS = Symbol(
-    "sharedStateVariableDefinitions",
-);
-
 const classStateVariableDefinitionsCache: WeakMap<
     Core,
     Map<
