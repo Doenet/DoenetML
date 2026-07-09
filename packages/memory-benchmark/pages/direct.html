@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>direct embed</title>
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script type="module" src="/standalone/doenet-standalone.js"></script>
+    </head>
+    <body>
+        <script>
+            // N viewers sharing one realm, via the standalone global API.
+            // ?doc= selects the document served by /doenetml-source.
+            const params = new URLSearchParams(location.search);
+            const n = parseInt(params.get("n") ?? "1", 10);
+            const doc = params.get("doc") ?? "default";
+            window.__done = false;
+            window.__initializedCount = 0;
+            (async () => {
+                const source = await fetch(
+                    "/doenetml-source?doc=" + encodeURIComponent(doc),
+                ).then((r) => r.text());
+                const waitForApi = setInterval(() => {
+                    if (!window.renderDoenetViewerToContainer) return;
+                    clearInterval(waitForApi);
+                    for (let i = 0; i < n; i++) {
+                        const div = document.createElement("div");
+                        div.id = "viewer" + i;
+                        document.body.appendChild(div);
+                        window.renderDoenetViewerToContainer(div, source, {
+                            addVirtualKeyboard: false,
+                            initializedCallback: () => {
+                                window.__initializedCount++;
+                            },
+                        });
+                    }
+                    window.__done = true;
+                }, 50);
+            })();
+        </script>
+    </body>
+</html>
