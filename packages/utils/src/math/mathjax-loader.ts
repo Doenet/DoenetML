@@ -38,7 +38,7 @@
  * Pinned to match the version Doenet is tested against.
  */
 export const DEFAULT_MATHJAX_SRC =
-    "https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js";
+    "https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js";
 
 /**
  * Minimal shape of a loaded MathJax 3/4 engine that the renderers rely on.
