@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     DEFAULT_MATHJAX_SRC,
     isMathJaxEngine,
@@ -196,5 +196,39 @@ describe("loadMathJax", () => {
         const engine = makeEngine();
         win.MathJax = engine;
         await expect(promise).resolves.toBe(engine);
+    });
+
+    it("rejects when the injected script fails to load", async () => {
+        const promise = loadMathJax({ config: { tex: {} } });
+        expect(appendedScripts).toHaveLength(1);
+
+        // The browser fires an `error` event when the script URL fails to load.
+        appendedScripts[0]._fire("error");
+
+        await expect(promise).rejects.toThrow(/failed to load MathJax/);
+    });
+
+    it("rejects after the timeout when a promised host MathJax never appears", async () => {
+        vi.useFakeTimers();
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            const promise = loadMathJax({
+                useExistingMathJax: true,
+                timeoutMs: 1000,
+            });
+            // Attach the rejection handler before advancing so the rejection is
+            // never observed as unhandled.
+            const assertion = expect(promise).rejects.toThrow(/timed out/);
+
+            // Drive the poll loop past the deadline; MathJax never shows up.
+            await vi.advanceTimersByTimeAsync(1100);
+
+            await assertion;
+            expect(appendedScripts).toHaveLength(0); // never injected our own
+            expect(warnSpy).toHaveBeenCalled();
+        } finally {
+            warnSpy.mockRestore();
+            vi.useRealTimers();
+        }
     });
 });
