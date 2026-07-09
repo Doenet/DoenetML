@@ -18,8 +18,8 @@
  * The baseline numbers in https://github.com/Doenet/DoenetML/issues/1441
  * were produced with this harness.
  *
- * Document-scaling scenarios (`repeat-N`) render one viewer with a generated
- * document containing N `<repeatForSequence>` iterations (~5 components plus
+ * Document-scaling scenarios (`repeat-S`) render one viewer with a generated
+ * document containing S `<repeatForSequence>` iterations (~5 components plus
  * strings each), so worker-side costs that grow with component count show up.
  *
  * Usage:
