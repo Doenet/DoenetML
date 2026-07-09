@@ -8,7 +8,7 @@ import React, {
     useState,
 } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
-import { MathJaxContext } from "better-react-mathjax";
+import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
 import type {
@@ -101,6 +101,8 @@ export function DoenetViewer({
     initializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    mathjaxUrl,
+    useExistingMathjax = false,
     onInit = () => {},
 }: {
     doenetML: string;
@@ -154,6 +156,21 @@ export function DoenetViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    /**
+     * URL of the MathJax script to load when the page does not already provide
+     * MathJax. Defaults to the version Doenet is tested against. Ignored when a
+     * host-provided MathJax engine or script is detected. Because a page shares
+     * a single MathJax, only the first-mounted viewer's value takes effect.
+     */
+    mathjaxUrl?: string;
+    /**
+     * Force Doenet to reuse a MathJax provided by the host page instead of ever
+     * loading its own — wait for `window.MathJax` rather than injecting a
+     * script. Use when the host loads MathJax after Doenet mounts (so no script
+     * is detectable yet). Existing/loading MathJax is reused automatically even
+     * without this flag; it only matters when detection cannot see it in time.
+     */
+    useExistingMathjax?: boolean;
     /**
      * Called when React has initialized and passed the DOM node that is a parent of
      * the DoenetML UI.
@@ -299,7 +316,12 @@ export function DoenetViewer({
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext config={mathjaxConfig} version={4}>
+            <MathJaxContext
+                config={mathjaxConfig}
+                version={4}
+                src={mathjaxUrl}
+                useExistingMathJax={useExistingMathjax}
+            >
                 <div
                     data-theme={resolvedTheme}
                     ref={(r) => {
@@ -367,6 +389,17 @@ type DoenetEditorProps = {
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
+     * URL of the MathJax script to load when the page does not already provide
+     * MathJax. Defaults to the version Doenet is tested against. Ignored when a
+     * host-provided MathJax engine or script is detected. See `DoenetViewer`.
+     */
+    mathjaxUrl?: string;
+    /**
+     * Force reuse of a host-provided MathJax instead of ever loading Doenet's
+     * own copy. See `DoenetViewer` for details.
+     */
+    useExistingMathjax?: boolean;
+    /**
      * Controls which tab the diagnostics/responses/help panel opens to at
      * mount. Three forms:
      *  - prop omitted (`undefined`): default — panel opens on the help tab
@@ -418,6 +451,8 @@ export const DoenetEditor = React.forwardRef<
         fetchExternalDoenetML,
         docsURL,
         initialOpenTab,
+        mathjaxUrl,
+        useExistingMathjax = false,
     },
     ref,
 ) {
@@ -496,7 +531,12 @@ export const DoenetEditor = React.forwardRef<
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext config={mathjaxConfig} version={4}>
+            <MathJaxContext
+                config={mathjaxConfig}
+                version={4}
+                src={mathjaxUrl}
+                useExistingMathJax={useExistingMathjax}
+            >
                 <div data-theme={resolvedTheme} style={{ display: "contents" }}>
                     <WrapWithKeyboard
                         addVirtualKeyboard={addVirtualKeyboard}

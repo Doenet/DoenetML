@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
-import { MathJaxContext } from "better-react-mathjax";
+import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 
 type VirtualKeyboardState = {
