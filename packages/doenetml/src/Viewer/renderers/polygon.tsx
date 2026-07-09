@@ -486,6 +486,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 if (!verticesFixed.current) {
                     initializePoints(polygonJXG.current);
                     vertexHandlersAttached.current = true;
+                } else {
+                    // The vertex set changed while the polygon is fixed, so
+                    // the (possibly new) vertices did not get drag handlers.
+                    // Drop the flag so the lazy catch-all below re-attaches
+                    // handlers to every vertex if they later become draggable.
+                    vertexHandlersAttached.current = false;
                 }
             } else if (
                 previousNumVertices.current !== null &&
@@ -508,6 +514,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 if (!verticesFixed.current) {
                     initializePoints(polygonJXG.current);
                     vertexHandlersAttached.current = true;
+                } else {
+                    // The vertex set changed while the polygon is fixed, so
+                    // the (possibly new) vertices did not get drag handlers.
+                    // Drop the flag so the lazy catch-all below re-attaches
+                    // handlers to every vertex if they later become draggable.
+                    vertexHandlersAttached.current = false;
                 }
             }
 
