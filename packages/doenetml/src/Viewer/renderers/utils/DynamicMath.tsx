@@ -104,21 +104,27 @@ export function DynamicMath({ latex }: { latex: string }) {
                 const buffer = ensureBuffer(bufferRef);
                 buffer.innerHTML = next;
                 await MathJax.typesetPromise([buffer]);
+                // Drop MathJax's record of this render as soon as the typeset
+                // finishes — before the unmount check below and before moving
+                // the rendered nodes out of the buffer. `typesetClear` prunes
+                // math items whose nodes are still inside the buffer (matched
+                // via `buffer.contains(...)`, which holds even once cleanup has
+                // detached the buffer from the document), so clearing here —
+                // while the fresh output is still in the buffer — is what keeps
+                // MathJax's internal math list (and the detached DOM it would
+                // otherwise retain across every swap) from growing without
+                // bound under frequent updates. Clearing before the unmount
+                // check is deliberate: if we bailed first, an unmount mid-drag
+                // would re-leak exactly this item. Clearing only forgets the
+                // item; the rendered DOM stays fully functional.
+                MathJax.typesetClear([buffer]);
                 // Bail if we unmounted during the typeset: the buffer was
                 // removed by cleanup and `visible` is detached, so there is
-                // nothing to swap into.
+                // nothing to swap into. MathJax's record was already cleared
+                // above, so bailing here leaks nothing.
                 if (!mounted.current) {
                     break;
                 }
-                // Drop MathJax's record of this render *before* moving the
-                // rendered nodes out of the buffer. `typesetClear` only prunes
-                // math items whose nodes are still inside the buffer, so
-                // clearing here — while the fresh output is still in the buffer
-                // — is what actually keeps MathJax's internal math list (and the
-                // detached DOM it would otherwise retain across every swap) from
-                // growing without bound under frequent updates. Clearing only
-                // forgets the item; the rendered DOM stays fully functional.
-                MathJax.typesetClear([buffer]);
                 // Swap the freshly rendered output in; the old output stayed
                 // visible until exactly now, so there is no raw/blank flash.
                 visible.replaceChildren(...Array.from(buffer.childNodes));
