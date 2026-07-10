@@ -90,7 +90,15 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    const { addVirtualKeyboard, sendResizeEvents, ...flags } = attrs;
+    // `mathjaxUrl` / `useExistingMathjax` are viewer props, not flags — pull
+    // them out so they reach `DoenetViewer` directly instead of `flags`.
+    const {
+        addVirtualKeyboard,
+        sendResizeEvents,
+        mathjaxUrl,
+        useExistingMathjax,
+        ...flags
+    } = attrs;
 
     let resizeWatcher = viewerResizeWatchersByContainer.get(container);
     if (!resizeWatcher) {
@@ -120,6 +128,8 @@ export function renderDoenetViewerToContainer(
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             flags={flags}
+            mathjaxUrl={mathjaxUrl}
+            useExistingMathjax={useExistingMathjax}
             onInit={(r) => {
                 if (sendResizeEvents) {
                     resizeWatcher.watch(r);
@@ -187,8 +197,9 @@ export function renderDoenetEditorToContainer(
         attrs[name] = value;
     }
 
-    // DoenetEditor doesn't accept flags, so only attribute using is addVirtualKeyboard
-    const { addVirtualKeyboard } = attrs;
+    // DoenetEditor doesn't accept flags, so the only attributes used are
+    // addVirtualKeyboard and the MathJax loading controls.
+    const { addVirtualKeyboard, mathjaxUrl, useExistingMathjax } = attrs;
 
     // Hold pending control actions until the inner DoenetEditor commits
     // (callback ref fires). React commits asynchronously after `createRoot.render`,
@@ -257,6 +268,8 @@ export function renderDoenetEditorToContainer(
             ref={refCallback}
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
+            mathjaxUrl={mathjaxUrl}
+            useExistingMathjax={useExistingMathjax}
             {...config}
         />,
     );
