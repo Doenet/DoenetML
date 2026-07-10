@@ -92,6 +92,13 @@ export function renderDoenetViewerToContainer(
         delete config.flags;
     }
 
+    // Compose the resize-readiness signal with any caller-supplied
+    // `initializedCallback` so we don't clobber it via the `{...config}` spread.
+    const {
+        initializedCallback: configInitializedCallback,
+        ...restConfig
+    }: { initializedCallback?: (arg: unknown) => void } = config ?? {};
+
     let root = viewerRootsByContainer.get(container);
     if (!root) {
         root = ReactDOM.createRoot(container);
@@ -107,7 +114,17 @@ export function renderDoenetViewerToContainer(
                     resizeWatcher.watch(r);
                 }
             }}
-            {...config}
+            initializedCallback={(arg: unknown) => {
+                // Only start reporting heights to the host once the document has
+                // actually rendered — otherwise a not-yet-booted (or failed)
+                // container reports a near-zero height and collapses the host
+                // iframe. See issue #1434.
+                if (sendResizeEvents) {
+                    resizeWatcher.markReady();
+                }
+                configInitializedCallback?.(arg);
+            }}
+            {...restConfig}
         />,
     );
 }
