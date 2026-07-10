@@ -87,6 +87,26 @@ Run tests:
 pytest
 ```
 
+## Publishing
+
+Releases are published to [PyPI](https://pypi.org/project/doenetml-to-pretext/)
+automatically by the
+[`publish-doenetml-to-pretext-python.yml`](../../.github/workflows/publish-doenetml-to-pretext-python.yml)
+GitHub Actions workflow, using [Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
+(OIDC) — no API token is stored.
+
+- **Version:** derived from `packages/doenetml/package.json`, so it stays in
+  lockstep with `@doenet/doenetml`. There is no separate version to bump here.
+- **Trigger:** GitHub `release` events only (the same trigger as the npm
+  production release), never pushes to `main`. Cutting a release whose tag
+  matches the `doenetml` version publishes the matching wheel.
+- **Dry run:** the workflow can be run manually (`workflow_dispatch`) targeting
+  [TestPyPI](https://test.pypi.org/) to validate packaging before a real release.
+
+The wheel bundles the built JS assets from `../doenetml-to-pretext`, so that
+package must be built first; the workflow (and the `npm run build` wireit graph)
+handles this automatically.
+
 ## License
 
 AGPL-3.0-or-later
