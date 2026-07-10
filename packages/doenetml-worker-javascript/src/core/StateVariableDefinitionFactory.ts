@@ -5,6 +5,7 @@ import {
     validateListItemsAgainstValidValues,
 } from "../utils/attributes";
 import type { AttributeDefinition } from "../utils/dast/types";
+import { normalizeArrayStateVariableDefaults } from "./StateVariableInitializer";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the
@@ -82,6 +83,13 @@ function getClassStateVariableDefinitions(core: Core, componentClass: any) {
             );
         // class definitions win on a name collision, as before
         Object.assign(combined, normalized);
+        // Install the class-invariant array defaults (keyToIndex,
+        // getAllArrayKeys, entryPrefixes fallback, ...) once per class, so
+        // instances don't re-assign them as own properties. Covers the
+        // `normalized` map too: its values are the same objects.
+        for (const varName in combined) {
+            normalizeArrayStateVariableDefaults(combined[varName], varName);
+        }
         (combined as any)[SHARED_STATE_VARIABLE_DEFINITIONS] = true;
         entry = { combined, normalized };
         perCore.set(componentClass, entry);
