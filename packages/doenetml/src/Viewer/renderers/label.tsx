@@ -4,7 +4,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
@@ -316,11 +316,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     let label: React.ReactNode = SVs.value;
 
     if (SVs.hasLatex) {
-        label = (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {label}
-            </MathJax>
-        );
+        label = <DynamicMath latex={SVs.value} />;
     }
     if (SVs.forTargetRendererId) {
         if (SVs.forTargetIsGroup) {

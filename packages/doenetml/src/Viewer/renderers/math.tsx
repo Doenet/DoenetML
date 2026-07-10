@@ -4,7 +4,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
@@ -339,17 +339,11 @@ export default React.memo(function MathComponent(
         ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
-    const hideUntilTypeset = !choiceInputInlineContext.isHidden
-        ? "first"
-        : undefined;
-
     return (
         <>
             {anchors}
             <span style={style} id={id}>
-                <MathJax hideUntilTypeset={hideUntilTypeset} inline dynamic>
-                    {latexWithDelims}
-                </MathJax>
+                <DynamicMath latex={latexWithDelims} />
             </span>
         </>
     );
