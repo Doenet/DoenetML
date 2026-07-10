@@ -24,8 +24,9 @@ import {
  * shared functions reach core through `svComponent.coreFunctions`.
  *
  * Stateless — exported functions take a back-reference to Core to read
- * `stateVariableChangeTriggers` and to invoke `getStateVariableValue`,
- * `checkIfArrayEntry`, `addDiagnostic`, and `createFromArrayEntry`. The
+ * `stateVariableChangeTriggers` and to invoke `checkIfArrayEntry`,
+ * `addDiagnostic`, and `createFromArrayEntry` (the shared runtime functions
+ * instead reach core through `svComponent.coreFunctions`, as above). The
  * private helper `initializeArrayEntryStateVariable` needs none of these
  * and so does not take `core`.
  */
