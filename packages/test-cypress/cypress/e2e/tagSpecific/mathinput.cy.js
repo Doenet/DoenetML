@@ -1021,4 +1021,35 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#g").find("label").should("contain.text", "height");
         cy.get("#g").find(".mathInputGraphGrip").should("not.exist");
     });
+
+    it("mathInput in a graph renders visible (theme-aware) text in dark mode", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" prefill="x" />
+    </graph>
+    `,
+                    darkMode: "dark",
+                },
+                "*",
+            );
+        });
+        cy.get('[data-theme="dark"]').should("exist");
+
+        // The field text must be a light color in dark mode, not the dark
+        // default color JSXGraph gives its text-element rendNode (which the
+        // portaled MathQuill would otherwise inherit).
+        cy.get("#g")
+            .find(".mq-root-block")
+            .first()
+            .then(($el) => {
+                const color = getComputedStyle($el[0]).color;
+                const sum = (color.match(/\d+(\.\d+)?/g) || [])
+                    .slice(0, 3)
+                    .reduce((acc, ch) => acc + parseFloat(ch), 0);
+                expect(sum, `field text color ${color}`).to.be.greaterThan(450);
+            });
+    });
 });

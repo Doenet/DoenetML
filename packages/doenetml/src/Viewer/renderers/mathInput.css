@@ -42,8 +42,14 @@
     display: inline-flex;
     flex-direction: row;
     align-items: center;
-    gap: 2px;
+    /* Leave room for the field's focus outline (drawn 2px outside its 2px
+       border) so it does not overlap the label/grip beside it. */
+    gap: 6px;
     background-color: var(--canvas);
+    /* The hosting JSXGraph text element gives its rendNode a fixed inline color
+       that MathQuill would otherwise inherit; set a theme-aware color here so
+       the field (and label) stay visible in dark mode. */
+    color: var(--canvasText);
 }
 
 .doenet-viewer .mathInputGraphHandle {
