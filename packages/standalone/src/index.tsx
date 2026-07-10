@@ -29,6 +29,12 @@ export const version: string = STANDALONE_VERSION;
 const viewerRootsByContainer = new WeakMap<Element, ReactDOM.Root>();
 const editorRootsByContainer = new WeakMap<Element, ReactDOM.Root>();
 
+// Cache the ResizeWatcher per container alongside its React root. Repeat renders
+// reuse the same watcher so we don't leak a still-observing ResizeObserver from
+// a prior render (each would keep posting heights). `watch()` re-points the
+// observer at the current element, and `markReady()` is idempotent.
+const viewerResizeWatchersByContainer = new WeakMap<Element, ResizeWatcher>();
+
 type EditorHandleEntry = {
     mountedHandle: DoenetEditorHandle | null;
     pendingHandleActions: ((h: DoenetEditorHandle) => void)[];
@@ -85,7 +91,12 @@ export function renderDoenetViewerToContainer(
         attrs[name] = value;
     }
     const { addVirtualKeyboard, sendResizeEvents, ...flags } = attrs;
-    const resizeWatcher = new ResizeWatcher();
+
+    let resizeWatcher = viewerResizeWatchersByContainer.get(container);
+    if (!resizeWatcher) {
+        resizeWatcher = new ResizeWatcher();
+        viewerResizeWatchersByContainer.set(container, resizeWatcher);
+    }
 
     if (config && "flags" in config) {
         Object.assign(flags, config.flags);
