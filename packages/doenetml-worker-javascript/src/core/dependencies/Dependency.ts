@@ -564,10 +564,17 @@ export class Dependency {
             }
 
             for (let varName of downVarNames) {
-                if (downCompUpDeps[varName] === undefined) {
-                    downCompUpDeps[varName] = [];
+                // Exact-capacity growth: most variables keep a single
+                // upstream dependency, while a push-grown array reserves
+                // ≥16 element slots. `concat` allocates exactly the needed
+                // length; readers always re-fetch the list from the map, so
+                // replacing the array is safe.
+                const existingUpDeps = downCompUpDeps[varName];
+                if (existingUpDeps === undefined) {
+                    downCompUpDeps[varName] = [this];
+                } else {
+                    downCompUpDeps[varName] = existingUpDeps.concat(this);
                 }
-                downCompUpDeps[varName].push(this);
 
                 if (varName !== this.downstreamVariableNameIfNoVariables) {
                     for (let upstreamVarName of this.upstreamVariableNames) {
@@ -669,7 +676,13 @@ export class Dependency {
                                 componentIdx
                             ][vName];
                         } else {
-                            downCompUpDeps.splice(ind, 1);
+                            // exact-capacity rebuild — splice keeps the
+                            // over-allocated backing store
+                            this.dependencyHandler.upstreamDependencies[
+                                componentIdx
+                            ][vName] = downCompUpDeps
+                                .slice(0, ind)
+                                .concat(downCompUpDeps.slice(ind + 1));
                         }
                     }
                 }
@@ -830,7 +843,13 @@ export class Dependency {
                                 downCompIdx as number
                             ][vName as string];
                         } else {
-                            downCompUpDeps.splice(ind, 1);
+                            // exact-capacity rebuild — splice keeps the
+                            // over-allocated backing store
+                            this.dependencyHandler.upstreamDependencies[
+                                downCompIdx as number
+                            ][vName as string] = downCompUpDeps
+                                .slice(0, ind)
+                                .concat(downCompUpDeps.slice(ind + 1));
                         }
                     }
                 }

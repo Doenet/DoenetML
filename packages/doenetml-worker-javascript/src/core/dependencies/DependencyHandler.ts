@@ -2119,15 +2119,15 @@ export class DependencyHandler {
 
         let neededToResolveBlocked = neededForBlocked[blockerType];
         if (!neededToResolveBlocked) {
-            neededToResolveBlocked = neededForBlocked[blockerType] = [];
-        }
-
-        // if blockers is already recorded, then nothing to do
-        if (neededToResolveBlocked.includes(blockerCode)) {
+            // exact capacity: three quarters of blocker lists only ever hold
+            // one code, while a push-grown array reserves ≥16 element slots
+            neededForBlocked[blockerType] = [blockerCode];
+        } else if (neededToResolveBlocked.includes(blockerCode)) {
+            // blocker is already recorded, so nothing to do
             return;
+        } else {
+            neededToResolveBlocked.push(blockerCode);
         }
-
-        neededToResolveBlocked.push(blockerCode);
 
         if (typeBlocked === "stateVariable") {
             let component = this._components[componentIdxBlocked];
@@ -2182,9 +2182,9 @@ export class DependencyHandler {
 
         let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
         if (!blockedByBlocker) {
-            blockedByBlocker = resolvedBlockedByBlocker[typeBlocked] = [];
-        }
-        if (!blockedByBlocker.includes(codeBlocked)) {
+            // exact capacity, as for `neededToResolveBlocked` above
+            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
+        } else if (!blockedByBlocker.includes(codeBlocked)) {
             blockedByBlocker.push(codeBlocked);
         }
 
