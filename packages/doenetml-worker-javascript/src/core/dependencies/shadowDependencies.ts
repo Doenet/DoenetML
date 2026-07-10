@@ -497,6 +497,13 @@ export class ShadowSourceDependency extends Dependency {
                         component.shadows.propVariable,
                     )
                 ) {
+                    // on re-determination the list is interned (frozen,
+                    // shared) — copy before appending
+                    if (Object.isFrozen(this.originalDownstreamVariableNames)) {
+                        this.originalDownstreamVariableNames = [
+                            ...this.originalDownstreamVariableNames,
+                        ];
+                    }
                     this.originalDownstreamVariableNames.push(
                         component.shadows.propVariable,
                     );

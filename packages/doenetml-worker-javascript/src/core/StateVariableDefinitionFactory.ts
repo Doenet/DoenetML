@@ -827,6 +827,208 @@ async function createReferenceShadowStateVariableDefinitions({
     });
 }
 
+/*
+ * Shared shadow definition functions.
+ *
+ * `modifyStateDefsToBeShadows` used to create 3 fresh closures (plus their
+ * shared context) per shadowed state variable per component instance — for
+ * copy/repeat-heavy documents this was the dominant remaining per-instance
+ * definition cost after the per-class definition cache (see
+ * https://github.com/Doenet/DoenetML/issues/1428). These module-level
+ * functions replace those closures; the per-variable parameters they need
+ * are stored as `shadow*` fields on the (per-instance) definition object.
+ *
+ * They read the parameters via `this`, which is safe because:
+ *  - shadow-path definitions ARE the state-variable objects (BaseComponent
+ *    uses the factory's per-instance clones directly), and
+ *  - every core call site invokes these as methods of the state-variable
+ *    object (`stateVarObj.definition(args)`, `stateVarObj.returnDependencies(...)`,
+ *    `stateVarObj.arrayDefinitionByKey(args)`, ...) or binds first
+ *    (`arrayStateVarObj.returnDependencies.bind(arrayStateVarObj)` in
+ *    `StateVariableInitializer`).
+ */
+function shadowReturnDependencies(this: any, args: any) {
+    // start from the original dependencies when they were kept for
+    // readyToExpandWhenResolved (see shadowOriginalReturnDependencies)
+    let dependencies: Record<string, any> = Object.assign(
+        {},
+        this.shadowOriginalReturnDependencies?.(args),
+    );
+
+    dependencies.targetVariable = {
+        dependencyType: "stateVariable",
+        componentIdx: this.shadowOfComponentIdx,
+        variableName: this.shadowVarNameInTarget,
+    };
+    if (this.shadowCopyComponentType) {
+        dependencies.targetVariableComponentType = {
+            dependencyType: "stateVariableComponentType",
+            componentIdx: this.shadowOfComponentIdx,
+            variableName: this.shadowVarNameInTarget,
+        };
+    }
+    return dependencies;
+}
+
+function shadowDefinition(
+    this: any,
+    { dependencyValues, usedDefault }: any,
+): Record<string, any> {
+    const varName = this.shadowVarName;
+    let result: Record<string, any> = {};
+
+    // TODO: how do we make it do this just once?
+    if ("targetVariableComponentType" in dependencyValues) {
+        result.setCreateComponentOfType = {
+            [varName]: dependencyValues.targetVariableComponentType,
+        };
+    }
+
+    if (
+        usedDefault.targetVariable &&
+        "defaultValue" in this &&
+        this.hasEssential
+    ) {
+        result.useEssentialOrDefaultValue = {
+            [varName]: {
+                defaultValue: dependencyValues.targetVariable,
+            },
+        };
+    } else {
+        result.setValue = {
+            [varName]: dependencyValues.targetVariable,
+        };
+    }
+
+    return result;
+}
+
+function shadowInverseDefinition(
+    this: any,
+    { desiredStateVariableValues }: any,
+) {
+    return {
+        success: true,
+        instructions: [
+            {
+                setDependency: "targetVariable",
+                desiredValue: desiredStateVariableValues[this.shadowVarName],
+                shadowedVariable: true,
+            },
+        ],
+    };
+}
+
+function shadowReturnArrayDependenciesByKey(this: any, { arrayKeys }: any) {
+    let dependenciesByKey: Record<string, any> = {};
+
+    for (let key of arrayKeys) {
+        dependenciesByKey[key] = {
+            targetVariable: {
+                dependencyType: "stateVariable",
+                componentIdx: this.shadowOfComponentIdx,
+                variableName:
+                    this.shadowOverrideVarName ||
+                    this.arrayVarNameFromArrayKey(key),
+            },
+        };
+    }
+
+    let globalDependencies: Record<string, any> = {};
+
+    if (this.shadowCopyComponentType) {
+        globalDependencies.targetVariableComponentType = {
+            dependencyType: "stateVariableComponentType",
+            componentIdx: this.shadowOfComponentIdx,
+            variableName: this.shadowVarName,
+        };
+    }
+
+    if (this.inverseShadowToSetEntireArray) {
+        globalDependencies.targetArray = {
+            dependencyType: "stateVariable",
+            componentIdx: this.shadowOfComponentIdx,
+            variableName: this.shadowVarName,
+        };
+    }
+
+    return { globalDependencies, dependenciesByKey };
+}
+
+function shadowArrayDefinitionByKey(
+    this: any,
+    { globalDependencyValues, dependencyValuesByKey, arrayKeys }: any,
+) {
+    const varName = this.shadowVarName;
+    let newEntries: Record<string, any> = {};
+
+    for (let arrayKey of arrayKeys) {
+        if ("targetVariable" in dependencyValuesByKey[arrayKey]) {
+            newEntries[arrayKey] =
+                dependencyValuesByKey[arrayKey].targetVariable;
+        } else {
+            // put in a placeholder value until this can be rerun
+            // with the updated dependencies
+            newEntries[arrayKey] = this.defaultValueByArrayKey?.(arrayKey);
+        }
+    }
+
+    let result: Record<string, any> = {
+        setValue: { [varName]: newEntries },
+    };
+
+    // TODO: how do we make it do this just once?
+    if ("targetVariableComponentType" in globalDependencyValues) {
+        result.setCreateComponentOfType = {
+            [varName]: globalDependencyValues.targetVariableComponentType,
+        };
+    }
+
+    return result;
+}
+
+function shadowInverseArrayDefinitionByKey(
+    this: any,
+    {
+        desiredStateVariableValues,
+        dependencyValuesByKey,
+        dependencyNamesByKey,
+        arraySize,
+        initialChange,
+    }: any,
+) {
+    const varName = this.shadowVarName;
+    if (this.inverseShadowToSetEntireArray) {
+        return {
+            success: true,
+            instructions: [
+                {
+                    setDependency: "targetArray",
+                    desiredValue: desiredStateVariableValues[varName],
+                    treatAsInitialChange: initialChange,
+                },
+            ],
+        };
+    }
+
+    let instructions = [];
+    for (let key in desiredStateVariableValues[varName]) {
+        if (!dependencyValuesByKey[key]) {
+            continue;
+        }
+
+        instructions.push({
+            setDependency: dependencyNamesByKey[key].targetVariable,
+            desiredValue: desiredStateVariableValues[varName][key],
+            shadowedVariable: true,
+        });
+    }
+    return {
+        success: true,
+        instructions,
+    };
+}
+
 /**
  * Rewrite each named state-variable definition in
  * `stateVariableDefinitions` so it reads from the corresponding variable
@@ -895,197 +1097,40 @@ function modifyStateDefsToBeShadows({
             stateDef.public &&
             stateDef.shadowingInstructions.hasVariableComponentType;
 
+        // Parameters for the shared shadow definition functions (see the
+        // module-level `shadow*` functions above), stored on the
+        // per-instance definition instead of captured in per-variable
+        // closures.
+        stateDef.shadowOfComponentIdx = targetComponent.componentIdx;
+        stateDef.shadowVarName = varName;
+        stateDef.shadowCopyComponentType = copyComponentType;
+
         if (stateDef.isArray) {
-            let overrideVarNameWith = differentStateVariablesInTarget[varInd];
+            stateDef.shadowOverrideVarName =
+                differentStateVariablesInTarget[varInd];
 
-            stateDef.returnArrayDependenciesByKey = function ({ arrayKeys }) {
-                let dependenciesByKey = {};
-
-                for (let key of arrayKeys) {
-                    dependenciesByKey[key] = {
-                        targetVariable: {
-                            dependencyType: "stateVariable",
-                            componentIdx: targetComponent.componentIdx,
-                            variableName:
-                                overrideVarNameWith ||
-                                this.arrayVarNameFromArrayKey(key),
-                        },
-                    };
-                }
-
-                let globalDependencies = {};
-
-                if (copyComponentType) {
-                    globalDependencies.targetVariableComponentType = {
-                        dependencyType: "stateVariableComponentType",
-                        componentIdx: targetComponent.componentIdx,
-                        variableName: varName,
-                    };
-                }
-
-                if (stateDef.inverseShadowToSetEntireArray) {
-                    globalDependencies.targetArray = {
-                        dependencyType: "stateVariable",
-                        componentIdx: targetComponent.componentIdx,
-                        variableName: varName,
-                    };
-                }
-
-                return { globalDependencies, dependenciesByKey };
-            };
-
-            stateDef.arrayDefinitionByKey = function ({
-                globalDependencyValues,
-                dependencyValuesByKey,
-                arrayKeys,
-            }) {
-                let newEntries = {};
-
-                for (let arrayKey of arrayKeys) {
-                    if ("targetVariable" in dependencyValuesByKey[arrayKey]) {
-                        newEntries[arrayKey] =
-                            dependencyValuesByKey[arrayKey].targetVariable;
-                    } else {
-                        // put in a placeholder value until this can be rerun
-                        // with the updated dependencies
-                        newEntries[arrayKey] =
-                            stateDef.defaultValueByArrayKey?.(arrayKey);
-                    }
-                }
-
-                let result = {
-                    setValue: { [varName]: newEntries },
-                };
-
-                // TODO: how do we make it do this just once?
-                if ("targetVariableComponentType" in globalDependencyValues) {
-                    result.setCreateComponentOfType = {
-                        [varName]:
-                            globalDependencyValues.targetVariableComponentType,
-                    };
-                }
-
-                return result;
-            };
-
-            stateDef.inverseArrayDefinitionByKey = function ({
-                desiredStateVariableValues,
-                dependencyValuesByKey,
-                dependencyNamesByKey,
-                arraySize,
-                initialChange,
-            }) {
-                if (stateDef.inverseShadowToSetEntireArray) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "targetArray",
-                                desiredValue:
-                                    desiredStateVariableValues[varName],
-                                treatAsInitialChange: initialChange,
-                            },
-                        ],
-                    };
-                }
-
-                let instructions = [];
-                for (let key in desiredStateVariableValues[varName]) {
-                    if (!dependencyValuesByKey[key]) {
-                        continue;
-                    }
-
-                    instructions.push({
-                        setDependency: dependencyNamesByKey[key].targetVariable,
-                        desiredValue: desiredStateVariableValues[varName][key],
-                        shadowedVariable: true,
-                    });
-                }
-                return {
-                    success: true,
-                    instructions,
-                };
-            };
+            stateDef.returnArrayDependenciesByKey =
+                shadowReturnArrayDependenciesByKey;
+            stateDef.arrayDefinitionByKey = shadowArrayDefinitionByKey;
+            stateDef.inverseArrayDefinitionByKey =
+                shadowInverseArrayDefinitionByKey;
         } else {
-            let returnStartingDependencies = () => ({});
-
             if (foundReadyToExpandWhenResolved) {
                 // even though won't use original dependencies
                 // if found a readyToExpandWhenResolved
                 // keep original dependencies so that readyToExpandWhenResolved
                 // won't be resolved until all its dependent variables are resolved
-                returnStartingDependencies =
+                stateDef.shadowOriginalReturnDependencies =
                     stateDef.returnDependencies.bind(stateDef);
             }
 
-            let varNameInTarget = differentStateVariablesInTarget[varInd];
-            if (!varNameInTarget) {
-                varNameInTarget = varName;
-            }
+            stateDef.shadowVarNameInTarget =
+                differentStateVariablesInTarget[varInd] || varName;
 
-            stateDef.returnDependencies = function (args) {
-                let dependencies = Object.assign(
-                    {},
-                    returnStartingDependencies(args),
-                );
-
-                dependencies.targetVariable = {
-                    dependencyType: "stateVariable",
-                    componentIdx: targetComponent.componentIdx,
-                    variableName: varNameInTarget,
-                };
-                if (copyComponentType) {
-                    dependencies.targetVariableComponentType = {
-                        dependencyType: "stateVariableComponentType",
-                        componentIdx: targetComponent.componentIdx,
-                        variableName: varNameInTarget,
-                    };
-                }
-                return dependencies;
-            };
-            stateDef.definition = function ({ dependencyValues, usedDefault }) {
-                let result = {};
-
-                // TODO: how do we make it do this just once?
-                if ("targetVariableComponentType" in dependencyValues) {
-                    result.setCreateComponentOfType = {
-                        [varName]: dependencyValues.targetVariableComponentType,
-                    };
-                }
-
-                if (
-                    usedDefault.targetVariable &&
-                    "defaultValue" in stateDef &&
-                    stateDef.hasEssential
-                ) {
-                    result.useEssentialOrDefaultValue = {
-                        [varName]: {
-                            defaultValue: dependencyValues.targetVariable,
-                        },
-                    };
-                } else {
-                    result.setValue = {
-                        [varName]: dependencyValues.targetVariable,
-                    };
-                }
-
-                return result;
-            };
+            stateDef.returnDependencies = shadowReturnDependencies;
+            stateDef.definition = shadowDefinition;
             stateDef.excludeDependencyValuesInInverseDefinition = true;
-            stateDef.inverseDefinition = function ({
-                desiredStateVariableValues,
-            }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "targetVariable",
-                            desiredValue: desiredStateVariableValues[varName],
-                            shadowedVariable: true,
-                        },
-                    ],
-                };
-            };
+            stateDef.inverseDefinition = shadowInverseDefinition;
         }
     }
     for (let varName in deleteStateVariablesFromDefinition) {

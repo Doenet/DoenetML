@@ -439,9 +439,7 @@ export class StateVariableComponentTypeDependency extends StateVariableDependenc
                                 });
                         }
                         if (consumeChanges) {
-                            // delete rather than reset to `{}`; recreated on
-                            // demand when marked changed again
-                            delete this.valuesChanged[0][mappedVarName];
+                            this.consumeChangeRecord(0, mappedVarName);
                         }
 
                         let hasVariableComponentType =
