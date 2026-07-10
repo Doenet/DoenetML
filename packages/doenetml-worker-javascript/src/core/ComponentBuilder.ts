@@ -17,6 +17,12 @@ import { gatherVariantComponents } from "../utils/variants";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { extractCreateComponentIdxMapping } from "../utils/componentIndices";
 
+// Most components keep no children serialized (only classes with a static
+// `keepChildrenSerialized` do), so they all share one frozen empty array
+// instead of allocating one apiece. Frozen so an accidental in-place
+// mutation throws instead of corrupting every other component.
+const EMPTY_SERIALIZED_CHILDREN: any[] = Object.freeze([]) as any;
+
 /**
  * Builds component instances from serialized DAST. Handles the recursive
  * walk that creates a parent before its children, registers each new
@@ -662,7 +668,10 @@ export async function createChildrenThenComponent({
         ancestors,
         definingChildren,
         stateVariableDefinitions,
-        serializedChildren: childrenToRemainSerialized,
+        serializedChildren:
+            childrenToRemainSerialized.length > 0
+                ? childrenToRemainSerialized
+                : EMPTY_SERIALIZED_CHILDREN,
         serializedComponent,
         attributes,
         componentInfoObjects: core.componentInfoObjects,
