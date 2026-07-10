@@ -10,7 +10,15 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
-import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
+import {
+    syncLabelMaskCssStyle,
+    syncLayer,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 
@@ -93,6 +101,11 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
         jsxAngleAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxAngleAttributes.label.useMathJax = true;
@@ -137,11 +150,23 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             jsxPointAttributes,
         );
 
-        return board.create(
+        const newAngleJXG = board.create(
             "angle",
             [point1JXG.current, point2JXG.current, point3JXG.current],
             jsxAngleAttributes,
         );
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newAngleJXG,
+            getLabelJXG: () => angleJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
+
+        return newAngleJXG;
     }
 
     if (SVs.hidden) {
@@ -240,6 +265,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
+                syncLabelMaskCssStyle(angleJXG.current.label, SVs.layer, {
+                    highlighted: angleJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
                 angleJXG.current.label.update();
             }
             board.updateRenderer();

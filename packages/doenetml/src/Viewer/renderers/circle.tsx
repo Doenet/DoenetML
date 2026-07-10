@@ -35,11 +35,16 @@ import {
 import { styleToDash } from "./utils/styleToDash";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
@@ -151,6 +156,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         jsxCircleAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxCircleAttributes.label.useMathJax = true;
@@ -171,6 +181,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         );
 
         circleJXG.current!.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: circleJXG.current,
+            getLabelJXG: () => circleJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         let jsxPointAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
@@ -210,6 +230,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 anchorx,
                 anchory,
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
 
             if (SVs.labelHasLatex) {
@@ -224,6 +249,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         } else {
             jsxPointAttributes.label = {
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
                 jsxPointAttributes.label.useMathJax = true;
@@ -241,6 +271,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         }
 
         indicatorJXG.current.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: indicatorJXG.current,
+            getLabelJXG: () => indicatorJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         function buildCircleCommitArgs() {
             if (
@@ -749,6 +789,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             if (circleJXG.current.hasLabel && circleJXG.current.label) {
                 const label = circleJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: circleJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
                 label.needsUpdate = true;
                 label.update();
             }
@@ -822,6 +866,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                         SVs.applyStyleToLabel,
                         markerColor,
                     );
+                    syncLabelMaskCssStyle(label, SVs.layer, {
+                        highlighted: indicatorJXG.current.highlighted,
+                        maskLabel: SVs.maskLabel,
+                    });
 
                     let labelPosition = adjustPointLabelPosition(
                         "upperright",

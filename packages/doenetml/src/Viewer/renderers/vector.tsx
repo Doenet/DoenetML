@@ -14,12 +14,17 @@ import {
     buildLineFamilyLabelAttributes,
     removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -162,6 +167,8 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             labelHasLatex: SVs.labelHasLatex,
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
+            layer: SVs.layer,
+            maskLabel: SVs.maskLabel,
         });
 
         let newVectorJXG: JXGLine = board.create(
@@ -317,6 +324,16 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         vectorJXG.current = newVectorJXG;
         point1JXG.current = newPoint1JXG;
         point2JXG.current = newPoint2JXG;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newVectorJXG,
+            getLabelJXG: () => vectorJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         if (SVs.labelForGraph !== "" && newVectorJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
@@ -482,6 +499,10 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     SVs.applyStyleToLabel,
                     lineColor,
                 );
+                syncLabelMaskCssStyle(vectorJXG.current.label, SVs.layer, {
+                    highlighted: vectorJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
 
                 applyLineFamilyLabelPlacement({
                     board,

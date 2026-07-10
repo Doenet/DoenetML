@@ -308,6 +308,31 @@ around the `<graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
+---
+
+### Attribute Example: maskLabel
+
+
+```doenet-example
+<graph size="small">
+  <shortDescription>graph comparing a masked label and an unmasked label over the axes</shortDescription>
+  <label anchor="(0,3)">Masked (default)</label>
+  <label anchor="(0,-3)" maskLabel="false">Not masked</label>
+</graph>
+```
+
+
+
+By default, a graph label is drawn with an opaque background (a "mask") so that it
+stays legible when it overlaps an axis, grid line, or another object. Set
+`maskLabel="false"` to restore a transparent background instead; the "Not masked"
+label above shows how the axis then shows through the text. `maskLabel` is a standard
+graphical attribute available on every graphical component that can carry a label
+(such as `<point>{:dn}`, `<line>{:dn}`, and `<circle>{:dn}`), not just on a stand-alone
+`<label>{:dn}`.
+
+
+
 ## Property Examples
 
 ### Property Example: text

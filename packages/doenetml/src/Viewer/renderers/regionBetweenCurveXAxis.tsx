@@ -9,6 +9,11 @@ import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve, JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
+import { syncLabelMaskCssStyle } from "./utils/jsxgraph";
 
 interface RegionBetweenCurveXAxisSVs extends GraphicalSVs {
     haveFunction: boolean;
@@ -93,6 +98,11 @@ export default React.memo(function RegionBetweenCurveXAxis(
 
         jsxAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
 
         let f = createFunctionFromDefinition(SVs.fDefinition);
@@ -100,11 +110,23 @@ export default React.memo(function RegionBetweenCurveXAxis(
             visible: false,
         }) as JXGCurve;
 
-        return board.create(
+        const newIntegralJXG = board.create(
             "integral",
             [SVs.boundaryValues, curveJXG.current],
             jsxAttributes,
         ) as JXGIntegral;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newIntegralJXG,
+            getLabelJXG: () => integralJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
+
+        return newIntegralJXG;
     }
 
     function deleteRegion() {
@@ -185,6 +207,13 @@ export default React.memo(function RegionBetweenCurveXAxis(
             ) {
                 integralJXG.current.visProp.fillopacity =
                     fillAttributes.fillOpacity;
+            }
+
+            if (integralJXG.current.hasLabel && integralJXG.current.label) {
+                syncLabelMaskCssStyle(integralJXG.current.label, SVs.layer, {
+                    highlighted: integralJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
             }
 
             // including both update and full updates for all parts of curve and board
