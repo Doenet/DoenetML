@@ -213,6 +213,48 @@ export class Dependency {
                 index,
             });
         }
+
+        // The parallel downstream arrays repeat heavily across dependencies
+        // (mostly length 1, and all the dependencies of one component point
+        // at the same targets), so share one frozen array per distinct list.
+        // The mutators below thaw before changing the downstream set.
+        this.downstreamComponentIndices =
+            this.dependencyHandler.internComponentIndexList(
+                this.downstreamComponentIndices,
+            );
+        this.downstreamComponentTypes =
+            this.dependencyHandler.internComponentTypeList(
+                this.downstreamComponentTypes,
+            );
+        if (this.mappedDownstreamVariableNamesByComponent) {
+            this.mappedDownstreamVariableNamesByComponent =
+                this.dependencyHandler.internNameListArray(
+                    this.mappedDownstreamVariableNamesByComponent,
+                );
+        }
+    }
+
+    /**
+     * Replace the interned (frozen, shared) parallel downstream arrays with
+     * mutable copies before changing the downstream set.
+     */
+    thawDownstreamArrays() {
+        if (Object.isFrozen(this.downstreamComponentIndices)) {
+            this.downstreamComponentIndices = [
+                ...this.downstreamComponentIndices,
+            ];
+        }
+        if (Object.isFrozen(this.downstreamComponentTypes)) {
+            this.downstreamComponentTypes = [...this.downstreamComponentTypes];
+        }
+        if (
+            this.mappedDownstreamVariableNamesByComponent &&
+            Object.isFrozen(this.mappedDownstreamVariableNamesByComponent)
+        ) {
+            this.mappedDownstreamVariableNamesByComponent = [
+                ...this.mappedDownstreamVariableNamesByComponent,
+            ];
+        }
     }
 
     async addDownstreamComponent({
@@ -221,6 +263,8 @@ export class Dependency {
         index,
     }: any) {
         this.componentIdentitiesChanged = true;
+
+        this.thawDownstreamArrays();
 
         this.downstreamComponentIndices.splice(
             index,
@@ -469,6 +513,8 @@ export class Dependency {
             this.componentIdentitiesChanged = true;
         }
 
+        this.thawDownstreamArrays();
+
         let componentIdx = this.downstreamComponentIndices[indexToRemove];
 
         this.downstreamComponentIndices.splice(indexToRemove, 1);
@@ -562,6 +608,8 @@ export class Dependency {
 
     async swapDownstreamComponents(index1: number, index2: number) {
         this.componentIdentitiesChanged = true;
+
+        this.thawDownstreamArrays();
 
         [
             this.downstreamComponentIndices[index1],

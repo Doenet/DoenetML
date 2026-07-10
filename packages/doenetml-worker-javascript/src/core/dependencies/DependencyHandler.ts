@@ -100,6 +100,25 @@ export class DependencyHandler {
      */
     _internedVariableNameLists: Map<string, readonly string[]>;
 
+    /**
+     * Interned lists for the per-dependency parallel arrays
+     * (`downstreamComponentIndices`, `downstreamComponentTypes`, and the
+     * outer array of `mappedDownstreamVariableNamesByComponent`). Most
+     * dependencies have exactly one downstream component, and all the
+     * dependencies of one component point at the same few targets, so these
+     * mostly-length-1 arrays repeat heavily across dependencies.
+     * `Dependency.initialize` interns them once the downstream set is built;
+     * the base-class mutators (`addDownstreamComponent` /
+     * `removeDownstreamComponent` / `swapDownstreamComponents`) thaw (copy)
+     * before mutating.
+     */
+    _internedComponentIndexLists: Map<string, readonly number[]>;
+    _internedComponentTypeLists: Map<string, readonly string[]>;
+    _internedNameListArrays: Map<string, readonly (readonly string[])[]>;
+    /** ids for interned inner name lists, used to key the outer arrays */
+    _internedListIds: WeakMap<object, number>;
+    _nextInternedListId: number;
+
     constructor({
         _components,
         componentInfoObjects,
@@ -141,6 +160,59 @@ export class DependencyHandler {
         this.attributeRefResolutionDependenciesByReferenced = {};
 
         this._internedVariableNameLists = new Map();
+        this._internedComponentIndexLists = new Map();
+        this._internedComponentTypeLists = new Map();
+        this._internedNameListArrays = new Map();
+        this._internedListIds = new WeakMap();
+        this._nextInternedListId = 1;
+    }
+
+    internComponentIndexList(indices: number[]): number[] {
+        const key = indices.join(",");
+        let interned = this._internedComponentIndexLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(indices);
+            this._internedComponentIndexLists.set(key, interned);
+        }
+        return interned as number[];
+    }
+
+    internComponentTypeList(types: string[]): string[] {
+        // component types are identifiers, so "\n" cannot appear in one
+        const key = types.join("\n");
+        let interned = this._internedComponentTypeLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(types);
+            this._internedComponentTypeLists.set(key, interned);
+        }
+        return interned as string[];
+    }
+
+    /**
+     * Intern an array whose elements are already-interned name lists
+     * (from `internVariableNameList`), keyed by the identity of those
+     * elements. Elements that are not interned lists (no assigned id) make
+     * the array non-internable; it is returned unchanged.
+     */
+    internNameListArray(outer: string[][]): string[][] {
+        const ids: number[] = [];
+        for (const inner of outer) {
+            const id =
+                typeof inner === "object" && inner !== null
+                    ? this._internedListIds.get(inner)
+                    : undefined;
+            if (id === undefined) {
+                return outer;
+            }
+            ids.push(id);
+        }
+        const key = ids.join(",");
+        let interned = this._internedNameListArrays.get(key);
+        if (!interned) {
+            interned = Object.freeze(outer);
+            this._internedNameListArrays.set(key, interned);
+        }
+        return interned as string[][];
     }
 
     internVariableNameList(names: string[]): string[] {
@@ -154,6 +226,8 @@ export class DependencyHandler {
         if (!interned) {
             interned = Object.freeze(names);
             this._internedVariableNameLists.set(key, interned);
+            this._internedListIds.set(interned, this._nextInternedListId);
+            this._nextInternedListId++;
         }
         return interned as string[];
     }
