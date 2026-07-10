@@ -36,28 +36,35 @@
 /* ===== <mathInput> anchored inside a <graph> ===== */
 
 .doenet-viewer .mathInputGraphWrapper {
-    /* Wrap tightly around the handle + field so the hosting JSXGraph text
-       element measures the real box size (used for drag clamping). */
+    /* Lay the label/grip beside the field (not above it) and wrap tightly so
+       the hosting JSXGraph text element measures the real box size (used for
+       drag clamping). */
     display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
     background-color: var(--canvas);
 }
 
 .doenet-viewer .mathInputGraphHandle {
-    /* The label (or grip) is the drag handle: it must NOT stop pointer
-       propagation, so board dragging starts when it is grabbed. */
-    cursor: move;
+    /* The label (or grip) sits beside the field. When draggable it is also the
+       grab region, and must NOT stop pointer propagation so board dragging
+       starts when it is grabbed. */
     user-select: none;
-    margin-bottom: 2px;
-    line-height: 1;
+    white-space: nowrap;
+}
+
+.doenet-viewer .mathInputGraphDraggable {
+    /* Only draggable inputs show a move cursor on their handle. */
+    cursor: move;
 }
 
 .doenet-viewer .mathInputGraphGrip {
-    /* Minimal grab affordance shown when the input has no visible label. */
+    /* Minimal grab affordance shown when a draggable input has no visible
+       label. */
     color: var(--canvasText);
     font-size: 12px;
-    padding: 0px 2px;
+    line-height: 1;
 }
 
 .doenet-viewer .mathInputGraphField {

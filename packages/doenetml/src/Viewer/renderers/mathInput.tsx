@@ -1171,26 +1171,43 @@ export default function MathInput(props: UseDoenetRendererProps) {
             board.updateRenderer();
         }
 
-        // Drag handle: the label (when present) doubles as the grab region,
-        // mirroring native <textInput>. When there is no label, show a small grip
-        // so there is still something to grab. The label keeps `id={labelId}` so
-        // the field's aria-labelledby reference resolves inside the portal.
-        const graphHandle = hasLabel ? (
-            <label
-                id={labelId}
-                htmlFor={inputKey}
-                className="mathInputGraphHandle"
-            >
-                {label}
-            </label>
-        ) : (
-            <div
-                className="mathInputGraphHandle mathInputGraphGrip"
-                aria-hidden="true"
-            >
-                ⠿
-            </div>
-        );
+        // Label & drag handle placement inside the graph. The handle sits beside
+        // the field (to its left by default, or its right when
+        // `labelPosition="right"`), never above it.
+        // - A label (when present) is shown beside the field and, when the input
+        //   is draggable, doubles as the grab region (mirroring native
+        //   <textInput>). It keeps `id={labelId}` so the field's aria-labelledby
+        //   reference resolves inside the portal.
+        // - When there is no label but the input is draggable, show a small grip
+        //   so there is still something to grab.
+        // - When the input is not draggable, show no grip and no drag cursor.
+        const draggableInGraph = !fixLocation.current;
+        let graphHandle: React.ReactNode = null;
+        if (hasLabel) {
+            graphHandle = (
+                <label
+                    id={labelId}
+                    htmlFor={inputKey}
+                    className={
+                        "mathInputGraphHandle" +
+                        (draggableInGraph ? " mathInputGraphDraggable" : "")
+                    }
+                >
+                    {label}
+                </label>
+            );
+        } else if (draggableInGraph) {
+            graphHandle = (
+                <div
+                    className="mathInputGraphHandle mathInputGraphGrip mathInputGraphDraggable"
+                    aria-hidden="true"
+                >
+                    ⠿
+                </div>
+            );
+        }
+
+        const labelOnRight = hasLabel && SVs.labelPosition === "right";
 
         return (
             <>
@@ -1207,7 +1224,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                     {shortDescription}
                                 </span>
                             )}
-                            {graphHandle}
+                            {!labelOnRight && graphHandle}
                             <div
                                 className="mathInputGraphField"
                                 onPointerDownCapture={(e) =>
@@ -1218,6 +1235,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                             >
                                 {mathFieldElement}
                             </div>
+                            {labelOnRight && graphHandle}
                         </div>,
                         textJXG.current.rendNode,
                     )}

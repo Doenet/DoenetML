@@ -951,6 +951,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mia").should("have.text", "(3,4)");
         cy.get("#miFixedA").should("have.text", "(1,2)");
 
+        // A draggable (unlabeled) input shows a drag grip; a non-draggable one
+        // shows none. Only `mi` qualifies, so exactly one grip is in the graph.
+        cy.get("#g").find(".mathInputGraphGrip").should("have.length", 1);
+
         // A draggable input's anchor round-trips through the moveInput action.
         cy.window().then(async (win) => {
             win.callAction1({
@@ -977,5 +981,19 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         });
         cy.get("#mia").should("have.text", "(6,−3)");
         cy.get("#miFixedA").should("have.text", "(1,2)");
+    });
+
+    it("mathInput in a graph shows its label beside the field (no grip)", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)"><label>height</label></mathInput>
+    </graph>
+    `);
+
+        // The label renders inside the graph as the handle beside the field, and
+        // no separate grip is shown when a label is present.
+        cy.get("#g").find(".mq-editable-field").should("exist");
+        cy.get("#g").find("label").should("contain.text", "height");
+        cy.get("#g").find(".mathInputGraphGrip").should("not.exist");
     });
 });
