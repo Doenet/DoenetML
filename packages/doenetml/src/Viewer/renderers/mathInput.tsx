@@ -7,6 +7,8 @@ import React, {
     useContext,
     useEffect,
 } from "react";
+import { createPortal } from "react-dom";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -29,6 +31,13 @@ import {
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
+import me from "math-expressions";
+import {
+    getPositionFromAnchorByCoordinate,
+    POINTER_DRAG_THRESHOLD,
+} from "./utils/graph";
+import { JXGObject } from "./jsxgraph-distrib/types";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -366,6 +375,11 @@ interface MathInputSVs {
     [key: string]: any;
     hidden: boolean;
     disabled: boolean;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
     label: string;
     labelHasLatex: boolean;
     labelPosition: string;
@@ -393,6 +407,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
+    // @ts-ignore
+    MathInput.ignoreActionsWithoutCore = (actionName: string) =>
+        actionName === "moveInput";
 
     const virtualKeyboardEvents = useAppSelector(
         keyboardSlice.selectors.keyboardInput,
@@ -415,6 +432,33 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // Keep this in a ref so `handlePressEnter` always sees current state.
     const showCheckWork = useRef(SVs.showCheckWork);
     showCheckWork.current = SVs.showCheckWork;
+
+    // ===== In-graph rendering state =====
+    // When a <mathInput> is placed inside a <graph>, we mount the MathQuill
+    // field (via createPortal) into an empty JSXGraph `text` element so it can
+    // be anchored and dragged on the board. These hooks/refs support that path;
+    // they are inert when `board` is null (the normal inline case).
+    const board = useContext(BoardContext);
+
+    const textJXG = useRef<JXGObject | null>(null);
+    const anchorPointJXG = useRef<JXGObject | null>(null);
+    const anchorRel = useRef<[string, string] | null>(null);
+
+    const pointerAtDown = useRef<[number, number] | null>(null);
+    const pointAtDown = useRef<[number, number, number] | null>(null);
+    const dragged = useRef(false);
+
+    const calculatedX = useRef<number | null>(null);
+    const calculatedY = useRef<number | null>(null);
+
+    const lastPositionFromCore = useRef<number[] | null>(null);
+    const previousPositionFromAnchor = useRef<any>(null);
+
+    const fixed = useRef(false);
+    const fixLocation = useRef(false);
+
+    fixed.current = SVs.fixed;
+    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
     const preview = useMathInputPreview({
         id,
@@ -627,7 +671,255 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     };
 
-    if (SVs.hidden) {
+    // On unmount, tear down the JSXGraph text element (if we created one).
+    useEffect(() => {
+        return () => {
+            if (textJXG.current !== null) {
+                deleteTextJXG();
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    function createTextJXGForMath() {
+        if (board === null) {
+            return null;
+        }
+
+        let jsxTextAttributes: Record<string, any> = {
+            visible: !SVs.hidden,
+            fixed: fixed.current,
+            layer: TEXT_LAYER_OFFSET,
+            highlight: !fixLocation.current,
+            // Keep parsing off: JSXGraph must never interpret or rewrite the
+            // element's content (we own it through the portal).
+            parse: false,
+        };
+
+        let newAnchorPointJXG: JXGObject;
+
+        try {
+            let anchor = me.fromAst(SVs.anchor);
+            let anchorCoords = [
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+            ];
+
+            if (!Number.isFinite(anchorCoords[0])) {
+                anchorCoords[0] = 0;
+                jsxTextAttributes["visible"] = false;
+            }
+            if (!Number.isFinite(anchorCoords[1])) {
+                anchorCoords[1] = 0;
+                jsxTextAttributes["visible"] = false;
+            }
+
+            newAnchorPointJXG = board.create("point", anchorCoords, {
+                visible: false,
+            });
+        } catch (e) {
+            jsxTextAttributes["visible"] = false;
+            newAnchorPointJXG = board.create("point", [0, 0], {
+                visible: false,
+            });
+            return;
+        }
+
+        jsxTextAttributes.anchor = newAnchorPointJXG;
+
+        let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
+            SVs.positionFromAnchor,
+        );
+        jsxTextAttributes.anchorx = anchorx;
+        jsxTextAttributes.anchory = anchory;
+        anchorRel.current = [anchorx, anchory];
+
+        // Create the text element with EMPTY content. JSXGraph produces an
+        // absolutely-positioned `rendNode` div and keeps it positioned each
+        // frame, but because the content stays "" forever its
+        // `htmlStr !== content` guard never fires — so it never writes
+        // innerHTML and never clobbers the portaled MathQuill DOM.
+        // NEVER call setText/.set(value) on this element.
+        let newTextJXG: JXGObject = board.create(
+            "text",
+            [0, 0, ""],
+            jsxTextAttributes,
+        );
+        newTextJXG.isDraggable = !fixLocation.current;
+
+        // Hand-rolled drag handlers mirroring textInput.tsx (we can't reuse
+        // attachAnchoredGraphDragHandlers, which requires focused/clicked
+        // actions the input components don't define).
+        newTextJXG.on("down", function (e: any) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
+            pointerAtDown.current = [e.x, e.y];
+            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
+            dragged.current = false;
+        });
+
+        newTextJXG.on("hit", function () {
+            dragged.current = false;
+        });
+
+        newTextJXG.on("up", function () {
+            if (dragged.current) {
+                callAction({
+                    action: actions.moveInput,
+                    args: {
+                        x: calculatedX.current,
+                        y: calculatedY.current,
+                    },
+                });
+                dragged.current = false;
+            }
+        });
+
+        newTextJXG.on("keyfocusout", function () {
+            if (dragged.current) {
+                callAction({
+                    action: actions.moveInput,
+                    args: {
+                        x: calculatedX.current,
+                        y: calculatedY.current,
+                    },
+                });
+                dragged.current = false;
+            }
+        });
+
+        newTextJXG.on("drag", function (e: any) {
+            let viaPointer = e.type === "pointermove";
+
+            // Protect against very small unintended drags
+            if (
+                !viaPointer ||
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
+            ) {
+                dragged.current = true;
+            }
+
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
+            let width = newTextJXG.size[0] / board.unitX;
+            let height = newTextJXG.size[1] / board.unitY;
+
+            let anchorx = anchorRel.current?.[0] || 0;
+            let anchory = anchorRel.current?.[1] || 0;
+
+            let offsetx = 0;
+            if (anchorx === "middle") {
+                offsetx = -width / 2;
+            } else if (anchorx === "right") {
+                offsetx = -width;
+            }
+            let offsety = 0;
+            if (anchory === "middle") {
+                offsety = -height / 2;
+            } else if (anchory === "top") {
+                offsety = -height;
+            }
+
+            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
+            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
+            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
+            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
+
+            if (viaPointer && pointAtDown.current && pointerAtDown.current) {
+                // the reason we calculate point position with this algorithm,
+                // rather than using .X() and .Y() directly
+                // is that attributes .X() and .Y() are affected by the
+                // .setCoordinates function called in update().
+                var o = board.origin.scrCoords;
+
+                calculatedX.current =
+                    (pointAtDown.current[1] +
+                        e.x -
+                        pointerAtDown.current[0] -
+                        o[1]) /
+                    board.unitX;
+
+                calculatedY.current =
+                    (o[2] -
+                        (pointAtDown.current[2] +
+                            e.y -
+                            pointerAtDown.current[1])) /
+                    board.unitY;
+            } else {
+                calculatedX.current =
+                    newAnchorPointJXG.X() +
+                    newTextJXG.relativeCoords.usrCoords[1];
+                calculatedY.current =
+                    newAnchorPointJXG.Y() +
+                    newTextJXG.relativeCoords.usrCoords[2];
+            }
+
+            calculatedX.current = Math.min(
+                xmaxAdjusted,
+                Math.max(xminAdjusted, calculatedX.current),
+            );
+            calculatedY.current = Math.min(
+                ymaxAdjusted,
+                Math.max(yminAdjusted, calculatedY.current),
+            );
+
+            callAction({
+                action: actions.moveInput,
+                args: {
+                    x: calculatedX.current,
+                    y: calculatedY.current,
+                    transient: true,
+                    skippable: true,
+                },
+            });
+
+            newTextJXG.relativeCoords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                [0, 0],
+            );
+            newAnchorPointJXG.coords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                lastPositionFromCore.current,
+            );
+        });
+
+        newTextJXG.on("keydown", function (e: any) {
+            if (e.key === "Enter") {
+                if (dragged.current) {
+                    callAction({
+                        action: actions.moveInput,
+                        args: {
+                            x: calculatedX.current,
+                            y: calculatedY.current,
+                        },
+                    });
+                    dragged.current = false;
+                }
+            }
+        });
+
+        textJXG.current = newTextJXG;
+        anchorPointJXG.current = newAnchorPointJXG;
+        previousPositionFromAnchor.current = SVs.positionFromAnchor;
+    }
+
+    function deleteTextJXG() {
+        if (!textJXG.current) {
+            return;
+        }
+        textJXG.current.off("down");
+        textJXG.current.off("hit");
+        textJXG.current.off("up");
+        textJXG.current.off("keyfocusout");
+        textJXG.current.off("drag");
+        textJXG.current.off("keydown");
+        board?.removeObject(textJXG.current);
+        textJXG.current = null;
+    }
+
+    if (SVs.hidden && !board) {
         return null;
     }
 
@@ -668,15 +960,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // Update the mathInput ref's disabled state
         textareaRef.current.disabled = SVs.disabled;
     }
-
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState.current,
-        submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
-        isPending,
-    );
 
     let label: React.ReactNode = SVs.label;
     const inputKey = `${id}_input`;
@@ -748,6 +1031,211 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const ariaDescription =
         hasExplicitLabel && shortDescription ? shortDescription : undefined;
 
+    // The MathQuill field, shared verbatim by the inline and in-graph branches
+    // so both paths carry identical config, a11y wiring, and change handling.
+    const mathFieldElement = (
+        <EditableMathField
+            style={mathInputStyle}
+            latex={rendererValue.current}
+            // ACCESSIBILITY: Pass label IDs (internal + external) so they are prepended
+            // to the textarea's aria-labelledby (which includes MathQuill's auto-generated
+            // math speech ID). This ensures explicit labels are announced before math descriptions.
+            labelIds={
+                hasLabel
+                    ? [labelId, ...externalLabelRendererIds]
+                    : externalLabelRendererIds
+            }
+            shortDescriptionId={shortDescriptionId}
+            // Supplementary annotations (not primary labels)
+            aria-description={ariaDescription}
+            aria-details={ariaDetailsIds || undefined}
+            config={{
+                autoCommands:
+                    "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
+                autoOperatorNames,
+                handlers: {
+                    enter: handlePressEnter,
+                },
+                substituteTextarea: function () {
+                    textareaRef.current = document.createElement("textarea");
+                    textareaRef.current.id = inputKey;
+                    textareaRef.current.disabled = SVs.disabled;
+                    textareaRef.current.addEventListener("keydown", (event) => {
+                        if (event.key === "Escape") {
+                            // Match preview Escape behavior: dismiss the
+                            // popover until the next user interaction.
+                            preview.dismissPreview();
+                        }
+                    });
+                    return textareaRef.current;
+                },
+            }}
+            onChange={(mField: any) => {
+                onChangeHandler(mField.latex());
+            }}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            mathquillDidMount={(mf: any) => {
+                setMathField(mf);
+                // When rendered in a graph, the JSXGraph text element hosting the
+                // portaled field starts with empty content, so its measured size is
+                // near-zero until MathQuill fills it. Force one size refresh so drag
+                // clamping reflects the real field box. (`needsSizeUpdate`/
+                // `updateSize` exist on JSXGraph text elements but aren't in the
+                // legacy JXGObject typing, hence the cast.)
+                if (board && textJXG.current) {
+                    const textEl = textJXG.current as any;
+                    textEl.needsSizeUpdate = true;
+                    textEl.updateSize?.();
+                    board.updateRenderer();
+                }
+            }}
+        />
+    );
+
+    // ===== In-graph branch =====
+    // Mount the shared field into the JSXGraph text element's rendNode via a
+    // portal. The field region stops pointer/mouse/touch propagation at the
+    // capture phase so clicking to edit never starts a board drag (replicating
+    // JSXGraph's native-input trick); the label/grip handle omits it so it stays
+    // grabbable for dragging.
+    if (board) {
+        let anchorCoords: number[];
+        try {
+            let anchor = me.fromAst(SVs.anchor);
+            anchorCoords = [
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+            ];
+        } catch (e) {
+            anchorCoords = [NaN, NaN];
+        }
+
+        lastPositionFromCore.current = anchorCoords;
+
+        if (textJXG.current === null) {
+            createTextJXGForMath();
+        } else if (anchorPointJXG.current) {
+            // NOTE: never call setText/.set here — the JXG content must stay ""
+            // forever so JSXGraph never overwrites the portaled MathQuill DOM.
+            textJXG.current.relativeCoords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                [0, 0],
+            );
+            anchorPointJXG.current.coords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                anchorCoords,
+            );
+
+            let visible = !SVs.hidden;
+
+            if (
+                Number.isFinite(anchorCoords[0]) &&
+                Number.isFinite(anchorCoords[1])
+            ) {
+                let actuallyChangedVisibility =
+                    textJXG.current.visProp["visible"] !== visible;
+                textJXG.current.visProp["visible"] = visible;
+                textJXG.current.visPropCalc["visible"] = visible;
+
+                if (actuallyChangedVisibility) {
+                    // this function is incredibly slow, so don't run it if not necessary
+                    textJXG.current.setAttribute({ visible });
+                }
+            } else {
+                textJXG.current.visProp["visible"] = false;
+                textJXG.current.visPropCalc["visible"] = false;
+            }
+
+            textJXG.current.visProp.highlight = !fixLocation.current;
+            textJXG.current.visProp.fixed = fixed.current;
+            textJXG.current.isDraggable = !fixLocation.current;
+
+            textJXG.current.needsUpdate = true;
+
+            if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
+                let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
+                    SVs.positionFromAnchor,
+                );
+                textJXG.current.visProp.anchorx = anchorx;
+                textJXG.current.visProp.anchory = anchory;
+                anchorRel.current = [anchorx, anchory];
+                previousPositionFromAnchor.current = SVs.positionFromAnchor;
+                textJXG.current.fullUpdate();
+            } else {
+                textJXG.current.update();
+            }
+
+            anchorPointJXG.current.needsUpdate = true;
+            anchorPointJXG.current.update();
+            board.updateRenderer();
+        }
+
+        // Drag handle: the label (when present) doubles as the grab region,
+        // mirroring native <textInput>. When there is no label, show a small grip
+        // so there is still something to grab. The label keeps `id={labelId}` so
+        // the field's aria-labelledby reference resolves inside the portal.
+        const graphHandle = hasLabel ? (
+            <label
+                id={labelId}
+                htmlFor={inputKey}
+                className="mathInputGraphHandle"
+            >
+                {label}
+            </label>
+        ) : (
+            <div
+                className="mathInputGraphHandle mathInputGraphGrip"
+                aria-hidden="true"
+            >
+                ⠿
+            </div>
+        );
+
+        return (
+            <>
+                <span id={id} />
+                {textJXG.current?.rendNode &&
+                    createPortal(
+                        <div className="mathInputGraphWrapper">
+                            {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
+                            {shortDescriptionId && (
+                                <span
+                                    id={shortDescriptionId}
+                                    className="visually-hidden"
+                                >
+                                    {shortDescription}
+                                </span>
+                            )}
+                            {graphHandle}
+                            <div
+                                className="mathInputGraphField"
+                                onPointerDownCapture={(e) =>
+                                    e.stopPropagation()
+                                }
+                                onMouseDownCapture={(e) => e.stopPropagation()}
+                                onTouchStartCapture={(e) => e.stopPropagation()}
+                            >
+                                {mathFieldElement}
+                            </div>
+                        </div>,
+                        textJXG.current.rendNode,
+                    )}
+            </>
+        );
+    }
+
+    // ===== Inline (non-graph) branch =====
+
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState.current,
+        submitActionWithPending,
+        SVs.forceFullCheckWorkButton,
+        isPending,
+    );
+
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
@@ -787,55 +1275,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     display: "block",
                 }}
             >
-                <EditableMathField
-                    style={mathInputStyle}
-                    latex={rendererValue.current}
-                    // ACCESSIBILITY: Pass label IDs (internal + external) so they are prepended
-                    // to the textarea's aria-labelledby (which includes MathQuill's auto-generated
-                    // math speech ID). This ensures explicit labels are announced before math descriptions.
-                    labelIds={
-                        hasLabel
-                            ? [labelId, ...externalLabelRendererIds]
-                            : externalLabelRendererIds
-                    }
-                    shortDescriptionId={shortDescriptionId}
-                    // Supplementary annotations (not primary labels)
-                    aria-description={ariaDescription}
-                    aria-details={ariaDetailsIds || undefined}
-                    config={{
-                        autoCommands:
-                            "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
-                        autoOperatorNames,
-                        handlers: {
-                            enter: handlePressEnter,
-                        },
-                        substituteTextarea: function () {
-                            textareaRef.current =
-                                document.createElement("textarea");
-                            textareaRef.current.id = inputKey;
-                            textareaRef.current.disabled = SVs.disabled;
-                            textareaRef.current.addEventListener(
-                                "keydown",
-                                (event) => {
-                                    if (event.key === "Escape") {
-                                        // Match preview Escape behavior: dismiss the
-                                        // popover until the next user interaction.
-                                        preview.dismissPreview();
-                                    }
-                                },
-                            );
-                            return textareaRef.current;
-                        },
-                    }}
-                    onChange={(mField: any) => {
-                        onChangeHandler(mField.latex());
-                    }}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    mathquillDidMount={(mf: any) => {
-                        setMathField(mf);
-                    }}
-                />
+                {mathFieldElement}
             </Ariakit.PopoverAnchor>
             <MathInputPreviewPopover
                 preview={preview}

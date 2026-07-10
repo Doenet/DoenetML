@@ -909,4 +909,73 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi textarea").blur();
         cy.get("#fv").should("have.text", "focused: false");
     });
+
+    it("mathInput in a graph renders at its anchor, is editable, and binds its value", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" positionFromAnchor="upperright" prefill="x" />
+    </graph>
+    <p>value: <math extend="$mi.value" name="miv" /></p>
+    <coords extend="$mi.anchor" name="mia" />
+    `);
+
+        // The MathQuill field is portaled into the graph (not rendered inline).
+        cy.get("#g").find(".mq-editable-field").should("exist");
+        cy.get("#g").find(".mq-editable-field").should("contain.text", "x");
+
+        // Anchored at (3,4).
+        cy.get("#mia").should("have.text", "(3,4)");
+        shouldHaveMathText("#miv", "x");
+
+        // Typing into the in-graph field updates the bound <math>.
+        cy.get("#g")
+            .find("textarea")
+            .first()
+            .focus()
+            .type("{end}+1{enter}", { force: true });
+
+        cy.get("#g").find(".mq-editable-field").should("contain.text", "x+1");
+        shouldHaveMathText("#miv", "x+1");
+    });
+
+    it("mathInput in a graph moves via moveInput and respects draggable=false", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" />
+        <mathInput name="miFixed" anchor="(1,2)" draggable="false" />
+    </graph>
+    <coords extend="$mi.anchor" name="mia" />
+    <coords extend="$miFixed.anchor" name="miFixedA" />
+    `);
+
+        cy.get("#mia").should("have.text", "(3,4)");
+        cy.get("#miFixedA").should("have.text", "(1,2)");
+
+        // A draggable input's anchor round-trips through the moveInput action.
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("mi"),
+                args: { x: -5, y: 2 },
+            });
+        });
+        cy.get("#mia").should("have.text", "(−5,2)");
+
+        // A draggable="false" input ignores the move; a second move on the
+        // draggable input serves as a barrier so we know both actions ran.
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("miFixed"),
+                args: { x: 7, y: 8 },
+            });
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("mi"),
+                args: { x: 6, y: -3 },
+            });
+        });
+        cy.get("#mia").should("have.text", "(6,−3)");
+        cy.get("#miFixedA").should("have.text", "(1,2)");
+    });
 });
