@@ -1,6 +1,18 @@
 import React, { useEffect, useRef } from "react";
 import { loadMathJax } from "@doenet/utils";
 
+/** Minimum time between typesets of a single element (ms). Caps how often a
+ * fast drag re-typesets; the displayed value lags by at most this plus one
+ * typeset, which is imperceptible for coordinate read-outs. */
+const THROTTLE_MS = 100;
+
+/** The parts of a loaded MathJax 3/4 engine this component uses. */
+interface LoadedMathJax {
+    startup: { promise: Promise<unknown> };
+    typesetPromise: (nodes: HTMLElement[]) => Promise<unknown>;
+    typesetClear: (nodes: HTMLElement[]) => void;
+}
+
 /**
  * Renders continuously-updating inline math (e.g. `$P` while a point is
  * dragged) without the flash of raw LaTeX.
@@ -21,19 +33,6 @@ import { loadMathJax } from "@doenet/utils";
  *
  * `latex` is the full inline string including delimiters, e.g. `\(x^2\)`.
  */
-
-/** Minimum time between typesets of a single element (ms). Caps how often a
- * fast drag re-typesets; the displayed value lags by at most this plus one
- * typeset, which is imperceptible for coordinate read-outs. */
-const THROTTLE_MS = 100;
-
-/** The parts of a loaded MathJax 3/4 engine this component uses. */
-interface LoadedMathJax {
-    startup: { promise: Promise<unknown> };
-    typesetPromise: (nodes: HTMLElement[]) => Promise<unknown>;
-    typesetClear: (nodes: HTMLElement[]) => void;
-}
-
 export function DynamicMath({ latex }: { latex: string }) {
     const visibleRef = useRef<HTMLSpanElement>(null);
     const bufferRef = useRef<HTMLSpanElement | null>(null);
