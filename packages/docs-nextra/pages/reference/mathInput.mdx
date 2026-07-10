@@ -80,6 +80,31 @@ A `<mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
 
 
 
+### Example: `<mathInput/>{:dn}` on a `<graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>
+  <mathInput name="userAnchor" prefill="(0,0)">
+    <label>Where should we put the <tage>mathInput</tage>?</label>
+  </mathInput>
+</p>
+
+<graph size="small">
+  <shortDescription>A regular pentagon with a draggable math input.</shortDescription>
+  <mathInput name="expr" anchor="$userAnchor" prefill="x^2">
+    <shortDescription>math input anchored at $userAnchor</shortDescription>
+  </mathInput>
+  <regularPolygon numSides="5" sideLength="6" filled center="(-2,0)"/>
+</graph>
+```
+
+
+
+A `<mathInput/>{:dn}` can be placed on a `<graph>{:dn}`. Use the `anchor` attribute to adjust its starting location. Click inside the field to edit it, and grab its label (or the grip shown when it has no label) to drag it around.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: prefill
@@ -399,6 +424,34 @@ The `removeStrings` attribute allows Doenet to ignore elements of a user's input
 
 
 The `minWidth` attribute is set to 50 by default. Adjust this value for a longer or shorter input box.
+
+
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<p>Play with moving the boxes around.</p>
+
+<graph size="small">
+  <shortDescription>A circle with two math inputs, one fixed and one draggable.</shortDescription>
+  <mathInput
+    draggable="false"
+    prefill="cannot drag"
+    anchor="(-3,-5)"
+  >
+    <shortDescription>fixed math box</shortDescription>
+  </mathInput>
+  <mathInput prefill="drag me" anchor="(3,5)">
+    <shortDescription>draggable math box</shortDescription>
+  </mathInput>
+  <circle radius="8" filled/>
+</graph>
+```
+
+
+
+The `draggable` attribute can be set to false to prevent users from moving the `<mathInput/>{:dn}` on a `<graph>{:dn}`.
 
 
 
