@@ -983,6 +983,31 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#miFixedA").should("have.text", "(1,2)");
     });
 
+    it("mathInput in a graph focuses on click and edits, without starting a drag", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" />
+    </graph>
+    <p>value: <math extend="$mi.value" name="miv" /></p>
+    <coords extend="$mi.anchor" name="mia" />
+    `);
+
+        cy.get("#mia").should("have.text", "(3,4)");
+
+        // A real click on the field must reach MathQuill and focus its textarea
+        // (id `<name>_input`). This is the regression guard for the bug where a
+        // capture-phase stopPropagation swallowed the click before it reached the
+        // field, so clicking appeared to focus but typing did nothing.
+        cy.get("#g").find(".mq-editable-field").first().click();
+        cy.focused().should("have.attr", "id", "mi_input");
+
+        // Typing then flows through to the bound value, and the click did not
+        // drag the field (its anchor is unchanged).
+        cy.focused().type("2x{enter}", { force: true });
+        shouldHaveMathText("#miv", "2x");
+        cy.get("#mia").should("have.text", "(3,4)");
+    });
+
     it("mathInput in a graph shows its label beside the field (no grip)", () => {
         postDoenetMLWithMathJaxPrimed(`
     <graph name="g">

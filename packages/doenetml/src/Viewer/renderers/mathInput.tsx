@@ -681,6 +681,35 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Stop pointer/mouse/touch starts on the in-graph field from reaching the
+    // board's drag handler, so clicking to edit never starts a drag. This uses
+    // NATIVE, bubble-phase listeners on the field element (mirroring JSXGraph's
+    // own native-input trick): JSXGraph attaches its `pointerdown`/`mousedown`/
+    // `touchstart` handlers on the board container in the bubble phase, so a
+    // bubble-phase `stopPropagation` on this descendant fires first and stops
+    // the drag — while the event has already reached MathQuill so the field
+    // still focuses and places its cursor. React's capture-phase handlers can't
+    // be used: React dispatches them at the root during the native capture
+    // phase, so `stopPropagation` there halts the event before it ever reaches
+    // MathQuill (which is why clicking focused but typing did nothing).
+    const graphFieldRefCallback = React.useCallback(
+        (node: HTMLDivElement | null) => {
+            if (!node) {
+                return;
+            }
+            const stop = (e: Event) => e.stopPropagation();
+            node.addEventListener("pointerdown", stop);
+            node.addEventListener("mousedown", stop);
+            node.addEventListener("touchstart", stop);
+            return () => {
+                node.removeEventListener("pointerdown", stop);
+                node.removeEventListener("mousedown", stop);
+                node.removeEventListener("touchstart", stop);
+            };
+        },
+        [],
+    );
+
     function createTextJXGForMath() {
         if (board === null) {
             return null;
@@ -1095,10 +1124,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     // ===== In-graph branch =====
     // Mount the shared field into the JSXGraph text element's rendNode via a
-    // portal. The field region stops pointer/mouse/touch propagation at the
-    // capture phase so clicking to edit never starts a board drag (replicating
-    // JSXGraph's native-input trick); the label/grip handle omits it so it stays
-    // grabbable for dragging.
+    // portal. Native bubble-phase listeners on the field region stop pointer/
+    // mouse/touch starts from reaching the board's drag handler, so clicking to
+    // edit never starts a board drag (see `graphFieldRefCallback`); the label/
+    // grip handle omits them so it stays grabbable for dragging.
     if (board) {
         let anchorCoords: number[];
         try {
@@ -1227,11 +1256,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                             {!labelOnRight && graphHandle}
                             <div
                                 className="mathInputGraphField"
-                                onPointerDownCapture={(e) =>
-                                    e.stopPropagation()
-                                }
-                                onMouseDownCapture={(e) => e.stopPropagation()}
-                                onTouchStartCapture={(e) => e.stopPropagation()}
+                                ref={graphFieldRefCallback}
                             >
                                 {mathFieldElement}
                             </div>

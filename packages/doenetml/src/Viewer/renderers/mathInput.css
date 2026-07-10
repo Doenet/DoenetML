@@ -68,7 +68,7 @@
 }
 
 .doenet-viewer .mathInputGraphField {
-    /* The field region: clicking here edits (its capture-phase handlers stop
+    /* The field region: clicking here edits (native bubble-phase listeners stop
        propagation so a board drag never starts). */
     cursor: text;
 }
