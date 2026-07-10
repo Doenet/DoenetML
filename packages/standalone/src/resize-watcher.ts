@@ -13,7 +13,7 @@ export class ResizeWatcher {
     resizeObserver: ResizeObserver | null = null;
 
     /**
-     * Heights (in px, before the padding fudge below) at or under this floor are
+     * Heights (in px, before the padding fudge below) under this floor are
      * treated as "not really rendered" and are never reported, even after
      * {@link markReady}. This keeps a failed or empty render from collapsing the
      * host iframe: the host keeps its placeholder size rather than shrinking to
