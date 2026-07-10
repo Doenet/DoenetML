@@ -992,6 +992,36 @@ const ARRAY_ARRAY_SIZE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
     get: getArrayArraySize,
 });
 
+// ─── Shared array-size state-variable machinery ─────────────────────────
+// `this` is the __array_size_* state-variable object. Its parameters are
+// stored as fields when `createArraySizeStateVariable` builds it:
+// - arraySizeVarNamesAffected: the (sorted) array variables whose
+//   arraySizeStale is set on markStale
+// - arraySizeSourceVarName: the array variable whose returnArraySize
+//   computes the size (the first array of the group to create the size
+//   variable, matching the closure it replaces)
+
+function arraySizeDefinition(this: any, { dependencyValues }: any) {
+    let arraySize = this.svComponent.state[
+        this.arraySizeSourceVarName
+    ].returnArraySize({
+        dependencyValues,
+    });
+    for (let [ind, value] of arraySize.entries() as Iterable<[number, any]>) {
+        if (!(Number.isInteger(value) && value >= 0)) {
+            arraySize[ind] = 0;
+        }
+    }
+    return { setValue: { [this.svVarName]: arraySize } };
+}
+
+function arraySizeMarkStale(this: any) {
+    for (let varName of this.arraySizeVarNamesAffected) {
+        this.svComponent.state[varName].arraySizeStale = true;
+    }
+    return {};
+}
+
 async function arrayRecalculateArraySizeDependentQuantities(this: any) {
     const component = this.svComponent;
     let newArraySize = await component.stateValues[this.arraySizeStateVariable];
@@ -1641,37 +1671,19 @@ async function createArraySizeStateVariable({
     if (component.state[arraySizeStateVar]) {
         if (component.state[arraySizeStateVar].isShadow) {
             let arraySizeStateVarObj = component.state[arraySizeStateVar];
-            arraySizeStateVarObj.markStale = function () {
-                for (let varName of allStateVariablesAffected) {
-                    component.state[varName].arraySizeStale = true;
-                }
-                return {};
-            };
+            arraySizeStateVarObj.arraySizeVarNamesAffected =
+                allStateVariablesAffected;
+            arraySizeStateVarObj.markStale = arraySizeMarkStale;
         }
         return;
     }
 
     component.state[arraySizeStateVar] = {
         returnDependencies: stateVarObj.returnArraySizeDependencies,
-        definition({ dependencyValues }: any) {
-            let arraySize = stateVarObj.returnArraySize({
-                dependencyValues,
-            });
-            for (let [ind, value] of arraySize.entries() as Iterable<
-                [number, any]
-            >) {
-                if (!(Number.isInteger(value) && value >= 0)) {
-                    arraySize[ind] = 0;
-                }
-            }
-            return { setValue: { [arraySizeStateVar]: arraySize } };
-        },
-        markStale() {
-            for (let varName of allStateVariablesAffected) {
-                component.state[varName].arraySizeStale = true;
-            }
-            return {};
-        },
+        definition: arraySizeDefinition,
+        markStale: arraySizeMarkStale,
+        arraySizeVarNamesAffected: allStateVariablesAffected,
+        arraySizeSourceVarName: stateVariable,
     };
 
     if (stateVarObj.stateVariablesDeterminingArraySizeDependencies) {
