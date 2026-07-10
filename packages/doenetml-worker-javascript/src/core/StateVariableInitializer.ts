@@ -184,8 +184,7 @@ function multiDimSetArrayValue(
 
     let index = this.keyToIndex(arrayKey);
     let numDimensionsInArrayKey = index.length;
-    // Pre-existing typo fixed per CORE_REFACTOR_DEFERRED.md
-    // §"Pre-existing unreachable diagnostic": the original
+    // Pre-existing typo fix: the original
     // `!numDimensionsInArrayKey > stateVarObj.numDimensions`
     // evaluates to `false > number === false` for any positive
     // integer, so the diagnostic was unreachable.
