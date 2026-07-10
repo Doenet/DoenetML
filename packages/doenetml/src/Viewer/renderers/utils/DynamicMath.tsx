@@ -78,10 +78,6 @@ export function DynamicMath({ latex }: { latex: string }) {
          * that render, and swaps the rendered nodes into the visible span. It
          * exits once `pending` has caught up to what is displayed (or the
          * component unmounts), leaving the newest value on screen.
-         *
-         * Defined inside the effect (its only caller) so it isn't an effect
-         * dependency: it reads refs only, so re-running it on each `latex`
-         * change is exactly right.
          */
         async function renderPendingLatex() {
             if (busy.current) {
