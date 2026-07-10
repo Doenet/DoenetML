@@ -65,6 +65,121 @@ export function installStaleValueGetter(stateVarObj: any) {
     Object.defineProperty(stateVarObj, "value", STALE_VALUE_DESCRIPTOR);
 }
 
+// ─── Shared array-entry machinery ───────────────────────────────────────
+// Module-level equivalents of what used to be per-entry closures in
+// `initializeArrayEntryStateVariable`. `this` is the array-ENTRY
+// state-variable object; the array it belongs to is reached via
+// `this.svComponent.state[this.arrayStateVariable]` (a state-variable
+// object's identity never changes once created, so the indirection is
+// stable).
+
+// Variant used when the class overrides `getEntryValues`.
+async function entryGetValueViaGetEntryValues(this: any) {
+    const arrayStateVarObj = this.svComponent.state[this.arrayStateVariable];
+    return await arrayStateVarObj.getEntryValues({
+        varName: this.svVarName,
+    });
+}
+
+// Default variant: returns the values corresponding to this entry's
+// arrayKeys (a scalar if there is just a single value), read from the
+// array's arrayValues via its getArrayValue.
+async function entryGetValueFromArrayValues(this: any) {
+    const arrayStateVarObj = this.svComponent.state[this.arrayStateVariable];
+    const arrayKeys = await this.arrayKeys;
+    if (arrayKeys.length === 0) {
+        return;
+    }
+    const value = [];
+    for (const arrayKey of arrayKeys) {
+        value.push(arrayStateVarObj.getArrayValue({ arrayKey }));
+    }
+    if (value.length === 1) {
+        return value[0];
+    } else {
+        return value;
+    }
+}
+
+function getEntryArrayKeys(this: any) {
+    return (async () => {
+        // first evaluate arraySize so _arrayKeys is recalculated
+        // in case arraySize change
+        await this.svComponent.state[this.arrayStateVariable].arraySize;
+        return this._arrayKeys;
+    })();
+}
+const ENTRY_ARRAY_KEYS_DESCRIPTOR: PropertyDescriptor = Object.freeze({
+    get: getEntryArrayKeys,
+});
+
+function getEntryUnflattenedArrayKeys(this: any) {
+    return (async () => {
+        // first evaluate arraySize so _unflattenedArrayKeys is recalculated
+        // in case arraySize change
+        await this.svComponent.state[this.arrayStateVariable].arraySize;
+        return this._unflattenedArrayKeys;
+    })();
+}
+const ENTRY_UNFLATTENED_ARRAY_KEYS_DESCRIPTOR: PropertyDescriptor =
+    Object.freeze({ get: getEntryUnflattenedArrayKeys });
+
+function getEntryArraySize(this: any) {
+    return this.svComponent.state[this.arrayStateVariable].arraySize;
+}
+const ENTRY_ARRAY_SIZE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
+    get: getEntryArraySize,
+});
+
+function getEntryArrayEntrySize(this: any) {
+    return (async () => {
+        // assume array is rectangular, so just look at first subarray of each dimension
+        let unflattenedArrayKeys = await this.unflattenedArrayKeys;
+        let arrayEntrySize: number[] = [];
+        let subArray = [unflattenedArrayKeys];
+        for (let i = 0; i < this.numDimensions; i++) {
+            subArray = subArray[0];
+            arrayEntrySize.push(subArray.length);
+        }
+        arrayEntrySize.reverse(); // so starts with inner dimension
+        return arrayEntrySize;
+    })();
+}
+const ENTRY_ARRAY_ENTRY_SIZE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
+    get: getEntryArrayEntrySize,
+});
+
+// returnDependencies for an array entry delegates to the array's
+// returnDependencies, adding this entry's arraySize/arrayKeys to the
+// arguments.
+async function entryReturnDependencies(this: any, args: any) {
+    const arrayStateVarObj = this.svComponent.state[this.arrayStateVariable];
+
+    // add array size to argument of return dependencies
+    args.arraySize = await this.arraySize;
+    args.arrayKeys = await this.arrayKeys;
+    let dependencies = await arrayStateVarObj.returnDependencies(args);
+
+    // We keep track of how many names were defined when we calculate dependencies
+    // If this number changes, it should be treated as dependencies changing
+    // so that we recalculate the value of the arrayEntry variable
+    // TODO: we are communicating this to updateDependencies by adding
+    // an attribute to the arguments?  Is there a better way of doing it.
+    // Didn't want to add to the return value, as that would add complexity
+    // to how we normally define returnDependencies
+    // We could change returnDependencies to output an object.
+    // That would probably be cleaner.
+    let numNames = Object.keys(
+        arrayStateVarObj.dependencyNames.namesByKey,
+    ).length;
+    if (this.numberNamesInPreviousReturnDep !== numNames) {
+        args.changedDependency = true;
+    }
+    this.numberNamesInPreviousReturnDep = numNames;
+
+    return dependencies;
+}
+
 export async function initializeComponentStateVariables({
     core,
     component,
@@ -270,32 +385,14 @@ async function initializeArrayEntryStateVariable({
     if (arrayStateVarObj.getEntryValues) {
         // the function getEntryValues must have been overwritten by the class
         // so use this function instead
-        stateVarObj.getValueFromArrayValues = async function () {
-            return await arrayStateVarObj.getEntryValues({
-                varName: stateVariable,
-            });
-        };
+        stateVarObj.getValueFromArrayValues = entryGetValueViaGetEntryValues;
     } else {
         // getValueFromArrayValues returns an array of the values
         // that correspond to the arrayKeys of this entry state variable
         // (returning a scalar instead if it is just a single value)
         // It uses the function getArrayValue, which gets the values
         // from arrayValues of the corresponding array state variable
-        stateVarObj.getValueFromArrayValues = async function () {
-            let arrayKeys = await stateVarObj.arrayKeys;
-            if (arrayKeys.length === 0) {
-                return;
-            }
-            let value = [];
-            for (let arrayKey of arrayKeys) {
-                value.push(arrayStateVarObj.getArrayValue({ arrayKey }));
-            }
-            if (value.length === 1) {
-                return value[0];
-            } else {
-                return value;
-            }
-        };
+        stateVarObj.getValueFromArrayValues = entryGetValueFromArrayValues;
     }
 
     stateVarObj.arraySizeStateVariable =
@@ -304,27 +401,17 @@ async function initializeArrayEntryStateVariable({
     stateVarObj._arrayKeys = [];
     stateVarObj._unflattenedArrayKeys = [];
 
-    Object.defineProperty(stateVarObj, "arrayKeys", {
-        get: function () {
-            return (async () => {
-                // first evaluate arraySize so _arrayKeys is recalculated
-                // in case arraySize change
-                await arrayStateVarObj.arraySize;
-                return stateVarObj._arrayKeys;
-            })();
-        },
-    });
+    Object.defineProperty(
+        stateVarObj,
+        "arrayKeys",
+        ENTRY_ARRAY_KEYS_DESCRIPTOR,
+    );
 
-    Object.defineProperty(stateVarObj, "unflattenedArrayKeys", {
-        get: function () {
-            return (async () => {
-                // first evaluate arraySize so _unflattenedArrayKeys is recalculated
-                // in case arraySize change
-                await arrayStateVarObj.arraySize;
-                return stateVarObj._unflattenedArrayKeys;
-            })();
-        },
-    });
+    Object.defineProperty(
+        stateVarObj,
+        "unflattenedArrayKeys",
+        ENTRY_UNFLATTENED_ARRAY_KEYS_DESCRIPTOR,
+    );
 
     if (component.state[stateVarObj.arraySizeStateVariable].initiallyResolved) {
         let arraySize = await arrayStateVarObj.arraySize;
@@ -350,28 +437,18 @@ async function initializeArrayEntryStateVariable({
 
     arrayStateVarObj.arrayEntryNames.push(stateVariable);
 
-    Object.defineProperty(stateVarObj, "arraySize", {
-        get: () => arrayStateVarObj.arraySize,
-    });
+    Object.defineProperty(
+        stateVarObj,
+        "arraySize",
+        ENTRY_ARRAY_SIZE_DESCRIPTOR,
+    );
 
     // TODO: delete since arrayEntrySize isn't currently used?
-    Object.defineProperty(stateVarObj, "arrayEntrySize", {
-        get: function () {
-            return (async () => {
-                // assume array is rectangular, so just look at first subarray of each dimension
-                let unflattenedArrayKeys =
-                    await stateVarObj.unflattenedArrayKeys;
-                let arrayEntrySize: number[] = [];
-                let subArray = [unflattenedArrayKeys];
-                for (let i = 0; i < stateVarObj.numDimensions; i++) {
-                    subArray = subArray[0];
-                    arrayEntrySize.push(subArray.length);
-                }
-                arrayEntrySize.reverse(); // so starts with inner dimension
-                return arrayEntrySize;
-            })();
-        },
-    });
+    Object.defineProperty(
+        stateVarObj,
+        "arrayEntrySize",
+        ENTRY_ARRAY_ENTRY_SIZE_DESCRIPTOR,
+    );
 
     if (arrayStateVarObj.stateVariablesDeterminingDependencies) {
         if (!stateVarObj.stateVariablesDeterminingDependencies) {
@@ -390,33 +467,7 @@ async function initializeArrayEntryStateVariable({
     }
 
     // add a returnDependencies function based on the array returnDependencies
-    let arrayReturnDependencies =
-        arrayStateVarObj.returnDependencies.bind(arrayStateVarObj);
-    stateVarObj.returnDependencies = async function (args: any) {
-        // add array size to argument of return dependencies
-        args.arraySize = await stateVarObj.arraySize;
-        args.arrayKeys = await stateVarObj.arrayKeys;
-        let dependencies = await arrayReturnDependencies(args);
-
-        // We keep track of how many names were defined when we calculate dependencies
-        // If this number changes, it should be treated as dependencies changing
-        // so that we recalculate the value of the arrayEntry variable
-        // TODO: we are communicating this to updateDependencies by adding
-        // an attribute to the arguments?  Is there a better way of doing it.
-        // Didn't want to add to the return value, as that would add complexity
-        // to how we normally define returnDependencies
-        // We could change returnDependencies to output an object.
-        // That would probably be cleaner.
-        let numNames = Object.keys(
-            arrayStateVarObj.dependencyNames.namesByKey,
-        ).length;
-        if (stateVarObj.numberNamesInPreviousReturnDep !== numNames) {
-            args.changedDependency = true;
-        }
-        stateVarObj.numberNamesInPreviousReturnDep = numNames;
-
-        return dependencies;
-    };
+    stateVarObj.returnDependencies = entryReturnDependencies;
 }
 
 async function initializeArrayStateVariable({
