@@ -21,8 +21,8 @@ export class ResizeWatcher {
      */
     static MIN_CONTENT_HEIGHT = 40;
 
-    private ready = false;
-    private lastObservedHeight = 0;
+    _ready = false;
+    _lastObservedHeight = 0;
 
     /**
      * Set the element to watch. This will unwatch any previously watched element.
@@ -35,8 +35,8 @@ export class ResizeWatcher {
         this.elm = elm;
         this.resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                this.lastObservedHeight = entry.contentRect.height;
-                this.maybePost();
+                this._lastObservedHeight = entry.contentRect.height;
+                this._maybePost();
             }
         });
         this.resizeObserver.observe(elm);
@@ -49,14 +49,14 @@ export class ResizeWatcher {
      * before this signal arrived.
      */
     markReady() {
-        this.ready = true;
-        this.maybePost();
+        this._ready = true;
+        this._maybePost();
     }
 
-    private maybePost() {
+    _maybePost() {
         if (
-            !this.ready ||
-            this.lastObservedHeight < ResizeWatcher.MIN_CONTENT_HEIGHT
+            !this._ready ||
+            this._lastObservedHeight < ResizeWatcher.MIN_CONTENT_HEIGHT
         ) {
             return;
         }
@@ -65,7 +65,7 @@ export class ResizeWatcher {
             {
                 subject: "lti.frameResize",
                 // There is extra padding in the iframe, so we add some extra pixels to compensate
-                height: this.lastObservedHeight + 50,
+                height: this._lastObservedHeight + 50,
             },
             "*",
         );
