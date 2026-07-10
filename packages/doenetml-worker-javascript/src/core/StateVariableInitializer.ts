@@ -149,6 +149,306 @@ const ENTRY_ARRAY_ENTRY_SIZE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
     get: getEntryArrayEntrySize,
 });
 
+// ─── Shared array machinery ─────────────────────────────────────────────
+// Module-level equivalents of what used to be per-array closures in
+// `initializeArrayStateVariable`. `this` is the array state-variable
+// object; per-variable parameters (arrayValues, numDimensions,
+// entryPrefixes, svComponent, svVarName) are fields on it.
+
+function multiDimKeyToIndex(key: string) {
+    return key.split(",").map((x) => Number(x));
+}
+
+function oneDimKeyToIndex(key: string) {
+    return Number(key);
+}
+
+// converting from index to key is the same for single and multiple
+// dimensions, as we just want the string representation
+function arrayIndexToKey(index: any) {
+    return String(index);
+}
+
+function defaultReturnEntryDimensions() {
+    return 0;
+}
+
+function multiDimSetArrayValue(
+    this: any,
+    { value, arrayKey, arraySize, arrayValues = this.arrayValues }: any,
+) {
+    const component = this.svComponent;
+    const addDiagnostic = component.coreFunctions.addDiagnostic;
+    const numDimensions = this.numDimensions;
+
+    let index = this.keyToIndex(arrayKey);
+    let numDimensionsInArrayKey = index.length;
+    // Pre-existing typo fixed per CORE_REFACTOR_DEFERRED.md
+    // §"Pre-existing unreachable diagnostic": the original
+    // `!numDimensionsInArrayKey > stateVarObj.numDimensions`
+    // evaluates to `false > number === false` for any positive
+    // integer, so the diagnostic was unreachable.
+    if (numDimensionsInArrayKey > numDimensions) {
+        addDiagnostic({
+            type: "info",
+            message:
+                "Cannot set array value.  Number of dimensions is too large.",
+            position: component.position,
+            sourceDoc: component.sourceDoc,
+        });
+        return { nFailures: 1 };
+    }
+    let arrayValuesDrillDown = arrayValues;
+    let arraySizeDrillDown = arraySize;
+    for (let indComponent of index.slice(0, index.length - 1)) {
+        if (indComponent >= 0 && indComponent < arraySizeDrillDown[0]) {
+            if (!arrayValuesDrillDown[indComponent]) {
+                arrayValuesDrillDown[indComponent] = [];
+            }
+            arrayValuesDrillDown = arrayValuesDrillDown[indComponent];
+            arraySizeDrillDown = arraySizeDrillDown.slice(1);
+        } else {
+            addDiagnostic({
+                type: "info",
+                message: "ignore setting array value out of bounds",
+                position: component.position,
+                sourceDoc: component.sourceDoc,
+            });
+            return { nFailures: 1 };
+        }
+    }
+
+    let nFailures = 0;
+
+    if (numDimensionsInArrayKey < numDimensions) {
+        // if dimensions from arrayKey is less than number of dimensions
+        // then attempt to get additional dimensions from
+        // array indices of value
+
+        let setArrayValuesPiece = function (
+            desiredValue: any,
+            arrayValuesPiece: any,
+            arraySizePiece: any,
+        ): { nFailures: number } {
+            // try to set value of entries of arrayValuePiece to entries of desiredValue
+            // given that size of arrayValuesPieces is arraySizePiece
+
+            if (!Array.isArray(desiredValue)) {
+                addDiagnostic({
+                    type: "info",
+                    message:
+                        "ignoring array values with insufficient dimensions",
+                    position: component.position,
+                    sourceDoc: component.sourceDoc,
+                });
+                return { nFailures: 1 };
+            }
+
+            let nFailuresSub = 0;
+
+            let currentSize = arraySizePiece[0];
+            if (desiredValue.length > currentSize) {
+                addDiagnostic({
+                    type: "info",
+                    message: "ignoring array values out of bounds",
+                    position: component.position,
+                    sourceDoc: component.sourceDoc,
+                });
+                nFailuresSub += desiredValue.length - currentSize;
+                desiredValue = desiredValue.slice(0, currentSize);
+            }
+
+            if (arraySizePiece.length === 1) {
+                // down to last dimension
+                for (let [ind, val] of desiredValue.entries() as Iterable<
+                    [number, any]
+                >) {
+                    arrayValuesPiece[ind] = val;
+                }
+            } else {
+                for (let [ind, val] of desiredValue.entries() as Iterable<
+                    [number, any]
+                >) {
+                    if (!arrayValuesPiece[ind]) {
+                        arrayValuesPiece[ind] = [];
+                    }
+                    let result = setArrayValuesPiece(
+                        val,
+                        arrayValuesPiece[ind],
+                        arraySizePiece.slice(1),
+                    );
+                    nFailuresSub += result.nFailures;
+                }
+            }
+
+            return { nFailures: nFailuresSub };
+        };
+
+        let result = setArrayValuesPiece(
+            value,
+            arrayValuesDrillDown,
+            arraySizeDrillDown,
+        );
+        nFailures += result.nFailures;
+    } else {
+        arrayValuesDrillDown[index[index.length - 1]] = value;
+    }
+
+    return { nFailures };
+}
+
+function oneDimSetArrayValue(
+    this: any,
+    { value, arrayKey, arraySize, arrayValues = this.arrayValues }: any,
+) {
+    let ind = this.keyToIndex(arrayKey);
+    if (ind >= 0 && ind < arraySize[0]) {
+        arrayValues[ind] = value;
+        return { nFailures: 0 };
+    } else {
+        const component = this.svComponent;
+        component.coreFunctions.addDiagnostic({
+            type: "info",
+            message: `Ignoring setting array values out of bounds: ${arrayKey} of ${this.svVarName}`,
+            position: component.position,
+            sourceDoc: component.sourceDoc,
+        });
+        return { nFailures: 1 };
+    }
+}
+
+function multiDimGetArrayValue(
+    this: any,
+    { arrayKey, arrayValues = this.arrayValues }: any,
+) {
+    let index = this.keyToIndex(arrayKey);
+    let aVals = arrayValues;
+    for (let indComponent of index.slice(0, index.length - 1)) {
+        aVals = aVals[indComponent];
+        if (!aVals) {
+            return undefined;
+        }
+    }
+    return aVals[index[index.length - 1]];
+}
+
+function oneDimGetArrayValue(
+    this: any,
+    { arrayKey, arrayValues = this.arrayValues }: any,
+) {
+    return arrayValues[arrayKey];
+}
+
+function multiDimGetAllArrayKeys(
+    arraySize: any,
+    flatten = true,
+    desiredSize?: any,
+) {
+    function prependToAllKeys(keys: any[], newStuff: any) {
+        for (let [ind, key] of keys.entries() as Iterable<[number, any]>) {
+            if (Array.isArray(key)) {
+                prependToAllKeys(key, newStuff);
+            } else {
+                keys[ind] = newStuff + "," + key;
+            }
+        }
+    }
+
+    function getAllArrayKeysSub(subArraySize: any): any[] {
+        if (subArraySize.length === 1) {
+            // array of numbers from 0 to subArraySize[0], cast to strings
+            return Array.from(Array(subArraySize[0]), (_, i) => String(i));
+        } else {
+            let currentSize = subArraySize[0];
+            let subSubKeys = getAllArrayKeysSub(subArraySize.slice(1));
+            let subKeys: any[] = [];
+            for (let ind = 0; ind < currentSize; ind++) {
+                if (flatten) {
+                    subKeys.push(...subSubKeys.map((x: any) => ind + "," + x));
+                } else {
+                    let newSubSubKeys = deepClone(subSubKeys);
+                    prependToAllKeys(newSubSubKeys, ind);
+                    subKeys.push(newSubSubKeys);
+                }
+            }
+            return subKeys;
+        }
+    }
+
+    if (desiredSize) {
+        if (desiredSize.length === 0) {
+            return [];
+        } else {
+            return getAllArrayKeysSub(desiredSize);
+        }
+    } else if (!arraySize || arraySize.length === 0) {
+        return [];
+    } else {
+        return getAllArrayKeysSub(arraySize);
+    }
+}
+
+function oneDimGetAllArrayKeys(
+    arraySize: any,
+    flatten?: any,
+    desiredSize?: any,
+) {
+    if (desiredSize) {
+        if (desiredSize.length === 0) {
+            return [];
+        } else {
+            // array of numbers from 0 to desiredSize[0], cast to strings
+            return Array.from(Array(desiredSize[0]), (_, i) => String(i));
+        }
+    } else if (!arraySize || arraySize.length === 0) {
+        return [];
+    } else {
+        // array of numbers from 0 to arraySize[0], cast to strings
+        return Array.from(Array(arraySize[0]), (_, i) => String(i));
+    }
+}
+
+function defaultMultiDimArrayVarNameFromArrayKey(this: any, arrayKey: string) {
+    return (
+        this.entryPrefixes[0] +
+        arrayKey
+            .split(",")
+            .map((x: string) => Number(x) + 1)
+            .join("_")
+    );
+}
+
+function defaultOneDimArrayVarNameFromArrayKey(this: any, arrayKey: string) {
+    return this.entryPrefixes[0] + String(Number(arrayKey) + 1);
+}
+
+async function multiDimAdjustArrayToNewArraySize(this: any) {
+    function resizeSubArray(subArray: any[], subArraySize: any) {
+        subArray.length = subArraySize[0];
+
+        if (subArraySize.length > 1) {
+            let subSubArraySize = subArraySize.slice(1);
+            for (let [ind, subSubArray] of subArray.entries() as Iterable<
+                [number, any]
+            >) {
+                if (!subSubArray) {
+                    // add in any empty entries
+                    subSubArray = subArray[ind] = [];
+                }
+                resizeSubArray(subSubArray, subSubArraySize);
+            }
+        }
+    }
+
+    let arraySize = await this.arraySize;
+    resizeSubArray(this.arrayValues, arraySize);
+}
+
+async function oneDimAdjustArrayToNewArraySize(this: any) {
+    let arraySize = await this.arraySize;
+    this.arrayValues.length = arraySize[0];
+}
+
 // returnDependencies for an array entry delegates to the array's
 // returnDependencies, adding this entry's arraySize/arrayKeys to the
 // arguments.
@@ -549,221 +849,17 @@ async function initializeArrayStateVariable({
         // (useful, for example, to set entire rows)
         // If it has more dimensinos than numDimensions, behavior isn't determined
         // (it should throw an error, assuming the array entries aren't arrays)
-        stateVarObj.keyToIndex = (key: string) =>
-            key.split(",").map((x) => Number(x));
-        stateVarObj.setArrayValue = function ({
-            value,
-            arrayKey,
-            arraySize,
-            arrayValues = stateVarObj.arrayValues,
-        }: any) {
-            let index = stateVarObj.keyToIndex(arrayKey);
-            let numDimensionsInArrayKey = index.length;
-            // Pre-existing typo fixed per CORE_REFACTOR_DEFERRED.md
-            // §"Pre-existing unreachable diagnostic": the original
-            // `!numDimensionsInArrayKey > stateVarObj.numDimensions`
-            // evaluates to `false > number === false` for any positive
-            // integer, so the diagnostic was unreachable.
-            if (numDimensionsInArrayKey > stateVarObj.numDimensions) {
-                core.addDiagnostic({
-                    type: "info",
-                    message:
-                        "Cannot set array value.  Number of dimensions is too large.",
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
-                });
-                return { nFailures: 1 };
-            }
-            let arrayValuesDrillDown = arrayValues;
-            let arraySizeDrillDown = arraySize;
-            for (let indComponent of index.slice(0, index.length - 1)) {
-                if (indComponent >= 0 && indComponent < arraySizeDrillDown[0]) {
-                    if (!arrayValuesDrillDown[indComponent]) {
-                        arrayValuesDrillDown[indComponent] = [];
-                    }
-                    arrayValuesDrillDown = arrayValuesDrillDown[indComponent];
-                    arraySizeDrillDown = arraySizeDrillDown.slice(1);
-                } else {
-                    core.addDiagnostic({
-                        type: "info",
-                        message: "ignore setting array value out of bounds",
-                        position: component.position,
-                        sourceDoc: component.sourceDoc,
-                    });
-                    return { nFailures: 1 };
-                }
-            }
-
-            let nFailures = 0;
-
-            if (numDimensionsInArrayKey < stateVarObj.numDimensions) {
-                // if dimensions from arrayKey is less than number of dimensions
-                // then attempt to get additional dimensions from
-                // array indices of value
-
-                let setArrayValuesPiece = function (
-                    desiredValue: any,
-                    arrayValuesPiece: any,
-                    arraySizePiece: any,
-                ): { nFailures: number } {
-                    // try to set value of entries of arrayValuePiece to entries of desiredValue
-                    // given that size of arrayValuesPieces is arraySizePiece
-
-                    if (!Array.isArray(desiredValue)) {
-                        core.addDiagnostic({
-                            type: "info",
-                            message:
-                                "ignoring array values with insufficient dimensions",
-                            position: component.position,
-                            sourceDoc: component.sourceDoc,
-                        });
-                        return { nFailures: 1 };
-                    }
-
-                    let nFailuresSub = 0;
-
-                    let currentSize = arraySizePiece[0];
-                    if (desiredValue.length > currentSize) {
-                        core.addDiagnostic({
-                            type: "info",
-                            message: "ignoring array values out of bounds",
-                            position: component.position,
-                            sourceDoc: component.sourceDoc,
-                        });
-                        nFailuresSub += desiredValue.length - currentSize;
-                        desiredValue = desiredValue.slice(0, currentSize);
-                    }
-
-                    if (arraySizePiece.length === 1) {
-                        // down to last dimension
-                        for (let [
-                            ind,
-                            val,
-                        ] of desiredValue.entries() as Iterable<
-                            [number, any]
-                        >) {
-                            arrayValuesPiece[ind] = val;
-                        }
-                    } else {
-                        for (let [
-                            ind,
-                            val,
-                        ] of desiredValue.entries() as Iterable<
-                            [number, any]
-                        >) {
-                            if (!arrayValuesPiece[ind]) {
-                                arrayValuesPiece[ind] = [];
-                            }
-                            let result = setArrayValuesPiece(
-                                val,
-                                arrayValuesPiece[ind],
-                                arraySizePiece.slice(1),
-                            );
-                            nFailuresSub += result.nFailures;
-                        }
-                    }
-
-                    return { nFailures: nFailuresSub };
-                };
-
-                let result = setArrayValuesPiece(
-                    value,
-                    arrayValuesDrillDown,
-                    arraySizeDrillDown,
-                );
-                nFailures += result.nFailures;
-            } else {
-                arrayValuesDrillDown[index[index.length - 1]] = value;
-            }
-
-            return { nFailures };
-        };
-        stateVarObj.getArrayValue = function ({
-            arrayKey,
-            arrayValues = stateVarObj.arrayValues,
-        }: any) {
-            let index = stateVarObj.keyToIndex(arrayKey);
-            let aVals = arrayValues;
-            for (let indComponent of index.slice(0, index.length - 1)) {
-                aVals = aVals[indComponent];
-                if (!aVals) {
-                    return undefined;
-                }
-            }
-            return aVals[index[index.length - 1]];
-        };
+        stateVarObj.keyToIndex = multiDimKeyToIndex;
+        stateVarObj.setArrayValue = multiDimSetArrayValue;
+        stateVarObj.getArrayValue = multiDimGetArrayValue;
 
         if (!stateVarObj.getAllArrayKeys) {
-            stateVarObj.getAllArrayKeys = function (
-                arraySize: any,
-                flatten = true,
-                desiredSize?: any,
-            ) {
-                function prependToAllKeys(keys: any[], newStuff: any) {
-                    for (let [ind, key] of keys.entries() as Iterable<
-                        [number, any]
-                    >) {
-                        if (Array.isArray(key)) {
-                            prependToAllKeys(key, newStuff);
-                        } else {
-                            keys[ind] = newStuff + "," + key;
-                        }
-                    }
-                }
-
-                function getAllArrayKeysSub(subArraySize: any): any[] {
-                    if (subArraySize.length === 1) {
-                        // array of numbers from 0 to subArraySize[0], cast to strings
-                        return Array.from(Array(subArraySize[0]), (_, i) =>
-                            String(i),
-                        );
-                    } else {
-                        let currentSize = subArraySize[0];
-                        let subSubKeys = getAllArrayKeysSub(
-                            subArraySize.slice(1),
-                        );
-                        let subKeys: any[] = [];
-                        for (let ind = 0; ind < currentSize; ind++) {
-                            if (flatten) {
-                                subKeys.push(
-                                    ...subSubKeys.map(
-                                        (x: any) => ind + "," + x,
-                                    ),
-                                );
-                            } else {
-                                let newSubSubKeys = deepClone(subSubKeys);
-                                prependToAllKeys(newSubSubKeys, ind);
-                                subKeys.push(newSubSubKeys);
-                            }
-                        }
-                        return subKeys;
-                    }
-                }
-
-                if (desiredSize) {
-                    if (desiredSize.length === 0) {
-                        return [];
-                    } else {
-                        return getAllArrayKeysSub(desiredSize);
-                    }
-                } else if (!arraySize || arraySize.length === 0) {
-                    return [];
-                } else {
-                    return getAllArrayKeysSub(arraySize);
-                }
-            };
+            stateVarObj.getAllArrayKeys = multiDimGetAllArrayKeys;
         }
 
         if (!stateVarObj.arrayVarNameFromArrayKey) {
-            stateVarObj.arrayVarNameFromArrayKey = function (arrayKey: string) {
-                return (
-                    entryPrefixes[0] +
-                    arrayKey
-                        .split(",")
-                        .map((x) => Number(x) + 1)
-                        .join("_")
-                );
-            };
+            stateVarObj.arrayVarNameFromArrayKey =
+                defaultMultiDimArrayVarNameFromArrayKey;
         }
 
         // arrayVarNameFromPropIndex is a function that calculates the name
@@ -785,86 +881,21 @@ async function initializeArrayStateVariable({
                 );
         }
 
-        stateVarObj.adjustArrayToNewArraySize = async function () {
-            function resizeSubArray(subArray: any[], subArraySize: any) {
-                subArray.length = subArraySize[0];
-
-                if (subArraySize.length > 1) {
-                    let subSubArraySize = subArraySize.slice(1);
-                    for (let [
-                        ind,
-                        subSubArray,
-                    ] of subArray.entries() as Iterable<[number, any]>) {
-                        if (!subSubArray) {
-                            // add in any empty entries
-                            subSubArray = subArray[ind] = [];
-                        }
-                        resizeSubArray(subSubArray, subSubArraySize);
-                    }
-                }
-            }
-
-            let arraySize = await stateVarObj.arraySize;
-            resizeSubArray(stateVarObj.arrayValues, arraySize);
-        };
+        stateVarObj.adjustArrayToNewArraySize =
+            multiDimAdjustArrayToNewArraySize;
     } else {
         // have just one dimension
-        stateVarObj.keyToIndex = (key: string) => Number(key);
-        stateVarObj.setArrayValue = function ({
-            value,
-            arrayKey,
-            arraySize,
-            arrayValues = stateVarObj.arrayValues,
-        }: any) {
-            let ind = stateVarObj.keyToIndex(arrayKey);
-            if (ind >= 0 && ind < arraySize[0]) {
-                arrayValues[ind] = value;
-                return { nFailures: 0 };
-            } else {
-                core.addDiagnostic({
-                    type: "info",
-                    message: `Ignoring setting array values out of bounds: ${arrayKey} of ${stateVariable}`,
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
-                });
-                return { nFailures: 1 };
-            }
-        };
-        stateVarObj.getArrayValue = function ({
-            arrayKey,
-            arrayValues = stateVarObj.arrayValues,
-        }: any) {
-            return arrayValues[arrayKey];
-        };
+        stateVarObj.keyToIndex = oneDimKeyToIndex;
+        stateVarObj.setArrayValue = oneDimSetArrayValue;
+        stateVarObj.getArrayValue = oneDimGetArrayValue;
 
         if (!stateVarObj.getAllArrayKeys) {
-            stateVarObj.getAllArrayKeys = function (
-                arraySize: any,
-                flatten?: any,
-                desiredSize?: any,
-            ) {
-                if (desiredSize) {
-                    if (desiredSize.length === 0) {
-                        return [];
-                    } else {
-                        // array of numbers from 0 to desiredSize[0], cast to strings
-                        return Array.from(Array(desiredSize[0]), (_, i) =>
-                            String(i),
-                        );
-                    }
-                } else if (!arraySize || arraySize.length === 0) {
-                    return [];
-                } else {
-                    // array of numbers from 0 to arraySize[0], cast to strings
-                    return Array.from(Array(arraySize[0]), (_, i) => String(i));
-                }
-            };
+            stateVarObj.getAllArrayKeys = oneDimGetAllArrayKeys;
         }
 
         if (!stateVarObj.arrayVarNameFromArrayKey) {
-            stateVarObj.arrayVarNameFromArrayKey = function (arrayKey: string) {
-                return entryPrefixes[0] + String(Number(arrayKey) + 1);
-            };
+            stateVarObj.arrayVarNameFromArrayKey =
+                defaultOneDimArrayVarNameFromArrayKey;
         }
 
         // arrayVarNameFromPropIndex is a function that calculates the name
@@ -883,11 +914,7 @@ async function initializeArrayStateVariable({
                 returnDefaultArrayVarNameFromPropIndex(1, entryPrefixes[0]);
         }
 
-        stateVarObj.adjustArrayToNewArraySize = async function () {
-            // console.log(`adjust array ${stateVariable} of ${component.componentIdx} to new array size: ${stateVarObj.arraySize[0]}`);
-            let arraySize = await stateVarObj.arraySize;
-            stateVarObj.arrayValues.length = arraySize[0];
-        };
+        stateVarObj.adjustArrayToNewArraySize = oneDimAdjustArrayToNewArraySize;
     }
 
     if (!stateVarObj.getArrayKeysFromVarName) {
@@ -895,12 +922,10 @@ async function initializeArrayStateVariable({
             returnDefaultGetArrayKeysFromVarName(stateVarObj.numDimensions);
     }
 
-    // converting from index to key is the same for single and multiple
-    // dimensions, as we just want the string representation
-    stateVarObj.indexToKey = (index: any) => String(index);
+    stateVarObj.indexToKey = arrayIndexToKey;
 
     if (!stateVarObj.returnEntryDimensions) {
-        stateVarObj.returnEntryDimensions = () => 0;
+        stateVarObj.returnEntryDimensions = defaultReturnEntryDimensions;
     }
 
     if (stateVarObj.shadowingInstructions) {
