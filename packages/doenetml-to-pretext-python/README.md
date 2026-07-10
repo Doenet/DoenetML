@@ -2,11 +2,18 @@
 
 Python package for converting DoenetML to PreTeXt using Deno.
 
+> **Requires [Deno](https://deno.com/) at runtime.** Conversions shell out to
+> Deno, so it must be available on your `PATH` (or install the [`deno`](https://pypi.org/project/deno/)
+> pip package). `pip install doenetml-to-pretext` alone does **not** install Deno.
+
 ## Installation
 
 ```bash
 pip install doenetml-to-pretext
 ```
+
+The wheel bundles the compiled JavaScript converter, but you must supply Deno
+yourself — either a system install on `PATH` or `pip install deno`.
 
 ## Usage
 

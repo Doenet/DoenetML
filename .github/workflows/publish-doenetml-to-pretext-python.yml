@@ -1,0 +1,217 @@
+# Publishes the `doenetml-to-pretext` Python package (source in
+# `packages/doenetml-to-pretext-python`) to PyPI.
+#
+# The Python package version is derived from `packages/doenetml/package.json`
+# (see `setup.py:get_doenetml_version`), so it stays in lockstep with the
+# `@doenet/doenetml` npm packages.  Publishing therefore happens on GitHub
+# `release` events only — the same trigger the npm production release uses in
+# `publish.yml` — never on pushes to `main`.
+#
+# Uploads use PyPI Trusted Publishing (OIDC), so no long-lived API token is
+# needed.  Before the first publish, configure a trusted publisher on PyPI (and
+# TestPyPI) for this repository with:
+#     Workflow name: publish-doenetml-to-pretext-python.yml
+#     Environment:   pypi   (and `testpypi` for the TestPyPI publisher)
+# The `pypi` / `testpypi` GitHub environments below must match those names.
+#
+# Use the manual `workflow_dispatch` trigger (defaulting to a TestPyPI dry run)
+# to validate packaging before cutting a real release.
+name: Publish doenetml-to-pretext (Python)
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            repository:
+                description: Package index to publish to
+                required: true
+                type: choice
+                options:
+                    - testpypi
+                    - pypi
+                default: testpypi
+            dry_run:
+                description: Build and validate the wheel but skip the upload
+                required: true
+                type: boolean
+                default: true
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref || github.run_id }}
+    cancel-in-progress: false
+
+jobs:
+    build:
+        name: Build wheel
+        runs-on: ubuntu-latest
+        permissions:
+            actions: read
+            contents: read
+        outputs:
+            publish: ${{ steps.params.outputs.publish }}
+            target: ${{ steps.params.outputs.target }}
+            repository_url: ${{ steps.params.outputs.repository_url }}
+            environment_url: ${{ steps.params.outputs.environment_url }}
+        steps:
+            - name: Resolve publish parameters
+              id: params
+              run: |
+                  if [ "${{ github.event_name }}" = "release" ]; then
+                      TARGET=pypi
+                      PUBLISH=true
+                  else
+                      TARGET="${{ inputs.repository }}"
+                      if [ "${{ inputs.dry_run }}" = "true" ]; then
+                          PUBLISH=false
+                      else
+                          PUBLISH=true
+                      fi
+                  fi
+
+                  if [ "$TARGET" = "testpypi" ]; then
+                      REPO_URL="https://test.pypi.org/legacy/"
+                      ENV_URL="https://test.pypi.org/p/doenetml-to-pretext"
+                  else
+                      REPO_URL="https://upload.pypi.org/legacy/"
+                      ENV_URL="https://pypi.org/p/doenetml-to-pretext"
+                  fi
+
+                  {
+                      echo "target=$TARGET"
+                      echo "publish=$PUBLISH"
+                      echo "repository_url=$REPO_URL"
+                      echo "environment_url=$ENV_URL"
+                  } >> "$GITHUB_OUTPUT"
+                  echo "Target index: $TARGET | publish: $PUBLISH"
+
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
+                  fetch-depth: 0
+
+            - name: Determine checked out commit SHA
+              id: checked-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  cache: "npm"
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            # A release tag must point at a commit on main whose CI passed, just
+            # like the npm production release in publish.yml.  Manual dispatch
+            # runs (used for TestPyPI dry runs from feature branches) skip these
+            # guards.
+            - name: Verify CI succeeded for target commit
+              if: github.event_name == 'release'
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
+              run: node .github/scripts/verify-ci.mjs
+
+            - name: Verify tag commit is on main
+              if: github.event_name == 'release'
+              run: |
+                  git fetch origin main
+                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                      echo "Error: release tag commit is not reachable from origin/main" >&2
+                      exit 1
+                  fi
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Install Python build frontend
+              run: python -m pip install --upgrade build
+
+            # `npm run build` on the Python workspace runs `python -m build
+            # --wheel`, and its wireit dependency builds `@doenet/doenetml-to-pretext`
+            # first so the bundled `js-assets/` exist before the wheel is packed.
+            - name: Build wheel
+              run: npm run build -w doenetml-to-pretext-python
+              env:
+                  NODE_OPTIONS: "--max_old_space_size=6114"
+                  WIREIT_CACHE: "local"
+
+            - name: Verify wheel bundles JS assets and matches the release version
+              env:
+                  RELEASE_VERSION: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+              run: |
+                  cd packages/doenetml-to-pretext-python
+                  WHEEL=$(ls dist/*.whl)
+                  echo "Built wheel: $WHEEL"
+                  python -m zipfile -l "$WHEEL" | tee /tmp/wheel-listing.txt
+
+                  # Fail loudly if the runtime assets the converter needs are not
+                  # bundled (build_py copies them from ../doenetml-to-pretext/dist).
+                  for required in \
+                      "doenetml_to_pretext/js-assets/index.js" \
+                      "doenetml_to_pretext/import_map.json"; do
+                      if ! grep -q "$required" /tmp/wheel-listing.txt; then
+                          echo "Error: wheel is missing $required" >&2
+                          exit 1
+                      fi
+                  done
+
+                  # The wheel version is derived from packages/doenetml/package.json,
+                  # so on a release it must equal the release tag — otherwise the
+                  # Python package would drift from @doenet/doenetml.
+                  WHEEL_VERSION=$(python -c "import os,sys; print(os.path.basename(sys.argv[1]).split('-')[1])" "$WHEEL")
+                  echo "Wheel version: $WHEEL_VERSION"
+                  if [ -n "$RELEASE_VERSION" ]; then
+                      NORMALIZED="${RELEASE_VERSION#v}"
+                      if [ "$WHEEL_VERSION" != "$NORMALIZED" ]; then
+                          echo "Error: wheel version ($WHEEL_VERSION) does not match release tag ($NORMALIZED)." >&2
+                          echo "Ensure packages/doenetml/package.json matches the release version." >&2
+                          exit 1
+                      fi
+                  fi
+
+            - name: Verify wheel installs and imports cleanly
+              run: |
+                  python -m venv /tmp/verify-venv
+                  /tmp/verify-venv/bin/pip install packages/doenetml-to-pretext-python/dist/*.whl
+                  /tmp/verify-venv/bin/python -c "import doenetml_to_pretext; from doenetml_to_pretext import convert_doenetml_to_pretext; print('import OK')"
+
+            - name: Upload wheel artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: doenetml-to-pretext-wheel
+                  path: packages/doenetml-to-pretext-python/dist/*.whl
+                  if-no-files-found: error
+
+    publish:
+        name: Publish to ${{ needs.build.outputs.target }}
+        needs: build
+        if: needs.build.outputs.publish == 'true'
+        runs-on: ubuntu-latest
+        environment:
+            name: ${{ needs.build.outputs.target }}
+            url: ${{ needs.build.outputs.environment_url }}
+        permissions:
+            id-token: write
+        steps:
+            - name: Download wheel artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: doenetml-to-pretext-wheel
+                  path: dist
+
+            # Trusted Publishing (OIDC) — no API token.  `skip-existing` makes a
+            # re-run a no-op once the version is already on the index instead of
+            # failing on a duplicate upload.
+            - name: Publish to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  repository-url: ${{ needs.build.outputs.repository_url }}
+                  packages-dir: dist
+                  skip-existing: true
