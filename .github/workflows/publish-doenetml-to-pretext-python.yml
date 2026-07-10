@@ -133,7 +133,7 @@ jobs:
             - name: Install Python build frontend
               run: python -m pip install --upgrade build
 
-            # `npm run build` on the Python workspace runs `python -m build
+            # `npm run build` on the Python workspace runs `python3 -m build
             # --wheel`, and its wireit dependency builds `@doenet/doenetml-to-pretext`
             # first so the bundled `js-assets/` exist before the wheel is packed.
             - name: Build wheel
