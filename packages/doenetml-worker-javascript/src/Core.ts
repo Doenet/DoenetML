@@ -393,6 +393,11 @@ export default class Core {
 
         let serializedComponents = [deepClone(this.serializedDocument)];
 
+        // The serialized document is consumed only by the clone above;
+        // release it so the worker does not retain a full serialized copy
+        // of the document for the life of the session.
+        this.serializedDocument = undefined;
+
         numberAnswers(serializedComponents, this.componentInfoObjects);
 
         this.documentIdx = serializedComponents[0].componentIdx;
