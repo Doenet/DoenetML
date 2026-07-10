@@ -827,16 +827,6 @@ async function createReferenceShadowStateVariableDefinitions({
     });
 }
 
-/**
- * Rewrite each named state-variable definition in
- * `stateVariableDefinitions` so it reads from the corresponding variable
- * on `targetComponent` instead of computing its own value. Handles both
- * scalar and array variables; `differentStateVariablesInTarget[i]` (if
- * provided) overrides the target variable name for shadow `i`. When a
- * shadowed variable was used by an `additionalStateVariablesDefined`
- * group, the un-shadowed siblings get the variable scrubbed from their
- * definition output via `modifyStateDefToDeleteVariableReferences`.
- */
 /*
  * Shared shadow definition functions.
  *
@@ -1039,6 +1029,16 @@ function shadowInverseArrayDefinitionByKey(
     };
 }
 
+/**
+ * Rewrite each named state-variable definition in
+ * `stateVariableDefinitions` so it reads from the corresponding variable
+ * on `targetComponent` instead of computing its own value. Handles both
+ * scalar and array variables; `differentStateVariablesInTarget[i]` (if
+ * provided) overrides the target variable name for shadow `i`. When a
+ * shadowed variable was used by an `additionalStateVariablesDefined`
+ * group, the un-shadowed siblings get the variable scrubbed from their
+ * definition output via `modifyStateDefToDeleteVariableReferences`.
+ */
 function modifyStateDefsToBeShadows({
     stateVariablesToShadow,
     stateVariableDefinitions,

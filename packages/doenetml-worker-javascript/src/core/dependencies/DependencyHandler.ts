@@ -115,7 +115,14 @@ export class DependencyHandler {
     _internedComponentIndexLists: Map<string, readonly number[]>;
     _internedComponentTypeLists: Map<string, readonly string[]>;
     _internedNameListArrays: Map<string, readonly (readonly string[])[]>;
-    /** ids for interned inner name lists, used to key the outer arrays */
+    /**
+     * Identity ids for the interned inner structures — name lists (from
+     * `internVariableNameList`) and `valuesChanged` records (from
+     * `internInitialValuesChangedRecord` and `emptyValuesChangedRecord`).
+     * Used to key the interned outer arrays that contain them
+     * (`internNameListArray` / `internValuesChangedArray`) and, for a name
+     * list, its interned initial change record.
+     */
     _internedListIds: WeakMap<object, number>;
     _nextInternedListId: number;
 
