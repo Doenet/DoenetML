@@ -14,12 +14,14 @@ import {
  * materialization, size-tracking variables for arrays, and prop-index-to-
  * array-key resolution.
  *
- * The per-state-variable getter captures `core.getStateVariableValue` once
- * inside `initializeStateVariable`. This works today because Core's
- * constructor eagerly binds that method, so the captured reference stays
- * valid for the lifetime of the component. If a future phase moves
- * `getStateVariableValue` onto a separate manager, this capture must
- * become a lazy lookup so the binding source stays live.
+ * To avoid one closure (plus captured context) per state variable per
+ * component instance, the runtime behavior is provided by module-level
+ * functions shared across all state variables (the same approach as the
+ * `shadow*` functions in `StateVariableDefinitionFactory`). They read
+ * their per-variable parameters from fields on the state-variable object
+ * itself: `initializeStateVariable` stores the owning component as
+ * `svComponent` and the variable's own name as `svVarName`, and the
+ * shared functions reach core through `svComponent.coreFunctions`.
  *
  * Stateless — exported functions take a back-reference to Core to read
  * `stateVariableChangeTriggers` and to invoke `getStateVariableValue`,
@@ -27,6 +29,41 @@ import {
  * private helper `initializeArrayEntryStateVariable` needs none of these
  * and so does not take `core`.
  */
+
+/**
+ * The shared getter installed for `value` on every unresolved-or-stale
+ * state variable. `this` is the state-variable object the property is
+ * read from; evaluating the variable replaces the getter with a plain
+ * data property (see `installStaleValueGetter`).
+ */
+function getStaleStateVariableValue(this: any) {
+    return this.svComponent.coreFunctions.getStateVariableValue({
+        component: this.svComponent,
+        stateVariable: this.svVarName,
+    });
+}
+
+// One shared descriptor: `Object.defineProperty` copies the attributes out
+// of it, so reusing the object is safe.
+const STALE_VALUE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
+    get: getStaleStateVariableValue,
+    configurable: true,
+});
+
+/**
+ * (Re-)install the lazy `value` getter on `stateVarObj`.
+ *
+ * Contract relied on elsewhere: `value` must remain an OWN accessor
+ * property while unresolved/stale (StateVariableEvaluator and
+ * StalenessPropagator detect staleness via
+ * `Object.getOwnPropertyDescriptor(stateVarObj, "value")?.get`), and
+ * evaluation replaces it with an own data property via
+ * `delete stateVarObj.value` + plain assignment.
+ */
+export function installStaleValueGetter(stateVarObj: any) {
+    delete stateVarObj.value;
+    Object.defineProperty(stateVarObj, "value", STALE_VALUE_DESCRIPTOR);
+}
 
 export async function initializeComponentStateVariables({
     core,
@@ -68,16 +105,18 @@ export async function initializeStateVariable({
     arrayStateVariable?: string;
     arrayEntryPrefix?: string;
 }) {
-    let getStateVar = core.getStateVariableValue;
     if (!component.state[stateVariable]) {
         component.state[stateVariable] = {};
     }
     let stateVarObj = component.state[stateVariable];
+    // Back-pointers read by the shared runtime functions (via `this`).
+    // Note: state-variable objects must never be JSON-serialized or
+    // deep-cloned wholesale — `svComponent` makes them cyclic. (Nothing
+    // does so today; persistence extracts individual values.)
+    stateVarObj.svComponent = component;
+    stateVarObj.svVarName = stateVariable;
     stateVarObj.isResolved = false;
-    Object.defineProperty(stateVarObj, "value", {
-        get: () => getStateVar({ component, stateVariable }),
-        configurable: true,
-    });
+    installStaleValueGetter(stateVarObj);
 
     if (arrayEntryPrefix !== undefined) {
         // Callers always pair `arrayEntryPrefix` with `arrayStateVariable`;

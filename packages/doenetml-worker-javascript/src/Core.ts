@@ -310,6 +310,11 @@ export default class Core {
             copyToClipboard: this.copyToClipboard.bind(this),
             navigateToTarget: (args: any) =>
                 navigateToTarget({ core: this, args }),
+            // State-variable runtime plumbing, not component-facing API:
+            // the shared state-variable functions in StateVariableInitializer
+            // reach core through `svComponent.coreFunctions`.
+            getStateVariableValue: this.getStateVariableValue, // bound above
+            addDiagnostic: this.addDiagnostic.bind(this),
         };
 
         this.updateInfo = {

@@ -1,17 +1,14 @@
-<booleanInput name="bi" />
+<setup>
+    <module name="testModule">
+        <moduleAttributes>
+            <math name="ans" />
+        </moduleAttributes>
+        Hi $ans.
+    </module>
+</setup>
 
-<conditionalContent>
-     <case condition="$bi">A</case>
+<module copy="$testModule" ans="57" ba="23" />
 
-    <else>
-        <p>
-            <updateValue
-                name="addPoint1"
-                target="$bi"
-                newValue="true"
-                type="boolean"
-            />
-        </p>
-    </else>
-
-</conditionalContent>
+<graph>
+    <point>(3,5)</point>
+</graph>
