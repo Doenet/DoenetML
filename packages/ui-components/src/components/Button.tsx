@@ -28,10 +28,14 @@ export function Button(
     }
     let value = props.value ?? props.children;
     if (value && props.valueHasLatex) {
+        // Wrap the math in a container with pointer events disabled so that
+        // MathJax doesn't steal clicks intended for the button.
         value = (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {value}
-            </MathJax>
+            <span style={{ pointerEvents: "none" }}>
+                <MathJax hideUntilTypeset={"first"} inline dynamic>
+                    {value}
+                </MathJax>
+            </span>
         );
     }
 
