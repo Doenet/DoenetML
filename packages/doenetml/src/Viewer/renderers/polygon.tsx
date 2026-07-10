@@ -24,11 +24,16 @@ import {
 } from "./utils/lineFamilyDragHandlers";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncVisPropValues,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
 
@@ -176,6 +181,11 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
         jsxPolygonAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxPolygonAttributes.label.useMathJax = true;
@@ -212,6 +222,16 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         );
         newPolygonJXG.isDraggable = !fixLocation.current;
         createdWithBorders.current = needBorders;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newPolygonJXG,
+            getLabelJXG: () => polygonJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         // Vertex handlers have no hit target while the vertex points are
         // invisible (non-draggable vertices), so attach them only when
@@ -612,6 +632,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             if (polygonJXG.current.hasLabel && polygonJXG.current.label) {
                 const label = polygonJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: polygonJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
                 label.needsUpdate = true;
                 label.update();
             }

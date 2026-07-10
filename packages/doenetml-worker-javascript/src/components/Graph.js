@@ -435,6 +435,7 @@ export default class Graph extends BlockComponent {
                     "triggerSet",
                     "booleanInput",
                     "textInput",
+                    "mathInput",
                 ],
             },
             {

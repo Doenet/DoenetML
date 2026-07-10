@@ -18,10 +18,15 @@ import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import {
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncVisPropValues,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -175,6 +180,11 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 position,
                 anchorx,
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
 
             if (SVs.labelHasLatex) {
@@ -189,6 +199,11 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
         } else {
             curveAttributes.label = {
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
                 curveAttributes.label.useMathJax = true;
@@ -392,6 +407,16 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 });
             });
         }
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newCurveJXG,
+            getLabelJXG: () => curveJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         return newCurveJXG;
     }
@@ -883,6 +908,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 label.needsUpdate = true;
                 label.visPropCalc.visible = SVs.labelForGraph !== "";
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: curveJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
                 label.update();
             }
 

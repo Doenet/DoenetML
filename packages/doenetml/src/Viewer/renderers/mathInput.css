@@ -32,3 +32,49 @@
     color: var(--mainRed);
     white-space: normal;
 }
+
+/* ===== <mathInput> anchored inside a <graph> ===== */
+
+.doenet-viewer .mathInputGraphWrapper {
+    /* Lay the label/grip beside the field (not above it) and wrap tightly so
+       the hosting JSXGraph text element measures the real box size (used for
+       drag clamping). */
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    /* Leave room for the field's focus outline (drawn 2px outside its 2px
+       border) so it does not overlap the label/grip beside it. */
+    gap: 6px;
+    background-color: var(--canvas);
+    /* The hosting JSXGraph text element gives its rendNode a fixed inline color
+       that MathQuill would otherwise inherit; set a theme-aware color here so
+       the field (and label) stay visible in dark mode. */
+    color: var(--canvasText);
+}
+
+.doenet-viewer .mathInputGraphHandle {
+    /* The label (or grip) sits beside the field. When draggable it is also the
+       grab region, and must NOT stop pointer propagation so board dragging
+       starts when it is grabbed. */
+    user-select: none;
+    white-space: nowrap;
+}
+
+.doenet-viewer .mathInputGraphDraggable {
+    /* Only draggable inputs show a move cursor on their handle. */
+    cursor: move;
+}
+
+.doenet-viewer .mathInputGraphGrip {
+    /* Minimal grab affordance shown when a draggable input has no visible
+       label. */
+    color: var(--canvasText);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.doenet-viewer .mathInputGraphField {
+    /* The field region: clicking here edits (native bubble-phase listeners stop
+       propagation so a board drag never starts). */
+    cursor: text;
+}

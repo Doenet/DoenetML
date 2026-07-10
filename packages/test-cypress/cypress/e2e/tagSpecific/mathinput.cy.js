@@ -909,4 +909,147 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi textarea").blur();
         cy.get("#fv").should("have.text", "focused: false");
     });
+
+    it("mathInput in a graph renders at its anchor, is editable, and binds its value", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" positionFromAnchor="upperright" prefill="x" />
+    </graph>
+    <p>value: <math extend="$mi.value" name="miv" /></p>
+    <coords extend="$mi.anchor" name="mia" />
+    `);
+
+        // The MathQuill field is portaled into the graph (not rendered inline).
+        cy.get("#g").find(".mq-editable-field").should("exist");
+        cy.get("#g").find(".mq-editable-field").should("contain.text", "x");
+
+        // Anchored at (3,4).
+        cy.get("#mia").should("have.text", "(3,4)");
+        shouldHaveMathText("#miv", "x");
+
+        // Typing into the in-graph field updates the bound <math>.
+        cy.get("#g")
+            .find("textarea")
+            .first()
+            .focus()
+            .type("{end}+1{enter}", { force: true });
+
+        cy.get("#g").find(".mq-editable-field").should("contain.text", "x+1");
+        shouldHaveMathText("#miv", "x+1");
+    });
+
+    it("mathInput in a graph moves via moveInput and respects draggable=false", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" />
+        <mathInput name="miFixed" anchor="(1,2)" draggable="false" />
+    </graph>
+    <coords extend="$mi.anchor" name="mia" />
+    <coords extend="$miFixed.anchor" name="miFixedA" />
+    `);
+
+        cy.get("#mia").should("have.text", "(3,4)");
+        cy.get("#miFixedA").should("have.text", "(1,2)");
+
+        // A draggable (unlabeled) input shows a drag grip; a non-draggable one
+        // shows none. Only `mi` qualifies, so exactly one grip is in the graph.
+        cy.get("#g").find(".mathInputGraphGrip").should("have.length", 1);
+
+        // A draggable input's anchor round-trips through the moveInput action.
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("mi"),
+                args: { x: -5, y: 2 },
+            });
+        });
+        cy.get("#mia").should("have.text", "(−5,2)");
+
+        // A draggable="false" input ignores the move; a second move on the
+        // draggable input serves as a barrier so we know both actions ran.
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("miFixed"),
+                args: { x: 7, y: 8 },
+            });
+            win.callAction1({
+                actionName: "moveInput",
+                componentIdx: await win.resolvePath1("mi"),
+                args: { x: 6, y: -3 },
+            });
+        });
+        cy.get("#mia").should("have.text", "(6,−3)");
+        cy.get("#miFixedA").should("have.text", "(1,2)");
+    });
+
+    it("mathInput in a graph focuses on click and edits, without starting a drag", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" />
+    </graph>
+    <p>value: <math extend="$mi.value" name="miv" /></p>
+    <coords extend="$mi.anchor" name="mia" />
+    `);
+
+        cy.get("#mia").should("have.text", "(3,4)");
+
+        // A real click on the field must reach MathQuill and focus its textarea
+        // (id `<name>_input`). This is the regression guard for the bug where a
+        // capture-phase stopPropagation swallowed the click before it reached the
+        // field, so clicking appeared to focus but typing did nothing.
+        cy.get("#g").find(".mq-editable-field").first().click();
+        cy.focused().should("have.attr", "id", "mi_input");
+
+        // Typing then flows through to the bound value, and the click did not
+        // drag the field (its anchor is unchanged).
+        cy.focused().type("2x{enter}", { force: true });
+        shouldHaveMathText("#miv", "2x");
+        cy.get("#mia").should("have.text", "(3,4)");
+    });
+
+    it("mathInput in a graph shows its label beside the field (no grip)", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)"><label>height</label></mathInput>
+    </graph>
+    `);
+
+        // The label renders inside the graph as the handle beside the field, and
+        // no separate grip is shown when a label is present.
+        cy.get("#g").find(".mq-editable-field").should("exist");
+        cy.get("#g").find("label").should("contain.text", "height");
+        cy.get("#g").find(".mathInputGraphGrip").should("not.exist");
+    });
+
+    it("mathInput in a graph renders visible (theme-aware) text in dark mode", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="g">
+        <mathInput name="mi" anchor="(3,4)" prefill="x" />
+    </graph>
+    `,
+                    darkMode: "dark",
+                },
+                "*",
+            );
+        });
+        cy.get('[data-theme="dark"]').should("exist");
+
+        // The field text must be a light color in dark mode, not the dark
+        // default color JSXGraph gives its text-element rendNode (which the
+        // portaled MathQuill would otherwise inherit).
+        cy.get("#g")
+            .find(".mq-root-block")
+            .first()
+            .then(($el) => {
+                const color = getComputedStyle($el[0]).color;
+                const sum = (color.match(/\d+(\.\d+)?/g) || [])
+                    .slice(0, 3)
+                    .reduce((acc, ch) => acc + parseFloat(ch), 0);
+                expect(sum, `field text color ${color}`).to.be.greaterThan(450);
+            });
+    });
 });
