@@ -49,6 +49,48 @@ For example,
 </div>
 ```
 
+## MathJax
+
+The renderer uses MathJax to typeset math. It **coexists** with a MathJax that
+the host page already provides:
+
+- If the page already has a live MathJax engine, the renderer reuses it and
+  never overwrites `window.MathJax`.
+- If a MathJax `<script>` is already on the page (including a deferred one that
+  has not executed yet), the renderer waits for it instead of loading a second
+  copy.
+- Only when the page provides no MathJax does the renderer load its own.
+
+This avoids the double-loaded / clobbered MathJax that could otherwise break
+embeds in pages that ship their own MathJax (e.g. PreTeXt books).
+
+Two `data-doenet` attributes (or `renderDoenet{Viewer,Editor}ToContainer`
+config keys / React props) control this:
+
+| Attribute                             | Prop                 | Meaning                                                                                       |
+| ------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------- |
+| `data-doenet-mathjax-url`             | `mathjaxUrl`         | URL of the MathJax script to load when the page provides none.                               |
+| `data-doenet-use-existing-mathjax`    | `useExistingMathjax` | Force reuse of a host MathJax even when it is not yet detectable (host loads it after Doenet). |
+
+```html
+<div class="doenetml-applet">
+    <script
+        type="text/doenetml"
+        data-doenet-use-existing-mathjax="true"
+    >
+        <p>$x^2 + y^2$</p>
+    </script>
+</div>
+```
+
+Because a page shares a single MathJax, when several activities are embedded
+only the first one to mount decides which MathJax is loaded.
+
+**Supported versions:** Doenet renders with MathJax 4 and loads that version
+when injecting its own copy. When reusing a host-provided engine, the host's
+version governs typesetting; MathJax 3.x–4.x are supported for reuse (they
+share the typesetting API Doenet relies on). MathJax 2 is not supported.
+
 ## Editor control handle
 
 `renderDoenetEditorToContainer` (also exposed as a global) returns a small

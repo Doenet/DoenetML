@@ -15,6 +15,7 @@ export default defineConfig({
                     "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
                 parseInlineMarkdown: "./src/markdown/parseInlineMarkdown.ts",
                 style: "./src/style/index.ts",
+                mathjax: "./src/math/MathJaxContext.tsx",
             },
             formats: ["es"],
         },
