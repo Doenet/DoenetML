@@ -4,7 +4,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, POINT_LAYER_OFFSET } from "./graph";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { textRendererStyle } from "@doenet/utils";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";
 import {
@@ -664,9 +664,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         : undefined;
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <DynamicMath latex={mathJaxify} />
         </span>
     );
 });

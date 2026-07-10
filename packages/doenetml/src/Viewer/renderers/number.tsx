@@ -1,4 +1,4 @@
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 
 import React, { useContext, useRef } from "react";
 import JXG from "jsxgraph";
@@ -299,9 +299,7 @@ export default React.memo(function NumberComponent(
 
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {number}
-            </MathJax>
+            <DynamicMath latex={number} />
         </span>
     );
 });

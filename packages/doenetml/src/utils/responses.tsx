@@ -1,6 +1,6 @@
 import React from "react";
 import me from "math-expressions";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "../Viewer/renderers/utils/DynamicMath";
 
 /**
  * Format responses from submitted events into react elements
@@ -24,12 +24,12 @@ export function formatResponse(
                         .round_numbers_to_precision_plus_decimals(6, 2);
                     return (
                         <div key={i}>
-                            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                                {
+                            <DynamicMath
+                                latex={
                                     //@ts-ignore
                                     "\\(" + expr.toLatex() + "\\)"
                                 }
-                            </MathJax>
+                            />
                         </div>
                     );
                 } else {
