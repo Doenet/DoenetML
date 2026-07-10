@@ -42,15 +42,19 @@ export function DynamicMath({ latex }: { latex: string }) {
     const current = useRef<string | null>(null);
     const busy = useRef(false);
     const lastTypesetAt = useRef(0);
-    // False once unmounted, so an in-flight `pump` stops before touching a
+    // False once unmounted, so an in-flight `renderPendingLatex` stops before touching a
     // detached node or re-creating the off-screen buffer after cleanup.
     const mounted = useRef(true);
 
     useEffect(() => {
         pending.current = latex;
-        void pump();
-        // `pump` reads refs only; re-running it whenever `latex` changes is all
-        // that is needed.
+        // Fire the typeset loop. `renderPendingLatex` reads refs only and resets `busy` in its
+        // `finally`; re-running it whenever `latex` changes is all that is
+        // needed. On failure, keep the last good render rather than flashing raw
+        // LaTeX or going blank.
+        renderPendingLatex().catch((e) => {
+            console.error("DynamicMath: MathJax typesetting failed", e);
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [latex]);
 
@@ -65,7 +69,18 @@ export function DynamicMath({ latex }: { latex: string }) {
         };
     }, []);
 
-    async function pump() {
+    /**
+     * The typeset-and-swap loop, (re)invoked on every `latex` change. It runs
+     * at most one instance at a time (guarded by `busy`), so overlapping
+     * invocations return immediately and the already-running loop picks up the
+     * newer value. It waits for MathJax, then repeatedly: throttles, takes the
+     * latest `pending` value (skipping any intermediate ones), typesets it on
+     * the off-screen buffer, drops MathJax's record of that render, and swaps
+     * the rendered nodes into the visible span. It exits once `pending` has
+     * caught up to what is displayed (or the component unmounts), leaving the
+     * newest value on screen.
+     */
+    async function renderPendingLatex() {
         if (busy.current) {
             return;
         }
@@ -131,10 +146,6 @@ export function DynamicMath({ latex }: { latex: string }) {
                 current.current = next;
                 lastTypesetAt.current = performance.now();
             }
-        } catch (e) {
-            // On failure, keep the last good render rather than flashing raw
-            // LaTeX or going blank.
-            console.error("DynamicMath: MathJax typesetting failed", e);
         } finally {
             busy.current = false;
         }
