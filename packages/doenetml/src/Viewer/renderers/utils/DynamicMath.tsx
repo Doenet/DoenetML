@@ -43,6 +43,9 @@ export function DynamicMath({ latex }: { latex: string }) {
     const current = useRef<string | null>(null);
     const busy = useRef(false);
     const lastTypesetAt = useRef(0);
+    // False once unmounted, so an in-flight `pump` stops before touching a
+    // detached node or re-creating the off-screen buffer after cleanup.
+    const mounted = useRef(true);
 
     useEffect(() => {
         pending.current = latex;
@@ -53,7 +56,11 @@ export function DynamicMath({ latex }: { latex: string }) {
     }, [latex]);
 
     useEffect(() => {
+        // Set on setup (not just at declaration) so a StrictMode remount, which
+        // reruns this effect after the cleanup below, re-arms the guard.
+        mounted.current = true;
         return () => {
+            mounted.current = false;
             bufferRef.current?.remove();
             bufferRef.current = null;
         };
@@ -72,6 +79,7 @@ export function DynamicMath({ latex }: { latex: string }) {
             const MathJax = (await loadMathJax()) as unknown as LoadedMathJax;
             await MathJax.startup.promise;
             while (
+                mounted.current &&
                 pending.current !== null &&
                 pending.current !== current.current
             ) {
@@ -79,6 +87,11 @@ export function DynamicMath({ latex }: { latex: string }) {
                     THROTTLE_MS - (performance.now() - lastTypesetAt.current);
                 if (wait > 0) {
                     await new Promise((resolve) => setTimeout(resolve, wait));
+                }
+                // Bail if we unmounted while waiting, before creating the
+                // buffer (which cleanup has already removed) or typesetting.
+                if (!mounted.current) {
+                    break;
                 }
                 // Grab the newest requested value, skipping any intermediate
                 // ones that arrived while we were waiting or typesetting.
@@ -94,6 +107,12 @@ export function DynamicMath({ latex }: { latex: string }) {
                 // list doesn't grow without bound under frequent updates.
                 MathJax.typesetClear([buffer]);
                 await MathJax.typesetPromise([buffer]);
+                // Bail if we unmounted during the typeset: the buffer was
+                // removed by cleanup and `visible` is detached, so there is
+                // nothing to swap into.
+                if (!mounted.current) {
+                    break;
+                }
                 // Swap the freshly rendered output in; the old output stayed
                 // visible until exactly now, so there is no raw/blank flash.
                 visible.replaceChildren(...Array.from(buffer.childNodes));
