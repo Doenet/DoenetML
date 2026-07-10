@@ -428,6 +428,9 @@ export class StalenessPropagator {
                         if (!upDep.valuesChanged) {
                             upDep.valuesChanged = [];
                         }
+                        // the interned (frozen, shared) structures must be
+                        // replaced with mutable copies before recording
+                        upDep.thawValuesChangedRecord(componentInd);
                         if (!upDep.valuesChanged[componentInd]) {
                             upDep.valuesChanged[componentInd] = {};
                         }

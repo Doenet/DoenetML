@@ -569,6 +569,11 @@ export default class Core {
             );
         }
 
+        // The circular-check memos now hold one entry per state variable
+        // created during the load; drop them and let them regrow with the
+        // (typically few) components involved in later updates.
+        this.dependencies.clearCircularCheckMemos();
+
         const returnResult = {
             coreInfo: this.coreInfo,
         };

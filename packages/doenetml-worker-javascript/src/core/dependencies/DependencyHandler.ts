@@ -119,6 +119,25 @@ export class DependencyHandler {
     _internedListIds: WeakMap<object, number>;
     _nextInternedListId: number;
 
+    /**
+     * Interned initial `valuesChanged` records (every variable name mapped
+     * to the shared initial change record), keyed by the interned-list id of
+     * the variable-name list they cover. A new dependency's change state is
+     * fully determined by its (interned) variable-name list, so all such
+     * dependencies can share one frozen record until first written.
+     */
+    _internedValuesChangedRecords: Map<number, Record<string, any>>;
+    /**
+     * Interned `valuesChanged` outer arrays, keyed by the joined ids of
+     * their (interned) per-component records. Covers both the initial state
+     * and the fully-consumed state (`emptyValuesChangedRecord` entries), so
+     * dependencies whose changes were consumed converge back to shared
+     * structures instead of retaining a mutable array + empty record each.
+     */
+    _internedValuesChangedArrays: Map<string, Record<string, any>[]>;
+    /** Shared frozen record for a fully-consumed `valuesChanged` entry. */
+    emptyValuesChangedRecord: Record<string, any>;
+
     constructor({
         _components,
         componentInfoObjects,
@@ -165,6 +184,14 @@ export class DependencyHandler {
         this._internedNameListArrays = new Map();
         this._internedListIds = new WeakMap();
         this._nextInternedListId = 1;
+        this._internedValuesChangedRecords = new Map();
+        this._internedValuesChangedArrays = new Map();
+        this.emptyValuesChangedRecord = Object.freeze({});
+        this._internedListIds.set(
+            this.emptyValuesChangedRecord,
+            this._nextInternedListId,
+        );
+        this._nextInternedListId++;
     }
 
     internComponentIndexList(indices: number[]): number[] {
@@ -230,6 +257,85 @@ export class DependencyHandler {
             this._nextInternedListId++;
         }
         return interned as string[];
+    }
+
+    /**
+     * Like `internVariableNameList`, but never freezes the caller's array:
+     * on a cache miss the interned entry is a frozen copy. For dependency
+     * fields that alias arrays owned elsewhere (state-variable definitions,
+     * constructor arguments), which must stay mutable for their owners.
+     */
+    internVariableNameListByCopy(names: readonly string[]): string[] {
+        const key = names.join("\n");
+        const interned = this._internedVariableNameLists.get(key);
+        if (interned) {
+            return interned as string[];
+        }
+        return this.internVariableNameList([...names]);
+    }
+
+    /**
+     * Return the shared frozen initial `valuesChanged` record (every
+     * variable mapped to the shared initial change record) for the given
+     * interned variable-name list. Falls back to a fresh mutable record if
+     * `names` was not interned. Writers must thaw/replace before mutating;
+     * see `Dependency.thawValuesChangedRecord` and
+     * `Dependency.consumeChangeRecord`.
+     */
+    internInitialValuesChangedRecord(
+        names: readonly string[],
+        initialChangeRecord: Record<string, any>,
+    ): Record<string, any> {
+        const listId = this._internedListIds.get(names as string[]);
+        if (listId === undefined) {
+            const record: Record<string, any> = {};
+            for (const name of names) {
+                record[name] = initialChangeRecord;
+            }
+            return record;
+        }
+        let record = this._internedValuesChangedRecords.get(listId);
+        if (!record) {
+            record = {};
+            for (const name of names) {
+                record[name] = initialChangeRecord;
+            }
+            Object.freeze(record);
+            this._internedValuesChangedRecords.set(listId, record);
+            this._internedListIds.set(record, this._nextInternedListId);
+            this._nextInternedListId++;
+        }
+        return record;
+    }
+
+    /**
+     * Intern a `valuesChanged` outer array whose entries are all interned
+     * records (from `internInitialValuesChangedRecord` or
+     * `emptyValuesChangedRecord`), keyed by the identity of those entries.
+     * Any non-interned (hence mutable) entry makes the array non-internable;
+     * it is returned unchanged.
+     */
+    internValuesChangedArray(
+        outer: Record<string, any>[],
+    ): Record<string, any>[] {
+        const ids: number[] = [];
+        for (const record of outer) {
+            const id =
+                typeof record === "object" && record !== null
+                    ? this._internedListIds.get(record)
+                    : undefined;
+            if (id === undefined) {
+                return outer;
+            }
+            ids.push(id);
+        }
+        const key = ids.join(",");
+        let interned = this._internedValuesChangedArrays.get(key);
+        if (!interned) {
+            interned = Object.freeze(outer) as Record<string, any>[];
+            this._internedValuesChangedArrays.set(key, interned);
+        }
+        return interned;
     }
 
     async setUpComponentDependencies(component: ComponentInstance) {
@@ -818,6 +924,20 @@ export class DependencyHandler {
         }
     }
 
+    /**
+     * Drop the circular-check memo records. They are pure caches ("this
+     * state variable already passed the check"), so clearing costs only
+     * re-verification when a later dependency change re-triggers a check.
+     * Called once initial document construction finishes: at that point the
+     * memos cover every state variable created during the load (one record
+     * entry per state variable), but they regrow only for the typically few
+     * components involved in subsequent updates.
+     */
+    clearCircularCheckMemos() {
+        this.circularCheckPassed = {};
+        this.circularResolveBlockedCheckPassed = {};
+    }
+
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         let stateVariableIdentifier = componentIdx + ":" + varName;
         if (this.circularCheckPassed[stateVariableIdentifier]) {
@@ -1247,6 +1367,9 @@ export class DependencyHandler {
                 if (upDep.valuesChanged) {
                     let ind =
                         upDep.downstreamComponentIndices.indexOf(componentIdx);
+                    // the interned (frozen, shared) structures must be
+                    // replaced with mutable copies before recording
+                    upDep.thawValuesChangedRecord(ind);
                     let upValuesChanged = upDep.valuesChanged[ind][varName];
 
                     if (!upValuesChanged) {
