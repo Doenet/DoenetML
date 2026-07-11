@@ -14,6 +14,40 @@ import { doenetGlobalConfig } from "../../../src/global-config";
 // assigned to it and it is terminated once empty — so the retry boots on a
 // fresh worker rather than landing back on a possibly-wedged host.
 
+// Harness for the sibling-teardown regression test: a removable sibling
+// viewer and a survivor viewer whose core we drive after the sibling is gone.
+// The survivor's `updateValue` button increments `$c`, so a working core turns
+// "survivor is 0" into "survivor is 1"; a dead core leaves it stuck at 0.
+function SiblingTeardownHarness() {
+    const [showSibling, setShowSibling] = React.useState(true);
+    return (
+        <div>
+            <button
+                data-test="remove-sibling"
+                onClick={() => setShowSibling(false)}
+            >
+                remove sibling
+            </button>
+            {showSibling ? (
+                <DoenetViewer
+                    doenetML="<p>sibling to remove</p>"
+                    addVirtualKeyboard={false}
+                />
+            ) : null}
+            <DoenetViewer
+                doenetML={`
+                    <number name="c">0</number>
+                    <updateValue name="bump" target="$c" newValue="$c+1">
+                        <label>bump survivor</label>
+                    </updateValue>
+                    <p>survivor is $c</p>
+                `}
+                addVirtualKeyboard={false}
+            />
+        </div>
+    );
+}
+
 describe("DoenetViewer shared core-worker host (#1466)", () => {
     afterEach(() => {
         delete doenetGlobalConfig.useSharedCoreWorker;
@@ -40,6 +74,33 @@ describe("DoenetViewer shared core-worker host (#1466)", () => {
 
         cy.contains("first shared viewer", { timeout: 20000 }).should("exist");
         cy.contains("second shared viewer", { timeout: 20000 }).should("exist");
+    });
+
+    it("a surviving core keeps responding after a sibling on the same host is torn down", () => {
+        // Regression for the cycle-1 bug (#1467): a hosted core's terminate()
+        // must not call the worker-global close(). Two cores share one host
+        // worker; tearing the sibling's core down (unmount -> destroyCore)
+        // must leave the survivor's core fully live. If close() ran, the whole
+        // host — and the survivor with it — would die, and the survivor could
+        // retain its stale DOM while no longer RESPONDING to interaction.
+        doenetGlobalConfig.useSharedCoreWorker = true;
+
+        cy.mount(<SiblingTeardownHarness />);
+
+        // Both cores boot on the same shared host (pool cap >> 2).
+        cy.contains("sibling to remove", { timeout: 20000 }).should("exist");
+        cy.contains("survivor is 0", { timeout: 20000 }).should("exist");
+
+        // Unmount the sibling viewer -> its core is torn down on the shared
+        // host. The survivor viewer stays mounted.
+        cy.get('[data-test="remove-sibling"]').click();
+        cy.contains("sibling to remove").should("not.exist");
+
+        // Drive the survivor's core: the click must round-trip through the
+        // still-alive host worker and update the rendered value. (The cycle-1
+        // bug would leave it stuck at "survivor is 0".)
+        cy.contains("button", "bump survivor").click();
+        cy.contains("survivor is 1", { timeout: 20000 }).should("exist");
     });
 
     it("recovers from a hung handshake: quarantine + retry on a fresh host", () => {
