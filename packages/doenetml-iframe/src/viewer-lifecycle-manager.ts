@@ -213,10 +213,19 @@ function scheduleEvaluate(delayMs: number) {
 }
 
 /**
- * Enforce the budget: if more viewers are live (or mid-park) than
- * `maxLiveViewers`, ask the least-recently-visible eligible off-screen
- * viewers to park. If some over-budget viewers are only ineligible because
- * their park-delay debounce hasn't elapsed, re-evaluate when it does.
+ * Enforce the budget: if more viewers are live than `maxLiveViewers`, ask the
+ * least-recently-visible eligible off-screen viewers to park. If some
+ * over-budget viewers are only ineligible because their park-delay debounce
+ * hasn't elapsed, re-evaluate when it does.
+ *
+ * Only genuinely `live` viewers count against the budget here. Viewers
+ * mid-park (`parking`) are already committed to freeing their slot, so
+ * counting them would over-park: a re-evaluation while one park is in flight
+ * (e.g. another park completing, which schedules an evaluate) would shed an
+ * additional live viewer to make room the in-flight park is already making,
+ * driving the page below `maxLiveViewers`. (A park that aborts flips the
+ * viewer back to `live`/visible and re-schedules an evaluate, so nothing is
+ * under-counted.)
  */
 function evaluate() {
     if (effectiveMaxLive === null) {
@@ -224,13 +233,13 @@ function evaluate() {
     }
     const now = Date.now();
 
-    let active = 0;
+    let live = 0;
     for (const record of records.values()) {
-        if (record.state !== "parked") {
-            active++;
+        if (record.state === "live") {
+            live++;
         }
     }
-    let excess = active - effectiveMaxLive;
+    let excess = live - effectiveMaxLive;
     if (excess <= 0) {
         return;
     }

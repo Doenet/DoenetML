@@ -161,6 +161,61 @@ describe("viewer-lifecycle-manager — windowed mounting policy", () => {
         });
     });
 
+    it("does not over-park while a park is still in flight", () => {
+        // Budget 2, one visible (a) plus three off-screen viewers whose LRU
+        // order is b < c < d. b and c are asked to park but complete lazily
+        // (parkImmediately: false), so they sit in the "parking" state.
+        const a = addViewer("a", {
+            maxLiveViewers: 2,
+            parkImmediately: false,
+        });
+        const b = addViewer("b", {
+            maxLiveViewers: 2,
+            parkImmediately: false,
+        });
+        const c = addViewer("c", {
+            maxLiveViewers: 2,
+            parkImmediately: false,
+        });
+        const d = addViewer("d", {
+            maxLiveViewers: 2,
+            parkImmediately: false,
+        });
+
+        // Establish least-recently-visible order b < c < d; a stays visible.
+        setViewerVisibility("b", true);
+        setViewerVisibility("b", false);
+        setViewerVisibility("c", true);
+        setViewerVisibility("c", false);
+        setViewerVisibility("d", true);
+        setViewerVisibility("d", false);
+        setViewerVisibility("a", true);
+
+        // Over budget by 2 → the two LRU off-screen viewers (b, c) are asked
+        // to park; d stays live (budget 2 = a visible + d).
+        cy.tick(200).then(() => {
+            expect(b.parkRequests, "b (LRU) asked to park").to.eq(1);
+            expect(c.parkRequests, "c asked to park").to.eq(1);
+            expect(d.parkRequests, "d fills the budget, not parked").to.eq(0);
+        });
+
+        // b finishes parking while c is still in flight. The re-evaluation
+        // this triggers must NOT ask d to park: only one live viewer (a) is
+        // visible and d fills the budget of 2, while the in-flight c is
+        // committed to freeing its own slot.
+        cy.then(() => {
+            notifyViewerState("b", "parked");
+        });
+        cy.tick(200).then(() => {
+            expect(d.parkRequests, "d must not be over-parked").to.eq(0);
+            expect(getViewerLifecycleStats()).to.deep.include({
+                live: 2, // a, d
+                parking: 1, // c
+                parked: 1, // b
+            });
+        });
+    });
+
     it("unregistering frees the budget", () => {
         const a = addViewer("a", { maxLiveViewers: 1, parkDelayMs: 100 });
         const b = addViewer("b", { maxLiveViewers: 1 });
