@@ -122,7 +122,14 @@ if (typeof globalThis !== "undefined" && !globalThis.document) {
 let wasmInitPromise: Promise<unknown> | null = null;
 function ensureWasmInitialized(): Promise<unknown> {
     if (!wasmInitPromise) {
-        wasmInitPromise = init({ module_or_path: wasmInitInput });
+        // Clear the cached promise on failure so a later core can retry the
+        // init rather than every future caller inheriting one rejected
+        // promise forever. Concurrent in-flight callers still share (and all
+        // observe the rejection of) the single attempt.
+        wasmInitPromise = init({ module_or_path: wasmInitInput }).catch((e) => {
+            wasmInitPromise = null;
+            throw e;
+        });
     }
     return wasmInitPromise;
 }
@@ -188,6 +195,14 @@ export class CoreWorker {
     _hostedCores: Map<number, { core: CoreWorker; port: MessagePort }> =
         new Map();
     _nextHostedCoreId = 1;
+    /**
+     * Whether this instance is a hosted core (created via `createCore`) rather
+     * than the worker's default (host) instance. A hosted core shares the
+     * worker thread with its siblings, so its `terminate()` must free only its
+     * own Rust/JS cores and NOT `close()` the worker — that would take every
+     * sibling core down with it.
+     */
+    _isHostedCore = false;
 
     /**
      * Create an additional, independent core in this worker and expose it on
@@ -195,6 +210,7 @@ export class CoreWorker {
      */
     async createCore(port: MessagePort): Promise<number> {
         const core = new CoreWorker();
+        core._isHostedCore = true;
         Comlink.expose(core, port);
         const id = this._nextHostedCoreId++;
         this._hostedCores.set(id, { core, port });
@@ -938,8 +954,15 @@ export class CoreWorker {
             resolve();
         }
 
-        // Terminate the worker itself
-        close();
+        // Terminate the worker itself — but only for the worker's default
+        // (host) instance. A hosted core (#1466) shares the thread with its
+        // sibling cores, so closing here would take them all down; its
+        // teardown ends after freeing the Rust and JS cores above. The host
+        // worker is instead force-terminated natively (or destroyed
+        // per-core via `destroyCore`) from the main thread.
+        if (!this._isHostedCore) {
+            close();
+        }
     }
 
     async returnAllStateVariables(consoleLogComponents = false) {
