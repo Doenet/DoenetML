@@ -1002,6 +1002,21 @@ export class CoreWorker {
         }
     }
 
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
+     * updates settle, push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it, letting a
+     * host tear this document down losslessly. Returns whether this core held
+     * any state (`false` when the core/document has not been created yet —
+     * nothing to lose on teardown).
+     */
+    async flushState(): Promise<boolean> {
+        if (this.javascriptCore) {
+            return await this.javascriptCore.flushState();
+        }
+        return false;
+    }
+
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.

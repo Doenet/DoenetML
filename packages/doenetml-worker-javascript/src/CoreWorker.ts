@@ -476,4 +476,15 @@ export class PublicDoenetMLCore {
     async saveImmediately() {
         await this.core?.saveImmediately();
     }
+
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
+     * updates settle, push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it, letting a
+     * host unmount this document losslessly. Returns whether the viewer held
+     * any state (`false` when the core/document has not been created yet).
+     */
+    async flushState(): Promise<boolean> {
+        return (await this.core?.flushState()) ?? false;
+    }
 }

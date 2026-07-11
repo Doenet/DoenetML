@@ -372,6 +372,43 @@ export function DocViewer({
                         window.postMessage(message);
                     }
                 }
+            } else if (e.data.subject === "SPLICE.flushState") {
+                // Flush-state-on-demand (Doenet/DoenetML#1440): settle in-flight
+                // updates and push any pending state through the normal
+                // `SPLICE.reportScoreAndState` pipeline, then send this
+                // stateless acknowledgement. A persistence host (e.g. Runestone)
+                // saves the resulting `reportScoreAndState` exactly as it does a
+                // routine autosave — it need not know a flush occurred. This
+                // response is the completion signal a lifecycle coordinator
+                // (e.g. a PreTeXt page unmounting an off-screen viewer) waits
+                // for: once it arrives, tearing the viewer down loses nothing.
+                //
+                // `hadState: false` means the viewer held no state beyond what
+                // it was initialized with (e.g. its core was never created), so
+                // unmounting is equally safe.
+                const message: Record<string, unknown> = {
+                    subject: "SPLICE.flushState.response",
+                    activity_id: activityId,
+                    doc_id: docId,
+                    message_id: e.data.message_id,
+                    success: true,
+                    hadState: false,
+                };
+                if (coreCreated.current && coreWorker.current) {
+                    try {
+                        message.hadState =
+                            await coreWorker.current.flushState();
+                    } catch (err) {
+                        console.warn("DocViewer: flushState failed", err);
+                        message.success = false;
+                    }
+                }
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
+                }
             }
         };
 
