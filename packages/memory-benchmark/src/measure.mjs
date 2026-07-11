@@ -373,6 +373,14 @@ const scenarios = [
             url: `${base}/iframes.html?n=${n}&cdn=${encodeURIComponent(cdnBase)}`,
             expectInitialized: n,
         },
+        {
+            // Same as direct-N, but with the shared core-worker host (#1466)
+            // opted in: cores multiplex onto shared workers instead of one
+            // dedicated worker per viewer.
+            name: `shared-${n}`,
+            url: `${base}/direct.html?n=${n}&shared=1`,
+            expectInitialized: n,
+        },
     ]),
     // Per-worker fixed floor: N raw core workers, no viewers/documents.
     // `parse` = worker script evaluated only; `init` = + WASM compile and the
@@ -432,6 +440,7 @@ if (hi > lo) {
         "direct",
         "iframe",
         "iframe-xorigin",
+        "shared",
         "workers-parse",
         "workers-init",
     ]) {

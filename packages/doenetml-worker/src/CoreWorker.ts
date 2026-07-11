@@ -111,6 +111,22 @@ if (typeof globalThis !== "undefined" && !globalThis.document) {
         baseURI: baseUrl,
     };
 }
+/**
+ * Initialize the WASM module exactly once per worker realm. wasm-bindgen's
+ * `init` only guards *completed* initializations (`if (wasm !== undefined)`),
+ * so concurrent in-flight calls — which happen when several hosted cores
+ * (#1466) boot at once on one worker — would race and instantiate the module
+ * multiple times, corrupting the module-level instance the glue points at.
+ * Gate every caller behind one shared promise.
+ */
+let wasmInitPromise: Promise<unknown> | null = null;
+function ensureWasmInitialized(): Promise<unknown> {
+    if (!wasmInitPromise) {
+        wasmInitPromise = init({ module_or_path: wasmInitInput });
+    }
+    return wasmInitPromise;
+}
+
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
     javascriptCore?: PublicDoenetMLCoreJavascript;
@@ -157,6 +173,55 @@ export class CoreWorker {
 
     isProcessingPromise = Promise.resolve();
 
+    // --- Multi-core host support (#1466, stream E of #1441) ---------------
+    //
+    // One worker process can host several independent cores, collapsing the
+    // ~104 MB per-worker fixed floor (script eval + WASM) to one copy per
+    // page. The worker's default exposed instance doubles as the host: the
+    // main thread calls `createCore` with a transferred `MessagePort` and
+    // drives the new core over that port with the same Comlink API a
+    // dedicated worker would offer. All cores share this worker's WASM
+    // instance (wasm-bindgen `init` is idempotent per module scope); each
+    // core is a separate `PublicDoenetMLCore` / JS core with its own state.
+
+    /** Cores created via `createCore`, so `destroyCore` can release them. */
+    _hostedCores: Map<number, { core: CoreWorker; port: MessagePort }> =
+        new Map();
+    _nextHostedCoreId = 1;
+
+    /**
+     * Create an additional, independent core in this worker and expose it on
+     * `port` via Comlink. Returns an id for a later `destroyCore` call.
+     */
+    async createCore(port: MessagePort): Promise<number> {
+        const core = new CoreWorker();
+        Comlink.expose(core, port);
+        const id = this._nextHostedCoreId++;
+        this._hostedCores.set(id, { core, port });
+        return id;
+    }
+
+    /**
+     * Release a core created by `createCore`: give it a graceful
+     * `terminate()` (frees the Rust core and JS core), then close its port
+     * and drop the reference. Best-effort — a torn-down document must never
+     * take its sibling cores with it.
+     */
+    async destroyCore(id: number) {
+        const entry = this._hostedCores.get(id);
+        if (!entry) {
+            return;
+        }
+        this._hostedCores.delete(id);
+        try {
+            await entry.core.terminate();
+        } catch (err) {
+            console.error("Error terminating hosted core", err);
+        } finally {
+            entry.port.close();
+        }
+    }
+
     setCoreType(core_type: "rust" | "javascript") {
         this.core_type = core_type;
     }
@@ -170,7 +235,7 @@ export class CoreWorker {
 
         try {
             if (!this.wasm_initialized) {
-                await init({ module_or_path: wasmInitInput });
+                await ensureWasmInitialized();
                 this.wasm_initialized = true;
             }
 
@@ -214,7 +279,7 @@ export class CoreWorker {
 
         try {
             if (!this.wasm_initialized) {
-                await init({ module_or_path: wasmInitInput });
+                await ensureWasmInitialized();
                 this.wasm_initialized = true;
             }
 

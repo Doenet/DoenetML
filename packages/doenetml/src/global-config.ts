@@ -9,6 +9,22 @@ if (typeof window === "undefined") {
 export const doenetGlobalConfig: {
     doenetWorkerUrl: string;
     /**
+     * Opt-in (#1466): host multiple document cores in a shared core worker
+     * instead of one dedicated worker per document. Collapses the ~104 MB
+     * per-worker fixed floor (script eval + WASM compile) to one copy per
+     * worker, at the cost of coarser failure isolation: a worker-level hang
+     * or crash affects every document on that worker (per-core teardown is
+     * still individual). Default off.
+     */
+    useSharedCoreWorker?: boolean;
+    /**
+     * Pool cap for `useSharedCoreWorker`: maximum live cores per shared
+     * worker before a new worker is spun up. Bounds both the blast radius of
+     * a worker-level failure and single-isolate heap pressure. Falls back to
+     * a built-in default when unset.
+     */
+    sharedCoreWorkerMaxCores?: number;
+    /**
      * Maximum number of times `DocViewer` will retry the core-worker
      * *handshake* before giving up and surfacing an error. Each handshake
      * that fails to complete within `coreHandshakeWatchdogMs` is abandoned
