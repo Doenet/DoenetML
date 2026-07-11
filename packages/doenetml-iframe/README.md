@@ -139,7 +139,8 @@ typed work survives the round trip with no user interaction.
 either `flags.allowSaveState` (the wrapper snapshots the flushed
 `reportScoreAndState` and seeds `initialState` on restore) or
 `flags.allowLocalState` (IndexedDB restores on reboot). Windowed viewers
-with neither flag always stay live (a console warning points this out).
+with neither flag still mount lazily but, once booted, always stay live
+(a console warning points this out).
 
 Notes:
 
