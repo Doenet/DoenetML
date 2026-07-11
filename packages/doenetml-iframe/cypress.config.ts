@@ -2,6 +2,7 @@ import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 import fs from "fs";
 import { version as iframeVersion } from "./package.json";
+import { serveDoenetmlWorkerPlugin } from "./serve-doenetml-worker-plugin";
 
 export default defineConfig({
     // Match @doenet/test-cypress's policy: retry twice in CI (runMode), no
@@ -35,6 +36,13 @@ export default defineConfig({
                     dedupe: ["react", "react-dom"],
                 },
                 plugins: [
+                    // The standalone bundle no longer embeds the core worker —
+                    // it loads it from a URL. Because these specs load the
+                    // bundle from a Blob URL (below), "next to the bundle" does
+                    // not exist and the bundle falls back to
+                    // `<origin>/doenetml-worker/index.js`. Serve the built
+                    // worker there.
+                    serveDoenetmlWorkerPlugin(),
                     {
                         // The @doenet/standalone bundle (~32 MB JS, plus a
                         // multi-MB CSS file) is imported as `?raw` and wrapped

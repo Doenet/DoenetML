@@ -8,11 +8,11 @@ import ReactDOM from "react-dom/client";
 import {
     DoenetViewer,
     DoenetEditor,
-} from "@doenet/doenetml/doenetml-inline-worker.js";
+} from "@doenet/doenetml/doenetml-external-worker.js";
 import type {
     DiagnosticsTabId,
     DoenetEditorHandle,
-} from "@doenet/doenetml/doenetml-inline-worker.js";
+} from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";

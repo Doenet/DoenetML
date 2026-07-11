@@ -10,6 +10,7 @@
         "vite.config-iframe-viewer.ts",
         "vite.config-iframe-editor.ts",
         "cypress.config.ts",
+        "serve-doenetml-worker-plugin.ts",
         "test/**/*",
         "dist/**/*"
     ],

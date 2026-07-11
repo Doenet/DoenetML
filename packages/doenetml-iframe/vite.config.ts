@@ -4,6 +4,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import { serveDoenetmlWorkerPlugin } from "./serve-doenetml-worker-plugin";
 
 /**
  * Bare package names that will not be bundled into the library. These become
@@ -42,6 +43,10 @@ export default defineConfig({
             ],
         }),
         suppressLogPlugin(),
+        // Dev-server only: serve the externalized core worker at
+        // `/doenetml-worker/*` so the Blob-URL dev harness in
+        // `src/test-main.tsx` can load it (see the plugin for details).
+        serveDoenetmlWorkerPlugin(),
     ],
     build: {
         minify: false,
