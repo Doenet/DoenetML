@@ -61,6 +61,8 @@ export default defineConfig(({ mode }) => {
                 entry: {
                     index: "./src/index.ts",
                     "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
+                    "doenetml-external-worker":
+                        "./src/doenetml-external-worker.ts",
                 },
                 formats: ["es"],
                 cssFileName: "style",

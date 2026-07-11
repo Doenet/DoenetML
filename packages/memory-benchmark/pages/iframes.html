@@ -13,6 +13,11 @@
             const n = parseInt(params.get("n") ?? "1", 10);
             const doc = params.get("doc") ?? "default";
             const origin = location.origin;
+            // Where the standalone bundle (and its co-located worker) is served
+            // from. Defaults to same-origin; the `iframe-xorigin-*` scenarios
+            // pass ?cdn=<other-origin> to model a CDN-hosted bundle whose
+            // worker is cross-origin to this (inherited-origin) srcdoc realm.
+            const assetOrigin = params.get("cdn") || origin;
             window.__done = false;
             window.__initializedCount = 0;
             window.addEventListener("message", (e) => {
@@ -25,8 +30,8 @@
                     "/doenetml-source?doc=" + encodeURIComponent(doc),
                 ).then((r) => r.text());
                 const srcdoc = `<!doctype html><html><head>
-<link rel="stylesheet" href="${origin}/standalone/style.css">
-<script type="module" src="${origin}/standalone/doenet-standalone.js"><\/script>
+<link rel="stylesheet" href="${assetOrigin}/standalone/style.css">
+<script type="module" src="${assetOrigin}/standalone/doenet-standalone.js"><\/script>
 </head><body><div id="root"></div>
 <script>
 const SOURCE = ${JSON.stringify(source)};

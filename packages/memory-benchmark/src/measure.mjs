@@ -91,8 +91,16 @@ function parseArgs() {
     return opts;
 }
 
-/** Serve the standalone dist and the scenario pages on an ephemeral port. */
-function startServer(docs) {
+/**
+ * Serve the standalone dist and the scenario pages on an ephemeral port.
+ *
+ * `cors: true` adds `Access-Control-Allow-Origin: *` so this server can stand in
+ * for the jsdelivr CDN in the cross-origin scenario (jsdelivr serves package
+ * files with CORS). A second instance with `cors` set serves `/standalone/*` to
+ * an iframe whose realm origin is the *main* server — modelling how PreTeXt and
+ * doenet.org load `@doenet/standalone` cross-origin from a CDN.
+ */
+function startServer(docs, { cors = false } = {}) {
     const MIME = {
         ".js": "text/javascript",
         ".css": "text/css",
@@ -103,6 +111,7 @@ function startServer(docs) {
     };
     const server = http.createServer((req, res) => {
         const url = new URL(req.url, "http://localhost");
+        const corsHeaders = cors ? { "access-control-allow-origin": "*" } : {};
         if (url.pathname === "/doenetml-source") {
             // Scenario pages fetch their document source from here; ?doc=
             // selects among the default and generated repeat documents.
@@ -112,7 +121,10 @@ function startServer(docs) {
                 res.end("unknown doc: " + doc);
                 return;
             }
-            res.writeHead(200, { "content-type": "text/plain" });
+            res.writeHead(200, {
+                "content-type": "text/plain",
+                ...corsHeaders,
+            });
             res.end(docs[doc]);
             return;
         }
@@ -134,6 +146,7 @@ function startServer(docs) {
             "content-type":
                 MIME[path.extname(filePath)] ?? "application/octet-stream",
             "cache-control": "no-store",
+            ...corsHeaders,
         });
         fs.createReadStream(filePath).pipe(res);
     });
@@ -292,6 +305,15 @@ for (const size of opts.sizes) {
 
 const { server, port } = await startServer(docs);
 const base = `http://127.0.0.1:${port}`;
+// Second, CORS-enabled server on a different port = a different origin. It
+// stands in for the jsdelivr CDN: the `iframe-xorigin-*` scenarios load
+// `@doenet/standalone` from here into an iframe whose realm origin is `base`,
+// so the worker (co-located with the bundle) is cross-origin to the realm —
+// the situation PreTeXt and doenet.org are actually in.
+const { server: cdnServer, port: cdnPort } = await startServer(docs, {
+    cors: true,
+});
+const cdnBase = `http://127.0.0.1:${cdnPort}`;
 const scenarios = [
     { name: "blank", url: `${base}/blank.html`, expectInitialized: 0 },
     ...opts.counts.flatMap((n) => [
@@ -303,6 +325,13 @@ const scenarios = [
         {
             name: `iframe-${n}`,
             url: `${base}/iframes.html?n=${n}`,
+            expectInitialized: n,
+        },
+        {
+            // Same as iframe-N, but the bundle (and its co-located worker) is
+            // served cross-origin from the CDN server.
+            name: `iframe-xorigin-${n}`,
+            url: `${base}/iframes.html?n=${n}&cdn=${encodeURIComponent(cdnBase)}`,
             expectInitialized: n,
         },
     ]),
@@ -325,6 +354,7 @@ for (let i = 0; i < scenarios.length; i++) {
     }
 }
 server.close();
+cdnServer.close();
 
 console.log(JSON.stringify(results, null, 2));
 
@@ -342,7 +372,7 @@ for (const r of results) {
 }
 const [lo, hi] = opts.counts;
 if (hi > lo) {
-    for (const kind of ["direct", "iframe"]) {
+    for (const kind of ["direct", "iframe", "iframe-xorigin"]) {
         const a = byName[`${kind}-${lo}`];
         const b = byName[`${kind}-${hi}`];
         if (a?.totalPssMB != null && b?.totalPssMB != null) {
