@@ -336,6 +336,14 @@ export function DoenetViewer({
             bootWatchdogRef.current = null;
         }
     }
+    /**
+     * Give up this viewer's boot slot and stop the watchdog guarding it —
+     * used whenever the boot concludes (initialized, errored, or parked).
+     */
+    function relinquishBootSlot() {
+        clearBootWatchdog();
+        releaseBootSlot(id);
+    }
     // Stable composed initializedCallback: releases this viewer's boot slot,
     // then forwards to the host's latest callback. Registered with the
     // iframe instead of the host's own callback when windowed (the iframe
@@ -346,8 +354,7 @@ export function DoenetViewer({
     >(null);
     if (composedInitializedCallbackRef.current === null) {
         composedInitializedCallbackRef.current = (arg: unknown) => {
-            clearBootWatchdog();
-            releaseBootSlot(id);
+            relinquishBootSlot();
             (doenetViewerPropsRef.current as any).initializedCallback?.(arg);
         };
     }
@@ -357,6 +364,24 @@ export function DoenetViewer({
             return composedInitializedCallbackRef.current!;
         }
         return prop;
+    }
+    /**
+     * Append the composed `initializedCallback` proxy to a Comlink
+     * function-prop argument list when windowed and the host supplied no
+     * `initializedCallback` of its own, so the boot-slot release still
+     * reaches the iframe. `hostFunctions` is the set of function props the
+     * host actually passed (keyed by name).
+     */
+    function appendComposedInitializedCallback(
+        proxiedFunctions: (string | Function)[],
+        hostFunctions: Record<string, Function>,
+    ) {
+        if (windowed && !("initializedCallback" in hostFunctions)) {
+            proxiedFunctions.push("initializedCallback");
+            proxiedFunctions.push(
+                Comlink.proxy(composedInitializedCallbackRef.current!),
+            );
+        }
     }
 
     const [height, setHeight] = React.useState("500px");
@@ -639,8 +664,7 @@ export function DoenetViewer({
             if (data.error) {
                 // A failed boot must not hold its boot slot.
                 if (windowed) {
-                    clearBootWatchdog();
-                    releaseBootSlot(id);
+                    relinquishBootSlot();
                 }
                 //@ts-ignore
                 return setInErrorState(data.error);
@@ -675,17 +699,10 @@ export function DoenetViewer({
                     // Windowed viewers always register the composed
                     // initializedCallback (it releases the boot slot), even
                     // when the host passed none.
-                    if (
-                        windowed &&
-                        !("initializedCallback" in registeredFunctions)
-                    ) {
-                        proxiedFunctions.push("initializedCallback");
-                        proxiedFunctions.push(
-                            Comlink.proxy(
-                                composedInitializedCallbackRef.current!,
-                            ),
-                        );
-                    }
+                    appendComposedInitializedCallback(
+                        proxiedFunctions,
+                        registeredFunctions,
+                    );
                     viewerIframe
                         .renderViewerWithFunctionProps(...proxiedFunctions)
                         .catch(
@@ -804,12 +821,7 @@ export function DoenetViewer({
             proxiedFunctions.push(key);
             proxiedFunctions.push(Comlink.proxy(functionPropToProxy(key, val)));
         }
-        if (windowed && !("initializedCallback" in current)) {
-            proxiedFunctions.push("initializedCallback");
-            proxiedFunctions.push(
-                Comlink.proxy(composedInitializedCallbackRef.current!),
-            );
-        }
+        appendComposedInitializedCallback(proxiedFunctions, current);
         const action = (remote: ViewerIframeRemote) => {
             remote
                 .updateViewerFunctionProps(...proxiedFunctions)
@@ -945,8 +957,7 @@ export function DoenetViewer({
         viewerIframeRef.current = null;
         destroySharedCoresForViewer(id);
         // A parked viewer no longer boots; free its slot for the queue.
-        clearBootWatchdog();
-        releaseBootSlot(id);
+        relinquishBootSlot();
         parkedRef.current = true;
         setParked(true);
         notifyViewerState(id, "parked");
