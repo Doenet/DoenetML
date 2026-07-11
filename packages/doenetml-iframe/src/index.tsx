@@ -329,6 +329,13 @@ export function DoenetViewer({
     const bootWatchdogRef = React.useRef<ReturnType<typeof setTimeout> | null>(
         null,
     );
+    /** Cancel the boot-slot watchdog timer if one is pending. */
+    function clearBootWatchdog() {
+        if (bootWatchdogRef.current !== null) {
+            clearTimeout(bootWatchdogRef.current);
+            bootWatchdogRef.current = null;
+        }
+    }
     // Stable composed initializedCallback: releases this viewer's boot slot,
     // then forwards to the host's latest callback. Registered with the
     // iframe instead of the host's own callback when windowed (the iframe
@@ -339,10 +346,7 @@ export function DoenetViewer({
     >(null);
     if (composedInitializedCallbackRef.current === null) {
         composedInitializedCallbackRef.current = (arg: unknown) => {
-            if (bootWatchdogRef.current !== null) {
-                clearTimeout(bootWatchdogRef.current);
-                bootWatchdogRef.current = null;
-            }
+            clearBootWatchdog();
             releaseBootSlot(id);
             (doenetViewerPropsRef.current as any).initializedCallback?.(arg);
         };
@@ -635,10 +639,7 @@ export function DoenetViewer({
             if (data.error) {
                 // A failed boot must not hold its boot slot.
                 if (windowed) {
-                    if (bootWatchdogRef.current !== null) {
-                        clearTimeout(bootWatchdogRef.current);
-                        bootWatchdogRef.current = null;
-                    }
+                    clearBootWatchdog();
                     releaseBootSlot(id);
                 }
                 //@ts-ignore
@@ -944,10 +945,7 @@ export function DoenetViewer({
         viewerIframeRef.current = null;
         destroySharedCoresForViewer(id);
         // A parked viewer no longer boots; free its slot for the queue.
-        if (bootWatchdogRef.current !== null) {
-            clearTimeout(bootWatchdogRef.current);
-            bootWatchdogRef.current = null;
-        }
+        clearBootWatchdog();
         releaseBootSlot(id);
         parkedRef.current = true;
         setParked(true);
@@ -978,9 +976,7 @@ export function DoenetViewer({
             // parked snapshot (see the srcDoc memo).
             setParkGeneration((generation) => generation + 1);
             notifyViewerState(id, "live");
-            if (bootWatchdogRef.current !== null) {
-                clearTimeout(bootWatchdogRef.current);
-            }
+            clearBootWatchdog();
             bootWatchdogRef.current = setTimeout(() => {
                 bootWatchdogRef.current = null;
                 releaseBootSlot(id);
@@ -1047,10 +1043,7 @@ export function DoenetViewer({
         }
         return () => {
             parkFlushCleanupRef.current?.();
-            if (bootWatchdogRef.current !== null) {
-                clearTimeout(bootWatchdogRef.current);
-                bootWatchdogRef.current = null;
-            }
+            clearBootWatchdog();
             unregister();
         };
     }, [windowed]);

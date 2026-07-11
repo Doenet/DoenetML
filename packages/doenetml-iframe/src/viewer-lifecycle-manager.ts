@@ -9,8 +9,13 @@
  * a placeholder), so idle memory tracks what the user can see rather than
  * how many documents the page embeds.
  *
- * This module is pure policy: *when* to park. The mechanics of parking
- * (flushing state, swapping the iframe for a placeholder, restoring) live in
+ * It also gates *when* a lazily-mounted viewer may boot its iframe realm: a
+ * page-wide boot-slot semaphore (`maxConcurrentBoots`) caps how many viewers
+ * evaluate the multi-MB standalone bundle at once, serving visible viewers
+ * first (see `requestBootSlot`).
+ *
+ * This module is pure policy: *when* to park and *when* to boot. The
+ * mechanics (flushing state, creating/swapping the iframe, restoring) live in
  * the `DoenetViewer` wrapper, which registers callbacks here. Module-level
  * state is intentional — the budget is shared by every windowed viewer on
  * the page (same pattern as `shared-core-pool.ts`).
