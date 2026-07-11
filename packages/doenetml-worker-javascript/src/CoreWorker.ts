@@ -476,4 +476,15 @@ export class PublicDoenetMLCore {
     async saveImmediately() {
         await this.core?.saveImmediately();
     }
+
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
+     * updates settle, return the current serialized document state (the
+     * `initialState` shape) and score, so a host can unmount this document
+     * losslessly. Returns `null` when there is no state to hand out (core
+     * not created or document not yet generated).
+     */
+    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
+        return (await this.core?.flushState()) ?? null;
+    }
 }

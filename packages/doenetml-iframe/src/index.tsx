@@ -229,11 +229,15 @@ export function DoenetViewer({
                 return;
             }
 
-            // forward response from SPLICE getState or requestSolutionView to iframe
+            // forward host requests/responses (SPLICE getState response,
+            // requestSolutionView response, submitAllAnswers, flushState) to
+            // the iframe; the viewer's replies reach the host directly (the
+            // viewer posts to window.parent, which is the host page).
             if (
                 event.data.subject === "SPLICE.getState.response" ||
                 event.data.subject === "SPLICE.requestSolutionView.response" ||
-                event.data.subject == "SPLICE.submitAllAnswers"
+                event.data.subject == "SPLICE.submitAllAnswers" ||
+                event.data.subject === "SPLICE.flushState"
             ) {
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;

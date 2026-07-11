@@ -1002,6 +1002,21 @@ export class CoreWorker {
         }
     }
 
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
+     * updates settle, return the current serialized document state (the same
+     * shape `DocViewer`'s `initialState` accepts) and the current score.
+     * Once the caller holds the returned payload, tearing this document down
+     * loses nothing. Returns `null` when there is no state to hand out yet
+     * (core not created or document not yet generated).
+     */
+    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
+        if (this.javascriptCore) {
+            return await this.javascriptCore.flushState();
+        }
+        return null;
+    }
+
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.

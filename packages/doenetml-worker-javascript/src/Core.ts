@@ -1020,6 +1020,27 @@ export default class Core {
         return this.statePersistence.saveImmediately();
     }
 
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): wait briefly for
+     * in-flight action processing to settle (the same bounded wait
+     * `terminate` uses), then return the current serialized document state
+     * (the `initialState` shape) and score. Hosts use this to unmount the
+     * document losslessly.
+     */
+    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
+        if (this.processQueue.processing) {
+            const pause100 = () =>
+                new Promise<void>((resolve) => setTimeout(resolve, 100));
+            for (let i = 0; i < 10; i++) {
+                await pause100();
+                if (!this.processQueue.processing) {
+                    break;
+                }
+            }
+        }
+        return this.statePersistence.flushState();
+    }
+
     async saveState(
         overrideThrottle: boolean = false,
         onSubmission: boolean = false,

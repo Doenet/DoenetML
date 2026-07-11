@@ -372,6 +372,44 @@ export function DocViewer({
                         window.postMessage(message);
                     }
                 }
+            } else if (e.data.subject === "SPLICE.flushState") {
+                // Flush-state-on-demand (Doenet/DoenetML#1440): respond with
+                // the current serialized document state (the `initialState`
+                // shape) and score, once in-flight updates settle. After the
+                // host receives this response, unmounting the viewer loses
+                // nothing — remounting later with `initialState: state`
+                // restores the document exactly.
+                //
+                // `state: null` with `success: true` means the viewer holds
+                // no state beyond what it was initialized with (e.g. the core
+                // has not been created yet), so unmounting is equally safe.
+                const message: Record<string, unknown> = {
+                    subject: "SPLICE.flushState.response",
+                    activity_id: activityId,
+                    doc_id: docId,
+                    message_id: e.data.message_id,
+                    success: true,
+                    state: null,
+                    score: null,
+                };
+                if (coreCreated.current && coreWorker.current) {
+                    try {
+                        const result = await coreWorker.current.flushState();
+                        if (result) {
+                            message.state = result.state;
+                            message.score = result.score;
+                        }
+                    } catch (err) {
+                        console.warn("DocViewer: flushState failed", err);
+                        message.success = false;
+                    }
+                }
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
+                }
             }
         };
 
