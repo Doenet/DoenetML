@@ -992,6 +992,76 @@ const ARRAY_ARRAY_SIZE_DESCRIPTOR: PropertyDescriptor = Object.freeze({
     get: getArrayArraySize,
 });
 
+/**
+ * Populate the class-invariant array defaults directly on a (shared,
+ * per-class) state-variable definition, so component instances inherit
+ * them through their definition prototype (non-shadow path) or pick them
+ * up in their flat per-instance clone (adapter/shadow path) instead of
+ * each instance assigning the same values as own properties.
+ *
+ * Called by `StateVariableDefinitionFactory.getClassStateVariableDefinitions`
+ * while building the per-class definition cache. `initializeArrayStateVariable`
+ * keeps guarded fallbacks for array definitions created outside that cache.
+ *
+ * All defaults installed here must be receiver-free or read only fields
+ * present on both definitions and runtime state-variable objects
+ * (class-level description objects also invoke `getArrayKeysFromVarName`
+ * and `arrayVarNameFromPropIndex`).
+ */
+export function normalizeArrayStateVariableDefaults(def: any, varName: string) {
+    if (!def.isArray) {
+        return;
+    }
+
+    if (def.numDimensions === undefined) {
+        def.numDimensions = 1;
+    }
+    if (!def.entryPrefixes) {
+        def.entryPrefixes = [varName];
+    }
+
+    const multiDim = def.numDimensions > 1;
+
+    if (!def.keyToIndex) {
+        def.keyToIndex = multiDim ? multiDimKeyToIndex : oneDimKeyToIndex;
+    }
+    if (!def.indexToKey) {
+        def.indexToKey = arrayIndexToKey;
+    }
+    if (!def.getAllArrayKeys) {
+        def.getAllArrayKeys = multiDim
+            ? multiDimGetAllArrayKeys
+            : oneDimGetAllArrayKeys;
+    }
+    if (!def.getArrayKeysFromVarName) {
+        def.getArrayKeysFromVarName = returnDefaultGetArrayKeysFromVarName(
+            def.numDimensions,
+        );
+    }
+    if (!def.arrayVarNameFromArrayKey) {
+        def.arrayVarNameFromArrayKey = multiDim
+            ? defaultMultiDimArrayVarNameFromArrayKey
+            : defaultOneDimArrayVarNameFromArrayKey;
+    }
+    if (!def.arrayVarNameFromPropIndex) {
+        // one closure per (class, variable) — was one per component instance
+        def.arrayVarNameFromPropIndex = returnDefaultArrayVarNameFromPropIndex(
+            def.numDimensions,
+            def.entryPrefixes[0],
+        );
+    }
+    if (!def.returnEntryDimensions) {
+        def.returnEntryDimensions = defaultReturnEntryDimensions;
+    }
+    if (
+        def.shadowingInstructions &&
+        !def.shadowingInstructions.returnWrappingComponents
+    ) {
+        def.shadowingInstructions.returnWrappingComponents =
+            defaultReturnWrappingComponents;
+    }
+}
+
 // ─── Shared array-size state-variable machinery ─────────────────────────
 // `this` is the __array_size_* state-variable object. Its parameters are
 // stored as fields when `createArraySizeStateVariable` builds it:
@@ -1454,7 +1524,9 @@ async function initializeArrayStateVariable({
         // (useful, for example, to set entire rows)
         // If it has more dimensinos than numDimensions, behavior isn't determined
         // (it should throw an error, assuming the array entries aren't arrays)
-        stateVarObj.keyToIndex = multiDimKeyToIndex;
+        if (!stateVarObj.keyToIndex) {
+            stateVarObj.keyToIndex = multiDimKeyToIndex;
+        }
         stateVarObj.setArrayValue = multiDimSetArrayValue;
         stateVarObj.getArrayValue = multiDimGetArrayValue;
 
@@ -1490,7 +1562,9 @@ async function initializeArrayStateVariable({
             multiDimAdjustArrayToNewArraySize;
     } else {
         // have just one dimension
-        stateVarObj.keyToIndex = oneDimKeyToIndex;
+        if (!stateVarObj.keyToIndex) {
+            stateVarObj.keyToIndex = oneDimKeyToIndex;
+        }
         stateVarObj.setArrayValue = oneDimSetArrayValue;
         stateVarObj.getArrayValue = oneDimGetArrayValue;
 
@@ -1527,7 +1601,9 @@ async function initializeArrayStateVariable({
             returnDefaultGetArrayKeysFromVarName(stateVarObj.numDimensions);
     }
 
-    stateVarObj.indexToKey = arrayIndexToKey;
+    if (!stateVarObj.indexToKey) {
+        stateVarObj.indexToKey = arrayIndexToKey;
+    }
 
     if (!stateVarObj.returnEntryDimensions) {
         stateVarObj.returnEntryDimensions = defaultReturnEntryDimensions;
