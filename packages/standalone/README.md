@@ -125,7 +125,31 @@ button: it flushes any pending edits to the viewer so the next
 no-op when nothing has changed, and warns when there is no viewer
 (`showViewer={false}`).
 
-## Saving and restoring state (lossless unmount)
+## Host message protocol (SPLICE)
+
+The viewer exchanges JSON messages with its host via `postMessage`.
+Viewer → host messages go to the page's own `window`, or to `window.parent`
+when the container has `data-doenet-message-parent="true"` (the pattern
+iframe-per-activity pages use). Host → viewer requests are posted to the
+window the viewer lives in. On a page with several viewers, every viewer
+receives a broadcast request; correlate responses by
+`activity_id`/`doc_id`/`message_id`.
+
+(Consumers of the in-process React components from `@doenet/doenetml` can
+pass callback props — e.g. `reportScoreAndStateCallback` — instead; the
+corresponding message is only posted when the prop is absent.)
+
+| Subject                                    | Direction     | Purpose                                  |
+| ------------------------------------------ | ------------- | ---------------------------------------- |
+| `SPLICE.reportScoreAndState`               | viewer → host | periodic score/state saves               |
+| `SPLICE.getState` / `.response`            | viewer ⇄ host | load saved state at boot                 |
+| `SPLICE.flushState` / `.response`          | host ⇄ viewer | on-demand state flush (lossless unmount) |
+| `SPLICE.submitAllAnswers` / `.response`    | host ⇄ viewer | submit every answer in the document      |
+| `SPLICE.requestSolutionView` / `.response` | viewer ⇄ host | permission gate for viewing solutions    |
+| `SPLICE.sendEvent`                         | viewer → host | analytics/event stream                   |
+| `lti.frameResize`                          | page → parent | content height for iframe sizing         |
+
+### Saving and restoring state (lossless unmount)
 
 As the student works, the viewer posts `SPLICE.reportScoreAndState`
 messages carrying the serialized document state — to the page's own
@@ -181,6 +205,111 @@ initialized with — equally safe to tear down.
 > registers on mount, and flushing is idempotent, so re-posting is safe.
 > Every viewer in the target window receives a broadcast request and
 > responds (correlate by `activity_id`/`doc_id`/`message_id`).
+
+### Loading saved state at boot (`SPLICE.getState`)
+
+With `flags: { allowLoadState: true }` and no `initialState` in the config,
+the viewer asks its host for saved state when it boots:
+
+```js
+{
+    subject: "SPLICE.getState",
+    message_id,
+    cid,                 // content id of the DoenetML source
+    domain_id: "Doenet",
+    activity_id, doc_id, attempt_number, user_id,
+}
+```
+
+The viewer does not block on a reply — it boots fresh immediately and
+**reboots seeded with the state** if a response arrives. If the host has
+saved state for this document (an object previously received from
+`reportScoreAndState` or `flushState`, whose `cid` matches the request),
+respond:
+
+```js
+{ subject: "SPLICE.getState.response", message_id, state }
+```
+
+If there is no saved state, no response is needed. To surface a load
+failure to the student instead, respond with
+`{ subject: "SPLICE.getState.response", error: { code, message } }`
+(and no `message_id`).
+
+Passing `initialState` in the config (or `initialState: null` for "start
+fresh") skips this request entirely.
+
+### Submitting all answers (`SPLICE.submitAllAnswers`)
+
+Post `{ subject: "SPLICE.submitAllAnswers" }` to the viewer's window and it
+submits every answer in the document, then responds with
+`{ subject: "SPLICE.submitAllAnswers.response", success }`.
+
+> **Note:** this pair carries no correlation id — on a page with several
+> viewers, every viewer submits and responds, and the responses cannot be
+> told apart. Use it with a single viewer per page (its original use case)
+> or treat it as fire-and-forget.
+
+### Solution-view permission (`SPLICE.requestSolutionView`)
+
+With `flags: { solutionDisplayMode: "buttonRequirePermission" }`, a student
+opening a solution triggers a permission request to the host:
+
+```js
+{
+    subject: "SPLICE.requestSolutionView",
+    message_id,
+    activity_id, doc_id, attempt_number, user_id,
+    component_idx,       // the solution component being opened
+}
+```
+
+Decide and respond — note the response echoes the id as **`messageId`**
+(camelCase), unlike the snake_case request field:
+
+```js
+{ subject: "SPLICE.requestSolutionView.response", messageId, allowView: true }
+```
+
+The solution is revealed only when `allowView` is `true`.
+
+### Event stream (`SPLICE.sendEvent`)
+
+With `flags: { allowSaveEvents: true }`, the viewer emits an analytics
+event for student interactions (answers submitted, solutions viewed,
+content experienced, …). Fire-and-forget; no response is expected:
+
+```js
+{
+    subject: "SPLICE.sendEvent",
+    message_id,
+    name,                // mirrors data.verb
+    data: {
+        activityId, cid, docId, attemptNumber, variantIndex,
+        verb,            // e.g. "answered", "experienced"
+        object,          // JSON string: the component acted on
+        result,          // JSON string: the outcome
+        context,         // JSON string: additional context
+        timestamp,       // "YYYY-MM-DD HH:MM:SS"
+        version,
+    },
+}
+```
+
+### Frame resizing (`lti.frameResize`)
+
+When the container has `data-doenet-send-resize-events="true"`, the page
+posts its content height to `window.parent` after the viewer has rendered
+and on every size change:
+
+```js
+{ subject: "lti.frameResize", height }
+```
+
+Hosts that embed the page in an iframe use it to size the frame. The
+message is deliberately withheld until the first render completes, so a
+still-booting viewer never collapses the host's iframe. (The
+`@doenet/doenetml-iframe` wrapper consumes this message internally.)
 
 ## Development
 
