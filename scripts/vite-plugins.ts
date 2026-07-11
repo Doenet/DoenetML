@@ -1,6 +1,7 @@
 import { PluginOption } from "vite";
 import { transform } from "esbuild";
-import remapping from "@jridgewell/remapping";
+import remapping, { type SourceMapInput } from "@jridgewell/remapping";
+import path from "node:path";
 
 const PREFIGURE_DIST_ASSET_JS_RE =
     /(^|\/)packages\/prefigure\/dist\/assets\/.+\.js$/;
@@ -17,12 +18,29 @@ function isPrefigureDistAssetJsId(id: string): boolean {
  *
  * Why this exists: in this repo's Vite 7 library builds, `build.minify: true`
  * does not actually minify the emitted lib-mode bundle — the shipped
- * `doenet-standalone.js` ships as ~32 MB of un-minified, fully-commented source
+ * `doenet-standalone.js` ships as ~33 MB of un-minified, fully-commented source
  * (346k lines) despite `minify: true`. esbuild's own `transform` API minifies
- * the very same bundle to ~26 MB in ~2s with a valid sourcemap, so the bytes
- * are recoverable; Vite just isn't applying the pass. This plugin runs that
- * esbuild pass explicitly as a post-render step so minification is
- * deterministic and independent of Vite's built-in behavior.
+ * the very same bundle to ~28 MB in a couple of seconds, so the bytes are
+ * recoverable; Vite just isn't applying the pass. This plugin runs that esbuild
+ * pass explicitly so minification is deterministic and independent of Vite's
+ * built-in behavior.
+ *
+ * Why `generateBundle` and not `renderChunk`: a `renderChunk` hook (even
+ * `enforce: "post"`) is re-serialized by a later internal Vite esbuild pass
+ * that pretty-prints the code back out, undoing the whitespace minification
+ * (identifier mangling survives, but the newlines/indentation return). By
+ * `generateBundle` the pipeline is done rewriting chunk code, so our output is
+ * final.
+ *
+ * The catch with `generateBundle`: Rollup has *already* appended the
+ * `//# sourceMappingURL=` comment to `chunk.code` and emitted the chunk's map
+ * as a standalone `.map` asset (both happen during `renderChunks`, before this
+ * hook — see rollup's `addChunksToBundle`). esbuild strips the now-stale
+ * comment while minifying, and the written `.map` file comes from the emitted
+ * asset, not from `chunk.map`. So after minifying we must (1) overwrite that
+ * `.map` asset with a map chained back to the original sources and (2) re-add
+ * the `sourceMappingURL` comment ourselves — mutating `chunk.map` alone would
+ * never reach disk.
  *
  * Every embedded iframe realm on a textbook page re-parses this bundle, so the
  * saved bytes (and the parse work they represent) multiply across instances.
@@ -33,12 +51,8 @@ function isPrefigureDistAssetJsId(id: string): boolean {
 export function forceEsbuildMinifyPlugin(): PluginOption {
     return {
         name: "force-esbuild-minify",
-        // `generateBundle` runs after every `renderChunk` hook, so nothing in
-        // Vite's pipeline can re-serialize the chunk after us. (A `renderChunk`
-        // hook here — even `enforce: "post"` — gets overwritten by a later
-        // internal Vite renderChunk, leaving the emitted file un-minified.)
         async generateBundle(outputOptions, bundle) {
-            const wantSourcemap = !!outputOptions.sourcemap;
+            const sourcemap = outputOptions.sourcemap;
             for (const file of Object.values(bundle)) {
                 if (file.type !== "chunk") continue;
                 const result = await transform(file.code, {
@@ -47,31 +61,56 @@ export function forceEsbuildMinifyPlugin(): PluginOption {
                     // application bundle, not a redistributed library that
                     // needs attribution inline.
                     legalComments: "none",
-                    sourcemap: wantSourcemap
-                        ? ("external" as const)
-                        : (false as const),
-                    // esbuild uses this as the map's `sources` entry and to
-                    // key the mapping to the pre-minified chunk.
+                    sourcemap: sourcemap ? ("external" as const) : false,
+                    // esbuild records this as the map's single `sources` entry;
+                    // we key the chaining below off it.
                     sourcefile: file.fileName,
                     loader: "js",
                 });
                 const priorMap = file.map;
                 file.code = result.code;
-                if (wantSourcemap && result.map) {
-                    // esbuild's map goes minified -> pre-minified chunk (its
-                    // single source is `file.fileName`). If the chunk already
-                    // had a map (the normal case for JS chunks), chain onto it
-                    // so the shipped sourcemap still resolves to original
-                    // sources; otherwise ship esbuild's map as-is.
-                    file.map = (priorMap
-                        ? remapping(result.map, (source) =>
-                              source === file.fileName
-                                  ? (priorMap as unknown as Parameters<
-                                        typeof remapping
-                                    >[0])
-                                  : null,
-                          )
-                        : JSON.parse(result.map)) as unknown as typeof file.map;
+                if (!sourcemap || !result.map) continue;
+
+                // esbuild's map goes minified -> pre-minified chunk (its single
+                // source is `file.fileName`). Chain it onto the chunk's existing
+                // map (pre-minified chunk -> original sources) so the shipped
+                // map still resolves to original sources. If the chunk somehow
+                // had no map, fall back to esbuild's map as-is.
+                let mapJson: string;
+                if (priorMap) {
+                    const remapped = remapping(result.map, (source) =>
+                        source === file.fileName
+                            ? (priorMap as unknown as SourceMapInput)
+                            : null,
+                    );
+                    file.map = remapped as unknown as typeof file.map;
+                    mapJson = remapped.toString();
+                } else {
+                    mapJson = result.map;
+                    file.map = JSON.parse(result.map) as typeof file.map;
+                }
+
+                if (sourcemap === "inline") {
+                    // Inline mode has no separate `.map` asset; embed the map
+                    // as a data URI so browsers still pick it up.
+                    const base64 = Buffer.from(mapJson).toString("base64");
+                    file.code += `\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,${base64}\n`;
+                    continue;
+                }
+
+                // Overwrite the stale `.map` asset Rollup already emitted for
+                // this chunk with our chained map...
+                const mapFileName = file.sourcemapFileName;
+                const mapAsset = mapFileName ? bundle[mapFileName] : undefined;
+                if (mapAsset?.type === "asset") {
+                    mapAsset.source = mapJson;
+                }
+                // ...and re-add the `sourceMappingURL` comment esbuild stripped
+                // (`"hidden"` mode deliberately ships the map without a link).
+                if (sourcemap !== "hidden" && mapFileName) {
+                    file.code += `\n//# sourceMappingURL=${path.basename(
+                        mapFileName,
+                    )}\n`;
                 }
             }
         },
