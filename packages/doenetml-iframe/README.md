@@ -131,7 +131,13 @@ window.postMessage(
 );
 ```
 
-Once in-flight updates settle, the viewer responds (again on your window):
+The flush settles in-flight updates and pushes any pending state out through
+the **normal `SPLICE.reportScoreAndState` message** (which reaches your page
+as shown above) — so a host that already persists those reports saves the
+just-flushed state with no extra code. (No report is emitted when nothing is
+pending, or when state saving is disabled — there is then nothing to lose.)
+The viewer then replies with a stateless acknowledgement (again on your
+window):
 
 ```js
 {
@@ -139,20 +145,17 @@ Once in-flight updates settle, the viewer responds (again on your window):
     message_id: "my-id-123",   // echoed from the request
     activity_id, doc_id,       // to correlate on multi-viewer pages
     success: true,
-    state,                     // the `initialState` shape — or null
-    score,                     // current creditAchieved
+    hadState: true,            // false ⇒ nothing beyond initialization
 }
 ```
 
-After the response, unmounting loses nothing: remounting later with
-`initialState: state` (and `flags: { allowLoadState: true }`) restores the
-document exactly, including work never delivered by a report. The flush also
-pushes any pending report through the normal `reportScoreAndState` pipeline,
-so persistence backends stay current. `state: null` with `success: true`
-means the viewer holds no state beyond what it was initialized with (e.g.
-its core has not booted yet) — equally safe to unmount. The state is
-returned regardless of the `allowSaveState`/`allowLocalState` flags, so
-park-and-restore works even for hosts that never persist.
+The acknowledgement is the completion signal: once it arrives, every saved
+`reportScoreAndState` is current, so unmounting loses nothing — remounting
+later with `initialState: <the last saved state>` (and
+`flags: { allowLoadState: true }`) restores the document exactly, including
+work an earlier report never delivered. `hadState: false` means the viewer
+held no state beyond what it was initialized with (e.g. its core has not
+booted yet) — equally safe to unmount.
 
 > **Note:** Wrap the round-trip in a retry/timeout — the viewer's listener
 > registers on mount, so a request posted moments after mounting can land
@@ -178,7 +181,7 @@ viewer asks the host for saved state when it boots:
 The viewer does not block on a reply — it boots fresh immediately and
 **reboots seeded with the state** if a response arrives. If you have saved
 state for this document (an object previously received from
-`reportScoreAndState` or `flushState`, whose `cid` matches the request),
+`reportScoreAndState`, whose `cid` matches the request),
 respond:
 
 ```js

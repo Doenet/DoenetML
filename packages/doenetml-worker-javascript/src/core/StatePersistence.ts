@@ -163,25 +163,23 @@ export class StatePersistence {
 
     /**
      * Flush-state-on-demand (Doenet/DoenetML#1440): push any pending changes
-     * through the normal save pipeline (so persistence hosts stay current),
-     * then build and return the current document state payload — regardless
-     * of the save flags — plus the current score. Once the caller holds the
-     * returned payload, tearing the document down loses nothing: `state` is
-     * exactly the shape `DocViewer`'s `initialState` accepts.
+     * through the normal `reportScoreAndState` pipeline (via `saveImmediately`)
+     * so a persistence host saves them right away — exactly as it does for a
+     * routine autosave, with no knowledge that a flush occurred. Reports honor
+     * the `allowSaveState`/`allowLocalState` flags, so nothing is emitted when
+     * saving is off (there is no persistence host to receive it).
      *
-     * Returns `null` before document generation has produced `coreInfoString`
-     * (there is no meaningful state to hand out yet).
+     * Returns whether this viewer held any state: `false` before document
+     * generation has produced `coreInfoString` (the viewer holds nothing
+     * beyond what it was initialized with, so tearing it down loses nothing
+     * either way).
      */
-    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
+    async flushState(): Promise<boolean> {
         if (!this.core.coreInfoString) {
-            return null;
+            return false;
         }
         await this.saveImmediately();
-        const { payload } = this.buildDocStatePayload();
-        return {
-            state: payload,
-            score: await this.core.document.stateValues.creditAchieved,
-        };
+        return true;
     }
 
     async saveChangesToDatabase(overrideThrottle = false): Promise<void> {

@@ -479,12 +479,12 @@ export class PublicDoenetMLCore {
 
     /**
      * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
-     * updates settle, return the current serialized document state (the
-     * `initialState` shape) and score, so a host can unmount this document
-     * losslessly. Returns `null` when there is no state to hand out (core
-     * not created or document not yet generated).
+     * updates settle, push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it, letting a
+     * host unmount this document losslessly. Returns whether the viewer held
+     * any state (`false` when the core/document has not been created yet).
      */
-    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
-        return (await this.core?.flushState()) ?? null;
+    async flushState(): Promise<boolean> {
+        return (await this.core?.flushState()) ?? false;
     }
 }

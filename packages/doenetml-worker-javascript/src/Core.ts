@@ -1023,11 +1023,12 @@ export default class Core {
     /**
      * Flush-state-on-demand (Doenet/DoenetML#1440): wait briefly for
      * in-flight action processing to settle (the same bounded wait
-     * `terminate` uses), then return the current serialized document state
-     * (the `initialState` shape) and score. Hosts use this to unmount the
+     * `terminate` uses), then push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it. Returns
+     * whether the viewer held any state. Hosts use this to unmount the
      * document losslessly.
      */
-    async flushState(): Promise<{ state: unknown; score: unknown } | null> {
+    async flushState(): Promise<boolean> {
         if (this.processQueue.processing) {
             const pause100 = () =>
                 new Promise<void>((resolve) => setTimeout(resolve, 100));

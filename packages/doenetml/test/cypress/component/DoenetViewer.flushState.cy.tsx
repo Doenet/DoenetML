@@ -2,19 +2,21 @@ import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 
 // Flush-state-on-demand (Doenet/DoenetML#1440): a host posts
-// `SPLICE.flushState` and receives `SPLICE.flushState.response` carrying the
-// viewer's current serialized document state (the `initialState` shape) plus
-// the current score.
+// `SPLICE.flushState`; the viewer pushes any pending state through the normal
+// `SPLICE.reportScoreAndState` pipeline (which a persistence host saves exactly
+// as it does a routine autosave) and replies with a stateless
+// `SPLICE.flushState.response` acknowledgement — the completion signal a
+// lifecycle coordinator waits for before tearing the viewer down.
 //
 // The property under test is the one #1440 exists for: work performed AFTER
-// the last (throttled) `reportScoreAndState` save event — i.e. work that
-// would be silently LOST if the host unmounted based on save events alone —
-// is carried by the flush response and restorable via `initialState`.
-// The first test proves it deterministically: the first commit's report is
-// awaited, the second commit is then stuck behind the 60-second report
-// throttle (`StatePersistence.saveChangesToDatabase`), so no report can
-// deliver it before the flush; the test asserts the last pre-flush report
-// lacks the second value while the flush response contains it.
+// the last (throttled) `reportScoreAndState` save event — i.e. work that would
+// be silently LOST if the host unmounted based on save events alone — is
+// pushed out by the flush and restorable via `initialState`. The first test
+// proves it deterministically: the first commit's report is awaited, the
+// second commit is then stuck behind the 60-second report throttle
+// (`StatePersistence.saveChangesToDatabase`), so no report can deliver it
+// before the flush; the test asserts the pre-flush reports lack the second
+// value while the flush emits a report that contains it.
 
 const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
@@ -23,7 +25,7 @@ const VIEWER_TIMEOUT = 30_000;
 const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
 
 /**
- * Post `SPLICE.flushState` and resolve with the matching response.
+ * Post `SPLICE.flushState` and resolve with the matching acknowledgement.
  *
  * The request is re-posted every 500 ms until a response arrives, modelling
  * the recommended host behavior: the viewer's message listener registers in a
@@ -71,7 +73,7 @@ function captureReports(): Cypress.Chainable<any[]> {
 }
 
 describe("DoenetViewer flush-state-on-demand (#1440)", () => {
-    it("flushes work stuck behind the report throttle and restores it", () => {
+    it("flushes throttle-stuck work through reportScoreAndState and restores it", () => {
         captureReports().then((reports) => {
             cy.mount(
                 <DoenetViewer doenetML={DOC} addVirtualKeyboard={false} />,
@@ -107,41 +109,56 @@ describe("DoenetViewer flush-state-on-demand (#1440)", () => {
                 cy.then(() => {
                     const reportsBeforeFlush = reports.slice();
 
-                    flushState("flush-test-1").then((response) => {
-                        // Reporting works (the first flush produced one), yet
-                        // no report delivered the second commit...
+                    flushState("flush-test-1").then((ack) => {
+                        // The flush completed and reported it held state...
+                        expect(ack.success, "flush success").to.eq(true);
+                        expect(ack.hadState, "flush hadState").to.eq(true);
+
+                        // ...reporting works (the first flush produced one),
+                        // yet no PRE-flush report delivered the second commit.
                         expect(
                             reportsBeforeFlush.length,
                             "at least one report was delivered",
                         ).to.be.greaterThan(0);
-                        const preFlushReported = reportsBeforeFlush.some((r) =>
-                            String(r.state?.coreState).includes(
-                                "work after last save",
-                            ),
-                        );
                         expect(
-                            preFlushReported,
+                            reportsBeforeFlush.some((r) =>
+                                String(r.state?.coreState).includes(
+                                    "work after last save",
+                                ),
+                            ),
                             "second commit reported before flush (should not be)",
                         ).to.eq(false);
+                    });
 
-                        // ...but the flush response carries it.
-                        expect(response.success, "flush success").to.eq(true);
-                        expect(response.state, "flushed state").to.not.eq(null);
+                    // ...but the flush pushed it out through the normal
+                    // `reportScoreAndState` channel — the one a persistence
+                    // host saves. Wait for that report, then rebuild a fresh
+                    // viewer from the state it carried (as a host would),
+                    // proving the otherwise-lost work is restored.
+                    cy.wrap(null, { timeout: VIEWER_TIMEOUT }).should(() => {
                         expect(
-                            String(response.state.coreState),
-                            "flushed coreState",
-                        ).to.include("work after last save");
-
-                        // Unmount (cy.mount replaces the previous tree) and
-                        // remount a FRESH viewer seeded with the flushed
-                        // state: the otherwise-lost work is restored without
-                        // interaction.
+                            reports.some((r) =>
+                                String(r.state?.coreState).includes(
+                                    "work after last save",
+                                ),
+                            ),
+                            "flush pushed the pending work through reportScoreAndState",
+                        ).to.eq(true);
+                    });
+                    cy.then(() => {
+                        const flushed = [...reports]
+                            .reverse()
+                            .find((r) =>
+                                String(r.state?.coreState).includes(
+                                    "work after last save",
+                                ),
+                            );
                         cy.mount(
                             <DoenetViewer
                                 doenetML={DOC}
                                 addVirtualKeyboard={false}
                                 flags={{ allowLoadState: true }}
-                                initialState={response.state}
+                                initialState={flushed.state}
                             />,
                         );
                         cy.contains("You typed: work after last save", {
@@ -157,52 +174,10 @@ describe("DoenetViewer flush-state-on-demand (#1440)", () => {
         });
     });
 
-    it("returns restorable state even with state saving disabled", () => {
-        // With allowSaveState/allowLocalState off the normal save pipeline
-        // never builds a payload (saveState returns before building), so this
-        // deterministically distinguishes a real flush — which builds the
-        // payload on demand — from any implementation that echoes the save
-        // pipeline's last buffered/reported snapshot.
-        cy.mount(
-            <DoenetViewer
-                doenetML={DOC}
-                addVirtualKeyboard={false}
-                flags={{ allowSaveState: false, allowLocalState: false }}
-            />,
-        );
-
-        cy.contains("Enter text:", { timeout: VIEWER_TIMEOUT }).should("exist");
-        cy.get(TEXT_INPUT).type("never persisted{enter}");
-        cy.contains("You typed: never persisted", {
-            timeout: VIEWER_TIMEOUT,
-        }).should("exist");
-
-        flushState("flush-test-2").then((response) => {
-            expect(response.success, "flush success").to.eq(true);
-            expect(response.state, "flushed state").to.not.eq(null);
-            expect(
-                String(response.state.coreState),
-                "flushed coreState",
-            ).to.include("never persisted");
-
-            cy.mount(
-                <DoenetViewer
-                    doenetML={DOC}
-                    addVirtualKeyboard={false}
-                    flags={{ allowLoadState: true }}
-                    initialState={response.state}
-                />,
-            );
-            cy.contains("You typed: never persisted", {
-                timeout: VIEWER_TIMEOUT,
-            }).should("exist");
-        });
-    });
-
-    it("responds with state: null (still success) before any core exists", () => {
+    it("acknowledges with hadState: false (still success) before any core exists", () => {
         // A viewer configured not to render never creates a core; flushing
-        // must still respond — "nothing beyond initialization" — so hosts
-        // can treat the unmount as safe.
+        // must still respond — "nothing beyond initialization" — so hosts can
+        // treat the unmount as safe.
         cy.mount(
             <DoenetViewer
                 doenetML={DOC}
@@ -211,9 +186,9 @@ describe("DoenetViewer flush-state-on-demand (#1440)", () => {
             />,
         );
 
-        flushState("flush-test-3").then((response) => {
-            expect(response.success, "flush success").to.eq(true);
-            expect(response.state, "state").to.eq(null);
+        flushState("flush-test-2").then((ack) => {
+            expect(ack.success, "flush success").to.eq(true);
+            expect(ack.hadState, "flush hadState").to.eq(false);
         });
     });
 });

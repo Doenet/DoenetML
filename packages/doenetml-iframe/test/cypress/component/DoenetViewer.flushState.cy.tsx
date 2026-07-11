@@ -5,17 +5,18 @@ import { STANDALONE_BLOB_URL, STANDALONE_CSS_BLOB_URL } from "./helpers";
 // Flush-state-on-demand (Doenet/DoenetML#1440) through the FULL embedding
 // chain: the host posts `SPLICE.flushState` on its own window, this wrapper
 // forwards it into the srcdoc iframe, the viewer (running from the built
-// @doenet/standalone bundle) answers once in-flight updates settle, and the
-// response reaches the host window directly (the viewer posts to
-// `window.parent`).
+// @doenet/standalone bundle) pushes any pending state through the normal
+// `SPLICE.reportScoreAndState` channel and replies with a stateless
+// `SPLICE.flushState.response` acknowledgement — both reaching the host window
+// directly (the viewer posts to `window.parent`).
 //
 // The property under test is the one #1440 exists for: work committed AFTER
-// the last `reportScoreAndState` save event — provably undelivered, because
-// an earlier flush armed the 60-second report throttle — is carried by the
-// flush response and restorable via `initialState`. The doenetml package has
-// a sibling spec covering the in-process viewer plus the save-flags-disabled
-// and no-core cases; this one covers the wrapper forwarding and the
-// standalone-bundle path that production hosts actually use.
+// the last `reportScoreAndState` save event — provably undelivered, because an
+// earlier flush armed the 60-second report throttle — is pushed out by the
+// flush and restorable via `initialState`. The doenetml package has a sibling
+// spec covering the in-process viewer plus the no-core case; this one covers
+// the wrapper forwarding and the standalone-bundle path that production hosts
+// actually use.
 
 const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
@@ -120,7 +121,14 @@ describe("DoenetViewer (iframe wrapper) — flush-state-on-demand (#1440)", () =
                 cy.then(() => {
                     const reportsBeforeFlush = reports.slice();
 
-                    flushStateViaHost("iframe-flush-1").then((response) => {
+                    flushStateViaHost("iframe-flush-1").then((ack) => {
+                        // The flush completed and reported it held state...
+                        expect(ack.success, "flush success").to.eq(true);
+                        expect(ack.hadState, "flush hadState").to.eq(true);
+
+                        // ...yet no PRE-flush report delivered the second
+                        // commit (reporting works — the first flush produced
+                        // one).
                         expect(
                             reportsBeforeFlush.length,
                             "at least one report was delivered",
@@ -133,18 +141,33 @@ describe("DoenetViewer (iframe wrapper) — flush-state-on-demand (#1440)", () =
                             ),
                             "second commit reported before flush (should not be)",
                         ).to.eq(false);
+                    });
 
-                        expect(response.success, "flush success").to.eq(true);
-                        expect(response.state, "flushed state").to.not.eq(null);
-                        expect(
-                            String(response.state.coreState),
-                            "flushed coreState",
-                        ).to.include("survives the teardown");
-
-                        // Remount: a FRESH iframe viewer seeded with the
-                        // flushed state (initialState and flags are
-                        // serializable, so they ride into the srcdoc like any
-                        // other viewer prop).
+                    // The flush pushed the pending work out through the normal
+                    // `reportScoreAndState` channel — the one a persistence host
+                    // saves. Wait for that report, then remount a FRESH iframe
+                    // viewer seeded with the state it carried (as a host would);
+                    // the otherwise-lost work survives with no user interaction.
+                    cy.wrap(null, { timeout: IFRAME_BOOT_TIMEOUT }).should(
+                        () => {
+                            expect(
+                                reports.some((r) =>
+                                    String(r.state?.coreState).includes(
+                                        "survives the teardown",
+                                    ),
+                                ),
+                                "flush pushed the pending work through reportScoreAndState",
+                            ).to.eq(true);
+                        },
+                    );
+                    cy.then(() => {
+                        const flushed = [...reports]
+                            .reverse()
+                            .find((r) =>
+                                String(r.state?.coreState).includes(
+                                    "survives the teardown",
+                                ),
+                            );
                         cy.mount(
                             <DoenetViewer
                                 doenetML={DOC}
@@ -152,12 +175,9 @@ describe("DoenetViewer (iframe wrapper) — flush-state-on-demand (#1440)", () =
                                 cssUrl={STANDALONE_CSS_BLOB_URL}
                                 addVirtualKeyboard={false}
                                 flags={{ allowLoadState: true }}
-                                initialState={response.state}
+                                initialState={flushed.state}
                             />,
                         );
-
-                        // The otherwise-lost work survives with no user
-                        // interaction.
                         iframeBody().should(
                             "contain.text",
                             "You typed: survives the teardown",

@@ -178,9 +178,13 @@ viewerWindow.postMessage(
 );
 ```
 
-Once in-flight updates settle, the viewer responds (delivered like its
-other messages — same window, or the parent per
-`data-doenet-message-parent`):
+The flush settles in-flight updates and pushes any pending state out through
+the **normal `SPLICE.reportScoreAndState` message** — so a host that already
+persists those reports saves the just-flushed state with no extra code, and
+need not even know a flush occurred. (No report is emitted when nothing is
+pending, or when state saving is disabled — there is then nothing to lose.)
+The viewer then replies with a stateless acknowledgement (delivered like its
+other messages — same window, or the parent per `data-doenet-message-parent`):
 
 ```js
 {
@@ -188,18 +192,23 @@ other messages — same window, or the parent per
     message_id: "my-id-123",   // echoed from the request
     activity_id, doc_id,       // to correlate on multi-viewer pages
     success: true,
-    state,                     // the `initialState` shape — or null
-    score,                     // current creditAchieved
+    hadState: true,            // false ⇒ nothing beyond initialization
 }
 ```
 
-After the response, tearing the viewer down loses nothing: rendering later
-with `initialState: state` (and `flags: { allowLoadState: true }`) restores
-the document exactly. The flush also pushes any pending report through the
-normal `reportScoreAndState` pipeline, and the state is returned regardless
-of the `allowSaveState`/`allowLocalState` flags. `state: null` with
-`success: true` means the viewer holds no state beyond what it was
-initialized with — equally safe to tear down.
+The acknowledgement is the completion signal: once it arrives, every saved
+`reportScoreAndState` is current, so tearing the viewer down loses nothing —
+rendering later with `initialState: <the last saved state>` (and
+`flags: { allowLoadState: true }`) restores the document exactly.
+`hadState: false` means the viewer held no state beyond what it was
+initialized with (e.g. its core was never created) — equally safe to tear
+down.
+
+This split suits a host topology where the party managing lifecycle (which
+sends `flushState` and waits for the acknowledgement) is not the party
+persisting state (which just saves `reportScoreAndState`): for example a
+coordinator unmounting off-screen viewers on a page whose saved state is
+owned by a separate host.
 
 > **Note:** Wrap the round-trip in a retry/timeout — the viewer's listener
 > registers on mount, and flushing is idempotent, so re-posting is safe.
@@ -224,8 +233,7 @@ the viewer asks its host for saved state when it boots:
 The viewer does not block on a reply — it boots fresh immediately and
 **reboots seeded with the state** if a response arrives. If the host has
 saved state for this document (an object previously received from
-`reportScoreAndState` or `flushState`, whose `cid` matches the request),
-respond:
+`reportScoreAndState`, whose `cid` matches the request), respond:
 
 ```js
 { subject: "SPLICE.getState.response", message_id, state }
