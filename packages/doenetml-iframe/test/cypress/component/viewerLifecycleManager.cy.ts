@@ -1,0 +1,177 @@
+import {
+    registerWindowedViewer,
+    setViewerVisibility,
+    notifyViewerState,
+    getViewerLifecycleStats,
+    __resetViewerLifecycleManagerForTests,
+} from "../../../src/viewer-lifecycle-manager";
+
+// Pure-logic tests for the windowed-mounting policy. `cy.clock` controls
+// both `Date.now` and `setTimeout`, so debounce windows advance
+// deterministically via `cy.tick`.
+
+type FakeViewer = {
+    id: string;
+    parkRequests: number;
+    unregister: () => void;
+};
+
+/** Register a fake viewer that parks instantly when asked. */
+function addViewer(
+    id: string,
+    {
+        maxLiveViewers = 2,
+        parkDelayMs = 100,
+        canPark = true,
+        parkImmediately = true,
+    } = {},
+): FakeViewer {
+    const viewer: FakeViewer = { id, parkRequests: 0, unregister: () => {} };
+    viewer.unregister = registerWindowedViewer({
+        id,
+        maxLiveViewers,
+        parkDelayMs,
+        canPark: () => canPark,
+        requestPark: () => {
+            viewer.parkRequests++;
+            if (parkImmediately) {
+                notifyViewerState(id, "parked");
+            }
+        },
+    });
+    return viewer;
+}
+
+describe("viewer-lifecycle-manager — windowed mounting policy", () => {
+    beforeEach(() => {
+        __resetViewerLifecycleManagerForTests();
+        cy.clock();
+    });
+
+    afterEach(() => {
+        __resetViewerLifecycleManagerForTests();
+    });
+
+    it("parks the least-recently-visible off-screen viewer when over budget", () => {
+        const a = addViewer("a");
+        const b = addViewer("b");
+        const c = addViewer("c");
+
+        // Visibility history: a seen first, then b, then c (c stays visible).
+        setViewerVisibility("a", true);
+        setViewerVisibility("a", false);
+        setViewerVisibility("b", true);
+        setViewerVisibility("b", false);
+        setViewerVisibility("c", true);
+
+        // 3 live, budget 2, both a and b past their debounce → the LRU (a)
+        // parks; one park brings the page back to budget, so b stays live.
+        cy.tick(200).then(() => {
+            expect(a.parkRequests, "a (LRU) parked").to.eq(1);
+            expect(b.parkRequests, "b stays live").to.eq(0);
+            expect(c.parkRequests, "c stays live").to.eq(0);
+            expect(getViewerLifecycleStats()).to.deep.include({
+                live: 2,
+                parked: 1,
+            });
+        });
+    });
+
+    it("never parks a visible viewer, even over budget", () => {
+        const a = addViewer("a", { maxLiveViewers: 1 });
+        const b = addViewer("b", { maxLiveViewers: 1 });
+        setViewerVisibility("a", true);
+        setViewerVisibility("b", true);
+
+        cy.tick(500).then(() => {
+            expect(a.parkRequests).to.eq(0);
+            expect(b.parkRequests).to.eq(0);
+            expect(getViewerLifecycleStats().live, "soft budget").to.eq(2);
+        });
+    });
+
+    it("waits out the park-delay debounce before parking", () => {
+        const a = addViewer("a", { maxLiveViewers: 1, parkDelayMs: 100 });
+        addViewer("b", { maxLiveViewers: 1, parkDelayMs: 100 });
+        setViewerVisibility("b", true);
+
+        // a has been invisible since registration; not yet past debounce.
+        cy.tick(50).then(() => {
+            expect(a.parkRequests, "debounce not yet elapsed").to.eq(0);
+        });
+        cy.tick(100).then(() => {
+            expect(a.parkRequests, "debounce elapsed").to.eq(1);
+        });
+    });
+
+    it("skips viewers that cannot park losslessly", () => {
+        const a = addViewer("a", { maxLiveViewers: 1, canPark: false });
+        addViewer("b", { maxLiveViewers: 1 });
+        setViewerVisibility("b", true);
+
+        cy.tick(500).then(() => {
+            expect(a.parkRequests, "no persistence path → never parked").to.eq(
+                0,
+            );
+            expect(getViewerLifecycleStats().live).to.eq(2);
+        });
+    });
+
+    it("uses the smallest budget when viewers disagree", () => {
+        const a = addViewer("a", { maxLiveViewers: 3 });
+        addViewer("b", { maxLiveViewers: 1 });
+        setViewerVisibility("b", true);
+
+        cy.tick(500).then(() => {
+            expect(a.parkRequests, "budget min(3, 1) = 1 applies").to.eq(1);
+        });
+    });
+
+    it("an aborted park (viewer reports live) is retried on the next evaluation", () => {
+        // Viewer that refuses the first park request (e.g. flush raced a
+        // scroll-back) and reports itself live again.
+        const a: FakeViewer = {
+            id: "a",
+            parkRequests: 0,
+            unregister: () => {},
+        };
+        a.unregister = registerWindowedViewer({
+            id: "a",
+            maxLiveViewers: 1,
+            parkDelayMs: 100,
+            canPark: () => true,
+            requestPark: () => {
+                a.parkRequests++;
+                if (a.parkRequests === 1) {
+                    notifyViewerState("a", "live");
+                } else {
+                    notifyViewerState("a", "parked");
+                }
+            },
+        });
+        addViewer("b", { maxLiveViewers: 1 });
+        setViewerVisibility("b", true);
+
+        // The "live" notification re-schedules evaluation; the viewer is
+        // still over budget, so it is asked again (the retry fires in the
+        // same timer batch, so only the final state is observable).
+        cy.tick(500).then(() => {
+            expect(a.parkRequests, "asked again after abort").to.eq(2);
+            expect(getViewerLifecycleStats().parked).to.eq(1);
+        });
+    });
+
+    it("unregistering frees the budget", () => {
+        const a = addViewer("a", { maxLiveViewers: 1, parkDelayMs: 100 });
+        const b = addViewer("b", { maxLiveViewers: 1 });
+        setViewerVisibility("b", true);
+
+        // Unregister b (unmounted) before a's debounce elapses: only one
+        // viewer remains, so nothing parks.
+        b.unregister();
+        cy.tick(500).then(() => {
+            expect(a.parkRequests).to.eq(0);
+            expect(getViewerLifecycleStats().registered).to.eq(1);
+        });
+    });
+});
