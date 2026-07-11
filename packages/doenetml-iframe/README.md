@@ -71,6 +71,33 @@ latest editor buffer:
 
 ## DoenetViewer
 
+### Prop changes and iframe reloads
+
+Changing props on a mounted `<DoenetViewer>` does **not** reload the iframe:
+the wrapper pushes changes into the already-loaded iframe as messages, and
+the inner viewer applies them with the same semantics as the in-process
+`<DoenetViewer>` from `@doenet/doenetml`. In particular:
+
+| Prop change                                                                | Effect                                                                                                      |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `render`, `darkMode`, `flags`, `answerResponseCounts`, callbacks, …         | applied live, no reload (flipping `render` false→true starts the document in the already-loaded realm)       |
+| `doenetML`, `activityId`, `docId`, `attemptNumber`, `requestedVariantIndex` | the document's core re-initializes **inside the same iframe realm** — the multi-MB bundle is not re-parsed   |
+| `initialState`, `forceDisable` and the other `force*` props, `userId`       | read at (re-)initialization only, exactly like the in-process viewer — change `docId`/`attemptNumber` or remount via `key=` to apply |
+| `standaloneUrl`, `cssUrl`, `doenetmlVersion` (or a version change detected in `doenetML`), `useSharedCoreWorker` | a different bundle/realm is required, so the iframe reloads                                                   |
+
+To force a full remount (fresh realm and worker), change the component's
+React `key`.
+
+Function props (callbacks) are forwarded across the iframe boundary via
+Comlink proxies and always follow the latest identity passed — parents may
+pass inline arrow functions freely; identity churn does not re-render the
+inner viewer.
+
+> **Note:** in-place updates require a standalone bundle ≥ 0.7.18. When an
+> older version is pinned (via `doenetmlVersion` or detected from the
+> document's `xmlns`), the wrapper falls back to its historical behavior of
+> reloading the iframe on any prop change.
+
 ### Host message protocol (SPLICE)
 
 The viewer exchanges JSON messages with the host page via `postMessage`.
