@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- A static host page (the PreTeXt model): DoenetML activities embedded as
+     real same-origin iframes, coordinated by dist/coordinator.js from
+     @doenet/standalone. The tight limits (1 live viewer, 1 boot at a time,
+     short park delay) exercise gating, parking, and restore in the e2e
+     spec. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Coordinated DoenetML activities</title>
+        <script
+            src="/standalone/coordinator.js"
+            data-max-live-viewers="1"
+            data-max-concurrent-boots="1"
+            data-park-delay-ms="300"
+            data-visible-margin="100px"
+            data-flush-timeout-ms="15000"
+            data-shared-core-workers="true"
+        ></script>
+    </head>
+    <body>
+        <h1>Coordinated activities</h1>
+        <iframe
+            id="act1"
+            src="/coordination-activity-1-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+        <div style="height: 2500px">spacer</div>
+        <iframe
+            id="act2"
+            src="/coordination-activity-2-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+    </body>
+</html>

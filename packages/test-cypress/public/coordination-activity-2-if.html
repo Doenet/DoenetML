@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- See coordination-activity-1-if.html. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                window.renderDoenetViewerToContainer(
+                    document.querySelector(".doenetml-applet"),
+                );
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Activity two body</p>
+            </script>
+        </div>
+    </body>
+</html>

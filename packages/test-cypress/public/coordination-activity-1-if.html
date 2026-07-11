@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Mimics a PreTeXt-generated DoenetML interactive page (…-if.html):
+     loads @doenet/standalone (same-origin here, CDN in production) and
+     renders the activity on script load. Deliberately knows NOTHING about
+     the coordinator on its parent page. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                window.renderDoenetViewerToContainer(
+                    document.querySelector(".doenetml-applet"),
+                );
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Activity one: <textInput name="ti" /></p>
+<p>One typed: $ti.value</p>
+            </script>
+        </div>
+    </body>
+</html>
