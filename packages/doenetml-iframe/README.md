@@ -102,13 +102,15 @@ inner viewer.
 
 Pages that embed many viewers (assignment pages, textbook chapters) pay
 memory for every mounted iframe, whether or not the student can see it. The
-opt-in `mountPolicy` prop bounds this: at most `maxLiveViewers` viewers stay
-live page-wide, and off-screen viewers beyond the budget are **parked** —
-their state is flushed (via the `SPLICE.flushState` machinery) and their
-iframe is replaced by a placeholder of the same height, so the page layout
-doesn't shift. Scrolling a parked viewer back near the viewport restores it,
-seeded with the flushed state: typed work survives the round trip with no
-user interaction.
+opt-in `mountPolicy` prop bounds this: windowed viewers **start as
+placeholders and only create their iframe when they come near the viewport**
+(an off-screen viewer never boots at all), simultaneous boots are capped
+page-wide, and at most `maxLiveViewers` viewers stay live. Off-screen
+viewers beyond the budget are **parked** — their state is flushed (via the
+`SPLICE.flushState` machinery) and their iframe is replaced by a placeholder
+of the same height, so the page layout doesn't shift. Scrolling a parked
+viewer back near the viewport restores it, seeded with the flushed state:
+typed work survives the round trip with no user interaction.
 
 ```tsx
 <DoenetViewer
@@ -127,6 +129,11 @@ user interaction.
   before it may be parked (debounce against scroll flicker).
 - `flushTimeoutMs` (default 5000) — how long to wait for the pre-park state
   flush to be acknowledged before parking anyway.
+- `maxConcurrentBoots` (default 2) — page-wide cap on how many windowed
+  viewers may be booting their iframe realm at once (each boot parses the
+  multi-MB standalone bundle and starts a core worker). Additional viewers
+  wait for a slot, visible-first — this removes the initialization stampede
+  when a page with many activities loads.
 
 **Parking requires a persistence path** so no student work can be lost:
 either `flags.allowSaveState` (the wrapper snapshots the flushed

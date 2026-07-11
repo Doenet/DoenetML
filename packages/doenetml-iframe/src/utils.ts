@@ -92,6 +92,12 @@ export function createHtmlForDoenetViewer(
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
+    // The wrapper may supply its own composed `initializedCallback` (the
+    // windowed-mounting boot-slot release) even when the host didn't specify
+    // one; list it so the in-iframe entry adopts the proxy when sent.
+    if (!doenetViewerPropsSpecified.includes("initializedCallback")) {
+        doenetViewerPropsSpecified.push("initializedCallback");
+    }
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly

@@ -3,6 +3,9 @@ import {
     setViewerVisibility,
     notifyViewerState,
     getViewerLifecycleStats,
+    requestBootSlot,
+    cancelBootRequest,
+    releaseBootSlot,
     __resetViewerLifecycleManagerForTests,
 } from "../../../src/viewer-lifecycle-manager";
 
@@ -21,6 +24,7 @@ function addViewer(
     id: string,
     {
         maxLiveViewers = 2,
+        maxConcurrentBoots = 99,
         parkDelayMs = 100,
         canPark = true,
         parkImmediately = true,
@@ -30,6 +34,7 @@ function addViewer(
     viewer.unregister = registerWindowedViewer({
         id,
         maxLiveViewers,
+        maxConcurrentBoots,
         parkDelayMs,
         canPark: () => canPark,
         requestPark: () => {
@@ -138,6 +143,7 @@ describe("viewer-lifecycle-manager — windowed mounting policy", () => {
         a.unregister = registerWindowedViewer({
             id: "a",
             maxLiveViewers: 1,
+            maxConcurrentBoots: 99,
             parkDelayMs: 100,
             canPark: () => true,
             requestPark: () => {
@@ -213,6 +219,63 @@ describe("viewer-lifecycle-manager — windowed mounting policy", () => {
                 parking: 1, // c
                 parked: 1, // b
             });
+        });
+    });
+
+    describe("boot-slot semaphore (#1439)", () => {
+        function addQueued(id: string, granted: string[], opts = {}) {
+            addViewer(id, { maxConcurrentBoots: 1, ...opts });
+            requestBootSlot(id, () => granted.push(id));
+        }
+
+        it("caps concurrent boots and serves the queue on release", () => {
+            const granted: string[] = [];
+            addQueued("a", granted);
+            addQueued("b", granted);
+            addQueued("c", granted);
+            expect(granted, "only one slot").to.deep.eq(["a"]);
+            expect(getViewerLifecycleStats()).to.deep.include({
+                booting: 1,
+                bootQueue: 2,
+            });
+            releaseBootSlot("a");
+            expect(granted, "release grants the next").to.deep.eq(["a", "b"]);
+            releaseBootSlot("b");
+            releaseBootSlot("c");
+            expect(granted).to.deep.eq(["a", "b", "c"]);
+            expect(getViewerLifecycleStats()).to.deep.include({
+                booting: 0,
+                bootQueue: 0,
+            });
+        });
+
+        it("serves visible viewers before earlier-queued off-screen ones", () => {
+            const granted: string[] = [];
+            addQueued("a", granted);
+            addQueued("b", granted);
+            addQueued("c", granted);
+            setViewerVisibility("c", true);
+            releaseBootSlot("a");
+            expect(granted, "visible c jumps the queue").to.deep.eq(["a", "c"]);
+        });
+
+        it("cancelling a queued request removes it; duplicates are ignored", () => {
+            const granted: string[] = [];
+            addQueued("a", granted);
+            addQueued("b", granted);
+            requestBootSlot("b", () => granted.push("b-duplicate"));
+            cancelBootRequest("b");
+            releaseBootSlot("a");
+            expect(granted, "cancelled b never granted").to.deep.eq(["a"]);
+        });
+
+        it("unregistering releases a held slot and withdraws a queued request", () => {
+            const granted: string[] = [];
+            const a = addViewer("a", { maxConcurrentBoots: 1 });
+            requestBootSlot("a", () => granted.push("a"));
+            addQueued("b", granted);
+            a.unregister();
+            expect(granted, "a's slot passed to b").to.deep.eq(["a", "b"]);
         });
     });
 

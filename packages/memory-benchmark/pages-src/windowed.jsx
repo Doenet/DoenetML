@@ -30,10 +30,10 @@ const MOUNT_POLICY = {
     mode: "windowed",
     maxLiveViewers: keep,
     parkDelayMs: 500,
-    visibleMargin: "500px",
-    // Generous: N realms boot concurrently, and an acknowledged flush-park
-    // is the realistic steady state we want to measure (timeout-parking
-    // reaches the same memory state but would hide a broken flush path).
+    // Small margin so the number of live (near-viewport) viewers is
+    // deterministic (~2 at the default placeholder height) and independent
+    // of N.
+    visibleMargin: "200px",
     flushTimeoutMs: 60_000,
 };
 
@@ -70,15 +70,20 @@ function App() {
 
 createRoot(document.getElementById("root")).render(<App />);
 
-// Done once the page settles at the budget: everything beyond `keep` parked,
-// no park in flight, and at least one visible viewer fully booted.
+// Done once the page settles: nothing mid-park or mid-boot, every viewer
+// accounted for as live or parked, and every live viewer fully booted.
+// (Off-screen viewers start parked and never boot; only the ~2 viewers
+// within the margin boot, staggered by the boot-slot cap.)
 const settleTimer = setInterval(() => {
     const stats = getViewerLifecycleStats();
     window.__parkedCount = stats.parked;
     if (
-        stats.parked >= n - keep &&
         stats.parking === 0 &&
-        window.__initializedCount >= 1
+        stats.booting === 0 &&
+        stats.bootQueue === 0 &&
+        stats.live + stats.parked === n &&
+        stats.live >= 1 &&
+        window.__initializedCount >= stats.live
     ) {
         clearInterval(settleTimer);
         window.__done = true;
