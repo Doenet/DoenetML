@@ -322,6 +322,11 @@ export class CoreWorker {
                     calculateRootNames,
                 });
             this.javascript_initialized = true;
+            // The JavaScript core has consumed the normalized DAST; free the
+            // Rust core's retained copy of the document DAST (the rust
+            // core-type path still needs it for later
+            // `returnNormalizedDastRoot` calls, so only release here).
+            this.doenetCore.release_initialization_data();
             return initializedResult;
         } catch (err) {
             console.error(err);
@@ -488,6 +493,11 @@ export class CoreWorker {
             calculateRootNames,
         });
         this.javascript_initialized = true;
+        // The JavaScript core has consumed the normalized DAST; free the
+        // Rust core's retained copy of the document DAST (the rust core-type
+        // path still needs it for later `returnNormalizedDastRoot` calls, so
+        // only release here).
+        this.doenetCore.release_initialization_data();
 
         const args = {
             coreId: "a",

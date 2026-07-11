@@ -219,6 +219,13 @@ export class PublicDoenetMLCore {
         sendEvent: SendEvent,
         requestSolutionView: RequestSolutionView,
     ) {
+        if (this.initialized && !this.coreBaseArgs?.serializedDocument) {
+            return {
+                success: false as const,
+                errMsg: "Cannot create the core a second time from the same worker; the serialized document was released after the first core was created.",
+            };
+        }
+
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
@@ -239,6 +246,11 @@ export class PublicDoenetMLCore {
 
         if (this.initialized) {
             this.core = new Core(coreArgs);
+            // The core now owns the only needed reference to the serialized
+            // document (and releases it once consumed in `generateDast`);
+            // drop this alias so the worker does not retain a full
+            // serialized copy of the document for the life of the session.
+            this.coreBaseArgs!.serializedDocument = undefined;
             try {
                 const result = await this.core.generateDast();
                 return { success: true as const, ...result };

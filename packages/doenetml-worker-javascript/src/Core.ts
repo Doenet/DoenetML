@@ -159,7 +159,6 @@ export default class Core {
     cumulativeStateVariableChanges: any;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
-    coreInfo?: CoreInfo;
     coreInfoString?: string;
     doenetMLNewlines?: any;
 
@@ -393,6 +392,11 @@ export default class Core {
 
         let serializedComponents = [deepClone(this.serializedDocument)];
 
+        // The serialized document is consumed only by the clone above;
+        // release it so the worker does not retain a full serialized copy
+        // of the document for the life of the session.
+        this.serializedDocument = undefined;
+
         numberAnswers(serializedComponents, this.componentInfoObjects);
 
         this.documentIdx = serializedComponents[0].componentIdx;
@@ -534,7 +538,10 @@ export default class Core {
         // Note: `coreInfo` is fixed even though `this.rendererTypesInDocument`
         // could change. Both the canonical variant strings and the original
         // `rendererTypesInDocument` could differ depending on the initial state.
-        this.coreInfo = {
+        // Only the JSON string is retained on the instance (for saved-state
+        // payloads); keeping the object as well would duplicate the initial
+        // renderer instructions for the life of the session.
+        const coreInfo: CoreInfo = {
             generatedVariantString: this.canonicalGeneratedVariantString!,
             allPossibleVariants: deepClone(
                 await this.document.sharedParameters!.allPossibleVariants,
@@ -544,7 +551,7 @@ export default class Core {
         };
 
         this.coreInfoString = JSON.stringify(
-            this.coreInfo,
+            coreInfo,
             serializedComponentsReplacer,
         );
 
@@ -575,7 +582,7 @@ export default class Core {
         this.dependencies.clearCircularCheckMemos();
 
         const returnResult = {
-            coreInfo: this.coreInfo,
+            coreInfo,
         };
 
         // Warn about any unmatched children.
