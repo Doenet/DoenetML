@@ -69,6 +69,75 @@ latest editor buffer:
 > surface a completion signal or error to the caller — failures from the
 > underlying ComLink RPC are logged to the console rather than thrown.
 
+## DoenetViewer
+
+### Saving and restoring state (lossless unmount)
+
+The viewer reports the student's serialized document state to the host as
+they work: it posts `SPLICE.reportScoreAndState` messages to the host
+window (the wrapper's iframe posts to `window.parent`, which is your page):
+
+```js
+window.addEventListener("message", (e) => {
+    if (e.data?.subject === "SPLICE.reportScoreAndState") {
+        // e.data.state — serialized document state (opaque; store as-is)
+        // e.data.score, e.data.activity_id, e.data.doc_id
+    }
+});
+```
+
+To restore, remount the viewer with the saved state:
+
+```tsx
+<DoenetViewer
+    doenetML={doenetML}
+    flags={{ allowLoadState: true }}
+    initialState={savedState}
+/>
+```
+
+**The gap — and `SPLICE.flushState`.** Reports are throttled (one per 60
+seconds per viewer), so at any moment the student may have committed work
+that no report has delivered yet. A host that unmounts a viewer based on
+save events alone silently loses that work. Before unmounting, request a
+flush — post on your own window; the wrapper forwards it into the iframe:
+
+```js
+window.postMessage(
+    { subject: "SPLICE.flushState", message_id: "my-id-123" },
+    "*",
+);
+```
+
+Once in-flight updates settle, the viewer responds (again on your window):
+
+```js
+{
+    subject: "SPLICE.flushState.response",
+    message_id: "my-id-123",   // echoed from the request
+    activity_id, doc_id,       // to correlate on multi-viewer pages
+    success: true,
+    state,                     // the `initialState` shape — or null
+    score,                     // current creditAchieved
+}
+```
+
+After the response, unmounting loses nothing: remounting later with
+`initialState: state` (and `flags: { allowLoadState: true }`) restores the
+document exactly, including work never delivered by a report. The flush also
+pushes any pending report through the normal `reportScoreAndState` pipeline,
+so persistence backends stay current. `state: null` with `success: true`
+means the viewer holds no state beyond what it was initialized with (e.g.
+its core has not booted yet) — equally safe to unmount. The state is
+returned regardless of the `allowSaveState`/`allowLocalState` flags, so
+park-and-restore works even for hosts that never persist.
+
+> **Note:** Wrap the round-trip in a retry/timeout — the viewer's listener
+> registers on mount, so a request posted moments after mounting can land
+> before anyone is listening, and flushing is idempotent so re-posting is
+> safe. Every viewer on the page receives a broadcast request and responds
+> (correlate by `activity_id`/`doc_id`/`message_id`).
+
 ## Development
 
 Source code in `src/iframe-viewer-index.ts` and `src/iframe-editor-index.ts`

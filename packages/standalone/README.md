@@ -125,6 +125,63 @@ button: it flushes any pending edits to the viewer so the next
 no-op when nothing has changed, and warns when there is no viewer
 (`showViewer={false}`).
 
+## Saving and restoring state (lossless unmount)
+
+As the student works, the viewer posts `SPLICE.reportScoreAndState`
+messages carrying the serialized document state — to the page's own
+`window`, or to `window.parent` when the container has
+`data-doenet-message-parent="true"` (the pattern iframe-per-activity pages
+use). Store `e.data.state` opaquely; to restore, render a fresh viewer with
+it:
+
+```js
+renderDoenetViewerToContainer(container, doenetMLSource, {
+    flags: { allowLoadState: true },
+    initialState: savedState,
+});
+```
+
+**The gap — and `SPLICE.flushState`.** Reports are throttled (one per 60
+seconds per viewer), so work committed since the last report would be
+silently lost if the viewer's page were torn down based on save events
+alone. Before tearing down, request a flush by posting to the window the
+viewer lives in:
+
+```js
+viewerWindow.postMessage(
+    { subject: "SPLICE.flushState", message_id: "my-id-123" },
+    "*",
+);
+```
+
+Once in-flight updates settle, the viewer responds (delivered like its
+other messages — same window, or the parent per
+`data-doenet-message-parent`):
+
+```js
+{
+    subject: "SPLICE.flushState.response",
+    message_id: "my-id-123",   // echoed from the request
+    activity_id, doc_id,       // to correlate on multi-viewer pages
+    success: true,
+    state,                     // the `initialState` shape — or null
+    score,                     // current creditAchieved
+}
+```
+
+After the response, tearing the viewer down loses nothing: rendering later
+with `initialState: state` (and `flags: { allowLoadState: true }`) restores
+the document exactly. The flush also pushes any pending report through the
+normal `reportScoreAndState` pipeline, and the state is returned regardless
+of the `allowSaveState`/`allowLocalState` flags. `state: null` with
+`success: true` means the viewer holds no state beyond what it was
+initialized with — equally safe to tear down.
+
+> **Note:** Wrap the round-trip in a retry/timeout — the viewer's listener
+> registers on mount, and flushing is idempotent, so re-posting is safe.
+> Every viewer in the target window receives a broadcast request and
+> responds (correlate by `activity_id`/`doc_id`/`message_id`).
+
 ## Development
 
 Run
