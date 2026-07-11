@@ -28,6 +28,21 @@ import {
     handleDestroySharedCore,
     destroySharedCoresForViewer,
 } from "./shared-core-pool";
+import {
+    registerWindowedViewer,
+    setViewerVisibility,
+    notifyViewerState,
+    DEFAULT_MAX_LIVE_VIEWERS,
+    DEFAULT_VISIBLE_MARGIN,
+    DEFAULT_FLUSH_TIMEOUT_MS,
+    DEFAULT_PARK_DELAY_MS,
+    type MountPolicy,
+} from "./viewer-lifecycle-manager";
+
+export type { MountPolicy };
+// Page-wide windowed-mounting diagnostics (how many viewers are live vs
+// parked) — useful for host dashboards, tests, and benchmarks.
+export { getViewerLifecycleStats } from "./viewer-lifecycle-manager";
 
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
@@ -78,6 +93,8 @@ type IframeMessage = {
     data: Record<string, unknown>;
     subject?: string;
     height?: number;
+    /** Correlation id on SPLICE requests/responses. */
+    message_id?: string;
 };
 
 export type DoenetViewerIframeProps = DoenetViewerProps & {
@@ -114,6 +131,20 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * quarantined so retries boot fresh ones). Default off.
      */
     useSharedCoreWorker?: boolean;
+    /**
+     * Opt-in windowed mounting (#1441, stream B): keep at most
+     * `maxLiveViewers` viewers live on the page. Off-screen viewers beyond
+     * the budget are *parked* — their state is flushed (`SPLICE.flushState`)
+     * and their iframe is replaced by a fixed-height placeholder — and
+     * restored when scrolled back near the viewport. Parking requires a
+     * persistence path: it only activates for viewers with
+     * `flags.allowSaveState` (the wrapper snapshots the flushed
+     * `reportScoreAndState` and seeds `initialState` on restore) or
+     * `flags.allowLocalState` (IndexedDB restores on reboot); otherwise the
+     * viewer always stays live. The policy is read at mount; changing it
+     * afterwards is not supported. Default off (no prop = today's behavior).
+     */
+    mountPolicy?: MountPolicy;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -216,6 +247,7 @@ export function DoenetViewer({
     doenetmlVersion: specifiedDoenetmlVersion,
     autodetectVersion = true,
     useSharedCoreWorker = false,
+    mountPolicy,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -243,6 +275,44 @@ export function DoenetViewer({
     doenetViewerPropsRef.current = doenetViewerProps;
     const doenetMLRef = React.useRef(doenetML);
     doenetMLRef.current = doenetML;
+
+    // ---- Windowed mounting (mountPolicy) state ----
+    // The policy is read at mount and treated as immutable afterwards.
+    const windowed = mountPolicy?.mode === "windowed";
+    const [parked, setParked] = React.useState(false);
+    // Bumped on unpark so the srcDoc memo rebuilds (baking the restored
+    // state) even though none of its other inputs changed.
+    const [parkGeneration, setParkGeneration] = React.useState(0);
+    const parkedRef = React.useRef(false);
+    const parkingRef = React.useRef(false);
+    const visibleRef = React.useRef(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const parkFlushCounterRef = React.useRef(0);
+    const parkFlushIdRef = React.useRef<string | null>(null);
+    const parkFlushCleanupRef = React.useRef<(() => void) | null>(null);
+    // Latest SPLICE.reportScoreAndState from OUR iframe (matched by
+    // event.source) — the state snapshot a park uses to seed `initialState`
+    // on restore.
+    const lastCapturedReportRef = React.useRef<any>(null);
+    // State baked into the next unpark's srcdoc. `undefined` = no snapshot:
+    // restore falls back to the host's own `initialState`/IndexedDB/getState.
+    const parkedSnapshotRef = React.useRef<Record<string, any> | undefined>(
+        undefined,
+    );
+    // Whether any park flush ever acknowledged holding state — used to
+    // answer host flushes while parked.
+    const everHadStateRef = React.useRef(false);
+    // Pin the variant for the component's lifetime when windowed: an
+    // undefined `requestedVariantIndex` makes the inner viewer pick a random
+    // variant per boot, and an unpark must not reroll the document.
+    // (Mirrors the in-process viewer's random-variant range.)
+    const pinnedVariantIndexRef = React.useRef<number | null>(null);
+    if (windowed && pinnedVariantIndexRef.current === null) {
+        pinnedVariantIndexRef.current =
+            doenetViewerProps.requestedVariantIndex ??
+            Math.floor(Math.random() * 1000000) + 1;
+    }
+
     const [height, setHeight] = React.useState("500px");
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
@@ -326,18 +396,42 @@ export function DoenetViewer({
     // current values via refs: a rebuild bakes the *latest* doenetML/props,
     // and the layout effect below re-anchors the sent-snapshot baseline to
     // those same values.
-    const srcDoc = React.useMemo(
-        () =>
-            createHtmlForDoenetViewer(
-                id,
-                doenetMLRef.current,
-                doenetViewerPropsRef.current,
-                standaloneUrl,
-                cssUrl,
-                useSharedCoreWorker,
-            ),
-        [id, standaloneUrl, cssUrl, useSharedCoreWorker, legacyReloadKey],
-    );
+    const srcDoc = React.useMemo(() => {
+        let bakedProps = doenetViewerPropsRef.current;
+        if (windowed) {
+            // Windowed overrides: pin the variant so an unpark cannot reroll
+            // the document, and seed a parked snapshot (captured from the
+            // park flush) as `initialState` — which requires
+            // `allowLoadState` to be honored.
+            bakedProps = { ...bakedProps };
+            if (bakedProps.requestedVariantIndex === undefined) {
+                bakedProps.requestedVariantIndex =
+                    pinnedVariantIndexRef.current!;
+            }
+            if (parkedSnapshotRef.current !== undefined) {
+                bakedProps.initialState = parkedSnapshotRef.current;
+                bakedProps.flags = {
+                    ...(bakedProps.flags ?? {}),
+                    allowLoadState: true,
+                };
+            }
+        }
+        return createHtmlForDoenetViewer(
+            id,
+            doenetMLRef.current,
+            bakedProps,
+            standaloneUrl,
+            cssUrl,
+            useSharedCoreWorker,
+        );
+    }, [
+        id,
+        standaloneUrl,
+        cssUrl,
+        useSharedCoreWorker,
+        legacyReloadKey,
+        parkGeneration,
+    ]);
 
     // Shared-core cleanup on unmount (#1466): an unmounted iframe realm never
     // runs its own core teardown, so release any cores this viewer created on
@@ -383,6 +477,27 @@ export function DoenetViewer({
                 return;
             }
 
+            // A parked viewer has no realm to forward a host flush into, but
+            // the flush that parked it already pushed every pending save out
+            // — answer on its behalf so a host's pre-navigation flush
+            // round-trip doesn't hang on parked viewers (#1468 contract).
+            if (
+                windowed &&
+                parkedRef.current &&
+                event.data.subject === "SPLICE.flushState"
+            ) {
+                const currentProps = doenetViewerPropsRef.current;
+                window.postMessage({
+                    subject: "SPLICE.flushState.response",
+                    activity_id: currentProps.activityId ?? "a",
+                    doc_id: currentProps.docId ?? "1",
+                    message_id: event.data.message_id,
+                    success: true,
+                    hadState: everHadStateRef.current,
+                });
+                return;
+            }
+
             // forward host requests/responses (SPLICE getState response,
             // requestSolutionView response, submitAllAnswers, flushState) to
             // the iframe; the viewer's replies reach the host directly (the
@@ -404,6 +519,27 @@ export function DoenetViewer({
             if (event.data.subject === "lti.frameResize") {
                 if (event.data.height !== undefined) {
                     setHeight(event.data.height + "px");
+                }
+            }
+
+            // Windowed mounting: track the latest state report from OUR
+            // iframe (the park-snapshot source; reports reach this window
+            // because the in-iframe viewer posts to window.parent), and
+            // complete an in-flight park when its flush acknowledgement
+            // arrives. Reports are delivered before the acknowledgement
+            // (same-realm postMessage ordering), so the snapshot is current
+            // when the park completes.
+            if (windowed) {
+                if (event.data.subject === "SPLICE.reportScoreAndState") {
+                    lastCapturedReportRef.current = event.data;
+                    return;
+                }
+                if (
+                    event.data.subject === "SPLICE.flushState.response" &&
+                    event.data.message_id === parkFlushIdRef.current
+                ) {
+                    completeParkFlush(event.data);
+                    return;
                 }
             }
 
@@ -616,6 +752,192 @@ export function DoenetViewer({
         }
     });
 
+    // ---- Windowed mounting: park / unpark mechanics ----
+    // (Policy — when to park — lives in viewer-lifecycle-manager.ts; these
+    // functions are the mechanics the manager drives via `requestPark`.)
+    // All of them read refs rather than render-scope values so the
+    // mount-time closures registered with the manager and the (deps-empty)
+    // message listener stay correct across renders.
+
+    /** Whether parking can lose no work: some persistence path must exist. */
+    function hasPersistencePath() {
+        const flags: any = doenetViewerPropsRef.current.flags;
+        return Boolean(flags?.allowSaveState || flags?.allowLocalState);
+    }
+
+    /**
+     * Whether this viewer may be parked *right now*. Requires a persistence
+     * path (else parking loses work) AND a live iframe realm to flush: an
+     * errored or already-torn-down viewer has no `contentWindow`, so parking
+     * it is a no-op — and leaving it eligible would spin the manager, which
+     * re-asks (via `scheduleEvaluate(0)`) after every failed `beginPark`.
+     */
+    function canPark() {
+        return hasPersistencePath() && Boolean(ref.current?.contentWindow);
+    }
+
+    /**
+     * Begin parking (called by the lifecycle manager): flush the viewer's
+     * state, then swap the iframe for a placeholder once acknowledged.
+     * Re-posts the flush every 500 ms (the viewer's listener registers on
+     * mount and flushing is idempotent) and parks anyway on timeout — by
+     * then a persistence path is guaranteed by `canPark`, and a realm that
+     * cannot acknowledge (still booting, or wedged) holds no recoverable
+     * work that staying live would preserve.
+     */
+    function beginPark() {
+        if (parkedRef.current || parkingRef.current) {
+            return;
+        }
+        if (!ref.current?.contentWindow) {
+            // No iframe to park (e.g. error state); correct the manager's
+            // optimistic "parking" mark.
+            notifyViewerState(id, "live");
+            return;
+        }
+        parkingRef.current = true;
+        const flushId = `__doenetParkFlush-${id}-${++parkFlushCounterRef.current}`;
+        parkFlushIdRef.current = flushId;
+        const post = () => {
+            ref.current?.contentWindow?.postMessage({
+                subject: "SPLICE.flushState",
+                message_id: flushId,
+            });
+        };
+        const retryTimer = setInterval(post, 500);
+        const timeoutTimer = setTimeout(() => {
+            onParkFlushTimeout();
+        }, mountPolicy?.flushTimeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS);
+        parkFlushCleanupRef.current = () => {
+            clearInterval(retryTimer);
+            clearTimeout(timeoutTimer);
+            parkFlushCleanupRef.current = null;
+        };
+        post();
+    }
+
+    /**
+     * Tear down the in-flight park flush (its retry/timeout timers) when it
+     * resolves — whether by acknowledgement or timeout. Returns whether the
+     * park should proceed: `false` if no flush was in flight, or the viewer
+     * scrolled back into view while the flush was in flight (nothing has been
+     * torn down, so it just stays live).
+     */
+    function endParkFlush(): boolean {
+        if (!parkingRef.current) {
+            return false;
+        }
+        parkFlushCleanupRef.current?.();
+        parkFlushIdRef.current = null;
+        parkingRef.current = false;
+        if (visibleRef.current) {
+            notifyViewerState(id, "live");
+            return false;
+        }
+        return true;
+    }
+
+    /** The park flush acknowledged — finish parking (or abort if visible). */
+    function completeParkFlush(ack: any) {
+        if (!endParkFlush()) {
+            return;
+        }
+        if (ack.hadState) {
+            everHadStateRef.current = true;
+            if (lastCapturedReportRef.current?.state) {
+                parkedSnapshotRef.current = lastCapturedReportRef.current.state;
+            }
+        }
+        // else: keep any previous snapshot. `hadState: false` with a prior
+        // snapshot means the core never booted this generation, so the prior
+        // snapshot is still the latest truth; with no snapshot at all the
+        // unpark falls back to the host's initialState/IndexedDB/getState.
+        finishPark();
+    }
+
+    /** No acknowledgement within flushTimeoutMs — park anyway (see above). */
+    function onParkFlushTimeout() {
+        if (!endParkFlush()) {
+            return;
+        }
+        finishPark();
+    }
+
+    function finishPark() {
+        // The dead realm's remote must not receive further updates; clear it
+        // so prop changes while parked queue and replay against the restored
+        // realm's iframeReady.
+        viewerIframeRef.current = null;
+        destroySharedCoresForViewer(id);
+        parkedRef.current = true;
+        setParked(true);
+        notifyViewerState(id, "parked");
+    }
+
+    /** Restore a parked viewer (on scrolling back into view). */
+    function unpark() {
+        if (!parkedRef.current) {
+            return;
+        }
+        parkedRef.current = false;
+        setParked(false);
+        // Rebuild the srcdoc so the restored realm boots seeded with the
+        // parked snapshot (see the srcDoc memo).
+        setParkGeneration((generation) => generation + 1);
+        notifyViewerState(id, "live");
+    }
+
+    // Observe visibility of the wrapper div (which stays mounted across
+    // park/unpark). Entering the margin unparks; the manager decides parking.
+    React.useEffect(() => {
+        if (!windowed || !containerRef.current) {
+            return;
+        }
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    visibleRef.current = entry.isIntersecting;
+                    setViewerVisibility(id, entry.isIntersecting);
+                    if (entry.isIntersecting && parkedRef.current) {
+                        unpark();
+                    }
+                }
+            },
+            {
+                rootMargin:
+                    mountPolicy?.visibleMargin ?? DEFAULT_VISIBLE_MARGIN,
+            },
+        );
+        observer.observe(containerRef.current);
+        return () => {
+            observer.disconnect();
+        };
+    }, [windowed]);
+
+    // Register with the page-wide lifecycle manager.
+    React.useEffect(() => {
+        if (!windowed) {
+            return;
+        }
+        if (!hasPersistencePath()) {
+            console.warn(
+                "DoenetViewer mountPolicy: windowed mounting is enabled but neither flags.allowSaveState nor flags.allowLocalState is set, so parking would lose student work. This viewer will always stay live.",
+            );
+        }
+        const unregister = registerWindowedViewer({
+            id,
+            maxLiveViewers:
+                mountPolicy?.maxLiveViewers ?? DEFAULT_MAX_LIVE_VIEWERS,
+            parkDelayMs: mountPolicy?.parkDelayMs ?? DEFAULT_PARK_DELAY_MS,
+            canPark,
+            requestPark: beginPark,
+        });
+        return () => {
+            parkFlushCleanupRef.current?.();
+            unregister();
+        };
+    }, [windowed]);
+
     if (inErrorState) {
         if (foundAutoVersion) {
             setIgnoreDetectedVersion(true);
@@ -652,7 +974,20 @@ export function DoenetViewer({
         );
     }
 
-    return (
+    const viewerContent = parked ? (
+        // Fixed-height placeholder holding a parked viewer's place in the
+        // layout (the last height the iframe reported survives in state, so
+        // parking does not shift the page).
+        <div
+            data-doenet-parked-viewer="true"
+            style={{
+                width: "100%",
+                boxSizing: "border-box",
+                height,
+                minHeight: 50,
+            }}
+        />
+    ) : (
         <React.Fragment>
             {addVirtualKeyboard ? (
                 <ExternalVirtualKeyboard ownerRef={ref} theme={resolvedTheme} />
@@ -671,6 +1006,20 @@ export function DoenetViewer({
                 height={height}
             />
         </React.Fragment>
+    );
+
+    if (!windowed) {
+        // Without a mountPolicy the rendered DOM is exactly the historical
+        // shape (no wrapper element).
+        return viewerContent;
+    }
+
+    // The wrapper div is the IntersectionObserver target; it stays mounted
+    // across park/unpark so visibility keeps being observed.
+    return (
+        <div ref={containerRef} style={{ width: "100%" }}>
+            {viewerContent}
+        </div>
     );
 }
 

@@ -47,6 +47,29 @@ const WORKER_DIST = path.dirname(
 // Comlink (the worker's RPC layer), served to the workers-* page.
 const COMLINK_ESM = require.resolve("comlink/dist/esm/comlink.mjs");
 
+/**
+ * Bundle the windowed-mounting page (pages-src/windowed.jsx) with esbuild
+ * (hoisted at the repo root as a vite dependency) and return its source.
+ * Unlike the other scenario pages, this one uses the REAL
+ * `@doenet/doenetml-iframe` component — the parking logic under measurement
+ * lives in that wrapper, so a hand-rolled mimic would measure the browser,
+ * not the feature. Resolves to the package's built `dist/` via its exports
+ * map (the wireit dependency builds it first).
+ */
+async function buildWindowedPageScript() {
+    const esbuild = require("esbuild");
+    const result = await esbuild.build({
+        entryPoints: [path.resolve(HERE, "../pages-src/windowed.jsx")],
+        bundle: true,
+        write: false,
+        format: "esm",
+        target: "es2022",
+        define: { "process.env.NODE_ENV": '"production"' },
+        logLevel: "silent",
+    });
+    return result.outputFiles[0].text;
+}
+
 const DEFAULT_DOENETML = `
 <p>What is <m>1+1</m>? <answer name="ans"><mathInput/>2</answer></p>
 <graph size="small"><point name="P">(1,2)</point></graph>
@@ -113,7 +136,7 @@ function parseArgs() {
  * an iframe whose realm origin is the *main* server — modelling how PreTeXt and
  * doenet.org load `@doenet/standalone` cross-origin from a CDN.
  */
-function startServer(docs, { cors = false, json = {} } = {}) {
+function startServer(docs, { cors = false, json = {}, extra = {} } = {}) {
     const MIME = {
         ".js": "text/javascript",
         ".mjs": "text/javascript",
@@ -132,6 +155,14 @@ function startServer(docs, { cors = false, json = {} } = {}) {
                 ...corsHeaders,
             });
             res.end(JSON.stringify(json[url.pathname]));
+            return;
+        }
+        if (url.pathname in extra) {
+            // In-memory generated assets (e.g. the esbuild-built windowed
+            // page script).
+            const { content, type } = extra[url.pathname];
+            res.writeHead(200, { "content-type": type, ...corsHeaders });
+            res.end(content);
             return;
         }
         if (url.pathname === "/doenetml-source") {
@@ -342,6 +373,12 @@ const emptyDast = parser.normalizeDocumentDast(parser.lezerToDast(""), true);
 
 const { server, port } = await startServer(docs, {
     json: { "/empty-dast.json": emptyDast },
+    extra: {
+        "/windowed.js": {
+            content: await buildWindowedPageScript(),
+            type: "text/javascript",
+        },
+    },
 });
 const base = `http://127.0.0.1:${port}`;
 // Second, CORS-enabled server on a different port = a different origin. It
@@ -408,6 +445,17 @@ const scenarios = [
             expectInitialized: n,
         },
     ]),
+    // Windowed mounting (#1441 stream B): N real `@doenet/doenetml-iframe`
+    // viewers with mountPolicy {mode:"windowed", maxLiveViewers:3}; the page
+    // settles at ~3 live realms with the rest parked (state flushed, iframe
+    // replaced by a placeholder). Fixed counts rather than opts.counts: the
+    // headline is the marginal cost per additional PARKED instance
+    // ((windowed-16-3 − windowed-8-3)/8), which should be ≈ 0 MB.
+    ...[8, 16].map((count) => ({
+        name: `windowed-${count}-3`,
+        url: `${base}/windowed.html?n=${count}&keep=3`,
+        expectInitialized: 1,
+    })),
     // Document-scaling: one viewer, generated large document.
     ...opts.sizes.map((size) => ({
         name: `repeat-${size}`,
@@ -465,6 +513,15 @@ if (hi > lo) {
             );
         }
     }
+}
+const windowedLo = byName["windowed-8-3"];
+const windowedHi = byName["windowed-16-3"];
+if (windowedLo?.totalPssMB != null && windowedHi?.totalPssMB != null) {
+    console.error(
+        `marginal cost per additional PARKED instance (windowed@3): ~${Math.round(
+            (windowedHi.totalPssMB - windowedLo.totalPssMB) / 8,
+        )} MB`,
+    );
 }
 const small = byName["direct-1"];
 for (const size of opts.sizes) {

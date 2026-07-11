@@ -15,7 +15,8 @@
         "benchmark": {
             "command": "node src/measure.mjs",
             "dependencies": [
-                "../standalone:build"
+                "../standalone:build",
+                "../doenetml-iframe:build"
             ]
         }
     },
