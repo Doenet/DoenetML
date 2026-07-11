@@ -297,14 +297,6 @@ function renderWithLastAugmentedProps() {
     );
 }
 
-// Defer `iframeReady` until the standalone bundle has defined
-// `renderDoenetViewerToContainer`. See `waitForStandaloneBundle` above.
-//
-// The trailing `.catch(...)` is required by repo convention (AGENTS.md:
-// no fire-and-forget Promises). See the editor counterpart for the full
-// rationale — nothing inside is expected to throw, but an unhandled
-// rejection inside the iframe is hard to diagnose, so log locally and
-// try to surface an error to the parent.
 /**
  * Route this realm's core creation to the PARENT page's shared worker pool
  * (#1466): install `doenetGlobalConfig.createExternalCoreWorkerPort` so the
@@ -340,6 +332,14 @@ function installSharedCorePortProvider() {
     };
 }
 
+// Defer `iframeReady` until the standalone bundle has defined
+// `renderDoenetViewerToContainer`. See `waitForStandaloneBundle` above.
+//
+// The trailing `.catch(...)` is required by repo convention (AGENTS.md:
+// no fire-and-forget Promises). See the editor counterpart for the full
+// rationale — nothing inside is expected to throw, but an unhandled
+// rejection inside the iframe is hard to diagnose, so log locally and
+// try to surface an error to the parent.
 (async () => {
     if (await waitForStandaloneBundle(60_000)) {
         if (
