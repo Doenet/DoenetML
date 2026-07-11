@@ -766,6 +766,17 @@ export function DoenetViewer({
     }
 
     /**
+     * Whether this viewer may be parked *right now*. Requires a persistence
+     * path (else parking loses work) AND a live iframe realm to flush: an
+     * errored or already-torn-down viewer has no `contentWindow`, so parking
+     * it is a no-op — and leaving it eligible would spin the manager, which
+     * re-asks (via `scheduleEvaluate(0)`) after every failed `beginPark`.
+     */
+    function canPark() {
+        return hasPersistencePath() && Boolean(ref.current?.contentWindow);
+    }
+
+    /**
      * Begin parking (called by the lifecycle manager): flush the viewer's
      * state, then swap the iframe for a placeholder once acknowledged.
      * Re-posts the flush every 500 ms (the viewer's listener registers on
@@ -805,25 +816,37 @@ export function DoenetViewer({
         post();
     }
 
-    /** The park flush acknowledged — finish parking (or abort if visible). */
-    function completeParkFlush(ack: any) {
+    /**
+     * Tear down the in-flight park flush (its retry/timeout timers) when it
+     * resolves — whether by acknowledgement or timeout. Returns whether the
+     * park should proceed: `false` if no flush was in flight, or the viewer
+     * scrolled back into view while the flush was in flight (nothing has been
+     * torn down, so it just stays live).
+     */
+    function endParkFlush(): boolean {
         if (!parkingRef.current) {
-            return;
+            return false;
         }
         parkFlushCleanupRef.current?.();
         parkFlushIdRef.current = null;
         parkingRef.current = false;
         if (visibleRef.current) {
-            // The viewer scrolled back into view while the flush was in
-            // flight. Nothing has been torn down — just stay live.
             notifyViewerState(id, "live");
+            return false;
+        }
+        return true;
+    }
+
+    /** The park flush acknowledged — finish parking (or abort if visible). */
+    function completeParkFlush(ack: any) {
+        if (!endParkFlush()) {
             return;
         }
         if (ack.hadState) {
             everHadStateRef.current = true;
-        }
-        if (ack.hadState && lastCapturedReportRef.current?.state) {
-            parkedSnapshotRef.current = lastCapturedReportRef.current.state;
+            if (lastCapturedReportRef.current?.state) {
+                parkedSnapshotRef.current = lastCapturedReportRef.current.state;
+            }
         }
         // else: keep any previous snapshot. `hadState: false` with a prior
         // snapshot means the core never booted this generation, so the prior
@@ -834,14 +857,7 @@ export function DoenetViewer({
 
     /** No acknowledgement within flushTimeoutMs — park anyway (see above). */
     function onParkFlushTimeout() {
-        if (!parkingRef.current) {
-            return;
-        }
-        parkFlushCleanupRef.current?.();
-        parkFlushIdRef.current = null;
-        parkingRef.current = false;
-        if (visibleRef.current) {
-            notifyViewerState(id, "live");
+        if (!endParkFlush()) {
             return;
         }
         finishPark();
@@ -913,7 +929,7 @@ export function DoenetViewer({
             maxLiveViewers:
                 mountPolicy?.maxLiveViewers ?? DEFAULT_MAX_LIVE_VIEWERS,
             parkDelayMs: mountPolicy?.parkDelayMs ?? DEFAULT_PARK_DELAY_MS,
-            canPark: hasPersistencePath,
+            canPark,
             requestPark: beginPark,
         });
         return () => {
